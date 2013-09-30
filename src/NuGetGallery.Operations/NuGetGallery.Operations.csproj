@@ -194,7 +194,6 @@
     <Compile Include="Tasks\Backups\ExportWarehouseBackupsTask.cs" />
     <Compile Include="Tasks\Backups\ExportDailyBackupsTask.cs" />
     <Compile Include="Tasks\Backups\ListOfflineDatabaseBackupsTask.cs" />
-    <Compile Include="Tasks\BlobBackupFailedException.cs" />
     <Compile Include="Tasks\CheckDatabaseStatusTask.cs" />
     <Compile Include="Tasks\CheckBlobCopiesTask.cs" />
     <Compile Include="Tasks\Backups\CleanOnlineDatabaseBackupsTask.cs" />
@@ -210,6 +209,7 @@
     <Compile Include="Tasks\CuratedFeeds\CreateCuratedFeed.cs" />
     <Compile Include="Tasks\CuratedFeeds\DeleteCuratedFeedTask.cs" />
     <Compile Include="Tasks\CuratedFeeds\ListCuratedFeedsTask.cs" />
+    <Compile Include="Tasks\DataManagement\CreateHashNamedPackageBlobs.cs" />
     <Compile Include="Tasks\DataManagement\DeleteDuplicatePackageVersionsTask.cs" />
     <Compile Include="Tasks\DataManagement\NormalizePackageFilesTask.cs" />
     <Compile Include="Tasks\DataManagement\NormalizePackageVersionsTask.cs" />

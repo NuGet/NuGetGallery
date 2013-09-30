@@ -155,6 +155,27 @@ namespace NuGetGallery
 
                 Assert.Equal("packageFile", ex.ParamName);
             }
-        }   
+        }
+
+        public class TheCopyAsyncMethods
+        {
+            [Fact]
+            public async Task CanCopyFilesInANewContainer()
+            {
+                string newContainerName1 = "r" + new Random().Next();
+                string newContainerName2 = "s" + new Random().Next();
+
+                var service = CreateService();
+
+                await service.SaveFileAsync(newContainerName1, "source.nupkg", new MemoryStream(new byte[] { 0x42 }), "application/zip");
+                await service.BeginCopyAsync(newContainerName1, "source.nupkg", newContainerName2, "dest.nupkg");
+                await service.WaitForCopyCompleteAsync(newContainerName2, "dest.nupkg");
+
+                Stream readBack = service.GetFileAsync(newContainerName2, "dest.nupkg").Result;
+                var x = new MemoryStream(1);
+                readBack.CopyTo(x);
+                Assert.Equal(new byte[] { 0x42 }, x.GetBuffer());
+            }
+        }
     }
 }

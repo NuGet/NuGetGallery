@@ -13,6 +13,8 @@ namespace NuGetGallery
 {
     public class CloudBlobFileStorageService : IFileStorageService
     {
+        static int[] SleepTimes = { 50, 750, 1500, 2500, 3750, 5250, 7000, 9000 };
+
         private readonly ICloudBlobClient _client;
         private readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
         private Func<string, bool> _isPublicFolderPolicy;
@@ -25,21 +27,21 @@ namespace NuGetGallery
 
         public async Task DeleteFileAsync(string folderName, string fileName)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
+            ICloudBlobContainer container = await EnsureContainer(folderName);
             var blob = container.GetBlobReference(fileName);
             await blob.DeleteIfExistsAsync();
         }
 
         public async Task DownloadToFileAsync(string folderName, string fileName, string downloadedPackageFilePath)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
+            ICloudBlobContainer container = await EnsureContainer(folderName);
             var blob = container.GetBlobReference(fileName);
             await blob.DownloadToFileAsync(downloadedPackageFilePath);
         }
 
         public async Task UploadFromFileAsync(string folderName, string fileName, string path, string contentType)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
+            ICloudBlobContainer container = await EnsureContainer(folderName);
             var blob = container.GetBlobReference(fileName);
             await blob.UploadFromFileAsync(path);
             blob.Properties.ContentType = "application/zip";
@@ -48,7 +50,7 @@ namespace NuGetGallery
 
         public async Task<bool> FileExistsAsync(string folderName, string fileName)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
+            ICloudBlobContainer container = await EnsureContainer(folderName);
             var blob = container.GetBlobReference(fileName);
             return await blob.ExistsAsync();
         }
@@ -80,7 +82,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException("fileName");
             }
 
-            ICloudBlobContainer container = await GetContainer(folderName);
+            ICloudBlobContainer container = await EnsureContainer(folderName);
             var blob = container.GetBlobReference(fileName);
             var result = await GetBlobContentAsync(folderName, fileName, ifNoneMatch);
             if (result.StatusCode == HttpStatusCode.NotModified)
@@ -104,7 +106,7 @@ namespace NuGetGallery
 
         public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile, string contentType)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
+            ICloudBlobContainer container = await EnsureContainer(folderName);
             var blob = container.GetBlobReference(fileName);
             await blob.DeleteIfExistsAsync();
             await blob.UploadFromStreamAsync(packageFile);
@@ -112,7 +114,7 @@ namespace NuGetGallery
             await blob.SetPropertiesAsync();
         }
 
-        public async Task<ICloudBlobContainer> GetContainer(string folderName)
+        public async Task<ICloudBlobContainer> EnsureContainer(string folderName)
         {
             ICloudBlobContainer container;
             if (_containers.TryGetValue(folderName, out container))
@@ -127,7 +129,7 @@ namespace NuGetGallery
 
         private async Task<StorageResult> GetBlobContentAsync(string folderName, string fileName, string ifNoneMatch = null)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
+            ICloudBlobContainer container = await EnsureContainer(folderName);
 
             var blob = container.GetBlobReference(fileName);
 
@@ -194,6 +196,59 @@ namespace NuGetGallery
             ICloudBlobContainer container = _client.GetContainerReference(folderName);
             var blob = container.GetBlobReference(fileName);
             return new UriOrStream(blob.Uri);
+        }
+
+        public async Task BeginCopyAsync(
+            string folderName1, string fileName1, 
+            string folderName2, string fileName2)
+        {
+            ICloudBlobContainer container1 = _client.GetContainerReference(folderName1);
+            var blob1 = container1.GetBlobReference(fileName1);
+
+            ICloudBlobContainer container2 = await EnsureContainer(folderName2);
+            var blob2 = container2.GetBlobReference(fileName2);
+
+            await blob2.StartCopyFromBlobAsync(blob1.Uri);
+        }
+
+        public async Task WaitForCopyCompleteAsync(string folderName, string fileName)
+        {
+            ICloudBlobContainer container = _client.GetContainerReference(folderName);
+            var blob = container.GetBlobReference(fileName);
+
+            DateTime startTime = DateTime.Now;
+            TimeSpan timeout = TimeSpan.FromMinutes(10);
+            int i = 0;
+            while (DateTime.Now < (startTime + timeout))
+            {
+                if (blob.CopyState != null)
+                {
+                    if (blob.CopyState.Status == CopyStatus.Success)
+                    {
+                        return;
+                    }
+
+                    if (blob.CopyState.Status == CopyStatus.Failed)
+                    {
+                        string msg1 = string.Format("Blob copy failed. Src: {0}, Dst: {1}, BytesCopied: {2} ", 
+                            blob.CopyState.Source, 
+                            blob.Uri, 
+                            blob.CopyState.BytesCopied);
+                        throw new BlobCopyFailedException(msg1);
+                    }
+                }
+
+                await blob.FetchAttributesAsync();
+
+                await Task.Delay(SleepTimes[i]);
+                if (i < SleepTimes.Length - 1)
+                {
+                    i += 1;
+                }
+            }
+
+            string msg2 = string.Format("Blob copy did not complete within {0} minutes", timeout.TotalMinutes);
+            throw new TimeoutException(msg2);
         }
 
         private struct StorageResult

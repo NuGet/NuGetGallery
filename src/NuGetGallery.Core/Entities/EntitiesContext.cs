@@ -10,7 +10,7 @@ namespace NuGetGallery
         /// <summary>
         /// The NuGet Gallery code should usually use this constructor, in order to respect read only mode.
         /// </summary>
-        public EntitiesContext(string connectionString, bool readOnly)
+        public  EntitiesContext(string connectionString, bool readOnly)
             : base(connectionString)
         {
             ReadOnly = readOnly;

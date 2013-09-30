@@ -42,6 +42,11 @@ namespace NuGetGallery
             get { return _blob.Properties.ETag; }
         }
 
+        public CopyState CopyState
+        {
+            get { return _blob.CopyState; }
+        }
+
         public Task DeleteIfExistsAsync()
         {
             return _blob.DeleteIfExistsAsync();
@@ -53,6 +58,11 @@ namespace NuGetGallery
             {
                 _blob.DownloadToStream(strm);
             }
+        }
+
+        public Task StartCopyFromBlobAsync(Uri source)
+        {
+            return _blob.StartCopyFromBlobAsync(source);
         }
 
         public Task DownloadToFileAsync(string path)

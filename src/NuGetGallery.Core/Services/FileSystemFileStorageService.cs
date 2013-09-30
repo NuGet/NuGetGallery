@@ -164,5 +164,25 @@ namespace NuGetGallery
         {
             throw new NotSupportedException("uploading local files to local files sounds crazy. let's not do that unless we need to.");
         }
+
+        public Task BeginCopyAsync(string folderName1, string fileName1, string folderName2, string fileName2)
+        {
+            var path1 = Path.Combine(_storageDirectory, folderName1, fileName1);
+            var path2 = Path.Combine(_storageDirectory, folderName2, fileName2);
+            var folderPath2 = Path.Combine(_storageDirectory, folderName2);
+
+            if (!Directory.Exists(folderPath2))
+            {
+                Directory.CreateDirectory(folderPath2);
+            }
+
+            File.Copy(path1, path2);
+            return Task.FromResult(0);
+        }
+
+        public Task WaitForCopyCompleteAsync(string folderName, string fileName)
+        {
+            return Task.FromResult(0);
+        }
     }
 }

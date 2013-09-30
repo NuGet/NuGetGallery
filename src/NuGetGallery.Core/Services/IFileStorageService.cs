@@ -35,5 +35,9 @@ namespace NuGetGallery
         Task DownloadToFileAsync(string folderName, string fileName, string downloadedPackageFilePath);
 
         Task UploadFromFileAsync(string folderName, string fileName, string path, string contentType);
+
+        Task BeginCopyAsync(string folderName1, string fileName1, string folderName2, string fileName2);
+
+        Task WaitForCopyCompleteAsync(string folderName, string fileName);
     }
 }

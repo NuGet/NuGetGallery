@@ -250,7 +250,7 @@ namespace NuGetGallery.Operations.Tasks
                     {
                         string msg = string.Format("Blob copy failed: CopyState={0}", state.StatusDescription);
                         Log.Error("(error) " + msg);
-                        throw new BlobBackupFailedException(msg);
+                        throw new BlobCopyFailedException(msg);
                     }
                 }
             }

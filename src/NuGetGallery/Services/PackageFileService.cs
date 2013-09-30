@@ -15,9 +15,26 @@ namespace NuGetGallery
             _fileStorageService = fileStorageService;
         }
 
+        public Task BeginCopyPackageFileToHashedAsync(string id, string normalizedVersion, string hash)
+        {
+            var fileName1 = BuildFileName(id, normalizedVersion);
+            var fileName2 = BuildFileName(id, normalizedVersion, hash);
+
+            return _fileStorageService.BeginCopyAsync(
+                Constants.PackagesFolderName, fileName1, 
+                Constants.PackagesFolderName, fileName2);
+        }
+
+        public Task EndCopyPackageFileToHashedAsync(string id, string normalizedVersion, string hash)
+        {
+            var fileName2 = BuildFileName(id, normalizedVersion, hash);
+            return _fileStorageService.WaitForCopyCompleteAsync(
+                Constants.PackagesFolderName, fileName2);
+        }
+
         public UriOrStream GetDownloadUriOrStream(Package package)
         {
-            var fileName = BuildFileName(package);
+            var fileName = BuildFileName(package.PackageRegistration.Id, package.Version);
             return _fileStorageService.GetDownloadUriOrStream(Constants.PackagesFolderName, fileName);
         }
 
@@ -83,26 +100,20 @@ namespace NuGetGallery
             return _fileStorageService.FileExistsAsync(Constants.PackagesFolderName, fileName).Result;
         }
 
+        public bool PackageFileExists(string packageId, string normalizedVersion, string hash)
+        {
+            var fileName = BuildFileName(packageId, normalizedVersion, hash);
+            return _fileStorageService.FileExistsAsync(Constants.PackagesFolderName, fileName).Result;
+        }
+
         private static string BuildFileName(string id, string version)
         {
             return FileConventions.GetPackageFileName(id, version);
         }
 
-        private static string BuildFileName(Package package)
+        private static string BuildFileName(string id, string version, string hash)
         {
-            if (package == null)
-            {
-                throw new ArgumentNullException("package");
-            }
-
-            if (package.PackageRegistration == null || 
-                String.IsNullOrWhiteSpace(package.PackageRegistration.Id) || 
-                String.IsNullOrWhiteSpace(package.Version))
-            {
-                throw new ArgumentException("The package is missing required data.", "package");
-            }
-
-            return BuildFileName(package.PackageRegistration.Id, package.Version);
+            return FileConventions.GetPackageFileNameHash(id, version, hash);
         }
     }
 }

@@ -13,6 +13,7 @@ namespace NuGetGallery
         string Name { get; }
         DateTime LastModifiedUtc { get; }
         string ETag { get; }
+        CopyState CopyState { get; }
 
         Task DeleteIfExistsAsync();
         Task DownloadToStreamAsync(Stream target);
@@ -25,5 +26,6 @@ namespace NuGetGallery
         Task UploadFromFileAsync(string path);
 
         Task FetchAttributesAsync();
+        Task StartCopyFromBlobAsync(Uri source);
     }
 }
