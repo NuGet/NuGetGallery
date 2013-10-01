@@ -42,7 +42,7 @@ namespace NuGetGallery
             var curatedFeeds = CuratedFeedService.GetFeedsForManager(user.Key);
             var apiCredential = user
                 .Credentials
-                .FirstOrDefault(c => c.Type == Constants.CredentialTypes.ApiKeyV1);
+                .FirstOrDefault(c => c.Type == CredentialTypes.ApiKeyV1);
             return View(
                 new AccountViewModel
                     {

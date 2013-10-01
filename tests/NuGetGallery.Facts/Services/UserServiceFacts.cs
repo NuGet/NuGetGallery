@@ -20,17 +20,18 @@ namespace NuGetGallery
         public static User CreateAUser(
             string username, 
             string password,
-            string emailAddress)
+            string emailAddress,
+            string hashAlgorithm = Constants.PBKDF2HashAlgorithmId)
         {
             return new User
             {
                 Username = username,
                 HashedPassword = String.IsNullOrEmpty(password) ? 
                     null : 
-                    CryptographyService.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId),
+                    CryptographyService.GenerateSaltedHash(password, hashAlgorithm),
                 PasswordHashAlgorithm = String.IsNullOrEmpty(password) ?
                     null :
-                    Constants.PBKDF2HashAlgorithmId,
+                    hashAlgorithm,
                 EmailAddress = emailAddress,
             };
         }
@@ -53,7 +54,7 @@ namespace NuGetGallery
         public static Credential CreatePasswordCredential(string password)
         {
             return new Credential(
-                type: Constants.CredentialTypes.PasswordPbkdf2,
+                type: CredentialTypes.Password.Pbkdf2,
                 value: CryptographyService.GenerateSaltedHash(
                     password, 
                     Constants.PBKDF2HashAlgorithmId));
@@ -138,6 +139,44 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void ReturnsFalseIfPasswordDoesNotMatchUser_SHA1Credential()
+            {
+                var user = new User
+                {
+                    Username = "user",
+                    HashedPassword = "not_the_password",
+                    PasswordHashAlgorithm = "SHA1",
+                };
+                user.Credentials.Add(CredentialBuilder.CreateSha1Password("oldpwd"));
+                var service = new TestableUserService();
+                service.MockUserRepository
+                       .Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
+
+                var changed = service.ChangePassword("user", "not_the_password", "newpwd");
+
+                Assert.False(changed);
+            }
+
+            [Fact]
+            public void ReturnsFalseIfPasswordDoesNotMatchUser_PBKDF2Credential()
+            {
+                var user = new User
+                {
+                    Username = "user",
+                    HashedPassword = "not_the_password",
+                    PasswordHashAlgorithm = "SHA1",
+                };
+                user.Credentials.Add(CredentialBuilder.CreatePbkdf2Password("oldpwd"));
+                var service = new TestableUserService();
+                service.MockUserRepository
+                       .Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
+
+                var changed = service.ChangePassword("user", "not_the_password", "newpwd");
+
+                Assert.False(changed);
+            }
+
+            [Fact]
             public void ReturnsTrueWhenSuccessful()
             {
                 var hash = CryptographyService.GenerateSaltedHash("oldpwd", "PBKDF2");
@@ -173,7 +212,7 @@ namespace NuGetGallery
                     Username = "user",
                     Credentials = new List<Credential>()
                     {
-                        new Credential(Constants.CredentialTypes.PasswordPbkdf2, hash)
+                        new Credential(CredentialTypes.Password.Pbkdf2, hash)
                     }
                 };
                 var service = new TestableUserService();
@@ -182,7 +221,7 @@ namespace NuGetGallery
 
                 var changed = service.ChangePassword("user", "oldpwd", "newpwd");
                 var cred = user.Credentials.Single();
-                Assert.Equal(Constants.CredentialTypes.PasswordPbkdf2, cred.Type);
+                Assert.Equal(CredentialTypes.Password.Pbkdf2, cred.Type);
                 Assert.True(VerifyPasswordHash(cred.Value, Constants.PBKDF2HashAlgorithmId, "newpwd"));
                 service.MockUserRepository.VerifyCommitted();
             }
@@ -359,9 +398,9 @@ namespace NuGetGallery
                     "theEmailAddress");
 
                 Assert.NotNull(user);
-                var passwordCred = user.Credentials.FirstOrDefault(c => c.Type == Constants.CredentialTypes.PasswordPbkdf2);
+                var passwordCred = user.Credentials.FirstOrDefault(c => c.Type == CredentialTypes.Password.Pbkdf2);
                 Assert.NotNull(passwordCred);
-                Assert.Equal(Constants.CredentialTypes.PasswordPbkdf2, passwordCred.Type);
+                Assert.Equal(CredentialTypes.Password.Pbkdf2, passwordCred.Type);
                 Assert.True(VerifyPasswordHash(passwordCred.Value, Constants.PBKDF2HashAlgorithmId, "thePassword"));
 
                 userService.MockUserRepository
@@ -408,7 +447,7 @@ namespace NuGetGallery
                     .Verify(x => x.InsertOnCommit(user));
                 Assert.NotEqual(Guid.Empty, user.ApiKey);
 
-                var apiKeyCred = user.Credentials.FirstOrDefault(c => c.Type == Constants.CredentialTypes.ApiKeyV1);
+                var apiKeyCred = user.Credentials.FirstOrDefault(c => c.Type == CredentialTypes.ApiKeyV1);
                 Assert.NotNull(apiKeyCred);
                 Assert.Equal(user.ApiKey.ToString().ToLowerInvariant(), apiKeyCred.Value);
             }
@@ -534,6 +573,83 @@ namespace NuGetGallery
                 Assert.NotNull(foundByUserName);
                 Assert.Same(user, foundByUserName);
             }
+
+            [Fact]
+            public void GivenASHA1PasswordColumnAndNoCredentialsItAuthenticatesUser()
+            {
+                var user = CreateAUser("theUsername", "thePassword", "test@example.com", hashAlgorithm: Constants.Sha1HashAlgorithmId);
+                var service = new TestableUserService();
+                service.MockUserRepository.HasData(user);
+
+                var foundByUserName = service.FindByUsernameAndPassword("theUsername", "thePassword");
+
+                Assert.Same(user, foundByUserName);
+                Assert.Empty(user.Credentials);
+            }
+
+            [Fact]
+            public void GivenAPBKDF2PasswordColumnAndNoCredentialsItAuthenticatesUser()
+            {
+                var user = CreateAUser("theUsername", "thePassword", "test@example.com", hashAlgorithm: Constants.PBKDF2HashAlgorithmId);
+                var service = new TestableUserService();
+                service.MockUserRepository.HasData(user);
+
+                var foundByUserName = service.FindByUsernameAndPassword("theUsername", "thePassword");
+
+                Assert.Same(user, foundByUserName);
+                Assert.Empty(user.Credentials);
+            }
+
+            [Fact]
+            public void GivenOnlyASHA1CredentialItAuthenticatesUserAndReplacesItWithAPBKDF2Credential()
+            {
+                var user = CreateAUser("theUsername", password: null, emailAddress: "test@example.com");
+                user.Credentials.Add(CredentialBuilder.CreateSha1Password("thePassword"));
+                var service = new TestableUserService();
+                service.MockUserRepository.HasData(user);
+                service.MockCredentialRepository.HasData(user.Credentials);
+
+                var foundByUserName = service.FindByUsernameAndPassword("theUsername", "thePassword");
+
+                var cred = foundByUserName.Credentials.Single();
+                Assert.Same(user, foundByUserName);
+                Assert.Equal(CredentialTypes.Password.Pbkdf2, cred.Type);
+                Assert.True(CryptographyService.ValidateSaltedHash(cred.Value, "thePassword", Constants.PBKDF2HashAlgorithmId));
+            }
+
+            [Fact]
+            public void GivenASHA1AndAPBKDF2CredentialItAuthenticatesUserWithEitherCredential()
+            {
+                var user = CreateAUser("theUsername", password: null, emailAddress: "test@example.com");
+                user.Credentials.Add(CredentialBuilder.CreateSha1Password("thePassword1"));
+                user.Credentials.Add(CredentialBuilder.CreatePbkdf2Password("thePassword2"));
+                var service = new TestableUserService();
+                service.MockUserRepository.HasData(user);
+                service.MockCredentialRepository.HasData(user.Credentials);
+
+                var foundByPassword1 = service.FindByUsernameAndPassword("theUsername", "thePassword1");
+                var foundByPassword2 = service.FindByUsernameAndPassword("theUsername", "thePassword2");
+                Assert.Same(user, foundByPassword1);
+                Assert.Same(foundByPassword1, foundByPassword2);
+            }
+
+            [Fact]
+            public void GivenASHA1AndAPBKDF2CredentialItAuthenticatesUserAndRemovesTheSHA1Cred()
+            {
+                var user = CreateAUser("theUsername", password: null, emailAddress: "test@example.com");
+                user.Credentials.Add(CredentialBuilder.CreateSha1Password("thePassword"));
+                user.Credentials.Add(CredentialBuilder.CreatePbkdf2Password("thePassword"));
+                var service = new TestableUserService();
+                service.MockUserRepository.HasData(user);
+                service.MockCredentialRepository.HasData(user.Credentials);
+
+                var foundByUserName = service.FindByUsernameAndPassword("theUsername", "thePassword");
+
+                var cred = foundByUserName.Credentials.Single();
+                Assert.Same(user, foundByUserName);
+                Assert.Equal(CredentialTypes.Password.Pbkdf2, cred.Type);
+                Assert.True(CryptographyService.ValidateSaltedHash(cred.Value, "thePassword", Constants.PBKDF2HashAlgorithmId));
+            }
         }
 
         public class TheFindByUsernameOrEmailAddressAndPasswordMethod
@@ -608,6 +724,83 @@ namespace NuGetGallery
 
                 Assert.NotNull(foundByUserName);
                 Assert.Same(user, foundByUserName);
+            }
+
+            [Fact]
+            public void GivenASHA1PasswordColumnAndNoCredentialsItAuthenticatesUser()
+            {
+                var user = CreateAUser("test@example.com", "thePassword", "test@example.com", hashAlgorithm: Constants.Sha1HashAlgorithmId);
+                var service = new TestableUserService();
+                service.MockUserRepository.HasData(user);
+
+                var foundByUserName = service.FindByUsernameOrEmailAddressAndPassword("test@example.com", "thePassword");
+
+                Assert.Same(user, foundByUserName);
+                Assert.Empty(user.Credentials);
+            }
+
+            [Fact]
+            public void GivenAPBKDF2PasswordColumnAndNoCredentialsItAuthenticatesUser()
+            {
+                var user = CreateAUser("test@example.com", "thePassword", "test@example.com", hashAlgorithm: Constants.PBKDF2HashAlgorithmId);
+                var service = new TestableUserService();
+                service.MockUserRepository.HasData(user);
+
+                var foundByUserName = service.FindByUsernameOrEmailAddressAndPassword("test@example.com", "thePassword");
+
+                Assert.Same(user, foundByUserName);
+                Assert.Empty(user.Credentials);
+            }
+
+            [Fact]
+            public void GivenOnlyASHA1CredentialItAuthenticatesUserAndReplacesItWithAPBKDF2Credential()
+            {
+                var user = CreateAUser("test@example.com", password: null, emailAddress: "test@example.com");
+                user.Credentials.Add(CredentialBuilder.CreateSha1Password("thePassword"));
+                var service = new TestableUserService();
+                service.MockUserRepository.HasData(user);
+                service.MockCredentialRepository.HasData(user.Credentials);
+
+                var foundByUserName = service.FindByUsernameOrEmailAddressAndPassword("test@example.com", "thePassword");
+
+                var cred = foundByUserName.Credentials.Single();
+                Assert.Same(user, foundByUserName);
+                Assert.Equal(CredentialTypes.Password.Pbkdf2, cred.Type);
+                Assert.True(CryptographyService.ValidateSaltedHash(cred.Value, "thePassword", Constants.PBKDF2HashAlgorithmId));
+            }
+
+            [Fact]
+            public void GivenASHA1AndAPBKDF2CredentialItAuthenticatesUserWithEitherCredential()
+            {
+                var user = CreateAUser("test@example.com", password: null, emailAddress: "test@example.com");
+                user.Credentials.Add(CredentialBuilder.CreateSha1Password("thePassword1"));
+                user.Credentials.Add(CredentialBuilder.CreatePbkdf2Password("thePassword2"));
+                var service = new TestableUserService();
+                service.MockUserRepository.HasData(user);
+                service.MockCredentialRepository.HasData(user.Credentials);
+
+                var foundByPassword1 = service.FindByUsernameOrEmailAddressAndPassword("test@example.com", "thePassword1");
+                var foundByPassword2 = service.FindByUsernameOrEmailAddressAndPassword("test@example.com", "thePassword2");
+                Assert.Same(user, foundByPassword1);
+                Assert.Same(foundByPassword1, foundByPassword2);
+            }
+
+            [Fact]
+            public void GivenASHA1AndAPBKDF2CredentialItAuthenticatesUserAndRemovesTheSHA1Cred()
+            {
+                var user = CreateAUser("theUsername", password: null, emailAddress: "test@example.com");
+                user.Credentials.Add(CredentialBuilder.CreateSha1Password("thePassword"));
+                user.Credentials.Add(CredentialBuilder.CreatePbkdf2Password("thePassword"));
+                var service = new TestableUserService();
+                service.MockUserRepository.HasData(user);
+                service.MockCredentialRepository.HasData(user.Credentials);
+
+                var foundByUserName = service.FindByUsernameOrEmailAddressAndPassword("test@example.com", "thePassword");
+
+                var cred = foundByUserName.Credentials.Single();
+                Assert.Same(user, foundByUserName);
+                Assert.Equal(CredentialTypes.Password.Pbkdf2, cred.Type);
+                Assert.True(CryptographyService.ValidateSaltedHash(cred.Value, "thePassword", Constants.PBKDF2HashAlgorithmId));
             }
         }
 
@@ -937,7 +1130,7 @@ namespace NuGetGallery
 
                 Assert.True(result);
                 var newCred = user.Credentials.Single();
-                Assert.Equal(Constants.CredentialTypes.PasswordPbkdf2, newCred.Type);
+                Assert.Equal(CredentialTypes.Password.Pbkdf2, newCred.Type);
                 Assert.True(VerifyPasswordHash(newCred.Value, Constants.PBKDF2HashAlgorithmId, "new-password"));
                 userService.MockUserRepository.VerifyCommitted();
             }

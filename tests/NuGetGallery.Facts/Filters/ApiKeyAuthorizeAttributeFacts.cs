@@ -19,7 +19,7 @@ namespace NuGetGallery.Filters
 
             GetMock<IUserService>()
                 .Setup(us => us.AuthenticateCredential(
-                    Constants.CredentialTypes.ApiKeyV1,
+                    CredentialTypes.ApiKeyV1,
                     apiKey.ToString().ToLowerInvariant()))
                 .Returns(new Credential() { User = Fakes.Owner });
 

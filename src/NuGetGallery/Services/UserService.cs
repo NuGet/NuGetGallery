@@ -62,7 +62,7 @@ namespace NuGetGallery
 
             // Add a credential for the password and the API Key
             newUser.Credentials.Add(CredentialBuilder.CreateV1ApiKey(apiKey));
-            newUser.Credentials.Add(new Credential(Constants.CredentialTypes.PasswordPbkdf2, newUser.HashedPassword));
+            newUser.Credentials.Add(new Credential(CredentialTypes.Password.Pbkdf2, newUser.HashedPassword));
 
             if (!Config.ConfirmEmailAddresses)
             {
@@ -94,7 +94,11 @@ namespace NuGetGallery
 
         public virtual User FindByEmailAddress(string emailAddress)
         {
-            return UserRepository.GetAll().SingleOrDefault(u => u.EmailAddress == emailAddress);
+            return UserRepository
+                .GetAll()
+                .Include(u => u.Credentials)
+                .Include(u => u.Roles)
+                .SingleOrDefault(u => u.EmailAddress == emailAddress);
         }
 
         public virtual IList<User> FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress, string optionalUsername)
@@ -126,10 +130,7 @@ namespace NuGetGallery
 
         public virtual User FindByUsernameOrEmailAddressAndPassword(string usernameOrEmail, string password)
         {
-            var user = UserRepository.GetAll()
-                .Include(u => u.Roles)
-                .Include(u => u.Credentials)
-                .SingleOrDefault(u => u.Username == usernameOrEmail || u.EmailAddress == usernameOrEmail);
+            var user = FindByUsername(usernameOrEmail) ?? FindByEmailAddress(usernameOrEmail);
 
             return AuthenticatePassword(password, user);
         }
@@ -288,7 +289,7 @@ namespace NuGetGallery
             UserRepository.CommitChanges();
         }
 
-        private static User AuthenticatePassword(string password, User user)
+        private User AuthenticatePassword(string password, User user)
         {
             if (user == null)
             {
@@ -296,19 +297,25 @@ namespace NuGetGallery
             }
 
             // Check for a credential
-            var cred = user.Credentials
-                .FirstOrDefault(c => String.Equals(
-                    c.Type,
-                    Constants.CredentialTypes.PasswordPbkdf2,
-                    StringComparison.OrdinalIgnoreCase));
+            var creds = user.Credentials
+                .Where(c => c.Type.StartsWith(
+                    CredentialTypes.Password.Prefix,
+                    StringComparison.OrdinalIgnoreCase)).ToList();
 
             bool valid;
-            if (cred != null)
+            if (creds.Count > 0)
             {
-                valid = Crypto.ValidateSaltedHash(
-                    cred.Value,
-                    password,
-                    Constants.PBKDF2HashAlgorithmId);
+                valid = ValidatePasswordCredential(creds, password);
+
+                if (valid && 
+                    (creds.Count > 1 || 
+                        !creds.Any(c => String.Equals(
+                            c.Type, 
+                            CredentialTypes.Password.Pbkdf2, 
+                            StringComparison.OrdinalIgnoreCase))))
+                {
+                    MigrateCredentials(user, creds, password);
+                }
             }
             else
             {
@@ -319,6 +326,57 @@ namespace NuGetGallery
             }
 
             return valid ? user : null;
+        }
+
+        private void MigrateCredentials(User user, List<Credential> creds, string password)
+        {
+            var toRemove = creds.Where(c => 
+                !String.Equals(
+                    c.Type, 
+                    CredentialTypes.Password.Pbkdf2, 
+                    StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            // Remove any non PBKDF2 credentials
+            foreach (var cred in toRemove)
+            {
+                creds.Remove(cred);
+                user.Credentials.Remove(cred); 
+            }
+
+            // Now add one if there are no credentials left
+            if (creds.Count == 0)
+            {
+                user.Credentials.Add(CredentialBuilder.CreatePbkdf2Password(password));
+            }
+
+            // Save changes, if any
+            UserRepository.CommitChanges();
+        }
+
+        private static bool ValidatePasswordCredential(IEnumerable<Credential> creds, string password)
+        {
+            return creds.Any(c => ValidatePasswordCredential(c, password));
+        }
+
+        private static readonly Dictionary<string, Func<string, Credential, bool>> _validators = new Dictionary<string, Func<string, Credential, bool>>(StringComparer.OrdinalIgnoreCase) {
+            { CredentialTypes.Password.Pbkdf2, (password, cred) => Crypto.ValidateSaltedHash(cred.Value, password, Constants.PBKDF2HashAlgorithmId) },
+            { CredentialTypes.Password.Sha1, (password, cred) => Crypto.ValidateSaltedHash(cred.Value, password, Constants.Sha1HashAlgorithmId) }
+        };
+        private static bool ValidatePasswordCredential(Credential cred, string password)
+        {
+            Func<string, Credential, bool> validator;
+            if (!_validators.TryGetValue(cred.Type, out validator))
+            {
+                return false;
+            }
+            return validator(password, cred);
+        }
+
+        private static Func<string, Credential, bool> ValidatePassword(string algorithm)
+        {
+            return (password, cred) =>
+                Crypto.ValidateSaltedHash(cred.Type, password, algorithm);
         }
 
         private void ChangePasswordInternal(User user, string newPassword)

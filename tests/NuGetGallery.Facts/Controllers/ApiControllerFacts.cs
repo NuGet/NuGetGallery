@@ -176,7 +176,7 @@ namespace NuGetGallery
                 var controller = new TestableApiController();
                 controller.MockUserService.Setup(
                     x => x.AuthenticateCredential(
-                        Constants.CredentialTypes.ApiKeyV1,
+                        CredentialTypes.ApiKeyV1,
                         apiKey.ToString().ToLowerInvariant()))
                     .Returns(new Credential() { User = user });
                 controller.SetupPackageFromInputStream(nuGetPackage);
@@ -203,7 +203,7 @@ namespace NuGetGallery
                 var controller = new TestableApiController();
                 controller.MockUserService
                     .Setup(x => x.AuthenticateCredential(
-                        Constants.CredentialTypes.ApiKeyV1,
+                        CredentialTypes.ApiKeyV1,
                         apiKey.ToString().ToLowerInvariant()))
                     .Returns(new Credential() { User = correctUser });
                 controller.MockUserService
@@ -387,7 +387,7 @@ namespace NuGetGallery
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                 controller.MockUserService
                     .Setup(x => x.AuthenticateCredential(
-                        Constants.CredentialTypes.ApiKeyV1, 
+                        CredentialTypes.ApiKeyV1, 
                         apiKey.ToString().ToLowerInvariant()))
                     .Returns(owner);
 
@@ -412,7 +412,7 @@ namespace NuGetGallery
                 controller.MockUserService.Setup(x => x.FindByApiKey(apiKey)).Returns(nonOwner);
                 controller.MockUserService
                     .Setup(x => x.AuthenticateCredential(
-                        Constants.CredentialTypes.ApiKeyV1,
+                        CredentialTypes.ApiKeyV1,
                         apiKey.ToString().ToLowerInvariant()))
                     .Returns(owner);
 
@@ -438,7 +438,7 @@ namespace NuGetGallery
                 controller.MockUserService.Setup(x => x.FindByApiKey(apiKey)).Returns(owner);
                 controller.MockUserService
                     .Setup(x => x.AuthenticateCredential(
-                        Constants.CredentialTypes.ApiKeyV1,
+                        CredentialTypes.ApiKeyV1,
                         apiKey.ToString().ToLowerInvariant()))
                     .Returns(nonOwner);
 
@@ -761,7 +761,7 @@ namespace NuGetGallery
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                 controller.MockUserService
                     .Setup(x => x.AuthenticateCredential(
-                        Constants.CredentialTypes.ApiKeyV1,
+                        CredentialTypes.ApiKeyV1,
                         apiKey.ToString().ToLowerInvariant()))
                     .Returns(owner);
 
@@ -791,7 +791,7 @@ namespace NuGetGallery
                 controller.MockUserService.Setup(x => x.FindByApiKey(apiKey)).Returns(owner);
                 controller.MockUserService
                     .Setup(x => x.AuthenticateCredential(
-                        Constants.CredentialTypes.ApiKeyV1,
+                        CredentialTypes.ApiKeyV1,
                         apiKey.ToString().ToLowerInvariant()))
                     .Returns(nonOwner);
 
@@ -819,7 +819,7 @@ namespace NuGetGallery
                 controller.MockUserService.Setup(s => s.FindByApiKey(guid)).Returns<User>(null);
                 controller.MockUserService
                     .Setup(s => s.AuthenticateCredential(
-                        Constants.CredentialTypes.ApiKeyV1,
+                        CredentialTypes.ApiKeyV1,
                         guid.ToString().ToLowerInvariant()))
                     .ReturnsNull();
                 controller.MockPackageService
@@ -845,7 +845,7 @@ namespace NuGetGallery
                 controller.MockUserService.Setup(s => s.FindByApiKey(guid)).Returns(new User());
                 controller.MockUserService
                     .Setup(s => s.AuthenticateCredential(
-                        Constants.CredentialTypes.ApiKeyV1,
+                        CredentialTypes.ApiKeyV1,
                         guid.ToString().ToLowerInvariant()))
                     .ReturnsNull();
 
@@ -864,7 +864,7 @@ namespace NuGetGallery
                 var controller = new TestableApiController();
                 controller.MockUserService
                     .Setup(s => s.AuthenticateCredential(
-                        Constants.CredentialTypes.ApiKeyV1,
+                        CredentialTypes.ApiKeyV1,
                         guid.ToString().ToLowerInvariant()))
                     .Returns(new Credential() { User = new User() });
 
@@ -910,7 +910,7 @@ namespace NuGetGallery
                 controller.MockUserService.Setup(s => s.FindByApiKey(guid)).Returns(owner);
                 controller.MockUserService
                     .Setup(s => s.AuthenticateCredential(
-                        Constants.CredentialTypes.ApiKeyV1,
+                        CredentialTypes.ApiKeyV1,
                         guid.ToString().ToLowerInvariant()))
                     .Returns(new Credential() { User = nonOwner });
                 controller.MockPackageService.Setup(s => s.FindPackageByIdAndVersion("foo", "1.0.0", true)).Returns(
@@ -937,7 +937,7 @@ namespace NuGetGallery
                 var controller = new TestableApiController();
                 controller.MockUserService
                     .Setup(s => s.AuthenticateCredential(
-                        Constants.CredentialTypes.ApiKeyV1,
+                        CredentialTypes.ApiKeyV1,
                         guid.ToString().ToLowerInvariant()))
                     .ReturnsNull();
                 controller.MockUserService.Setup(s => s.FindByApiKey(guid)).Returns(user);
@@ -961,7 +961,7 @@ namespace NuGetGallery
                 var controller = new TestableApiController();
                 controller.MockUserService
                     .Setup(s => s.AuthenticateCredential(
-                        Constants.CredentialTypes.ApiKeyV1,
+                        CredentialTypes.ApiKeyV1,
                         guid.ToString().ToLowerInvariant()))
                     .Returns(new Credential() { User = user });
                 controller.MockUserService.Setup(s => s.FindByApiKey(guid)).ReturnsNull();

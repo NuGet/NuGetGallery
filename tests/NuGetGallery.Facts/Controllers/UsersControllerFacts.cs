@@ -441,7 +441,7 @@ namespace NuGetGallery
                 GetMock<IUserService>()
                     .Verify(u => u.ReplaceCredential(
                         user,
-                        It.Is<Credential>(c => c.Type == Constants.CredentialTypes.ApiKeyV1)));
+                        It.Is<Credential>(c => c.Type == CredentialTypes.ApiKeyV1)));
             }
         }
 

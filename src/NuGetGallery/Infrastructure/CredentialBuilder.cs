@@ -20,14 +20,21 @@ namespace NuGetGallery
             var value = apiKey
                 .ToString()
                 .ToLowerInvariant();
-            return new Credential(Constants.CredentialTypes.ApiKeyV1, value);
+            return new Credential(CredentialTypes.ApiKeyV1, value);
         }
 
         public static Credential CreatePbkdf2Password(string plaintextPassword)
         {
             return new Credential(
-                Constants.CredentialTypes.PasswordPbkdf2,
+                CredentialTypes.Password.Pbkdf2,
                 CryptographyService.GenerateSaltedHash(plaintextPassword, Constants.PBKDF2HashAlgorithmId));
+        }
+
+        public static Credential CreateSha1Password(string plaintextPassword)
+        {
+            return new Credential(
+                CredentialTypes.Password.Sha1,
+                CryptographyService.GenerateSaltedHash(plaintextPassword, Constants.Sha1HashAlgorithmId));
         }
     }
 }

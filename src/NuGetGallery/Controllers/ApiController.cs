@@ -426,7 +426,7 @@ namespace NuGetGallery
 
         private User GetUserByApiKey(string apiKey)
         {
-            var cred = UserService.AuthenticateCredential(Constants.CredentialTypes.ApiKeyV1, apiKey.ToLowerInvariant());
+            var cred = UserService.AuthenticateCredential(CredentialTypes.ApiKeyV1, apiKey.ToLowerInvariant());
             User user;
             if (cred == null)
             {
