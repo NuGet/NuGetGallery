@@ -8,43 +8,56 @@ namespace NuGetGallery.Search
 {
     public class AnalyzerFacts
     {
-        [Theory]
-
         //  identifier
 
-        [InlineData("", new string [] {})]
-        [InlineData("Aluminium", new [] { "Aluminium" })]
-        [InlineData("ALUMINIUM", new [] { "ALUMINIUM" })]
-        [InlineData("Microsoft.Data.EntityFramework", new [] { "Microsoft", "Data", "Entity", "Framework" })]
-        [InlineData("EntityFramework", new [] { "Entity", "Framework" })]
-        [InlineData("DotNetRdf", new [] { "Dot", "Net", "Rdf" })]
-        [InlineData("dotNetRDF.Data.Virtuoso", new [] { "dot", "Net", "RDF", "Data", "Virtuoso" })]
-        [InlineData("dotNetRDF.Query.FullText", new [] { "dot", "Net", "RDF", "Query", "Full", "Text" })]
-        [InlineData("dotNetRDF.Data.Sql", new [] { "dot", "Net", "RDF", "Data", "Sql" })]
-        [InlineData("ServiceStack.Text", new [] { "Service", "Stack", "Text" })]
-        [InlineData("ServiceStack Text", new [] { "Service", "Stack", "Text" })]
-
-        //  titles
-        //  - some of these strings suggest we should use a different analyzers for Title
-        //  - for example one that drops stops words and commas
-        //  - consider camelcase filter over standard tokenization
-
-        [InlineData("C++ JSON Parser", new [] { "C++", "JSON", "Parser" })]
-        [InlineData("C# is a Programming Langauge", new [] { "C#", "is", "a", "Programming", "Langauge" })]
-        [InlineData("My C++ project. JSON Parser", new [] { "My", "C++", "project", "JSON", "Parser" })]
-        [InlineData("Cobol PIC", new [] { "Cobol", "PIC" })]
-        [InlineData("Secret Chiefs 3", new [] { "Secret", "Chiefs", "3" })]
-        [InlineData("300-B", new [] { "300", "B" })]
-        [InlineData("300B", new [] { "300B" })]
-        [InlineData("6SN7", new [] { "6SN7" })]
-        [InlineData("6sl7", new [] { "6sl7" })]
-        [InlineData("6922", new [] { "6922" })]
-        [InlineData("5U4", new [] { "5U4" })]
-        [InlineData("KT-88", new [] { "KT", "88" })]
-        [InlineData("Where black is the color, where none is the number", new [] { "Where", "black", "is", "the", "color,", "where", "none", "is", "the", "number" })]
+        [Theory]
+        [InlineData("", new string[] { })]
+        [InlineData("Aluminium", new [] { "aluminium" })]
+        [InlineData("ALUMINIUM", new[] { "aluminium" })]
+        [InlineData("Microsoft.Data.EntityFramework", new [] { "microsoft", "data", "entity", "framework" })]
+        [InlineData("EntityFramework", new [] { "entity", "framework" })]
+        [InlineData("DotNetRdf", new [] { "dot", "net", "rdf" })]
+        [InlineData("dotNetRDF.Data.Virtuoso", new [] { "dot", "net", "rdf", "data", "virtuoso" })]
+        [InlineData("dotNetRDF.Query.FullText", new [] { "dot", "net", "rdf", "query", "full", "text" })]
+        [InlineData("dotNetRDF.Data.Sql", new [] { "dot", "net", "rdf", "data", "sql" })]
+        [InlineData("ServiceStack.Text", new [] { "service", "stack", "text" })]
+        [InlineData("ServiceStack Text", new [] { "service", "stack", "text" })]
+        [InlineData("300-B", new[] { "300", "b" })]
+        [InlineData("300B", new[] { "300b" })]
+        [InlineData("6SN7", new[] { "6sn7" })]
+        [InlineData("6sl7", new[] { "6sl7" })]
+        [InlineData("6922", new[] { "6922" })]
+        [InlineData("5U4", new[] { "5u4" })]
+        [InlineData("KT-88", new[] { "kt", "88" })]
         public void TestIdentifier(string input, string[] outputs)
         {
             TestAnalyzer(new IdentifierAnalyzer(), input, outputs);
+        }
+
+        //  description
+
+        [Theory]
+        [InlineData("C++ JSON Parser", new[] { "c++", "json", "parser" })]
+        [InlineData("C# is a Programming Langauge", new[] { "c#", "programming", "langauge" })]
+        [InlineData("My C++ project. JSON Parser", new[] { "my", "c++", "project", "json", "parser" })]
+        [InlineData("Cobol PIC", new[] { "cobol", "pic" })]
+        [InlineData("Secret Chiefs 3", new[] { "secret", "chiefs", "3" })]
+        [InlineData("Where black is the color, where none is the number", new[] { "where", "black", "color", "where", "none", "number" })]
+        [InlineData("Highway 61; Revisited", new[] { "highway", "61", "revisited" })]
+        [InlineData("This is my package that does a bunch of interesting stuff.", new[] { "my", "package", "does", "bunch", "interesting", "stuff" })]
+        [InlineData("C++ is a wonderful Programming Langauge", new[] { "c++", "wonderful", "programming", "langauge" })]
+        [InlineData("It would be nice, if we removed some more punctuation! The trick is leaving stuff we care about like ++ or #. It's that OK?", new[] { "would", "nice", "removed", "some", "more", "punctuation!", "trick", "leaving", "stuff", "care", "about", "like", "++", "#", "ok?" })]
+        public void TestDescription(string input, string[] outputs)
+        {
+            TestAnalyzer(new DescriptionAnalyzer(), input, outputs);
+        }
+
+        [Theory]
+        [InlineData("C++ C# F# JSON Parser serializer XML", new[] { "c++", "c#", "f#", "json", "parser", "serializer", "xml" })]
+        [InlineData("C++, C#, F#, JSON, Parser, serializer, XML", new[] { "c++", "c#", "f#", "json", "parser", "serializer", "xml" })]
+        public void TestTags(string input, string[] outputs)
+        {
+            TestAnalyzer(new TagsAnalyzer(), input, outputs);
         }
 
         private static void TestAnalyzer(Analyzer analyzer, string input, params string[] tokens)

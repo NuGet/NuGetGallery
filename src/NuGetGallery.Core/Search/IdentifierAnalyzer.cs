@@ -7,7 +7,7 @@ namespace NuGetGallery
     {
         public override TokenStream TokenStream(string fieldName, TextReader reader)
         {
-            return new CamelCaseFilter(new DotTokenizer(reader));
+            return new LowerCaseFilter(new CamelCaseFilter(new DotTokenizer(reader)));
         }
     }
 }

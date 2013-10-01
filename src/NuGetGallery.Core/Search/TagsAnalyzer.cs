@@ -4,11 +4,11 @@ using System.IO;
 
 namespace NuGetGallery
 {
-    public class DescriptionAnalyzer : Analyzer
+    public class TagsAnalyzer : Analyzer
     {
         public override TokenStream TokenStream(string fieldName, TextReader reader)
         {
-            return new StopFilter(true, new LowerCaseFilter(new CamelCaseFilter(new DotTokenizer(reader))), TokenizingHelper.GetStopWords());
+            return new LowerCaseFilter(new DotTokenizer(reader));
         }
     }
 }
