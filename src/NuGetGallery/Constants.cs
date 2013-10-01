@@ -8,12 +8,10 @@
         public const string DefaultPackageListSortOrder = "package-download-count";
         public const int DefaultPasswordResetTokenExpirationHours = 24;
         public const int MaxEmailSubjectLength = 255;
-        public const string PackageContentType = "application/zip";
         public const string OctetStreamContentType = "application/octet-stream";
         public const string NuGetPackageFileExtension = ".nupkg";
         public const string PackageFileDownloadUriTemplate = "packages/{0}/{1}/download";
 
-        public const string PackagesFolderName = "packages";
         public const string DownloadsFolderName = "downloads";
         public const string ContentFolderName = "content";
 

@@ -221,7 +221,7 @@ namespace NuGetGallery
         {
             switch (folderName)
             {
-                case Constants.PackagesFolderName:
+                case CoreConstants.PackagesFolderName:
                 case Constants.DownloadsFolderName:
                     return true;
 

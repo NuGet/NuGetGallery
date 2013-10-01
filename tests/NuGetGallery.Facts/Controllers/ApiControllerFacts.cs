@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
-using System.Data.SqlClient;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -16,7 +15,6 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using Xunit;
-using Xunit.Extensions;
 
 namespace NuGetGallery
 {
@@ -47,6 +45,10 @@ namespace NuGetGallery
             MockPackageFileService = new Mock<IPackageFileService>(MockBehavior.Strict);
             MockPackageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>())).Returns(Task.FromResult(0));
             PackageFileService = MockPackageFileService.Object;
+
+            MockPackageService
+                .Setup(p => p.IsConflictWithExistingPackageVersion(It.IsAny<PackageRegistration>(), It.IsAny<SemanticVersion>()))
+                .Returns(false);
         }
 
         internal void SetupPackageFromInputStream(Mock<INupkg> nuGetPackage)
@@ -138,6 +140,9 @@ namespace NuGetGallery
 
                 var controller = new TestableApiController();
                 controller.MockPackageService.Setup(x => x.FindPackageRegistrationById("theId")).Returns(packageRegistration);
+                controller.MockPackageService
+                    .Setup(x => x.IsConflictWithExistingPackageVersion(It.IsAny<PackageRegistration>(), It.IsAny<SemanticVersion>()))
+                    .Returns(true);
                 controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 

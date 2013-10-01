@@ -50,7 +50,7 @@ namespace NuGetGallery
             }
 
             var uploadFileName = BuildFileName(userKey);
-            return _fileStorageService.SaveFileAsync(Constants.UploadsFolderName, uploadFileName, packageFileStream, Constants.PackageContentType);
+            return _fileStorageService.SaveFileAsync(Constants.UploadsFolderName, uploadFileName, packageFileStream, CoreConstants.PackageContentType);
         }
 
         private static string BuildFileName(int userKey)

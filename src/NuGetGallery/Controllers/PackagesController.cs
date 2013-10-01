@@ -210,13 +210,17 @@ namespace NuGetGallery
                     return View();
                 }
 
-                var package = _packageService.FindPackageByIdAndVersion(nuGetPackage.Metadata.Id, nuGetPackage.Metadata.Version.ToStringSafe());
-                if (package != null)
+                bool versionAlreadyExists = _packageService.IsConflictWithExistingPackageVersion(packageRegistration, nuGetPackage.Metadata.Version);
+
+                if (versionAlreadyExists)
                 {
                     ModelState.AddModelError(
                         String.Empty,
                         String.Format(
-                            CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified, package.PackageRegistration.Id, package.Version));
+                            CultureInfo.CurrentCulture,
+                            Strings.PackageExistsAndCannotBeModified,
+                            nuGetPackage.Metadata.Id, 
+                            nuGetPackage.Metadata.Version));
                     return View();
                 }
 

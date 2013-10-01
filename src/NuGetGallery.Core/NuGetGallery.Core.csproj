@@ -75,6 +75,7 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="CoreConstants.cs" />
     <Compile Include="Services\BlobCopyFailedException.cs" />
     <Compile Include="Services\CloudBlobWrapper.cs" />
     <Compile Include="Services\CloudFileReference.cs" />
@@ -116,9 +117,11 @@
     <Compile Include="Services\ICloudBlobContainer.cs" />
     <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\IFileStorageService.cs" />
+    <Compile Include="Services\IOpsPackageFileService.cs" />
     <Compile Include="Services\IPackageFileService.cs" />
     <Compile Include="Services\ISimpleCloudBlob.cs" />
     <Compile Include="Services\LocalFileReference.cs" />
+    <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UriOrStream.cs" />
   </ItemGroup>

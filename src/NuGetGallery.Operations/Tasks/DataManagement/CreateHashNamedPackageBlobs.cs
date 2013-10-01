@@ -25,19 +25,19 @@ namespace NuGetGallery.Operations.Tasks.DataManagement
                 options, 
                 (package) =>
                 {
-                    if (!packageFileService.PackageFileExists(package.PackageRegistration.Id, package.NormalizedVersion, package.Hash))
+                    if (!packageFileService.PackageFileExists(package.PackageRegistration.Id, package.GetNormalizedVersion(), package.Hash))
                     {
                         Log.Info("Copying - creating hashed package for {0} {1} {2}",
-                            package.PackageRegistration.Id, package.NormalizedVersion, package.Hash);
+                            package.PackageRegistration.Id, package.GetNormalizedVersion(), package.Hash);
 
                         if (!WhatIf)
                         {
                             packageFileService.BeginCopyPackageFileToHashedAsync(
-                                package.PackageRegistration.Id, package.NormalizedVersion, package.Hash)
+                                package.PackageRegistration.Id, package.GetNormalizedVersion(), package.Hash)
                                 .Wait();
 
                             packageFileService.EndCopyPackageFileToHashedAsync(
-                                package.PackageRegistration.Id, package.NormalizedVersion, package.Hash)
+                                package.PackageRegistration.Id, package.GetNormalizedVersion(), package.Hash)
                                 .Wait();
                         }
                     }

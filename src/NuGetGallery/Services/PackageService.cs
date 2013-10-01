@@ -649,7 +649,6 @@ namespace NuGetGallery
             _indexingService.UpdateIndex();
         }
 
-
         public void SetLicenseReportVisibility(Package package, bool visible, bool commitChanges = true)
         {
             if (package == null)
@@ -662,6 +661,20 @@ namespace NuGetGallery
                 _packageRepository.CommitChanges();
             }
             _packageRepository.CommitChanges();
+        }
+
+        public bool IsConflictWithExistingPackageVersion(PackageRegistration registration, SemanticVersion unnormalizedVersion)
+        {
+            // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
+            string normalizedVersion = unnormalizedVersion.ToNormalizedString();
+
+            bool conflict = registration.Packages.Any(
+                p => String.Equals(
+                    p.NormalizedVersion,
+                    normalizedVersion,
+                    StringComparison.OrdinalIgnoreCase));
+
+            return conflict;
         }
     }
 }

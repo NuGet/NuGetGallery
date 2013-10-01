@@ -52,7 +52,7 @@ namespace NuGetGallery
             }
             else if (uriOrStream.Stream != null)
             {
-                return new FileStreamResult(uriOrStream.Stream, Constants.PackageContentType);
+                return new FileStreamResult(uriOrStream.Stream, CoreConstants.PackageContentType);
             }
             else
             {

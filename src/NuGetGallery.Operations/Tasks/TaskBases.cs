@@ -209,7 +209,7 @@ namespace NuGetGallery.Operations
             return StorageAccount.CreateCloudBlobClient();
         }
 
-        protected PackageFileService GetPackageFileService()
+        protected IOpsPackageFileService GetPackageFileService()
         {
             return new PackageFileService(
                 new CloudBlobFileStorageService(

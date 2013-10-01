@@ -151,9 +151,9 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
             }
 
-            string bestVersion = String.IsNullOrEmpty(version) ? package.NormalizedVersion : version;
+            string bestVersion = String.IsNullOrEmpty(version) ? package.GetNormalizedVersion() : version;
             var uriOrStream = PackageFileService.GetDownloadUriOrStream(id, bestVersion);
-            return GetDownloadResult(Request.Url, uriOrStream, Constants.PackageContentType);
+            return GetDownloadResult(Request.Url, uriOrStream, CoreConstants.PackageContentType);
         }
 
         internal ActionResult GetDownloadResult(Uri requestUrl, UriOrStream uriOrStream, string contentType)
@@ -173,7 +173,7 @@ namespace NuGetGallery
             }
             else if (uriOrStream.Stream != null)
             {
-                return new FileStreamResult(uriOrStream.Stream, Constants.PackageContentType);
+                return new FileStreamResult(uriOrStream.Stream, CoreConstants.PackageContentType);
             }
             else
             {
@@ -258,23 +258,16 @@ namespace NuGetGallery
                     {
                         return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
                     }
+                }
 
-                    // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
-                    string normalizedVersion = packageToPush.Metadata.Version.ToNormalizedString();
-                    bool packageExists =
-                        packageRegistration.Packages.Any(
-                            p => String.Equals(
-                                p.NormalizedVersion,
-                                normalizedVersion,
-                                StringComparison.OrdinalIgnoreCase));
+                bool versionAlreadyExists = PackageService.IsConflictWithExistingPackageVersion(packageRegistration, packageToPush.Metadata.Version);
 
-                    if (packageExists)
-                    {
-                        return new HttpStatusCodeWithBodyResult(
-                            HttpStatusCode.Conflict,
-                            String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
-                                          packageToPush.Metadata.Id, packageToPush.Metadata.Version.ToNormalizedStringSafe()));
-                    }
+                if (versionAlreadyExists)
+                {
+                    return new HttpStatusCodeWithBodyResult(
+                        HttpStatusCode.Conflict,
+                        String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
+                                        packageToPush.Metadata.Id, packageToPush.Metadata.Version.ToNormalizedStringSafe()));
                 }
 
                 var package = PackageService.CreatePackage(packageToPush, user, commitChanges: true);
@@ -283,9 +276,9 @@ namespace NuGetGallery
                     await PackageFileService.SavePackageFileAsync(package, uploadStream);
                 }
 
-                if (
-                    packageToPush.Metadata.Id.Equals(Constants.NuGetCommandLinePackageId,
-                                                     StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
+                if (packageToPush.Metadata.Id.Equals(
+                        Constants.NuGetCommandLinePackageId,
+                        StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
                 {
                     // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
                     await NugetExeDownloaderService.UpdateExecutableAsync(packageToPush);

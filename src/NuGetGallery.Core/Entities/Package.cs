@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using NuGet;
 
 namespace NuGetGallery
 {
@@ -166,6 +167,18 @@ namespace NuGetGallery
         /// List of historical metadata info of this package (before edits were applied)
         /// </summary>
         public virtual ICollection<PackageHistory> PackageHistories { get; set; }
+
+        public string GetNormalizedVersion()
+        {
+            if (NormalizedVersion != null)
+            {
+                return NormalizedVersion;
+            }
+            else
+            {
+                return SemanticVersion.Parse(Version).ToNormalizedString();
+            }
+        }
 
         public void ApplyEdit(PackageEdit edit, string hashAlgorithm, string hash, long packageFileSize)
         {

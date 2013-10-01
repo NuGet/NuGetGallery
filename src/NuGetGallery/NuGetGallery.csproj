@@ -860,7 +860,6 @@
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />
     <Compile Include="Services\NuGetExeDownloaderService.cs" />
-    <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="RequireRemoteHttpsAttribute.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\AggregateStatsService.cs" />
@@ -1317,7 +1316,6 @@
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
     <Folder Include="Areas\Admin\Views\Shared\" />
-    <Folder Include="Packaging\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">

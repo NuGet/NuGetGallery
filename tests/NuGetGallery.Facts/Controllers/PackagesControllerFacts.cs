@@ -104,7 +104,8 @@ namespace NuGetGallery
                 if (fakeNuGetPackage == null)
                 {
                     fakeNuGetPackage = new Mock<INupkg>();
-                    fakeNuGetPackage.Setup(p => p.Metadata.Id).Returns("thePackageId");
+                    fakeNuGetPackage.Setup(p => p.Metadata.Id).Returns("theId");
+                    fakeNuGetPackage.Setup(p => p.Metadata.Version).Returns(new SemanticVersion("1.0"));
                 }
 
                 controller.Setup(x => x.CreatePackage(It.IsAny<Stream>())).Returns(fakeNuGetPackage.Object);
@@ -912,8 +913,9 @@ namespace NuGetGallery
                 var fakeUserService = new Mock<IUserService>();
                 fakeUserService.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
                 var fakePackageService = new Mock<IPackageService>();
-                fakePackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(
-                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                fakePackageService
+                    .Setup(x => x.IsConflictWithExistingPackageVersion(It.IsAny<PackageRegistration>(), It.IsAny<SemanticVersion>()))
+                    .Returns(true);
                 var controller = CreateController(
                     packageService: fakePackageService,
                     userService: fakeUserService,
@@ -924,7 +926,7 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal(
-                    String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "theVersion"),
+                    String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "1.0"),
                     controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
