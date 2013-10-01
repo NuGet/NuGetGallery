@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace NuGetGallery
 {
-    public class TokenizingHelper
+    public static class TokenizingHelper
     {
         public static IEnumerable<string> CamelCaseSplit(string term)
         {
@@ -40,6 +40,19 @@ namespace NuGetGallery
 
             yield return word;
             yield break;
+        }
+
+        private static ISet<string> _stopWords = new HashSet<string> 
+        {
+            "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "i",
+            "if", "in", "into", "is", "it", "its", "no", "not", "of", "on", "or", "s", "such",
+            "that", "the", "their", "then", "there", "these", "they", "this", "to", 
+            "was", "we", "will", "with"
+        };
+
+        public static ISet<string> GetStopWords()
+        {
+            return _stopWords;
         }
     }
 }

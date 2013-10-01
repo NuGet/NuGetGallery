@@ -13,7 +13,7 @@ namespace NuGetGallery
 
         protected override bool IsTokenChar(char c)
         {
-            return !(Char.IsWhiteSpace(c) || c == '.' || c == '-');
+            return !(Char.IsWhiteSpace(c) || c == '.' || c == '-' || c == ',' || c == ';' || c == ':' || c == '\'');
         }
     }
 }
