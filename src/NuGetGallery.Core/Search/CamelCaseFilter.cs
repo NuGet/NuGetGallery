@@ -41,9 +41,9 @@ namespace NuGetGallery
 
             _startOffset = _offsetAttribute.StartOffset;
 
-            foreach (string s in TokenizingHelper.CamelCaseSplit(term))
+            foreach (string subTerm in TokenizingHelper.CamelCaseSplit(term))
             {
-                _queue.Enqueue(s);
+                _queue.Enqueue(subTerm);
             }
 
             if (_queue.Count > 0)
