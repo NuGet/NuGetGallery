@@ -14,7 +14,6 @@ namespace NuGetGallery.Migrations
                         Key = c.Int(nullable: false, identity: true),
                         UserKey = c.Int(nullable: false),
                         Type = c.String(nullable: false, maxLength: 64),
-                        Identifier = c.String(maxLength: 256),
                         Value = c.String(nullable: false, maxLength: 256),
                     })
                 .PrimaryKey(t => t.Key)
@@ -26,6 +25,11 @@ namespace NuGetGallery.Migrations
                  new[] { "Type", "Value" },
                  unique: true,
                  name: "IX_Credentials_Type_Value");
+
+            Sql(@"CREATE VIEW UsersAndCredentials AS
+                SELECT u.Username, u.ApiKey, u.HashedPassword, c.[Type], c.Value
+                FROM Users u
+                    LEFT OUTER JOIN [Credentials] c ON c.UserKey = u.[Key]");
         }
         
         public override void Down()
@@ -34,6 +38,9 @@ namespace NuGetGallery.Migrations
             DropIndex("dbo.Credentials", "IX_Credentials_Type_Value");
             DropForeignKey("dbo.Credentials", "UserKey", "dbo.Users");
             DropTable("dbo.Credentials");
+
+            Sql(@"IF EXISTS(SELECT * FROM sys.views WHERE name = 'UsersAndCredentials')
+                DROP VIEW UsersAndCredentials");
         }
     }
 }

@@ -25,9 +25,6 @@ namespace NuGetGallery
         [StringLength(maximumLength: 64)]
         public string Type { get; set; }
         
-        [StringLength(maximumLength: 256)]
-        public string Identifier { get; set; }
-        
         [Required]
         [StringLength(maximumLength: 256)]
         public string Value { get; set; }
