@@ -29,6 +29,7 @@ namespace NuGetGallery.Search
         [InlineData("6922", new[] { "6922" })]
         [InlineData("5U4", new[] { "5u4" })]
         [InlineData("KT-88", new[] { "kt", "88" })]
+        [InlineData("Hello6SN7", new[] { "hello6sn7" })]
         public void TestIdentifier(string input, string[] outputs)
         {
             TestAnalyzer(new IdentifierAnalyzer(), input, outputs);

@@ -130,6 +130,7 @@
     <Compile Include="Packaging\NupkgRewriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Search\CamelCaseFilter.cs" />
+    <Compile Include="Search\IdentifierKeywordAnalyzer.cs" />
     <Compile Include="Search\TagsAnalyzer.cs" />
     <Compile Include="Search\PackageAnalyzer.cs" />
     <Compile Include="Search\DescriptionAnalyzer.cs" />
