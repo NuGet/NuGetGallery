@@ -16,6 +16,7 @@ using NuGetGallery.Helpers;
 using Xunit;
 using Xunit.Extensions;
 using System.Collections.Generic;
+using NuGetGallery.Framework;
 
 namespace NuGetGallery
 {
@@ -82,17 +83,13 @@ namespace NuGetGallery
                 config.Object,
                 indexingService.Object,
                 cacheService.Object,
-                editPackageService.Object);
+                editPackageService.Object,
+                fakeUser);
             controller.CallBase = true;
 
             if (httpContext != null)
             {
                 TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller.Object);
-            }
-
-            if (fakeUser != null)
-            {
-                controller.Setup(x => x.GetUser()).Returns(fakeUser);
             }
 
             if (readPackageException != null)
@@ -512,13 +509,14 @@ namespace NuGetGallery
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(h => h.User.Identity.Name).Returns("Montgomery");
                 var userService = new Mock<IUserService>();
-                userService.Setup(u => u.FindByUsername("Montgomery")).Returns(
+                userService.Setup(u => u.FindByUsername(Fakes.User.Username)).Returns(
                     new User { EmailAddress = "montgomery@burns.example.com", Username = "Montgomery" });
                 var controller = CreateController(
                     packageService: packageService,
                     messageService: messageService,
                     userService: userService,
-                    httpContext: httpContext);
+                    httpContext: httpContext,
+                    fakeUser: Fakes.User.ToPrincipal());
                 var model = new ContactOwnersViewModel
                     {
                         Message = "I like the cut of your jib",
@@ -1239,7 +1237,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal);
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://uploadpackage.xyz"));
-                var result = await controller.VerifyPackage((bool?)null) as RedirectResult;
+                var result = await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null }) as RedirectResult;
 
                 Assert.NotNull(result);
             }
@@ -1266,7 +1264,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage((bool?)null);
+                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null });
 
                 fakePackageService.Verify(x => x.CreatePackage(fakeNuGetPackage.Object, fakeCurrentUser, false));
                 fakeFileStream.Dispose();
@@ -1299,7 +1297,7 @@ namespace NuGetGallery
                     packageFileService: fakePackageFileService);
 
                 // Act
-                await controller.VerifyPackage((bool?)null);
+                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null });
 
                 // Assert
                 fakePackageService.Verify(x => x.CreatePackage(fakeNuGetPackage.Object, fakeCurrentUser, false));
@@ -1338,7 +1336,7 @@ namespace NuGetGallery
                     indexingService: fakeIndexingService);
 
                 // Act
-                await controller.VerifyPackage((bool?)null);
+                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null });
 
                 // Assert
                 fakeIndexingService.Verify();
@@ -1373,7 +1371,7 @@ namespace NuGetGallery
                     entitiesContext: entitiesContext);
 
                 // Act
-                await controller.VerifyPackage((bool?)null);
+                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null });
 
                 // Assert
                 entitiesContext.Verify();
@@ -1406,7 +1404,7 @@ namespace NuGetGallery
                     fakeNuGetPackage: fakeNuGetPackage);
 
                 // Act
-                await controller.VerifyPackage(listed: false);
+                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
 
                 // There's no assert. If the method completes, it means the test pass because we set MockBehavior to Strict
                 // for the fakePackageService. We verified that it only calls methods passing commitSettings = false.
@@ -1435,7 +1433,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage((bool?)null);
+                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null });
 
                 fakePackageService.Verify(x => x.PublishPackage(fakePackage, false), Times.Once());
                 fakeFileStream.Dispose();
@@ -1462,7 +1460,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage(false);
+                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
 
                 fakePackageService.Verify(
                     x => x.MarkPackageUnlisted(It.Is<Package>(p => p.PackageRegistration.Id == "theId" && p.Version == "theVersion"), It.IsAny<bool>()));
@@ -1492,7 +1490,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage(listed);
+                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = listed.GetValueOrDefault(true), Edit = null });
 
                 fakePackageService.Verify(x => x.MarkPackageUnlisted(It.IsAny<Package>(), It.IsAny<bool>()), Times.Never());
                 fakeFileStream.Dispose();
@@ -1519,7 +1517,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage(false);
+                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
 
                 fakeUploadFileService.Verify();
                 fakeFileStream.Dispose();
@@ -1547,7 +1545,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage(false);
+                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
 
                 Assert.Equal(String.Format(Strings.SuccessfullyUploadedPackage, "theId", "theVersion"), controller.TempData["Message"]);
                 fakeFileStream.Dispose();
@@ -1574,7 +1572,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                var result = await controller.VerifyPackage(false) as RedirectToRouteResult;
+                var result = await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null }) as RedirectToRouteResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(RouteName.DisplayPackage, result.RouteName);
@@ -1604,7 +1602,7 @@ namespace NuGetGallery
                     fakeNuGetPackage: fakeNuGetPackage,
                     autoCuratePackageCmd: fakeAutoCuratePackageCmd);
 
-                await controller.VerifyPackage(false);
+                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
 
                 fakeAutoCuratePackageCmd.Verify(fake => fake.Execute(fakePackage, fakeNuGetPackage.Object, false));
             }
@@ -1637,7 +1635,7 @@ namespace NuGetGallery
                     downloaderService: nugetExeDownloader);
 
                 // Act
-                await controller.VerifyPackage(false);
+                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
 
                 // Assert
                 nugetExeDownloader.Verify();
@@ -1675,7 +1673,7 @@ namespace NuGetGallery
                     downloaderService: nugetExeDownloader);
 
                 // Act
-                await controller.VerifyPackage(false);
+                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
 
                 // Assert
                 nugetExeDownloader.Verify(d => d.UpdateExecutableAsync(It.IsAny<INupkg>()), Times.Never());
@@ -1711,7 +1709,7 @@ namespace NuGetGallery
 
                 // Act
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://1.1.1.1"));
-                await controller.VerifyPackage(false);
+                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
 
                 // Assert
                 nugetExeDownloader.Verify(d => d.UpdateExecutableAsync(It.IsAny<INupkg>()), Times.Never());

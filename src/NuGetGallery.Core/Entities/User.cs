@@ -12,6 +12,7 @@ namespace NuGetGallery
 
         public User(string username)
         {
+            Credentials = new List<Credential>();
             Username = username;
         }
 
@@ -61,6 +62,7 @@ namespace NuGetGallery
                 return UnconfirmedEmailAddress ?? EmailAddress;
             }
         }
+        public virtual ICollection<Credential> Credentials { get; set; }
 
         public void ConfirmEmailAddress()
         {
