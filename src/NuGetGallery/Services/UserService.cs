@@ -209,6 +209,12 @@ namespace NuGetGallery
                 return false;
             }
 
+            var conflictingUser = FindByEmailAddress(user.UnconfirmedEmailAddress);
+            if (conflictingUser != null && conflictingUser.Key != user.Key)
+            {
+                throw new EntityException(Strings.EmailAddressBeingUsed, user.UnconfirmedEmailAddress);
+            }
+
             user.ConfirmEmailAddress();
 
             UserRepository.CommitChanges();
