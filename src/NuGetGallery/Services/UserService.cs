@@ -84,7 +84,14 @@ namespace NuGetGallery
 
         public virtual User FindByEmailAddress(string emailAddress)
         {
-            return UserRepository.GetAll().SingleOrDefault(u => u.EmailAddress == emailAddress);
+            var allMatches = UserRepository.GetAll().Take(2).ToList();
+
+            if (allMatches.Count == 1)
+            {
+                return allMatches[0];
+            }
+
+            return null;
         }
 
         public virtual IList<User> FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress, string optionalUsername)

@@ -124,7 +124,7 @@
     <value>The username '{0}' is not available.</value>
   </data>
   <data name="UserNotFound" xml:space="preserve">
-    <value>A user with the provided user name and password does not exist.</value>
+    <value>A unique user with that username or email address and password does not exist. Try logging on with your username if you were using an email address to log on.</value>
   </data>
   <data name="PackageIdNotAvailable" xml:space="preserve">
     <value>The package ID '{0}' is not available.</value>

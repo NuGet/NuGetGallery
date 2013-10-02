@@ -400,6 +400,23 @@ namespace NuGetGallery
             }
         }
 
+        public class TheFindByEmailAddressMethod
+        {
+            [Fact]
+            public void ReturnsNullIfMultipleMatchesExist()
+            {
+                var user = new User { Username = "User1", Key = 1, EmailAddress = "new@example.org" };
+                var conflictingUser = new User { Username = "User2", Key = 2, EmailAddress = "new@example.org" };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user, conflictingUser }
+                };
+
+                var result = service.FindByEmailAddress("new@example.org");
+                Assert.Null(result);
+            }
+        }
+
         public class TheFindByUsernameAndPasswordMethod
         {
             [Fact]
