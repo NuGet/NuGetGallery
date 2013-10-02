@@ -441,7 +441,8 @@ namespace NuGetGallery
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
                           .Returns(true);
 
-                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as ConfirmationViewModel;
+                var result = controller.Confirm("username", "the-token");
+                var model =  (ConfirmationViewModel)((ViewResult)result).Model;
 
                 Assert.True(model.SuccessfulConfirmation);
                 Assert.False(model.ConfirmingNewAccount);
@@ -469,7 +470,8 @@ namespace NuGetGallery
                 controller.SetUser(user);
 
                 // act:
-                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as ConfirmationViewModel;
+                var result = controller.Confirm("username", "the-token");
+                var model = (ConfirmationViewModel)((ViewResult)result).Model;
 
                 // verify:
                 Assert.True(model.SuccessfulConfirmation);

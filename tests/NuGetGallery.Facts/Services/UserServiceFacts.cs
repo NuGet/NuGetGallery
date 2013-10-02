@@ -269,8 +269,8 @@ namespace NuGetGallery
             public void WillThrowIfTheEmailAddressIsAlreadyInUse()
             {
                 var userService = CreateMockUserService(
-                    setup: u => u.Setup(x => x.FindByEmailAddress("theEmailAddress"))
-                                 .Returns(new User()));
+                    setup: u => u.Setup(x => x.FindAllByEmailAddress("theEmailAddress"))
+                                 .Returns(new List<User> { new User() }));
 
                 var ex = Assert.Throws<EntityException>(
                     () =>

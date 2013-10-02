@@ -36,8 +36,8 @@ namespace NuGetGallery
                 throw new EntityException(Strings.UsernameNotAvailable, username);
             }
 
-            existingUser = FindByEmailAddress(emailAddress);
-            if (existingUser != null)
+            var existingUsers = FindAllByEmailAddress(emailAddress);
+            if (existingUsers.AnySafe())
             {
                 throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
             }
@@ -84,7 +84,7 @@ namespace NuGetGallery
 
         public virtual User FindByEmailAddress(string emailAddress)
         {
-            var allMatches = UserRepository.GetAll().Take(2).ToList();
+            var allMatches = UserRepository.GetAll().Where(u => u.EmailAddress == emailAddress).Take(2).ToList();
 
             if (allMatches.Count == 1)
             {
@@ -92,6 +92,11 @@ namespace NuGetGallery
             }
 
             return null;
+        }
+
+        public virtual IList<User> FindAllByEmailAddress(string emailAddress)
+        {
+            return UserRepository.GetAll().Where(u => u.EmailAddress == emailAddress).ToList();
         }
 
         public virtual IList<User> FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress, string optionalUsername)
@@ -174,8 +179,8 @@ namespace NuGetGallery
 
         public void ChangeEmailAddress(User user, string newEmailAddress)
         {
-            var existingUser = FindByEmailAddress(newEmailAddress);
-            if (existingUser != null && existingUser.Key != user.Key)
+            var existingUsers = FindAllByEmailAddress(newEmailAddress);
+            if (existingUsers.AnySafe(u => u.Key != user.Key))
             {
                 throw new EntityException(Strings.EmailAddressBeingUsed, newEmailAddress);
             }
@@ -216,8 +221,8 @@ namespace NuGetGallery
                 return false;
             }
 
-            var conflictingUser = FindByEmailAddress(user.UnconfirmedEmailAddress);
-            if (conflictingUser != null && conflictingUser.Key != user.Key)
+            var conflictingUsers = FindAllByEmailAddress(user.UnconfirmedEmailAddress);
+            if (conflictingUsers.AnySafe(u => u.Key != user.Key))
             {
                 throw new EntityException(Strings.EmailAddressBeingUsed, user.UnconfirmedEmailAddress);
             }

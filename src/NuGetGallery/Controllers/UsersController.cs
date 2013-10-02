@@ -247,6 +247,7 @@ namespace NuGetGallery
             var model = new ConfirmationViewModel
             {
                 ConfirmingNewAccount = String.IsNullOrEmpty(existingEmail),
+                SuccessfulConfirmation = true,
             };
 
             try
