@@ -16,7 +16,7 @@ namespace NuGetGallery
         {
             return new Dictionary<string, Analyzer>(StringComparer.OrdinalIgnoreCase)
             {
-                { "Id", new KeywordAnalyzer() },
+                { "Id", new IdentifierKeywordAnalyzer() },
                 { "TokenizedId", new IdentifierAnalyzer() },
                 { "Title", new DescriptionAnalyzer() },
                 { "TokenizedTitle", new DescriptionAnalyzer() },

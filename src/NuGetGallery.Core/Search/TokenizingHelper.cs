@@ -36,6 +36,7 @@ namespace NuGetGallery
                 word += term[i];
 
                 lastIsUpper = currentIsUpper;
+                lastIsLetter = currentIsLetter;
             }
 
             yield return word;
