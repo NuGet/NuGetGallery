@@ -384,6 +384,30 @@ namespace NuGetGallery
         public class TheChangeEmailAction : TestContainer
         {
             [Fact]
+            public void DoesNotLetYouUseSomeoneElsesConfirmedEmailAddress()
+            {
+                var user = new User
+                {
+                    Username = "theUsername",
+                    EmailAddress = "old@example.com",
+                    Key = 1,
+                };
+
+                var controller = GetController<UsersController>();
+                controller.SetUser(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsernameAndPassword(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.ChangeEmailAddress(user, "new@example.com"))
+                    .Throws(new EntityException("msg"));
+
+                var result = controller.ChangeEmail(new ChangeEmailRequestModel { NewEmail = "new@example.com" });
+                Assert.False(controller.ModelState.IsValid);
+                Assert.Equal("msg", controller.ModelState["NewEmail"].Errors[0].ErrorMessage);
+            }
+
+            [Fact]
             public void SendsEmailChangeConfirmationNoticeWhenChangingAConfirmedEmailAddress()
             {
                 var user = new User

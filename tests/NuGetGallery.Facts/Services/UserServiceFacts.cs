@@ -781,6 +781,21 @@ namespace NuGetGallery
                 service.ChangeEmailAddress(user, "old@example.com");
                 Assert.Equal("pending-token", user.EmailConfirmationToken);
             }
+
+            [Fact]
+            public void DoesNotLetYouUseSomeoneElsesConfirmedEmailAddress()
+            {
+                var user = new User { EmailAddress = "old@example.com", Key = 1 };
+                var conflictingUser = new User { EmailAddress = "new@example.com", Key = 2 };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new User[] { user, conflictingUser },
+                };
+
+                var e = Assert.Throws<EntityException>(() => service.ChangeEmailAddress(user, "new@example.com"));
+                Assert.Equal(string.Format(Strings.EmailAddressBeingUsed, "new@example.com"), e.Message);
+                Assert.Equal("old@example.com", user.EmailAddress);
+            }
         }
 
         public class TheUpdateProfileMethod
