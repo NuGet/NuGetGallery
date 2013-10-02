@@ -9,5 +9,7 @@
         public bool SuccessfulConfirmation { get; set; }
 
         public bool SentEmail { get; set; }
+
+        public bool WrongUsername { get; set; }
     }
 }

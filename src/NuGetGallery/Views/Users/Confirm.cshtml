@@ -12,13 +12,27 @@
         the community.
     </p>
 }
-
 else
 {
-    <p class="message error">
-        Could not confirm your email address.
-    </p>
+    if (Model.WrongUsername)
+    {
+        <p class="message error">
+            You cannot confirm a different user's email address.
+        </p>
+        <p>
+            Please check that you used the link from the right confirmation email, and are logged in as the right user.
+        </p>
+    }
+    else
+    {
+        <p class="message error">
+            We could not confirm your email address. The token was invalid or expired.
+        </p>
+        <p>
+             Please check that you used the link from the confirmation email we sent. 
+        </p>
+    }
     <p>
-        Make sure you clicked on the confirmation URL in the email we sent.
+        <a href="@Url.ConfirmationRequired()" >Resend confirmation email.</a>
     </p>
 }

@@ -227,15 +227,14 @@ namespace NuGetGallery
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
-            if (String.IsNullOrEmpty(token))
-            {
-                return HttpNotFound();
-            }
 
             if (!String.Equals(username, Identity.Name, StringComparison.OrdinalIgnoreCase))
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, "You are not logged in as the correct user to perform this action.");
+                return View(new ConfirmationViewModel
+                    {
+                        WrongUsername = true,
+                        SuccessfulConfirmation = false,
+                    });
             }
 
             var user = UserService.FindByUsername(username);
