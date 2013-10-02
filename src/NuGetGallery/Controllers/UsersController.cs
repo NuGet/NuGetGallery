@@ -247,8 +247,20 @@ namespace NuGetGallery
             var model = new ConfirmationViewModel
             {
                 ConfirmingNewAccount = String.IsNullOrEmpty(existingEmail),
-                SuccessfulConfirmation = UserService.ConfirmEmailAddress(user, token)
             };
+
+            try
+            {
+                if (!UserService.ConfirmEmailAddress(user, token))
+                {
+                    model.SuccessfulConfirmation = false;
+                }
+            }
+            catch (EntityException)
+            {
+                model.SuccessfulConfirmation = false;
+                model.DuplicateEmailAddress = true;
+            }
 
             // SuccessfulConfirmation is required so that the confirm Action isn't a way to spam people.
             // Change notice not required for new accounts.

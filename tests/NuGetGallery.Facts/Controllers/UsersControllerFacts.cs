@@ -396,6 +396,32 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void ShowsAnErrorForConflictingEmailAddress()
+            {
+                var user = new User
+                {
+                    Username = "aUsername",
+                    UnconfirmedEmailAddress = "old@example.com",
+                    EmailConfirmationToken = "aToken",
+                };
+
+                var controller = GetController<UsersController>();
+                controller.SetUser(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername("aUsername"))
+                    .Returns(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.ConfirmEmailAddress(user, It.IsAny<string>()))
+                    .Throws(new EntityException("msg"));
+
+                var result = controller.Confirm("aUsername", "aToken");
+                var model = (ConfirmationViewModel)((ViewResult)result).Model;
+
+                Assert.False(model.SuccessfulConfirmation);
+                Assert.True(model.DuplicateEmailAddress);
+            }
+
+            [Fact]
             public void SendsAccountChangedNoticeWhenConfirmingChangedEmail()
             {
                 var user = new User

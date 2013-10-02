@@ -22,6 +22,18 @@ else
         <p>
             Please check that you used the link from the right confirmation email, and are logged in as the right user.
         </p>
+        <p>
+            <a href="@Url.ConfirmationRequired()" >Resend confirmation email.</a>
+        </p>
+    }
+    else if (Model.DuplicateEmailAddress)
+    {
+        <p class="message error">
+            Your email address is confirmed as belonging to another user account (or your 'old' account).
+        </p>
+        <p>
+            You can change your email address to something else, or perhaps reuse the old account registered with this email address.
+        </p>
     }
     else
     {
@@ -31,8 +43,8 @@ else
         <p>
              Please check that you used the link from the confirmation email we sent. 
         </p>
+        <p>
+            <a href="@Url.ConfirmationRequired()" >Resend confirmation email.</a>
+        </p>
     }
-    <p>
-        <a href="@Url.ConfirmationRequired()" >Resend confirmation email.</a>
-    </p>
 }

@@ -11,5 +11,7 @@
         public bool SentEmail { get; set; }
 
         public bool WrongUsername { get; set; }
+
+        public bool DuplicateEmailAddress { get; set; }
     }
 }
