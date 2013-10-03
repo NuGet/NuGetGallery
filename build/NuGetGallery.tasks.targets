@@ -1,0 +1,86 @@
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+   <UsingTask TaskName="RegexReplace" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+       <ParameterGroup>
+           <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+           <Find ParameterType="System.String" Required="true" />
+           <Replace ParameterType="System.String" Required="true" />
+           <WarnOnNoMatch ParameterType="System.Boolean" Required="false" />
+       </ParameterGroup>
+       <Task>
+           <Using Namespace="System" />
+           <Using Namespace="System.IO" />
+           <Using Namespace="System.Text" />
+           <Using Namespace="System.Text.RegularExpressions" />
+           <Using Namespace="Microsoft.Build.Framework" />
+           <Using Namespace="Microsoft.Build.Utilities" />
+           <Code Type="Fragment" Language="cs">
+               <![CDATA[
+                   try {
+                       Regex regex = new Regex(Find, RegexOptions.Multiline | RegexOptions.Compiled);
+
+                       foreach (ITaskItem file in Files) {
+                           string fullPath = Path.GetFullPath(file.ItemSpec);
+                           string originalText = File.ReadAllText(fullPath);
+                           bool matched = regex.IsMatch(originalText);
+
+                           if (!matched) {
+                               if (WarnOnNoMatch) {
+                                   Log.LogWarning("No matches for '{0}' in '{1}'.", Find, fullPath);
+                               }
+                           }
+                           else {
+                               File.SetAttributes(fullPath, File.GetAttributes(fullPath) & ~FileAttributes.ReadOnly);
+                               File.WriteAllText(fullPath, regex.Replace(originalText, Replace), Encoding.UTF8);
+                           }
+                       }
+
+                       return true;
+                   }
+                   catch (Exception ex) {
+                       Log.LogErrorFromException(ex);
+                       return false;
+                   }
+               ]]>
+           </Code>
+       </Task>
+   </UsingTask>
+
+   <!-- Read Git information without invoking git itself! -->
+   <UsingTask TaskName="GetGitMetadata" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+       <ParameterGroup>
+           <RepositoryRoot ParameterType="System.String" Required="true" />
+           <Branch ParameterType="System.String" Output="true" />
+           <CommitId ParameterType="System.String" Output="true" />
+       </ParameterGroup>
+       <Task>
+           <Using Namespace="System" />
+           <Using Namespace="System.IO" />
+           <Using Namespace="System.Text" />
+           <Using Namespace="System.Text.RegularExpressions" />
+           <Using Namespace="Microsoft.Build.Framework" />
+           <Using Namespace="Microsoft.Build.Utilities" />
+           <Code Type="Fragment" Language="cs">
+            <![CDATA[
+                try {
+                    string headFile = Path.Combine(RepositoryRoot, @".git\HEAD");
+                    if(File.Exists(headFile)) {
+                      string headMarker = File.ReadAllText(headFile);
+                      var match = Regex.Match(headMarker, "^ref: refs/heads/(?<branchname>.*)$");
+                      if(match.Success) {
+                        Branch = match.Groups["branchname"].Value.Trim();
+                        string branchFile = Path.Combine(RepositoryRoot, @".git\refs\heads", Branch.Replace("/", Path.DirectorySeparatorChar.ToString()));
+                        if(File.Exists(branchFile)) {
+                          CommitId = File.ReadAllText(branchFile).Trim();
+                        }
+                      }
+                    }
+                  }
+               catch (Exception ex) {
+                   Log.LogErrorFromException(ex);
+                   return false;
+               }
+               ]]>
+           </Code>
+       </Task>
+   </UsingTask>
+</Project>
