@@ -160,15 +160,17 @@ namespace NuGetGallery
             // Like DisplayPackage we should prefer to show you information from the latest stable version,
             // but show you the latest version otherwise.
 
-            var latestStablePackageVersions = _packageRegistrationRepository.GetAll()
-                .Where(pr => pr.Owners.Where(owner => owner.Username == user.Username).Any())
-                .Select(pr => pr.Packages.Where(p => p.IsLatestStable).FirstOrDefault())
+            var latestStablePackageVersions = _packageRepository.GetAll()
+                .Where(p => 
+                    p.PackageRegistration.Owners.Any(owner => owner.Key == user.Key)
+                    && p.IsLatestStable)
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners);
 
-            var latestPackageVersions = _packageRegistrationRepository.GetAll()
-                .Where(pr => pr.Owners.Where(owner => owner.Username == user.Username).Any())
-                .Select(pr => pr.Packages.OrderByDescending(p => p.Version).FirstOrDefault())
+            var latestPackageVersions = _packageRepository.GetAll()
+                .Where(p => 
+                    p.PackageRegistration.Owners.Any(owner => owner.Key == user.Key)
+                    && p.IsLatest)
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners);
 
@@ -179,10 +181,7 @@ namespace NuGetGallery
             }
             foreach (var package in latestStablePackageVersions)
             {
-                if (package != null)
-                {
-                    mergedResults[package.PackageRegistration.Id] = package;
-                }
+                mergedResults[package.PackageRegistration.Id] = package;
             }
 
             return mergedResults.Values;

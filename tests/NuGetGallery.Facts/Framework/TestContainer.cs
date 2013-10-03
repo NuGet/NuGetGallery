@@ -35,6 +35,24 @@ namespace NuGetGallery.Framework
             return c;
         }
 
+        protected TService GetService<TService>()
+        {
+            var serviceInterfaces = typeof(TService).GetInterfaces();
+            Kernel.Bind(serviceInterfaces).To(typeof(TService));
+            return Get<TService>();
+        }
+
+        protected FakeEntitiesContext GetFakeContext()
+        {
+            var fakeContext = new FakeEntitiesContext();
+            Kernel.Bind<IEntitiesContext>().ToConstant(fakeContext);
+            Kernel.Bind<IEntityRepository<Package>>().ToConstant(new EntityRepository<Package>(fakeContext));
+            Kernel.Bind<IEntityRepository<PackageOwnerRequest>>().ToConstant(new EntityRepository<PackageOwnerRequest>(fakeContext));
+            Kernel.Bind<IEntityRepository<PackageStatistics>>().ToConstant(new EntityRepository<PackageStatistics>(fakeContext));
+            Kernel.Bind<IEntityRepository<PackageRegistration>>().ToConstant(new EntityRepository<PackageRegistration>(fakeContext));
+            return fakeContext;
+        }
+
         protected T Get<T>()
         {
             if(typeof(Controller).IsAssignableFrom(typeof(T))) {
