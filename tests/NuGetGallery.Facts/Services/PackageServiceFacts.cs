@@ -1065,7 +1065,7 @@ namespace NuGetGallery
             [Theory]
             [InlineData(null)]
             [InlineData("")]
-            public void WillThrowIfIdIsNull(string id)
+            public void WillThrowIfIdIsNullOrEmpty(string id)
             {
                 var service = CreateService();
                 var ex = Assert.Throws<ArgumentNullException>(() => service.FindPackageByIdAndVersion(id, "1.0.42"));
