@@ -13,6 +13,8 @@ namespace NuGetGallery
 
         User FindByEmailAddress(string emailAddress);
 
+        IList<User> FindAllByEmailAddress(string emailAddress);
+
         IList<User> FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress, string optionalUsername);
 
         User FindByUsername(string username);
