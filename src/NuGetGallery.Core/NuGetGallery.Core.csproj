@@ -95,12 +95,14 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Search\CamelCaseFilter.cs" />
     <Compile Include="Search\IdentifierKeywordAnalyzer.cs" />
+    <Compile Include="Search\SemanticVersionFilter.cs" />
     <Compile Include="Search\TagsAnalyzer.cs" />
     <Compile Include="Search\PackageAnalyzer.cs" />
     <Compile Include="Search\DescriptionAnalyzer.cs" />
     <Compile Include="Search\DotTokenizer.cs" />
     <Compile Include="Search\IdentifierAnalyzer.cs" />
     <Compile Include="Search\TokenizingHelper.cs" />
+    <Compile Include="Search\VersionAnalyzer.cs" />
     <Compile Include="SemanticVersionExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
