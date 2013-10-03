@@ -155,7 +155,7 @@ namespace NuGetGallery
                        : packages.Where(p => p.IsLatestStable);
         }
 
-        public IEnumerable<Package> FindPackagesByOwner(User user)
+        public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted)
         {
             // Like DisplayPackage we should prefer to show you information from the latest stable version,
             // but show you the latest version otherwise.

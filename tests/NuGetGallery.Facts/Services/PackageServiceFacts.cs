@@ -1166,9 +1166,45 @@ namespace NuGetGallery
                 context.Users.Add(owner);
                 context.PackageRegistrations.Add(packageRegistration);
                 context.Packages.Add(package);
-
                 var service = Get<PackageService>();
-                var packages = service.FindPackagesByOwner(owner);
+
+                var packages = service.FindPackagesByOwner(owner, includeUnlisted: false);
+                Assert.Equal(1, packages.Count());
+            }
+
+            [Fact]
+            public void ReturnsNoUnlistedPackagesWhenIncludeUnlistedIsFalse()
+            {
+                var owner = new User { Username = "someone" };
+                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { owner } };
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false, IsLatest = false, IsLatestStable = false };
+                packageRegistration.Packages.Add(package);
+
+                var context = GetFakeContext();
+                context.Users.Add(owner);
+                context.PackageRegistrations.Add(packageRegistration);
+                context.Packages.Add(package);
+                var service = Get<PackageService>();
+
+                var packages = service.FindPackagesByOwner(owner, includeUnlisted: false);
+                Assert.Equal(0, packages.Count());
+            }
+
+            [Fact]
+            public void ReturnsAnUnlistedPackageWhenIncludeUnlistedIsTrue()
+            {
+                var owner = new User { Username = "someone" };
+                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { owner } };
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true };
+                packageRegistration.Packages.Add(package);
+
+                var context = GetFakeContext();
+                context.Users.Add(owner);
+                context.PackageRegistrations.Add(packageRegistration);
+                context.Packages.Add(package);
+                var service = Get<PackageService>();
+
+                var packages = service.FindPackagesByOwner(owner, includeUnlisted: true);
                 Assert.Equal(1, packages.Count());
             }
 
@@ -1189,9 +1225,9 @@ namespace NuGetGallery
                 context.PackageRegistrations.Add(packageRegistrationB);
                 context.Packages.Add(packageA);
                 context.Packages.Add(packageB);
-
                 var service = Get<PackageService>();
-                var packages = service.FindPackagesByOwner(owner).ToList();
+
+                var packages = service.FindPackagesByOwner(owner, includeUnlisted: false).ToList();
                 Assert.Equal(2, packages.Count);
                 Assert.Contains(packageA, packages);
                 Assert.Contains(packageB, packages);
@@ -1212,9 +1248,9 @@ namespace NuGetGallery
                 context.PackageRegistrations.Add(packageRegistration);
                 context.Packages.Add(latestPackage);
                 context.Packages.Add(latestStablePackage);
-
                 var service = Get<PackageService>();
-                var packages = service.FindPackagesByOwner(owner).ToList();
+
+                var packages = service.FindPackagesByOwner(owner, includeUnlisted: false).ToList();
                 Assert.Equal(1, packages.Count);
                 Assert.Contains(latestStablePackage, packages);
             }

@@ -123,17 +123,17 @@ namespace NuGetGallery
         public virtual ActionResult Packages()
         {
             var user = UserService.FindByUsername(Identity.Name);
-            var packages = PackageService.FindPackagesByOwner(user);
+            var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: true)
+                .Select(p => new PackageViewModel(p)
+                {
+                    DownloadCount = p.PackageRegistration.DownloadCount,
+                    Version = null
+                }).ToList();
 
             var model = new ManagePackagesViewModel
-                {
-                    Packages = from p in packages
-                               select new PackageViewModel(p)
-                                   {
-                                       DownloadCount = p.PackageRegistration.DownloadCount,
-                                       Version = null
-                                   },
-                };
+            {
+                Packages = packages
+            };
             return View(model);
         }
 
@@ -276,12 +276,12 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var packages = (from p in PackageService.FindPackagesByOwner(user)
-                            where p.Listed
-                            orderby p.Version descending
-                            group p by p.PackageRegistration.Id)
-                .Select(c => new PackageViewModel(c.First()))
-                .ToList();
+            var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: false)
+                .Select(p => new PackageViewModel(p)
+                {
+                    DownloadCount = p.PackageRegistration.DownloadCount,
+                    Version = null
+                }).ToList();
 
             var model = new UserProfileModel(user)
             {
