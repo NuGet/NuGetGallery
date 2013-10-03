@@ -169,11 +169,10 @@
             This is a prerelease version of @Model.Title.
         </p>
     }
-    else if (!Model.IsLatestVersionAvailable)
+    else if (!Model.LatestVersion)
     {
         <p class="not-latest-message">
-            This is not the <a href="@Url.Package(Model.Id)" title="View the latest version">latest
-                                version</a> of @Model.Title available.
+            There is a newer prerelease version of this package available. See the version list below for details.
         </p>
     }
     <hgroup class="page-heading">
@@ -249,7 +248,8 @@
     }
     @if (Model.Dependencies.DependencySets == null)
     {
-        if(Model.IsOwner(User)) {
+        if (Model.IsOwner(User))
+        {
             <h3>Dependencies</h3>
             <p>
                 An error occurred processing dependencies. 
@@ -259,7 +259,8 @@
                 <strong>Note: This message is only visible to you and any other package owners.</strong></p>
         }
     }
-    else {
+    else
+    {
         <h3>Dependencies</h3>
         @Html.Partial("_PackageDependencies", Model.Dependencies)
     }
