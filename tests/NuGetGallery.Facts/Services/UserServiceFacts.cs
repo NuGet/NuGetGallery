@@ -176,6 +176,20 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void ThrowsForDuplicateConfirmedEmailAddresses()
+            {
+                var user = new User { Username = "User1", Key = 1, EmailAddress = "old@example.org", UnconfirmedEmailAddress = "new@example.org", EmailConfirmationToken = "token" };
+                var conflictingUser = new User { Username = "User2", Key = 2, EmailAddress = "new@example.org" };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user, conflictingUser }
+                };
+
+                var ex = Assert.Throws<EntityException>(() => service.ConfirmEmailAddress(user, "token"));
+                Assert.Equal(String.Format(Strings.EmailAddressBeingUsed, "new@example.org"), ex.Message);
+            }
+
+            [Fact]
             public void WithTokenThatDoesMatchUserConfirmsUserAndReturnsTrue()
             {
                 var user = new User
@@ -255,8 +269,8 @@ namespace NuGetGallery
             public void WillThrowIfTheEmailAddressIsAlreadyInUse()
             {
                 var userService = CreateMockUserService(
-                    setup: u => u.Setup(x => x.FindByEmailAddress("theEmailAddress"))
-                                 .Returns(new User()));
+                    setup: u => u.Setup(x => x.FindAllByEmailAddress("theEmailAddress"))
+                                 .Returns(new List<User> { new User() }));
 
                 var ex = Assert.Throws<EntityException>(
                     () =>
@@ -383,6 +397,23 @@ namespace NuGetGallery
                     "theEmailAddress");
 
                 Assert.Equal(true, user.Confirmed);
+            }
+        }
+
+        public class TheFindByEmailAddressMethod
+        {
+            [Fact]
+            public void ReturnsNullIfMultipleMatchesExist()
+            {
+                var user = new User { Username = "User1", Key = 1, EmailAddress = "new@example.org" };
+                var conflictingUser = new User { Username = "User2", Key = 2, EmailAddress = "new@example.org" };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user, conflictingUser }
+                };
+
+                var result = service.FindByEmailAddress("new@example.org");
+                Assert.Null(result);
             }
         }
 
@@ -780,6 +811,21 @@ namespace NuGetGallery
 
                 service.ChangeEmailAddress(user, "old@example.com");
                 Assert.Equal("pending-token", user.EmailConfirmationToken);
+            }
+
+            [Fact]
+            public void DoesNotLetYouUseSomeoneElsesConfirmedEmailAddress()
+            {
+                var user = new User { EmailAddress = "old@example.com", Key = 1 };
+                var conflictingUser = new User { EmailAddress = "new@example.com", Key = 2 };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new User[] { user, conflictingUser },
+                };
+
+                var e = Assert.Throws<EntityException>(() => service.ChangeEmailAddress(user, "new@example.com"));
+                Assert.Equal(string.Format(Strings.EmailAddressBeingUsed, "new@example.com"), e.Message);
+                Assert.Equal("old@example.com", user.EmailAddress);
             }
         }
 

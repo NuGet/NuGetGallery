@@ -90,169 +90,6 @@ namespace NuGetGallery
             }
         }
 
-        public class TheConfirmMethod :  TestContainer
-        {
-            [Fact]
-            public void Returns403ForbiddenWhenAuthenticatedAsWrongUser()
-            {
-                var controller = GetController<UsersController>();
-                controller.SetUser(Fakes.User);
-
-                var result = controller.Confirm("wrongUsername", "someToken");
-
-                ResultAssert.IsStatusCode(result, 403, "You are not logged in as the correct user to perform this action.");
-            }
-
-            [Fact]
-            public void Returns404WhenTokenIsEmpty()
-            {
-                var controller = GetController<UsersController>();
-                controller.SetUser(Fakes.User);
-                
-                var result = controller.Confirm(Fakes.User.Username, "");
-                
-                ResultAssert.IsStatusCode(result, 404);
-            }
-
-            [Fact]
-            public void ReturnsConfirmedWhenTokenMatchesUser()
-            {
-                var user = new User
-                {
-                    Username = "username",
-                    UnconfirmedEmailAddress = "email@example.com",
-                    EmailConfirmationToken = "the-token"
-                };
-                var controller = GetController<UsersController>();
-                controller.SetUser(user);
-
-                GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername("username"))
-                    .Returns(user);
-                GetMock<IUserService>()
-                    .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
-                    .Returns(true);
-
-                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as ConfirmationViewModel;
-
-                Assert.True(model.SuccessfulConfirmation);
-            }
-
-            [Fact]
-            public void SendsAccountChangedNoticeWhenConfirmingChangedEmail()
-            {
-                var user = new User
-                {
-                    Username = "username",
-                    EmailAddress = "old@example.com",
-                    UnconfirmedEmailAddress = "new@example.com",
-                    EmailConfirmationToken = "the-token"
-                };
-                var controller = GetController<UsersController>();
-                controller.SetUser(user);
-
-                GetMock<IUserService>()
-                          .Setup(u => u.FindByUsername("username"))
-                          .Returns(user);
-                GetMock<IUserService>()
-                          .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
-                          .Returns(true);
-                    
-                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as ConfirmationViewModel;
-
-                Assert.True(model.SuccessfulConfirmation);
-                Assert.False(model.ConfirmingNewAccount);
-                GetMock<IMessageService>()
-                          .Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(user, "old@example.com"));
-            }
-
-            [Fact]
-            public void DoesntSendAccountChangedEmailsWhenNoOldConfirmedAddress()
-            {
-                var user = new User
-                {
-                    Username = "username",
-                    EmailAddress = null,
-                    UnconfirmedEmailAddress = "new@example.com",
-                    EmailConfirmationToken = "the-token"
-                };
-                var controller = GetController<UsersController>();
-                GetMock<IUserService>()
-                          .Setup(u => u.FindByUsername("username"))
-                          .Returns(user);
-                GetMock<IUserService>()
-                          .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
-                          .Returns(true);
-                controller.SetUser(user);
-
-                // act:
-                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as ConfirmationViewModel;
-
-                // verify:
-                Assert.True(model.SuccessfulConfirmation);
-                Assert.True(model.ConfirmingNewAccount);
-                GetMock<IMessageService>()
-                          .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()), Times.Never());
-                GetMock<IMessageService>()
-                          .Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(It.IsAny<User>(), It.IsAny<string>()), Times.Never());
-            }
-
-            [Fact]
-            public void DoesntSendAccountChangedEmailsIfConfirmationTokenDoesntMatch()
-            {
-                var user = new User
-                {
-                    Username = "username",
-                    EmailAddress = "old@example.com",
-                    UnconfirmedEmailAddress = "new@example.com",
-                    EmailConfirmationToken = "the-token"
-                };
-                var controller = GetController<UsersController>();
-                controller.SetUser(user);
-                GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
-                    .Returns(user);
-                GetMock<IUserService>()
-                    .Setup(u => u.ConfirmEmailAddress(user, "faketoken"))
-                    .Returns(false);
-
-                // act:
-                var model = (controller.Confirm("username", "faketoken") as ViewResult).Model as ConfirmationViewModel;
-
-                // verify:
-                Assert.False(model.SuccessfulConfirmation);
-                Assert.False(model.ConfirmingNewAccount);
-                GetMock<IMessageService>()
-                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()), Times.Never());
-                GetMock<IMessageService>()
-                  .Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(It.IsAny<User>(), It.IsAny<string>()), Times.Never());
-            }
-
-            [Fact]
-            public void ReturnsFalseWhenTokenDoesNotMatchUser()
-            {
-                var user = new User
-                {
-                    Username = "username",
-                    EmailAddress = "old@example.com",
-                    UnconfirmedEmailAddress = "new@example.com",
-                    EmailConfirmationToken = "the-token"
-                };
-                var controller = GetController<UsersController>();
-                controller.SetUser(user);
-                GetMock<IUserService>()
-                          .Setup(u => u.FindByUsername("username"))
-                          .Returns(user);
-                GetMock<IUserService>()
-                          .Setup(u => u.ConfirmEmailAddress(user, "not-the-token"))
-                          .Returns(false);
-
-                var model = (controller.Confirm("username", "not-the-token") as ViewResult).Model as ConfirmationViewModel;
-
-                Assert.False(model.SuccessfulConfirmation);
-            }
-        }
-
         public class TheEditMethod : TestContainer
         {
             [Fact]
@@ -384,6 +221,30 @@ namespace NuGetGallery
         public class TheChangeEmailAction : TestContainer
         {
             [Fact]
+            public void DoesNotLetYouUseSomeoneElsesConfirmedEmailAddress()
+            {
+                var user = new User
+                {
+                    Username = "theUsername",
+                    EmailAddress = "old@example.com",
+                    Key = 1,
+                };
+
+                var controller = GetController<UsersController>();
+                controller.SetUser(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsernameAndPassword(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.ChangeEmailAddress(user, "new@example.com"))
+                    .Throws(new EntityException("msg"));
+
+                var result = controller.ChangeEmail(new ChangeEmailRequestModel { NewEmail = "new@example.com" });
+                Assert.False(controller.ModelState.IsValid);
+                Assert.Equal("msg", controller.ModelState["NewEmail"].Errors[0].ErrorMessage);
+            }
+
+            [Fact]
             public void SendsEmailChangeConfirmationNoticeWhenChangingAConfirmedEmailAddress()
             {
                 var user = new User
@@ -470,6 +331,192 @@ namespace NuGetGallery
         public class TheConfirmAction : TestContainer
         {
             [Fact]
+            public void ConfirmsTheUser()
+            {
+                var user = new User
+                {
+                    Username = "aUsername",
+                    UnconfirmedEmailAddress = "old@example.com",
+                    EmailConfirmationToken = "aToken",
+                };
+
+                var controller = GetController<UsersController>();
+                controller.SetUser(user);
+                GetMock<IUserService>().Setup(u => u.FindByUsername("aUsername")).Returns(user);
+
+                var result = controller.Confirm("aUsername", "aToken");
+
+                GetMock<IUserService>().Verify(u => u.ConfirmEmailAddress(user, "aToken"));
+            }
+
+            [Fact]
+            public void ShowsAnErrorForWrongUsername()
+            {
+                var user = new User
+                {
+                    Username = "aUsername",
+                    UnconfirmedEmailAddress = "old@example.com",
+                    EmailConfirmationToken = "aToken",
+                };
+
+                var controller = GetController<UsersController>();
+                controller.SetUser(user);
+                GetMock<IUserService>().Setup(u => u.FindByUsername("aUsername")).Returns(user);
+
+                var result = controller.Confirm("wrongUsername", "aToken");
+                var model = (ConfirmationViewModel)((ViewResult)result).Model;
+
+                Assert.False(model.SuccessfulConfirmation);
+                Assert.True(model.WrongUsername);
+            }
+
+            [Fact]
+            public void ShowsAnErrorForWrongToken()
+            {
+                var user = new User
+                {
+                    Username = "aUsername",
+                    UnconfirmedEmailAddress = "old@example.com",
+                    EmailConfirmationToken = "aToken",
+                };
+
+                var controller = GetController<UsersController>();
+                controller.SetUser(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername("aUsername"))
+                    .Returns(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.ConfirmEmailAddress(user, It.IsAny<string>()))
+                    .Returns(false);
+
+                var result = controller.Confirm("aUsername", "wrongToken");
+                var model = (ConfirmationViewModel)((ViewResult)result).Model;
+
+                Assert.False(model.SuccessfulConfirmation);
+            }
+
+            [Fact]
+            public void ShowsAnErrorForConflictingEmailAddress()
+            {
+                var user = new User
+                {
+                    Username = "aUsername",
+                    UnconfirmedEmailAddress = "old@example.com",
+                    EmailConfirmationToken = "aToken",
+                };
+
+                var controller = GetController<UsersController>();
+                controller.SetUser(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername("aUsername"))
+                    .Returns(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.ConfirmEmailAddress(user, It.IsAny<string>()))
+                    .Throws(new EntityException("msg"));
+
+                var result = controller.Confirm("aUsername", "aToken");
+                var model = (ConfirmationViewModel)((ViewResult)result).Model;
+
+                Assert.False(model.SuccessfulConfirmation);
+                Assert.True(model.DuplicateEmailAddress);
+            }
+
+            [Fact]
+            public void SendsAccountChangedNoticeWhenConfirmingChangedEmail()
+            {
+                var user = new User
+                {
+                    Username = "username",
+                    EmailAddress = "old@example.com",
+                    UnconfirmedEmailAddress = "new@example.com",
+                    EmailConfirmationToken = "the-token"
+                };
+                var controller = GetController<UsersController>();
+                controller.SetUser(user);
+
+                GetMock<IUserService>()
+                          .Setup(u => u.FindByUsername("username"))
+                          .Returns(user);
+                GetMock<IUserService>()
+                          .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
+                          .Returns(true);
+
+                var result = controller.Confirm("username", "the-token");
+                var model =  (ConfirmationViewModel)((ViewResult)result).Model;
+
+                Assert.True(model.SuccessfulConfirmation);
+                Assert.False(model.ConfirmingNewAccount);
+                GetMock<IMessageService>()
+                          .Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(user, "old@example.com"));
+            }
+
+            [Fact]
+            public void DoesntSendAccountChangedEmailsWhenNoOldConfirmedAddress()
+            {
+                var user = new User
+                {
+                    Username = "username",
+                    EmailAddress = null,
+                    UnconfirmedEmailAddress = "new@example.com",
+                    EmailConfirmationToken = "the-token"
+                };
+                var controller = GetController<UsersController>();
+                GetMock<IUserService>()
+                          .Setup(u => u.FindByUsername("username"))
+                          .Returns(user);
+                GetMock<IUserService>()
+                          .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
+                          .Returns(true);
+                controller.SetUser(user);
+
+                // act:
+                var result = controller.Confirm("username", "the-token");
+                var model = (ConfirmationViewModel)((ViewResult)result).Model;
+
+                // verify:
+                Assert.True(model.SuccessfulConfirmation);
+                Assert.True(model.ConfirmingNewAccount);
+                GetMock<IMessageService>()
+                          .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()), Times.Never());
+                GetMock<IMessageService>()
+                          .Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(It.IsAny<User>(), It.IsAny<string>()), Times.Never());
+            }
+
+            [Fact]
+            public void DoesntSendAccountChangedEmailsIfConfirmationTokenDoesntMatch()
+            {
+                var user = new User
+                {
+                    Username = "username",
+                    EmailAddress = "old@example.com",
+                    UnconfirmedEmailAddress = "new@example.com",
+                    EmailConfirmationToken = "the-token"
+                };
+                var controller = GetController<UsersController>();
+                controller.SetUser(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                    .Returns(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.ConfirmEmailAddress(user, "faketoken"))
+                    .Returns(false);
+
+                // act:
+                var model = (controller.Confirm("username", "faketoken") as ViewResult).Model as ConfirmationViewModel;
+
+                // verify:
+                Assert.False(model.SuccessfulConfirmation);
+                Assert.False(model.ConfirmingNewAccount);
+                GetMock<IMessageService>()
+                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()), Times.Never());
+                GetMock<IMessageService>()
+                  .Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(It.IsAny<User>(), It.IsAny<string>()), Times.Never());
+            }
+        }
+
+        public class TheConfirmationRequiredAction : TestContainer
+        {
+            [Fact]
             public void WillSendNewUserEmailWhenPosted()
             {
                 var user = new User
@@ -535,8 +582,8 @@ namespace NuGetGallery
             {
                 var controller = GetController<UsersController>();
                 GetMock<IUserService>()
-                          .Setup(u => u.ResetPasswordWithToken("user", "token", "newpwd"))
-                          .Returns(true);
+                    .Setup(u => u.ResetPasswordWithToken("user", "token", "newpwd"))
+                    .Returns(true);
                 var model = new PasswordResetViewModel
                     {
                         ConfirmPassword = "pwd",
