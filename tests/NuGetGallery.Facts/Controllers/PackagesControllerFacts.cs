@@ -496,6 +496,42 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void HtmlEncodesMessageContent()
+            {
+                var messageService = new Mock<IMessageService>();
+                string sentMessage = null;
+                messageService.Setup(
+                    s => s.SendContactOwnersMessage(
+                        It.IsAny<MailAddress>(),
+                        It.IsAny<PackageRegistration>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()))
+                    .Callback<MailAddress, PackageRegistration, string, string>((_, __, msg, ___) => sentMessage = msg);
+                var package = new PackageRegistration { Id = "factory" };
+
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageRegistrationById("factory")).Returns(package);
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(h => h.User.Identity.Name).Returns("Montgomery");
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.FindByUsername("Montgomery")).Returns(
+                    new User { EmailAddress = "montgomery@burns.example.com", Username = "Montgomery" });
+                var controller = CreateController(
+                    packageService: packageService,
+                    messageService: messageService,
+                    userService: userService,
+                    httpContext: httpContext);
+                var model = new ContactOwnersViewModel
+                {
+                    Message = "I like the cut of your jib. It's <b>bold</b>.",
+                };
+
+                var result = controller.ContactOwners("factory", model) as RedirectToRouteResult;
+
+                Assert.Equal("I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;.", sentMessage);
+            }
+
+            [Fact]
             public void CallsSendContactOwnersMessageWithUserInfo()
             {
                 var messageService = new Mock<IMessageService>();
@@ -734,6 +770,46 @@ namespace NuGetGallery
                 Assert.IsType<RedirectToRouteResult>(result);
                 Assert.Equal("ReportMyPackage", ((RedirectToRouteResult)result).RouteValues["Action"]);
             }
+
+            [Fact]
+            public void HtmlEncodesMessageContent()
+            {
+                var messageService = new Mock<IMessageService>();
+                messageService.Setup(
+                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "mordor" },
+                    Version = "2.0.1"
+                };
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageByIdAndVersion("mordor", "2.0.1", true)).Returns(package);
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(false);
+                var controller = CreateController(
+                    packageService: packageService,
+                    messageService: messageService,
+                    httpContext: httpContext);
+                var model = new ReportAbuseViewModel
+                {
+                    Email = "frodo@hobbiton.example.com",
+                    Message = "I like the cut of your jib. It's <b>bold</b>.",
+                    Reason = ReportPackageReason.IsFraudulent,
+                    AlreadyContactedOwner = true,
+                };
+
+                TestUtility.SetupUrlHelper(controller, httpContext);
+                controller.ReportAbuse("mordor", "2.0.1", model);
+
+                messageService.Verify(
+                    s => s.ReportAbuse(
+                        It.Is<ReportPackageRequest>(
+                            r => r.FromAddress.Address == "frodo@hobbiton.example.com"
+                                 && r.Package == package
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)
+                                 && r.Message == "I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;."
+                                 && r.AlreadyContactedOwners)));
+            }
         }
 
         public class TheReportMyPackageMethod
@@ -762,6 +838,51 @@ namespace NuGetGallery
                 ActionResult result = controller.ReportMyPackage("Mordor", "2.0.1");
                 Assert.IsType<RedirectToRouteResult>(result);
                 Assert.Equal("ReportAbuse", ((RedirectToRouteResult)result).RouteValues["Action"]);
+            }
+
+            [Fact]
+            public void HtmlEncodesMessageContent()
+            {
+                var user = new User { Username = "Sauron", Key = 1, EmailAddress = "sauron@mordor.example.com" };
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "mordor", Owners = { user } },
+                    Version = "2.0.1"
+                };
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageByIdAndVersion("mordor", "2.0.1", true)).Returns(package);
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
+                httpContext.Setup(h => h.User.Identity.Name).Returns("Sauron");
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.FindByUsername(user.Username)).Returns(user);
+
+                ReportPackageRequest reportRequest = null;
+                var messageService = new Mock<IMessageService>();
+                messageService
+                    .Setup(s => s.ReportMyPackage(It.IsAny<ReportPackageRequest>()))
+                    .Callback<ReportPackageRequest>(r => reportRequest = r);
+                var controller = CreateController(
+                    packageService: packageService,
+                    messageService: messageService,
+                    userService: userService,
+                    httpContext: httpContext);
+                var model = new ReportAbuseViewModel
+                {
+                    Email = "frodo@hobbiton.example.com",
+                    Message = "I like the cut of your jib. It's <b>bold</b>.",
+                    Reason = ReportPackageReason.IsFraudulent,
+                    AlreadyContactedOwner = true,
+                };
+
+                TestUtility.SetupUrlHelper(controller, httpContext);
+                controller.ReportMyPackage("mordor", "2.0.1", model);
+
+                Assert.NotNull(reportRequest);
+                Assert.Equal(user.EmailAddress, reportRequest.FromAddress.Address);
+                Assert.Same(package, reportRequest.Package);
+                Assert.Equal(EnumHelper.GetDescription(ReportPackageReason.IsFraudulent), reportRequest.Reason);
+                Assert.Equal("I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;.", reportRequest.Message);
             }
         }
 
