@@ -1,6 +1,7 @@
 $Global:RepoRoot = (Convert-Path "$PsScriptRoot\..\..\..")
 $Global:OpsRoot = (Convert-Path "$PsScriptRoot\..\..")
 $Global:NuGetOpsDefinition = $env:NUGET_OPS_DEFINITION
+$Global:RoleConfigurationsDirectory = (Convert-Path "$PsScriptRoot\..\..\Deployment")
 
 $GalOpsRoot = Join-Path $RepoRoot "src\galops"
 
