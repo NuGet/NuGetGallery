@@ -232,6 +232,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A user with the provided user name and password does not exist..
+        /// </summary>
+        public static string UsernameAndPasswordNotFound {
+            get {
+                return ResourceManager.GetString("UsernameAndPasswordNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The username &apos;{0}&apos; is not available..
         /// </summary>
         public static string UsernameNotAvailable {
@@ -241,7 +250,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A user with the provided user name and password does not exist..
+        ///   Looks up a localized string similar to A user with the provided user name does not exist..
         /// </summary>
         public static string UserNotFound {
             get {

@@ -9,10 +9,11 @@ using System.Web.Routing;
 using Moq;
 using Ninject;
 using Ninject.Modules;
+using Xunit.Extensions;
 
 namespace NuGetGallery.Framework
 {
-    public class TestContainer : IDisposable
+    public class TestContainer : TestClass, IDisposable
     {
         public IKernel Kernel { get; private set; }
 
