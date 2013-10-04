@@ -127,7 +127,7 @@
     <value>No description was provided for this command.</value>
   </data>
   <data name="InvalidOptionValueError" xml:space="preserve">
-    <value>Invalid option value: '{0} {1}'</value>
+    <value>Invalid option value: '{0} {1}': {2}</value>
   </data>
   <data name="MissingOptionValueError" xml:space="preserve">
     <value>Missing option value for: '{0}'</value>

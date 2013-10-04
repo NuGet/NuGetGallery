@@ -46,16 +46,5 @@ namespace NuGetGallery
         [StringLength(64, MinimumLength = 7)]
         [Hint("Passwords must be at least 7 characters long.")]
         public string Password { get; set; }
-
-        [Required]
-        [Compare("Password")]
-        [DataType(DataType.Password)]
-        [Display(Name = "Password Confirmation")]
-        [Hint("Please reenter your password and ensure that it matches the one above.")]
-        public string ConfirmPassword { get; set; }
-
-        [Mandatory(ErrorMessage="You must accept the terms of use and privacy policy to create an account")]
-        [ScaffoldColumn(false)]
-        public bool AcceptTerms { get; set; }
     }
 }

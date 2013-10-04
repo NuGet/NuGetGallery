@@ -1,4 +1,5 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildThisFileDirectory)\NuGetGallery.tasks.targets" />
   <PropertyGroup Condition="'$(Configuration)' == ''">
     <Configuration>Debug</Configuration>
   </PropertyGroup>
@@ -6,12 +7,31 @@
   <PropertyGroup>
     <Platform>Any CPU</Platform>
   </PropertyGroup>
-  
+
+  <Target Name="PatchAssemblyVersion">
+    <ItemGroup>
+      <_RegexReplace Include="$(MSBuildThisFileDirectory)\..\src\CommonAssemblyInfo.cs" />
+    </ItemGroup>
+    <GetGitMetadata RepositoryRoot="$(MSBuildThisFileDirectory)\..">
+      <Output TaskParameter="Branch" PropertyName="Branch" />
+      <Output TaskParameter="CommitId" PropertyName="CommitId" />
+    </GetGitMetadata>
+    <Message Text="Marking AssemblyInfo for build from branch $(Branch), commit $(CommitId)" Importance="high" />
+    <RegexReplace 
+      Files="@(_RegexReplace)"
+      Find="\[assembly: AssemblyMetadata\(&quot;Branch&quot;, .*\)\]"
+      Replace="[assembly: AssemblyMetadata(&quot;Branch&quot;, &quot;$(Branch)&quot;)]" />
+    <RegexReplace 
+      Files="@(_RegexReplace)"
+      Find="\[assembly: AssemblyMetadata\(&quot;CommitId&quot;, .*\)\]"
+      Replace="[assembly: AssemblyMetadata(&quot;CommitId&quot;, &quot;$(CommitId)&quot;)]" />
+  </Target>
+
   <Target Name="Clean">
     <MSBuild Projects="..\NuGetGallery.sln" Targets="Clean" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
   </Target>
   
-  <Target Name="Build" DependsOnTargets="Clean">
+  <Target Name="Build" DependsOnTargets="Clean;PatchAssemblyVersion">
     <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);RunFacts=true" />
     <MSBuild Projects="..\src\NuGetGallery.Backend.Cloud\NuGetGallery.Backend.Cloud.ccproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
   </Target>

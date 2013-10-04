@@ -1,43 +1,50 @@
-﻿@model EmailConfirmationModel
+﻿@model ConfirmationViewModel
 
 <h1 class="page-heading">Confirm Registration</h1>
 
 @if (Model.SuccessfulConfirmation)
 {
     <p>
-        @if (Model.ConfirmingNewAccount)
-        {
-            @: Account registration completed!
-        }
-        else
-        {
-            @: Email address change confirmed!
-        }
+        Account confirmed! Your email address has been verified.
     </p>
-    if (Model.ConfirmingNewAccount)
+    <p>
+        You may now upload packages and make your mark in 
+        the community.
+    </p>
+}
+else
+{
+    if (Model.WrongUsername)
     {
-        <p>
-            Click on the Log On link to logon to the site.
+        <p class="message error">
+            You cannot confirm a different user's email address.
         </p>
         <p>
-            You may now upload packages and make your mark in 
-            the community.
+            Please check that you used the link from the right confirmation email, and are logged in as the right user.
+        </p>
+        <p>
+            <a href="@Url.ConfirmationRequired()" >Resend confirmation email.</a>
+        </p>
+    }
+    else if (Model.DuplicateEmailAddress)
+    {
+        <p class="message error">
+            Your email address is confirmed as belonging to another user account (or your 'old' account).
+        </p>
+        <p>
+            You can change your email address to something else, or perhaps reuse the old account registered with this email address.
         </p>
     }
     else
     {
+        <p class="message error">
+            We could not confirm your email address. The token was invalid or expired.
+        </p>
         <p>
-            Your email address is now updated.
+             Please check that you used the link from the confirmation email we sent. 
+        </p>
+        <p>
+            <a href="@Url.ConfirmationRequired()" >Resend confirmation email.</a>
         </p>
     }
-}
-
-else
-{
-    <p class="message error">
-        Could not confirm your email address.
-    </p>
-    <p>
-        Make sure you clicked on the confirmation URL in the email we sent.
-    </p>
 }

@@ -3,7 +3,6 @@
     ViewBag.Title = "Edit Profile";
 }
 
-
 <h1 class="page-heading">Edit Profile</h1>
 
 @Html.ValidationSummary(true)
@@ -11,48 +10,68 @@
 @if (!String.IsNullOrEmpty(Model.PendingNewEmailAddress))
 {
     <p class="message">
-        You recently requested to change your email address to <strong>@Model.PendingNewEmailAddress</strong>. 
-        This change will take effect when you confirm the address. Check your inbox (or spam folder) for an 
-        email with a confirmation link.
+        You recently registered a new email address: <strong>@Model.PendingNewEmailAddress</strong><br />
+
+        @if (!String.IsNullOrEmpty(Model.EmailAddress))
+        {
+            <text>We will continue sending notification emails to your old verified email address (@Model.EmailAddress)
+            until you <a href="@Url.ConfirmationRequired()">verify your new email address.</a></text>
+        }
+        else
+        {
+            <text>We will only send you notification emails after you 
+            <a href="@Url.ConfirmationRequired()">verify your email address.</a><br />
+            </text>
+        }
     </p>
 }
 
 @using (Html.BeginForm())
 {
+    string currentEmailAddress = Model.PendingNewEmailAddress ?? Model.EmailAddress;
+    
     @Html.AntiForgeryToken()
 
     <fieldset class="form">
         <legend>Edit Profile</legend>
+
+        <div class="form-field">
+            <label>Email Address</label>
+            <p>Your current email address is <u>@currentEmailAddress</u>
+                @Html.ActionLink("(change)", "ChangeEmail", "Users")<br />
+        </div>
         
         <div class="form-field">
             <label>Profile Picture</label>
-            <p>We use your email address and the <a href="http://www.gravatar.com" target="_blank">Gravatar</a> service to get your profile picture. Go <a href="https://en.gravatar.com/emails" target="_blank">there</a> to set/change your profile picture</p>
+            @ViewHelpers.GravatarImage(currentEmailAddress, Model.Username, 32)
+            <p>
+                @if (!String.IsNullOrEmpty(Model.PendingNewEmailAddress))
+                {
+                    <text>This is a preview of how your profile picture will look once you have verified your
+                    current email address. </text>
+                }
+                We use your verified email address and <a href="http://www.gravatar.com" target="_blank">gravatar.com</a> 
+                to get your profile picture. <a href="https://en.gravatar.com/emails" target="_blank">Go to gravatar.com</a> 
+                to change your profile picture.
+            </p>
         </div>
 
         <div class="form-field">
-            @Html.LabelFor(m => m.EmailAddress)
-            @Html.EditorFor(m => m.EmailAddress)
-            @Html.ValidationMessageFor(m => m.EmailAddress)
-            <span class="field-hint-message">If you change your email address, you will need to confirm 
-                your new address for it to take effect.</span>
-        </div>
-
-        <div class="form-field">
-            @Html.EditorFor(m => m.EmailAllowed)
             <label for="EmailAllowed" class="checkbox">
                 Receive Email Notifications 
             </label>
+            <input type="hidden" name="EmailAllowed" value="@(Model.EmailAllowed ? "false" : "true")" />
             <p>
-                <strong>Important:</strong> This setting allows other <em>registered</em> users of the site to contact you 
-                about packages that you own using the <em>Contact Owners</em> form, or to request that you become an owner 
-                of their package. Unchecking this means users cannot contact you for these reasons.
+                You are <em>@(Model.EmailAllowed ? "" : "not")</em> subscribed to email notifications.
             </p>
-
+            <input type="submit" style="width: auto;" 
+                value="@(Model.EmailAllowed ? "Unsubscribe" : "Subscribe")" 
+                title="@(Model.EmailAllowed ? "Unsubscribe" : "Subscribe")" />
+            <p>
+                <strong>Important:</strong> Subscribing allows other registered users of the site to contact you 
+                about packages that you own using the <em>Contact Owners</em> form, or to request that you become an owner 
+                of their package. Unsubscribing means users cannot contact you for these reasons.
+            </p>
         </div>
-
-        <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
-
-        <input type="submit" value="Save" title="Save Changes" />
-        <a class="cancel" href="@Url.Action("Account")" title="Cancel Changes and go back.">Cancel</a>
     </fieldset>
 }

@@ -38,6 +38,16 @@ namespace NuGetGallery {
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult SignIn() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.SignIn);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult Register() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.Register);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult LogOff() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.LogOff);
         }
@@ -55,6 +65,8 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
             public readonly string LogOn = "LogOn";
+            public readonly string SignIn = "SignIn";
+            public readonly string Register = "Register";
             public readonly string LogOff = "LogOff";
         }
 
@@ -64,7 +76,11 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
+            public readonly string _RegisterForm = "~/Views/Authentication/_RegisterForm.cshtml";
+            public readonly string _SignInForm = "~/Views/Authentication/_SignInForm.cshtml";
             public readonly string LogOn = "~/Views/Authentication/LogOn.cshtml";
+            public readonly string Register = "~/Views/Authentication/Register.cshtml";
+            public readonly string SignIn = "~/Views/Authentication/SignIn.cshtml";
         }
     }
 
@@ -78,8 +94,15 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult LogOn(NuGetGallery.SignInRequest request, string returnUrl) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LogOn);
+        public override System.Web.Mvc.ActionResult SignIn(NuGetGallery.SignInRequest request, string returnUrl) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.SignIn);
+            callInfo.RouteValueDictionary.Add("request", request);
+            callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Register(NuGetGallery.RegisterRequest request, string returnUrl) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Register);
             callInfo.RouteValueDictionary.Add("request", request);
             callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
             return callInfo;
