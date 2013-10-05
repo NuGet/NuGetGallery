@@ -1,4 +1,4 @@
-Configuration NuGetFrontend {
+Configuration Frontend {
     param(
         [Parameter(Mandatory=$true, Position=0)][string]$MachineName)
 

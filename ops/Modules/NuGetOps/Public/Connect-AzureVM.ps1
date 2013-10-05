@@ -2,13 +2,34 @@ function Connect-AzureVM {
     param(
         [Parameter(Mandatory=$true, Position=0)][string]$Service,
         [Parameter(Mandatory=$true, Position=1)][string]$VMName,
-        [Parameter(Mandatory=$false, Position=2)][string]$Subscription,
-        [Parameter(Mandatory=$false, Position=3)][string]$CertificateThumbprint)
-    $vm = GetAzureVMInfo $Service $VMName $Subscription $CertificateThumbprint
-    
-    Write-Host "Connecting to PowerShell..."
-    $cred = Get-Credential -Message "Enter Admin Credentials..."
-    $session = New-PSSession -ConnectionUri $vm.WinRMUri -Credential $cred
+        [Parameter(Mandatory=$false)][string]$Subscription,
+        [Parameter(Mandatory=$false)][string]$CertificateThumbprint,
+        [Parameter(Mandatory=$false, ParameterSetName="PSRemoting")][switch]$DoNotEnter,
+        [Parameter(Mandatory=$true, ParameterSetName="CIM")][switch]$Cim,
+        [Parameter(Mandatory=$false)]$VMInfo)
 
-    Enter-PSSession $session
+    if(!$VMInfo) {
+        $VMInfo = GetAzureVMInfo $Service $VMName $Subscription $CertificateThumbprint
+    }
+    
+    
+    $cred = Get-Credential -Message "Enter Admin Credentials..."
+    if(!$cred) {
+        throw "User cancelled credential dialog"
+    }
+
+    if($Cim) {
+        Write-Host "Connecting to CIM Service..."
+        $options = New-CimSessionOption -UseSsl
+        New-CimSession -ComputerName $VMInfo.WinRMUri.Host -Port $VMInfo.WinRMUri.Port -Credential $cred -SessionOption $options
+    }
+    else {
+        Write-Host "Connecting to PowerShell Remoting..."
+        $session = New-PSSession -ConnectionUri $VMInfo.WinRMUri -Credential $cred
+        if(!$DoNotEnter) {
+            Enter-PSSession $session
+        } else {
+            $session
+        }
+    }
 }

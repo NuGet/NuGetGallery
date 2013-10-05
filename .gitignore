@@ -161,3 +161,6 @@ src/NuGetGallery/App_Data/Files/
 
 # Kudu build folder
 build/artifacts/
+
+# MOF files from PowerShell DSC
+*.mof
