@@ -621,21 +621,6 @@ hgroup.page-heading h2 { padding-left: 7px; }
     margin-bottom: 0;
 }
 
-#overlayWrapper {
-    background-color: #eff7fa;
-    border: solid 1px;
-    color: #52a4ca;
-    cursor: pointer;
-    font-size: 2em;
-    height: 240px;
-    left: 0;
-    line-height: 220px;
-    position: absolute;
-    text-align: center;
-    top: 0;
-    width: 100%;
-}
-
 #generateKey .form input[type="submit"] { width: auto; }
 
 /* Sequence Steps */
