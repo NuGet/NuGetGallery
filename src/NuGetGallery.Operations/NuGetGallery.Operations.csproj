@@ -228,6 +228,7 @@
     <Compile Include="Tasks\ListPackageBlobBackupsTask.cs" />
     <Compile Include="Tasks\LowerCaseAllPackageBlobsTask.cs" />
     <Compile Include="Tasks\IBackupDatabase.cs" />
+    <Compile Include="Tasks\Monitoring\CleanJobLogsTask.cs" />
     <Compile Include="Tasks\Monitoring\ListJobLogsTask.cs" />
     <Compile Include="Tasks\Monitoring\TailJobLogTask.cs" />
     <Compile Include="Tasks\OpsTask.cs" />

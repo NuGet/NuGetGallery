@@ -19,7 +19,7 @@ namespace NuGetGallery.Operations
         
         public Logger Log
         {
-            get { return _logger ?? (_logger = LogManager.GetLogger(GetType().Name)); }
+            get { return _logger ?? (_logger = LogManager.GetLogger("task." + GetType().Name)); }
             set { _logger = value; }
         }
 
