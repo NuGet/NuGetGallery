@@ -40,6 +40,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\AnglicanGeek.DbExecutor.0.1.2\lib\net40\AnglicanGeek.DbExecutor.dll</HintPath>
     </Reference>
+    <Reference Include="Dapper">
+      <HintPath>..\..\packages\Dapper.1.13\lib\net45\Dapper.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework">
       <HintPath>..\..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
@@ -151,6 +154,7 @@
     <Compile Include="Infrastructure\LogLevelConverter.cs" />
     <Compile Include="Infrastructure\SnazzyConsoleTarget.cs" />
     <Compile Include="Infrastructure\SqlDbExecutorFactory.cs" />
+    <Compile Include="Infrastructure\TableValuedParameter.cs" />
     <Compile Include="LoggerExtensions.cs" />
     <Compile Include="Model\AuditEnvironment.cs" />
     <Compile Include="Model\AuditRecord.cs" />
@@ -212,6 +216,7 @@
     <Compile Include="Tasks\DataManagement\DeleteDuplicatePackageVersionsTask.cs" />
     <Compile Include="Tasks\DataManagement\NormalizePackageFilesTask.cs" />
     <Compile Include="Tasks\DataManagement\NormalizePackageVersionsTask.cs" />
+    <Compile Include="Tasks\DataManagement\PopulateCredentialsTask.cs" />
     <Compile Include="Tasks\ExecuteAggregateStatisticsTask.cs" />
     <Compile Include="Tasks\CopyExternalPackagesTask.cs" />
     <Compile Include="Tasks\CreateWarehouseReportsTask.cs" />
@@ -228,6 +233,7 @@
     <Compile Include="Tasks\ListPackageBlobBackupsTask.cs" />
     <Compile Include="Tasks\LowerCaseAllPackageBlobsTask.cs" />
     <Compile Include="Tasks\IBackupDatabase.cs" />
+    <Compile Include="Tasks\Monitoring\CleanJobLogsTask.cs" />
     <Compile Include="Tasks\Monitoring\ListJobLogsTask.cs" />
     <Compile Include="Tasks\Monitoring\TailJobLogTask.cs" />
     <Compile Include="Tasks\OpsTask.cs" />

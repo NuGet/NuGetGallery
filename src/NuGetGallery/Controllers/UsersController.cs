@@ -15,6 +15,7 @@ namespace NuGetGallery
         public IPackageService PackageService { get; protected set; }
         public IAppConfiguration Config { get; protected set; }
         public IUserService UserService { get; protected set; }
+        public IPrincipal CurrentUser { get; protected set; }
 
         protected UsersController() { }
 
@@ -23,13 +24,15 @@ namespace NuGetGallery
             IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
-            IAppConfiguration config) : this()
+            IAppConfiguration config,
+            IPrincipal currentUser) : this()
         {
             CuratedFeedService = feedsQuery;
             UserService = userService;
             PackageService = packageService;
             MessageService = messageService;
             Config = config;
+            CurrentUser = currentUser;
         }
 
         [Authorize]
@@ -37,10 +40,15 @@ namespace NuGetGallery
         {
             var user = UserService.FindByUsername(Identity.Name);
             var curatedFeeds = CuratedFeedService.GetFeedsForManager(user.Key);
+            var apiCredential = user
+                .Credentials
+                .FirstOrDefault(c => c.Type == CredentialTypes.ApiKeyV1);
             return View(
                 new AccountViewModel
                     {
-                        ApiKey = user.ApiKey.ToString(),
+                        ApiKey = apiCredential == null ? 
+                            user.ApiKey.ToString() :
+                            apiCredential.Value,
                         IsConfirmed = user.Confirmed,
                         CuratedFeeds = curatedFeeds.Select(cf => cf.Name)
                     });
@@ -123,17 +131,17 @@ namespace NuGetGallery
         public virtual ActionResult Packages()
         {
             var user = UserService.FindByUsername(Identity.Name);
-            var packages = PackageService.FindPackagesByOwner(user);
+            var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: true)
+                .Select(p => new PackageViewModel(p)
+                {
+                    DownloadCount = p.PackageRegistration.DownloadCount,
+                    Version = null
+                }).ToList();
 
             var model = new ManagePackagesViewModel
-                {
-                    Packages = from p in packages
-                               select new PackageViewModel(p)
-                                   {
-                                       DownloadCount = p.PackageRegistration.DownloadCount,
-                                       Version = null
-                                   },
-                };
+            {
+                Packages = packages
+            };
             return View(model);
         }
 
@@ -142,7 +150,17 @@ namespace NuGetGallery
         [HttpPost]
         public virtual ActionResult GenerateApiKey()
         {
-            UserService.GenerateApiKey(Identity.Name);
+            // Get the user
+            var user = UserService.FindByUsername(User.Identity.Name);
+
+            // Generate an API Key
+            var apiKey = Guid.NewGuid();
+
+            // Set the existing API Key field
+            user.ApiKey = apiKey;
+
+            // Add/Replace the API Key credential, and save to the database
+            UserService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
             return RedirectToAction(MVC.Users.Account());
         }
 
@@ -288,12 +306,12 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var packages = (from p in PackageService.FindPackagesByOwner(user)
-                            where p.Listed
-                            orderby p.Version descending
-                            group p by p.PackageRegistration.Id)
-                .Select(c => new PackageViewModel(c.First()))
-                .ToList();
+            var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: false)
+                .Select(p => new PackageViewModel(p)
+                {
+                    DownloadCount = p.PackageRegistration.DownloadCount,
+                    Version = null
+                }).ToList();
 
             var model = new UserProfileModel(user)
             {

@@ -50,6 +50,7 @@ namespace NuGetGallery
         public ReportPackageReason? Reason { get; set; }
 
         [Required]
+        [AllowHtml]
         [StringLength(4000)]
         [Display(Name = "Abuse Report")]
         public string Message { get; set; }

@@ -11,6 +11,11 @@ namespace NuGetGallery.Framework
 {
     public static class TestExtensionMethods
     {
+        public static void SetUser(this Controller self, string userName)
+        {
+            SetUser(self, new User(userName));
+        }
+
         public static void SetUser(this Controller self, User user)
         {
             Mock.Get(self.HttpContext).Setup(c => c.User).Returns(user.ToPrincipal());
