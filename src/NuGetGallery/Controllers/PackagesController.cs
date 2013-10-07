@@ -592,6 +592,7 @@ namespace NuGetGallery
         [HttpPost]
         [RequiresAccountConfirmation("edit a package")]
         [ValidateAntiForgeryToken]
+        [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
         public virtual ActionResult Edit(string id, string version, EditPackageRequest formData, string returnUrl)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
@@ -782,6 +783,7 @@ namespace NuGetGallery
         [HttpPost]
         [RequiresAccountConfirmation("upload a package")]
         [ValidateAntiForgeryToken]
+        [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
         public virtual async Task<ActionResult> VerifyPackage(VerifyPackageRequest formData)
         {
             var currentUser = _userService.FindByUsername(_currentUser.Identity.Name);
