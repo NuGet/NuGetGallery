@@ -195,6 +195,7 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="AppConfigIsCorrectlyApplied.cs" />
+    <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommandFacts.cs" />
     <Compile Include="App_Start\ConfigurationServiceFacts.cs" />
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />

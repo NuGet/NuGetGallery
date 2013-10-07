@@ -48,5 +48,6 @@
         public const string LegacyRegister = "LegacyRegister";
         public const string PackageEnableLicenseReport = "EnableLicenseReport";
         public const string PackageDisableLicenseReport = "DisableLicenseReport";
+        public const string OwinRoute = "OwinRoute";
     }
 }
