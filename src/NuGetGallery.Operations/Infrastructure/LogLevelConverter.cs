@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
@@ -19,7 +20,6 @@ namespace NuGetGallery.Operations.Infrastructure
             if (reader.TokenType == JsonToken.String)
             {
                 var ret = LogLevel.FromString((string)reader.Value);
-                reader.Read();
                 return ret;
             }
             else if (reader.TokenType == JsonToken.StartObject)
@@ -30,7 +30,10 @@ namespace NuGetGallery.Operations.Infrastructure
                     reader.Read();
                     if (reader.TokenType == JsonToken.String)
                     {
-                        return LogLevel.FromString((string)reader.Value);
+                        string val = (string)reader.Value;
+                        reader.Read();
+                        Debug.Assert(reader.TokenType == JsonToken.EndObject);
+                        return LogLevel.FromString(val);
                     }
                 }
             }
