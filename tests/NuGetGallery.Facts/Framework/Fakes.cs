@@ -9,9 +9,11 @@ namespace NuGetGallery.Framework
     {
         private static readonly MethodInfo SetMethod = typeof(IEntitiesContext).GetMethod("Set");
 
-        public static readonly User User = new User("testUser");
-        public static readonly User Admin = new User("testAdmin");
-        public static readonly User Owner = new User("testPackageOwner") { EmailAddress = "confirmed@example.com" }; //package owners need confirmed email addresses, obviously.
+        public static readonly string Password = "p@ssw0rd!";
+
+        public static readonly User User = new User("testUser") { Credentials = new List<Credential>() { CredentialBuilder.CreatePbkdf2Password(Password) } };
+        public static readonly User Admin = new User("testAdmin") { Credentials = new List<Credential>() { CredentialBuilder.CreatePbkdf2Password(Password) } };
+        public static readonly User Owner = new User("testPackageOwner") { Credentials = new List<Credential>() { CredentialBuilder.CreatePbkdf2Password(Password) }, EmailAddress = "confirmed@example.com" }; //package owners need confirmed email addresses, obviously.
 
         public static readonly PackageRegistration Package = new PackageRegistration()
         {

@@ -28,7 +28,7 @@ namespace NuGetGallery
         protected ConcurrentDictionary<string, ContentItem> ContentCache { get { return _contentCache; } }
 
         protected ContentService() {
-            Trace = new NullDiagnosticsSource();
+            Trace = NullDiagnosticsSource.Instance;
         }
         
         public ContentService(IFileStorageService fileStorage, IDiagnosticsService diagnosticsService)

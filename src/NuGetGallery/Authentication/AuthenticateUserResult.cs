@@ -7,21 +7,26 @@ namespace NuGetGallery.Authentication
 {
     public class AuthenticateUserResult
     {
-        public AuthenticateUserResultStatus Status { get; private set; }
+        public static readonly AuthenticateUserResult Failed = new AuthenticateUserResult();
 
-        private AuthenticateUserResult(AuthenticateUserResultStatus status)
+        public bool Success { get; private set; }
+        public User User { get; private set; }
+
+        private AuthenticateUserResult()
         {
-            Status = status;
+            Success = false;
+            User = null;
         }
 
-        public static AuthenticateUserResult NoSuchUser()
+        public AuthenticateUserResult(User user)
         {
-            return new AuthenticateUserResult(AuthenticateUserResultStatus.NoSuchUser);
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+            
+            Success = true;
+            User = user;
         }
-    }
-
-    public enum AuthenticateUserResultStatus
-    {
-        NoSuchUser
     }
 }
