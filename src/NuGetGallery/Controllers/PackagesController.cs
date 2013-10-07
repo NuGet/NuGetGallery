@@ -393,6 +393,9 @@ namespace NuGetGallery
         [ValidateSpamPrevention]
         public virtual ActionResult ReportAbuse(string id, string version, ReportAbuseViewModel reportForm)
         {
+            // Html Encode the message
+            reportForm.Message = System.Web.HttpUtility.HtmlEncode(reportForm.Message);
+
             if (!ModelState.IsValid)
             {
                 return ReportAbuse(id, version);
@@ -440,6 +443,9 @@ namespace NuGetGallery
         [ValidateSpamPrevention]
         public virtual ActionResult ReportMyPackage(string id, string version, ReportAbuseViewModel reportForm)
         {
+            // Html Encode the message
+            reportForm.Message = System.Web.HttpUtility.HtmlEncode(reportForm.Message);
+
             if (!ModelState.IsValid)
             {
                 return ReportMyPackage(id, version);
@@ -491,10 +497,13 @@ namespace NuGetGallery
 
         [HttpPost]
         [Authorize]
-        [RequiresAccountConfirmation("contact package owners")]
         [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("contact package owners")]
         public virtual ActionResult ContactOwners(string id, ContactOwnersViewModel contactForm)
         {
+            // Html Encode the message
+            contactForm.Message = System.Web.HttpUtility.HtmlEncode(contactForm.Message);
+
             if (!ModelState.IsValid)
             {
                 return ContactOwners(id);
