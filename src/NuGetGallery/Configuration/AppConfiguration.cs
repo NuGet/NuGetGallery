@@ -81,6 +81,7 @@ namespace NuGetGallery.Configuration
         /// </summary>
         [Required]
         [DisplayName("SqlServer")]
+        [DefaultValue("NuGetGallery")]
         public string SqlConnectionString { get; set; }
 
         /// <summary>
