@@ -85,8 +85,8 @@
                     <span id="key">@Model.ApiKey</span>
                     @* Why width=0, height=0 for the object tag? See the script below *@
                     <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
-                            width="0"
-                            height="0"
+                            width="110"
+                            height="14"
                             id="clippy"
                             aria-hidden="true"
                             role="presentation">
@@ -97,8 +97,8 @@
                         <param name="FlashVars" value="text=@Model.ApiKey">
                         <param name="bgcolor" value="#fff">
                         <embed src="@Url.Content("~/Content/clippy.swf")"
-                               width="0"
-                               height="0"
+                               width="110"
+                               height="14"
                                aria-hidden="true"
                                role="presentation"
                                name="clippy"
@@ -127,28 +127,6 @@
     nuget.exe push MyPackage.1.0.nupkg</pre>
                 </p>
             </div>
-
-            <div id="overlayWrapper" title="Click to show API Key">
-                Your key is hidden for privacy, click to show.
-            </div>
         </div>
     }
 </section>
-
-@section BottomScripts {
-    <script>
-        $(function() {
-            $("#overlayWrapper").click(function() {
-                $("#overlayWrapper").fadeOut(function () {
-                    // Show clippy!
-                    // We hide clippy using width=0,height=0 because IE9 renders it above 
-                    // the overlay wrapper no matter what we do :(. IE9 only looks at the object tag though
-                    // so we can avoid doing it on the embed for Chrome and Firefox.
-                    $("#clippy, #clippy embed").attr('width', 110);
-                    $("#clippy, #clippy embed").attr('height', 14);
-                });
-                return false;
-            });
-        });
-    </script>
-}
