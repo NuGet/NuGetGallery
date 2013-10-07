@@ -106,27 +106,27 @@ namespace NuGetGallery
                 .Include(p => p.LicenseReports)
                 .Include(p => p.PackageRegistration)
                 .Where(p => (p.PackageRegistration.Id == id));
+
             if (String.IsNullOrEmpty(version) && !allowPrerelease)
             {
                 // If there's a specific version given, don't bother filtering by prerelease. You could be asking for a prerelease package.
                 packagesQuery = packagesQuery.Where(p => !p.IsPrerelease);
             }
+
             var packageVersions = packagesQuery.ToList();
 
             Package package;
-            if (version == null)
+            if (String.IsNullOrEmpty(version))
             {
-                if (allowPrerelease)
+                package = packageVersions.FirstOrDefault(p => p.IsLatestStable);
+
+                if (package == null && allowPrerelease)
                 {
                     package = packageVersions.FirstOrDefault(p => p.IsLatest);
                 }
-                else
-                {
-                    package = packageVersions.FirstOrDefault(p => p.IsLatestStable);
-                }
 
                 // If we couldn't find a package marked as latest, then
-                // return the most recent one.
+                // return the most recent one (prerelease ones were already filtered out if appropriate...)
                 if (package == null)
                 {
                     package = packageVersions.OrderByDescending(p => p.Version).FirstOrDefault();
