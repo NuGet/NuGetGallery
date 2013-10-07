@@ -17,7 +17,8 @@ namespace NuGetGallery.Framework
     {
         public IKernel Kernel { get; private set; }
 
-        protected TestContainer()
+        public TestContainer() : this(UnitTestBindings.CreateContainer()) { }
+        protected TestContainer(IKernel kernel)
         {
             // Initialize the container
             Kernel = UnitTestBindings.CreateContainer();

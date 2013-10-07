@@ -16,7 +16,8 @@ namespace NuGetGallery.Authentication
 
         public virtual AuthenticateUserResult AuthenticateUser(string userNameOrEmail, string password)
         {
-
+            return AuthenticateUserResult.NoSuchUser();
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Principal;
 
 namespace NuGetGallery.Framework
 {
     public static class Fakes
     {
+        private static readonly MethodInfo SetMethod = typeof(IEntitiesContext).GetMethod("Set");
+
         public static readonly User User = new User("testUser");
         public static readonly User Admin = new User("testAdmin");
         public static readonly User Owner = new User("testPackageOwner") { EmailAddress = "confirmed@example.com" }; //package owners need confirmed email addresses, obviously.
@@ -31,6 +34,19 @@ namespace NuGetGallery.Framework
         public static IIdentity ToIdentity(this User user)
         {
              return new GenericIdentity(user.Username);
+        }
+
+        internal static void ConfigureEntitiesContext(FakeEntitiesContext ctxt)
+        {
+            var fields = typeof(Fakes)
+                .GetFields(BindingFlags.Public | BindingFlags.Static)
+                .Where(f => typeof(IEntity).IsAssignableFrom(f.FieldType));
+            foreach (var field in fields)
+            {
+                object set = SetMethod.MakeGenericMethod(field.FieldType).Invoke(ctxt, new object[0]);
+                var method = set.GetType().GetMethod("Add");
+                method.Invoke(set, new object[] { field.GetValue(null) });
+            }
         }
     }
 }

@@ -7,7 +7,21 @@ namespace NuGetGallery.Authentication
 {
     public class AuthenticateUserResult
     {
-        public User User { get; private set; }
-        public IEnumerable<string> Roles { get; private set; }
+        public AuthenticateUserResultStatus Status { get; private set; }
+
+        private AuthenticateUserResult(AuthenticateUserResultStatus status)
+        {
+            Status = status;
+        }
+
+        public static AuthenticateUserResult NoSuchUser()
+        {
+            return new AuthenticateUserResult(AuthenticateUserResultStatus.NoSuchUser);
+        }
+    }
+
+    public enum AuthenticateUserResultStatus
+    {
+        NoSuchUser
     }
 }

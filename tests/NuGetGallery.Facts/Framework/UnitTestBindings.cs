@@ -25,6 +25,13 @@ namespace NuGetGallery.Framework
             return kernel;
         }
 
+        internal static IKernel CreateContainer<TUnderTest>()
+        {
+            var kernel = new TestKernel(new UnitTestBindings());
+            kernel.Bind<TUnderTest>().ToSelf();
+            return kernel;
+        }
+
         public override void Load()
         {
             Bind<HttpContextBase>()
@@ -57,6 +64,15 @@ namespace NuGetGallery.Framework
                     mockService.Setup(u => u.FindByUsername(Fakes.Owner.Username)).Returns(Fakes.Owner);
                     mockService.Setup(u => u.FindByUsername(Fakes.Admin.Username)).Returns(Fakes.Admin);
                     return mockService.Object;
+                })
+                .InSingletonScope();
+
+            Bind<IEntitiesContext>()
+                .ToMethod(_ =>
+                {
+                    var ctxt = new FakeEntitiesContext();
+                    Fakes.ConfigureEntitiesContext(ctxt);
+                    return ctxt;
                 })
                 .InSingletonScope();
         }
