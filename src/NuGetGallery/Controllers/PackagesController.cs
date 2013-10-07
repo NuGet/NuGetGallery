@@ -515,7 +515,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var user = _userService.FindByUsername(_currentUser.Identity.Name);
+            var user = _userService.FindByUsername(User.Identity.Name);
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);
             _messageService.SendContactOwnersMessage(
                 fromAddress, package, contactForm.Message, Url.Action(MVC.Users.Edit(), protocol: Request.Url.Scheme));

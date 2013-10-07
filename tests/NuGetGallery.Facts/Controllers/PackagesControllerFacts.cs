@@ -545,7 +545,7 @@ namespace NuGetGallery
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(h => h.User.Identity.Name).Returns("Montgomery");
                 var userService = new Mock<IUserService>();
-                userService.Setup(u => u.FindByUsername(Fakes.User.Username)).Returns(
+                userService.Setup(u => u.FindByUsername("Montgomery")).Returns(
                     new User { EmailAddress = "montgomery@burns.example.com", Username = "Montgomery" });
                 var controller = CreateController(
                     packageService: packageService,
