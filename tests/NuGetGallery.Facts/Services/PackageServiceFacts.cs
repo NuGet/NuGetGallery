@@ -8,6 +8,7 @@ using Moq;
 using NuGet;
 using NuGetGallery.Packaging;
 using Xunit;
+using Xunit.Extensions;
 
 namespace NuGetGallery
 {
@@ -1046,33 +1047,14 @@ namespace NuGetGallery
         public class TheFindPackageByIdAndVersionMethod
         {
             [Fact]
-            public void WillGetTheLatestVersionWhenTheVersionArgumentIsNull()
-            {
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var packages = new[]
-                    {
-                        new Package { Version = "1.0", PackageRegistration = packageRegistration },
-                        new Package
-                            { Version = "2.0", PackageRegistration = packageRegistration, IsLatestStable = true, IsLatest = true }
-                    }.AsQueryable();
-                var packageRepository = new Mock<IEntityRepository<Package>>();
-                packageRepository.Setup(r => r.GetAll()).Returns(packages);
-                var service = CreateService(packageRepository: packageRepository);
-
-                var package = service.FindPackageByIdAndVersion("theId", null);
-
-                Assert.Equal("2.0", package.Version);
-            }
-
-            [Fact]
-            public void WillGetSpecifiedVersionWhenTheVersionArgumentIsNotNull()
+            public void ReturnsTheRequestedPackageVersion()
             {
                 var service = CreateService(setup:
-                        mockPackageService =>
-                        {
-                            mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Throws(
-                                new Exception("This should not be called when the version is specified."));
-                        });
+                    mockPackageService =>
+                    {
+                        mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Throws(
+                            new Exception("This should not be called when the version is specified."));
+                    });
 
                 Assert.DoesNotThrow(() => service.FindPackageByIdAndVersion("theId", "1.0.42"));
 
@@ -1080,74 +1062,101 @@ namespace NuGetGallery
                 // What we're testing via the throw above is that it didn't load the registration and get the latest version.
             }
 
-            [Fact]
-            public void WillThrowIfIdIsNull()
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public void WillThrowIfIdIsNullOrEmpty(string id)
             {
                 var service = CreateService();
-
-                var ex = Assert.Throws<ArgumentNullException>(() => service.FindPackageByIdAndVersion(null, "1.0.42"));
-
+                var ex = Assert.Throws<ArgumentNullException>(() => service.FindPackageByIdAndVersion(id, "1.0.42"));
                 Assert.Equal("id", ex.ParamName);
             }
 
             [Fact]
-            public void FindPackageReturnsTheLatestVersionIfAvailable()
+            public void ReturnsTheLatestStableVersionIfAvailable()
             {
                 // Arrange
                 var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var package = CreatePackage("Foo", "1.0.0");
-                package.IsLatest = true;
-                package.IsLatestStable = true;
-                var packageA = CreatePackage("Foo", "1.0.0a");
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
+                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
 
-                repository.Setup(repo => repo.GetAll())
-                    .Returns(new[] { package, packageA }.AsQueryable());
+                repository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(new[] { package1, package2 }.AsQueryable());
                 var service = CreateService(packageRepository: repository);
 
                 // Act
-                var result = service.FindPackageByIdAndVersion("Foo", version: null);
+                var result = service.FindPackageByIdAndVersion("theId", version: null);
 
                 // Assert
-                Assert.Equal(package, result);
+                Assert.NotNull(result);
+                Assert.Equal("1.0", result.Version);
             }
 
             [Fact]
-            public void FindPackageReturnsTheLatestVersionIfNoLatestStableVersionIsAvailable()
+            public void ReturnsTheLatestVersionIfNoLatestStableVersionIsAvailable()
             {
                 // Arrange
                 var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var package = CreatePackage("Foo", "1.0.0b");
-                package.IsLatest = true;
-                var packageA = CreatePackage("Foo", "1.0.0a");
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package1 = new Package { Version = "1.0.0b", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
+                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
 
-                repository.Setup(repo => repo.GetAll())
-                    .Returns(new[] { package, packageA }.AsQueryable());
+                repository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(new[] { package1, package2 }.AsQueryable());
                 var service = CreateService(packageRepository: repository);
 
                 // Act
-                var result = service.FindPackageByIdAndVersion("Foo", null);
+                var result = service.FindPackageByIdAndVersion("theId", version: null);
 
                 // Assert
-                Assert.Equal(package, result);
+                Assert.NotNull(result);
+                Assert.Equal("1.0.0b", result.Version);
             }
 
             [Fact]
-            public void FindPackageReturnsTheLatestVersionIfNoLatestVersionIsAvailable()
+            public void ReturnsNullIfNoLatestStableVersionIsAvailableAndPrereleaseIsDisallowed()
             {
                 // Arrange
                 var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var package = CreatePackage("Foo", "1.0.0b");
-                var packageA = CreatePackage("Foo", "1.0.0a");
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package1 = new Package { Version = "1.0.0b", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
+                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
 
-                repository.Setup(repo => repo.GetAll())
-                    .Returns(new[] { package, packageA }.AsQueryable());
+                repository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(new[] { package1, package2 }.AsQueryable());
                 var service = CreateService(packageRepository: repository);
 
                 // Act
-                var result = service.FindPackageByIdAndVersion("Foo", null);
+                var result = service.FindPackageByIdAndVersion("theId", version: null, allowPrerelease: false);
 
                 // Assert
-                Assert.Equal(package, result);
+                Assert.Null(result);
+            }
+
+            [Fact]
+            public void ReturnsTheMostRecentVersionIfNoLatestVersionIsAvailable()
+            {
+                // Arrange
+                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package1 = new Package { Version = "1.0.0b", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = false };
+                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = false };
+
+                repository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(new[] { package1, package2 }.AsQueryable());
+                var service = CreateService(packageRepository: repository);
+
+                // Act
+                var result = service.FindPackageByIdAndVersion("theId", null);
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("1.0.0b", result.Version);
             }
         }
 
