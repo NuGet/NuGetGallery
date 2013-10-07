@@ -57,13 +57,13 @@ namespace NuGetGallery.Backend
                 // File Target
                 FileTarget jobLogTarget = new FileTarget()
                 {
-                    FileName = Path.Combine(logDir, "Jobs", "${logger:shortName=true}.${date:yyyy-MM-dd}.log.json"),
+                    FileName = Path.Combine(logDir, "Jobs", "${logger:shortName=true}.${date:yyyy-MM-dd-HHmm}.log.json"),
                 };
                 ConfigureFileTarget(jobLogTarget);
                 config.AddTarget("file", jobLogTarget);
                 FileTarget hostTarget = new FileTarget()
                 {
-                    FileName = Path.Combine(logDir, "Host", "Host.${date:yyyy-MM-dd}.log")
+                    FileName = Path.Combine(logDir, "Host", "Host.${date:yyyy-MM-dd-HHmm}.log")
                 };
                 ConfigureFileTarget(hostTarget);
                 config.AddTarget("file", hostTarget);
@@ -161,7 +161,7 @@ namespace NuGetGallery.Backend
             hostTarget.Encoding = Encoding.UTF8;
             hostTarget.CreateDirs = true;
             hostTarget.EnableFileDelete = true;
-            hostTarget.ArchiveEvery = FileArchivePeriod.Day;
+            hostTarget.ArchiveEvery = FileArchivePeriod.Hour;
             hostTarget.ConcurrentWrites = false;
         }
 

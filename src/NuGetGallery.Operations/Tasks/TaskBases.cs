@@ -60,6 +60,14 @@ namespace NuGetGallery.Operations
         }
     }
 
+    public abstract class DiagnosticsStorageTask : StorageTaskBase
+    {
+        protected override CloudStorageAccount GetStorageAccountFromEnvironment(DeploymentEnvironment environment)
+        {
+            return environment.DiagnosticsStorage;
+        }
+    }
+
     public abstract class DatabaseTaskBase : OpsTask
     {
         [Option("Connection string to the relevant database server", AltName = "db")]

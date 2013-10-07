@@ -16,6 +16,7 @@ namespace NuGetGallery.Operations.Infrastructure
     {
         private static JsonSerializerSettings _serializerSettings = new JsonSerializerSettings()
         {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
             MissingMemberHandling = MissingMemberHandling.Ignore,
             ObjectCreationHandling = ObjectCreationHandling.Auto,
             CheckAdditionalContent = false,
@@ -36,14 +37,9 @@ namespace NuGetGallery.Operations.Infrastructure
         {
             JobName = jobName;
 
-            // The null timestamp is the "current" log
-            var primary = blobs.Single(b => !b.ArchiveTimestamp.HasValue);
-
-            // The rest should be ordered by descending date
-            var rest = blobs
-                .Where(b => b.ArchiveTimestamp.HasValue)
-                .OrderByDescending(b => b.ArchiveTimestamp.Value);
-            _blobs = Enumerable.Concat(new[] { primary }, rest)
+            // Order by descending date
+            _blobs = blobs
+                .OrderByDescending(b => b.ArchiveTimestamp)
                 .ToList();
         }
 
@@ -101,15 +97,7 @@ namespace NuGetGallery.Operations.Infrastructure
 
         private JobLogEntry ParseEntry(string line)
         {
-            var writer = new MemoryTraceWriter();
-            var old = _serializerSettings.TraceWriter;
-            _serializerSettings.TraceWriter = writer;
             var result = JsonConvert.DeserializeObject<JobLogEntry>(line.Trim(), _serializerSettings);
-            _serializerSettings.TraceWriter = old;
-            foreach (var message in writer.GetTraceMessages())
-            {
-                Console.WriteLine(message);
-            }
             return result;
         }
     }
