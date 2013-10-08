@@ -392,12 +392,6 @@ namespace NuGetGallery
             return validator(password, cred);
         }
 
-        private static Func<string, Credential, bool> ValidatePassword(string algorithm)
-        {
-            return (password, cred) =>
-                Crypto.ValidateSaltedHash(cred.Type, password, algorithm);
-        }
-
         private void ChangePasswordInternal(User user, string newPassword)
         {
             var cred = CredentialBuilder.CreatePbkdf2Password(newPassword);

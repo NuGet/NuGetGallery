@@ -36,12 +36,8 @@ namespace NuGetGallery.Filters
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKeyStr));
             }
 
-            Guid apiKey;
-            try
-            {
-                apiKey = new Guid(apiKeyStr);
-            }
-            catch
+            Guid _;
+            if (!Guid.TryParse(apiKeyStr, out _))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKeyStr));
             }
