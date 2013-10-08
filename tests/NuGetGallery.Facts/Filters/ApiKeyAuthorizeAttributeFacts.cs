@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Web.Mvc;
-using System.Web.Routing;
 using Moq;
 using NuGetGallery.Framework;
 using Xunit;
 using Xunit.Extensions;
+using System.Collections.Generic;
 
 namespace NuGetGallery.Filters
 {
@@ -21,18 +21,15 @@ namespace NuGetGallery.Filters
             var key = Guid.NewGuid().ToString();
 
             mockFilterContext.Setup(ctx => ctx.Controller).Returns(mockController.Object);
-            mockController.Object.ControllerContext = new ControllerContext
-            {
-                RouteData = new RouteData
+            mockFilterContext.Setup(ctx => ctx.ActionParameters).Returns(
+                new Dictionary<string, object>
                 {
-                    Values = { { "apiKey", key } }
-                }
-            };
+                    { "apiKey", key }
+                });
 
             GetMock<IUserService>()
                 .Setup(us => us.FindByApiKey(It.IsAny<Guid>()))
                 .Returns(Fakes.Owner);
-
 
             // Act
             attribute.OnActionExecuting(mockFilterContext.Object);
