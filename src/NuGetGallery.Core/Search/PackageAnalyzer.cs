@@ -20,7 +20,6 @@ namespace NuGetGallery
                 { "TokenizedId", new IdentifierAnalyzer() },
                 { "Version", new VersionAnalyzer() },
                 { "Title", new DescriptionAnalyzer() },
-                { "TokenizedTitle", new DescriptionAnalyzer() },
                 { "Description", new DescriptionAnalyzer() },
                 { "Authors", new DescriptionAnalyzer() },
                 { "Owners", new DescriptionAnalyzer() },
