@@ -317,8 +317,10 @@
     <Compile Include="Areas\Admin\Models\LuceneInfoModel.cs" />
     <Compile Include="Areas\Admin\Controllers\ConfigController.cs" />
     <Compile Include="Areas\Admin\ViewModels\ConfigViewModel.cs" />
-    <Compile Include="Authentication\AuthenticateUserResult.cs" />
+    <Compile Include="Authentication\AuthenticatedUser.cs" />
     <Compile Include="Authentication\AuthenticationService.cs" />
+    <Compile Include="Authentication\AuthenticationTypes.cs" />
+    <Compile Include="Authentication\UserSession.cs" />
     <Compile Include="Configuration\ConfigurationService.cs" />
     <Compile Include="Configuration\FeatureConfiguration.cs" />
     <Compile Include="Configuration\LuceneIndexLocation.cs" />

@@ -183,4 +183,10 @@
   <data name="ApiKeyUserAccountIsUnconfirmed" xml:space="preserve">
     <value>You must confirm the email address for the account in order to use the API key.</value>
   </data>
+  <data name="MultipleMatchingCredentials" xml:space="preserve">
+    <value>Multiple Credentials match '{0}' credential with Key {1}</value>
+  </data>
+  <data name="PasswordCredentialsCannotBeUsedHere" xml:space="preserve">
+    <value>Password credentials cannot be used with Authenticate(Credential). Use Authenticate(string, string) instead.</value>
+  </data>
 </root>

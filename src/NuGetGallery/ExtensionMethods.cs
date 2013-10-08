@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Net.Mail;
 using System.Runtime.Versioning;
 using System.Security;
+using System.Security.Claims;
 using System.Security.Principal;
 using System.ServiceModel.Activation;
 using System.Text;
@@ -15,6 +16,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using System.Web.WebPages;
 using NuGet;
+using NuGetGallery.Authentication;
 
 namespace NuGetGallery
 {
@@ -38,6 +40,16 @@ namespace NuGetGallery
         public static void AddOrSet<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> self, TKey key, TValue val)
         {
             self.AddOrUpdate(key, val, (_, __) => val);
+        }
+
+        public static UserSession AsUserSession(this IPrincipal self)
+        {
+            if (self == null)
+            {
+                return null;
+            }
+            // Direct cast because a non-ClaimsPrincipal is an error here.
+            return new UserSession((ClaimsPrincipal)self);
         }
 
         public static SecureString ToSecureString(this string str)
@@ -175,25 +187,17 @@ namespace NuGetGallery
             return package.PackageRegistration.IsOwner(user);
         }
 
-        public static bool IsOwner(this Package package, User user)
+        public static bool IsOwner(this Package package, UserSession user)
         {
             return package.PackageRegistration.IsOwner(user);
         }
 
         public static bool IsOwner(this PackageRegistration package, IPrincipal user)
         {
-            if (package == null)
-            {
-                throw new ArgumentNullException("package");
-            }
-            if (user == null || user.Identity == null)
-            {
-                return false;
-            }
-            return user.IsAdministrator() || package.Owners.Any(u => u.Username == user.Identity.Name);
+            return IsOwner(package, user.AsUserSession());
         }
 
-        public static bool IsOwner(this PackageRegistration package, User user)
+        public static bool IsOwner(this PackageRegistration package, UserSession user)
         {
             if (package == null)
             {
