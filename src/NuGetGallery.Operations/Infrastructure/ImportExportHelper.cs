@@ -12,6 +12,7 @@ using System.Runtime.Serialization;
 using NuGetGallery.Operations.SqlDac;
 using NLog;
 using System.Threading;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WASDImportExport
 {
@@ -37,6 +38,7 @@ namespace WASDImportExport
             Password = "";
         }
 
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
         public string DoExport(string blobUri, bool whatIf)
         {
             _log.Info("Starting SQL DAC Export Operation");

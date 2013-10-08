@@ -2,11 +2,13 @@
 using Microsoft.WindowsAzure.StorageClient;
 using System;
 using System.IO;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NuGetGallery.Backend
 {
     internal static class DebugHelper
     {
+        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification="Calls to this are added as needed during debugging")]
         public static void WriteDebugBlob(string blobName, string message)
         {
             string destinationAccountName = "";

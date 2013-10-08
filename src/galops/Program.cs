@@ -8,11 +8,12 @@ using NuGet;
 using NLog.Config;
 using NLog.Targets;
 using NLog;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NuGetGallery.Operations.Tools
 {
     [Export]
-    class Program
+    public class Program
     {
         private Logger _logger = LogManager.GetLogger("task.Program");
 

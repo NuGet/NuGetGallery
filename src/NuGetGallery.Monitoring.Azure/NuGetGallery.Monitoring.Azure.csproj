@@ -24,6 +24,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <CodeAnalysisRuleSet>..\Backend.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -87,12 +88,6 @@
     <Compile Include="BlobDownloadTimeMonitor.cs" />
     <Compile Include="AzureStorageMonitorBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\NuGetGallery.Monitoring\NuGetGallery.Monitoring.csproj">
-      <Project>{dff0089e-4918-4a12-992b-b9dd2c070b0f}</Project>
-      <Name>NuGetGallery.Monitoring</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

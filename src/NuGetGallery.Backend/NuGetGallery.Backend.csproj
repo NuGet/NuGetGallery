@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>..\Backend.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -109,6 +110,7 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="DebugHelper.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="JobRunner.cs" />
     <Compile Include="Jobs\CleanJobLogsJob.cs" />
     <Compile Include="Jobs\BackupPackagesJob.cs" />

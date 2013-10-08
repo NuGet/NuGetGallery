@@ -76,7 +76,6 @@ namespace NuGetGallery.Operations.Tasks.DataManagement
                     output.Load(reader);
                     foreach (var row in output.Rows.Cast<DataRow>())
                     {
-                        string id = row.Field<string>("Id");
                         string version = row.Field<string>("Version");
                         string normalized = row.Field<string>("NormalizedVersion");
                         if (!String.Equals(version, normalized, StringComparison.Ordinal))

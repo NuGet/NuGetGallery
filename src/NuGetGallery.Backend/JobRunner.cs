@@ -11,7 +11,7 @@ using NuGetGallery.Backend.Jobs;
 namespace NuGetGallery.Backend
 {
     [Export]
-    public class JobRunner
+    public class JobRunner : IDisposable
     {
         private AsyncSubject<Unit> _subject = new AsyncSubject<Unit>();
         private Logger _logger = LogManager.GetLogger("JobRunner");
@@ -37,6 +37,12 @@ namespace NuGetGallery.Backend
                     _logger.ErrorException(String.Format("{2} Initializing '{0}': {1}", job.GetType().Name, ex.Message, ex.GetType().Name), ex);
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            _subject.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         public void Stop()
@@ -136,18 +142,12 @@ namespace NuGetGallery.Backend
             {
                 _logger.Debug("Executing Job '{0}'", name);
 
-                DateTime before = DateTime.UtcNow;
-
                 try
                 {
                     job.RunOnce();
-
-                    DateTime after = DateTime.UtcNow;
                 }
                 catch (Exception ex)
                 {
-                    DateTime after = DateTime.UtcNow;
-
                     _logger.ErrorException(String.Format("Error Executing Job '{0}': {1}", name, ex.Message), ex);
                 }
             }

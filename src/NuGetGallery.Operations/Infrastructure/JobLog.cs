@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -23,6 +24,7 @@ namespace NuGetGallery.Operations.Infrastructure
             MaxDepth = 100
         };
 
+        [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline", Justification = "Needed to add to converters list")]
         static JobLog()
         {
             _serializerSettings.Converters.Add(new LogLevelConverter());
@@ -95,7 +97,7 @@ namespace NuGetGallery.Operations.Infrastructure
             }
         }
 
-        private JobLogEntry ParseEntry(string line)
+        private static JobLogEntry ParseEntry(string line)
         {
             var result = JsonConvert.DeserializeObject<JobLogEntry>(line.Trim(), _serializerSettings);
             return result;

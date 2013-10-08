@@ -61,7 +61,7 @@ namespace NuGetGallery.Operations.Tasks
                 int latestCount = 0;
                 foreach (var dup in dups)
                 {
-                    ProcessDuplicate(dup.Key.Id, dup.Key.Version, dup.ToList(), dbExecutor, ref dupsUnlistedCount, ref latestCount);
+                    ProcessDuplicate(dup.Key.Id, dup.Key.Version, dup.ToList(), ref dupsUnlistedCount, ref latestCount);
                 }
                 var totalDupes = dups.Count();
                 Log.Info("Found {0} Packages with duplicates.", totalDupes);
@@ -78,7 +78,7 @@ namespace NuGetGallery.Operations.Tasks
             }
         }
 
-        private void ProcessDuplicate(string id, string normalVersion, List<PackageSummary> packages, SqlExecutor dbExecutor, ref int unlistedCount, ref int latestCount)
+        private void ProcessDuplicate(string id, string normalVersion, List<PackageSummary> packages, ref int unlistedCount, ref int latestCount)
         {
             // Are any of these the latest version?
             var latest = packages.Where(p => p.Latest).ToList();

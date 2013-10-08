@@ -20,23 +20,18 @@ namespace NuGetGallery.Operations
     {
         public const byte CopyingState = 7;
         public const byte OnlineState = 0;
-        
-        private static JsonSerializerSettings _auditRecordSerializerSettings;
 
-        static Util()
+        private static JsonSerializerSettings _auditRecordSerializerSettings = new JsonSerializerSettings()
         {
-            _auditRecordSerializerSettings = new JsonSerializerSettings()
-            {
-                DateFormatHandling = DateFormatHandling.IsoDateFormat,
-                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                DefaultValueHandling = DefaultValueHandling.Include,
-                Formatting = Formatting.Indented,
-                MaxDepth = 10,
-                MissingMemberHandling = MissingMemberHandling.Ignore,
-                NullValueHandling = NullValueHandling.Include,
-                TypeNameHandling = TypeNameHandling.None
-            };
-        }
+            DateFormatHandling = DateFormatHandling.IsoDateFormat,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            DefaultValueHandling = DefaultValueHandling.Include,
+            Formatting = Formatting.Indented,
+            MaxDepth = 10,
+            MissingMemberHandling = MissingMemberHandling.Ignore,
+            NullValueHandling = NullValueHandling.Include,
+            TypeNameHandling = TypeNameHandling.None
+        };
         
         public static bool BackupIsInProgress(SqlExecutor dbExecutor, string backupPrefix)
         {
@@ -294,7 +289,7 @@ namespace NuGetGallery.Operations
         public static string GetDatabaseServerName(SqlConnectionStringBuilder connectionStringBuilder)
         {
             var dataSource = connectionStringBuilder.DataSource;
-            if (dataSource.StartsWith("tcp:"))
+            if (dataSource.StartsWith("tcp:", StringComparison.OrdinalIgnoreCase))
                 dataSource = dataSource.Substring(4);
             var indexOfFirstPeriod = dataSource.IndexOf(".", StringComparison.Ordinal);
 

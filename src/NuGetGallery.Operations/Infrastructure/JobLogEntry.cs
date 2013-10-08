@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
@@ -25,6 +26,8 @@ namespace NuGetGallery.Operations.Infrastructure
         public string LoggerName { get; set; }
         public string LoggerShortName { get; set; }
         public string Message { get; set; }
+        
+        [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays", Justification="This is a JSON serialized object")]
         public string[] Parameters { get; set; }
         public string FormattedMessage { get; set; }
     }

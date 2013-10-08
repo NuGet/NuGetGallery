@@ -25,6 +25,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <CodeAnalysisRuleSet>..\Backend.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -172,7 +173,6 @@
     <Compile Include="CloudBlobExtensions.cs" />
     <Compile Include="Commands\HelpCommand.cs" />
     <Compile Include="Common\CommandLineException.cs" />
-    <Compile Include="Common\LocalizedResourceManager.cs" />
     <Compile Include="Common\CommandHelp.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

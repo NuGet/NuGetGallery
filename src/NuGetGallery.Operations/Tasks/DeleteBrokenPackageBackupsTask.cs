@@ -12,12 +12,10 @@ namespace NuGetGallery.Operations
     {
         public override void ExecuteCommand()
         {
-            var blobClient = CreateBlobClient();
             var storageName = StorageAccountName;
 
             Log.Trace("Getting all broken package backup files on storage account '{0}'.", storageName);
-            var packageBackupsBlobContainer = Util.GetPackageBackupsBlobContainer(blobClient);
-
+            
             var blobItems = GetPackageBackupBlobItems().ToList();
 
             var blobDirectories = blobItems

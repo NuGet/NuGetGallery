@@ -48,7 +48,7 @@ namespace NuGetGallery.Monitoring
             }
         }
 
-        private void WriteColored(string message, ConsoleColor color)
+        private static void WriteColored(string message, ConsoleColor color)
         {
             var oldColor = Console.ForegroundColor;
             Console.ForegroundColor = color;
@@ -56,7 +56,7 @@ namespace NuGetGallery.Monitoring
             Console.ForegroundColor = oldColor;
         }
 
-        private void HandleQoSEvent(MonitoringEvent evt)
+        private static void HandleQoSEvent(MonitoringEvent evt)
         {
             HandleEvent(evt, () =>
             {
@@ -69,20 +69,20 @@ namespace NuGetGallery.Monitoring
             });
         }
 
-        private void HandleMessageEvent(MonitoringMessageEvent messageEvent)
+        private static void HandleMessageEvent(MonitoringMessageEvent messageEvent)
         {
             HandleEvent(messageEvent);
         }
 
-        private void HandleEvent(MonitoringEvent evt) { HandleEvent(evt, () => { }); }
-        private void HandleEvent(MonitoringEvent evt, Action additionalWriters)
+        private static void HandleEvent(MonitoringEvent evt) { HandleEvent(evt, () => { }); }
+        private static void HandleEvent(MonitoringEvent evt, Action additionalWriters)
         {
             Console.Write(" [{0}] {1}", evt.Resource, evt.Action);
             additionalWriters();
             Console.WriteLine();
         }
 
-        private string FormatQoS(MonitoringQoSEvent evt)
+        private static string FormatQoS(MonitoringQoSEvent evt)
         {
             if (evt.Value is TimeSpan)
             {
@@ -95,7 +95,7 @@ namespace NuGetGallery.Monitoring
             return String.Empty;
         }
 
-        private object FormatTime(TimeSpan timeSpan)
+        private static string FormatTime(TimeSpan timeSpan)
         {
             if (timeSpan.TotalSeconds < 1.0)
             {

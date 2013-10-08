@@ -46,7 +46,7 @@ namespace NuGetGallery.Operations.Tasks
         public override void ExecuteCommand()
         {
             // Verify the name
-            if (!Force && !AllowedPrefixes.Any(p => ConnectionString.InitialCatalog.StartsWith(p)))
+            if (!Force && !AllowedPrefixes.Any(p => ConnectionString.InitialCatalog.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
             {
                 Log.Error("Cannot sanitize database named '{0}' without -Force argument", ConnectionString.InitialCatalog);
                 return;

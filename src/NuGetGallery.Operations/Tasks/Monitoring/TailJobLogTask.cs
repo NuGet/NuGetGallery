@@ -59,7 +59,7 @@ namespace NuGetGallery.Operations.Tasks.Monitoring
                 var logger = LogManager.GetLogger("joblog." + log.JobName);
                 foreach (var entry in entries)
                 {
-                    WriteEntry(logger, log, entry);
+                    WriteEntry(logger, entry);
                     _lastEntryUtc = entry.Timestamp;
                 }
 
@@ -80,12 +80,12 @@ namespace NuGetGallery.Operations.Tasks.Monitoring
             var logger = LogManager.GetLogger("joblog." + log.JobName);
             foreach (var entry in entries)
             {
-                WriteEntry(logger, log, entry);
+                WriteEntry(logger, entry);
                 _lastEntryUtc = entry.Timestamp;
             }
         }
 
-        private void WriteEntry(Logger logger, JobLog log, JobLogEntry entry)
+        private static void WriteEntry(Logger logger, JobLogEntry entry)
         {
             LogEventInfo evt = new LogEventInfo(
                 entry.FullEvent.Level,

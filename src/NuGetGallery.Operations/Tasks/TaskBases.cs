@@ -144,7 +144,7 @@ namespace NuGetGallery.Operations
             }
         }
 
-        protected void WithTableType(SqlConnection connection, string name, string definition, Action act)
+        protected static void WithTableType(SqlConnection connection, string name, string definition, Action act)
         {
             try
             {
