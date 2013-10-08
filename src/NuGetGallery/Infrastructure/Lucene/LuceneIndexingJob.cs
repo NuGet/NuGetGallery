@@ -10,24 +10,29 @@ namespace NuGetGallery
 {
     public class LuceneIndexingJob : Job
     {
-        private readonly LuceneIndexingService _indexingService;
+        private readonly Action _updateIndex;
 
         public LuceneIndexingJob(TimeSpan frequence, Func<EntitiesContext> contextThunk, TimeSpan timeout, LuceneIndexLocation location)
             : base("Lucene", frequence, timeout)
         {
-            var context = contextThunk();
-
-            _indexingService = new LuceneIndexingService(
-                new EntityRepository<Package>(context),
-                new EntityRepository<CuratedPackage>(context),
-                LuceneCommon.GetDirectory(location),
-                null);
+            _updateIndex = () =>
+            {
+                using (var context = contextThunk())
+                {
+                    var indexingService = new LuceneIndexingService(
+                        new EntityRepository<Package>(context),
+                        new EntityRepository<CuratedPackage>(context),
+                        LuceneCommon.GetDirectory(location),
+                        null);
+                    indexingService.UpdateIndex();
+                }
+            };
 
             // Updates the index synchronously first time job is created.
             // For startup code resiliency, we should handle exceptions for the database being down.
             try
             {
-                _indexingService.UpdateIndex();
+                _updateIndex();
             }
             catch (SqlException e)
             {
@@ -41,7 +46,7 @@ namespace NuGetGallery
 
         public override Task Execute()
         {
-            return new Task(_indexingService.UpdateIndex);
+            return new Task(_updateIndex);
         }
     }
 }
