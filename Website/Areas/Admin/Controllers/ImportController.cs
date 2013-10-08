@@ -15,6 +15,7 @@ using NuGetGallery.NuGetService;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
+    using FeedContext_x0060_1 = NuGetGallery.NuGetService.V2FeedContext;
     using V2FeedPackage = NuGetGallery.NuGetService.V2FeedPackage;
 
     /// <summary>

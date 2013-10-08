@@ -352,6 +352,8 @@ namespace Links {
                       
         public static readonly string modernizr_2_0_6_development_only_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/modernizr-2.0.6-development-only.min.js") ? Url("modernizr-2.0.6-development-only.min.js") : Url("modernizr-2.0.6-development-only.js");
                       
+        public static readonly string nugetgallery_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/nugetgallery.min.js") ? Url("nugetgallery.min.js") : Url("nugetgallery.js");
+                      
         public static readonly string stats_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/stats.min.js") ? Url("stats.min.js") : Url("stats.js");
                       
         public static readonly string statsdimensions_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/statsdimensions.min.js") ? Url("statsdimensions.min.js") : Url("statsdimensions.js");
@@ -366,14 +368,12 @@ namespace Links {
         private const string URLPATH = "~/Content";
         public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
         public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
-        public static readonly string Company_css = Url("Company.css");
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public static class Images {
             private const string URLPATH = "~/Content/Images";
             public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
             public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
             public static readonly string changePassword_png = Url("changePassword.png");
-            public static readonly string companyLogo_png = Url("companyLogo.png");
             public static readonly string copy_png = Url("copy.png");
             public static readonly string download_png = Url("download.png");
             public static readonly string editIcon_png = Url("editIcon.png");
@@ -384,6 +384,14 @@ namespace Links {
             public static readonly string hero_png = Url("hero.png");
             public static readonly string herowithlogo_png = Url("herowithlogo.png");
             public static readonly string inputBackground_png = Url("inputBackground.png");
+            [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+            public static class intranet {
+                private const string URLPATH = "~/Content/Images/intranet";
+                public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+                public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+                public static readonly string companyLogo_png = Url("companyLogo.png");
+            }
+        
             public static readonly string invalidBG_png = Url("invalidBG.png");
             public static readonly string managePackages_png = Url("managePackages.png");
             public static readonly string mine_png = Url("mine.png");
@@ -433,6 +441,7 @@ namespace Links {
             public static readonly string YourPackage_png = Url("YourPackage.png");
         }
     
+        public static readonly string Intranet_css = Url("Intranet.css");
         public static readonly string jquery_treeview_css = Url("jquery.treeview.css");
         public static readonly string Site_css = Url("Site.css");
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
