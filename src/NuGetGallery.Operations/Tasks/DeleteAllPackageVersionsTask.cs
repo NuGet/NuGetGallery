@@ -10,6 +10,9 @@ namespace NuGetGallery.Operations
         [Option("The ID of the package", AltName = "p")]
         public string PackageId { get; set; }
 
+        [Option("The reason for the deletion ('owner request', 'license violation', etc.)", AltName = "r")]
+        public string Reason { get; set; }
+
         public override void ValidateArguments()
         {
             base.ValidateArguments();
@@ -36,13 +39,16 @@ namespace NuGetGallery.Operations
                 
                 foreach(var package in packages)
                 {
-                    new DeletePackageVersionTask {
+                    var task = new DeletePackageVersionTask {
                         ConnectionString = ConnectionString,
                         StorageAccount = StorageAccount,
                         PackageId = package.Id,
                         PackageVersion = package.Version,
+                        Reason = Reason,
                         WhatIf = WhatIf
-                    }.ExecuteCommand();
+                    };
+                    task.ValidateArguments();
+                    task.ExecuteCommand();
                 }
 
                 Log.Info(
