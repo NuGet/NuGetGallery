@@ -15,6 +15,7 @@ namespace NuGetGallery
     {
         public string Id { get; set; }
         public string Version { get; set; }
+        public string NormalizedVersion { get; set; }
 
         public string Authors { get; set; }
         public string Copyright { get; set; }

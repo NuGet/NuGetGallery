@@ -21,28 +21,51 @@ namespace NuGetGallery
 
         public static RedirectToRouteResult IsRedirectToRoute(ActionResult result, object expectedRouteData)
         {
+            return IsRedirectToRoute(result, expectedRouteData, permanent: false);
+        }
+
+        public static RedirectToRouteResult IsRedirectToRoute(ActionResult result, object expectedRouteData, bool permanent)
+        {
+            return IsRedirectToRoute(result, expectedRouteData, permanent, routeName: String.Empty);
+        }
+
+        public static RedirectToRouteResult IsRedirectToRoute(ActionResult result, object expectedRouteData, string routeName)
+        {
+            return IsRedirectToRoute(result, expectedRouteData, permanent: false, routeName: routeName);
+        }
+
+        public static RedirectToRouteResult IsRedirectToRoute(ActionResult result, object expectedRouteData, bool permanent, string routeName)
+        {
             var redirect = Assert.IsType<RedirectToRouteResult>(result);
             DictionariesMatch(new RouteValueDictionary(expectedRouteData), redirect.RouteValues);
+            Assert.Equal(permanent, redirect.Permanent);
+            Assert.Equal(routeName, redirect.RouteName);
             return redirect;
         }
 
-        public static ViewResult IsView(ActionResult result, string viewName = "", string masterName = "", object model = null, object viewData = null)
+        public static ViewResult IsView(ActionResult result, string viewName = "", string masterName = "", object viewData = null)
         {
             var view = Assert.IsType<ViewResult>(result);
 
             Assert.Equal(viewName, view.ViewName);
             Assert.Equal(masterName, view.MasterName);
-            Assert.Equal(model, view.ViewData.Model);
-
+            
             if (viewData != null)
             {
                 DictionariesMatch(new RouteValueDictionary(viewData), view.ViewData);
             }
-            else
-            {
-                Assert.Equal(0, view.ViewData.Count);
-            }
             return view;
+        }
+
+        public static T IsView<T>(ActionResult result, string viewName = "", string masterName = "", object viewData = null)
+        {
+            var view = IsView(result, viewName, masterName, viewData);
+            return Assert.IsType<T>(view.Model);
+        }
+
+        public static HttpNotFoundResult IsNotFound(ActionResult result)
+        {
+            return Assert.IsType<HttpNotFoundResult>(result);
         }
 
         private static void DictionariesMatch<K, V>(IDictionary<K, V> expected, IDictionary<K, V> actual)
@@ -60,15 +83,58 @@ namespace NuGetGallery
             Assert.True(expectedKeys.Count == 0, "Missing keys: " + String.Join(",", expectedKeys));
         }
 
-        public static void IsStatusCode(ActionResult result, HttpStatusCode code)
+        public static HttpStatusCodeResult IsStatusCode(ActionResult result, HttpStatusCode statusCode)
         {
-            IsStatusCode(result, (int)code);
+            return IsStatusCode(result, (int)statusCode);
         }
 
-        public static void IsStatusCode(ActionResult result, int code)
+        public static HttpStatusCodeResult IsStatusCode(ActionResult result, int statusCode)
         {
-            var statusCodeResult = Assert.IsType<HttpStatusCodeResult>(result);
-            Assert.Equal(code, statusCodeResult.StatusCode);
+            if (result is EmptyResult)
+            {
+                Assert.Equal(statusCode, 200);
+                return null;
+            }
+
+            return IsStatusCode(result, statusCode, statusDescription: null);
+        }
+
+        public static HttpStatusCodeResult IsStatusCode(ActionResult result, HttpStatusCode statusCode, string statusDescription)
+        {
+            return IsStatusCode(result, (int)statusCode, statusDescription);
+        }
+
+        public static HttpStatusCodeResult IsStatusCode(ActionResult result, int statusCode, string statusDescription)
+        {
+            var statusResult = Assert.IsAssignableFrom<HttpStatusCodeResult>(result);
+            Assert.Equal(statusCode, statusResult.StatusCode);
+            Assert.Equal(statusDescription, statusResult.StatusDescription);
+            return statusResult;
+        }
+
+        public static HttpStatusCodeResult IsStatusCodeWithBody(ActionResult result, HttpStatusCode statusCode, string statusDescription)
+        {
+            return IsStatusCodeWithBody(result, (int)statusCode, statusDescription, body: statusDescription);
+        }
+
+        public static HttpStatusCodeResult IsStatusCodeWithBody(ActionResult result, int statusCode, string statusDescription)
+        {
+            return IsStatusCodeWithBody(result, statusCode, statusDescription, body: statusDescription);
+        }
+
+        public static HttpStatusCodeWithBodyResult IsStatusCodeWithBody(ActionResult result, HttpStatusCode statusCode, string statusDescription, string body)
+        {
+            return IsStatusCodeWithBody(result, (int)statusCode, statusDescription, body);
+        }
+
+        public static HttpStatusCodeWithBodyResult IsStatusCodeWithBody(ActionResult result, int statusCode, string statusDescription, string body)
+        {
+            var statusResult = Assert.IsAssignableFrom<HttpStatusCodeWithBodyResult>(result);
+            Assert.Equal(statusCode, statusResult.StatusCode);
+            Assert.Equal(statusDescription, statusResult.StatusDescription);
+            Assert.Equal(body, statusResult.Body);
+            return statusResult;
         }
     }
 }
+

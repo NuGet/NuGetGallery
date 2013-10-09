@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -51,10 +52,16 @@ namespace NuGetGallery
             return obj =>
             {
                 var originalCollection = (ICollection<TElement>)property.GetValue(obj);
+                if (originalCollection == null)
+                {
+                    originalCollection = new Collection<TElement>();
+                }
+
                 var mutatedCollection = new ObservableCollection<TElement>(originalCollection);
-                mutatedCollection.CollectionChanged += 
+                mutatedCollection.CollectionChanged +=
                     new System.Collections.Specialized.NotifyCollectionChangedEventHandler(
-                    (col, args) => {
+                    (col, args) =>
+                    {
                         var set = fakeContext.Set<TElement>();
                         if (args.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
                         {

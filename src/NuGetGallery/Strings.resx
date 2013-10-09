@@ -124,7 +124,7 @@
     <value>The username '{0}' is not available.</value>
   </data>
   <data name="UserNotFound" xml:space="preserve">
-    <value>A user with the provided user name and password does not exist.</value>
+    <value>A unique user with that username or email address and password does not exist. Try logging on with your username if you were using an email address to log on.</value>
   </data>
   <data name="PackageIdNotAvailable" xml:space="preserve">
     <value>The package ID '{0}' is not available.</value>
@@ -173,5 +173,11 @@
   </data>
   <data name="ParameterCannotBeNullOrEmpty" xml:space="preserve">
     <value>'{0}' cannot be null or an empty string</value>
+  </data>
+  <data name="DatabaseUnavailable_TrySpecificVersion" xml:space="preserve">
+    <value>The NuGet service is experiencing a service interruption. Try requesting a specific package version instead.</value>
+  </data>
+  <data name="ApiKeyUserAccountIsUnconfirmed" xml:space="preserve">
+    <value>You must confirm the email address for the account in order to use the API key.</value>
   </data>
 </root>

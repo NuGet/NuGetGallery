@@ -1,0 +1,28 @@
+﻿@model NuGetGallery.SignInRequest
+
+@using (Html.BeginForm("SignIn", "Authentication"))
+{
+    <fieldset class="form">
+        <legend>Sign In Form</legend>
+
+        @Html.AntiForgeryToken()
+        @Html.Hidden("ReturnUrl", ViewData[Constants.ReturnUrlViewDataKey])
+
+        <div class="form-field">
+            @Html.LabelFor(m => m.UserNameOrEmail)
+            @Html.EditorFor(m => m.UserNameOrEmail)
+            @Html.ValidationMessageFor(m => m.UserNameOrEmail)
+        </div>
+
+        <div class="form-field">
+            @Html.LabelFor(m => m.Password)
+            @Html.EditorFor(m => m.Password)
+            @Html.ValidationMessageFor(m => m.Password)
+        </div>
+
+        <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
+
+        <input type="submit" value="Sign In" title="Sign In" />
+        @Html.ActionLink("Lost your Password?", "ForgotPassword", "Users")
+    </fieldset>
+}
