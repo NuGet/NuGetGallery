@@ -228,6 +228,7 @@
     <Compile Include="Infrastructure\ICommandManager.cs" />
     <Compile Include="Infrastructure\Verbosity.cs" />
     <Compile Include="Tasks\DeleteUserTask.cs" />
+    <Compile Include="Tasks\ExportCurrentRankingsTask.cs" />
     <Compile Include="Tasks\ExportDatabaseTask.cs" />
     <Compile Include="Tasks\HandleQueuedPackageEditsTask.cs" />
     <Compile Include="Tasks\ListDeploymentSettingsTask.cs" />
@@ -370,6 +371,12 @@
       <Project>{1dacf781-5cd0-4123-8bac-cd385d864be5}</Project>
       <Name>NuGetGallery</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\Ranking_Project.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\Ranking_Overall.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
