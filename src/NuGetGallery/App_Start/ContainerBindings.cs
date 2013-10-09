@@ -9,6 +9,7 @@ using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Ninject;
+using Ninject.Web.Common;
 using Ninject.Modules;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;

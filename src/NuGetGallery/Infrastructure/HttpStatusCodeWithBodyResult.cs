@@ -5,7 +5,7 @@ namespace NuGetGallery
 {
     public class HttpStatusCodeWithBodyResult : HttpStatusCodeResult
     {
-        private readonly string _body;
+        public string Body { get; private set; }
 
         public HttpStatusCodeWithBodyResult(HttpStatusCode statusCode, string statusDescription)
             : this(statusCode, statusDescription, statusDescription)
@@ -15,14 +15,14 @@ namespace NuGetGallery
         public HttpStatusCodeWithBodyResult(HttpStatusCode statusCode, string statusDescription, string body)
             : base((int)statusCode, statusDescription)
         {
-            _body = body;
+            Body = body;
         }
 
         public override void ExecuteResult(ControllerContext context)
         {
             base.ExecuteResult(context);
             var response = context.RequestContext.HttpContext.Response;
-            response.Write(_body);
+            response.Write(Body);
         }
     }
 }

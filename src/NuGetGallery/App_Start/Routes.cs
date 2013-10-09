@@ -113,16 +113,16 @@ namespace NuGetGallery
                 "packages/{id}/{action}",
                 new { controller = MVC.Packages.Name });
 
-            var resendRoute = routes.MapRoute(
-                "ResendConfirmation",
-                "account/ResendConfirmation",
-                MVC.Users.ResendConfirmation());
+            var confirmationRequiredRoute = routes.MapRoute(
+                "ConfirmationRequired",
+                "account/ConfirmationRequired",
+                MVC.Users.ConfirmationRequired());
 
             //Redirecting v1 Confirmation Route
             routes.Redirect(
                 r => r.MapRoute(
                     "v1Confirmation",
-                    "Users/Account/ChallengeEmail")).To(resendRoute);
+                    "Users/Account/ChallengeEmail")).To(confirmationRequiredRoute);
 
             routes.MapRoute(
                 RouteName.Authentication,
@@ -133,6 +133,11 @@ namespace NuGetGallery
                 RouteName.Profile,
                 "profiles/{username}",
                 MVC.Users.Profiles());
+
+            routes.MapRoute(
+                RouteName.LegacyRegister,
+                "account/register",
+                new { controller = MVC.Authentication.Name, action = MVC.Authentication.ActionNames.Register });
 
             routes.MapRoute(
                 RouteName.PasswordReset,

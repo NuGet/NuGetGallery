@@ -43,7 +43,7 @@
     <Reference Include="NuGet.Core, Version=2.7.40905.79, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Nuget.Core.2.7.0.1\lib\net40-Client\NuGet.Core.dll</HintPath>
-   </Reference>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
@@ -89,6 +89,7 @@
     <Compile Include="Packaging\Nupkg.cs" />
     <Compile Include="Packaging\NupkgRewriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SemanticVersionExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">

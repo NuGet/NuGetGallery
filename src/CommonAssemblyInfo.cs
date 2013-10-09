@@ -20,4 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: NeutralResourcesLanguage("en-us")]
 [assembly: AssemblyVersion("2.0.0")]
 [assembly: AssemblyFileVersion("2.13.0805")]
-[assembly: AssemblyInformationalVersion("2.13.0805-aadevbuild")]
+[assembly: AssemblyInformationalVersion("2.13.0805-alpha")]
+
+[assembly: AssemblyMetadata("Branch", "dev")]
+[assembly: AssemblyMetadata("CommitId", "077b46fa093ab839d3f92be0863bf6ebc0cba9a3")]

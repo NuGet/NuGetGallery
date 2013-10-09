@@ -104,7 +104,7 @@ namespace NuGetGallery
             return version == null ? EnsureTrailingSlash(result) : result;
         }
 
-        public static string PackageDeafultIcon(this UrlHelper url)
+        public static string PackageDefaultIcon(this UrlHelper url)
         {
             string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
             string result = url.RouteUrl(RouteName.Home, null, protocol: protocol);
@@ -127,6 +127,16 @@ namespace NuGetGallery
             return url.RouteUrl(RouteName.Authentication, new { action = "LogOn" });
         }
 
+        public static string LogOn(this UrlHelper url, string returnUrl)
+        {
+            return url.RouteUrl(RouteName.Authentication, new { action = "LogOn", returnUrl = returnUrl });
+        }
+
+        public static string ConfirmationRequired(this UrlHelper url)
+        {
+            return url.Action("ConfirmationRequired", controllerName: "Users");
+        }
+
         public static string LogOff(this UrlHelper url)
         {
             string returnUrl = url.Current();
@@ -144,9 +154,24 @@ namespace NuGetGallery
             return url.Action(originalResult);
         }
 
+        public static string Privacy(this UrlHelper url)
+        {
+            return url.Action("Privacy", MVC.Pages.Name);
+        }
+
+        public static string Register(this UrlHelper url)
+        {
+            return url.Action(MVC.Authentication.LogOn());
+        }
+
         public static string Search(this UrlHelper url, string searchTerm)
         {
             return url.RouteUrl(RouteName.ListPackages, new { q = searchTerm });
+        }
+
+        public static string Terms(this UrlHelper url)
+        {
+            return url.Action("Terms", MVC.Pages.Name);
         }
 
         public static string UploadPackage(this UrlHelper url)

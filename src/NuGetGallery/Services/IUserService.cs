@@ -7,11 +7,13 @@ namespace NuGetGallery
     {
         User Create(string username, string password, string emailAddress);
 
-        void UpdateProfile(User user, string emailAddress, bool emailAllowed);
+        void UpdateProfile(User user, bool emailAllowed);
 
         User FindByApiKey(Guid apiKey);
 
         User FindByEmailAddress(string emailAddress);
+
+        IList<User> FindAllByEmailAddress(string emailAddress);
 
         IList<User> FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress, string optionalUsername);
 
@@ -24,6 +26,8 @@ namespace NuGetGallery
         string GenerateApiKey(string username);
 
         bool ConfirmEmailAddress(User user, string token);
+
+        void ChangeEmailAddress(User user, string newEmailAddress);
 
         bool ChangePassword(string username, string oldPassword, string newPassword);
 

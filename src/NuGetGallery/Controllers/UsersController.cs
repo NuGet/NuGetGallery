@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
 using System.Web.Mvc;
@@ -10,7 +11,6 @@ namespace NuGetGallery
     public partial class UsersController : AppController
     {
         public ICuratedFeedService CuratedFeedService { get; protected set; }
-        public IPrincipal CurrentUser { get; protected set; }
         public IMessageService MessageService { get; protected set; }
         public IPackageService PackageService { get; protected set; }
         public IAppConfiguration Config { get; protected set; }
@@ -23,36 +23,69 @@ namespace NuGetGallery
             IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
-            IAppConfiguration config,
-            IPrincipal currentUser) : this()
+            IAppConfiguration config) : this()
         {
             CuratedFeedService = feedsQuery;
             UserService = userService;
             PackageService = packageService;
             MessageService = messageService;
             Config = config;
-            CurrentUser = currentUser;
         }
 
         [Authorize]
         public virtual ActionResult Account()
         {
-            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
+            var user = UserService.FindByUsername(Identity.Name);
             var curatedFeeds = CuratedFeedService.GetFeedsForManager(user.Key);
             return View(
                 new AccountViewModel
                     {
                         ApiKey = user.ApiKey.ToString(),
+                        IsConfirmed = user.Confirmed,
                         CuratedFeeds = curatedFeeds.Select(cf => cf.Name)
                     });
         }
 
         [Authorize]
+        [HttpGet]
+        public virtual ActionResult ConfirmationRequired()
+        {
+            User user = UserService.FindByUsername(User.Identity.Name);
+            var model = new ConfirmationViewModel
+            {
+                ConfirmingNewAccount = !(user.Confirmed),
+                UnconfirmedEmailAddress = user.UnconfirmedEmailAddress,
+            };
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ActionName("ConfirmationRequired")]
+        public virtual ActionResult ConfirmationRequiredPost()
+        {
+            User user = UserService.FindByUsername(User.Identity.Name);
+            var confirmationUrl = Url.ConfirmationUrl(
+                MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
+
+            MessageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
+
+            var model = new ConfirmationViewModel
+            {
+                ConfirmingNewAccount = !(user.Confirmed),
+                UnconfirmedEmailAddress = user.UnconfirmedEmailAddress,
+                SentEmail = true,
+            };
+            return View(model);
+        }
+
+        [Authorize]
         public virtual ActionResult Edit()
         {
-            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
+            var user = UserService.FindByUsername(Identity.Name);
             var model = new EditProfileViewModel
                 {
+                    Username = user.Username,
                     EmailAddress = user.EmailAddress,
                     EmailAllowed = user.EmailAllowed,
                     PendingNewEmailAddress = user.UnconfirmedEmailAddress
@@ -65,92 +98,17 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult Edit(EditProfileViewModel profile)
         {
-            if (ModelState.IsValid)
+            var user = UserService.FindByUsername(Identity.Name);
+            if (user == null)
             {
-                var user = UserService.FindByUsername(CurrentUser.Identity.Name);
-                if (user == null)
-                {
-                    return HttpNotFound();
-                }
-
-                string existingConfirmationToken = user.EmailConfirmationToken;
-                try
-                {
-                    UserService.UpdateProfile(user, profile.EmailAddress, profile.EmailAllowed);
-                }
-                catch (EntityException ex)
-                {
-                    ModelState.AddModelError(String.Empty, ex.Message);
-                    return View(profile);
-                }
-
-                if (existingConfirmationToken == user.EmailConfirmationToken)
-                {
-                    TempData["Message"] = "Account settings saved!";
-                }
-                else
-                {
-                    TempData["Message"] =
-                        "Account settings saved! We sent a confirmation email to verify your new email. When you confirm the email address, it will take effect and we will forget the old one.";
-
-                    var confirmationUrl = Url.ConfirmationUrl(
-                        MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
-                    MessageService.SendEmailChangeConfirmationNotice(new MailAddress(profile.EmailAddress, user.Username), confirmationUrl);
-                }
-
-                return RedirectToAction(MVC.Users.Account());
+                return HttpNotFound();
             }
+
+            profile.EmailAddress = user.EmailAddress;
+            profile.Username = user.Username;
+            profile.PendingNewEmailAddress = user.UnconfirmedEmailAddress;
+            UserService.UpdateProfile(user, profile.EmailAllowed);
             return View(profile);
-        }
-
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        public virtual ActionResult Register()
-        {
-            // We don't want Login to have us as a return URL. 
-            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        public virtual ActionResult Register(RegisterRequest request)
-        {
-            // If we have to render a view, we don't want Login to have us as a return URL
-            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
-            // TODO: consider client-side validation for unique username
-            // TODO: add email validation
-
-            if (!ModelState.IsValid)
-            {
-                return View();
-            }
-
-            User user;
-            try
-            {
-                user = UserService.Create(
-                    request.Username,
-                    request.Password,
-                    request.EmailAddress);
-            }
-            catch (EntityException ex)
-            {
-                ModelState.AddModelError(String.Empty, ex.Message);
-                return View();
-            }
-
-            if (Config.ConfirmEmailAddresses)
-            {
-                // Passing in scheme to force fully qualified URL
-                var confirmationUrl = Url.ConfirmationUrl(
-                    MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
-                MessageService.SendNewAccountEmail(new MailAddress(request.EmailAddress, user.Username), confirmationUrl);
-            }
-            return RedirectToAction(MVC.Users.Thanks());
         }
 
         public virtual ActionResult Thanks()
@@ -158,22 +116,13 @@ namespace NuGetGallery
             // No need to redirect here after someone logs in...
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
-            if (Config.ConfirmEmailAddresses)
-            {
-                return View();
-            }
-            else
-            {
-                var model = new EmailConfirmationModel { SuccessfulConfirmation = true, ConfirmingNewAccount = true };
-                return View("Confirm", model);
-            }
+            return View();
         }
 
         [Authorize]
         public virtual ActionResult Packages()
         {
-            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
+            var user = UserService.FindByUsername(Identity.Name);
             var packages = PackageService.FindPackagesByOwner(user);
 
             var model = new ManagePackagesViewModel
@@ -193,7 +142,7 @@ namespace NuGetGallery
         [HttpPost]
         public virtual ActionResult GenerateApiKey()
         {
-            UserService.GenerateApiKey(CurrentUser.Identity.Name);
+            UserService.GenerateApiKey(Identity.Name);
             return RedirectToAction(MVC.Users.Account());
         }
 
@@ -230,47 +179,6 @@ namespace NuGetGallery
                 ModelState.AddModelError("Email", "Could not find anyone with that email.");
             }
 
-            return View(model);
-        }
-
-        public virtual ActionResult ResendConfirmation()
-        {
-            // We don't want Login to have us as a return URL
-            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public virtual ActionResult ResendConfirmation(ResendConfirmationEmailViewModel model)
-        {
-            // We don't want Login to have us as a return URL
-            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
-            if (ModelState.IsValid)
-            {
-                var usersClaimingEmailAddress = UserService.FindByUnconfirmedEmailAddress(model.Email, model.Username);
-                
-                if (usersClaimingEmailAddress.Count == 1)
-                {
-                    var user = usersClaimingEmailAddress.SingleOrDefault();
-                    var confirmationUrl = Url.ConfirmationUrl(
-                        MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
-                    MessageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
-                    return RedirectToAction(MVC.Users.Thanks());
-                }
-                else if (usersClaimingEmailAddress.Count > 1)
-                {
-                    ModelState.AddModelError("Username", "Multiple users registered with your email address. Enter your username in order to resend confirmation email.");
-                }
-                else
-                {
-                    ModelState.AddModelError("Email", "There was an issue resending your confirmation token.");
-                }
-            }
             return View(model);
         }
 
@@ -313,16 +221,22 @@ namespace NuGetGallery
             return RedirectToAction(MVC.Users.PasswordChanged());
         }
 
+        [Authorize]
         public virtual ActionResult Confirm(string username, string token)
         {
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
-            if (String.IsNullOrEmpty(token))
+
+            if (!String.Equals(username, Identity.Name, StringComparison.OrdinalIgnoreCase))
             {
-                return HttpNotFound();
+                return View(new ConfirmationViewModel
+                    {
+                        WrongUsername = true,
+                        SuccessfulConfirmation = false,
+                    });
             }
+
             var user = UserService.FindByUsername(username);
             if (user == null)
             {
@@ -330,18 +244,39 @@ namespace NuGetGallery
             }
 
             string existingEmail = user.EmailAddress;
-            var model = new EmailConfirmationModel
+            var model = new ConfirmationViewModel
+            {
+                ConfirmingNewAccount = String.IsNullOrEmpty(existingEmail),
+                SuccessfulConfirmation = true,
+            };
+
+            try
+            {
+                if (!UserService.ConfirmEmailAddress(user, token))
                 {
-                    ConfirmingNewAccount = String.IsNullOrEmpty(existingEmail),
-                    SuccessfulConfirmation = UserService.ConfirmEmailAddress(user, token)
-                };
+                    model.SuccessfulConfirmation = false;
+                }
+            }
+            catch (EntityException)
+            {
+                model.SuccessfulConfirmation = false;
+                model.DuplicateEmailAddress = true;
+            }
 
             // SuccessfulConfirmation is required so that the confirm Action isn't a way to spam people.
             // Change notice not required for new accounts.
             if (model.SuccessfulConfirmation && !model.ConfirmingNewAccount)
             {
                 MessageService.SendEmailChangeNoticeToPreviousEmailAddress(user, existingEmail);
+
+                string returnUrl = HttpContext.GetConfirmationReturnUrl();
+                if (!String.IsNullOrEmpty(returnUrl))
+                {
+                    TempData["Message"] = "You have successfully confirmed your email address!";
+                    return new RedirectResult(RedirectHelper.SafeRedirectUrl(Url, returnUrl));
+                }
             }
+
             return View(model);
         }
 
@@ -360,15 +295,68 @@ namespace NuGetGallery
                 .Select(c => new PackageViewModel(c.First()))
                 .ToList();
 
-            var model = new UserProfileModel
-                {
-                    Username = user.Username,
-                    EmailAddress = user.EmailAddress,
-                    Packages = packages,
-                    TotalPackageDownloadCount = packages.Sum(p => p.TotalDownloadCount)
-                };
+            var model = new UserProfileModel(user)
+            {
+                Packages = packages,
+                TotalPackageDownloadCount = packages.Sum(p => p.TotalDownloadCount),
+            };
 
             return View(model);
+        }
+
+        [Authorize]
+        public virtual ActionResult ChangeEmail()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize]
+        public virtual ActionResult ChangeEmail(ChangeEmailRequestModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            User user = UserService.FindByUsernameAndPassword(Identity.Name, model.Password);
+            if (user == null)
+            {
+                ModelState.AddModelError("Password", Strings.CurrentPasswordIncorrect);
+                return View(model);
+            }
+
+            if (String.Equals(model.NewEmail, user.LastSavedEmailAddress, StringComparison.OrdinalIgnoreCase))
+            {
+                // email address unchanged - accept
+                return RedirectToAction(MVC.Users.Edit());
+            }
+
+            try
+            {
+                UserService.ChangeEmailAddress(user, model.NewEmail);
+            }
+            catch (EntityException e)
+            {
+                ModelState.AddModelError("NewEmail", e.Message);
+                return View(model);
+            }
+
+            if (user.Confirmed)
+            {
+                var confirmationUrl = Url.ConfirmationUrl(
+                    MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
+                MessageService.SendEmailChangeConfirmationNotice(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
+
+                TempData["Message"] =
+                    "Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one.";
+            }
+            else
+            {
+                TempData["Message"] = "Your new email address was saved!";
+            }
+
+            return RedirectToAction(MVC.Users.Edit());
         }
 
         [Authorize]
@@ -382,18 +370,17 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult ChangePassword(PasswordChangeViewModel model)
         {
-            if (ModelState.IsValid)
-            {
-                if (!UserService.ChangePassword(CurrentUser.Identity.Name, model.OldPassword, model.NewPassword))
-                {
-                    ModelState.AddModelError(
-                        "OldPassword",
-                        Strings.CurrentPasswordIncorrect);
-                }
-            }
-
             if (!ModelState.IsValid)
             {
+                return View(model);
+            }
+
+            if (!UserService.ChangePassword(Identity.Name, model.OldPassword, model.NewPassword))
+            {
+                ModelState.AddModelError(
+                    "OldPassword",
+                    Strings.CurrentPasswordIncorrect);
+
                 return View(model);
             }
 

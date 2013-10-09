@@ -155,8 +155,11 @@
     <Compile Include="Infrastructure\SnazzyConsoleTarget.cs" />
     <Compile Include="Infrastructure\SqlDbExecutorFactory.cs" />
     <Compile Include="LoggerExtensions.cs" />
+    <Compile Include="Model\AuditEnvironment.cs" />
+    <Compile Include="Model\AuditRecord.cs" />
     <Compile Include="Model\OfflineDatabaseBackup.cs" />
     <Compile Include="Model\OnlineDatabaseBackup.cs" />
+    <Compile Include="Model\PackageAuditRecord.cs" />
     <Compile Include="Service References\SqlDac\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -209,6 +212,9 @@
     <Compile Include="Tasks\CuratedFeeds\CreateCuratedFeed.cs" />
     <Compile Include="Tasks\CuratedFeeds\DeleteCuratedFeedTask.cs" />
     <Compile Include="Tasks\CuratedFeeds\ListCuratedFeedsTask.cs" />
+    <Compile Include="Tasks\DataManagement\DeleteDuplicatePackageVersionsTask.cs" />
+    <Compile Include="Tasks\DataManagement\NormalizePackageFilesTask.cs" />
+    <Compile Include="Tasks\DataManagement\NormalizePackageVersionsTask.cs" />
     <Compile Include="Tasks\ExecuteAggregateStatisticsTask.cs" />
     <Compile Include="Tasks\CopyExternalPackagesTask.cs" />
     <Compile Include="Tasks\CreateWarehouseReportsTask.cs" />

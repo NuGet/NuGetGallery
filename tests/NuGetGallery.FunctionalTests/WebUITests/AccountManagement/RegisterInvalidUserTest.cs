@@ -21,7 +21,7 @@ namespace NuGetGallery.FunctionalTests
 
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
-            WebTestRequest registerPageRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.RegisterPageUrl);
+            WebTestRequest registerPageRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.LogonPageUrl);
             yield return registerPageRequest;
             registerPageRequest = null;
 
@@ -35,7 +35,6 @@ namespace NuGetGallery.FunctionalTests
             registerNewUserFormPost.FormPostParameters.Add(Constants.EmailAddressFormField, DateTime.Now.Ticks.ToString()+ "@live.com" ); 
             registerNewUserFormPost.FormPostParameters.Add(Constants.UserNameFormField, EnvironmentSettings.TestAccountName);  // This account already exists; we expect this to fail.
             registerNewUserFormPost.FormPostParameters.Add(Constants.PasswordFormField, "xxxxxxx");
-            registerNewUserFormPost.FormPostParameters.Add(Constants.ConfirmPasswordFormField, "xxxxxxx");
             registerPagePostRequest.Body = registerNewUserFormPost;
             //Validate the response to make sure that it has the pending confirmation text in it.           
             ValidationRuleFindText PendingConfirmationTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.RegisterNewUserPendingConfirmationText, false);
@@ -51,14 +50,13 @@ namespace NuGetGallery.FunctionalTests
             registerNewUserFormPost.FormPostParameters.Add(Constants.EmailAddressFormField, DateTime.Now.Ticks.ToString() + "@live.com");
             registerNewUserFormPost.FormPostParameters.Add(Constants.UserNameFormField, Convert.ToChar(4).ToString());  // This is an invalid username; we expect this to fail, too.
             registerNewUserFormPost.FormPostParameters.Add(Constants.PasswordFormField, "xxxxxxx");
-            registerNewUserFormPost.FormPostParameters.Add(Constants.ConfirmPasswordFormField, "xxxxxxx");
             registerPagePostRequest.Body = registerNewUserFormPost;
             //Validate the response to make sure that it lacks the pending confirmation text.           
             PendingConfirmationTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.RegisterNewUserPendingConfirmationText, false);
             registerPagePostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(PendingConfirmationTextRule.Validate);
             //Validate the error is handled.  We should end up on the same page again.     
-            ValidationRuleFindText ErrorHandledTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.CreateNewAccountText);
-            registerPagePostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(ErrorHandledTextRule.Validate);
+            PendingConfirmationTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.RegisterNewUserPendingConfirmationText, false);
+            registerPagePostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(PendingConfirmationTextRule.Validate);
             yield return registerPagePostRequest;
             registerPagePostRequest = null;
         }

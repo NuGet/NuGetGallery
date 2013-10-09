@@ -43,21 +43,18 @@ namespace NuGetGallery.FunctionalTests.WebUITests.PackageManagement
             string minClientVersion = "2.3";
             string packageFullPath = PackageCreationHelper.CreatePackage(packageId, version, minClientVersion);
 
-            //Do initial login to be able to perform package management.
-            logonGet = AssertAndValidationHelper.GetLogonGetRequest();
-            yield return logonGet;
-            logonGet = null;
-            logonPost = AssertAndValidationHelper.GetLogonPostRequest(this);
-            yield return logonPost;
-            logonPost = null;
+            WebTestRequest uploadPostRequest = AssertAndValidationHelper.GetUploadPostRequestForPackage(this, packageFullPath);
+            yield return uploadPostRequest;
+            uploadPostRequest = null;
 
-            System.Threading.Thread.Sleep(60000);
-            WebTestRequest packageRequest = new WebTestRequest(UrlHelper.GetPackagePageUrl(packageId));           
-            //Rule to check manage my packages contains a html link to the newly uploaded package.     
-            ValidationRuleFindText requiredMinVersionValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(minClientVersion);   
-            packageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(requiredMinVersionValidationRule.Validate);
-            yield return packageRequest;
-            packageRequest = null;         
+            WebTestRequest verifyUploadRequest = new WebTestRequest(UrlHelper.VerifyUploadPageUrl);
+            verifyUploadRequest.ExtractValues += new EventHandler<ExtractionEventArgs>(defaultExtractionRule.Extract);
+            yield return verifyUploadRequest;
+            verifyUploadRequest = null;
+
+            WebTestRequest verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(this, packageId, "1.0.0");
+            yield return verifyUploadPostRequest;
+            verifyUploadPostRequest = null;          
 
         }
     }

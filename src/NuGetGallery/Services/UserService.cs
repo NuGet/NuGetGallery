@@ -36,25 +36,24 @@ namespace NuGetGallery
                 throw new EntityException(Strings.UsernameNotAvailable, username);
             }
 
-            existingUser = FindByEmailAddress(emailAddress);
-            if (existingUser != null)
+            var existingUsers = FindAllByEmailAddress(emailAddress);
+            if (existingUsers.AnySafe())
             {
                 throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
             }
 
             var hashedPassword = Crypto.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
 
-            var newUser = new User(
-                username,
-                hashedPassword)
-                {
-                    ApiKey = Guid.NewGuid(),
-                    EmailAllowed = true,
-                    UnconfirmedEmailAddress = emailAddress,
-                    EmailConfirmationToken = Crypto.GenerateToken(),
-                    PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
-                    CreatedUtc = DateTime.UtcNow
-                };
+            var newUser = new User(username)
+            {
+                ApiKey = Guid.NewGuid(),
+                EmailAllowed = true,
+                UnconfirmedEmailAddress = emailAddress,
+                EmailConfirmationToken = Crypto.GenerateToken(),
+                HashedPassword = hashedPassword,
+                PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
+                CreatedUtc = DateTime.UtcNow
+            };
 
             if (!Config.ConfirmEmailAddresses)
             {
@@ -67,22 +66,11 @@ namespace NuGetGallery
             return newUser;
         }
 
-        public void UpdateProfile(User user, string emailAddress, bool emailAllowed)
+        public void UpdateProfile(User user, bool emailAllowed)
         {
             if (user == null)
             {
                 throw new ArgumentNullException("user");
-            }
-
-            if (emailAddress != user.EmailAddress)
-            {
-                var existingUser = FindByEmailAddress(emailAddress);
-                if (existingUser != null && existingUser.Key != user.Key)
-                {
-                    throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
-                }
-                user.UnconfirmedEmailAddress = emailAddress;
-                user.EmailConfirmationToken = Crypto.GenerateToken();
             }
 
             user.EmailAllowed = emailAllowed;
@@ -96,7 +84,19 @@ namespace NuGetGallery
 
         public virtual User FindByEmailAddress(string emailAddress)
         {
-            return UserRepository.GetAll().SingleOrDefault(u => u.EmailAddress == emailAddress);
+            var allMatches = UserRepository.GetAll().Where(u => u.EmailAddress == emailAddress).Take(2).ToList();
+
+            if (allMatches.Count == 1)
+            {
+                return allMatches[0];
+            }
+
+            return null;
+        }
+
+        public virtual IList<User> FindAllByEmailAddress(string emailAddress)
+        {
+            return UserRepository.GetAll().Where(u => u.EmailAddress == emailAddress).ToList();
         }
 
         public virtual IList<User> FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress, string optionalUsername)
@@ -177,6 +177,18 @@ namespace NuGetGallery
             return newApiKey.ToString();
         }
 
+        public void ChangeEmailAddress(User user, string newEmailAddress)
+        {
+            var existingUsers = FindAllByEmailAddress(newEmailAddress);
+            if (existingUsers.AnySafe(u => u.Key != user.Key))
+            {
+                throw new EntityException(Strings.EmailAddressBeingUsed, newEmailAddress);
+            }
+
+            user.UpdateEmailAddress(newEmailAddress, Crypto.GenerateToken);
+            UserRepository.CommitChanges();
+        }
+
         public bool ChangePassword(string username, string oldPassword, string newPassword)
         {
             // Review: If the old password is hashed using something other than PBKDF2, we end up making an extra db call that changes the old hash password.
@@ -207,6 +219,12 @@ namespace NuGetGallery
             if (user.EmailConfirmationToken != token)
             {
                 return false;
+            }
+
+            var conflictingUsers = FindAllByEmailAddress(user.UnconfirmedEmailAddress);
+            if (conflictingUsers.AnySafe(u => u.Key != user.Key))
+            {
+                throw new EntityException(Strings.EmailAddressBeingUsed, user.UnconfirmedEmailAddress);
             }
 
             user.ConfirmEmailAddress();

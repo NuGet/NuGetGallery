@@ -3,6 +3,8 @@ using System.Linq;
 using Moq;
 using NuGetGallery.Configuration;
 using Xunit;
+using System.Collections.Generic;
+using Xunit.Extensions;
 
 namespace NuGetGallery
 {
@@ -174,6 +176,20 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void ThrowsForDuplicateConfirmedEmailAddresses()
+            {
+                var user = new User { Username = "User1", Key = 1, EmailAddress = "old@example.org", UnconfirmedEmailAddress = "new@example.org", EmailConfirmationToken = "token" };
+                var conflictingUser = new User { Username = "User2", Key = 2, EmailAddress = "new@example.org" };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user, conflictingUser }
+                };
+
+                var ex = Assert.Throws<EntityException>(() => service.ConfirmEmailAddress(user, "token"));
+                Assert.Equal(String.Format(Strings.EmailAddressBeingUsed, "new@example.org"), ex.Message);
+            }
+
+            [Fact]
             public void WithTokenThatDoesMatchUserConfirmsUserAndReturnsTrue()
             {
                 var user = new User
@@ -253,8 +269,8 @@ namespace NuGetGallery
             public void WillThrowIfTheEmailAddressIsAlreadyInUse()
             {
                 var userService = CreateMockUserService(
-                    setup: u => u.Setup(x => x.FindByEmailAddress("theEmailAddress"))
-                                 .Returns(new User()));
+                    setup: u => u.Setup(x => x.FindAllByEmailAddress("theEmailAddress"))
+                                 .Returns(new List<User> { new User() }));
 
                 var ex = Assert.Throws<EntityException>(
                     () =>
@@ -381,6 +397,23 @@ namespace NuGetGallery
                     "theEmailAddress");
 
                 Assert.Equal(true, user.Confirmed);
+            }
+        }
+
+        public class TheFindByEmailAddressMethod
+        {
+            [Fact]
+            public void ReturnsNullIfMultipleMatchesExist()
+            {
+                var user = new User { Username = "User1", Key = 1, EmailAddress = "new@example.org" };
+                var conflictingUser = new User { Username = "User2", Key = 2, EmailAddress = "new@example.org" };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user, conflictingUser }
+                };
+
+                var result = service.FindByEmailAddress("new@example.org");
+                Assert.Null(result);
             }
         }
 
@@ -689,63 +722,115 @@ namespace NuGetGallery
             }
         }
 
-        public class TheUpdateProfileMethod
+        public class TheChangeEmailMethod
         {
-            [Fact]
-            public void SetsEmailConfirmationTokenWhenEmailAddressChanged()
+            User CreateUser(string username, string password, string emailAddress)
             {
-                var user = new User { EmailAddress = "old@example.com" };
-                var service = new TestableUserService();
-
-                service.UpdateProfile(user, "new@example.com", emailAllowed: true);
-
-                Assert.NotNull(user.EmailConfirmationToken);
-                Assert.NotEmpty(user.EmailConfirmationToken);
+                return new User
+                {
+                    Username = username,
+                    EmailAddress = emailAddress,
+                    HashedPassword = CryptographyService.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId),
+                    PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId
+                };
             }
 
             [Fact]
             public void SetsUnconfirmedEmailWhenEmailIsChanged()
             {
-                var user = new User {
-                    EmailAddress = "old@example.org",
-                    EmailAllowed = true,
-                    EmailConfirmationToken = null
+                var user = CreateUser("Bob", "ThePassword", "old@example.org");
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user }
                 };
-                var service = new TestableUserService();
-                service.MockUserRepository
-                       .Setup(r => r.GetAll())
-                       .Returns(new[] { user }.AsQueryable());
 
-                service.UpdateProfile(user, "new@example.org", true);
+                service.ChangeEmailAddress(user, "new@example.org");
 
                 Assert.Equal("old@example.org", user.EmailAddress);
                 Assert.Equal("new@example.org", user.UnconfirmedEmailAddress);
-                service.MockUserRepository
-                       .Verify(r => r.CommitChanges());
+                service.FakeEntitiesContext.VerifyCommitChanges();
             }
 
+            /// <summary>
+            /// It has to change the pending confirmation token whenever address changes because otherwise you can do
+            /// 1. change address, get confirmation email
+            /// 2. change email address again to something you don't own
+            /// 3. hit confirm and you confirmed an email address you don't own
+            /// </summary>
             [Fact]
-            public void DoesNotSetConfirmationTokenWhenEmailAddressNotChanged()
+            public void ModifiesConfirmationTokenWhenEmailAddressChanged()
             {
-                var user = new User { EmailAddress = "old@example.com" };
-                var service = new TestableUserService();
+                var user = new User { EmailAddress = "old@example.com", EmailConfirmationToken = "pending-token" };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new User[] { user },
+                };
 
-                service.UpdateProfile(user, "old@example.com", emailAllowed: true);
+                service.ChangeEmailAddress(user, "new@example.com");
+                Assert.NotNull(user.EmailConfirmationToken);
+                Assert.NotEmpty(user.EmailConfirmationToken);
+                Assert.NotEqual("pending-token", user.EmailConfirmationToken);
+                service.FakeEntitiesContext.VerifyCommitChanges();
+            }
 
+            /// <summary>
+            /// It would be annoying if you start seeing pending email changes as a result of NOT changing your email address.
+            /// </summary>
+            [Fact]
+            public void DoesNotModifyAnythingWhenConfirmedEmailAddressNotChanged()
+            {
+                var user = new User { EmailAddress = "old@example.com", UnconfirmedEmailAddress = null, EmailConfirmationToken = null };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new User[] { user },
+                };
+
+                service.ChangeEmailAddress(user, "old@example.com");
+                Assert.True(user.Confirmed);
+                Assert.Equal("old@example.com", user.EmailAddress);
+                Assert.Null(user.UnconfirmedEmailAddress);
                 Assert.Null(user.EmailConfirmationToken);
             }
 
-            [Fact]
-            public void DoesNotChangeConfirmationTokenButUserHasPendingEmailChange()
+            /// <summary>
+            /// Because it's bad if your confirmation email no longer works because you did a no-op email address change.
+            /// </summary>
+            [Theory]
+            [InlineData("something@else.com")]
+            [InlineData(null)]
+            public void DoesNotModifyConfirmationTokenWhenUnconfirmedEmailAddressNotChanged(string confirmedEmailAddress)
             {
-                var user = new User { EmailAddress = "old@example.com", EmailConfirmationToken = "pending-token" };
-                var service = new TestableUserService();
+                var user = new User { 
+                    EmailAddress = confirmedEmailAddress,
+                    UnconfirmedEmailAddress = "old@example.com", 
+                    EmailConfirmationToken = "pending-token" };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new User[] { user },
+                };
 
-                service.UpdateProfile(user, "old@example.com", emailAllowed: true);
-
+                service.ChangeEmailAddress(user, "old@example.com");
                 Assert.Equal("pending-token", user.EmailConfirmationToken);
             }
 
+            [Fact]
+            public void DoesNotLetYouUseSomeoneElsesConfirmedEmailAddress()
+            {
+                var user = new User { EmailAddress = "old@example.com", Key = 1 };
+                var conflictingUser = new User { EmailAddress = "new@example.com", Key = 2 };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new User[] { user, conflictingUser },
+                };
+
+                var e = Assert.Throws<EntityException>(() => service.ChangeEmailAddress(user, "new@example.com"));
+                Assert.Equal(string.Format(Strings.EmailAddressBeingUsed, "new@example.com"), e.Message);
+                Assert.Equal("old@example.com", user.EmailAddress);
+            }
+        }
+
+        public class TheUpdateProfileMethod
+        {   
             [Fact]
             public void SavesEmailAllowedSetting()
             {
@@ -755,7 +840,7 @@ namespace NuGetGallery
                        .Setup(r => r.GetAll())
                        .Returns(new[] { user }.AsQueryable());
 
-                service.UpdateProfile(user, "old@example.org", false);
+                service.UpdateProfile(user, false);
 
                 Assert.Equal(false, user.EmailAllowed);
                 service.MockUserRepository
@@ -767,7 +852,7 @@ namespace NuGetGallery
             {
                 var service = new TestableUserService();
 
-                ContractAssert.ThrowsArgNull(() => service.UpdateProfile(null, "test@example.com", emailAllowed: true), "user");
+                ContractAssert.ThrowsArgNull(() => service.UpdateProfile(null, emailAllowed: true), "user");
             }
         }
 
@@ -785,5 +870,27 @@ namespace NuGetGallery
                 MockConfig.Setup(c => c.ConfirmEmailAddresses).Returns(true);
             }
         }
+
+        public class TestableUserServiceWithDBFaking : UserService
+        {
+            public Mock<IAppConfiguration> MockConfig { get; protected set; }
+
+            public FakeEntitiesContext FakeEntitiesContext { get; set; }
+            
+            public IEnumerable<User> Users
+            {
+                set
+                {
+                    foreach (User u in value) FakeEntitiesContext.Set<User>().Add(u);
+                }
+            }
+            
+            public TestableUserServiceWithDBFaking()
+            {
+                Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
+                UserRepository = new EntityRepository<User>(FakeEntitiesContext = new FakeEntitiesContext());
+            }
+        }
     }
 }
+
