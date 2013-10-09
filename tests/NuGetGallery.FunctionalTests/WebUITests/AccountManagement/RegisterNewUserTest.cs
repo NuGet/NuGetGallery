@@ -20,7 +20,7 @@
 
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
-            WebTestRequest registerPageRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.RegisterPageUrl);
+            WebTestRequest registerPageRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.LogonPageUrl);
             yield return registerPageRequest;
             registerPageRequest = null;
 
@@ -34,8 +34,6 @@
             registerNewUserFormPost.FormPostParameters.Add(Constants.EmailAddressFormField, DateTime.Now.Ticks.ToString() + "@live.com"); //add a dummy mail account. This will be fixed once we incorporate the logic to delete user.
             registerNewUserFormPost.FormPostParameters.Add(Constants.UserNameFormField, DateTime.Now.Ticks.ToString() + "NewAccount");
             registerNewUserFormPost.FormPostParameters.Add(Constants.PasswordFormField, "xxxxxxxx");
-            registerNewUserFormPost.FormPostParameters.Add(Constants.ConfirmPasswordField, "xxxxxxxx");
-            registerNewUserFormPost.FormPostParameters.Add(Constants.AcceptTermsField, "true");
             registerPagePostRequest.Body = registerNewUserFormPost;
             //Validate the response to make sure that it has the pending confirmation text in it.           
             ValidationRuleFindText PendingConfirmationTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.RegisterNewUserPendingConfirmationText);
