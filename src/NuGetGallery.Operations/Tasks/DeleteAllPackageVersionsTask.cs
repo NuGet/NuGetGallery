@@ -41,6 +41,8 @@ namespace NuGetGallery.Operations
                 {
                     var task = new DeletePackageVersionTask {
                         ConnectionString = ConnectionString,
+                        ConfigFile = ConfigFile,
+                        EnvironmentName = EnvironmentName,
                         StorageAccount = StorageAccount,
                         PackageId = package.Id,
                         PackageVersion = package.Version,
