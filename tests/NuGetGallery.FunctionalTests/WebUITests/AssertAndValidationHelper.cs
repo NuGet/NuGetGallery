@@ -101,12 +101,11 @@ namespace NuGetGallery.FunctionalTests
                 accountName = EnvironmentSettings.TestAccountPassword;
             }
 
-            WebTestRequest logonPostRequest = new WebTestRequest(UrlHelper.SignInPageUrl);
+            WebTestRequest logonPostRequest = new WebTestRequest(UrlHelper.LogonPageUrl);
             logonPostRequest.Method = "POST";
             logonPostRequest.ExpectedResponseUrl = UrlHelper.BaseUrl;
             FormPostHttpBody logonRequestFormPostBody = new FormPostHttpBody();
             logonRequestFormPostBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
-            logonRequestFormPostBody.FormPostParameters.Add("ReturnUrl", "/");
             logonRequestFormPostBody.FormPostParameters.Add(Constants.UserNameOrEmailFormField, EnvironmentSettings.TestAccountName);
             logonRequestFormPostBody.FormPostParameters.Add(Constants.PasswordFormField, EnvironmentSettings.TestAccountPassword);
             logonPostRequest.Body = logonRequestFormPostBody;
@@ -142,18 +141,8 @@ namespace NuGetGallery.FunctionalTests
             verifyUploadPostRequest.ExpectedResponseUrl = UrlHelper.GetPackagePageUrl(packageId) + "/" + packageVersion;
             FormPostHttpBody verifyUploadPostRequestBody = new FormPostHttpBody();
             verifyUploadPostRequestBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
-            verifyUploadPostRequestBody.FormPostParameters.Add("Id", packageId);
-            verifyUploadPostRequestBody.FormPostParameters.Add("Version", packageVersion);
-            verifyUploadPostRequestBody.FormPostParameters.Add("LicenseUrl", "");
-            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.VersionTitle", "");
-            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.Description", "Package description");
-            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.Summary", "");
-            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.IconUrl", "");
-            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.ProjectUrl", "");
-            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.Authors", "bhuvak");
-            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.CopyrightText", "Copyright 2013");
-            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.Tags", " windows8 ");
-            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.ReleaseNotes", "");
+            verifyUploadPostRequestBody.FormPostParameters.Add("Listed", "true");
+            verifyUploadPostRequestBody.FormPostParameters.Add("Listed", test.Context["$HIDDEN1.Listed"].ToString());
             verifyUploadPostRequest.Body = verifyUploadPostRequestBody;
             return verifyUploadPostRequest;
         }

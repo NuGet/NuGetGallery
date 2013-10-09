@@ -21,7 +21,7 @@ namespace NuGetGallery.FunctionalTests
         }
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
-            WebTestRequest registerPageRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.LogonPageUrl);
+            WebTestRequest registerPageRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.RegisterPageUrl);
             yield return registerPageRequest;
             registerPageRequest = null;
 
