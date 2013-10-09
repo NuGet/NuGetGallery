@@ -63,6 +63,14 @@ namespace NuGetGallery
         private static readonly Uri HttpRequestUrl = new Uri("http://nuget.org/api/v2/something");
         private static readonly Uri HttpsRequestUrl = new Uri("https://nuget.org/api/v2/something");
 
+        private static void AssertStatusCodeResult(ActionResult result, int statusCode, string statusDesc)
+        {
+            Assert.IsType<HttpStatusCodeWithBodyResult>(result);
+            var httpStatus = (HttpStatusCodeWithBodyResult)result;
+            Assert.Equal(statusCode, httpStatus.StatusCode);
+            Assert.Equal(statusDesc, httpStatus.StatusDescription);
+        }
+
         public class TheCreatePackageAction
         {
             [Fact]
@@ -135,89 +143,10 @@ namespace NuGetGallery
                 var result = await controller.CreatePackagePut(Guid.NewGuid().ToString());
 
                 // Assert
-                ResultAssert.IsStatusCode(
+                ResultAssert.IsStatusCodeWithBody(
                     result,
                     HttpStatusCode.Conflict,
                     String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "1.0.42"));
-            }
-
-            [Fact]
-            public async Task WillFindUserUsingFindByApiKey()
-            {
-                var nuGetPackage = new Mock<INupkg>();
-                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
-
-                var user = new User();
-                var apiKey = Guid.NewGuid();
-
-                var controller = new TestableApiController();
-                controller.MockUserService.Setup(x => x.FindByApiKey(apiKey)).Returns(user);
-                controller.SetupPackageFromInputStream(nuGetPackage);
-
-                ResultAssert.IsStatusCode(
-                    await controller.CreatePackagePut(apiKey.ToString()),
-                    HttpStatusCode.Created);
-
-                controller.MockPackageService.Verify(p =>
-                    p.CreatePackage(nuGetPackage.Object, user, true));
-            }
-
-            [Fact]
-            public async Task WillFindUserUsingAuthenticateCredential()
-            {
-                var nuGetPackage = new Mock<INupkg>();
-                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
-
-                var user = new User();
-                var apiKey = Guid.NewGuid();
-
-                var controller = new TestableApiController();
-                controller.MockUserService.Setup(
-                    x => x.AuthenticateCredential(
-                        CredentialTypes.ApiKeyV1,
-                        apiKey.ToString().ToLowerInvariant()))
-                    .Returns(new Credential() { User = user });
-                controller.SetupPackageFromInputStream(nuGetPackage);
-
-                ResultAssert.IsStatusCode(
-                    await controller.CreatePackagePut(apiKey.ToString().ToUpperInvariant()), 
-                    HttpStatusCode.Created);
-
-                controller.MockPackageService.Verify(p =>
-                    p.CreatePackage(nuGetPackage.Object, user, true));
-            }
-
-            [Fact]
-            public async Task WillUseUserFoundByAuthenticateCredentialOverFindByApiKey()
-            {
-                var nuGetPackage = new Mock<INupkg>();
-                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
-
-                var correctUser = new User();
-                var incorrectUser = new User();
-                var apiKey = Guid.NewGuid();
-
-                var controller = new TestableApiController();
-                controller.MockUserService
-                    .Setup(x => x.AuthenticateCredential(
-                        CredentialTypes.ApiKeyV1,
-                        apiKey.ToString().ToLowerInvariant()))
-                    .Returns(new Credential() { User = correctUser });
-                controller.MockUserService
-                    .Setup(x => x.FindByApiKey(apiKey))
-                    .Returns(incorrectUser);
-
-                controller.SetupPackageFromInputStream(nuGetPackage);
-
-                ResultAssert.IsStatusCode(
-                    await controller.CreatePackagePut(apiKey.ToString().ToUpperInvariant()),
-                    HttpStatusCode.Created);
-
-                controller.MockPackageService.Verify(p =>
-                    p.CreatePackage(nuGetPackage.Object, correctUser, true));
             }
 
             [Fact]
@@ -300,37 +229,36 @@ namespace NuGetGallery
         public class TheDeletePackageAction
         {
             [Fact]
-            public void WillThrowIfTheApiKeyDoesNotExist()
+            public void WillThrowIfAPackageWithTheIdAndSemanticVersionDoesNotExist()
             {
                 var controller = new TestableApiController();
-                controller.MockPackageService
-                    .Setup(p => p.FindPackageByIdAndVersion("theId", "1.0.42", true))
-                    .Returns(new Package());
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns((Package)null);
+                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
 
                 var result = controller.DeletePackage(Guid.NewGuid().ToString(), "theId", "1.0.42");
 
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
                 var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
-                Assert.Equal(403, statusCodeResult.StatusCode);
-                Assert.Equal(String.Format(Strings.ApiKeyNotAuthorized, "delete"), statusCodeResult.StatusDescription);
-                controller.MockPackageService.Verify(x => x.MarkPackageUnlisted(It.IsAny<Package>(), true), Times.Never());
+                Assert.Equal(404, statusCodeResult.StatusCode);
+                Assert.Equal(String.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), statusCodeResult.StatusDescription);
             }
 
             [Fact]
-            public void WillThrowIfAPackageWithTheIdAndSemanticVersionDoesNotExist()
+            public void WillFindTheUserThatMatchesTheApiKey()
             {
+                var owner = new User { Key = 1, ApiKey = Guid.NewGuid() };
+                var package = new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                    };
+
                 var controller = new TestableApiController();
-                var apiKey = Guid.NewGuid();
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("theId", "1.0.42", true)).Returns((Package)null);
-                controller.MockUserService.Setup(x => x.FindByApiKey(apiKey)).Returns(new User());
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
+                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
 
-                var result = controller.DeletePackage(apiKey.ToString(), "theId", "1.0.42");
+                controller.DeletePackage(owner.ApiKey.ToString(), "theId", "1.0.42");
 
-                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
-                var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
-                Assert.Equal(404, statusCodeResult.StatusCode);
-                Assert.Equal(String.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), statusCodeResult.StatusDescription);
-                controller.MockPackageService.Verify(x => x.MarkPackageUnlisted(It.IsAny<Package>(), true), Times.Never());
+                controller.MockUserService.Verify(x => x.FindByApiKey(owner.ApiKey));
             }
 
             [Fact]
@@ -343,115 +271,36 @@ namespace NuGetGallery
                     };
                 var apiKey = Guid.NewGuid();
                 var controller = new TestableApiController();
-                controller.MockUserService.Setup(x => x.FindByApiKey(apiKey)).Returns(owner);
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("theId", "1.0.42", true)).Returns(package);
-                
+                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
+                controller.MockPackageService
+                    .Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>(), true))
+                    .Throws(new InvalidOperationException("Should not have unlisted the package!"));
+
                 var result = controller.DeletePackage(apiKey.ToString(), "theId", "1.0.42");
 
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
                 var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
-                Assert.Equal(String.Format(Strings.ApiKeyNotAuthorized, "delete"), statusCodeResult.StatusDescription);
-                
-                controller.MockPackageService.Verify(x => x.MarkPackageUnlisted(package, true), Times.Never());
+                Assert.Equal(Strings.ApiKeyNotAuthorized, statusCodeResult.StatusDescription);
             }
 
             [Fact]
-            public void WillUnlistThePackageIfApiKeyBelongsToAnOwnerUsingFindByApiKey()
+            public void WillUnlistThePackageIfApiKeyBelongsToAnOwner()
             {
-                var apiKey = Guid.NewGuid();
-                var owner = new User { Key = 1, ApiKey = apiKey };
+                var owner = new User { Key = 1 };
                 var package = new Package
                     {
                         PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
                     };
                 var controller = new TestableApiController();
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
-                controller.MockUserService.Setup(x => x.FindByApiKey(apiKey)).Returns(owner);
+                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
+                var apiKey = Guid.NewGuid();
 
-                ResultAssert.IsEmpty(controller.DeletePackage(apiKey.ToString(), "theId", "1.0.42"));
+                controller.DeletePackage(apiKey.ToString(), "theId", "1.0.42");
 
                 controller.MockPackageService.Verify(x => x.MarkPackageUnlisted(package, true));
                 controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
-            }
-
-            [Fact]
-            public void WillUnlistThePackageIfApiKeyBelongsToAnOwnerUsingAuthenticateCredential()
-            {
-                var apiKey = Guid.NewGuid();
-                var owner = new Credential() { User = new User { Key = 1 } };
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner.User } }
-                };
-                var controller = new TestableApiController();
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
-                controller.MockUserService
-                    .Setup(x => x.AuthenticateCredential(
-                        CredentialTypes.ApiKeyV1, 
-                        apiKey.ToString().ToLowerInvariant()))
-                    .Returns(owner);
-
-                ResultAssert.IsEmpty(controller.DeletePackage(apiKey.ToString(), "theId", "1.0.42"));
-
-                controller.MockPackageService.Verify(x => x.MarkPackageUnlisted(package, true));
-                controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
-            }
-
-            [Fact]
-            public void WillUseUserFromAuthenticateCredentialOverFindByApiKey()
-            {
-                var apiKey = Guid.NewGuid();
-                var owner = new Credential() { User = new User { Key = 1 } };
-                var nonOwner = new User() { ApiKey = apiKey };
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner.User } }
-                };
-                var controller = new TestableApiController();
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
-                controller.MockUserService.Setup(x => x.FindByApiKey(apiKey)).Returns(nonOwner);
-                controller.MockUserService
-                    .Setup(x => x.AuthenticateCredential(
-                        CredentialTypes.ApiKeyV1,
-                        apiKey.ToString().ToLowerInvariant()))
-                    .Returns(owner);
-
-                ResultAssert.IsEmpty(controller.DeletePackage(apiKey.ToString(), "theId", "1.0.42"));
-
-                controller.MockPackageService.Verify(x => x.MarkPackageUnlisted(package, true));
-                controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
-            }
-
-            [Fact]
-            public void WillFailIfUserFromAuthenticateCredentialIsNotOwner()
-            {
-                // Arrange
-                var apiKey = Guid.NewGuid();
-                var nonOwner = new Credential() { User = new User { Key = 1 } };
-                var owner = new User() { ApiKey = apiKey };
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
-                };
-                var controller = new TestableApiController();
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
-                controller.MockUserService.Setup(x => x.FindByApiKey(apiKey)).Returns(owner);
-                controller.MockUserService
-                    .Setup(x => x.AuthenticateCredential(
-                        CredentialTypes.ApiKeyV1,
-                        apiKey.ToString().ToLowerInvariant()))
-                    .Returns(nonOwner);
-
-                // Act
-                var result = controller.DeletePackage(apiKey.ToString(), "theId", "1.0.42");
-
-                // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.Forbidden,
-                    String.Format(Strings.ApiKeyNotAuthorized, "delete"));
-
-                controller.MockPackageService.Verify(x => x.MarkPackageUnlisted(package, true), Times.Never());
             }
         }
 
@@ -621,7 +470,7 @@ namespace NuGetGallery
                 var actionResult = new EmptyResult();
                 var controller = new TestableApiController(MockBehavior.Strict);
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("Baz", "", false)).Throws(new DataException("Oh noes, database broked!"));
-
+                
                 controller.MockUserService.Setup(x => x.FindByApiKey(guid)).Returns(new User());
 
                 NameValueCollection headers = new NameValueCollection();
@@ -642,32 +491,10 @@ namespace NuGetGallery
                 var result = await controller.GetPackage("Baz", "");
 
                 // Assert
-                ResultAssert.IsStatusCode(result, HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
+                ResultAssert.IsStatusCodeWithBody(result, HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
                 controller.MockPackageFileService.Verify();
                 controller.MockPackageService.Verify();
                 controller.MockUserService.Verify();
-            }
-
-            [Fact]
-            public void WillThrowIfTheApiKeyDoesNotExist()
-            {
-                // Arrange
-                var controller = new TestableApiController();
-                var apiKey = Guid.NewGuid();
-                controller.MockUserService.Setup(x => x.FindByApiKey(apiKey)).ReturnsNull();
-                controller.MockPackageService
-                    .Setup(p => p.FindPackageByIdAndVersion("theId", "1.0.42", true))
-                    .Returns(new Package());
-
-                // Act
-                var result = controller.PublishPackage(apiKey.ToString(), "theId", "1.0.42");
-
-                // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.Forbidden,
-                    String.Format(Strings.ApiKeyNotAuthorized, "publish"));
-                controller.MockPackageService.Verify(x => x.MarkPackageListed(It.IsAny<Package>(), It.IsAny<bool>()), Times.Never());
             }
         }
 
@@ -677,27 +504,40 @@ namespace NuGetGallery
             [Fact]
             public void WillThrowIfAPackageWithTheIdAndSemanticVersionDoesNotExist()
             {
-                // Arrange
                 var controller = new TestableApiController();
-                var apiKey = Guid.NewGuid();
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("theId", "1.0.42", true)).Returns((Package)null);
-                controller.MockUserService.Setup(x => x.FindByApiKey(apiKey)).Returns(new User());
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns((Package)null);
+                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
                 
-                // Act
-                var result = controller.PublishPackage(apiKey.ToString(), "theId", "1.0.42");
+                var result = controller.PublishPackage(Guid.NewGuid().ToString(), "theId", "1.0.42");
 
-                // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.NotFound,
-                    String.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"));
-                controller.MockPackageService.Verify(x => x.MarkPackageListed(It.IsAny<Package>(), It.IsAny<bool>()), Times.Never());
+                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
+                var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
+                Assert.Equal(404, statusCodeResult.StatusCode);
+                Assert.Equal(String.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), statusCodeResult.StatusDescription);
+            }
+
+            [Fact]
+            public void WillFindTheUserThatMatchesTheApiKey()
+            {
+                var owner = new User { Key = 1 };
+                var package = new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                    };
+                var apiKey = Guid.NewGuid();
+
+                var controller = new TestableApiController();
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
+                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
+
+                controller.PublishPackage(apiKey.ToString(), "theId", "1.0.42");
+
+                controller.MockUserService.Verify(x => x.FindByApiKey(apiKey));
             }
 
             [Fact]
             public void WillNotListThePackageIfApiKeyDoesNotBelongToAnOwner()
             {
-                // Arrange
                 var owner = new User { Key = 1 };
                 var package = new Package
                     {
@@ -706,173 +546,57 @@ namespace NuGetGallery
                 var apiKey = Guid.NewGuid();
 
                 var controller = new TestableApiController();
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("theId", "1.0.42", true)).Returns(package);
-                controller.MockUserService.Setup(x => x.FindByApiKey(apiKey)).Returns(owner);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
+                controller.MockPackageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>(), It.IsAny<bool>()))
+                    .Throws(new InvalidOperationException("Should not have listed the package!"));
+                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
 
-                // Act
                 var result = controller.PublishPackage(apiKey.ToString(), "theId", "1.0.42");
 
-                // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.Forbidden,
-                    String.Format(Strings.ApiKeyNotAuthorized, "publish"));
-
-                controller.MockPackageService.Verify(x => x.MarkPackageListed(package, It.IsAny<bool>()), Times.Never());
+                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
+                var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
+                Assert.Equal(Strings.ApiKeyNotAuthorized, statusCodeResult.StatusDescription);
             }
 
             [Fact]
-            public void WillListThePackageIfApiKeyBelongsToAnOwnerUsingFindByApiKey()
+            public void WillListThePackageIfApiKeyBelongsToAnOwner()
             {
-                // Arrange
-                var apiKey = Guid.NewGuid();
-                var owner = new User { Key = 1, ApiKey = apiKey };
+                var owner = new User { Key = 1 };
                 var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
-                };
+                    {
+                        PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                    };
+                var apiKey = Guid.NewGuid();
 
                 var controller = new TestableApiController();
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
-                controller.MockUserService.Setup(x => x.FindByApiKey(apiKey)).Returns(owner);
+                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
 
-                // Act
-                var result = controller.PublishPackage(apiKey.ToString(), "theId", "1.0.42");
+                controller.PublishPackage(apiKey.ToString(), "theId", "1.0.42");
 
-                // Assert
-                ResultAssert.IsEmpty(result);
                 controller.MockPackageService.Verify(x => x.MarkPackageListed(package, It.IsAny<bool>()));
                 controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
-            }
-
-            [Fact]
-            public void WillListThePackageIfApiKeyBelongsToAnOwnerUsingAuthorizeCredential()
-            {
-                // Arrange
-
-                var apiKey = Guid.NewGuid();
-                var owner = new Credential { User = new User { Key = 1 } };
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner.User } }
-                };
-
-                var controller = new TestableApiController();
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
-                controller.MockUserService
-                    .Setup(x => x.AuthenticateCredential(
-                        CredentialTypes.ApiKeyV1,
-                        apiKey.ToString().ToLowerInvariant()))
-                    .Returns(owner);
-
-                // Act
-                var result = controller.PublishPackage(apiKey.ToString(), "theId", "1.0.42");
-
-                // Assert
-                ResultAssert.IsEmpty(result);
-                controller.MockPackageService.Verify(x => x.MarkPackageListed(package, It.IsAny<bool>()));
-                controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
-            }
-
-            [Fact]
-            public void WillFailIfUserFromAuthenticateCredentialIsNotOwner()
-            {
-                // Arrange
-                var apiKey = Guid.NewGuid();
-                var nonOwner = new Credential { User = new User { Key = 1 } };
-                var owner = new User();
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
-                };
-
-                var controller = new TestableApiController();
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
-                controller.MockUserService.Setup(x => x.FindByApiKey(apiKey)).Returns(owner);
-                controller.MockUserService
-                    .Setup(x => x.AuthenticateCredential(
-                        CredentialTypes.ApiKeyV1,
-                        apiKey.ToString().ToLowerInvariant()))
-                    .Returns(nonOwner);
-
-                // Act
-                var result = controller.PublishPackage(apiKey.ToString(), "theId", "1.0.42");
-
-                // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.Forbidden,
-                    String.Format(Strings.ApiKeyNotAuthorized, "publish"));
-
-                controller.MockPackageService.Verify(x => x.MarkPackageListed(package, It.IsAny<bool>()), Times.Never());
             }
         }
 
         public class TheVerifyPackageKeyAction : TestContainer
         {
             [Fact]
-            public void VerifyPackageKeyReturns403IfUserDoesNotExistByFindByApiKeyOrAuthorizeCredential()
+            public void VerifyPackageKeyReturnsEmptyResultIfApiKeyExistsAndIdAndVersionAreEmpty()
             {
                 // Arrange
                 var guid = Guid.NewGuid();
-                var controller = new TestableApiController();
-                controller.MockUserService.Setup(s => s.FindByApiKey(guid)).Returns<User>(null);
-                controller.MockUserService
-                    .Setup(s => s.AuthenticateCredential(
-                        CredentialTypes.ApiKeyV1,
-                        guid.ToString().ToLowerInvariant()))
-                    .ReturnsNull();
-                controller.MockPackageService
-                    .Setup(p => p.FindPackageByIdAndVersion("foo", "1.0.0", true))
-                    .Returns(new Package());
-
-                // Act
-                var result = controller.VerifyPackageKey(guid.ToString(), "foo", "1.0.0");
-
-                // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.Forbidden, 
-                    "The specified API key does not provide the authority to push packages.");
-            }
-
-            [Fact]
-            public void VerifyPackageKeyReturnsEmptyResultIfApiKeyExistsInUserRecordAndIdAndVersionAreEmpty()
-            {
-                // Arrange
-                var guid = Guid.NewGuid();
-                var controller = new TestableApiController();
-                controller.MockUserService.Setup(s => s.FindByApiKey(guid)).Returns(new User());
-                controller.MockUserService
-                    .Setup(s => s.AuthenticateCredential(
-                        CredentialTypes.ApiKeyV1,
-                        guid.ToString().ToLowerInvariant()))
-                    .ReturnsNull();
+                var controller = GetController<ApiController>();
+                var user = new User { EmailAddress = "confirmed@email.com" };
+                GetMock<IUserService>()
+                    .Setup(s => s.FindByApiKey(guid))
+                    .Returns(user);
 
                 // Act
                 var result = controller.VerifyPackageKey(guid.ToString(), null, null);
 
                 // Assert
-                ResultAssert.IsEmpty(result);
-            }
-
-            [Fact]
-            public void VerifyPackageKeyReturnsEmptyResultIfApiKeyExistsInCredentialsAndIdAndVersionAreEmpty()
-            {
-                // Arrange
-                var guid = Guid.NewGuid();
-                var controller = new TestableApiController();
-                controller.MockUserService
-                    .Setup(s => s.AuthenticateCredential(
-                        CredentialTypes.ApiKeyV1,
-                        guid.ToString().ToLowerInvariant()))
-                    .Returns(new Credential() { User = new User() });
-
-                // Act
-                var result = controller.VerifyPackageKey(guid.ToString(), null, null);
-
-                // Assert
-                ResultAssert.IsEmpty(result);
+                Assert.IsType<EmptyResult>(result);
             }
 
             [Fact]
@@ -887,47 +611,34 @@ namespace NuGetGallery
                     .Returns(user);
                 GetMock<IPackageService>()
                     .Setup(s => s.FindPackageByIdAndVersion("foo", "1.0.0", true))
-                    .ReturnsNull();
+                    .Returns<Package>(null);
 
                 // Act
                 var result = controller.VerifyPackageKey(guid.ToString(), "foo", "1.0.0");
-                
+
                 // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.NotFound,
-                    "A package with id 'foo' and version '1.0.0' does not exist.");
+                AssertStatusCodeResult(result, 404, "A package with id 'foo' and version '1.0.0' does not exist.");
             }
 
             [Fact]
-            public void VerifyPackageKeyReturns403IfUserInCredentialsTableIsNotAnOwner()
+            public void VerifyPackageKeyReturns403IfUserIsNotAnOwner()
             {
                 // Arrange
                 var guid = Guid.NewGuid();
                 var controller = new TestableApiController();
-                var owner = new User();
-                var nonOwner = new User();
-                controller.MockUserService.Setup(s => s.FindByApiKey(guid)).Returns(owner);
-                controller.MockUserService
-                    .Setup(s => s.AuthenticateCredential(
-                        CredentialTypes.ApiKeyV1,
-                        guid.ToString().ToLowerInvariant()))
-                    .Returns(new Credential() { User = nonOwner });
+                var user = new User { EmailAddress = "confirmed@email.com" };
+                controller.MockUserService.Setup(s => s.FindByApiKey(guid)).Returns(user);
                 controller.MockPackageService.Setup(s => s.FindPackageByIdAndVersion("foo", "1.0.0", true)).Returns(
                     new Package { PackageRegistration = new PackageRegistration() });
 
                 // Act
                 var result = controller.VerifyPackageKey(guid.ToString(), "foo", "1.0.0");
 
-                // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.Forbidden, 
-                    "The specified API key does not provide the authority to push packages.");
+                ResultAssert.IsStatusCode(result, 403, "The specified API key does not provide the authority to push packages.");
             }
 
             [Fact]
-            public void VerifyPackageKeyReturns200IfUserHasNoCredentialRecordButIsAnOwner()
+            public void VerifyPackageKeyReturns200IfUserIsAnOwner()
             {
                 // Arrange
                 var guid = Guid.NewGuid();
@@ -935,50 +646,16 @@ namespace NuGetGallery
                 var package = new Package { PackageRegistration = new PackageRegistration() };
                 package.PackageRegistration.Owners.Add(user);
                 var controller = new TestableApiController();
-                controller.MockUserService
-                    .Setup(s => s.AuthenticateCredential(
-                        CredentialTypes.ApiKeyV1,
-                        guid.ToString().ToLowerInvariant()))
-                    .ReturnsNull();
                 controller.MockUserService.Setup(s => s.FindByApiKey(guid)).Returns(user);
                 controller.MockPackageService.Setup(s => s.FindPackageByIdAndVersion("foo", "1.0.0", true)).Returns(package);
 
                 // Act
                 var result = controller.VerifyPackageKey(guid.ToString(), "foo", "1.0.0");
-
-                // Assert
-                ResultAssert.IsEmpty(result);
+                ResultAssert.IsStatusCode(result, 200);
             }
 
             [Fact]
-            public void VerifyPackageKeyReturns200IfUserHasCredentialRecordAndIsAnOwner()
-            {
-                // Arrange
-                var guid = Guid.NewGuid();
-                var user = new User();
-                var package = new Package { PackageRegistration = new PackageRegistration() };
-                package.PackageRegistration.Owners.Add(user);
-                var controller = new TestableApiController();
-                controller.MockUserService
-                    .Setup(s => s.AuthenticateCredential(
-                        CredentialTypes.ApiKeyV1,
-                        guid.ToString().ToLowerInvariant()))
-                    .Returns(new Credential() { User = user });
-                controller.MockUserService.Setup(s => s.FindByApiKey(guid)).ReturnsNull();
-                controller.MockPackageService.Setup(s => s.FindPackageByIdAndVersion("foo", "1.0.0", true)).Returns(package);
-
-                // Act
-                var result = controller.VerifyPackageKey(guid.ToString(), "foo", "1.0.0");
-
-                // Assert
-                ResultAssert.IsEmpty(result);
-            }
-        }
-
-        public class TheGetStatsDownloadsAction
-        {
-            [Fact]
-            public async Task VerifyRecentPopularityStatsDownloads()
+            public async void VerifyRecentPopularityStatsDownloads()
             {
                 JArray report = new JArray
                 {
@@ -1025,7 +702,7 @@ namespace NuGetGallery
                 var fakeReportService = new Mock<IReportService>();
 
                 fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, DateTime.UtcNow)));
-
+                
                 var controller = new TestableApiController
                 {
                     StatisticsService = new JsonStatisticsService(fakeReportService.Object),
@@ -1045,7 +722,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task VerifyStatsDownloadsReturnsNotFoundWhenStatsNotAvailable()
+            public async void VerifyStatsDownloadsReturnsNotFoundWhenStatsNotAvailable()
             {
                 var controller = new TestableApiController();
                 controller.MockStatisticsService.Setup(x => x.LoadDownloadPackageVersions()).Returns(Task.FromResult(StatisticsReportResult.Failed));
@@ -1060,7 +737,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task VerifyRecentPopularityStatsDownloadsCount()
+            public async void VerifyRecentPopularityStatsDownloadsCount()
             {
                 JArray report = new JArray
                 {

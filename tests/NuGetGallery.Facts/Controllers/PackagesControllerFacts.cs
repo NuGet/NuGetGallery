@@ -16,7 +16,6 @@ using NuGetGallery.Helpers;
 using Xunit;
 using Xunit.Extensions;
 using System.Collections.Generic;
-using NuGetGallery.Framework;
 
 namespace NuGetGallery
 {
@@ -83,13 +82,17 @@ namespace NuGetGallery
                 config.Object,
                 indexingService.Object,
                 cacheService.Object,
-                editPackageService.Object,
-                fakeUser);
+                editPackageService.Object);
             controller.CallBase = true;
 
             if (httpContext != null)
             {
                 TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller.Object);
+            }
+
+            if (fakeUser != null)
+            {
+                controller.Setup(x => x.GetUser()).Returns(fakeUser);
             }
 
             if (readPackageException != null)
@@ -493,42 +496,6 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void HtmlEncodesMessageContent()
-            {
-                var messageService = new Mock<IMessageService>();
-                string sentMessage = null;
-                messageService.Setup(
-                    s => s.SendContactOwnersMessage(
-                        It.IsAny<MailAddress>(),
-                        It.IsAny<PackageRegistration>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>()))
-                    .Callback<MailAddress, PackageRegistration, string, string>((_, __, msg, ___) => sentMessage = msg);
-                var package = new PackageRegistration { Id = "factory" };
-
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageRegistrationById("factory")).Returns(package);
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.User.Identity.Name).Returns("Montgomery");
-                var userService = new Mock<IUserService>();
-                userService.Setup(u => u.FindByUsername("Montgomery")).Returns(
-                    new User { EmailAddress = "montgomery@burns.example.com", Username = "Montgomery" });
-                var controller = CreateController(
-                    packageService: packageService,
-                    messageService: messageService,
-                    userService: userService,
-                    httpContext: httpContext);
-                var model = new ContactOwnersViewModel
-                {
-                    Message = "I like the cut of your jib. It's <b>bold</b>.",
-                };
-
-                var result = controller.ContactOwners("factory", model) as RedirectToRouteResult;
-
-                Assert.Equal("I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;.", sentMessage);
-            }
-
-            [Fact]
             public void CallsSendContactOwnersMessageWithUserInfo()
             {
                 var messageService = new Mock<IMessageService>();
@@ -551,8 +518,7 @@ namespace NuGetGallery
                     packageService: packageService,
                     messageService: messageService,
                     userService: userService,
-                    httpContext: httpContext,
-                    fakeUser: Fakes.User.ToPrincipal());
+                    httpContext: httpContext);
                 var model = new ContactOwnersViewModel
                     {
                         Message = "I like the cut of your jib",
@@ -768,46 +734,6 @@ namespace NuGetGallery
                 Assert.IsType<RedirectToRouteResult>(result);
                 Assert.Equal("ReportMyPackage", ((RedirectToRouteResult)result).RouteValues["Action"]);
             }
-
-            [Fact]
-            public void HtmlEncodesMessageContent()
-            {
-                var messageService = new Mock<IMessageService>();
-                messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "mordor" },
-                    Version = "2.0.1"
-                };
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersion("mordor", "2.0.1", true)).Returns(package);
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(false);
-                var controller = CreateController(
-                    packageService: packageService,
-                    messageService: messageService,
-                    httpContext: httpContext);
-                var model = new ReportAbuseViewModel
-                {
-                    Email = "frodo@hobbiton.example.com",
-                    Message = "I like the cut of your jib. It's <b>bold</b>.",
-                    Reason = ReportPackageReason.IsFraudulent,
-                    AlreadyContactedOwner = true,
-                };
-
-                TestUtility.SetupUrlHelper(controller, httpContext);
-                controller.ReportAbuse("mordor", "2.0.1", model);
-
-                messageService.Verify(
-                    s => s.ReportAbuse(
-                        It.Is<ReportPackageRequest>(
-                            r => r.FromAddress.Address == "frodo@hobbiton.example.com"
-                                 && r.Package == package
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)
-                                 && r.Message == "I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;."
-                                 && r.AlreadyContactedOwners)));
-            }
         }
 
         public class TheReportMyPackageMethod
@@ -836,51 +762,6 @@ namespace NuGetGallery
                 ActionResult result = controller.ReportMyPackage("Mordor", "2.0.1");
                 Assert.IsType<RedirectToRouteResult>(result);
                 Assert.Equal("ReportAbuse", ((RedirectToRouteResult)result).RouteValues["Action"]);
-            }
-
-            [Fact]
-            public void HtmlEncodesMessageContent()
-            {
-                var user = new User { Username = "Sauron", Key = 1, EmailAddress = "sauron@mordor.example.com" };
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "mordor", Owners = { user } },
-                    Version = "2.0.1"
-                };
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersion("mordor", "2.0.1", true)).Returns(package);
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
-                httpContext.Setup(h => h.User.Identity.Name).Returns("Sauron");
-                var userService = new Mock<IUserService>();
-                userService.Setup(u => u.FindByUsername(user.Username)).Returns(user);
-
-                ReportPackageRequest reportRequest = null;
-                var messageService = new Mock<IMessageService>();
-                messageService
-                    .Setup(s => s.ReportMyPackage(It.IsAny<ReportPackageRequest>()))
-                    .Callback<ReportPackageRequest>(r => reportRequest = r);
-                var controller = CreateController(
-                    packageService: packageService,
-                    messageService: messageService,
-                    userService: userService,
-                    httpContext: httpContext);
-                var model = new ReportAbuseViewModel
-                {
-                    Email = "frodo@hobbiton.example.com",
-                    Message = "I like the cut of your jib. It's <b>bold</b>.",
-                    Reason = ReportPackageReason.IsFraudulent,
-                    AlreadyContactedOwner = true,
-                };
-
-                TestUtility.SetupUrlHelper(controller, httpContext);
-                controller.ReportMyPackage("mordor", "2.0.1", model);
-
-                Assert.NotNull(reportRequest);
-                Assert.Equal(user.EmailAddress, reportRequest.FromAddress.Address);
-                Assert.Same(package, reportRequest.Package);
-                Assert.Equal(EnumHelper.GetDescription(ReportPackageReason.IsFraudulent), reportRequest.Reason);
-                Assert.Equal("I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;.", reportRequest.Message);
             }
         }
 
@@ -1358,7 +1239,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal);
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://uploadpackage.xyz"));
-                var result = await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null }) as RedirectResult;
+                var result = await controller.VerifyPackage((bool?)null) as RedirectResult;
 
                 Assert.NotNull(result);
             }
@@ -1385,7 +1266,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null });
+                await controller.VerifyPackage((bool?)null);
 
                 fakePackageService.Verify(x => x.CreatePackage(fakeNuGetPackage.Object, fakeCurrentUser, false));
                 fakeFileStream.Dispose();
@@ -1418,7 +1299,7 @@ namespace NuGetGallery
                     packageFileService: fakePackageFileService);
 
                 // Act
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null });
+                await controller.VerifyPackage((bool?)null);
 
                 // Assert
                 fakePackageService.Verify(x => x.CreatePackage(fakeNuGetPackage.Object, fakeCurrentUser, false));
@@ -1457,7 +1338,7 @@ namespace NuGetGallery
                     indexingService: fakeIndexingService);
 
                 // Act
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null });
+                await controller.VerifyPackage((bool?)null);
 
                 // Assert
                 fakeIndexingService.Verify();
@@ -1492,7 +1373,7 @@ namespace NuGetGallery
                     entitiesContext: entitiesContext);
 
                 // Act
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null });
+                await controller.VerifyPackage((bool?)null);
 
                 // Assert
                 entitiesContext.Verify();
@@ -1525,7 +1406,7 @@ namespace NuGetGallery
                     fakeNuGetPackage: fakeNuGetPackage);
 
                 // Act
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
+                await controller.VerifyPackage(listed: false);
 
                 // There's no assert. If the method completes, it means the test pass because we set MockBehavior to Strict
                 // for the fakePackageService. We verified that it only calls methods passing commitSettings = false.
@@ -1554,7 +1435,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null });
+                await controller.VerifyPackage((bool?)null);
 
                 fakePackageService.Verify(x => x.PublishPackage(fakePackage, false), Times.Once());
                 fakeFileStream.Dispose();
@@ -1581,7 +1462,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
+                await controller.VerifyPackage(false);
 
                 fakePackageService.Verify(
                     x => x.MarkPackageUnlisted(It.Is<Package>(p => p.PackageRegistration.Id == "theId" && p.Version == "theVersion"), It.IsAny<bool>()));
@@ -1611,7 +1492,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = listed.GetValueOrDefault(true), Edit = null });
+                await controller.VerifyPackage(listed);
 
                 fakePackageService.Verify(x => x.MarkPackageUnlisted(It.IsAny<Package>(), It.IsAny<bool>()), Times.Never());
                 fakeFileStream.Dispose();
@@ -1638,7 +1519,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
+                await controller.VerifyPackage(false);
 
                 fakeUploadFileService.Verify();
                 fakeFileStream.Dispose();
@@ -1666,7 +1547,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
+                await controller.VerifyPackage(false);
 
                 Assert.Equal(String.Format(Strings.SuccessfullyUploadedPackage, "theId", "theVersion"), controller.TempData["Message"]);
                 fakeFileStream.Dispose();
@@ -1693,7 +1574,7 @@ namespace NuGetGallery
                     fakeUser: TestUtility.FakePrincipal,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                var result = await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null }) as RedirectToRouteResult;
+                var result = await controller.VerifyPackage(false) as RedirectToRouteResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(RouteName.DisplayPackage, result.RouteName);
@@ -1723,7 +1604,7 @@ namespace NuGetGallery
                     fakeNuGetPackage: fakeNuGetPackage,
                     autoCuratePackageCmd: fakeAutoCuratePackageCmd);
 
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
+                await controller.VerifyPackage(false);
 
                 fakeAutoCuratePackageCmd.Verify(fake => fake.Execute(fakePackage, fakeNuGetPackage.Object, false));
             }
@@ -1756,7 +1637,7 @@ namespace NuGetGallery
                     downloaderService: nugetExeDownloader);
 
                 // Act
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
+                await controller.VerifyPackage(false);
 
                 // Assert
                 nugetExeDownloader.Verify();
@@ -1794,7 +1675,7 @@ namespace NuGetGallery
                     downloaderService: nugetExeDownloader);
 
                 // Act
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
+                await controller.VerifyPackage(false);
 
                 // Assert
                 nugetExeDownloader.Verify(d => d.UpdateExecutableAsync(It.IsAny<INupkg>()), Times.Never());
@@ -1830,7 +1711,7 @@ namespace NuGetGallery
 
                 // Act
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://1.1.1.1"));
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
+                await controller.VerifyPackage(false);
 
                 // Assert
                 nugetExeDownloader.Verify(d => d.UpdateExecutableAsync(It.IsAny<INupkg>()), Times.Never());
@@ -1944,3 +1825,4 @@ namespace NuGetGallery
         }
     }
 }
+
