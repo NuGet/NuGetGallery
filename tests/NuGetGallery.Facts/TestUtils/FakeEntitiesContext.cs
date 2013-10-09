@@ -47,18 +47,6 @@ namespace NuGetGallery
             }
         }
 
-        public IDbSet<Package> Packages
-        {
-            get
-            {
-                return Set<Package>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
-        }
-
         public IDbSet<User> Users
         {
             get
@@ -98,3 +86,4 @@ namespace NuGetGallery
         }
     }
 }
+
