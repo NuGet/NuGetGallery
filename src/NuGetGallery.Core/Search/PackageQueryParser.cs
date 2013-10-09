@@ -9,9 +9,12 @@ namespace NuGetGallery
     {
         static IDictionary<string, string> Alternatives = new Dictionary<string, string>
         {
-            { "Author", "Authors" },
-            { "Owner", "Owners" },
-            { "Tag", "Tags" }
+            { "author", "Authors" },
+            { "owner", "Owners" },
+            { "tag", "Tags" },
+            { "authors", "Authors" },
+            { "owners", "Owners" },
+            { "tags", "Tags" },
         };
 
         public PackageQueryParser(Lucene.Net.Util.Version matchVersion, string f, Analyzer a) :
@@ -41,8 +44,10 @@ namespace NuGetGallery
 
         private string Substitute(string fieldName)
         {
+            string lowerCasedFieldName = fieldName.ToLowerInvariant();
+
             string subStitutedFieldName;
-            if (Alternatives.TryGetValue(fieldName, out subStitutedFieldName))
+            if (Alternatives.TryGetValue(lowerCasedFieldName, out subStitutedFieldName))
             {
                 return subStitutedFieldName;
             }
