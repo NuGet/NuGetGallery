@@ -1,44 +1,34 @@
 ﻿using System;
 using System.Web.Mvc;
-using System.Web.Routing;
 using Moq;
 using NuGetGallery.Framework;
 using Xunit;
 using Xunit.Extensions;
+using System.Collections.Generic;
 
 namespace NuGetGallery.Filters
 {
     public class ApiKeyAuthorizeAttributeFacts : TestContainer
     {
         [Fact]
-        public void UsesCredentialTableToFindUser()
+        public void ApiKeyAuthorizeAttributeAcceptsValidRequestsFromConfirmedPackageOwners()
         {
-            ApiKeyAuthorizeAttribute attribute = CreateAttribute();
-            var apiKey = Guid.NewGuid();
-            var mockFilterContext = CreateActionFilterContext(apiKey.ToString());
+            ApiKeyAuthorizeAttribute attribute = Get<ApiKeyAuthorizeAttribute>();
+            attribute.UserService = Get<IUserService>();
+            var mockFilterContext = new Mock<ActionExecutingContext>();
+            var mockController = new Mock<Controller>();
+
+            var key = Guid.NewGuid().ToString();
+
+            mockFilterContext.Setup(ctx => ctx.Controller).Returns(mockController.Object);
+            mockFilterContext.Setup(ctx => ctx.ActionParameters).Returns(
+                new Dictionary<string, object>
+                {
+                    { "apiKey", key }
+                });
 
             GetMock<IUserService>()
-                .Setup(us => us.AuthenticateCredential(
-                    CredentialTypes.ApiKeyV1,
-                    apiKey.ToString().ToLowerInvariant()))
-                .Returns(new Credential() { User = Fakes.Owner });
-
-            // Act
-            attribute.OnActionExecuting(mockFilterContext.Object);
-
-            // Assert
-            Assert.Null(mockFilterContext.Object.Result);
-        }
-
-        [Fact]
-        public void UsesApiKeyColumnToFindUserIfNoRecordInCredentialTable()
-        {
-            ApiKeyAuthorizeAttribute attribute = CreateAttribute();
-            var apiKey = Guid.NewGuid();
-            var mockFilterContext = CreateActionFilterContext(apiKey.ToString());
-
-            GetMock<IUserService>()
-                .Setup(us => us.FindByApiKey(apiKey))
+                .Setup(us => us.FindByApiKey(It.IsAny<Guid>()))
                 .Returns(Fakes.Owner);
 
             // Act
@@ -53,8 +43,9 @@ namespace NuGetGallery.Filters
         [InlineData("")]
         public void ApiKeyAuthorizeAttributeReturns400WhenApiKeyIsMissing(string value)
         {
-            ApiKeyAuthorizeAttribute attribute = CreateAttribute();
-            
+            ApiKeyAuthorizeAttribute attribute = Get<ApiKeyAuthorizeAttribute>();
+            attribute.UserService = Get<IUserService>();
+
             // Act
             var result = attribute.CheckForResult(value);
 
@@ -65,8 +56,9 @@ namespace NuGetGallery.Filters
         [Fact]
         public void ApiKeyAuthorizeAttributeReturns400WhenApiKeyFormatIsInvalid()
         {
-            ApiKeyAuthorizeAttribute attribute = CreateAttribute();
-            
+            ApiKeyAuthorizeAttribute attribute = Get<ApiKeyAuthorizeAttribute>();
+            attribute.UserService = Get<IUserService>();
+
             // Act
             var result = attribute.CheckForResult("invalid-key");
 
@@ -77,7 +69,8 @@ namespace NuGetGallery.Filters
         [Fact]
         public void ApiKeyAuthorizeAttributeReturns403WhenApiKeyDoesNotBelongToAUser()
         {
-            ApiKeyAuthorizeAttribute attribute = CreateAttribute();
+            ApiKeyAuthorizeAttribute attribute = Get<ApiKeyAuthorizeAttribute>();
+            attribute.UserService = Get<IUserService>();
             string unknownApiKey = Guid.NewGuid().ToString();
 
             // Act
@@ -90,7 +83,8 @@ namespace NuGetGallery.Filters
         [Fact]
         public void ApiKeyAuthorizeAttributeReturns403WhenUserIsNotYetConfirmed()
         {
-            ApiKeyAuthorizeAttribute attribute = CreateAttribute();
+            ApiKeyAuthorizeAttribute attribute = Get<ApiKeyAuthorizeAttribute>();
+            attribute.UserService = Get<IUserService>();
             var user = new User
             {
                 UnconfirmedEmailAddress = "unconfirmed@example.com",
@@ -106,29 +100,6 @@ namespace NuGetGallery.Filters
 
             // Assert
             ResultAssert.IsStatusCode(result, 403, Strings.ApiKeyUserAccountIsUnconfirmed);
-        }
-
-        private static Mock<ActionExecutingContext> CreateActionFilterContext(string apiKey)
-        {
-            var mockFilterContext = new Mock<ActionExecutingContext>();
-            var mockController = new Mock<Controller>();
-
-            mockFilterContext.Setup(ctx => ctx.Controller).Returns(mockController.Object);
-            mockController.Object.ControllerContext = new ControllerContext
-            {
-                RouteData = new RouteData
-                {
-                    Values = { { "apiKey", apiKey } }
-                }
-            };
-            return mockFilterContext;
-        }
-
-        private ApiKeyAuthorizeAttribute CreateAttribute()
-        {
-            ApiKeyAuthorizeAttribute attribute = Get<ApiKeyAuthorizeAttribute>();
-            attribute.UserService = Get<IUserService>();
-            return attribute;
         }
     }
 }
