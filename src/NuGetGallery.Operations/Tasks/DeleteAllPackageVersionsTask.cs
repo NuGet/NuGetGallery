@@ -36,7 +36,7 @@ namespace NuGetGallery.Operations
                 var packages = Util.GetPackages(
                     dbExecutor,
                     packageRegistration.Key);
-                
+
                 foreach(var package in packages)
                 {
                     var task = new DeletePackageVersionTask {
@@ -49,8 +49,7 @@ namespace NuGetGallery.Operations
                         Reason = Reason,
                         WhatIf = WhatIf
                     };
-                    task.ValidateArguments();
-                    task.ExecuteCommand();
+                    task.Execute();
                 }
 
                 Log.Info(
