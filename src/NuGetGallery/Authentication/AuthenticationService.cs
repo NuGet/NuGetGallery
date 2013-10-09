@@ -74,24 +74,12 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public virtual UserSession GetActiveSession()
-        {
-            var principal = Context.Authentication.User;
-            if (principal == null)
-            {
-                return null;
-            }
-
-            return new UserSession(principal);
-        }
-
-        public virtual UserSession CreateSession(AuthenticatedUser user)
+        public virtual void CreateSession(AuthenticatedUser user)
         {
             // Create a claims identity for the session
             ClaimsIdentity identity = CreateIdentity(user);
 
             Context.Authentication.SignIn(identity);
-            return new UserSession(new ClaimsPrincipal(identity));
         }
 
         public static ClaimsIdentity CreateIdentity(AuthenticatedUser user)

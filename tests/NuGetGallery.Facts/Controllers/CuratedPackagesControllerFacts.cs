@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Security.Principal;
+using System.Web;
 using System.Web.Mvc;
 using Moq;
 using Xunit;
@@ -17,11 +18,7 @@ namespace NuGetGallery
             {
                 StubCuratedFeed = new CuratedFeed
                     { Key = 0, Name = "aFeedName", Managers = new HashSet<User>(new[] { new User { Username = "aUsername" } }) };
-                StubIdentity = new Mock<IIdentity>();
                 StubPackageRegistration = new PackageRegistration { Key = 0, Id = "anId" };
-
-                StubIdentity.Setup(stub => stub.IsAuthenticated).Returns(true);
-                StubIdentity.Setup(stub => stub.Name).Returns("aUsername");
 
                 EntitiesContext = new FakeEntitiesContext();
                 EntitiesContext.CuratedFeeds.Add(StubCuratedFeed);
@@ -36,16 +33,15 @@ namespace NuGetGallery
                 base.CuratedFeedService = new CuratedFeedService(
                     curatedFeedRepository,
                     curatedPackageRepository);
+
+                var httpContext = new Mock<HttpContextBase>();
+                TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, this);
+
+                this.SetUser("aUsername");
             }
 
             public CuratedFeed StubCuratedFeed { get; set; }
-            public Mock<IIdentity> StubIdentity { get; private set; }
             public PackageRegistration StubPackageRegistration { get; private set; }
-
-            public override IIdentity Identity
-            {
-                get { return StubIdentity.Object; }
-            }
         }
 
         public class TheDeleteCuratedPackageAction
@@ -75,9 +71,7 @@ namespace NuGetGallery
             public void WillReturn403IfTheUserNotAManager()
             {
                 var controller = new TestableCuratedPackagesController();
-                controller.StubIdentity
-                    .Setup(i => i.Name)
-                    .Returns("notAManager");
+                controller.SetUser("notAManager");
 
                 controller.StubCuratedFeed.Packages.Add(
                     new CuratedPackage
@@ -154,7 +148,7 @@ namespace NuGetGallery
             public void WillReturn403IfTheCurrentUsersIsNotAManagerOfTheCuratedFeed()
             {
                 var controller = new TestableCuratedPackagesController();
-                controller.StubIdentity.Setup(stub => stub.Name).Returns("notAManager");
+                controller.SetUser("notAManager");
 
                 var result = controller.GetCreateCuratedPackageForm("aFeedName") as HttpStatusCodeResult;
 
@@ -202,9 +196,7 @@ namespace NuGetGallery
             public void WillReturn403IfNotAFeedManager()
             {
                 var controller = new TestableCuratedPackagesController();
-                controller.StubIdentity
-                    .Setup(i => i.Name)
-                    .Returns("notAManager");
+                controller.SetUser("notAManager");
                 controller.StubCuratedFeed.Packages.Add(
                     new CuratedPackage
                     {
@@ -310,7 +302,7 @@ namespace NuGetGallery
             public void WillReturn403IfTheCurrentUsersIsNotAManagerOfTheCuratedFeed()
             {
                 var controller = new TestableCuratedPackagesController();
-                controller.StubIdentity.Setup(stub => stub.Name).Returns("notAManager");
+                controller.SetUser("notAManager");
 
                 var result = controller.PostCuratedPackages(
                     "aFeedName",

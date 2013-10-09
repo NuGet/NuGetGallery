@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Security.Principal;
 using System.Web.Mvc;
+using NuGetGallery.Authentication;
 
 namespace NuGetGallery.Filters
 {
@@ -23,14 +24,14 @@ namespace NuGetGallery.Filters
             }
 
             var controller = ((AppController)filterContext.Controller);
-            IPrincipal user = controller.User;
-            if (!user.Identity.IsAuthenticated)
+            UserSession user = controller.UserSession;
+            if (!user.IsAuthenticated)
             {
                 throw new InvalidOperationException("Requires account confirmation attribute is only valid on authenticated actions.");
             }
 
             var userService = controller.GetService<IUserService>();
-            var currentUser = userService.FindByUsername(user.Identity.Name);
+            var currentUser = userService.FindByUsername(user.Name);
             if (!currentUser.Confirmed)
             {
                 controller.TempData["ConfirmationRequiredMessage"] = String.Format(

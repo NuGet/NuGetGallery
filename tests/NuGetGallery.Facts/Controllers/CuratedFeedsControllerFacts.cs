@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Security.Principal;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
+using NuGetGallery.Authentication;
 using Xunit;
 
 namespace NuGetGallery
@@ -18,10 +20,7 @@ namespace NuGetGallery
                 StubCuratedFeed = new CuratedFeed
                     { Key = 0, Name = "aName", Managers = new HashSet<User>(new[] { new User { Username = "aUsername" } }) };
                 StubCuratedFeedService = new Mock<ICuratedFeedService>();
-                StubIdentity = new Mock<IIdentity>();
-
-                StubIdentity.Setup(stub => stub.IsAuthenticated).Returns(true);
-                StubIdentity.Setup(stub => stub.Name).Returns("aUsername");
+            
                 StubCuratedFeedService
                     .Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>()))
                     .Returns(StubCuratedFeed);
@@ -30,18 +29,16 @@ namespace NuGetGallery
 
                 StubSearchService = new Mock<ISearchService>();
                 SearchService = StubSearchService.Object;
+
+                var httpContext = new Mock<HttpContextBase>();
+                TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, this);
+                this.SetUser("aUsername");
             }
 
             public CuratedFeed StubCuratedFeed { get; set; }
             public Mock<ICuratedFeedService> StubCuratedFeedService { get; private set; }
             public Mock<ISearchService> StubSearchService { get; private set; }
-            public Mock<IIdentity> StubIdentity { get; private set; }
-
-            public override IIdentity Identity
-            {
-                get { return StubIdentity.Object; }
-            }
-
+            
             protected internal override T GetService<T>()
             {
                 if (typeof(T) == typeof(ICuratedFeedService))
@@ -70,8 +67,8 @@ namespace NuGetGallery
             public void WillReturn403IfTheCurrentUsersIsNotAManagerOfTheCuratedFeed()
             {
                 var controller = new TestableCuratedFeedsController();
-                controller.StubIdentity.Setup(stub => stub.Name).Returns("notAManager");
-
+                controller.SetUser("notAManager");
+                
                 var result = controller.CuratedFeed("aFeedName") as HttpStatusCodeResult;
 
                 Assert.NotNull(result);
@@ -94,7 +91,7 @@ namespace NuGetGallery
             public void WillPassTheCuratedFeedManagersToTheView()
             {
                 var controller = new TestableCuratedFeedsController();
-                controller.StubIdentity.Setup(stub => stub.Name).Returns("theManager");
+                controller.SetUser("theManager");
                 controller.StubCuratedFeed.Name = "aFeedName";
                 controller.StubCuratedFeed.Managers = new HashSet<User>(new[] { new User { Username = "theManager" } });
 

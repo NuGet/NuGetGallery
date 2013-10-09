@@ -38,7 +38,7 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Account()
         {
-            var user = UserService.FindByUsername(Identity.Name);
+            var user = UserService.FindByUsername(UserSession.Name);
             var curatedFeeds = CuratedFeedService.GetFeedsForManager(user.Key);
             var apiCredential = user
                 .Credentials
@@ -58,7 +58,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult ConfirmationRequired()
         {
-            User user = UserService.FindByUsername(User.Identity.Name);
+            User user = UserService.FindByUsername(UserSession.Name);
             var model = new ConfirmationViewModel
             {
                 ConfirmingNewAccount = !(user.Confirmed),
@@ -72,7 +72,7 @@ namespace NuGetGallery
         [ActionName("ConfirmationRequired")]
         public virtual ActionResult ConfirmationRequiredPost()
         {
-            User user = UserService.FindByUsername(User.Identity.Name);
+            User user = UserService.FindByUsername(UserSession.Name);
             var confirmationUrl = Url.ConfirmationUrl(
                 MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
 
@@ -90,7 +90,7 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Edit()
         {
-            var user = UserService.FindByUsername(Identity.Name);
+            var user = UserService.FindByUsername(UserSession.Name);
             var model = new EditProfileViewModel
                 {
                     Username = user.Username,
@@ -106,7 +106,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult Edit(EditProfileViewModel profile)
         {
-            var user = UserService.FindByUsername(Identity.Name);
+            var user = UserService.FindByUsername(UserSession.Name);
             if (user == null)
             {
                 return HttpNotFound();
@@ -130,7 +130,7 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Packages()
         {
-            var user = UserService.FindByUsername(Identity.Name);
+            var user = UserService.FindByUsername(UserSession.Name);
             var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: true)
                 .Select(p => new PackageViewModel(p)
                 {
@@ -151,7 +151,7 @@ namespace NuGetGallery
         public virtual ActionResult GenerateApiKey()
         {
             // Get the user
-            var user = UserService.FindByUsername(User.Identity.Name);
+            var user = UserService.FindByUsername(UserSession.Name);
 
             // Generate an API Key
             var apiKey = Guid.NewGuid();
@@ -246,7 +246,7 @@ namespace NuGetGallery
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
 
-            if (!String.Equals(username, Identity.Name, StringComparison.OrdinalIgnoreCase))
+            if (!String.Equals(username, UserSession.Name, StringComparison.OrdinalIgnoreCase))
             {
                 return View(new ConfirmationViewModel
                     {
@@ -337,7 +337,7 @@ namespace NuGetGallery
                 return View(model);
             }
 
-            User user = UserService.FindByUsernameAndPassword(Identity.Name, model.Password);
+            User user = UserService.FindByUsernameAndPassword(UserSession.Name, model.Password);
             if (user == null)
             {
                 ModelState.AddModelError("Password", Strings.CurrentPasswordIncorrect);
@@ -393,7 +393,7 @@ namespace NuGetGallery
                 return View(model);
             }
 
-            if (!UserService.ChangePassword(Identity.Name, model.OldPassword, model.NewPassword))
+            if (!UserService.ChangePassword(UserSession.Name, model.OldPassword, model.NewPassword))
             {
                 ModelState.AddModelError(
                     "OldPassword",

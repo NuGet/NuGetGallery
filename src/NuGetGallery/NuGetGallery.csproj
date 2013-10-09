@@ -319,7 +319,6 @@
     <Compile Include="Areas\Admin\ViewModels\ConfigViewModel.cs" />
     <Compile Include="Authentication\AuthenticatedUser.cs" />
     <Compile Include="Authentication\AuthenticationService.cs" />
-    <Compile Include="Authentication\AuthenticationTypes.cs" />
     <Compile Include="Authentication\UserSession.cs" />
     <Compile Include="Configuration\ConfigurationService.cs" />
     <Compile Include="Configuration\FeatureConfiguration.cs" />

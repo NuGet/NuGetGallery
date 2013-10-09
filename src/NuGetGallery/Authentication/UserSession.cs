@@ -3,20 +3,32 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
-using System.Text;
+using System.Web;
 
 namespace NuGetGallery.Authentication
 {
-    public class UserSession : IPrincipal
+    public class UserSession : IPrincipal, IIdentity
     {
-        public ClaimsPrincipal Principal { get; private set; }
+        public virtual ClaimsPrincipal Principal { get; private set; }
 
-        public string Username { get { return Principal.Identity.Name; } }
-        public string AuthenticationType { get { return Principal.Identity.AuthenticationType; } }
-    
-        public IIdentity Identity
+        public virtual string AuthenticationType
         {
-	        get { return Principal.Identity; }
+            get { return Principal.Identity.AuthenticationType; }
+        }
+
+        public virtual bool IsAuthenticated
+        {
+            get { return Principal.Identity.IsAuthenticated; }
+        }
+
+        public virtual string Name
+        {
+            get { return Principal.Identity.Name;  }
+        }
+
+        public virtual IIdentity Identity
+        {
+            get { return Principal.Identity; }
         }
 
         public UserSession(ClaimsPrincipal principal)
@@ -24,7 +36,7 @@ namespace NuGetGallery.Authentication
             Principal = principal;
         }
 
-        public bool IsInRole(string role)
+        public virtual bool IsInRole(string role)
         {
             return Principal.IsInRole(role);
         }

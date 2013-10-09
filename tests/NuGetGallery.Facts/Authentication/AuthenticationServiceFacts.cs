@@ -135,46 +135,6 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public class TheGetActiveSessionMethod : TestContainer
-        {
-            [Fact]
-            public void GivenNoActiveSession_ItReturnsNull()
-            {
-                // Arrange
-                var service = Get<AuthenticationService>();
-                GetMock<IOwinContext>()
-                    .Setup(c => c.Authentication.User)
-                    .ReturnsNull();
-
-                // Act
-                var result = service.GetActiveSession();
-
-                // Assert
-                Assert.Null(result);
-            }
-
-            [Fact]
-            public void GivenAValidSession_ItReturnsMatchingUserSessionObject()
-            {
-                // Arrange
-                var service = Get<AuthenticationService>();
-                var principal = Fakes.Admin.ToPrincipal();
-                GetMock<IOwinContext>()
-                    .Setup(c => c.Authentication.User)
-                    .Returns(principal);
-
-                // Act
-                var result = service.GetActiveSession();
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal(Fakes.Admin.Username, result.Username);
-                Assert.Equal(AuthenticationTypes.Session, result.AuthenticationType);
-                Assert.Same(principal, result.Principal);
-                Assert.True(result.IsInRole(Constants.AdminRoleName));
-            }
-        }
-
         public class TheCreateSessionMethod : TestContainer
         {
             [Fact]
@@ -201,29 +161,6 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(Fakes.Admin.Username, id.Name);
                 Assert.Equal(passwordCred.Type, id.AuthenticationType);
                 Assert.True(principal.IsInRole(Constants.AdminRoleName));
-            }
-
-            [Fact]
-            public void GivenAUser_ItReturnsTheCreatedUserSession()
-            {
-                // Arrange
-                var service = Get<AuthenticationService>();
-                GetMock<IOwinContext>()
-                    .Setup(c => c.Authentication.SignIn(It.IsAny<ClaimsIdentity[]>()));
-
-                var passwordCred = Fakes.Admin.Credentials.SingleOrDefault(
-                    c => String.Equals(c.Type, CredentialTypes.Password.Pbkdf2, StringComparison.OrdinalIgnoreCase));
-
-                var user = new AuthenticatedUser(Fakes.Admin, passwordCred);
-
-                // Act
-                var session = service.CreateSession(user);
-
-                // Assert
-                Assert.NotNull(session);
-                Assert.Equal(Fakes.Admin.Username, session.Username);
-                Assert.Equal(passwordCred.Type, session.AuthenticationType);
-                Assert.True(session.IsInRole(Constants.AdminRoleName));
             }
         }
     }

@@ -48,7 +48,7 @@ namespace NuGetGallery.Framework
                 claims: Enumerable.Concat(new[] {
                             new Claim(ClaimsIdentity.DefaultNameClaimType, user.Username),
                         }, user.Roles.Select(r => new Claim(ClaimsIdentity.DefaultRoleClaimType, r.Name))),
-                authenticationType: AuthenticationTypes.Session,
+                authenticationType: "Test",
                 nameType: ClaimsIdentity.DefaultNameClaimType,
                 roleType: ClaimsIdentity.DefaultRoleClaimType);
             return new ClaimsPrincipal(identity);
