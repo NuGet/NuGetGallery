@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Web.Mvc;
-using System.Web.Routing;
 using Moq;
 using NuGetGallery.Framework;
 using Xunit;
 using Xunit.Extensions;
+using System.Collections.Generic;
 
 namespace NuGetGallery.Filters
 {
@@ -23,6 +23,7 @@ namespace NuGetGallery.Filters
                     apiKey.ToString().ToLowerInvariant()))
                 .Returns(new Credential() { User = Fakes.Owner });
 
+<<<<<<< HEAD
             // Act
             attribute.OnActionExecuting(mockFilterContext.Object);
 
@@ -36,6 +37,14 @@ namespace NuGetGallery.Filters
             ApiKeyAuthorizeAttribute attribute = CreateAttribute();
             var apiKey = Guid.NewGuid();
             var mockFilterContext = CreateActionFilterContext(apiKey.ToString());
+=======
+            mockFilterContext.Setup(ctx => ctx.Controller).Returns(mockController.Object);
+            mockFilterContext.Setup(ctx => ctx.ActionParameters).Returns(
+                new Dictionary<string, object>
+                {
+                    { "apiKey", key }
+                });
+>>>>>>> f2aa519b65064466671e990e444108c4129b2bc1
 
             GetMock<IUserService>()
                 .Setup(us => us.FindByApiKey(apiKey))

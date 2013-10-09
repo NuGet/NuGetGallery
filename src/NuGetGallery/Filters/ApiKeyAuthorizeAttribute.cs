@@ -25,7 +25,7 @@ namespace NuGetGallery.Filters
             }
 
             var controller = filterContext.Controller;
-            string apiKeyStr = (string)filterContext.ActionParameters["apiKey"];
+            string apiKeyStr = (string)((Controller)controller).RouteData.Values["apiKey"];
             filterContext.Result = CheckForResult(apiKeyStr);
         }
 
