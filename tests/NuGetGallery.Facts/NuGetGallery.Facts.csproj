@@ -234,7 +234,6 @@
     <Compile Include="Entities\EntitiesContextFacts.cs" />
     <Compile Include="Entities\PackageFacts.cs" />
     <Compile Include="ExtensionMethodsFacts.cs" />
-    <Compile Include="Filters\ApiKeyAuthorizeAttributeFacts.cs" />
     <Compile Include="Filters\RequireRemoteHttpsAttributeFacts.cs" />
     <Compile Include="Framework\Fakes.cs" />
     <Compile Include="Framework\TestContainer.cs" />

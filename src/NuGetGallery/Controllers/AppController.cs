@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Security.Claims;
 using System.Security.Principal;
+using System.Web;
 using System.Web.Mvc;
+using Microsoft.Owin;
 using NuGetGallery.Authentication;
 
 namespace NuGetGallery
@@ -9,6 +11,7 @@ namespace NuGetGallery
     public abstract partial class AppController : Controller
     {
         private Lazy<UserSession> _session;
+        private IOwinContext _overrideContext;
 
         [Obsolete("Use UserSession instead!")]
         public virtual IIdentity Identity
@@ -25,6 +28,12 @@ namespace NuGetGallery
         public UserSession UserSession
         {
             get { return _session.Value; }
+        }
+
+        public IOwinContext OwinContext
+        {
+            get { return _overrideContext ?? HttpContext.GetOwinContext(); }
+            set { _overrideContext = value; }
         }
 
         public AppController()

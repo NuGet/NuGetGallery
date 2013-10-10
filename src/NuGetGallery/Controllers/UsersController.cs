@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
 using System.Web.Mvc;
+using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
@@ -15,7 +16,7 @@ namespace NuGetGallery
         public IPackageService PackageService { get; protected set; }
         public IAppConfiguration Config { get; protected set; }
         public IUserService UserService { get; protected set; }
-        public IPrincipal CurrentUser { get; protected set; }
+        public AuthenticationService AuthService { get; protected set; }
 
         protected UsersController() { }
 
@@ -25,14 +26,14 @@ namespace NuGetGallery
             IPackageService packageService,
             IMessageService messageService,
             IAppConfiguration config,
-            IPrincipal currentUser) : this()
+            AuthenticationService authService) : this()
         {
             CuratedFeedService = feedsQuery;
             UserService = userService;
             PackageService = packageService;
             MessageService = messageService;
             Config = config;
-            CurrentUser = currentUser;
+            AuthService = authService;
         }
 
         [Authorize]
@@ -160,7 +161,7 @@ namespace NuGetGallery
             user.ApiKey = apiKey;
 
             // Add/Replace the API Key credential, and save to the database
-            UserService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
+            AuthService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
             return RedirectToAction(MVC.Users.Account());
         }
 
@@ -183,7 +184,7 @@ namespace NuGetGallery
             
             if (ModelState.IsValid)
             {
-                var user = UserService.GeneratePasswordResetToken(model.Email, Constants.DefaultPasswordResetTokenExpirationHours * 60);
+                var user = AuthService.GeneratePasswordResetToken(model.Email, Constants.DefaultPasswordResetTokenExpirationHours * 60);
                 if (user != null)
                 {
                     var resetPasswordUrl = Url.ConfirmationUrl(
@@ -229,7 +230,7 @@ namespace NuGetGallery
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
             
-            ViewBag.ResetTokenValid = UserService.ResetPasswordWithToken(username, token, model.NewPassword);
+            ViewBag.ResetTokenValid = AuthService.ResetPasswordWithToken(username, token, model.NewPassword);
 
             if (!ViewBag.ResetTokenValid)
             {
@@ -337,14 +338,14 @@ namespace NuGetGallery
                 return View(model);
             }
 
-            User user = UserService.FindByUsernameAndPassword(UserSession.Name, model.Password);
-            if (user == null)
+            var authUser = AuthService.Authenticate(UserSession.Name, model.Password);
+            if (authUser == null)
             {
                 ModelState.AddModelError("Password", Strings.CurrentPasswordIncorrect);
                 return View(model);
             }
 
-            if (String.Equals(model.NewEmail, user.LastSavedEmailAddress, StringComparison.OrdinalIgnoreCase))
+            if (String.Equals(model.NewEmail, authUser.User.LastSavedEmailAddress, StringComparison.OrdinalIgnoreCase))
             {
                 // email address unchanged - accept
                 return RedirectToAction(MVC.Users.Edit());
@@ -352,7 +353,7 @@ namespace NuGetGallery
 
             try
             {
-                UserService.ChangeEmailAddress(user, model.NewEmail);
+                UserService.ChangeEmailAddress(authUser.User, model.NewEmail);
             }
             catch (EntityException e)
             {
@@ -360,11 +361,11 @@ namespace NuGetGallery
                 return View(model);
             }
 
-            if (user.Confirmed)
+            if (authUser.User.Confirmed)
             {
                 var confirmationUrl = Url.ConfirmationUrl(
-                    MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
-                MessageService.SendEmailChangeConfirmationNotice(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
+                    MVC.Users.Confirm(), authUser.User.Username, authUser.User.EmailConfirmationToken, protocol: Request.Url.Scheme);
+                MessageService.SendEmailChangeConfirmationNotice(new MailAddress(authUser.User.UnconfirmedEmailAddress, authUser.User.Username), confirmationUrl);
 
                 TempData["Message"] =
                     "Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one.";
@@ -393,7 +394,7 @@ namespace NuGetGallery
                 return View(model);
             }
 
-            if (!UserService.ChangePassword(UserSession.Name, model.OldPassword, model.NewPassword))
+            if (!AuthService.ChangePassword(UserSession.Name, model.OldPassword, model.NewPassword))
             {
                 ModelState.AddModelError(
                     "OldPassword",

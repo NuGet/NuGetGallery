@@ -16,13 +16,25 @@ namespace NuGetGallery.Framework
 
         public static readonly User User = new User("testUser") { 
             Key = 42,
+            EmailAddress = "confirmed1@example.com",
             Credentials = new List<Credential>() { 
                 CredentialBuilder.CreatePbkdf2Password(Password),
                 CredentialBuilder.CreateV1ApiKey(Guid.Parse("519e180e-335c-491a-ac26-e83c4bd31d65"))
-            } 
+            }
+        };
+
+        public static readonly User ShaUser = new User("testShaUser")
+        {
+            Key = 42,
+            EmailAddress = "confirmed2@example.com",
+            Credentials = new List<Credential>() { 
+                CredentialBuilder.CreateSha1Password(Password),
+                CredentialBuilder.CreateV1ApiKey(Guid.Parse("b9704a41-4107-4cd2-bcfa-70d84e021ab2"))
+            }
         };
         public static readonly User Admin = new User("testAdmin") { 
             Key = 43,
+            EmailAddress = "confirmed3@example.com",
             Credentials = new List<Credential>() { CredentialBuilder.CreatePbkdf2Password(Password) }, 
             Roles = new List<Role>() { new Role() { Name = Constants.AdminRoleName } } 
         };
@@ -41,6 +53,14 @@ namespace NuGetGallery.Framework
                 new Package() { Version = "2.0" }
             }
         };
+
+        public static User CreateUser(string userName, params Credential[] credentials)
+        {
+            return new User(userName)
+            {
+                Credentials = new List<Credential>(credentials)
+            };
+        }
 
         public static ClaimsPrincipal ToPrincipal(this User user)
         {
@@ -64,6 +84,7 @@ namespace NuGetGallery.Framework
             // Add Users
             var users = ctxt.Set<User>();
             users.Add(User);
+            users.Add(ShaUser);
             users.Add(Admin);
             users.Add(Owner);
 

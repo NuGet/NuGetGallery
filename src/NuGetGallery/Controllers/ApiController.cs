@@ -11,6 +11,7 @@ using System.Web.Mvc;
 using System.Web.UI;
 using Newtonsoft.Json.Linq;
 using NuGet;
+using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
 
@@ -26,6 +27,7 @@ namespace NuGetGallery
         public IStatisticsService StatisticsService { get; set; }
         public IContentService ContentService { get; set; }
         public IIndexingService IndexingService { get; set; }
+        public AuthenticationService AuthService { get; set; }
 
         protected ApiController() { }
 
@@ -36,7 +38,8 @@ namespace NuGetGallery
             IUserService userService,
             INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
-            IIndexingService indexingService)
+            IIndexingService indexingService,
+            AuthenticationService authService)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -46,6 +49,7 @@ namespace NuGetGallery
             ContentService = contentService;
             StatisticsService = null;
             IndexingService = indexingService;
+            AuthService = authService;
         }
 
         public ApiController(
@@ -56,8 +60,9 @@ namespace NuGetGallery
             INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
             IIndexingService indexingService,
-            IStatisticsService statisticsService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService)
+            IStatisticsService statisticsService,
+            AuthenticationService authService)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, authService)
         {
             StatisticsService = statisticsService;
         }
@@ -161,7 +166,6 @@ namespace NuGetGallery
 
         [HttpGet]
         [ActionName("VerifyPackageKeyApi")]
-        [ApiKeyAuthorize]
         public virtual ActionResult VerifyPackageKey(string apiKey, string id, string version)
         {
             if (!String.IsNullOrEmpty(id))
@@ -187,7 +191,6 @@ namespace NuGetGallery
         [HttpPut]
         [ActionName("PushPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorize]
         public virtual Task<ActionResult> CreatePackagePut(string apiKey)
         {
             var user = GetUserByApiKey(apiKey);
@@ -197,7 +200,6 @@ namespace NuGetGallery
         [HttpPost]
         [ActionName("PushPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorize]
         public virtual Task<ActionResult> CreatePackagePost(string apiKey)
         {
             var user = GetUserByApiKey(apiKey);
@@ -256,7 +258,6 @@ namespace NuGetGallery
         [HttpDelete]
         [ActionName("DeletePackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorize]
         public virtual ActionResult DeletePackage(string apiKey, string id, string version)
         {
             var package = PackageService.FindPackageByIdAndVersion(id, version);
@@ -287,7 +288,6 @@ namespace NuGetGallery
         [HttpPost]
         [ActionName("PublishPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorize]
         public virtual ActionResult PublishPackage(string apiKey, string id, string version)
         {
             var package = PackageService.FindPackageByIdAndVersion(id, version);
@@ -426,19 +426,15 @@ namespace NuGetGallery
 
         private User GetUserByApiKey(string apiKey)
         {
-            var cred = UserService.AuthenticateCredential(CredentialTypes.ApiKeyV1, apiKey.ToLowerInvariant());
-            User user;
-            if (cred == null)
+            var authUser = AuthService.Authenticate(CredentialBuilder.CreateV1ApiKey(apiKey));
+            if (authUser == null)
             {
-#pragma warning disable 0618
-                user = UserService.FindByApiKey(Guid.Parse(apiKey));
-#pragma warning restore 0618
+                return null;
             }
             else
             {
-                user = cred.User;
+                return authUser.User;
             }
-            return user;
         }
 
         private static void QuietlyLogException(Exception e)

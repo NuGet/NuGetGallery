@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Moq;
+using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -15,6 +16,21 @@ namespace NuGetGallery.Authentication
 {
     public class AuthenticationServiceFacts
     {
+        public static bool VerifyPasswordHash(string hash, string algorithm, string password)
+        {
+            bool canAuthenticate = CryptographyService.ValidateSaltedHash(
+                hash,
+                password,
+                algorithm);
+
+            bool sanity = CryptographyService.ValidateSaltedHash(
+                hash,
+                "not_the_password",
+                algorithm);
+
+            return canAuthenticate && !sanity;
+        }
+
         public class TheAuthenticateMethod : TestContainer
         {
             [Fact]
@@ -133,6 +149,40 @@ namespace NuGetGallery.Authentication
                     cred.Type,
                     cred.Key), ex.Message);
             }
+
+            [Fact]
+            public void GivenOnlyASHA1PasswordItAuthenticatesUserAndReplacesItWithAPBKDF2Password()
+            {
+                var user = Fakes.CreateUser("tempUser", CredentialBuilder.CreateSha1Password("thePassword"));
+                var service = Get<AuthenticationService>();
+                service.Entities.Users.Add(user);
+
+                var foundByUserName = service.Authenticate("theUsername", "thePassword");
+
+                var cred = foundByUserName.User.Credentials.Single();
+                Assert.Same(user, foundByUserName);
+                Assert.Equal(CredentialTypes.Password.Pbkdf2, cred.Type);
+                Assert.True(CryptographyService.ValidateSaltedHash(cred.Value, "thePassword", Constants.PBKDF2HashAlgorithmId));
+                service.Entities.VerifyCommitChanges();
+            }
+
+            [Fact]
+            public void GivenASHA1AndAPBKDF2PasswordItAuthenticatesUserAndRemovesTheSHA1Password()
+            {
+                var user = Fakes.CreateUser("tempUser", 
+                    CredentialBuilder.CreateSha1Password("thePassword"),
+                    CredentialBuilder.CreatePbkdf2Password("thePassword"));
+                var service = Get<AuthenticationService>();
+                service.Entities.Users.Add(user);
+
+                var foundByUserName = service.Authenticate("theUsername", "thePassword");
+
+                var cred = foundByUserName.User.Credentials.Single();
+                Assert.Same(user, foundByUserName);
+                Assert.Equal(CredentialTypes.Password.Pbkdf2, cred.Type);
+                Assert.True(CryptographyService.ValidateSaltedHash(cred.Value, "thePassword", Constants.PBKDF2HashAlgorithmId));
+                service.Entities.VerifyCommitChanges();
+            }
         }
 
         public class TheCreateSessionMethod : TestContainer
@@ -143,7 +193,8 @@ namespace NuGetGallery.Authentication
                 // Arrange
                 var service = Get<AuthenticationService>();
                 ClaimsIdentity id = null;
-                GetMock<IOwinContext>()
+                var context = GetMock<IOwinContext>();
+                context
                     .Setup(c => c.Authentication.SignIn(It.IsAny<ClaimsIdentity[]>()))
                     .Callback<ClaimsIdentity[]>(ids => id = ids.SingleOrDefault());
                 
@@ -153,7 +204,7 @@ namespace NuGetGallery.Authentication
                 var user = new AuthenticatedUser(Fakes.Admin, passwordCred);
 
                 // Act
-                service.CreateSession(user);
+                service.CreateSession(context.Object, user);
 
                 // Assert
                 Assert.NotNull(id);
@@ -161,6 +212,519 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(Fakes.Admin.Username, id.Name);
                 Assert.Equal(passwordCred.Type, id.AuthenticationType);
                 Assert.True(principal.IsInRole(Constants.AdminRoleName));
+            }
+        }
+
+        public class TheChangePasswordMethod : TestContainer
+        {
+            [Fact]
+            public void ReturnsFalseIfUserIsNotFound()
+            {
+                // Arrange
+                var service = Get<AuthenticationService>();
+                
+                // Act
+                var changed = service.ChangePassword("totallyNotARealUser", "oldpwd", "newpwd");
+
+                // Assert
+                Assert.False(changed);
+            }
+
+            [Fact]
+            public void ReturnsFalseIfPasswordDoesNotMatchUser_SHA1()
+            {
+                // Arrange
+                var service = Get<AuthenticationService>();
+                var user = Fakes.CreateUser("tempUser", 
+                    CredentialBuilder.CreateSha1Password("oldpwd"));
+                service.Entities
+                    .Set<User>()
+                    .Add(user);
+
+                // Act
+                var changed = service.ChangePassword(user.Username, "not_the_password", "newpwd");
+
+                // Assert
+                Assert.False(changed);
+            }
+
+            [Fact]
+            public void ReturnsFalseIfPasswordDoesNotMatchUser_PBKDF2()
+            {
+                // Arrange
+                var service = Get<AuthenticationService>();
+                var user = Fakes.CreateUser("tempUser",
+                    CredentialBuilder.CreatePbkdf2Password("oldpwd"));
+                service.Entities
+                    .Set<User>()
+                    .Add(user);
+
+                // Act
+                var changed = service.ChangePassword(user.Username, "not_the_password", "newpwd");
+
+                // Assert
+                Assert.False(changed);
+            }
+
+            [Fact]
+            public void ReturnsTrueWhenSuccessful()
+            {
+                // Arrange
+                var service = Get<AuthenticationService>();
+                var user = Fakes.CreateUser(
+                    "tempUser",
+                    CredentialBuilder.CreateSha1Password("oldpwd"));
+                service.Entities
+                    .Set<User>()
+                    .Add(user);
+
+                // Act
+                var changed = service.ChangePassword(user.Username, "oldpwd", "newpwd");
+
+                // Assert
+                Assert.True(changed);
+            }
+
+            [Fact]
+            public void UpdatesThePasswordCredential()
+            {
+                // Arrange
+                var service = Get<AuthenticationService>();
+                var user = Fakes.CreateUser(
+                    "tempUser",
+                    CredentialBuilder.CreatePbkdf2Password("oldpwd"));
+                service.Entities
+                    .Set<User>()
+                    .Add(user);
+                
+                // Act
+                var changed = service.ChangePassword(user.Username, "oldpwd", "newpwd");
+
+                // Assert
+                var cred = user.Credentials.Single();
+                Assert.Equal(CredentialTypes.Password.Pbkdf2, cred.Type);
+                Assert.True(VerifyPasswordHash(cred.Value, Constants.PBKDF2HashAlgorithmId, "newpwd"));
+                service.Entities.VerifyCommitChanges();
+            }
+
+            [Fact]
+            public void MigratesPasswordIfHashAlgorithmIsNotPBKDF2()
+            {
+                // Arrange
+                var service = Get<AuthenticationService>();
+                var user = Fakes.CreateUser(
+                    "tempUser",
+                    CredentialBuilder.CreateSha1Password("oldpwd"));
+                service.Entities
+                    .Set<User>()
+                    .Add(user);
+
+                // Act
+                var changed = service.ChangePassword(user.Username, "oldpwd", "newpwd");
+
+                // Assert
+                var cred = user.Credentials.Single(c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
+                Assert.Equal(CredentialTypes.Password.Pbkdf2, cred.Type);
+                Assert.True(VerifyPasswordHash(cred.Value, Constants.PBKDF2HashAlgorithmId, "newpwd"));
+                service.Entities.VerifyCommitChanges();
+            }
+        }
+
+        public class TheRegisterMethod : TestContainer
+        {
+            [Fact]
+            public void WillThrowIfTheUsernameIsAlreadyInUse()
+            {
+                // Arrange
+                var auth = Get<AuthenticationService>();
+
+                // Act
+                var ex = Assert.Throws<EntityException>(() =>
+                    auth.Register(
+                        Fakes.User.Username,
+                        "thePassword",
+                        "theEmailAddress"));
+
+                // Assert
+                Assert.Equal(String.Format(Strings.UsernameNotAvailable, Fakes.User.Username), ex.Message);
+            }
+
+            [Fact]
+            public void WillThrowIfTheEmailAddressIsAlreadyInUse()
+            {
+                // Arrange
+                var auth = Get<AuthenticationService>();
+
+                // Act
+                var ex = Assert.Throws<EntityException>(
+                    () =>
+                    auth.Register(
+                        "theUsername",
+                        "thePassword",
+                        Fakes.User.EmailAddress));
+                
+                // Assert
+                Assert.Equal(String.Format(Strings.EmailAddressBeingUsed, Fakes.User.EmailAddress), ex.Message);
+            }
+
+            [Fact]
+            public void WillHashThePasswordWithPBKDF2()
+            {
+                // Arrange
+                var auth = Get<AuthenticationService>();
+
+                // Act
+                var authUser = auth.Register(
+                    "aNewUser",
+                    "thePassword",
+                    "theEmailAddress");
+
+                // Assert
+                Credential matched;
+                Assert.True(AuthenticationService.ValidatePasswordCredential(authUser.User.Credentials, "thePassword", out matched));
+                Assert.Equal(CredentialTypes.Password.Pbkdf2, matched.Type);
+            }
+
+            [Fact]
+            public void WillSaveTheNewUser()
+            {
+                // Arrange
+                var auth = Get<AuthenticationService>();
+
+                // Arrange
+                var authUser = auth.Register(
+                    "theUsername",
+                    "thePassword",
+                    "theEmailAddress");
+
+                // Assert
+                Assert.True(auth.Entities.Users.Contains(authUser.User));
+                auth.Entities.VerifyCommitChanges();
+            }
+
+            [Fact]
+            public void WillSaveTheNewUserAsConfirmedWhenConfigured()
+            {
+                // Arrange
+                var auth = Get<AuthenticationService>();
+                GetMock<IAppConfiguration>()
+                    .Setup(x => x.ConfirmEmailAddresses)
+                    .Returns(false);
+
+                // Act
+                var authUser = auth.Register(
+                    "theUsername",
+                    "thePassword",
+                    "theEmailAddress");
+
+                // Assert
+                Assert.True(auth.Entities.Users.Contains(authUser.User));
+                Assert.True(authUser.User.Confirmed);
+                auth.Entities.VerifyCommitChanges();
+            }
+
+            [Fact]
+            public void SetsAnApiKey()
+            {
+                // Arrange
+                var auth = Get<AuthenticationService>();
+
+                // Arrange
+                var authUser = auth.Register(
+                    "theUsername",
+                    "thePassword",
+                    "theEmailAddress");
+
+                // Assert
+                Assert.True(auth.Entities.Users.Contains(authUser.User));
+                auth.Entities.VerifyCommitChanges();
+
+                var apiKeyCred = authUser.User.Credentials.FirstOrDefault(c => c.Type == CredentialTypes.ApiKeyV1);
+                Assert.NotNull(apiKeyCred);
+            }
+
+            [Fact]
+            public void SetsAConfirmationToken()
+            {
+                // Arrange
+                var auth = Get<AuthenticationService>();
+                GetMock<IAppConfiguration>()
+                    .Setup(c => c.ConfirmEmailAddresses)
+                    .Returns(true);
+
+                // Arrange
+                var authUser = auth.Register(
+                    "theUsername",
+                    "thePassword",
+                    "theEmailAddress");
+
+                // Assert
+                Assert.True(auth.Entities.Users.Contains(authUser.User));
+                auth.Entities.VerifyCommitChanges();
+
+                Assert.NotNull(authUser.User.EmailConfirmationToken);
+                Assert.False(authUser.User.Confirmed);
+            }
+
+            [Fact]
+            public void SetsCreatedDate()
+            {
+                // Arrange
+                var auth = Get<AuthenticationService>();
+
+                // Arrange
+                var authUser = auth.Register(
+                    "theUsername",
+                    "thePassword",
+                    "theEmailAddress");
+
+                // Assert
+                Assert.True(auth.Entities.Users.Contains(authUser.User));
+                auth.Entities.VerifyCommitChanges();
+
+                // Allow for up to 5 secs of time to have elapsed between Create call and now. Should be plenty
+                Assert.True((DateTime.UtcNow - authUser.User.CreatedUtc) < TimeSpan.FromSeconds(5));
+            }
+        }
+
+        public class TheReplaceCredentialMethod : TestContainer
+        {
+            [Fact]
+            public void ThrowsExceptionIfNoUserWithProvidedUserName()
+            {
+                // Arrange
+                var service = Get<AuthenticationService>();
+                
+                // Act
+                var ex = Assert.Throws<InvalidOperationException>(() =>
+                    service.ReplaceCredential("definitelyNotARealUser", new Credential()));
+
+                // Assert
+                Assert.Equal(Strings.UserNotFound, ex.Message);
+            }
+
+            [Fact]
+            public void AddsNewCredentialIfNoneWithSameTypeForUser()
+            {
+                // Arrange
+                var existingCred = new Credential("foo", "bar");
+                var newCred = new Credential("baz", "boz");
+                var user = Fakes.CreateUser("foo", existingCred);
+                var service = Get<AuthenticationService>();
+                service.Entities.Users.Add(user);
+
+                // Act
+                service.ReplaceCredential(user.Username, newCred);
+
+                // Assert
+                Assert.Equal(new[] { existingCred, newCred }, user.Credentials.ToArray());
+                service.Entities.VerifyCommitChanges();
+            }
+
+            [Fact]
+            public void ReplacesExistingCredentialIfOneWithSameTypeExistsForUser()
+            {
+                // Arrange
+                var frozenCred = new Credential("foo", "bar");
+                var existingCred = new Credential("baz", "bar");
+                var newCred = new Credential("baz", "boz");
+                var user = Fakes.CreateUser("foo", existingCred, frozenCred);
+                var service = Get<AuthenticationService>();
+                service.Entities.Users.Add(user);
+
+                // Act
+                service.ReplaceCredential(user.Username, newCred);
+
+                // Assert
+                Assert.Equal(new[] { frozenCred, newCred }, user.Credentials.ToArray());
+                Assert.DoesNotContain(existingCred, service.Entities.Credentials);
+                service.Entities.VerifyCommitChanges();
+            }
+        }
+
+        public class TheResetPasswordWithTokenMethod : TestContainer
+        {
+            [Fact]
+            public void ReturnsFalseIfUserNotFound()
+            {
+                // Arrange
+                var authService = Get<AuthenticationService>();
+                
+                // Act
+                bool result = authService.ResetPasswordWithToken("definitelyAFakeUser", "some-token", "new-password");
+
+                // Assert
+                Assert.False(result);
+            }
+
+            [Fact]
+            public void ThrowsExceptionIfUserNotConfirmed()
+            {
+                // Arrange
+                var user = new User
+                {
+                    Username = "tempUser",
+                    PasswordResetToken = "some-token",
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
+                };
+                var authService = Get<AuthenticationService>();
+                authService.Entities.Users.Add(user);
+
+                // Act/Assert
+                Assert.Throws<InvalidOperationException>(() => authService.ResetPasswordWithToken("tempUser", "some-token", "new-password"));
+            }
+
+            [Fact]
+            public void ResetsPasswordCredential()
+            {
+                // Arrange
+                var oldCred = CredentialBuilder.CreatePbkdf2Password("thePassword");
+                var user = new User
+                {
+                    Username = "user",
+                    EmailAddress = "confirmed@example.com",
+                    PasswordResetToken = "some-token",
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1),
+                    Credentials = new List<Credential>() { oldCred }
+                };
+
+                var authService = Get<AuthenticationService>();
+                authService.Entities.Users.Add(user);
+
+                // Act
+                bool result = authService.ResetPasswordWithToken("user", "some-token", "new-password");
+
+                // Assert
+                Assert.True(result);
+                var newCred = user.Credentials.Single();
+                Assert.Equal(CredentialTypes.Password.Pbkdf2, newCred.Type);
+                Assert.True(VerifyPasswordHash(newCred.Value, Constants.PBKDF2HashAlgorithmId, "new-password"));
+                authService.Entities.VerifyCommitChanges();
+            }
+
+            [Fact]
+            public void ResetsPasswordMigratesPasswordHash()
+            {
+                var oldCred = CredentialBuilder.CreateSha1Password("thePassword");
+                var user = new User
+                {
+                    Username = "user",
+                    EmailAddress = "confirmed@example.com",
+                    PasswordResetToken = "some-token",
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1),
+                    Credentials = new List<Credential>() { oldCred }
+                };
+
+                var authService = Get<AuthenticationService>();
+                authService.Entities.Users.Add(user);
+
+                bool result = authService.ResetPasswordWithToken("user", "some-token", "new-password");
+
+                // Assert
+                Assert.True(result);
+                var newCred = user.Credentials.Single();
+                Assert.Equal(CredentialTypes.Password.Pbkdf2, newCred.Type);
+                Assert.True(VerifyPasswordHash(newCred.Value, Constants.PBKDF2HashAlgorithmId, "new-password"));
+                authService.Entities.VerifyCommitChanges();
+            }
+        }
+
+        public class TheGeneratePasswordResetTokenMethod : TestContainer
+        {
+            [Fact]
+            public void ReturnsNullIfEmailIsNotFound()
+            {
+                // Arrange
+                var authService = Get<AuthenticationService>();
+
+                // Act
+                var token = authService.GeneratePasswordResetToken("nobody@nowhere.com", 1440);
+
+                // Assert
+                Assert.Null(token);
+            }
+
+            [Fact]
+            public void ThrowsExceptionIfUserIsNotConfirmed()
+            {
+                // Arrange
+                var user = new User("user") { UnconfirmedEmailAddress = "unique@example.com" };
+                var authService = Get<AuthenticationService>();
+                authService.Entities.Users.Add(user);
+
+                // Act/Assert
+                Assert.Throws<InvalidOperationException>(() => authService.GeneratePasswordResetToken(user.Username, 1440));
+            }
+
+            [Fact]
+            public void SetsPasswordResetTokenUsingEmail()
+            {
+                // Arrange
+                var user = new User
+                {
+                    Username = "user",
+                    EmailAddress = "unique@example.com",
+                    PasswordResetToken = null
+                };
+                var authService = Get<AuthenticationService>();
+                authService.Entities.Users.Add(user);
+                var currentDate = DateTime.UtcNow;
+
+                // Act
+                var returnedUser = authService.GeneratePasswordResetToken(user.EmailAddress, 1440);
+
+                // Assert
+                Assert.Same(user, returnedUser);
+                Assert.NotNull(user.PasswordResetToken);
+                Assert.NotEmpty(user.PasswordResetToken);
+                Assert.True(user.PasswordResetTokenExpirationDate >= currentDate.AddMinutes(1440));
+            }
+
+            [Fact]
+            public void WithExistingNotYetExpiredTokenReturnsExistingToken()
+            {
+                // Arrange
+                var user = new User
+                {
+                    Username = "user",
+                    EmailAddress = "unique@example.com",
+                    PasswordResetToken = "existing-token",
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
+                };
+                var authService = Get<AuthenticationService>();
+                authService.Entities.Users.Add(user);
+
+                // Act
+                var returnedUser = authService.GeneratePasswordResetToken(user.EmailAddress, 1440);
+
+                // Assert
+                Assert.Same(user, returnedUser);
+                Assert.Equal("existing-token", user.PasswordResetToken);
+            }
+
+            [Fact]
+            public void WithExistingExpiredTokenReturnsNewToken()
+            {
+                // Arrange
+                var user = new User
+                {
+                    Username = "user",
+                    EmailAddress = "unique@example.com",
+                    PasswordResetToken = "existing-token",
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMilliseconds(-1)
+                };
+                var authService = Get<AuthenticationService>();
+                authService.Entities.Users.Add(user);
+                var currentDate = DateTime.UtcNow;
+
+                // Act
+                var returnedUser = authService.GeneratePasswordResetToken(user.EmailAddress, 1440);
+
+                // Assert
+                Assert.Same(user, returnedUser);
+                Assert.NotEmpty(user.PasswordResetToken);
+                Assert.NotEqual("existing-token", user.PasswordResetToken);
+                Assert.True(user.PasswordResetTokenExpirationDate >= currentDate.AddMinutes(1440));
             }
         }
     }

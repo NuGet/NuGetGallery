@@ -19,16 +19,9 @@ namespace NuGetGallery.Framework
 {
     internal class UnitTestBindings : NinjectModule
     {
-        internal static IKernel CreateContainer()
+        internal static IKernel CreateContainer(bool autoMock)
         {
-            var kernel = new TestKernel(new UnitTestBindings());
-            return kernel;
-        }
-
-        internal static IKernel CreateContainer<TUnderTest>()
-        {
-            var kernel = new TestKernel(new UnitTestBindings());
-            kernel.Bind<TUnderTest>().ToSelf();
+            var kernel = autoMock ? new TestKernel(new UnitTestBindings()) : new StandardKernel(new UnitTestBindings());
             return kernel;
         }
 

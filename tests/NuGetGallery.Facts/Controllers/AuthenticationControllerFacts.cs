@@ -5,6 +5,8 @@ using Moq;
 using Xunit;
 using System.Net.Mail;
 using NuGetGallery.Framework;
+using NuGetGallery.Authentication;
+using Microsoft.Owin;
 
 namespace NuGetGallery.Controllers
 {
@@ -16,10 +18,13 @@ namespace NuGetGallery.Controllers
             public void WillLogTheUserOff()
             {
                 var controller = GetController<AuthenticationController>();
+                var mockContext = new Mock<IOwinContext>();
+                mockContext.Setup(c => c.Authentication.SignOut()).Verifiable();
+                controller.OwinContext = mockContext.Object;
 
                 controller.LogOff("theReturnUrl");
 
-                GetMock<IFormsAuthenticationService>().Verify(x => x.SignOut());
+                mockContext.VerifyAll();
             }
 
             [Fact]
@@ -51,93 +56,77 @@ namespace NuGetGallery.Controllers
             [Fact]
             public void CanLogTheUserOnWithUserName()
             {
+                // Arrange
+                var authUser = new AuthenticatedUser(
+                    new User("theUsername") { EmailAddress = "confirmed@example.com" },
+                    new Credential() { Type = "Foo" });
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Authenticate(authUser.User.Username, "thePassword"))
+                    .Returns(authUser);
                 var controller = GetController<AuthenticationController>();
-                var user = new User("theUsername") { EmailAddress = "confirmed@example.com" };
-                GetMock<IUserService>()
-                    .Setup(x => x.FindByUsernameOrEmailAddressAndPassword("theUsername", "thePassword"))
-                    .Returns(user);
-
+                
+                // Act
                 controller.SignIn(
-                    new SignInRequest { UserNameOrEmail = "theUsername", Password = "thePassword" },
+                    new SignInRequest { UserNameOrEmail = authUser.User.Username, Password = "thePassword" },
                     "theReturnUrl");
 
-                GetMock<IFormsAuthenticationService>().Verify(
-                    x => x.SetAuthCookie(
-                        "theUsername",
-                        true,
-                        null));
+                // Assert
+                GetMock<AuthenticationService>()
+                    .Verify(a => a.CreateSession(It.IsAny<IOwinContext>(), authUser));
             }
 
             [Fact]
             public void CanLogTheUserOnWithEmailAddress()
             {
+                // Arrange
+                var authUser = new AuthenticatedUser(
+                    new User("theUsername") { EmailAddress = "confirmed@example.com" },
+                    new Credential() { Type = "Foo" });
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
+                    .Returns(authUser);
                 var controller = GetController<AuthenticationController>();
-                var user = new User("theUsername") { EmailAddress = "confirmed@example.com" };
-                GetMock<IUserService>()
-                    .Setup(x => x.FindByUsernameOrEmailAddressAndPassword("confirmed@example.com", "thePassword"))
-                    .Returns(user);
-
+                
+                // Act
                 controller.SignIn(
                     new SignInRequest { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" },
                     "theReturnUrl");
 
-                GetMock<IFormsAuthenticationService>().Verify(
-                    x => x.SetAuthCookie(
-                        "theUsername",
-                        true,
-                        null));
+                // Assert
+                GetMock<AuthenticationService>()
+                    .Verify(a => a.CreateSession(It.IsAny<IOwinContext>(), authUser));
             }
 
             [Fact]
             public void WillLogTheUserOnWithUsernameEvenWithoutConfirmedEmailAddress()
             {
+                // Arrange
+                var authUser = new AuthenticatedUser(
+                    new User("theUsername") { UnconfirmedEmailAddress = "unconfirmed@example.com" },
+                    new Credential() { Type = "Foo" });
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
+                    .Returns(authUser);
                 var controller = GetController<AuthenticationController>();
-                var user = new User { Key = 42, Username = "theUsername", UnconfirmedEmailAddress = "anAddress@email.org" };
-                GetMock<IUserService>()
-                    .Setup(x => x.FindByUsernameOrEmailAddressAndPassword("theUsername", "thePassword"))
-                    .Returns(user);
-
+                
+                // Act
                 controller.SignIn(
                     new SignInRequest { UserNameOrEmail = "theUsername", Password = "thePassword" },
                     "theReturnUrl");
 
-                GetMock<IFormsAuthenticationService>()
-                    .Verify(
-                        x => x.SetAuthCookie(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<IEnumerable<string>>()));
-            }
-
-            [Fact]
-            public void WillLogTheUserOnWithRoles()
-            {
-                var controller = GetController<AuthenticationController>();
-                var user = new User("theUsername")
-                {
-                    Roles = new[] { new Role { Name = "Administrators" } },
-                    EmailAddress = "confirmed@example.com"
-                };
-                GetMock<IUserService>()
-                    .Setup(x => x.FindByUsernameOrEmailAddressAndPassword("theUsername", "thePassword"))
-                    .Returns(user);
-
-                controller.SignIn(
-                    new SignInRequest { UserNameOrEmail = "theUsername", Password = "thePassword" },
-                    "theReturnUrl");
-
-                GetMock<IFormsAuthenticationService>().Verify(
-                    x => x.SetAuthCookie(
-                        "theUsername",
-                        true,
-                        new[] { "Administrators" }));
+                // Assert
+                GetMock<AuthenticationService>()
+                    .Verify(a => a.CreateSession(It.IsAny<IOwinContext>(), authUser));
             }
 
             [Fact]
             public void WillInvalidateModelStateAndShowTheViewWithErrorsWhenTheUsernameAndPasswordAreNotValid()
             {
-                var controller = GetController<AuthenticationController>();
-                GetMock<IUserService>()
-                    .Setup(x => x.FindByUsernameOrEmailAddressAndPassword(It.IsAny<string>(), It.IsAny<string>()))
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Authenticate(It.IsAny<string>(), It.IsAny<string>()))
                     .ReturnsNull();
-
+                var controller = GetController<AuthenticationController>();
+                
                 var result = controller.SignIn(new SignInRequest(), "theReturnUrl") as ViewResult;
 
                 Assert.NotNull(result);
@@ -147,16 +136,39 @@ namespace NuGetGallery.Controllers
             }
             
             [Fact]
-            public void WillRedirectToTheReturnUrl()
+            public void WillRedirectToHomeIfReturnUrlNotLocal()
             {
+                var authUser = new AuthenticatedUser(
+                    new User("theUsername") { UnconfirmedEmailAddress = "unconfirmed@example.com" },
+                    new Credential() { Type = "Foo" });
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
+                    .Returns(authUser);
                 var controller = GetController<AuthenticationController>();
-                GetMock<IUserService>()
-                    .Setup(x => x.FindByUsernameOrEmailAddressAndPassword(It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns(new User("theUsername") { EmailAddress = "confirmed@example.com" });
-
-                var result = controller.SignIn(new SignInRequest(), "theReturnUrl");
+                
+                var result = controller.SignIn(
+                    new SignInRequest { UserNameOrEmail = "theUsername", Password = "thePassword" }, 
+                    "http://www.microsoft.com");
 
                 ResultAssert.IsRedirectTo(result, "/");
+            }
+            
+            [Fact]
+            public void WillRedirectToTheReturnUrlIfLocal()
+            {
+                var authUser = new AuthenticatedUser(
+                    new User("theUsername") { UnconfirmedEmailAddress = "unconfirmed@example.com" },
+                    new Credential() { Type = "Foo" });
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
+                    .Returns(authUser);
+                var controller = GetController<AuthenticationController>();
+                
+                var result = controller.SignIn(
+                    new SignInRequest { UserNameOrEmail = "theUsername", Password = "thePassword" }, 
+                    "/packages/upload");
+
+                ResultAssert.IsRedirectTo(result, "/packages/upload");
             }
         }
 
@@ -177,14 +189,14 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public void WillCreateTheUser()
+            public void WillCreateAndLogInTheUser()
             {
+                var authUser = new AuthenticatedUser(new User("theUsername"), new Credential());
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Register(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(authUser);
                 var controller = GetController<AuthenticationController>();
-                var user = new User("theUsername");
-                GetMock<IUserService>()
-                    .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns(user);
-
+                
                 controller.Register(
                     new RegisterRequest
                     {
@@ -193,18 +205,20 @@ namespace NuGetGallery.Controllers
                         EmailAddress = "theEmailAddress",
                     }, null);
 
-                GetMock<IUserService>()
-                    .Verify(x => x.Create("theUsername", "thePassword", "theEmailAddress"));
+                GetMock<AuthenticationService>()
+                    .Verify(x => x.Register("theUsername", "thePassword", "theEmailAddress"));
+                GetMock<AuthenticationService>()
+                    .Verify(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser));
             }
 
             [Fact]
             public void WillInvalidateModelStateAndShowTheViewWhenAnEntityExceptionIsThrow()
             {
-                var controller = GetController<AuthenticationController>();
-                GetMock<IUserService>()
-                    .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Register(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Throws(new EntityException("aMessage"));
-
+                var controller = GetController<AuthenticationController>();
+                
                 var request = new RegisterRequest
                 {
                     Username = "theUsername",
@@ -221,12 +235,12 @@ namespace NuGetGallery.Controllers
             [Fact]
             public void WillRedirectToTheReturnUrl()
             {
-                var controller = GetController<AuthenticationController>();
                 var user = new User("theUsername") { UnconfirmedEmailAddress = "unconfirmed@example.com" };
-                GetMock<IUserService>()
-                    .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns(user);
-
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Register("theUsername", "thepassword", "unconfirmed@example.com"))
+                    .Returns(new AuthenticatedUser(user, new Credential()));
+                var controller = GetController<AuthenticationController>();
+                
                 var result = controller.Register(new RegisterRequest
                     {
                         EmailAddress = "unconfirmed@example.com",
