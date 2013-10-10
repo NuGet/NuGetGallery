@@ -94,6 +94,12 @@
     <None Include="NuGetGallery.Monitoring.Azure.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGetGallery.Monitoring\NuGetGallery.Monitoring.csproj">
+      <Project>{dff0089e-4918-4a12-992b-b9dd2c070b0f}</Project>
+      <Name>NuGetGallery.Monitoring</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <Import Project="..\..\packages\Microsoft.Bcl.Build.1.0.10\tools\Microsoft.Bcl.Build.targets" Condition="Exists('..\..\packages\Microsoft.Bcl.Build.1.0.10\tools\Microsoft.Bcl.Build.targets')" />
