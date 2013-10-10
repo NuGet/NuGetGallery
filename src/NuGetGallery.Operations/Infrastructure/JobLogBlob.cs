@@ -11,13 +11,15 @@ namespace NuGetGallery.Operations.Infrastructure
 {
     public class JobLogBlob
     {
-        private static readonly Regex BlobNameParser = new Regex(@"^(?<deployment>[^/]*)/(?<role>[^/]*)/(?<instance>[^/]*)/(?<job>[^\.]*)(\.(?<timestamp>\d{4}\-\d{2}\-\d{2}))?(\.(?<seq>\d+))?\.log\.json$");
+        private static readonly Regex BlobNameParser = new Regex(@"^(?<deployment>[^/]*)/(?<role>[^/]*)/(?<instance>[^/]*)/(?<job>[^\.]*)\.(?<timestamp>\d{4}\-\d{2}\-\d{2}(\-\d{4})?)\.log\.json$");
+        private const string HourTimeStamp = "yyyy-MM-dd-HHmm";
+        private const string DayTimeStamp = "yyyy-MM-dd";
 
         // Bob Lobwlaw's Job Log Blob!
         public CloudBlockBlob Blob { get; private set; }
 
         public string JobName { get; private set; }
-        public DateTime? ArchiveTimestamp { get; private set; }
+        public DateTime ArchiveTimestamp { get; private set; }
         
         public JobLogBlob(CloudBlockBlob blob)
         {
@@ -32,10 +34,18 @@ namespace NuGetGallery.Operations.Infrastructure
 
             // Grab the chunks we care about
             JobName = parsed.Groups["job"].Value;
-            if (parsed.Groups["timestamp"].Success)
+
+            string format = DayTimeStamp;
+            if (parsed.Groups[1].Success)
             {
-                ArchiveTimestamp = DateTime.ParseExact(parsed.Groups["timestamp"].Value, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                // Has an hour portion!
+                format = HourTimeStamp;
             }
+
+            ArchiveTimestamp = DateTime.ParseExact(
+                parsed.Groups["timestamp"].Value, 
+                format, 
+                CultureInfo.InvariantCulture);
         }
     }
 }

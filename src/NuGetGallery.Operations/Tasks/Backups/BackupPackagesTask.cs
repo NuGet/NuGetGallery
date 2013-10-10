@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -139,6 +140,7 @@ namespace NuGetGallery.Operations
             WriteStateFile(backupClient, state);
         }
 
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification="StreamReader will leave the stream open.")]
         private State GetStateFile(CloudBlobClient backupClient)
         {
             var container = backupClient.GetContainerReference("package-backups");
@@ -171,7 +173,8 @@ namespace NuGetGallery.Operations
             }
         }
 
-        private void WriteStateFile(CloudBlobClient backupClient, State state)
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "StreamReader will leave the stream open.")]
+        private static void WriteStateFile(CloudBlobClient backupClient, State state)
         {
             var container = backupClient.GetContainerReference("package-backups");
             container.CreateIfNotExists();

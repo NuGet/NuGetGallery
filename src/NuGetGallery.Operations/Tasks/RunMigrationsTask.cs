@@ -112,7 +112,7 @@ namespace NuGetGallery.Operations.Tasks
             Log.Info("All requested migrations applied");
         }
 
-        private bool IsMigration(string migrationId, string target)
+        private static bool IsMigration(string migrationId, string target)
         {
             // Get the shortname
             var match = MigrationIdRegex.Match(migrationId);

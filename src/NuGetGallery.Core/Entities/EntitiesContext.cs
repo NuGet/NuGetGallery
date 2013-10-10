@@ -55,6 +55,12 @@ namespace NuGetGallery
 #pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Credential>()
+                .HasKey(c => c.Key)
+                .HasRequired(c => c.User)
+                    .WithMany(u => u.Credentials)
+                    .HasForeignKey(c => c.UserKey);
+
             modelBuilder.Entity<PackageLicenseReport>()
                 .HasKey(r => r.Key)
                 .HasMany(r => r.Licenses)

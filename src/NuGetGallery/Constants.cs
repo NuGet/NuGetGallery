@@ -32,6 +32,9 @@
 
         public static readonly string ReturnUrlViewDataKey = "ReturnUrl";
 
+        public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";
+        public const string UrlValidationErrorMessage = "This doesn't appear to be a valid HTTP/HTTPS URL";
+
         public static class ContentNames
         {
             public static readonly string FrontPageAnnouncement = "FrontPage-Announcement";
@@ -42,8 +45,16 @@
             public static readonly string TermsOfUse = "Terms-Of-Use";
             public static readonly string PrivacyPolicy = "Privacy-Policy";
         }
+    }
 
-        public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";
-        public const string UrlValidationErrorMessage = "This doesn't appear to be a valid HTTP/HTTPS URL";
+    public static class CredentialTypes
+    {
+        public static class Password
+        {
+            public static readonly string Prefix = "password.";
+            public static readonly string Pbkdf2 = Prefix + "pbkdf2";
+            public static readonly string Sha1 = Prefix + "sha1";
+        }
+        public static readonly string ApiKeyV1 = "apikey.v1";
     }
 }

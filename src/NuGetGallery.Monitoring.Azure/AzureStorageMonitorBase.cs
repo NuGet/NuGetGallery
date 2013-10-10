@@ -33,7 +33,7 @@ namespace NuGetGallery.Monitoring.Azure
             SharedAccessSignature = sharedAccessSignature;
         }
 
-        private Uri GetFullEndpoint(string accountName, string type, bool useHttps)
+        private static Uri GetFullEndpoint(string accountName, string type, bool useHttps)
         {
             return new Uri(String.Format("{0}://{1}.{2}.core.windows.net", useHttps ? "https" : "http", accountName, type));
         }

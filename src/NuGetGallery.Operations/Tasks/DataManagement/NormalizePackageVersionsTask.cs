@@ -43,21 +43,8 @@ namespace NuGetGallery.Operations.Tasks.DataManagement
 
                 DataTable output;
                 int count = 0;
-                try
+                WithTableType(c, "Temp_NormalizePackageVersionsInputType", "PackageKey int, NormalizedVersion nvarchar(64)", () =>
                 {
-                    // Create a table-type for the query
-                    db.Execute(@"
-                        IF EXISTS (
-                            SELECT * 
-                            FROM sys.types 
-                            WHERE is_table_type = 1 
-                            AND name = 'Temp_NormalizePackageVersionsInputType'
-                        )
-                        BEGIN
-                            DROP TYPE Temp_NormalizePackageVersionsInputType
-                        END
-                        CREATE TYPE Temp_NormalizePackageVersionsInputType AS TABLE(PackageKey int, NormalizedVersion nvarchar(64))");
-
                     // Build a table to hold the new data
                     var updateTable = new DataTable();
                     updateTable.Columns.Add(new DataColumn("PackageKey", typeof(int)));
@@ -83,13 +70,12 @@ namespace NuGetGallery.Operations.Tasks.DataManagement
                     Log.Trace("Updating Database...");
                     var reader = cmd.ExecuteReader();
                     Log.Trace("Database Update Complete");
-                    
+
                     // Load the results into a datatable and render them
                     output = new DataTable();
                     output.Load(reader);
                     foreach (var row in output.Rows.Cast<DataRow>())
                     {
-                        string id = row.Field<string>("Id");
                         string version = row.Field<string>("Version");
                         string normalized = row.Field<string>("NormalizedVersion");
                         if (!String.Equals(version, normalized, StringComparison.Ordinal))
@@ -98,18 +84,7 @@ namespace NuGetGallery.Operations.Tasks.DataManagement
                         }
                     }
                     Log.Info("Updated {0} packages", count);
-                }
-                finally
-                {
-                    // Clean up the type
-                    db.Execute(@"
-                        IF EXISTS (
-                            SELECT * 
-                            FROM sys.types 
-                            WHERE is_table_type = 1 
-                            AND name = 'Temp_NormalizePackageVersionsInputType'
-                        ) DROP TYPE Temp_NormalizePackageVersionsInputType");
-                }
+                });
             });
         }
     }

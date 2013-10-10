@@ -53,7 +53,7 @@ namespace NuGetGallery.Operations
             Log.Info("Exporting {0} on {1} to {2}", ConnectionString.InitialCatalog, Util.GetDatabaseServerName(ConnectionString), DestinationStorage.Credentials.AccountName);
 
             string serverName = ConnectionString.DataSource;
-            if (serverName.StartsWith("tcp:"))
+            if (serverName.StartsWith("tcp:", StringComparison.OrdinalIgnoreCase))
             {
                 serverName = serverName.Substring(4);
             }
@@ -89,7 +89,7 @@ namespace NuGetGallery.Operations
                 }
             }
 
-            Log.Info("Export Complete");
+            Log.Info("Exported to {0}", blobUrl);
         }
     }
 }
