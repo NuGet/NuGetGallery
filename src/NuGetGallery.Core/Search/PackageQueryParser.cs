@@ -9,7 +9,11 @@ namespace NuGetGallery
     {
         static IDictionary<string, string> Alternatives = new Dictionary<string, string>
         {
-            { "author", "Authors" },
+            { "id", "Id" },
+            { "version", "Version" },
+            { "tokenizedid", "TokenizedId" },
+            { "title", "Title" },
+            { "description", "Description" },
             { "owner", "Owners" },
             { "tag", "Tags" },
             { "authors", "Authors" },

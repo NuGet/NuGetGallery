@@ -47,6 +47,9 @@
     <Reference Include="Lucene.Net">
       <HintPath>..\..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\packages\Newtonsoft.Json.5.0.6\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="NuGet.Core, Version=2.7.40808.167, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Nuget.Core.2.7.0.1\lib\net40-Client\NuGet.Core.dll</HintPath>
@@ -100,6 +103,10 @@
     <Compile Include="Search\CamelCaseFilter.cs" />
     <Compile Include="Search\IdentifierKeywordAnalyzer.cs" />
     <Compile Include="Search\PackageQueryParser.cs" />
+    <Compile Include="Search\PackageSearcherManager.cs" />
+    <Compile Include="Search\RankingBoostingQuery.cs" />
+    <Compile Include="Search\Searcher.cs" />
+    <Compile Include="Search\SearcherManager.cs" />
     <Compile Include="Search\SemanticVersionFilter.cs" />
     <Compile Include="Search\TagsAnalyzer.cs" />
     <Compile Include="Search\PackageAnalyzer.cs" />
