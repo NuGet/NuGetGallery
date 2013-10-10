@@ -25,7 +25,7 @@ namespace NuGetGallery.Filters
             }
 
             var controller = filterContext.Controller;
-            string apiKeyStr = (string)filterContext.ActionParameters["apiKey"];
+            string apiKeyStr = (string)((Controller)controller).RouteData.Values["apiKey"];
             filterContext.Result = CheckForResult(apiKeyStr);
         }
 
@@ -36,17 +36,13 @@ namespace NuGetGallery.Filters
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKeyStr));
             }
 
-            Guid apiKey;
-            try
-            {
-                apiKey = new Guid(apiKeyStr);
-            }
-            catch
+            Guid _;
+            if (!Guid.TryParse(apiKeyStr, out _))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKeyStr));
             }
 
-            User user = UserService.FindByApiKey(apiKey);
+            User user = GetUserByApiKey(apiKeyStr);
             if (user == null)
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
@@ -58,6 +54,24 @@ namespace NuGetGallery.Filters
             }
 
             return null;
+        }
+
+        // Temporary helper, not necessary after removing the old credential storage
+        private User GetUserByApiKey(string apiKey)
+        {
+            var cred = UserService.AuthenticateCredential(CredentialTypes.ApiKeyV1, apiKey.ToLowerInvariant());
+            User user;
+            if (cred == null)
+            {
+#pragma warning disable 0618
+                user = UserService.FindByApiKey(Guid.Parse(apiKey));
+#pragma warning restore 0618
+            }
+            else
+            {
+                user = cred.User;
+            }
+            return user;
         }
     }
 }
