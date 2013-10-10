@@ -7,7 +7,7 @@ namespace NuGetGallery.ViewModels
 {
     public class HomeViewModel
     {
-        public HtmlString Announcement { get; set; }
-        public HtmlString About { get; set; }
+        public IHtmlString Announcement { get; set; }
+        public IHtmlString About { get; set; }
     }
 }

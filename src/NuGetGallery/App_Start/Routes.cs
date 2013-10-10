@@ -12,7 +12,27 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.Home,
                 "",
-                new { controller = MVC.Pages.Name, action = "Home" }); // T4MVC doesn't work with Async Action
+                new { controller = "ContentPages", action = "Home" });
+
+            routes.MapRoute(
+                "ContentPages",
+                "content/{name}",
+                new { controller = "ContentPages", action = "Page" });
+
+            routes.MapRoute(
+                "Contact",
+                "policies/Contact",
+                new { controller = "ContentPages", action = "Page", name = "Contact-Us" });
+
+            routes.MapRoute(
+                "Terms",
+                "policies/Terms",
+                new { controller = "ContentPages", action = "Page", name = "Terms-Of-Use" });
+
+            routes.MapRoute(
+                "Privacy",
+                "policies/Privacy",
+                new { controller = "ContentPages", action = "Page", name = "Privacy-Policy" });
 
             routes.MapRoute(
                 RouteName.StatisticsHome,
@@ -45,11 +65,6 @@ namespace NuGetGallery
                 new { controller = MVC.Statistics.Name, action = "PackageDownloadsByVersion" });
            
             routes.Add(new JsonRoute("json/{controller}"));
-
-            routes.MapRoute(
-                RouteName.Policies,
-                "policies/{action}",
-                new { controller = MVC.Pages.Name });
 
             var packageListRoute = routes.MapRoute(
                 RouteName.ListPackages,

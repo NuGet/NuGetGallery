@@ -21,9 +21,9 @@ using System.Web.Mvc.Html;
 using System.Web.Routing;
 using T4MVC;
 namespace NuGetGallery {
-    public partial class PagesController {
+    public partial class ContentPagesController {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        protected PagesController(Dummy d) { }
+        protected ContentPagesController(Dummy d) { }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected RedirectToRouteResult RedirectToAction(ActionResult result) {
@@ -33,18 +33,17 @@ namespace NuGetGallery {
 
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public PagesController Actions { get { return MVC.Pages; } }
+        public ContentPagesController Actions { get { return MVC.ContentPages; } }
         [GeneratedCode("T4MVC", "2.0")]
         public readonly string Area = "";
         [GeneratedCode("T4MVC", "2.0")]
-        public readonly string Name = "Pages";
+        public readonly string Name = "ContentPages";
 
         static readonly ActionNamesClass s_actions = new ActionNamesClass();
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
-            public readonly string Contact = "Contact";
         }
 
 
@@ -53,21 +52,13 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
-            public readonly string Contact = "~/Views/Pages/Contact.cshtml";
-            public readonly string Home = "~/Views/Pages/Home.cshtml";
-            public readonly string Privacy = "~/Views/Pages/Privacy.cshtml";
-            public readonly string Terms = "~/Views/Pages/Terms.cshtml";
+            public readonly string Page = "~/Views/ContentPages/Page.cshtml";
         }
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-    public class T4MVC_PagesController: NuGetGallery.PagesController {
-        public T4MVC_PagesController() : base(Dummy.Instance) { }
-
-        public override System.Web.Mvc.ActionResult Contact() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Contact);
-            return callInfo;
-        }
+    public class T4MVC_ContentPagesController: NuGetGallery.ContentPagesController {
+        public T4MVC_ContentPagesController() : base(Dummy.Instance) { }
 
     }
 }

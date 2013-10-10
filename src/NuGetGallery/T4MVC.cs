@@ -27,11 +27,11 @@ public static class MVC {
     public static AdminClass Admin { get { return s_Admin; } }
     public static NuGetGallery.ApiController Api = new NuGetGallery.T4MVC_ApiController();
     public static NuGetGallery.AuthenticationController Authentication = new NuGetGallery.T4MVC_AuthenticationController();
+    public static NuGetGallery.ContentPagesController ContentPages = new NuGetGallery.T4MVC_ContentPagesController();
     public static NuGetGallery.CuratedFeedsController CuratedFeeds = new NuGetGallery.T4MVC_CuratedFeedsController();
     public static NuGetGallery.CuratedPackagesController CuratedPackages = new NuGetGallery.T4MVC_CuratedPackagesController();
     public static NuGetGallery.JsonApiController JsonApi = new NuGetGallery.T4MVC_JsonApiController();
     public static NuGetGallery.PackagesController Packages = new NuGetGallery.T4MVC_PackagesController();
-    public static NuGetGallery.PagesController Pages = new NuGetGallery.T4MVC_PagesController();
     public static NuGetGallery.StatisticsController Statistics = new NuGetGallery.T4MVC_StatisticsController();
     public static NuGetGallery.UsersController Users = new NuGetGallery.T4MVC_UsersController();
     public static T4MVC.SharedController Shared = new T4MVC.SharedController();
