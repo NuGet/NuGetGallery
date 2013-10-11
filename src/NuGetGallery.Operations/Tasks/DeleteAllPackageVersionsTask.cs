@@ -7,6 +7,9 @@ namespace NuGetGallery.Operations
     [Command("deletefullpackage", "Delete all versions of the specified package", AltName = "dfp")]
     public class DeleteAllPackageVersionsTask : DatabaseAndStorageTask
     {
+        [Option("Storage account in which to place audit records and backups, usually provided by the environment")]
+        public CloudStorageAccount BackupStorage { get; set; }
+
         [Option("The ID of the package", AltName = "p")]
         public string PackageId { get; set; }
 
@@ -16,6 +19,13 @@ namespace NuGetGallery.Operations
         public override void ValidateArguments()
         {
             base.ValidateArguments();
+
+            if (BackupStorage == null && CurrentEnvironment != null)
+            {
+                BackupStorage = CurrentEnvironment.BackupStorage;
+            }
+            ArgCheck.RequiredOrConfig(BackupStorage, "BackupStorage");
+
             ArgCheck.Required(PackageId, "PackageId");
         }
 
@@ -41,15 +51,14 @@ namespace NuGetGallery.Operations
                 {
                     var task = new DeletePackageVersionTask {
                         ConnectionString = ConnectionString,
-                        ConfigFile = ConfigFile,
-                        EnvironmentName = EnvironmentName,
+                        BackupStorage = BackupStorage,
                         StorageAccount = StorageAccount,
                         PackageId = package.Id,
                         PackageVersion = package.Version,
                         Reason = Reason,
                         WhatIf = WhatIf
                     };
-                    task.Execute();
+                    task.ExecuteCommand();
                 }
 
                 Log.Info(
