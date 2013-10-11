@@ -15,6 +15,11 @@ namespace NuGetGallery
                 new { controller = "ContentPages", action = "Home" });
 
             routes.MapRoute(
+                "Errors",
+                "errors/{name}",
+                new { controller = "Errors", action = "Page" });
+
+            routes.MapRoute(
                 "ContentPages",
                 "content/{name}",
                 new { controller = "ContentPages", action = "Page" });

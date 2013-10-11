@@ -30,6 +30,7 @@ public static class MVC {
     public static NuGetGallery.ContentPagesController ContentPages = new NuGetGallery.T4MVC_ContentPagesController();
     public static NuGetGallery.CuratedFeedsController CuratedFeeds = new NuGetGallery.T4MVC_CuratedFeedsController();
     public static NuGetGallery.CuratedPackagesController CuratedPackages = new NuGetGallery.T4MVC_CuratedPackagesController();
+    public static NuGetGallery.Controllers.ErrorsController Errors = new NuGetGallery.Controllers.T4MVC_ErrorsController();
     public static NuGetGallery.JsonApiController JsonApi = new NuGetGallery.T4MVC_JsonApiController();
     public static NuGetGallery.PackagesController Packages = new NuGetGallery.T4MVC_PackagesController();
     public static NuGetGallery.StatisticsController Statistics = new NuGetGallery.T4MVC_StatisticsController();

@@ -374,6 +374,7 @@
     </Compile>
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ContentPagesController.cs" />
+    <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="DataServices\NormalizeVersionInterceptor.cs" />
     <Compile Include="DataServices\RewriteBaseUrlMessageInspector.cs" />
     <Compile Include="Diagnostics\AuthenticationGlimpseTab.cs" />
@@ -662,6 +663,10 @@
     <Compile Include="Diagnostics\DiagnosticsNinjectModule.cs" />
     <Compile Include="Diagnostics\GlimpseRuntimePolicy.cs" />
     <Compile Include="Filters\ApiAuthorizeAttribute.cs" />
+    <Compile Include="ErrorsController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Filters\ApiKeyAuthorizeAttribute.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Filters\RequiresAccountConfirmationAttribute.cs" />
@@ -1306,9 +1311,7 @@
     <Content Include="Views\Users\Edit.cshtml" />
     <Content Include="Views\Packages\Download.cshtml" />
     <Content Include="Views\Packages\ConfirmOwner.cshtml" />
-    <Content Include="Errors\404.cshtml" />
-    <Content Include="Errors\ErrorLayout.cshtml" />
-    <Content Include="Errors\_PageStart.cshtml" />
+    <Content Include="Views\Errors\404.cshtml" />
     <Content Include="Views\Packages\Delete.cshtml" />
     <Content Include="Views\Packages\Edit.cshtml" />
     <Content Include="Views\Packages\ManagePackageOwners.cshtml" />
@@ -1370,6 +1373,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Errors\ReadOnlyMode.cshtml" />
+    <Content Include="Diagnostics.wadcfg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Views\Errors\ReadOnlyMode.cshtml" />
     <Content Include="Areas\Admin\DynamicData\Site.master" />
     <Content Include="Areas\Admin\DynamicData\web.config" />
     <Content Include="Areas\Admin\Views\Home\Index.cshtml" />
@@ -1382,7 +1390,7 @@
     <Content Include="Areas\Admin\Views\Config\Index.cshtml" />
     <Content Include="App_Data\Files\Content\Privacy-Policy.md" />
     <Content Include="App_Data\Files\Content\Terms-Of-Use.md" />
-    <Content Include="Errors\CookieError.cshtml" />
+    <Content Include="Views\Errors\CookieError.cshtml" />
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>

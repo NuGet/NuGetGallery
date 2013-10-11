@@ -21,28 +21,7 @@
                     @Html.Partial(MVC.Shared.Views.UserDisplay)
                 </header>
                 <nav class="main">
-                    <ul id="menu">
-                        @{
-                            var homeClass = ViewBag.Tab == "Home" ? "current" : "";
-                            var packagesClass = ViewBag.Tab == "Packages" ? "current" : "";
-                            var uploadClass = ViewBag.Tab == "Upload" ? "current" : "";
-                            var statisticsClass = ViewBag.Tab == "Statistics" ? "current" : "";
-                            var adminClass = ViewBag.Tab == "Admin" ? "current" : "";
-                        }
-                        <li class="@homeClass"><a href="@Url.Home()">Home</a></li>
-                        <li class="@packagesClass"><a href="@Url.PackageList()">Packages</a></li>
-                        <li class="@uploadClass"><a href="@Url.UploadPackage()" class="upload">Upload Package</a></li>
-                        @if (StatisticsHelper.IsStatisticsPageAvailable)
-                        {
-                            <li class="@statisticsClass"><a href="@Url.Statistics()">Statistics</a></li>
-                        }
-                        @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
-                        {
-                            <li class="@adminClass"><a href="@Url.Action("Index", "Home", new { area="Admin" })">Admin</a></li>
-                        }
-                        <li><a href="http://docs.nuget.org">Documentation</a></li>
-                        <li><a href="http://blog.nuget.org">Blog</a></li>
-                    </ul>
+                    @Html.Partial( "~/Views/Shared/SiteMenu.cshtml")
                     <div id="searchBox" role="search">
                         <form action="@Url.PackageList()" method="get">
                             <input name="q" id="searchBoxInput" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" />
@@ -60,40 +39,7 @@
             </div>
             <div id="layout-footer" class="group">
                 <footer id="footer">
-                    <ul class="recommended">
-                        <li>
-                            <a href="~/policies/Contact">Contact Us</a>
-                            <p>Got questions about NuGet or the NuGet Gallery?</p>
-                        </li>
-                        <li>
-                            <a href="http://docs.nuget.org/docs/start-here/overview">Overview</a>
-                            <p>NuGet is a Visual Studio extension that makes it easy to add, remove, and update libraries and...</p>
-                        </li>
-                        <li>
-                            <a href="http://docs.nuget.org/docs/start-here/installing-nuget">Install</a>
-                            <p>NuGet can be installed and updated using the Visual Studio Extension Manager. To check if your copy...</p>
-                        </li>
-                        <li>
-                            <a href="http://docs.nuget.org/docs/start-here/videos">Videos</a>
-                            <p>Watch screencasts and presentations about anything and everything NuGet.</p>
-                        </li>
-                        <li>
-                            <a href="http://docs.nuget.org/docs/start-here/nuget-faq">FAQ</a>
-                            <p>Read the Frequently Asked Questions about NuGet and see if your question made the list.</p>
-                        </li>
-                    </ul>
-                    <div class="license">
-                        <a href="http://outercurve.org"><img src="@Links.Content.Images.outercurve_png" alt="Outercurve Foundation" /></a>
-                        <p>
-                            &copy; @DateTime.UtcNow.Year Outercurve Foundation -
-                            <a href="~/policies/Terms">Terms of Use</a> -
-                            <a href="~/policies/Privacy">Privacy Policy</a>
-                        </p>
-                        <p>
-                            Uses <a href="http://fontawesome.io">Font Awesome</a> by Dave Gandy
-                        </p>
-                        @ViewHelpers.ReleaseTag()
-                    </div>
+                    @Html.Partial("~/Views/Shared/LayoutFooter.cshtml")
                 </footer>
             </div>
         </div>
