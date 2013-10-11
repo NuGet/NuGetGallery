@@ -14,11 +14,12 @@ namespace NuGetGallery
             { "tokenizedid", "TokenizedId" },
             { "title", "Title" },
             { "description", "Description" },
-            { "owner", "Owners" },
             { "tag", "Tags" },
-            { "authors", "Authors" },
-            { "owners", "Owners" },
             { "tags", "Tags" },
+            { "author", "Authors" },
+            { "authors", "Authors" },
+            { "owner", "Owners" },
+            { "owners", "Owners" },
         };
 
         public PackageQueryParser(Lucene.Net.Util.Version matchVersion, string f, Analyzer a) :
