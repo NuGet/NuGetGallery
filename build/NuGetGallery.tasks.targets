@@ -83,4 +83,50 @@
            </Code>
        </Task>
    </UsingTask>
+
+   <!-- Read Git information without invoking git itself! -->
+   <UsingTask TaskName="XPathSetAttribute" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+       <ParameterGroup>
+           <XmlFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+           <XPath ParameterType="System.String" Required="true" />
+           <Value ParameterType="System.String" Required="true" />
+           <Namespaces ParameterType="System.String" Required="true" />
+       </ParameterGroup>
+       <Task>
+           <Reference Include="System.Xml" />
+           <Using Namespace="System" />
+           <Using Namespace="System.Xml" />
+           <Using Namespace="System.Linq" />
+           <Using Namespace="Microsoft.Build.Framework" />
+           <Using Namespace="Microsoft.Build.Utilities" />
+           <Code Type="Fragment" Language="cs">
+            <![CDATA[
+              Dictionary<string, string> namespaces = Namespaces.Split(';').Select(s => {
+                var arr = s.Split('=');
+                return Tuple.Create(arr[0], arr[1]);
+              }).ToDictionary(t => t.Item1, t => t.Item2);
+              try {
+                foreach (ITaskItem file in XmlFiles) {
+                  string fullPath = Path.GetFullPath(file.ItemSpec);
+                  var nt = new NameTable();
+                  var ns = new XmlNamespaceManager(nt);
+                  foreach(var pair in namespaces) {
+                    ns.AddNamespace(pair.Key, pair.Value);
+                  }
+                  var doc = new XmlDocument();
+                  doc.Load(fullPath);
+                  foreach(var node in doc.SelectNodes(XPath, ns).Cast<XmlAttribute>()) {
+                    node.Value = Value;
+                  }
+                  doc.Save(fullPath);
+                }
+              }
+              catch (Exception ex) {
+                 Log.LogErrorFromException(ex);
+                 return false;
+             }
+             ]]>
+           </Code>
+       </Task>
+   </UsingTask>
 </Project>

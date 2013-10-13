@@ -5,6 +5,21 @@
         <LoadBalancerProbe name="HTTPS" path="/api/v2/Packages" protocol="http" port="443" />
     </LoadBalancerProbes>
     <WebRole name="NuGetGallery" vmsize="Medium">
+        <ConfigurationSettings>
+            <Setting name="Gallery.Environment" />
+            <Setting name="Gallery.RequireSSL" />
+            <Setting name="Gallery.AzureStorageConnectionString" />
+            <Setting name="Gallery.SqlServer" />
+            <Setting name="Gallery.ConfirmEmailAddress" />
+            <Setting name="Gallery.ReadOnlyMode" />
+            <Setting name="Gallery.StorageType" />
+            <Setting name="Gallery.SmtpUri" />
+            <Setting name="Gallery.FacebookAppId" />
+            <Setting name="Gallery.SiteRoot" />
+            <Setting name="Gallery.AzureCdnHost" />
+            <Setting name="Gallery.LuceneIndexLocation" />
+            <Setting name="Gallery.GoogleAnalyticsPropertyId" />
+        </ConfigurationSettings>
         <Sites>
             <Site name="Web">
                 <Bindings>
@@ -13,6 +28,9 @@
                 </Bindings>
             </Site>
         </Sites>
+        <Startup>
+            <Task commandLine="Startup.cmd" executionContext="elevated" taskType="simple" />
+        </Startup>
         <Endpoints>
             <InputEndpoint name="HttpEndpoint" protocol="http" port="80" loadBalancerProbe="HTTP" />
             <InputEndpoint name="HttpsEndpoint" protocol="https" port="443" loadBalancerProbe="HTTPS" certificate="SSLCertificate" />
@@ -26,6 +44,11 @@
                     <FixedPortRange max="44309" min="44301" />
                 </AllocatePublicPortFrom>
             </InstanceInputEndpoint>
+            <InstanceInputEndpoint name="WinRM" protocol="tcp" localPort="5986">
+                <AllocatePublicPortFrom>
+                    <FixedPortRange max="5999" min="5990" />
+                </AllocatePublicPortFrom>
+            </InstanceInputEndpoint>
         </Endpoints>
         <Imports>
             <Import moduleName="Diagnostics" />
@@ -36,4 +59,24 @@
             <Certificate name="SSLCertificate" storeLocation="LocalMachine" storeName="My" />
         </Certificates>
     </WebRole>
+    <WorkerRole name="NuGetGallery.Backend" vmsize="Medium">
+        <ConfigurationSettings>
+            <Setting name="Operations.EnvironmentName" />
+            <Setting name="Operations.Sql.Primary" />
+            <Setting name="Operations.Sql.Warehouse" />
+            <Setting name="Operations.Storage.Primary" />
+            <Setting name="Operations.Storage.Backup" />
+            <Setting name="Operations.SqlDac" />
+            <Setting name="Operations.LicenseReport.Service" />
+            <Setting name="Operations.LicenseReport.User" />
+            <Setting name="Operations.LicenseReport.Password" />
+        </ConfigurationSettings>
+        <Imports>
+            <Import moduleName="Diagnostics" />
+            <Import moduleName="RemoteAccess" />
+        </Imports>
+        <LocalResources>
+            <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="2048" />
+        </LocalResources>
+    </WorkerRole>
 </ServiceDefinition>

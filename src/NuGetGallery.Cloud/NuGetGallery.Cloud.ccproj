@@ -1,65 +1,82 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-    <PropertyGroup>
-        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-        <ProductVersion>2.1</ProductVersion>
-        <ProjectGuid>0041aca0-30ec-4554-8c7c-0af810f3086f</ProjectGuid>
-        <OutputType>Library</OutputType>
-        <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>NuGetGallery.Cloud</RootNamespace>
-        <AssemblyName>NuGetGallery.Cloud</AssemblyName>
-        <StartDevelopmentStorage>True</StartDevelopmentStorage>
-        <Name>NuGetGallery.Cloud</Name>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-        <DebugSymbols>true</DebugSymbols>
-        <DebugType>full</DebugType>
-        <Optimize>false</Optimize>
-        <OutputPath>bin\Debug\</OutputPath>
-        <DefineConstants>DEBUG;TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-        <DebugType>pdbonly</DebugType>
-        <Optimize>true</Optimize>
-        <OutputPath>bin\Release\</OutputPath>
-        <DefineConstants>TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
-    </PropertyGroup>
-    <!-- Items for the project -->
-    <ItemGroup>
-        <ServiceDefinition Include="ServiceDefinition.csdef" />
-        <ServiceConfiguration Include="ServiceConfiguration.Local.cscfg" />
-    </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\NuGetGallery\NuGetGallery.csproj">
-            <Name>NuGetGallery</Name>
-            <Project>{1dacf781-5cd0-4123-8bac-cd385d864be5}</Project>
-            <Private>True</Private>
-            <RoleType>Web</RoleType>
-            <RoleName>NuGetGallery</RoleName>
-            <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
-        </ProjectReference>
-    </ItemGroup>
-    <ItemGroup>
-        <Folder Include="NuGetGalleryContent\" />
-    </ItemGroup>
-    <ItemGroup>
-        <Content Include="NuGetGalleryContent\diagnostics.wadcfg">
-            <SubType>Content</SubType>
-        </Content>
-        <Content Include="NuGetGalleryContent\Startup.ps1">
-            <SubType>Content</SubType>
-        </Content>
-    </ItemGroup>
-    <!-- Import the target files for this project template -->
-    <PropertyGroup>
-        <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
-        <CloudExtensionsDir Condition=" '$(CloudExtensionsDir)' == '' ">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Windows Azure Tools\2.1\</CloudExtensionsDir>
-    </PropertyGroup>
-    <Import Project="$(CloudExtensionsDir)Microsoft.WindowsAzure.targets" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>2.1</ProductVersion>
+    <ProjectGuid>0041aca0-30ec-4554-8c7c-0af810f3086f</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NuGetGallery.Cloud</RootNamespace>
+    <AssemblyName>NuGetGallery.Cloud</AssemblyName>
+    <StartDevelopmentStorage>True</StartDevelopmentStorage>
+    <Name>NuGetGallery.Cloud</Name>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <!-- Items for the project -->
+  <ItemGroup>
+    <ServiceDefinition Include="ServiceDefinition.csdef" />
+    <ServiceConfiguration Include="ServiceConfiguration.Local.cscfg" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGetGallery.Backend\NuGetGallery.Backend.csproj">
+      <Name>NuGetGallery.Backend</Name>
+      <Project>{7f92c174-5310-4090-a6a3-3cc7c67c19d6}</Project>
+      <Private>True</Private>
+      <RoleType>Worker</RoleType>
+      <RoleName>NuGetGallery.Backend</RoleName>
+      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery\NuGetGallery.csproj">
+      <Name>NuGetGallery</Name>
+      <Project>{1dacf781-5cd0-4123-8bac-cd385d864be5}</Project>
+      <Private>True</Private>
+      <RoleType>Web</RoleType>
+      <RoleName>NuGetGallery</RoleName>
+      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="NuGetGallery.BackendContent\" />
+    <Folder Include="NuGetGalleryContent\" />
+    <Folder Include="NuGetGalleryContent\bin" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="NuGetGallery.BackendContent\diagnostics.wadcfg">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="NuGetGalleryContent\bin\Startup.cmd">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="NuGetGalleryContent\bin\Startup.ps1">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="NuGetGalleryContent\diagnostics.wadcfg">
+      <SubType>Content</SubType>
+    </Content>
+  </ItemGroup>
+  <!-- Import the target files for this project template -->
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+    <CloudExtensionsDir Condition=" '$(CloudExtensionsDir)' == '' ">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Windows Azure Tools\2.1\</CloudExtensionsDir>
+  </PropertyGroup>
+  <Import Project="$(CloudExtensionsDir)Microsoft.WindowsAzure.targets" />
+  <Import Project="$(MSBuildProjectDirectory)\..\..\build\NuGetGallery.Cloud.targets" />
 </Project>
