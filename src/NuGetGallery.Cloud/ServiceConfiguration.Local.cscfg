@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="NuGetGallery.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*" schemaVersion="2013-03.2.0">
+    <Role name="NuGetGallery">
+        <Instances count="2" />
+        <ConfigurationSettings>
+            <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="nuget" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2014-10-12T23:59:59.0000000-07:00" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
+
+            <!-- WARNING: This is an insecure default password. Change it before enabling remote desktop -->
+            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEG870pHsz0GPRZ18ZHEVMyMwDQYJKoZIhvcNAQEBBQAEggEABCvdlx/fjNaMh+I4tdArjlmC/KhsVISFYKP+Tppd4LJM4J67FUcgSnnZLp/fII7gvd0X7XHRjV9a9gTj15b3lexRXp36oDLiRpw9Ld0EbxNMB1CBPNDqYRlV8iZBLeER3KOq7b+6iUywx1TWRf3UtaIZYI1BU6XJXWlKKartrKFl7g1MV6T506xN5a2m+r9Wi9dTApOYx3mBl1ZICDPTQX5dMWP6aRslapdOcyp+cMAgNjdE0TW0jw5eVEY0m3PqxuSSI99xtXLcVYrz6H7K3C8lNoxR9BlL89XOBh2VGsrsNeDF80cwuZkLYkqL3koehilh6b+iIC74yjcNboPRajAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECCGRjuJpsHCYgBDKJqr9G6xa5kT1yQHFHx5Y" />
+        </ConfigurationSettings>
+        <Certificates>
+            <!-- Totally bogus set of Hex digits that get replaced by the actual thumbprints when generating a CSCFG -->
+            <Certificate name="SSLCertificate" thumbprint="D2CA3A778E08936DD4C61E2734158B0044831010" thumbprintAlgorithm="sha1" />
+            <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="3CB384DDBE101F0810F4B840DF6FC568B4D032E3" thumbprintAlgorithm="sha1" />
+        </Certificates>
+    </Role>
+</ServiceConfiguration>
