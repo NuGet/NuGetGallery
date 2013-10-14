@@ -37,6 +37,9 @@ namespace NuGetGallery
         {
             AntiForgeryConfig.UniqueClaimTypeIdentifier = ClaimTypes.NameIdentifier;
 
+            ViewEngines.Engines.Clear();
+            ViewEngines.Engines.Add(CreateViewEngine());
+
             NinjectPreStart();
             ElmahPreStart();
             GlimpsePreStart();
@@ -68,6 +71,34 @@ namespace NuGetGallery
         {
             BackgroundJobsStop();
             NinjectStop();
+        }
+
+        private static RazorViewEngine CreateViewEngine()
+        {
+            var ret = new RazorViewEngine();
+
+            ret.AreaMasterLocationFormats = 
+                ret.AreaViewLocationFormats =
+                ret.AreaPartialViewLocationFormats =
+                new string[]
+            {
+                "~/Areas/{2}/Views/{1}/{0}.cshtml",
+                "~/Branding/Views/Shared/{0}.cshtml",
+                "~/Areas/{2}/Views/Shared/{0}.cshtml",
+            };
+
+            ret.MasterLocationFormats = 
+                ret.ViewLocationFormats  =
+                ret.PartialViewLocationFormats =
+                new string[]
+            {
+                "~/Branding/Views/{1}/{0}.cshtml",
+                "~/Views/{1}/{0}.cshtml",
+                "~/Branding/Views/Shared/{0}.cshtml",
+                "~/Views/Shared/{0}.cshtml",
+            };
+
+            return ret;
         }
 
         private static void GlimpsePreStart()
@@ -106,9 +137,10 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(modernizrBundle);
 
             var stylesBundle = new StyleBundle("~/Content/css")
-                .Include("~/Content/site.css");
+                .Include("~/Content/Layout.css")
+                .Include("~/Content/site.css")
+                .Include("~/Content/PageStylings.css");
             BundleTable.Bundles.Add(stylesBundle);
-
         }
 
         private static void ElmahPreStart()

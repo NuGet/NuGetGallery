@@ -4,7 +4,9 @@
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         @RenderSection("OpenGraph", required: false)
-        <title>NuGet Gallery @(String.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)</title>
+        <title>
+            @(Config.Current.Brand) 
+            @(String.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)</title>
         @Styles.Render("~/Content/css")
         <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
         @Scripts.Render("~/Scripts/modernizr")
@@ -17,11 +19,11 @@
         <div id="outer-wrapper">
             <div id="content-wrapper">
                 <header class="main">
-                    <div id="logo"><a href="@Url.Home()">NuGet Gallery</a></div>
-                    @Html.Partial(MVC.Shared.Views.UserDisplay)
+                    <div id="logo"><a href="@Url.Home()">@(Config.Current.Brand)</a></div>
+                    @Html.Partial("UserDisplay")
                 </header>
                 <nav class="main">
-                    @Html.Partial( "~/Views/Shared/SiteMenu.cshtml")
+                    @Html.Partial( "SiteMenu")
                     <div id="searchBox" role="search">
                         <form action="@Url.PackageList()" method="get">
                             <input name="q" id="searchBoxInput" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" />
@@ -39,7 +41,7 @@
             </div>
             <div id="layout-footer" class="group">
                 <footer id="footer">
-                    @Html.Partial("~/Views/Shared/LayoutFooter.cshtml")
+                    @Html.Partial("LayoutFooter")
                 </footer>
             </div>
         </div>

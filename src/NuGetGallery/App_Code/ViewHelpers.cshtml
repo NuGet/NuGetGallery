@@ -126,7 +126,7 @@
     var ver = ApplicationVersionHelper.GetVersion();
 
     <p id="releaseTag">
-        This is the NuGet Gallery.
+        This is the @(ConfigurationManager.AppSettings["Gallery.Brand"].Trim()).
         @if (ver.Present)
         {
             if(!String.IsNullOrEmpty(ver.ShortCommit)) {

@@ -21,9 +21,9 @@ using System.Web.Mvc.Html;
 using System.Web.Routing;
 using T4MVC;
 namespace NuGetGallery {
-    public partial class ContentPagesController {
+    public partial class PagesController {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        protected ContentPagesController(Dummy d) { }
+        protected PagesController(Dummy d) { }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected RedirectToRouteResult RedirectToAction(ActionResult result) {
@@ -31,19 +31,26 @@ namespace NuGetGallery {
             return RedirectToRoute(callInfo.RouteValueDictionary);
         }
 
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult Page() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.Page);
+        }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public ContentPagesController Actions { get { return MVC.ContentPages; } }
+        public PagesController Actions { get { return MVC.Pages; } }
         [GeneratedCode("T4MVC", "2.0")]
         public readonly string Area = "";
         [GeneratedCode("T4MVC", "2.0")]
-        public readonly string Name = "ContentPages";
+        public readonly string Name = "Pages";
 
         static readonly ActionNamesClass s_actions = new ActionNamesClass();
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
+            public readonly string Page = "Page";
+            public readonly string Contact = "Contact";
         }
 
 
@@ -52,13 +59,27 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
-            public readonly string Page = "~/Views/ContentPages/Page.cshtml";
+            public readonly string Contact = "~/Views/Pages/Contact.cshtml";
+            public readonly string Home = "~/Views/Pages/Home.cshtml";
+            public readonly string Privacy = "~/Views/Pages/Privacy.cshtml";
+            public readonly string Terms = "~/Views/Pages/Terms.cshtml";
         }
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-    public class T4MVC_ContentPagesController: NuGetGallery.ContentPagesController {
-        public T4MVC_ContentPagesController() : base(Dummy.Instance) { }
+    public class T4MVC_PagesController: NuGetGallery.PagesController {
+        public T4MVC_PagesController() : base(Dummy.Instance) { }
+
+        public override System.Web.Mvc.ActionResult Page(string pageName) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Page);
+            callInfo.RouteValueDictionary.Add("pageName", pageName);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Contact() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Contact);
+            return callInfo;
+        }
 
     }
 }

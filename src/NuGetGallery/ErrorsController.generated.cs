@@ -20,7 +20,7 @@ using System.Web.Mvc.Ajax;
 using System.Web.Mvc.Html;
 using System.Web.Routing;
 using T4MVC;
-namespace NuGetGallery.Controllers {
+namespace NuGetGallery {
     public partial class ErrorsController {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ErrorsController() { }
@@ -34,11 +34,6 @@ namespace NuGetGallery.Controllers {
             return RedirectToRoute(callInfo.RouteValueDictionary);
         }
 
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult Page() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.Page);
-        }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ErrorsController Actions { get { return MVC.Errors; } }
@@ -52,7 +47,8 @@ namespace NuGetGallery.Controllers {
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
-            public readonly string Page = "Page";
+            public readonly string NotFound = "NotFound";
+            public readonly string InternalError = "InternalError";
         }
 
 
@@ -61,19 +57,24 @@ namespace NuGetGallery.Controllers {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
-            public readonly string _404 = "~/Views/Errors/404.cshtml";
             public readonly string CookieError = "~/Views/Errors/CookieError.cshtml";
+            public readonly string InternalError = "~/Views/Errors/InternalError.cshtml";
+            public readonly string NotFound = "~/Views/Errors/NotFound.cshtml";
             public readonly string ReadOnlyMode = "~/Views/Errors/ReadOnlyMode.cshtml";
         }
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-    public class T4MVC_ErrorsController: NuGetGallery.Controllers.ErrorsController {
+    public class T4MVC_ErrorsController: NuGetGallery.ErrorsController {
         public T4MVC_ErrorsController() : base(Dummy.Instance) { }
 
-        public override System.Web.Mvc.ActionResult Page(string name) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Page);
-            callInfo.RouteValueDictionary.Add("name", name);
+        public override System.Web.Mvc.ActionResult NotFound() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.NotFound);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult InternalError() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.InternalError);
             return callInfo;
         }
 

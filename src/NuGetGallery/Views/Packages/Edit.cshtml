@@ -230,7 +230,7 @@
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true)
 
-        <ul id="packageDetails" style="border-bottom: 1px solid gray; margin-bottom: 1em;">
+        <ul style="border-bottom: 1px solid gray; margin-bottom: 1em;">
         @if (Model.Edit != null)
         {
             <li>@EditableField(EditPackageVersionRequest.TitleStr, m => m.Edit.VersionTitle)</li>

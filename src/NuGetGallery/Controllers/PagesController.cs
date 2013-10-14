@@ -1,0 +1,67 @@
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web.Mvc;
+
+namespace NuGetGallery
+{
+    public partial class PagesController : Controller
+    {
+        public IContentService ContentService { get; protected set; }
+
+        protected PagesController() { }
+        public PagesController(IContentService contentService)
+        {
+            ContentService = contentService;
+        }
+
+        // This will let you add 'static' cshtml pages to the site under View/Pages or Branding/Views/Pages
+        public virtual ActionResult Page(string pageName)
+        {
+            if (pageName == null || pageName.Any(c => !Char.IsLetterOrDigit(c)))
+            {
+                return HttpNotFound();
+            }
+
+            return View(pageName);
+        }
+
+        public virtual ActionResult Contact()
+        {
+            return View();
+        }
+
+        public virtual async Task<ActionResult> Home()
+        {
+            if (ContentService != null)
+            {
+                ViewBag.Content = await ContentService.GetContentItemAsync(
+                    Constants.ContentNames.Home,
+                    TimeSpan.FromMinutes(1));
+            }
+            return View();
+        }
+
+        public virtual async Task<ActionResult> Terms()
+        {
+            if (ContentService != null)
+            {
+                ViewBag.Content = await ContentService.GetContentItemAsync(
+                    Constants.ContentNames.TermsOfUse,
+                    TimeSpan.FromDays(1));
+            }
+            return View();
+        }
+
+        public virtual async Task<ActionResult> Privacy()
+        {
+            if (ContentService != null)
+            {
+                ViewBag.Content = await ContentService.GetContentItemAsync(
+                    Constants.ContentNames.PrivacyPolicy,
+                    TimeSpan.FromDays(1));
+            }
+            return View();
+        }
+    }
+}

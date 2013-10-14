@@ -1,13 +1,17 @@
 ﻿using System.Web.Mvc;
 
-namespace NuGetGallery.Controllers
+namespace NuGetGallery
 {
     public partial class ErrorsController : Controller
     {
-        // GET: /Errors/{name}
-        public virtual ActionResult Page(string name)
+        public virtual ActionResult NotFound()
         {
-            return View(name);
+            return View();
+        }
+
+        public virtual ActionResult InternalError()
+        {
+            return View();
         }
     }
 }
