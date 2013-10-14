@@ -59,7 +59,7 @@
     <MSBuild Projects="..\NuGetGallery.sln" Targets="Clean" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
   </Target>
   
-  <Target Name="Build" DependsOnTargets="Clean;PatchAssemblyVersion">
+  <Target Name="CoreBuild">
     <Message Text="*************" Importance="high" />
     <Message Text="Building ... " Importance="high" />
     <Message Text="*************" Importance="high" />
@@ -70,4 +70,6 @@
     <Message Text="**************" Importance="high" />
     <MSBuild Projects="..\src\NuGetGallery.Cloud\NuGetGallery.Cloud.ccproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=AnyCPU;WebRole_VMSize=$(WebRole_VMSize);TargetProfile=Local" BuildInParallel="false" />
   </Target>
+
+  <Target Name="Build" DependsOnTargets="Clean;PatchAssemblyVersion;CoreBuild" />
 </Project>

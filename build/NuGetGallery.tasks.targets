@@ -147,4 +147,49 @@
            </Code>
        </Task>
    </UsingTask>
+
+   <!-- Upload a file to blob storage -->
+   <ItemGroup>
+     <AzureStorageAssembly Include="$(MSBuildThisFileDirectory)\..\packages\WindowsAzure.Storage.*\lib\net40\Microsoft.WindowsAzure.Storage.dll" />
+   </ItemGroup>
+   <UsingTask TaskName="UploadBlob" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+       <ParameterGroup>
+           <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+           <ConnectionString ParameterType="System.String" Required="true" />
+           <Container ParameterType="System.String" Required="true" />
+           <Folder ParameterType="System.String" Required="false" />
+       </ParameterGroup>
+       <Task>
+           <Using Namespace="System" />
+           <Using Namespace="System.Reflection" />
+           <Using Namespace="System.IO" />
+           <Using Namespace="Microsoft.Build.Framework" />
+           <Using Namespace="Microsoft.Build.Utilities" />
+           <Code Type="Fragment" Language="cs">
+            <![CDATA[
+              var asmPath = @"@(AzureStorageAssembly)";
+              Assembly asm = Assembly.LoadFrom(asmPath);
+              dynamic account = asm
+                .GetType("Microsoft.WindowsAzure.Storage.CloudStorageAccount")
+                .GetMethod("Parse", BindingFlags.Public | BindingFlags.Static)
+                .Invoke(null, new object[] { ConnectionString });
+              var client = account.CreateCloudBlobClient();
+              var container = client.GetContainerReference(Container);
+              Folder = String.IsNullOrEmpty(Folder) ? String.Empty : Folder;
+
+              foreach(var file in Files) {
+                string blobName = file.GetMetadata("Filename") + file.GetMetadata("Extension");
+                if(!String.IsNullOrEmpty(Folder) && !Folder.EndsWith("/")) {
+                  Folder += "/";
+                }
+                blobName = Folder + blobName;
+                var blob = container.GetBlockBlobReference(blobName);
+                using(var strm = File.OpenRead(Path.GetFullPath(file.GetMetadata("FullPath")))) {
+                  blob.UploadFromStream(strm);
+                }
+              }
+            ]]>
+           </Code>
+       </Task>
+   </UsingTask>
 </Project>
