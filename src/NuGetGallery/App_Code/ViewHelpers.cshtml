@@ -6,8 +6,6 @@
 @using NuGetGallery.Configuration
 @using Ninject
 
-@* Generator: MvcHelper Namespace: NuGetGallery*@
-
 @helper PreviousNextPager(IPreviousNextPager pager)
 {
     if (pager.HasNextPage || pager.HasPreviousPage)
@@ -113,7 +111,7 @@
 
 @helper ReleaseMeta() {
     // Get Version info
-    var ver = ApplicationVersionManager.GetVersion();
+    var ver = ApplicationVersionHelper.GetVersion();
     
     if(ver.Present) {
         WriteMeta("branch", ver.Branch);
@@ -125,7 +123,7 @@
 @helper ReleaseTag()
 {
     // Get Version info
-    var ver = ApplicationVersionManager.GetVersion();
+    var ver = ApplicationVersionHelper.GetVersion();
 
     <p id="releaseTag">
         This is the NuGet Gallery.
@@ -153,7 +151,7 @@
                 </text>
             }
             
-            if(ver.BuildDateUtc != DateTime.UtcNow) {
+            if(ver.BuildDateUtc != DateTime.MinValue) {
                 @: Built at @ver.BuildDateUtc.ToNuGetShortDateTimeString().
             }
         }
