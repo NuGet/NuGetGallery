@@ -1,0 +1,38 @@
+﻿@model NuGetGallery.RegisterRequest
+
+@using (Html.BeginForm("Register", "Authentication"))
+{
+    <fieldset class="form">
+        <legend>Register Form</legend>
+
+        @Html.AntiForgeryToken()
+        @Html.Hidden("ReturnUrl", ViewData[Constants.ReturnUrlViewDataKey])
+
+        <div class="form-field">
+            @Html.LabelFor(m => m.Username)
+            @Html.EditorFor(m => m.Username)
+            @Html.ValidationMessageFor(m => m.Username)
+        </div>
+
+        <div class="form-field">
+            @Html.LabelFor(m => m.Password)
+            @Html.EditorFor(m => m.Password)
+            @Html.ValidationMessageFor(m => m.Password)
+        </div>
+
+        <div class="form-field">
+            @Html.LabelFor(m => m.EmailAddress)
+            @Html.EditorFor(m => m.EmailAddress)
+            @Html.ValidationMessageFor(m => m.EmailAddress)
+        </div>
+
+        <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
+
+        <input type="submit" value="Register" title="Register" />
+
+        <p id="form-field-register-policies">
+            By clicking Register you agree that you have read and accept our 
+            <a href="@Url.Terms()">Terms of Use</a> and <a href="@Url.Privacy()">Privacy Policy</a>
+        </p>
+    </fieldset>
+}

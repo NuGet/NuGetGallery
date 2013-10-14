@@ -9,6 +9,8 @@ using System.Web;
 using AnglicanGeek.DbExecutor;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using NLog;
 using NuGetGallery.Operations.Model;
 
@@ -19,6 +21,18 @@ namespace NuGetGallery.Operations
         public const byte CopyingState = 7;
         public const byte OnlineState = 0;
 
+        private static JsonSerializerSettings _auditRecordSerializerSettings = new JsonSerializerSettings()
+        {
+            DateFormatHandling = DateFormatHandling.IsoDateFormat,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            DefaultValueHandling = DefaultValueHandling.Include,
+            Formatting = Formatting.Indented,
+            MaxDepth = 10,
+            MissingMemberHandling = MissingMemberHandling.Ignore,
+            NullValueHandling = NullValueHandling.Include,
+            TypeNameHandling = TypeNameHandling.None
+        };
+        
         public static bool BackupIsInProgress(SqlExecutor dbExecutor, string backupPrefix)
         {
             return dbExecutor.Query<Db>(
@@ -202,7 +216,7 @@ namespace NuGetGallery.Operations
                 version.ToLowerInvariant());
         }
 
-        internal static ICloudBlob GetPackageFileBlob(
+        internal static CloudBlockBlob GetPackageFileBlob(
             CloudBlobContainer packagesBlobContainer,
             string id,
             string version)
@@ -275,7 +289,7 @@ namespace NuGetGallery.Operations
         public static string GetDatabaseServerName(SqlConnectionStringBuilder connectionStringBuilder)
         {
             var dataSource = connectionStringBuilder.DataSource;
-            if (dataSource.StartsWith("tcp:"))
+            if (dataSource.StartsWith("tcp:", StringComparison.OrdinalIgnoreCase))
                 dataSource = dataSource.Substring(4);
             var indexOfFirstPeriod = dataSource.IndexOf(".", StringComparison.Ordinal);
 
@@ -357,6 +371,58 @@ namespace NuGetGallery.Operations
 
                 token = segment.ContinuationToken;
             } while (token != null);
+        }
+
+        internal static string GetPackageAuditBlobName(string id, string version, PackageAuditAction action)
+        {
+            // Audit Blob Name:
+            //  /auditing/package/[id]/[version]/[action]-at-[datetime]
+            return String.Format("package/{0}/{1}/{3}-{2}.json",
+                id, version, action.ToString(), DateTime.UtcNow.ToString("O"));
+        }
+
+        internal static void SaveAuditRecord(CloudStorageAccount storage, string name, AuditRecord auditRecord)
+        {
+            // Write the record to a temp file
+            string tempFile = null;
+            try
+            {
+                tempFile = Path.GetTempFileName();
+                string report = RenderAuditRecord(auditRecord);
+                File.WriteAllText(tempFile, report);
+
+                // Get the blob
+                var client = storage.CreateCloudBlobClient();
+                var container = client.GetContainerReference("auditing");
+                container.CreateIfNotExists();
+                var blob = container.GetBlockBlobReference(name);
+                if (blob.Exists())
+                {
+                    throw new InvalidOperationException("Duplicate audit record found! " + name);
+                }
+                blob.UploadFile(tempFile);
+            }
+            finally
+            {
+                if (!String.IsNullOrEmpty(tempFile) && File.Exists(tempFile))
+                {
+                    File.Delete(tempFile);
+                }
+            }
+        }
+
+        public static string RenderAuditRecord(AuditRecord auditRecord)
+        {
+            return JsonConvert.SerializeObject(auditRecord, _auditRecordSerializerSettings);
+        }
+
+        public static string GenerateStatusString(int total, ref int counter)
+        {
+            return String.Format(
+                "{0:000000}/{1:000000} {2:00.0}%",
+                ++counter,
+                total,
+                (((double)counter / (double)total) * 100.0));
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="CodeAnalysis" ToolsVersion="12.0">
+<RuleSet Name="NuGet Frontend Analysis Rules" ToolsVersion="12.0">
   <Include Path="basiccorrectnessrules.ruleset" Action="Default" />
   <Include Path="basicdesignguidelinerules.ruleset" Action="Default" />
   <Include Path="extendedcorrectnessrules.ruleset" Action="Default" />
@@ -166,7 +166,7 @@
     <Rule Id="CA2200" Action="Error" />
     <Rule Id="CA2201" Action="Error" />
     <Rule Id="CA2202" Action="Error" />
-    <Rule Id="CA2204" Action="Error" />
+    <Rule Id="CA2204" Action="None" />
     <Rule Id="CA2205" Action="Error" />
     <Rule Id="CA2207" Action="Error" />
     <Rule Id="CA2208" Action="Error" />

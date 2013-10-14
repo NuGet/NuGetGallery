@@ -118,9 +118,18 @@ namespace NuGetGallery
         [StringLength(256)]
         public string Title { get; set; }
 
+        /// <summary>
+        /// Gets or sets the version listed in the manifest for this package, which MAY NOT conform to NuGet's use of SemVer
+        /// </summary>
         [StringLength(64)]
         [Required]
         public string Version { get; set; }
+
+        /// <summary>
+        /// Gets or sets the version for this package that has been normalized to conform to NuGet's use of SemVer
+        /// </summary>
+        [StringLength(64)]
+        public string NormalizedVersion { get; set; }
 
         public virtual ICollection<PackageLicenseReport> LicenseReports { get; set; }
 

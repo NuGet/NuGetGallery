@@ -47,13 +47,5 @@ namespace NuGetGallery.Operations
                 }
             }
         }
-
-        private class Package
-        {
-            public int Key { get; set; }
-            public string Id { get; set; }
-            public string Version { get; set; }
-            public string ExternalPackageUrl { get; set; }
-        }
     }
 }

@@ -5,7 +5,7 @@ using NuGetGallery.Configuration;
 using Xunit;
 using Xunit.Extensions;
 
-namespace NuGetGallery
+namespace NuGetGallery.Filters
 {
     public class RequireRemoteHttpsAttributeFacts
     {

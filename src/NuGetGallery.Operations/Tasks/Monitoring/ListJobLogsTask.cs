@@ -11,7 +11,7 @@ using NuGetGallery.Operations.Infrastructure;
 namespace NuGetGallery.Operations.Tasks.Monitoring
 {
     [Command("listjoblogs", "Lists available job logs", AltName="ljl")]
-    public class ListJobLogsTask : StorageTask
+    public class ListJobLogsTask : DiagnosticsStorageTask
     {
         public override void ExecuteCommand()
         {

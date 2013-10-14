@@ -9,6 +9,7 @@ using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Ninject;
+using Ninject.Web.Common;
 using Ninject.Modules;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
@@ -87,6 +88,10 @@ namespace NuGetGallery
 
             Bind<IEntityRepository<PackageStatistics>>()
                 .To<EntityRepository<PackageStatistics>>()
+                .InRequestScope();
+
+            Bind<IEntityRepository<Credential>>()
+                .To<EntityRepository<Credential>>()
                 .InRequestScope();
 
             Bind<ICuratedFeedService>()

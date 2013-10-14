@@ -25,7 +25,7 @@ namespace NuGetGallery.Operations.Tasks
             var packageBackupsBlobContainer = Util.GetPackageBackupsBlobContainer(blobClient);
             Log.Trace("Container name is '{0}'", packageBackupsBlobContainer.Name);
 
-            var packageIdIsh = PackageId.EndsWith("*") ? PackageId.TrimEnd('*') : PackageId + "/";
+            var packageIdIsh = PackageId.EndsWith("*", StringComparison.Ordinal) ? PackageId.TrimEnd('*') : PackageId + "/";
             var allBlobs = packageBackupsBlobContainer.ListBlobs(prefix: packageIdIsh);
             bool empty = true;
             foreach (var blob in allBlobs)

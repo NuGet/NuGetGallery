@@ -27,8 +27,7 @@ namespace NuGetGallery.Operations.Tasks
             // 1) Backup all old NUPKGS
             // 2) Generate all new NUPKGs (in place), and tell gallery the edit is completed
             var connectionString = ConnectionString.ConnectionString;
-            var storageAccount = StorageAccount;
-
+            
             // We group edits together by their package key and process them together - this is a read-only operation
             var entitiesContext = new EntitiesContext(connectionString, readOnly: true);
             var editsPerPackage = entitiesContext.Set<PackageEdit>()
@@ -104,7 +103,7 @@ namespace NuGetGallery.Operations.Tasks
                 int nr = entitiesContext.SaveChanges();
                 if (nr != 1)
                 {
-                    throw new ApplicationException(
+                    throw new Exception(
                         String.Format("Something went terribly wrong, only one entity should be updated but actually {0} entities were updated", nr));
                 }
             }
