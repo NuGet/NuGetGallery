@@ -1,24 +1,31 @@
-# Deploying the NuGet Gallery to Windows Azure Websites
+# Deploying the NuGet Gallery
 
-## Setting up resources
-To run the NuGet Gallery on Windows Azure Websites you need to provision the following Azure resources:
+To run the NuGet Gallery you need to provision the following common resources:
 
-1. An Azure Website running .Net 4.5 to run the gallery frontend
-2. An Azure SQL Database (preferably in a dedicated Azure SQL Server) to hold the package metadata
-3. An Azure Storage account to hold package files, diagnostics data, etc.
-4. [Optional] An Azure Cloud Service to run the gallery backend worker
-5. [Optional] An Azure Cloud Service to provide SSL Forwarding and Traffic Management to the gallery frontend
+1. An SQL Database to hold the package metadata.
+2. A location in which to store package files. The Gallery supports two at the moment: Local File System and Azure Storage Account.
+3. A Web Frontend to host the Gallery.
+4. (Optional) A Worker Backend to perform offline processing tasks.
 
-It is assumed you know how to provision these resources. This guide will describe how to deploy the components to them once created.
+## Deploying to Azure
 
-## Deploying the Database
-There's not much that needs to be done here. First, create a SQL Azure database (preferably in a dedicated SQL Azure server). In this example, we'll use "NuGetGallery" as the name. First, create the database in the Azure portal. 
+We suggest using Windows Azure for hosting the gallery, as that is the environment used by http://www.nuget.org itself. When doing so, we suggest using Azure SQL Databases (formerly SQL Azure) for the database and Azure Storage Accounts to store package files.
 
-![Creating the Database](01-CreateDB.png)
+We support two profiles of Azure deployment: [Azure Websites](Websites) and [Azure Cloud Services](CloudServices). Before using those guides, however, you need to ensure you provisiong the supporting resources (Database, Storage, etc.).
+
+## Provisioning for Azure
+
+### Provisioning a Database
+
+We recommend provisioning a dedicated Azure SQL Databases Server for the Gallery. If you are going to use our backend worker to generate statistics reports from data in a NuGet Warehouse, we recommend provisioning a separate Server for that database in production (the Warehouse may be co-located with the Gallery database if necessary though, and we do co-locate them in our non-production environments).
+
+So, first create a database:
+
+![Creating the Database](images/01-CreateDB.png)
 
 Next, we need to create a user for the site to use. Open the **server** in the Azure Portal and click on the URL under `Manage URL`
 
-![Manage URL](02-ManageUrl.png)
+![Manage URL](images/02-ManageUrl.png)
 
 Type "master" in the database field and log in using the SA password for the server (which you should have copied down when you created the server ;)).
 
@@ -46,7 +53,7 @@ If you used a different site username, use it in place of 'nuget-site' in the sc
 
 Now, log off the management portal and switch to VS. Open the NuGetGallery solution and expand the "Package Manager Console" tool window:
 
-![Package Manager Console](03-PackageManagerConsole.png)
+![Package Manager Console](images/03-PackageManagerConsole.png)
 
 Craft your connection string using notepad or some other text editor. You want it to take the following form:
 
@@ -64,12 +71,19 @@ Update-Database -ConnectionString "[ConnectionString]" -ConnectionProviderName S
 
 Replacing '[ConnectionString]' with the connection string you just crafted. The command should succeed and you should have a fully prepared database!
 
-## Setting up configuration
+### Provisioning Storage Accounts
+We also recommend the following Storage Accounts for each environment you intend to deploy (i.e. development, test, production, etc):
+
+1. A Primary Storage account to hold package files and other supporting content.
+2. A Backup Storage account to hold package and database backups in case the primary storage account is lost.
+3. A Diagnostics Storage account to hold logs and other data. In non-production environments, we recommend using the Primary storage account to hold this data. In production, however, your traffic may be large enough that you may wish to move diagnostics data (Web Server logs, etc.) to a separate storage account
+
+### Gathering configuration
 Now that you've got the database ready, all the resources are ready for you to deploy the site. First, though, we need to configure the Website so that it will be able to talk to the database and storage when it is deployed. To do this, go to the website in the Azure Portal and select the Configure tab. 
 
 Craft a connection string using the 'nuget-site' user you created earlier (by taking the connection string above and replacing sa and '[sapassword]' with the username/password for that user). Then, in the portal, add the database connection string like so:
 
-![Adding Connection String](04-ConnectionString.png)
+![Adding Connection String](images/04-ConnectionString.png)
 
 Then, go to the storage account you created in the portal and select "Manage Keys". Use the name and primary key on that page to build a connection string like this:
 
@@ -77,35 +91,15 @@ Then, go to the storage account you created in the portal and select "Manage Key
 DefaultEndpointsProtocol=https;AccountName=[account name];AccountKey=[primary key];
 ```
 
-Using that connection string, go back to the Configure tab of the website and set the AppSettings as shown below:
+Now that you have your dependent resources and their configuration, move on to...
 
-![Adding App Settings](05-AppSettings.png)
+## Deploying the Frontend/Backend
+Once you've provisioned these resources, continue to the guide for deploying to the profile of your choice:
 
-Replace '[site url]' with the URL you intend to use as the root of your site, and for the storage connection string, use the string you crafted before. The GalleryOwner setting is a standard email name in the form "Display Name &lt;emailaddress&gt;". If you intend to use SSL, you can set RequireSSL to true, but you should probably wait until you get it up and running before doing that.
+1. [Azure Cloud Services](CloudServices/README.md) - Recommended for extremely high availability services
+2. [Azure Websites](Websites/README.md) - Recommended for simple deployment scenarios
 
-Save the changes and get ready to deploy!
-
-## Deploying the frontend
-Go back to the dashboard tab and set up deployment from source control. Assuming you cloned this repo from Git, you probably want to choose "Local Git Repository". That is the case we will cover here.
-
-Once you complete this wizard, you'll need to set up deployment credentials. I'll assume you've got that under control ;). Go to the gallery and checkout the branch you want to deploy (say 'master'):
-
-```
-git checkout master
-```
-
-Add Azure as remote and push that branch up!
-
-```
-git remote add azure [git url]
-git push azure master
-```
-
-NOTE: If you don't use master, make sure to update the "Branch to Deploy" setting in the Configure tab.
-
-After pushing, the site will build, which may take a while. Once finished, just browse to the site and it should start up! The first request may take quite a while, so be prepared to wait a few minutes.
-
-Now that you've got the site up, try registering a user and uploading a package!
+We do not currently recommend Azure Websites for extremely high availability deployments of the Gallery. Other Azure features for traffic management, such as Azure Traffic Manager, do not support Azure Websites at this time. Also, Azure Websites does not provide the Production/Staging VIP Swap mechanism used in Cloud Services to allow for staging of production changes.
 
 ## Making an Admin
 Once you've got your gallery deployed, you probably want an admin user. That's pretty easy to do. First, register your admin user through the site. Then log in to the database using the Azure SQL Management Portal and the 'nuget-site' user (as we did above). Then run this SQL:
