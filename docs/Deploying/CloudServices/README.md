@@ -10,7 +10,7 @@ To run the NuGet Gallery on Windows Azure Cloud Services you need to provision t
 It is assumed you've already provisioned the SQL Database and Storage Account using the [main guide](../README.md).
 
 ## Provisioning the Frontend
-Create an Azure Cloud Service. Poof, done. Ok, not quite. Grab the [src\NuGetGallery.Cloud\ServiceConfiguration.Local.cscfg](..\..\..\src\NuGetGallery.Cloud\ServiceConfiguration.Local.cscfg) file and copy it to somewhere **OUTSIDE** the repository. Give it a name that you'll remember like "MyNuGetGallery.TestEnvironment.cscfg". Update the settings as per the comments inside the file using the connection strings you received while provisioning resources for the site (SQL DB, Azure Storage, etc.).
+Create an Azure Cloud Service. Poof, done. Ok, not quite. Grab the [src\NuGetGallery.Cloud\ServiceConfiguration.Local.cscfg](../../../src/NuGetGallery.Cloud/ServiceConfiguration.Local.cscfg) file and copy it to somewhere **OUTSIDE** the repository. Give it a name that you'll remember like "MyNuGetGallery.TestEnvironment.cscfg". Update the settings as per the comments inside the file using the connection strings you received while provisioning resources for the site (SQL DB, Azure Storage, etc.).
 
 Save this file somewhere safe and **SECURE** as it now has passwords for your database inside!
 

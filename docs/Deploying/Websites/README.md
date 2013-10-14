@@ -14,9 +14,14 @@ It is assumed you've already provisioned the SQL Database and Storage Account us
 ## Provisioning the Frontend
 Create an Azure Website and configure it for deployment however you choose (Git deployment, FTP, etc.).
 
-Using the connection strings you received while provisioning resources for the site (SQL DB, Azure Storage, etc.), go to the Configure tab of the website and set the AppSettings. To determine what to set, open the [src\NuGetGallery\Web.config](..\..\..\src\NuGetGallery\Web.config) file up and use the comments in the AppSettings section to assist you.
+Using the connection strings you received while provisioning resources for the site (SQL DB, Azure Storage, etc.), go to the Configure tab of the website and set the AppSettings. To determine what to set, open the [src\NuGetGallery\Web.config](../../../src/NuGetGallery/Web.config) file up and use the comments in the AppSettings section to assist you.
 
 Save the changes and get ready to deploy!
+
+## Migrate the Database
+Migrate the database by running "Update-Database" from the Package Manager Console in a Visual Studio session with NuGetGallery.sln. You must select "NuGetGallery" as the default project. Use the "-ConnectionString" parameter to specify the connection string to the target database.
+
+We attempt to ensure most migrations are additive, but please verify this before migrating your database. Our development process attempts to ensure that old code can read new data for a short transition period. If you keep your code up to date with ours (we deploy approximately fortnightly) then you should be able to match this process.
 
 ## Deploying the Frontend with Git
 (If you want to use a different deployment mechanism, you're on your own :))
