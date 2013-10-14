@@ -1,29 +1,32 @@
 param(
-	[string]$File
+	[string]$File,
 	[string]$ConnectionString,
 	[string]$Container,
 	[string]$Path)
 
 $ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $asm = (dir $ScriptPath\..\packages\WindowsAzure.Storage.*\lib\net40\Microsoft.WindowsAzure.Storage.dll | select -first 1 -expand FullName)
-[Assembly]::LoadFrom($asm);
+[Reflection.Assembly]::LoadFrom($asm) | Out-Null
 
 $account = [Microsoft.WindowsAzure.Storage.CloudStorageAccount]::Parse($ConnectionString);
 $client = $account.CreateCloudBlobClient()
-$container = $client.GetContainerReference($Container);
+$containerRef = $client.GetContainerReference($Container)
+$containerRef.CreateIfNotExists() | Out-Null
 
-if($Path && !$Path.EndsWith("/")) {
+if($Path -and !$Path.EndsWith("/")) {
   $Path += "/";
 }
 
-$blobName = $Path + $File;
-$blob = $container.GetBlockBlobReference($blobName);
+$blobName = $Path + [IO.Path]::GetFileName($File)
+$blob = $containerRef.GetBlockBlobReference($blobName)
 
 try {
-    $strm = [IO.File]::OpenRead((Convert-Path $File));
+    $strm = [IO.File]::OpenRead((Convert-Path $File))
+    Write-Host "Uploading..."
     $blob.UploadFromStream($strm)
+    Write-Host "Uploaded!"
 } finally {
     if($strm) {
-        $strm.Dispose();
+        $strm.Dispose()
     }
 }
