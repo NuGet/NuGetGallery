@@ -6,8 +6,6 @@
 @using NuGetGallery.Configuration
 @using Ninject
 
-@* Generator: MvcHelper Namespace: NuGetGallery*@
-
 @helper PreviousNextPager(IPreviousNextPager pager)
 {
     if (pager.HasNextPage || pager.HasPreviousPage)
@@ -105,49 +103,57 @@
     @gravatarHtml
 }
 
+@helper WriteMeta(string name, string val) {
+    if(!String.IsNullOrEmpty(val)) {
+        <meta name="deployment-@name" content="@val" />
+    }
+}
+
 @helper ReleaseMeta() {
-    // Using ConfigurationManager to reduce external dependencies here
-    string sha = ConfigurationManager.AppSettings["Gallery.ReleaseSha"].Trim();
-    string branch = ConfigurationManager.AppSettings["Gallery.ReleaseBranch"].Trim();
-    string time = ConfigurationManager.AppSettings["Gallery.ReleaseTime"].Trim();
-    string environment = ConfigurationManager.AppSettings["Gallery.Environment"].Trim();
-    if(!String.IsNullOrEmpty(environment)) 
-    {
-        <meta name="deployment-environment" content="@environment" />
-    }
-    if(!String.IsNullOrEmpty(sha)) 
-    {
-        <meta name="deployment-commit" content="@sha" />
-    }
-    if (!String.IsNullOrEmpty(branch))
-    {
-        <meta name="deployment-branch" content="@branch" />
-    }
-    if (!String.IsNullOrEmpty(time))
-    {
-        <meta name="deployment-time" content="@time" />
+    // Get Version info
+    var ver = ApplicationVersionHelper.GetVersion();
+    
+    if(ver.Present) {
+        WriteMeta("branch", ver.Branch);
+        WriteMeta("commit", ver.ShortCommit);
+        WriteMeta("time", ver.BuildDateUtc == DateTime.MinValue ? null : ver.BuildDateUtc.ToString("O"));
     }
 }
 
 @helper ReleaseTag()
 {
-    // Using ConfigurationManager to reduce external dependencies here
-    string sha = ConfigurationManager.AppSettings["Gallery.ReleaseSha"].Trim();
-    string branch = ConfigurationManager.AppSettings["Gallery.ReleaseBranch"].Trim();
-    string time = ConfigurationManager.AppSettings["Gallery.ReleaseTime"].Trim();
+    // Get Version info
+    var ver = ApplicationVersionHelper.GetVersion();
+
     <p id="releaseTag">
         This is the NuGet Gallery.
-        @if (!String.IsNullOrEmpty(sha))
+        @if (ver.Present)
         {
-            @:Deployed from <a href="https://github.com/NuGet/NuGetGallery/commit/@sha" title="View the commit.">@sha.Substring(0, Math.Min(sha.Length, 10))</a>.
-        }
-        @if(!String.IsNullOrEmpty(branch)) 
-        {
-            @:Originally built on <a href="https://github.com/NuGet/NuGetGallery/branches/@branch" title="View the branch.">@branch</a>.
-        }
-        @if(!String.IsNullOrEmpty(time)) 
-        {
-            @:Built at @time.
+            if(!String.IsNullOrEmpty(ver.ShortCommit)) {
+                <text>
+                    Deployed from
+                    @if(ver.CommitUri != null) {
+                        @: <a href="@ver.CommitUri.AbsoluteUri">@ver.ShortCommit</a>.
+                    } else {
+                        @: @ver.ShortCommit.
+                    }
+                </text>
+            }
+            
+            if(!String.IsNullOrEmpty(ver.Branch)) {
+                <text>
+                    Built on 
+                    @if(ver.BranchUri != null) {
+                        @:<a href="@ver.BranchUri.AbsoluteUri" title="View the branch.">@ver.Branch</a>.
+                    } else {
+                        @: @ver.Branch.
+                    }
+                </text>
+            }
+            
+            if(ver.BuildDateUtc != DateTime.MinValue) {
+                @: Built at @ver.BuildDateUtc.ToNuGetShortDateTimeString().
+            }
         }
         
         @* A little quick-n-dirty code to display the current machine *@

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
@@ -7,6 +8,8 @@ using System.Web.UI;
 using Elmah;
 using Elmah.Contrib.Mvc;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
+using Microsoft.WindowsAzure.Diagnostics;
+using Microsoft.WindowsAzure.ServiceRuntime;
 using Ninject;
 using Ninject.Web.Common;
 using NuGetGallery;
@@ -33,6 +36,18 @@ namespace NuGetGallery
             NinjectPreStart();
             ElmahPreStart();
             GlimpsePreStart();
+
+            try
+            {
+                if (RoleEnvironment.IsAvailable)
+                {
+                    CloudPreStart();
+                }
+            }
+            catch (Exception)
+            {
+                // Azure SDK not available!
+            }
         }
 
         public static void PostStart()
@@ -54,6 +69,11 @@ namespace NuGetGallery
         private static void GlimpsePreStart()
         {
             DynamicModuleUtility.RegisterModule(typeof(Glimpse.AspNet.HttpModule));
+        }
+
+        private static void CloudPreStart()
+        {
+            Trace.Listeners.Add(new DiagnosticMonitorTraceListener());
         }
 
         private static void BundlingPostStart()
