@@ -53,6 +53,9 @@
         <Certificates>
             <Certificate name="SSLCertificate" storeLocation="LocalMachine" storeName="My" />
         </Certificates>
+        <LocalResources>
+            <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="2048" />
+        </LocalResources>
     </WebRole>
     <WorkerRole name="NuGetGallery.Backend" vmsize="Medium">
         <ConfigurationSettings>
