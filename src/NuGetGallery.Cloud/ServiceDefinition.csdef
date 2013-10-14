@@ -44,11 +44,6 @@
                     <FixedPortRange max="44309" min="44301" />
                 </AllocatePublicPortFrom>
             </InstanceInputEndpoint>
-            <InstanceInputEndpoint name="WinRM" protocol="tcp" localPort="5986">
-                <AllocatePublicPortFrom>
-                    <FixedPortRange max="5999" min="5990" />
-                </AllocatePublicPortFrom>
-            </InstanceInputEndpoint>
         </Endpoints>
         <Imports>
             <Import moduleName="Diagnostics" />

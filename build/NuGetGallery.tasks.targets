@@ -51,6 +51,7 @@
            <RepositoryRoot ParameterType="System.String" Required="true" />
            <Branch ParameterType="System.String" Output="true" />
            <CommitId ParameterType="System.String" Output="true" />
+           <RepositoryUrl ParameterType="System.String" Output="true" />
        </ParameterGroup>
        <Task>
            <Using Namespace="System" />
@@ -71,6 +72,23 @@
                         string branchFile = Path.Combine(RepositoryRoot, @".git\refs\heads", Branch.Replace("/", Path.DirectorySeparatorChar.ToString()));
                         if(File.Exists(branchFile)) {
                           CommitId = File.ReadAllText(branchFile).Trim();
+                        }
+                      }
+                    }
+
+                    // Find the Origin entry in config
+                    string configFile = Path.Combine(RepositoryRoot, @".git\config");
+                    if(File.Exists(configFile)) {
+                      using(var rdr = new StreamReader(configFile)) {
+                        string line;
+                        
+                        while( ((line = rdr.ReadLine()) != null) && !String.Equals(line.Trim(), "[remote \"origin\"]", StringComparison.OrdinalIgnoreCase) ) { }
+
+                        if(!String.IsNullOrEmpty(line) && String.Equals(line.Trim(), "[remote \"origin\"]", StringComparison.OrdinalIgnoreCase)) {
+                          var match = Regex.Match(rdr.ReadLine(), @"^\s+url\s*=\s*(?<url>[^\s]*)\s*$");
+                          if(match.Success) {
+                            RepositoryUrl = match.Groups["url"].Value;
+                          }
                         }
                       }
                     }
