@@ -88,6 +88,9 @@
                           var match = Regex.Match(rdr.ReadLine(), @"^\s+url\s*=\s*(?<url>[^\s]*)\s*$");
                           if(match.Success) {
                             RepositoryUrl = match.Groups["url"].Value;
+                            if(RepositoryUrl.EndsWith(".git")) {
+                              RepositoryUrl = RepositoryUrl.Substring(0, RepositoryUrl.Length - 4);
+                            }
                           }
                         }
                       }
