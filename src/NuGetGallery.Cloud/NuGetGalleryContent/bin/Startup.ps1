@@ -18,7 +18,7 @@ if(!(Test-Path $appcmd)) {
 &$appcmd set config -section:system.webServer/httpCompression /+"dynamicTypes.[mimeType='application/atom%u002bxml',enabled='True']" /commit:apphost
 
 # Customize Logging
-&$appcmd.exe set config -section:system.applicationHost/sites /siteDefaults.logFile.enabled:"True" /commit:apphost
-&$appcmd.exe set config -section:system.applicationHost/sites /siteDefaults.logFile.logFormat:"W3C" /commit:apphost
-&$appcmd.exe set config -section:system.applicationHost/sites /siteDefaults.logFile.period:"Hourly" /commit:apphost
-&$appcmd.exe set config -section:system.applicationHost/sites /siteDefaults.logFile.logExtFileFlags:"Date,Time,TimeTaken,BytesRecv,BytesSent,ComputerName,HttpStatus,HttpSubStatus,Win32Status,ProtocolVersion,ServerIP,ServerPort,Method,Host,UriStem,UriQuery,UserAgent"
+&$appcmd set config -section:system.applicationHost/sites /siteDefaults.logFile.enabled:"True" /commit:apphost
+&$appcmd set config -section:system.applicationHost/sites /siteDefaults.logFile.logFormat:"W3C" /commit:apphost
+&$appcmd set config -section:system.applicationHost/sites /siteDefaults.logFile.period:"Hourly" /commit:apphost
+&$appcmd set config -section:system.applicationHost/sites /siteDefaults.logFile.logExtFileFlags:"Date,Time,TimeTaken,BytesRecv,BytesSent,ComputerName,HttpStatus,HttpSubStatus,Win32Status,ProtocolVersion,ServerIP,ServerPort,Method,Host,UriStem,UriQuery,UserAgent"
