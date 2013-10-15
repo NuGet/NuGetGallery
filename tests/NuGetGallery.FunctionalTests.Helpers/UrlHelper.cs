@@ -49,6 +49,11 @@ namespace NuGetGallery.FunctionTests.Helpers
             get { return UrlHelper.BaseUrl + LogonPageUrlSuffix; }
         }
 
+        public static string SignInPageUrl
+        {
+            get { return UrlHelper.BaseUrl + SignInPageUrlSuffix; }
+        }
+
         public static string LogOffPageUrl
         {
             get { return UrlHelper.BaseUrl + LogOffPageUrlSuffix; }
@@ -76,8 +81,8 @@ namespace NuGetGallery.FunctionTests.Helpers
 
         public static string AggregateStatsPageUrl
         {
-            get { return  UrlHelper.BaseUrl + AggregateStatsPageUrlSuffix; }
-        } 
+            get { return UrlHelper.BaseUrl + AggregateStatsPageUrlSuffix; }
+        }
 
         public static string UploadPageUrl
         {
@@ -96,13 +101,13 @@ namespace NuGetGallery.FunctionTests.Helpers
 
         public static string Windows8CuratedFeedUrl
         {
-            get { return  UrlHelper.V2FeedRootUrl + Windows8CuratedFeedUrlSuffix; }
+            get { return UrlHelper.V2FeedRootUrl + Windows8CuratedFeedUrlSuffix; }
         }
 
         public static string WebMatrixCuratedFeedUrl
         {
             get { return UrlHelper.V2FeedRootUrl + WebMatrixCuratedFeedUrlSuffix; }
-        } 
+        }
 
         public static string ManageMyPackagesUrl
         {
@@ -122,17 +127,18 @@ namespace NuGetGallery.FunctionTests.Helpers
         public static string GetContactOwnerPageUrl(string packageId)
         {
             return UrlHelper.BaseUrl + @"Packages/" + packageId + "/ContactOwners";
-        } 
+        }
 
         #region UrlSuffix
         private const string LogonPageUrlSuffix = "/users/account/LogOn";
+        private const string SignInPageUrlSuffix = "/users/account/SignIn";
         private const string LogOffPageUrlSuffix = "/users/account/LogOff?returnUrl=%2F";
         private const string LogonPageUrlOnPackageUploadSuffix = "Users/Account/LogOn?ReturnUrl=%2fpackages%2fupload";
         private const string PackagesPageUrlSuffix = "/packages";
         private const string RegisterPageUrlSuffix = "account/Register";
         private const string RegistrationPendingPageUrlSuffix = "account/Thanks";
         private const string StatsPageUrlSuffix = "stats";
-        private const string AggregateStatsPageUrlSuffix = "/stats/totals";     
+        private const string AggregateStatsPageUrlSuffix = "/stats/totals";
         private const string UploadPageUrlSuffix = "/packages/Upload";
         private const string VerifyUploadPageUrlSuffix = "/packages/verify-upload";
         private const string Windows8CuratedFeedUrlSuffix = "curated-feeds/windows8-packages/";
@@ -141,5 +147,6 @@ namespace NuGetGallery.FunctionTests.Helpers
         #endregion UrlSuffix
     }
 }
+
 
 

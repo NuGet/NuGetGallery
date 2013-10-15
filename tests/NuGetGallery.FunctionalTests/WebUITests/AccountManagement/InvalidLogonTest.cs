@@ -1,5 +1,4 @@
-﻿
-namespace NuGetGallery.FunctionalTests
+﻿namespace NuGetGallery.FunctionalTests
 {
     using System;
     using System.Collections.Generic;
@@ -21,7 +20,7 @@ namespace NuGetGallery.FunctionalTests
         }
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
-            WebTestRequest registerPageRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.RegisterPageUrl);
+            WebTestRequest registerPageRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.LogonPageUrl);
             yield return registerPageRequest;
             registerPageRequest = null;
 
@@ -46,3 +45,4 @@ namespace NuGetGallery.FunctionalTests
         }
     }
 }
+
