@@ -22,7 +22,6 @@ namespace NuGetGallery
             {
                 AuthenticationMode = AuthenticationMode.Active,
                 CookieHttpOnly = true,
-                CookieName = System.Web.Security.FormsAuthentication.FormsCookieName,
                 LoginPath = "/users/account/logon"
             });
         }
