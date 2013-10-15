@@ -201,16 +201,16 @@ namespace NuGetGallery.Authentication
                 var passwordCred = Fakes.Admin.Credentials.SingleOrDefault(
                     c => String.Equals(c.Type, CredentialTypes.Password.Pbkdf2, StringComparison.OrdinalIgnoreCase));
 
-                var user = new AuthenticatedUser(Fakes.Admin, passwordCred);
+                var authUser = new AuthenticatedUser(Fakes.Admin, passwordCred);
 
                 // Act
-                service.CreateSession(context.Object, user);
+                service.CreateSession(context.Object, authUser.User, AuthenticationTypes.Cookie);
 
                 // Assert
                 Assert.NotNull(id);
                 var principal = new ClaimsPrincipal(id);
                 Assert.Equal(Fakes.Admin.Username, id.Name);
-                Assert.Equal(passwordCred.Type, id.AuthenticationType);
+                Assert.Equal(AuthenticationTypes.Cookie, id.AuthenticationType);
                 Assert.True(principal.IsInRole(Constants.AdminRoleName));
             }
         }

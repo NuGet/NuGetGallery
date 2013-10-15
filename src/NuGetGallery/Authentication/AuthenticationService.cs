@@ -9,6 +9,7 @@ using System.Globalization;
 using Microsoft.Owin;
 using System.Security.Claims;
 using NuGetGallery.Configuration;
+using Microsoft.Owin.Security;
 
 namespace NuGetGallery.Authentication
 {
@@ -86,11 +87,19 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public virtual void CreateSession(IOwinContext owinContext, AuthenticatedUser user)
+        public virtual void CreateSession(IOwinContext owinContext, User user, string authenticationType)
         {
             // Create a claims identity for the session
-            ClaimsIdentity identity = CreateIdentity(user);
-            owinContext.Authentication.SignIn(identity);
+            ClaimsIdentity identity = CreateIdentity(user, authenticationType);
+
+            // Create authentication properties
+            var props = new AuthenticationProperties()
+            {
+                IsPersistent = true
+            };
+
+            // Issue the session token
+            owinContext.Authentication.SignIn(props, identity);
         }
 
         public virtual AuthenticatedUser Register(string username, string password, string emailAddress)
@@ -238,11 +247,6 @@ namespace NuGetGallery.Authentication
             return user;
         }
 
-        public static ClaimsIdentity CreateIdentity(AuthenticatedUser user)
-        {
-            return CreateIdentity(user.User, user.CredentialUsed.Type);
-        }
-        
         public static ClaimsIdentity CreateIdentity(User user, string authenticationType)
         {
             ClaimsIdentity identity = new ClaimsIdentity(

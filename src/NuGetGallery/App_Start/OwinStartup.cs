@@ -8,6 +8,7 @@ using Microsoft.Owin.Extensions;
 using Microsoft.Owin.Diagnostics;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
+using NuGetGallery.Authentication;
 
 [assembly: OwinStartup(typeof(NuGetGallery.OwinStartup))]
 
@@ -20,6 +21,7 @@ namespace NuGetGallery
         {
             app.UseCookieAuthentication(new CookieAuthenticationOptions()
             {
+                AuthenticationType = AuthenticationTypes.Cookie,
                 AuthenticationMode = AuthenticationMode.Active,
                 CookieHttpOnly = true,
                 LoginPath = "/users/account/logon"
