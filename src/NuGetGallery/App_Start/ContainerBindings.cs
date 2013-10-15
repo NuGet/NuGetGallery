@@ -13,6 +13,7 @@ using Ninject.Web.Common;
 using Ninject.Modules;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
+using System.Diagnostics;
 
 namespace NuGetGallery
 {

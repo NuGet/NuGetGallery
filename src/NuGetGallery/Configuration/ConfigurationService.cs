@@ -149,10 +149,15 @@ namespace NuGetGallery.Configuration
                     _notInCloud = true;
                 }
             }
+            catch (TypeInitializationException)
+            {
+                // Not in the role environment...
+                _notInCloud = true; // Skip future checks to save perf
+            }
             catch (Exception)
             {
-                // Not in the role environment or config setting not found...
-                _notInCloud = true; // Skip future checks to save perf
+                // Value not present
+                return null;
             }
             return value;
         }
