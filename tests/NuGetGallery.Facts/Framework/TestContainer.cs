@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Microsoft.Owin;
 using Moq;
 using Ninject;
 using Ninject.Modules;
@@ -37,6 +38,12 @@ namespace NuGetGallery.Framework
             var routeCollection = new RouteCollection();
             Routes.RegisterRoutes(routeCollection);
             c.Url = new UrlHelper(c.ControllerContext.RequestContext, routeCollection);
+
+            var appCtrl = c as AppController;
+            if (appCtrl != null)
+            {
+                appCtrl.OwinContext = Kernel.Get<IOwinContext>();
+            }
             
             return c;
         }

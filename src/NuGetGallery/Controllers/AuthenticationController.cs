@@ -67,7 +67,7 @@ namespace NuGetGallery
                 return View();
             }
 
-            AuthService.CreateSession(HttpContext.GetOwinContext(), user);
+            AuthService.CreateSession(OwinContext, user);
             return SafeRedirect(returnUrl);
         }
 
@@ -104,7 +104,7 @@ namespace NuGetGallery
                 return View();
             }
 
-            AuthService.CreateSession(HttpContext.GetOwinContext(), user);
+            AuthService.CreateSession(OwinContext, user);
 
             if (RedirectHelper.SafeRedirectUrl(Url, returnUrl) != RedirectHelper.SafeRedirectUrl(Url, null))
             {

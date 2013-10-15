@@ -17,19 +17,20 @@ namespace NuGetGallery.Controllers
             [Fact]
             public void WillLogTheUserOff()
             {
+                GetMock<IOwinContext>()
+                    .Setup(c => c.Authentication.SignOut());
                 var controller = GetController<AuthenticationController>();
-                var mockContext = new Mock<IOwinContext>();
-                mockContext.Setup(c => c.Authentication.SignOut()).Verifiable();
-                controller.OwinContext = mockContext.Object;
-
+                
                 controller.LogOff("theReturnUrl");
 
-                mockContext.VerifyAll();
+                GetMock<IOwinContext>()
+                    .Verify(c => c.Authentication.SignOut());
             }
 
             [Fact]
             public void WillRedirectToTheReturnUrl()
             {
+                GetMock<IOwinContext>().Setup(c => c.Authentication.SignOut());
                 var controller = GetController<AuthenticationController>();
                 
                 var result = controller.LogOff("theReturnUrl");
@@ -64,6 +65,9 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.Authenticate(authUser.User.Username, "thePassword"))
                     .Returns(authUser);
                 var controller = GetController<AuthenticationController>();
+                GetMock<AuthenticationService>()
+                    .Setup(a => a.CreateSession(controller.OwinContext, authUser))
+                    .Verifiable();
                 
                 // Act
                 controller.SignIn(
@@ -71,8 +75,7 @@ namespace NuGetGallery.Controllers
                     "theReturnUrl");
 
                 // Assert
-                GetMock<AuthenticationService>()
-                    .Verify(a => a.CreateSession(It.IsAny<IOwinContext>(), authUser));
+                GetMock<AuthenticationService>().VerifyAll();
             }
 
             [Fact]
@@ -86,6 +89,9 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
                     .Returns(authUser);
                 var controller = GetController<AuthenticationController>();
+                GetMock<AuthenticationService>()
+                    .Setup(a => a.CreateSession(controller.OwinContext, authUser))
+                    .Verifiable();
                 
                 // Act
                 controller.SignIn(
@@ -93,8 +99,7 @@ namespace NuGetGallery.Controllers
                     "theReturnUrl");
 
                 // Assert
-                GetMock<AuthenticationService>()
-                    .Verify(a => a.CreateSession(It.IsAny<IOwinContext>(), authUser));
+                GetMock<AuthenticationService>().VerifyAll();
             }
 
             [Fact]
@@ -108,15 +113,17 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
                     .Returns(authUser);
                 var controller = GetController<AuthenticationController>();
+                GetMock<AuthenticationService>()
+                    .Setup(a => a.CreateSession(controller.OwinContext, authUser))
+                    .Verifiable();
                 
                 // Act
                 controller.SignIn(
-                    new SignInRequest { UserNameOrEmail = "theUsername", Password = "thePassword" },
+                    new SignInRequest { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" },
                     "theReturnUrl");
 
                 // Assert
-                GetMock<AuthenticationService>()
-                    .Verify(a => a.CreateSession(It.IsAny<IOwinContext>(), authUser));
+                GetMock<AuthenticationService>().VerifyAll();
             }
 
             [Fact]
@@ -144,10 +151,12 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
                     .Returns(authUser);
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), It.IsAny<AuthenticatedUser>()));
                 var controller = GetController<AuthenticationController>();
                 
                 var result = controller.SignIn(
-                    new SignInRequest { UserNameOrEmail = "theUsername", Password = "thePassword" }, 
+                    new SignInRequest { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" }, 
                     "http://www.microsoft.com");
 
                 ResultAssert.IsRedirectTo(result, "/");
@@ -162,10 +171,12 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
                     .Returns(authUser);
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), It.IsAny<AuthenticatedUser>()));
                 var controller = GetController<AuthenticationController>();
                 
                 var result = controller.SignIn(
-                    new SignInRequest { UserNameOrEmail = "theUsername", Password = "thePassword" }, 
+                    new SignInRequest { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" }, 
                     "/packages/upload");
 
                 ResultAssert.IsRedirectTo(result, "/packages/upload");
@@ -193,8 +204,11 @@ namespace NuGetGallery.Controllers
             {
                 var authUser = new AuthenticatedUser(new User("theUsername"), new Credential());
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.Register(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .Setup(x => x.Register("theUsername", "thePassword", "theEmailAddress"))
                     .Returns(authUser);
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser))
+                    .Verifiable();
                 var controller = GetController<AuthenticationController>();
                 
                 controller.Register(
@@ -205,10 +219,7 @@ namespace NuGetGallery.Controllers
                         EmailAddress = "theEmailAddress",
                     }, null);
 
-                GetMock<AuthenticationService>()
-                    .Verify(x => x.Register("theUsername", "thePassword", "theEmailAddress"));
-                GetMock<AuthenticationService>()
-                    .Verify(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser));
+                GetMock<AuthenticationService>().VerifyAll();
             }
 
             [Fact]
@@ -239,6 +250,8 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "thepassword", "unconfirmed@example.com"))
                     .Returns(new AuthenticatedUser(user, new Credential()));
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), It.IsAny<AuthenticatedUser>()));
                 var controller = GetController<AuthenticationController>();
                 
                 var result = controller.Register(new RegisterRequest

@@ -71,7 +71,7 @@ namespace NuGetGallery
             return self.Setup(us => us.Authenticate(It.Is<Credential>(c =>
                 String.Equals(c.Type, cred.Type, StringComparison.OrdinalIgnoreCase) &&
                 String.Equals(c.Value, cred.Value, StringComparison.Ordinal))))
-                .Returns(new AuthenticatedUser(user, cred));
+                .Returns(user == null ? null : new AuthenticatedUser(user, cred));
         }
     }
 }

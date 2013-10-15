@@ -633,13 +633,13 @@ namespace NuGetGallery
             {
                 // Arrange
                 var apiKey = Guid.NewGuid();
-                var controller = GetController<ApiController>();
                 var user = new User { EmailAddress = "confirmed@email.com" };
                 GetMock<AuthenticationService>()
                     .SetupAuth(CredentialBuilder.CreateV1ApiKey(apiKey), user);
                 GetMock<IPackageService>()
                     .Setup(s => s.FindPackageByIdAndVersion("foo", "1.0.0", true))
                     .ReturnsNull();
+                var controller = GetController<ApiController>();
 
                 // Act
                 var result = controller.VerifyPackageKey(apiKey.ToString(), "foo", "1.0.0");

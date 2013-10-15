@@ -157,10 +157,10 @@ namespace NuGetGallery.Authentication
                 var service = Get<AuthenticationService>();
                 service.Entities.Users.Add(user);
 
-                var foundByUserName = service.Authenticate("theUsername", "thePassword");
+                var foundByUserName = service.Authenticate("tempUser", "thePassword");
 
                 var cred = foundByUserName.User.Credentials.Single();
-                Assert.Same(user, foundByUserName);
+                Assert.Same(user, foundByUserName.User);
                 Assert.Equal(CredentialTypes.Password.Pbkdf2, cred.Type);
                 Assert.True(CryptographyService.ValidateSaltedHash(cred.Value, "thePassword", Constants.PBKDF2HashAlgorithmId));
                 service.Entities.VerifyCommitChanges();
@@ -175,10 +175,10 @@ namespace NuGetGallery.Authentication
                 var service = Get<AuthenticationService>();
                 service.Entities.Users.Add(user);
 
-                var foundByUserName = service.Authenticate("theUsername", "thePassword");
+                var foundByUserName = service.Authenticate("tempUser", "thePassword");
 
                 var cred = foundByUserName.User.Credentials.Single();
-                Assert.Same(user, foundByUserName);
+                Assert.Same(user, foundByUserName.User);
                 Assert.Equal(CredentialTypes.Password.Pbkdf2, cred.Type);
                 Assert.True(CryptographyService.ValidateSaltedHash(cred.Value, "thePassword", Constants.PBKDF2HashAlgorithmId));
                 service.Entities.VerifyCommitChanges();
