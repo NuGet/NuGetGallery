@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
@@ -113,14 +114,9 @@ namespace NuGetGallery.Filters
             var mockFilterContext = new Mock<ActionExecutingContext>();
             var mockController = new Mock<Controller>();
 
-            mockFilterContext.Setup(ctx => ctx.Controller).Returns(mockController.Object);
-            mockController.Object.ControllerContext = new ControllerContext
-            {
-                RouteData = new RouteData
-                {
-                    Values = { { "apiKey", apiKey } }
-                }
-            };
+            mockFilterContext.Setup(ctx => ctx.ActionParameters).Returns(new Dictionary<string, object> {
+                { "apiKey", apiKey }
+            });
             return mockFilterContext;
         }
 

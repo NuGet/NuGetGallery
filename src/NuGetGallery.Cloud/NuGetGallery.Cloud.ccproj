@@ -36,14 +36,6 @@
     <ServiceConfiguration Include="ServiceConfiguration.Local.cscfg" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGetGallery.Backend\NuGetGallery.Backend.csproj">
-      <Name>NuGetGallery.Backend</Name>
-      <Project>{7f92c174-5310-4090-a6a3-3cc7c67c19d6}</Project>
-      <Private>True</Private>
-      <RoleType>Worker</RoleType>
-      <RoleName>NuGetGallery.Backend</RoleName>
-      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
-    </ProjectReference>
     <ProjectReference Include="..\NuGetGallery\NuGetGallery.csproj">
       <Name>NuGetGallery</Name>
       <Project>{1dacf781-5cd0-4123-8bac-cd385d864be5}</Project>
@@ -54,14 +46,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="NuGetGallery.BackendContent\" />
     <Folder Include="NuGetGalleryContent\" />
     <Folder Include="NuGetGalleryContent\bin" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="NuGetGallery.BackendContent\diagnostics.wadcfg">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="NuGetGalleryContent\bin\Startup.cmd">
       <SubType>Content</SubType>
     </Content>
