@@ -446,9 +446,9 @@ namespace NuGetGallery
                 User = user,
             };
 
-            package.IconUrl = nugetPackage.Metadata.IconUrl.ToStringOrNull();
-            package.LicenseUrl = nugetPackage.Metadata.LicenseUrl.ToStringOrNull();
-            package.ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToStringOrNull();
+            package.IconUrl = nugetPackage.Metadata.IconUrl.ToEncodedUrlStringOrNull();
+            package.LicenseUrl = nugetPackage.Metadata.LicenseUrl.ToEncodedUrlStringOrNull();
+            package.ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToEncodedUrlStringOrNull();
             package.MinClientVersion = nugetPackage.Metadata.MinClientVersion.ToStringOrNull();
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
@@ -524,15 +524,15 @@ namespace NuGetGallery
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Description", "4000");
             }
-            if (nugetPackage.IconUrl != null && nugetPackage.IconUrl.ToString().Length > 4000)
+            if (nugetPackage.IconUrl != null && nugetPackage.IconUrl.AbsoluteUri.Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "IconUrl", "4000");
             }
-            if (nugetPackage.LicenseUrl != null && nugetPackage.LicenseUrl.ToString().Length > 4000)
+            if (nugetPackage.LicenseUrl != null && nugetPackage.LicenseUrl.AbsoluteUri.Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "LicenseUrl", "4000");
             }
-            if (nugetPackage.ProjectUrl != null && nugetPackage.ProjectUrl.ToString().Length > 4000)
+            if (nugetPackage.ProjectUrl != null && nugetPackage.ProjectUrl.AbsoluteUri.Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "ProjectUrl", "4000");
             }
