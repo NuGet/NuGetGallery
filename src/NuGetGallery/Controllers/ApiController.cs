@@ -382,43 +382,40 @@ namespace NuGetGallery
         [HttpGet]
         public virtual async Task<ActionResult> GetStatsDownloads(int? count)
         {
-            if (StatisticsService != null)
+            var result = await StatisticsService.LoadDownloadPackageVersions();
+
+            if (result.Loaded)
             {
-                var result = await StatisticsService.LoadDownloadPackageVersions();
+                int i = 0;
 
-                if (result.Loaded)
+                JArray content = new JArray();
+                foreach (StatisticsPackagesItemViewModel row in StatisticsService.DownloadPackageVersionsAll)
                 {
-                    int i = 0;
+                    JObject item = new JObject();
 
-                    JArray content = new JArray();
-                    foreach (StatisticsPackagesItemViewModel row in StatisticsService.DownloadPackageVersionsAll)
+                    item.Add("PackageId", row.PackageId);
+                    item.Add("PackageVersion", row.PackageVersion);
+                    item.Add("Gallery", Url.PackageGallery(row.PackageId, row.PackageVersion));
+                    item.Add("PackageTitle", row.PackageTitle ?? row.PackageId);
+                    item.Add("PackageDescription", row.PackageDescription);
+                    item.Add("PackageIconUrl", row.PackageIconUrl ?? Url.PackageDefaultIcon());
+                    item.Add("Downloads", row.Downloads);
+
+                    content.Add(item);
+
+                    i++;
+
+                    if (count.HasValue && count.Value == i)
                     {
-                        JObject item = new JObject();
-
-                        item.Add("PackageId", row.PackageId);
-                        item.Add("PackageVersion", row.PackageVersion);
-                        item.Add("Gallery", Url.PackageGallery(row.PackageId, row.PackageVersion));
-                        item.Add("PackageTitle", row.PackageTitle ?? row.PackageId);
-                        item.Add("PackageDescription", row.PackageDescription);
-                        item.Add("PackageIconUrl", row.PackageIconUrl ?? Url.PackageDefaultIcon());
-                        item.Add("Downloads", row.Downloads);
-
-                        content.Add(item);
-
-                        i++;
-
-                        if (count.HasValue && count.Value == i)
-                        {
-                            break;
-                        }
+                        break;
                     }
-
-                    return new ContentResult
-                    {
-                        Content = content.ToString(),
-                        ContentType = "application/json"
-                    };
                 }
+
+                return new ContentResult
+                {
+                    Content = content.ToString(),
+                    ContentType = "application/json"
+                };
             }
 
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);

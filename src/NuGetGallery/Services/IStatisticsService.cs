@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace NuGetGallery
@@ -21,5 +22,72 @@ namespace NuGetGallery
 
         Task<StatisticsPackagesReport> GetPackageDownloadsByVersion(string packageId);
         Task<StatisticsPackagesReport> GetPackageVersionDownloadsByClient(string packageId, string packageVersion);
+    }
+
+    public class NullStatisticsService : IStatisticsService
+    {
+        public static readonly NullStatisticsService Instance = new NullStatisticsService();
+
+        private NullStatisticsService() { }
+
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesSummary
+        {
+            get { return Enumerable.Empty<StatisticsPackagesItemViewModel>(); }
+        }
+
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsSummary
+        {
+            get { return Enumerable.Empty<StatisticsPackagesItemViewModel>(); }
+        }
+
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesAll
+        {
+            get { return Enumerable.Empty<StatisticsPackagesItemViewModel>(); }
+        }
+
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsAll
+        {
+            get { return Enumerable.Empty<StatisticsPackagesItemViewModel>(); }
+        }
+
+        public IEnumerable<StatisticsNuGetUsageItem> NuGetClientVersion
+        {
+            get { return Enumerable.Empty<StatisticsNuGetUsageItem>(); }
+        }
+
+        public IEnumerable<StatisticsMonthlyUsageItem> Last6Months
+        {
+            get { return Enumerable.Empty<StatisticsMonthlyUsageItem>(); }
+        }
+
+        public Task<StatisticsReportResult> LoadDownloadPackages()
+        {
+            return Task.FromResult(StatisticsReportResult.Failed);
+        }
+
+        public Task<StatisticsReportResult> LoadDownloadPackageVersions()
+        {
+            return Task.FromResult(StatisticsReportResult.Failed);
+        }
+
+        public Task<StatisticsReportResult> LoadNuGetClientVersion()
+        {
+            return Task.FromResult(StatisticsReportResult.Failed);
+        }
+
+        public Task<StatisticsReportResult> LoadLast6Months()
+        {
+            return Task.FromResult(StatisticsReportResult.Failed);
+        }
+
+        public Task<StatisticsPackagesReport> GetPackageDownloadsByVersion(string packageId)
+        {
+            return Task.FromResult(new StatisticsPackagesReport());
+        }
+
+        public Task<StatisticsPackagesReport> GetPackageVersionDownloadsByClient(string packageId, string packageVersion)
+        {
+            return Task.FromResult(new StatisticsPackagesReport());
+        }
     }
 }
