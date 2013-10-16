@@ -13,7 +13,7 @@ namespace NuGetGallery
 
         [Required]
         [DataType(DataType.Password)]
-        [Display(Name = "Password")]
+        [Display(Name = "Current Password (for verification)")]
         [StringLength(64)]
         public string Password { get; set; }
     }

@@ -3,33 +3,23 @@
 }
 
 <h1 class="page-heading">
-    Thanks for registering!
+    Thank you for registering!
 </h1>
+
+<h2><a href="@Url.Action("Account", "Users")">View Profile</a></h2>
 
 <h2>Now that you have an account you might like to...</h2>
 
 <ul>
     <li>
         <p>
-            Set up your <a href="@Url.Action(MVC.Users.Edit())">user profile</a>.
+            <a href="@Url.ConfirmationRequired()">Confirm your account</a> so that you can upload packages or contact package owners.
         </p>
     </li>
 
     <li>
         <p>
-            Click on <em>Upload Package</em> in the menu to start uploading packages.
-        </p>
-    </li>
-    
-    <li>
-        <p>
-            Contact the owners of a package with a question. You can do this from the package page.
-        </p>
-    </li>
-
-    <li>
-        <p>
-            <a href="@Url.ConfirmationRequired()">Confirm your account</a> so that you can use an <a href="@Url.Action(MVC.Users.Account())">API Key</a> to push nuget packages from scripts.<br />
+            <a href="@Url.UploadPackage()">Upload a package</a>.
         </p>
     </li>
 </ul>
