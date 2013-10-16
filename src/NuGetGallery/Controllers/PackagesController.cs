@@ -770,15 +770,15 @@ namespace NuGetGallery
                 {
                     Id = packageMetadata.Id,
                     Version = packageMetadata.Version.ToNormalizedStringSafe(),
-                    LicenseUrl = packageMetadata.LicenseUrl.ToStringSafe(),
+                    LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrEmpty(),
                     Listed = true,
                     Edit = new EditPackageVersionRequest
                     {
                         Authors = packageMetadata.Authors.Flatten(),
                         Copyright = packageMetadata.Copyright,
                         Description = packageMetadata.Description,
-                        IconUrl = packageMetadata.IconUrl.ToStringSafe(),
-                        ProjectUrl = packageMetadata.ProjectUrl.ToStringSafe(),
+                        IconUrl = packageMetadata.IconUrl.ToEncodedUrlStringOrEmpty(),
+                        ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrEmpty(),
                         ReleaseNotes = packageMetadata.ReleaseNotes,
                         RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
                         Summary = packageMetadata.Summary,
@@ -825,8 +825,8 @@ namespace NuGetGallery
                 {
                     pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != nugetPackage.Metadata.RequireLicenseAcceptance;
 
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.IconUrl, nugetPackage.Metadata.IconUrl.ToStringSafe());
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.ProjectUrl, nugetPackage.Metadata.ProjectUrl.ToStringSafe());
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.IconUrl, nugetPackage.Metadata.IconUrl.ToEncodedUrlStringOrEmpty());
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.ProjectUrl, nugetPackage.Metadata.ProjectUrl.ToEncodedUrlStringOrEmpty());
 
                     pendEdit = pendEdit || IsDifferent(formData.Edit.Authors, nugetPackage.Metadata.Authors.Flatten());
                     pendEdit = pendEdit || IsDifferent(formData.Edit.Copyright, nugetPackage.Metadata.Copyright);
