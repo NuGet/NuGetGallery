@@ -35,6 +35,8 @@
         public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";
         public const string UrlValidationErrorMessage = "This doesn't appear to be a valid HTTP/HTTPS URL";
 
+        public static readonly string ApiKeyParameterName = "apikey";
+
         public static class ContentNames
         {
             public static readonly string FrontPageAnnouncement = "FrontPage-Announcement";

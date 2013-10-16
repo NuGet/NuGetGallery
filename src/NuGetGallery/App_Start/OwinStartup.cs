@@ -26,6 +26,11 @@ namespace NuGetGallery
                 CookieHttpOnly = true,
                 LoginPath = "/users/account/logon"
             });
+            app.UseApiKeyAuthentication(new ApiKeyAuthenticationOptions()
+            {
+                AuthenticationType = AuthenticationTypes.ApiKey,
+                ApiKeyFormName = Constants.ApiKeyParameterName
+            });
         }
     }
 }

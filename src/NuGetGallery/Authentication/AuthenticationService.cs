@@ -92,14 +92,8 @@ namespace NuGetGallery.Authentication
             // Create a claims identity for the session
             ClaimsIdentity identity = CreateIdentity(user, authenticationType);
 
-            // Create authentication properties
-            var props = new AuthenticationProperties()
-            {
-                IsPersistent = true
-            };
-
             // Issue the session token
-            owinContext.Authentication.SignIn(props, identity);
+            owinContext.Authentication.SignIn(identity);
         }
 
         public virtual AuthenticatedUser Register(string username, string password, string emailAddress)
