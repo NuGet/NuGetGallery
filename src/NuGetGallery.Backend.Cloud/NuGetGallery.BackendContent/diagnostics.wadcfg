@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<DiagnosticMonitorConfiguration configurationChangePollInterval="PT1M" overallQuotaInMB="4096" xmlns="http://schemas.microsoft.com/ServiceHosting/2010/10/DiagnosticsConfiguration">
+    <DiagnosticInfrastructureLogs bufferQuotaInMB="128" scheduledTransferPeriod="PT1M" scheduledTransferLogLevelFilter="Error" />
+    <Directories bufferQuotaInMB="512" scheduledTransferPeriod="PT1M">
+        <CrashDumps container="wad-crash-dumps" directoryQuotaInMB="256" />
+        <DataSources>
+            <DirectoryConfiguration container="wad-joblogs" directoryQuotaInMB="256">
+                <Absolute path="[Logs]\Jobs" expandEnvironment="false" />
+            </DirectoryConfiguration>
+            <DirectoryConfiguration container="wad-hostlogs" directoryQuotaInMB="256">
+                <Absolute path="[Logs]\Host" expandEnvironment="false" />
+            </DirectoryConfiguration>
+        </DataSources>
+    </Directories>
+    <Logs bufferQuotaInMB="512" scheduledTransferPeriod="PT1M" scheduledTransferLogLevelFilter="Error" />
+    <PerformanceCounters bufferQuotaInMB="512">
+        <PerformanceCounterConfiguration counterSpecifier="\Memory\Available MBytes" sampleRate="PT3M" />
+        <PerformanceCounterConfiguration counterSpecifier="\Processor(_Total)\% Processor Time" sampleRate="PT1S" />
+        <PerformanceCounterConfiguration counterSpecifier="\.NET CLR Jit(_Global_)\% Time in Jit" sampleRate="PT1S" />
+        <PerformanceCounterConfiguration counterSpecifier="\.NET CLR Loading(_Global_)\% Time Loading" sampleRate="PT1S" />
+        <PerformanceCounterConfiguration counterSpecifier="\.NET CLR LocksAndThreads(_Global_)\Contention Rate / sec" sampleRate="PT1S" />
+        <PerformanceCounterConfiguration counterSpecifier="\.NET CLR Memory(_Global_)\# Bytes in all Heaps" sampleRate="PT1S" />
+        <PerformanceCounterConfiguration counterSpecifier="\.NET CLR Networking(_Global_)\Connections Established" sampleRate="PT1S" />
+        <PerformanceCounterConfiguration counterSpecifier="\Memory\Committed Bytes" sampleRate="PT1S" />
+        <PerformanceCounterConfiguration counterSpecifier="\Memory\Private Bytes" sampleRate="PT1S" />
+    </PerformanceCounters>
+    <WindowsEventLog bufferQuotaInMB="512" scheduledTransferPeriod="PT1M" scheduledTransferLogLevelFilter="Error">
+        <DataSource name="System!*" />
+    </WindowsEventLog>
+</DiagnosticMonitorConfiguration>

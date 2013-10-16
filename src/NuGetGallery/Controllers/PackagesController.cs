@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -14,13 +13,14 @@ using System.Web.Mvc;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
+using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using PoliteCaptcha;
 
 namespace NuGetGallery
 {
-    public partial class PackagesController : Controller
+    public partial class PackagesController : AppController
     {
         // TODO: add support for URL-based package submission
         // TODO: add support for uploading logos and screenshots
@@ -39,6 +39,7 @@ namespace NuGetGallery
         private readonly IIndexingService _indexingService;
         private readonly ICacheService _cacheService;
         private readonly EditPackageService _editPackageService;
+        private readonly IPrincipal _currentUser;
 
         public PackagesController(
             IPackageService packageService,
@@ -53,7 +54,8 @@ namespace NuGetGallery
             IAppConfiguration config,
             IIndexingService indexingService,
             ICacheService cacheService,
-            EditPackageService editPackageService)
+            EditPackageService editPackageService,
+            IPrincipal currentUser)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -68,13 +70,14 @@ namespace NuGetGallery
             _indexingService = indexingService;
             _cacheService = cacheService;
             _editPackageService = editPackageService;
+            _currentUser = currentUser;
         }
 
         [Authorize]
         [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
         public virtual ActionResult UploadPackageProgress()
         {
-            string username = GetIdentity().Name;
+            string username = _currentUser.Identity.Name;
 
             AsyncFileUploadProgress progress = _cacheService.GetProgress(username);
             if (progress == null)
@@ -86,6 +89,7 @@ namespace NuGetGallery
 
         [Authorize]
         [HttpPost]
+        [RequiresAccountConfirmation("undo pending edits")]
         [ValidateAntiForgeryToken]
         public virtual ActionResult UndoPendingEdits(string id, string version)
         {
@@ -140,9 +144,10 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        [RequiresAccountConfirmation("upload a package")]
         public async virtual Task<ActionResult> UploadPackage()
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var currentUser = _userService.FindByUsername(_currentUser.Identity.Name);
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -155,12 +160,13 @@ namespace NuGetGallery
             return View();
         }
 
-        [Authorize]
         [HttpPost]
+        [Authorize]
+        [RequiresAccountConfirmation("upload a package")]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> UploadPackage(HttpPostedFileBase uploadFile)
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var currentUser = _userService.FindByUsername(_currentUser.Identity.Name);
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -225,6 +231,13 @@ namespace NuGetGallery
 
         public virtual ActionResult DisplayPackage(string id, string version)
         {
+            string normalized = SemanticVersionExtensions.Normalize(version);
+            if (!String.Equals(version, normalized))
+            {
+                // Permanent redirect to the normalized one (to avoid multiple URLs for the same content)
+                return RedirectToActionPermanent("DisplayPackage", new { id = id, version = normalized });
+            }
+
             var package = _packageService.FindPackageByIdAndVersion(id, version);
 
             if (package == null)
@@ -233,7 +246,7 @@ namespace NuGetGallery
             }
             var model = new DisplayPackageViewModel(package);
 
-            if (package.IsOwner(HttpContext.User))
+            if (package.IsOwner(_currentUser))
             {
                 // Tell logged-in package owners not to cache the package page, so they won't be confused about the state of pending edits.
                 Response.Cache.SetCacheability(HttpCacheability.NoCache);
@@ -300,6 +313,7 @@ namespace NuGetGallery
             ReportPackageReason.HasABug,
             ReportPackageReason.Other
         };
+
         public virtual ActionResult ReportAbuse(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
@@ -343,7 +357,9 @@ namespace NuGetGallery
             ReportPackageReason.ContainsMaliciousCode,
             ReportPackageReason.Other
         };
+
         [Authorize]
+        [RequiresAccountConfirmation("contact support about your package")]
         public virtual ActionResult ReportMyPackage(string id, string version)
         {
             var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
@@ -377,6 +393,9 @@ namespace NuGetGallery
         [ValidateSpamPrevention]
         public virtual ActionResult ReportAbuse(string id, string version, ReportAbuseViewModel reportForm)
         {
+            // Html Encode the message
+            reportForm.Message = System.Web.HttpUtility.HtmlEncode(reportForm.Message);
+
             if (!ModelState.IsValid)
             {
                 return ReportAbuse(id, version);
@@ -419,10 +438,14 @@ namespace NuGetGallery
 
         [HttpPost]
         [Authorize]
+        [RequiresAccountConfirmation("contact support about your package")]
         [ValidateAntiForgeryToken]
         [ValidateSpamPrevention]
         public virtual ActionResult ReportMyPackage(string id, string version, ReportAbuseViewModel reportForm)
         {
+            // Html Encode the message
+            reportForm.Message = System.Web.HttpUtility.HtmlEncode(reportForm.Message);
+
             if (!ModelState.IsValid)
             {
                 return ReportMyPackage(id, version);
@@ -453,6 +476,7 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        [RequiresAccountConfirmation("contact package owners")]
         public virtual ActionResult ContactOwners(string id)
         {
             var package = _packageService.FindPackageRegistrationById(id);
@@ -474,8 +498,12 @@ namespace NuGetGallery
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("contact package owners")]
         public virtual ActionResult ContactOwners(string id, ContactOwnersViewModel contactForm)
         {
+            // Html Encode the message
+            contactForm.Message = System.Web.HttpUtility.HtmlEncode(contactForm.Message);
+
             if (!ModelState.IsValid)
             {
                 return ContactOwners(id);
@@ -487,7 +515,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+            var user = _userService.FindByUsername(User.Identity.Name);
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);
             _messageService.SendContactOwnersMessage(
                 fromAddress, package, contactForm.Message, Url.Action(MVC.Users.Edit(), protocol: Request.Url.Scheme));
@@ -522,6 +550,7 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        [RequiresAccountConfirmation("unlist a package")]
         public virtual ActionResult Delete(string id, string version)
         {
             return GetPackageOwnerActionFormResult(id, version);
@@ -529,6 +558,7 @@ namespace NuGetGallery
 
         [Authorize]
         [HttpPost]
+        [RequiresAccountConfirmation("unlist a package")]
         [ValidateAntiForgeryToken]
         public virtual ActionResult Delete(string id, string version, bool? listed)
         {
@@ -537,6 +567,7 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        [RequiresAccountConfirmation("edit a package")]
         public virtual ActionResult Edit(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
@@ -568,7 +599,9 @@ namespace NuGetGallery
 
         [Authorize]
         [HttpPost]
+        [RequiresAccountConfirmation("edit a package")]
         [ValidateAntiForgeryToken]
+        [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
         public virtual ActionResult Edit(string id, string version, EditPackageRequest formData, string returnUrl)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
@@ -608,11 +641,21 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        [RequiresAccountConfirmation("accept ownership of a package")]
         public virtual ActionResult ConfirmOwner(string id, string username, string token)
         {
             if (String.IsNullOrEmpty(token))
             {
                 return HttpNotFound();
+            }
+
+            if (!String.Equals(username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                return View(new PackageOwnerConfirmationModel()
+                {
+                    Username = username,
+                    Result = ConfirmOwnershipResult.NotYourRequest
+                });
             }
 
             var package = _packageService.FindPackageRegistrationById(id);
@@ -621,26 +664,18 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            ConfirmOwnershipResult result;
-            if (User.IsAdministrator())
+            var user = _userService.FindByUsername(username);
+            if (user == null)
             {
-                result = ConfirmOwnershipResult.AlreadyOwner;
+                return HttpNotFound();
             }
-            else
+
+            if (!String.Equals(user.Username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
             {
-                var user = _userService.FindByUsername(username);
-                if (user == null)
-                {
-                    return HttpNotFound();
-                }
-
-                if (!String.Equals(user.Username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
-                {
-                    return new HttpStatusCodeResult(403);
-                }
-
-                result = _packageService.ConfirmPackageOwner(package, user, token);
+                return new HttpStatusCodeResult(403);
             }
+
+            ConfirmOwnershipResult result = _packageService.ConfirmPackageOwner(package, user, token);
 
             var model = new PackageOwnerConfirmationModel
                 {
@@ -701,9 +736,10 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        [RequiresAccountConfirmation("upload a package")]
         public virtual async Task<ActionResult> VerifyPackage()
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var currentUser = _userService.FindByUsername(_currentUser.Identity.Name);
 
             IPackageMetadata packageMetadata;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
@@ -733,7 +769,7 @@ namespace NuGetGallery
                 new VerifyPackageRequest
                 {
                     Id = packageMetadata.Id,
-                    Version = packageMetadata.Version.ToStringSafe(),
+                    Version = packageMetadata.Version.ToNormalizedStringSafe(),
                     LicenseUrl = packageMetadata.LicenseUrl.ToStringSafe(),
                     Listed = true,
                     Edit = new EditPackageVersionRequest
@@ -752,32 +788,14 @@ namespace NuGetGallery
                 });
         }
 
-        // The easiest way of keeping unit tests working.
-        [NonAction]
-        internal virtual Task<ActionResult> VerifyPackage(bool? listed)
-        {
-            return VerifyPackage(new VerifyPackageRequest { Listed = listed.GetValueOrDefault(true), Edit = null });
-        }
-
-        // Determine whether an 'Edit' string submitted differs from one read from the package.
-        private static bool IsDifferent(string posted, string package)
-        {
-            if (String.IsNullOrEmpty(posted) || String.IsNullOrEmpty(package))
-            {
-                return String.IsNullOrEmpty(posted) != String.IsNullOrEmpty(package);
-            }
-
-            // Compare non-empty strings
-            // Ignore those pesky '\r' characters which screw up comparisons.
-            return !String.Equals(posted.Replace("\r", ""), package.Replace("\r", ""), StringComparison.Ordinal);
-        }
-
         [Authorize]
         [HttpPost]
+        [RequiresAccountConfirmation("upload a package")]
         [ValidateAntiForgeryToken]
+        [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
         public virtual async Task<ActionResult> VerifyPackage(VerifyPackageRequest formData)
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var currentUser = _userService.FindByUsername(_currentUser.Identity.Name);
 
             Package package;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
@@ -795,7 +813,7 @@ namespace NuGetGallery
                 if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.Version)))
                 {
                     if (!(String.Equals(nugetPackage.Metadata.Id, formData.Id, StringComparison.OrdinalIgnoreCase)
-                        && String.Equals(nugetPackage.Metadata.Version.ToString(), formData.Version, StringComparison.OrdinalIgnoreCase)))
+                        && String.Equals(nugetPackage.Metadata.Version.ToNormalizedString(), formData.Version, StringComparison.OrdinalIgnoreCase)))
                     {
                         TempData["Message"] = "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.";
                         return new RedirectResult(Url.VerifyPackage());
@@ -870,38 +888,11 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> CancelUpload()
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var currentUser = _userService.FindByUsername(_currentUser.Identity.Name);
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
             return RedirectToAction("UploadPackage");
         }
-
-        // this methods exist to make unit testing easier
-        protected internal virtual IIdentity GetIdentity()
-        {
-            return User.Identity;
-        }
-
-        // this methods exist to make unit testing easier
-        protected internal virtual INupkg CreatePackage(Stream stream)
-        {
-            return new Nupkg(stream, leaveOpen: false);
-        }
-
-        private static string GetSortExpression(string sortOrder)
-        {
-            switch (sortOrder)
-            {
-                case Constants.AlphabeticSortOrder:
-                    return "PackageRegistration.Id";
-                case Constants.RecentSortOrder:
-                    return "Published desc";
-
-                default:
-                    return "PackageRegistration.DownloadCount desc";
-            }
-        }
-
 
         [Authorize]
         [HttpPost]
@@ -934,6 +925,39 @@ namespace NuGetGallery
             _indexingService.UpdatePackage(package);
 
             return Redirect(urlFactory(package));
+        }
+
+        // this methods exist to make unit testing easier
+        protected internal virtual INupkg CreatePackage(Stream stream)
+        {
+            return new Nupkg(stream, leaveOpen: false);
+        }
+
+        private static string GetSortExpression(string sortOrder)
+        {
+            switch (sortOrder)
+            {
+                case Constants.AlphabeticSortOrder:
+                    return "PackageRegistration.Id";
+                case Constants.RecentSortOrder:
+                    return "Published desc";
+
+                default:
+                    return "PackageRegistration.DownloadCount desc";
+            }
+        }
+
+        // Determine whether an 'Edit' string submitted differs from one read from the package.
+        private static bool IsDifferent(string posted, string package)
+        {
+            if (String.IsNullOrEmpty(posted) || String.IsNullOrEmpty(package))
+            {
+                return String.IsNullOrEmpty(posted) != String.IsNullOrEmpty(package);
+            }
+
+            // Compare non-empty strings
+            // Ignore those pesky '\r' characters which screw up comparisons.
+            return !String.Equals(posted.Replace("\r", ""), package.Replace("\r", ""), StringComparison.Ordinal);
         }
     }
 }

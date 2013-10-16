@@ -44,9 +44,6 @@ namespace NuGetGallery.Operations.Tasks
         {
             WithMasterConnection((connection, db) =>
             {
-                // Snap the current date just in case we are running right on the cusp
-                var today = DateTime.UtcNow;
-
                 // Get the list of database backups
                 var backups = db.Query<Db>(
                     "SELECT name, state FROM sys.databases WHERE name LIKE 'WarehouseBackup_%' AND state = @state",

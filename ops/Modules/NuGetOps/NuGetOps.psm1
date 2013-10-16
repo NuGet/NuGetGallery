@@ -179,7 +179,7 @@ function env([string]$Name) {
 }
 Export-ModuleMember -Function env
 
-$Global:GalOpsExe = join-path $GalOpsRoot "bin\Debug\galops.exe"
+$Global:GalOpsExe = join-path $GalOpsRoot "bin\x64\Debug\galops.exe"
 if(!(Test-Path $GalOpsExe)) {
 	$answer = Read-Host "Gallery ops exe not built. Build it now? (Y/n)"
 	if([String]::IsNullOrEmpty($answer) -or $answer.Equals("y", "OrdinalIgnoreCase") -or $answer.Equals("yes", "OrdinalIgnoreCase")) {

@@ -18,6 +18,11 @@ using System.Runtime.InteropServices;
 #endif
 [assembly: CLSCompliant(false)]
 [assembly: NeutralResourcesLanguage("en-us")]
-[assembly: AssemblyVersion("2.0.0")]
-[assembly: AssemblyFileVersion("2.13.0805")]
-[assembly: AssemblyInformationalVersion("2.13.0805-aadevbuild")]
+
+[assembly: AssemblyVersion("2.2013.1014")]
+[assembly: AssemblyFileVersion("2.2013.1014")]
+[assembly: AssemblyInformationalVersion("2.2013.1014")]
+[assembly: AssemblyMetadata("Branch", "")]
+[assembly: AssemblyMetadata("CommitId", "")]
+[assembly: AssemblyMetadata("BuildDateUtc", "")]
+[assembly: AssemblyMetadata("RepositoryUrl", "")]

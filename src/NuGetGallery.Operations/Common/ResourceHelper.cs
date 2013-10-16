@@ -70,6 +70,7 @@ namespace NuGetGallery.Operations
             return builder.ToString();
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
         public static string GetBatchFromSqlFile(string filename)
         {
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(filename))
@@ -81,6 +82,7 @@ namespace NuGetGallery.Operations
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
         public static IEnumerable<string> GetBatchesFromSqlFile(string filename)
         {
             List<string> batches = new List<string>();

@@ -106,27 +106,27 @@ namespace NuGetGallery
                 .Include(p => p.LicenseReports)
                 .Include(p => p.PackageRegistration)
                 .Where(p => (p.PackageRegistration.Id == id));
+
             if (String.IsNullOrEmpty(version) && !allowPrerelease)
             {
                 // If there's a specific version given, don't bother filtering by prerelease. You could be asking for a prerelease package.
                 packagesQuery = packagesQuery.Where(p => !p.IsPrerelease);
             }
+
             var packageVersions = packagesQuery.ToList();
 
             Package package;
-            if (version == null)
+            if (String.IsNullOrEmpty(version))
             {
-                if (allowPrerelease)
+                package = packageVersions.FirstOrDefault(p => p.IsLatestStable);
+
+                if (package == null && allowPrerelease)
                 {
                     package = packageVersions.FirstOrDefault(p => p.IsLatest);
                 }
-                else
-                {
-                    package = packageVersions.FirstOrDefault(p => p.IsLatestStable);
-                }
 
                 // If we couldn't find a package marked as latest, then
-                // return the most recent one.
+                // return the most recent one (prerelease ones were already filtered out if appropriate...)
                 if (package == null)
                 {
                     package = packageVersions.OrderByDescending(p => p.Version).FirstOrDefault();
@@ -136,7 +136,9 @@ namespace NuGetGallery
             {
                 package = packageVersions.SingleOrDefault(
                     p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) &&
-                         p.Version.Equals(version, StringComparison.OrdinalIgnoreCase));
+                         (
+                            p.NormalizedVersion.Equals(SemanticVersionExtensions.Normalize(version), StringComparison.OrdinalIgnoreCase)
+                         ));
             }
             return package;
         }
@@ -153,20 +155,22 @@ namespace NuGetGallery
                        : packages.Where(p => p.IsLatestStable);
         }
 
-        public IEnumerable<Package> FindPackagesByOwner(User user)
+        public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted)
         {
             // Like DisplayPackage we should prefer to show you information from the latest stable version,
             // but show you the latest version otherwise.
 
-            var latestStablePackageVersions = _packageRegistrationRepository.GetAll()
-                .Where(pr => pr.Owners.Where(owner => owner.Username == user.Username).Any())
-                .Select(pr => pr.Packages.Where(p => p.IsLatestStable).FirstOrDefault())
+            var latestStablePackageVersions = _packageRepository.GetAll()
+                .Where(p => 
+                    p.PackageRegistration.Owners.Any(owner => owner.Key == user.Key)
+                    && p.IsLatestStable)
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners);
 
-            var latestPackageVersions = _packageRegistrationRepository.GetAll()
-                .Where(pr => pr.Owners.Where(owner => owner.Username == user.Username).Any())
-                .Select(pr => pr.Packages.OrderByDescending(p => p.Version).FirstOrDefault())
+            var latestPackageVersions = _packageRepository.GetAll()
+                .Where(p => 
+                    p.PackageRegistration.Owners.Any(owner => owner.Key == user.Key)
+                    && p.IsLatest)
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners);
 
@@ -177,10 +181,7 @@ namespace NuGetGallery
             }
             foreach (var package in latestStablePackageVersions)
             {
-                if (package != null)
-                {
-                    mergedResults[package.PackageRegistration.Id] = package;
-                }
+                mergedResults[package.PackageRegistration.Id] = package;
             }
 
             return mergedResults.Values;
@@ -419,7 +420,11 @@ namespace NuGetGallery
 
             package = new Package
             {
+                // Version must always be the exact string from the nuspec, which ToString will return to us. 
+                // However, we do also store a normalized copy for looking up later.
                 Version = nugetPackage.Metadata.Version.ToString(),
+                NormalizedVersion = nugetPackage.Metadata.Version.ToNormalizedString(),
+
                 Description = nugetPackage.Metadata.Description,
                 ReleaseNotes = nugetPackage.Metadata.ReleaseNotes,
                 HashAlgorithm = Constants.Sha512HashAlgorithmId,

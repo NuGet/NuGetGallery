@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data.Entity;
-using System.Linq;
-using System.Web;
+using System.Diagnostics;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
@@ -9,14 +8,15 @@ using System.Web.UI;
 using Elmah;
 using Elmah.Contrib.Mvc;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
+using Microsoft.WindowsAzure.Diagnostics;
+using Microsoft.WindowsAzure.ServiceRuntime;
 using Ninject;
-using Ninject.Web.Mvc;
+using Ninject.Web.Common;
 using NuGetGallery;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
-using NuGetGallery.Migrations;
 using WebActivator;
 using WebBackgrounder;
 
@@ -36,6 +36,18 @@ namespace NuGetGallery
             NinjectPreStart();
             ElmahPreStart();
             GlimpsePreStart();
+
+            try
+            {
+                if (RoleEnvironment.IsAvailable)
+                {
+                    CloudPreStart();
+                }
+            }
+            catch (Exception)
+            {
+                // Azure SDK not available!
+            }
         }
 
         public static void PostStart()
@@ -57,6 +69,11 @@ namespace NuGetGallery
         private static void GlimpsePreStart()
         {
             DynamicModuleUtility.RegisterModule(typeof(Glimpse.AspNet.HttpModule));
+        }
+
+        private static void CloudPreStart()
+        {
+            Trace.Listeners.Add(new DiagnosticMonitorTraceListener());
         }
 
         private static void BundlingPostStart()
@@ -154,8 +171,8 @@ namespace NuGetGallery
 
         private static void NinjectPreStart()
         {
-            DynamicModuleUtility.RegisterModule(typeof(OnePerRequestModule));
-            DynamicModuleUtility.RegisterModule(typeof(HttpApplicationInitializationModule));
+            DynamicModuleUtility.RegisterModule(typeof(OnePerRequestHttpModule));
+            DynamicModuleUtility.RegisterModule(typeof(NinjectHttpModule));
             NinjectBootstrapper.Initialize(() => Container.Kernel);
         }
 
