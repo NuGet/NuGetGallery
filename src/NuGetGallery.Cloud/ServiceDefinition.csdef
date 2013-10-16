@@ -2,7 +2,6 @@
 <ServiceDefinition name="NuGetGallery.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2013-03.2.0">
   <LoadBalancerProbes>
     <LoadBalancerProbe name="HTTP" path="/api/v2/Packages" protocol="http" />
-    <LoadBalancerProbe name="HTTPS" path="/api/v2/Packages" protocol="http" port="443" />
   </LoadBalancerProbes>
   <WebRole name="NuGetGallery" vmsize="Medium">
     <ConfigurationSettings>
@@ -33,7 +32,7 @@
     </Startup>
     <Endpoints>
       <InputEndpoint name="HttpEndpoint" protocol="http" port="80" loadBalancerProbe="HTTP" />
-      <InputEndpoint name="HttpsEndpoint" protocol="https" port="443" loadBalancerProbe="HTTPS" certificate="SSLCertificate" />
+      <InputEndpoint name="HttpsEndpoint" protocol="https" port="443" loadBalancerProbe="HTTP" certificate="SSLCertificate" />
       <InstanceInputEndpoint name="HttpInstanceEndpoint" protocol="tcp" localPort="80">
         <AllocatePublicPortFrom>
           <FixedPortRange max="8089" min="8081" />
