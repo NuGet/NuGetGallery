@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="NuGetGallery.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2013-03.2.0">
   <LoadBalancerProbes>
-    <LoadBalancerProbe name="HTTP" path="/api/v2/Packages" protocol="http" />
+    <LoadBalancerProbe name="HTTP" path="/api/v2/Packages" protocol="http" port="80" />
   </LoadBalancerProbes>
   <WebRole name="NuGetGallery" vmsize="Medium">
     <ConfigurationSettings>
