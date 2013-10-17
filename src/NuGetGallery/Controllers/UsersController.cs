@@ -12,10 +12,10 @@ namespace NuGetGallery
     public partial class UsersController : AppController
     {
         public ICuratedFeedService CuratedFeedService { get; protected set; }
+        public IUserService UserService { get; protected set; }
         public IMessageService MessageService { get; protected set; }
         public IPackageService PackageService { get; protected set; }
         public IAppConfiguration Config { get; protected set; }
-        public IUserService UserService { get; protected set; }
         public AuthenticationService AuthService { get; protected set; }
 
         protected UsersController() { }
@@ -39,7 +39,7 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Account()
         {
-            var user = UserService.FindByUsername(UserSession.Name);
+            var user = GetCurrentUser();
             var curatedFeeds = CuratedFeedService.GetFeedsForManager(user.Key);
             var apiCredential = user
                 .Credentials
@@ -55,11 +55,11 @@ namespace NuGetGallery
                     });
         }
 
-        [Authorize]
         [HttpGet]
+        [Authorize]
         public virtual ActionResult ConfirmationRequired()
         {
-            User user = UserService.FindByUsername(UserSession.Name);
+            User user = GetCurrentUser();
             var model = new ConfirmationViewModel
             {
                 ConfirmingNewAccount = !(user.Confirmed),
@@ -73,7 +73,7 @@ namespace NuGetGallery
         [ActionName("ConfirmationRequired")]
         public virtual ActionResult ConfirmationRequiredPost()
         {
-            User user = UserService.FindByUsername(UserSession.Name);
+            User user = GetCurrentUser();
             var confirmationUrl = Url.ConfirmationUrl(
                 MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
 
@@ -91,7 +91,7 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Edit()
         {
-            var user = UserService.FindByUsername(UserSession.Name);
+            var user = GetCurrentUser();
             var model = new EditProfileViewModel
                 {
                     Username = user.Username,
@@ -107,7 +107,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult Edit(EditProfileViewModel profile)
         {
-            var user = UserService.FindByUsername(UserSession.Name);
+            var user = GetCurrentUser();
             if (user == null)
             {
                 return HttpNotFound();
@@ -131,7 +131,7 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Packages()
         {
-            var user = UserService.FindByUsername(UserSession.Name);
+            var user = GetCurrentUser();
             var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: true)
                 .Select(p => new PackageViewModel(p)
                 {
@@ -152,7 +152,7 @@ namespace NuGetGallery
         public virtual ActionResult GenerateApiKey()
         {
             // Get the user
-            var user = UserService.FindByUsername(UserSession.Name);
+            var user = GetCurrentUser();
 
             // Generate an API Key
             var apiKey = Guid.NewGuid();
@@ -247,7 +247,7 @@ namespace NuGetGallery
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
 
-            if (!String.Equals(username, UserSession.Name, StringComparison.OrdinalIgnoreCase))
+            if (!String.Equals(username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
             {
                 return View(new ConfirmationViewModel
                     {
@@ -256,12 +256,8 @@ namespace NuGetGallery
                     });
             }
 
-            var user = UserService.FindByUsername(username);
-            if (user == null)
-            {
-                return HttpNotFound();
-            }
-
+            var user = GetCurrentUser();
+            
             string existingEmail = user.EmailAddress;
             var model = new ConfirmationViewModel
             {
@@ -338,7 +334,7 @@ namespace NuGetGallery
                 return View(model);
             }
 
-            var authUser = AuthService.Authenticate(UserSession.Name, model.Password);
+            var authUser = AuthService.Authenticate(User.Identity.Name, model.Password);
             if (authUser == null)
             {
                 ModelState.AddModelError("Password", Strings.CurrentPasswordIncorrect);
@@ -385,8 +381,8 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         [Authorize]
+        [ValidateAntiForgeryToken]
         public virtual ActionResult ChangePassword(PasswordChangeViewModel model)
         {
             if (!ModelState.IsValid)
@@ -394,7 +390,7 @@ namespace NuGetGallery
                 return View(model);
             }
 
-            if (!AuthService.ChangePassword(UserSession.Name, model.OldPassword, model.NewPassword))
+            if (!AuthService.ChangePassword(User.Identity.Name, model.OldPassword, model.NewPassword))
             {
                 ModelState.AddModelError(
                     "OldPassword",

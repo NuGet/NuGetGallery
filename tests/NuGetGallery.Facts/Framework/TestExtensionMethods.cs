@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web.Mvc;
 using Moq;
 using NuGetGallery.Authentication;
 
@@ -13,17 +11,19 @@ namespace NuGetGallery
 {
     public static class TestExtensionMethods
     {
-        public static void SetUser(this AppController self, string userName)
+        /// <summary>
+        /// Should only be used in the rare cases where you are testing an action that
+        /// does NOT use AppController.GetCurrentUser()! In those cases, use 
+        /// AppController.SetCurrentUser instead.
+        /// </summary>
+        /// <param name="name"></param>
+        public static void SetPrincipal(this AppController self, string name)
         {
-            SetUser(self, new User(userName));
-        }
-
-        public static void SetUser(this AppController self, User user)
-        {
-            Mock.Get(self.HttpContext).Setup(c => c.Request.IsAuthenticated).Returns(true);
-            Mock.Get(self.HttpContext).Setup(c => c.User).Returns(
-                new ClaimsPrincipal(
-                    AuthenticationService.CreateIdentity(user, "Test")));
+            var mock = Mock.Get(self.HttpContext);
+            mock.Setup(c => c.Request.IsAuthenticated).Returns(true);
+            mock.Setup(c => c.User).Returns(new ClaimsPrincipal(
+                new ClaimsIdentity(
+                    new [] { new Claim(ClaimTypes.Name, name) })));
         }
     }
 }

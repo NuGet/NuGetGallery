@@ -28,8 +28,7 @@ namespace NuGetGallery
         public IStatisticsService StatisticsService { get; set; }
         public IContentService ContentService { get; set; }
         public IIndexingService IndexingService { get; set; }
-        public AuthenticationService AuthService { get; set; }
-
+        
         protected ApiController() { }
 
         public ApiController(
@@ -39,8 +38,7 @@ namespace NuGetGallery
             IUserService userService,
             INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
-            IIndexingService indexingService,
-            AuthenticationService authService)
+            IIndexingService indexingService)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -50,7 +48,6 @@ namespace NuGetGallery
             ContentService = contentService;
             StatisticsService = null;
             IndexingService = indexingService;
-            AuthService = authService;
         }
 
         public ApiController(
@@ -61,9 +58,8 @@ namespace NuGetGallery
             INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
             IIndexingService indexingService,
-            IStatisticsService statisticsService,
-            AuthenticationService authService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, authService)
+            IStatisticsService statisticsService)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService)
         {
             StatisticsService = statisticsService;
         }
@@ -166,9 +162,9 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [ApiAuthorize]
         [ActionName("VerifyPackageKeyApi")]
-        public virtual ActionResult VerifyPackageKey(string apiKey, string id, string version)
+        public virtual ActionResult VerifyPackageKey(string id, string version)
         {
             if (!String.IsNullOrEmpty(id))
             {
@@ -180,8 +176,8 @@ namespace NuGetGallery
                         HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
                 }
 
-                var user = GetUserByApiKey(apiKey);
-                if (user == null || !package.IsOwner(user))
+                var user = GetCurrentUser();
+                if (!package.IsOwner(user))
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
                 }
@@ -211,7 +207,7 @@ namespace NuGetGallery
         private async Task<ActionResult> CreatePackageInternal()
         {
             // Get the user
-            
+            var user = GetCurrentUser();
 
             using (var packageToPush = ReadPackageFromRequest())
             {
@@ -260,11 +256,11 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.Created);
         }
 
-        [Authorize]
         [HttpDelete]
+        [ApiAuthorize]
         [ActionName("DeletePackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        public virtual ActionResult DeletePackage(string apiKey, string id, string version)
+        public virtual ActionResult DeletePackage(string id, string version)
         {
             var package = PackageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -273,13 +269,7 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            User user = GetUserByApiKey(apiKey);
-            if (user == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
-            }
-
+            var user = GetCurrentUser();
             if (!package.IsOwner(user))
             {
                 return new HttpStatusCodeWithBodyResult(
@@ -292,10 +282,10 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [ApiAuthorize]
         [ActionName("PublishPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        public virtual ActionResult PublishPackage(string apiKey, string id, string version)
+        public virtual ActionResult PublishPackage(string id, string version)
         {
             var package = PackageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -304,13 +294,7 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            User user = GetUserByApiKey(apiKey);
-            if (user == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
-            }
-
+            User user = GetCurrentUser();
             if (!package.IsOwner(user))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
@@ -362,7 +346,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [ApiAuthorize]
         [ActionName("PackageIDs")]
         public virtual ActionResult GetPackageIds(string partialId, bool? includePrerelease)
         {
@@ -375,7 +359,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [ApiAuthorize]
         [ActionName("PackageVersions")]
         public virtual ActionResult GetPackageVersions(string id, bool? includePrerelease)
         {
@@ -388,7 +372,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [ApiAuthorize]
         [ActionName("StatisticsDownloadsApi")]
         public virtual async Task<ActionResult> GetStatsDownloads(int? count)
         {
@@ -429,19 +413,6 @@ namespace NuGetGallery
             }
 
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-        }
-
-        private User GetUserByApiKey(string apiKey)
-        {
-            var authUser = AuthService.Authenticate(CredentialBuilder.CreateV1ApiKey(apiKey));
-            if (authUser == null)
-            {
-                return null;
-            }
-            else
-            {
-                return authUser.User;
-            }
         }
     }
 }

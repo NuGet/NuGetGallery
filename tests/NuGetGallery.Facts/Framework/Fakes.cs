@@ -4,6 +4,9 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
 using System.Security.Principal;
+using Microsoft.Owin;
+using Microsoft.Owin.Security;
+using Moq;
 using NuGetGallery.Authentication;
 
 namespace NuGetGallery.Framework
@@ -98,6 +101,18 @@ namespace NuGetGallery.Framework
                     creds.Add(cred);
                 }
             }
+        }
+
+        public static Mock<IOwinContext> CreateOwinContext()
+        {
+            var context = new Mock<IOwinContext>();
+            context.Setup(c => c.Environment).Returns(new Dictionary<string, object>());
+            context.Setup(c => c.Request).Returns(new Mock<IOwinRequest>().Object);
+            context.Setup(c => c.Response).Returns(new Mock<IOwinResponse>().Object);
+            context.Setup(c => c.Authentication).Returns(new Mock<IAuthenticationManager>().Object);
+            context.Setup(c => c.Request.PathBase).Returns("/testroot");
+            context.Setup(c => c.Request.Headers).Returns(new HeaderDictionary(new Dictionary<string, string[]>()));
+            return context;
         }
     }
 }

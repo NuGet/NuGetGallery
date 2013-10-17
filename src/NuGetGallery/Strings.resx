@@ -192,4 +192,7 @@
   <data name="ApiKeyRequired" xml:space="preserve">
     <value>An API key must be provided in the 'X-NuGet-ApiKey' header to use this service</value>
   </data>
+  <data name="Unauthorized" xml:space="preserve">
+    <value>User is not authorized</value>
+  </data>
 </root>

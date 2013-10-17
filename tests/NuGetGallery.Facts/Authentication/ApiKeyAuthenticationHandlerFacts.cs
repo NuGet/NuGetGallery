@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Owin;
@@ -9,6 +10,7 @@ using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
 using Moq;
+using NuGetGallery.Framework;
 using Xunit;
 using Xunit.Extensions;
 
@@ -16,85 +18,140 @@ namespace NuGetGallery.Authentication
 {
     public class ApiKeyAuthenticationHandlerFacts
     {
-        public class TheIsPathMatchMethod
+        public class TheGetChallengeMessageMethod
         {
-            [Theory]
-            [InlineData("")]
-            [InlineData(null)]
-            [InlineData("/a")]
-            [InlineData("/a/b")]
-            [InlineData("/a/b/c")]
-            [InlineData("/a/b/c/d/e")]
-            [InlineData("/z")]
-            public async Task GivenNoRootPath_AllPathsMatch(string path)
+            [Fact]
+            public async Task GivenANon401ResponseInActiveMode_ItReturnsNull()
             {
-                var handler = await TestableApiKeyAuthenticationHandler.CreateAsync();
-                Assert.True(handler.InvokeIsPathMatch(path));
-            }
-
-            [Theory]
-            [InlineData("/api")]
-            [InlineData("/api/v2")]
-            [InlineData("/api/v2/Packages")]
-            public async Task GivenARootPath_PathsUnderAndIncludingThatRootMatch(string path)
-            {
+                // Arrange
                 var handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
                 {
-                    RootPath = "/api"
+                    AuthenticationMode = AuthenticationMode.Active
                 });
-                Assert.True(handler.InvokeIsPathMatch(path));
+                handler.MockContext.Setup(c => c.Response.StatusCode).Returns(200);
+
+                // Act
+                var message = handler.GetChallengeMessage();
+
+                // Assert
+                Assert.Null(message);
             }
 
-            [Theory]
-            [InlineData("/api")]
-            [InlineData("/api/v2")]
-            [InlineData("/api/v2/Packages")]
-            public async Task GivenARootPathWithTrailingSlash_PathsUnderAndIncludingThatRootMatch(string path)
+            [Fact]
+            public async Task GivenA401ResponseInPassiveModeWithoutMatchingAuthenticationType_ItReturnsNull()
             {
+                // Arrange
                 var handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
                 {
-                    RootPath = "/api/"
+                    AuthenticationMode = AuthenticationMode.Passive,
+                    AuthenticationType = "blarg"
                 });
-                Assert.True(handler.InvokeIsPathMatch(path));
+                handler.MockContext
+                    .Setup(c => c.Response.StatusCode)
+                    .Returns(401);
+                handler.MockContext
+                    .Setup(c => c.Authentication.AuthenticationResponseChallenge)
+                    .Returns(new AuthenticationResponseChallenge(new [] { "flarg" }, new AuthenticationProperties()));
+
+                // Act
+                var message = handler.GetChallengeMessage();
+
+                // Assert
+                Assert.Null(message);
             }
 
-            [Theory]
-            [InlineData("/api")]
-            [InlineData("/api/v2")]
-            [InlineData("/api/v2/Packages")]
-            public async Task GivenARootPathWithTrailingSlashAndTildeSlash_PathsUnderAndIncludingThatRootMatch(string path)
+            [Fact]
+            public async Task GivenA401ResponseInPassiveModeWithMatchingAuthenticationTypeAndNoHeader_ItReturnsApiKeyRequired()
             {
+                // Arrange
                 var handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
                 {
-                    RootPath = "~/api/"
+                    AuthenticationMode = AuthenticationMode.Passive,
+                    AuthenticationType = "blarg"
                 });
-                Assert.True(handler.InvokeIsPathMatch(path));
+                handler.MockContext
+                    .Setup(c => c.Response.StatusCode)
+                    .Returns(401);
+                handler.MockContext
+                    .Setup(c => c.Authentication.AuthenticationResponseChallenge)
+                    .Returns(new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties()));
+
+                // Act
+                var message = handler.GetChallengeMessage();
+
+                // Assert
+                Assert.Equal(Strings.ApiKeyRequired, message);
             }
 
-            [Theory]
-            [InlineData("/api")]
-            [InlineData("/api/v2")]
-            [InlineData("/api/v2/Packages")]
-            public async Task GivenARootPathWithTildeSlash_PathsUnderAndIncludingThatRootMatch(string path)
+            [Fact]
+            public async Task GivenA401ResponseInPassiveModeWithMatchingAuthenticationTypeAndHeader_ItReturnsApiKeyNotAuthorized()
             {
+                // Arrange
                 var handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
                 {
-                    RootPath = "~/api"
+                    AuthenticationMode = AuthenticationMode.Passive,
+                    AuthenticationType = "blarg"
                 });
-                Assert.True(handler.InvokeIsPathMatch(path));
+                handler.MockContext
+                    .Setup(c => c.Response.StatusCode)
+                    .Returns(401);
+                handler.MockContext
+                    .Setup(c => c.Authentication.AuthenticationResponseChallenge)
+                    .Returns(new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties()));
+                handler.MockContext.Object.Request.Headers[Constants.ApiKeyHeaderName] = "woozle wuzzle";
+
+                // Act
+                var message = handler.GetChallengeMessage();
+
+                // Assert
+                Assert.Equal(Strings.ApiKeyNotAuthorized, message);
             }
 
-            [Theory]
-            [InlineData("/packages")]
-            [InlineData("/")]
-            [InlineData("/flarglebargle")]
-            public async Task GivenARootPath_PathsNotUnderAndIncludingThatRootMatch(string path)
+            [Fact]
+            public async Task GivenA401ResponseInActiveModeAndNoHeader_ItReturnsApiKeyRequired()
             {
+                // Arrange
                 var handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
                 {
-                    RootPath = "/api"
+                    AuthenticationMode = AuthenticationMode.Active,
+                    AuthenticationType = "blarg"
                 });
-                Assert.False(handler.InvokeIsPathMatch(path));
+                handler.MockContext
+                    .Setup(c => c.Response.StatusCode)
+                    .Returns(401);
+                handler.MockContext
+                    .Setup(c => c.Authentication.AuthenticationResponseChallenge)
+                    .Returns(new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties()));
+
+                // Act
+                var message = handler.GetChallengeMessage();
+
+                // Assert
+                Assert.Equal(Strings.ApiKeyRequired, message);
+            }
+
+            [Fact]
+            public async Task GivenA401ResponseInActiveModeAndHeader_ItReturnsApiKeyNotAuthorized()
+            {
+                // Arrange
+                var handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
+                {
+                    AuthenticationMode = AuthenticationMode.Active,
+                    AuthenticationType = "blarg"
+                });
+                handler.MockContext
+                    .Setup(c => c.Response.StatusCode)
+                    .Returns(401);
+                handler.MockContext
+                    .Setup(c => c.Authentication.AuthenticationResponseChallenge)
+                    .Returns(new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties()));
+                handler.MockContext.Object.Request.Headers[Constants.ApiKeyHeaderName] = "woozle wuzzle";
+
+                // Act
+                var message = handler.GetChallengeMessage();
+
+                // Assert
+                Assert.Equal(Strings.ApiKeyNotAuthorized, message);
             }
         }
 
@@ -156,7 +213,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public async Task GivenMatchingApiKey_ItReturnsTicketForResolvedUser()
+            public async Task GivenMatchingApiKey_ItReturnsTicketWithUserNameAndRoles()
             {
                 // Arrange
                 Guid apiKey = Guid.NewGuid();
@@ -176,8 +233,30 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.NotNull(ticket);
-                var id = Assert.IsType<ResolvedUserIdentity>(ticket.Identity);
-                Assert.Same(user, id.User);
+                Assert.Equal("theUser", ticket.Identity.GetClaimOrDefault(ClaimTypes.Name));
+            }
+
+            [Fact]
+            public async Task GivenMatchingApiKey_ItSetsUserInOwinEnvironment()
+            {
+                // Arrange
+                Guid apiKey = Guid.NewGuid();
+                var user = new User() { Username = "theUser", EmailAddress = "confirmed@example.com" };
+                TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
+                {
+                    RootPath = "/api"
+                });
+                handler.MockContext.Setup(c => c.Request.Path).Returns("/api/v2/packages");
+                handler.MockContext.Object.Request.Headers.Set(
+                    Constants.ApiKeyHeaderName,
+                    apiKey.ToString().ToLowerInvariant());
+                handler.MockAuth.SetupAuth(CredentialBuilder.CreateV1ApiKey(apiKey), user);
+
+                // Act
+                await handler.InvokeAuthenticateCoreAsync();
+
+                // Assert
+                Assert.Same(user, handler.MockContext.Object.Environment[Constants.CurrentUserOwinEnvironmentKey]);
             }
         }
 
@@ -206,12 +285,7 @@ namespace NuGetGallery.Authentication
 
                 var handler = new TestableApiKeyAuthenticationHandler();
 
-                var ctxt = (handler.MockContext = new Mock<IOwinContext>()).Object;
-
-                handler.MockContext.Setup(c => c.Request).Returns(new Mock<IOwinRequest>().Object);
-                handler.MockContext.Setup(c => c.Response).Returns(new Mock<IOwinResponse>().Object);
-                handler.MockContext.Setup(c => c.Request.PathBase).Returns("/testroot");
-                handler.MockContext.Setup(c => c.Request.Headers).Returns(new HeaderDictionary(new Dictionary<string, string[]>()));
+                var ctxt = (handler.MockContext = Fakes.CreateOwinContext()).Object;
 
                 // Grr, have to make an internal call to initialize...
                 await (Task)(typeof(AuthenticationHandler<ApiKeyAuthenticationOptions>)
@@ -227,11 +301,6 @@ namespace NuGetGallery.Authentication
             public Task<AuthenticationTicket> InvokeAuthenticateCoreAsync()
             {
                 return AuthenticateCoreAsync();
-            }
-
-            public bool InvokeIsPathMatch(string path)
-            {
-                return IsPathMatch(path);
             }
         }
     }

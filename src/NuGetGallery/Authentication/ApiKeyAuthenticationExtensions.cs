@@ -11,7 +11,7 @@ namespace Owin
     {
         public static IAppBuilder UseApiKeyAuthentication(this IAppBuilder self)
         {
-            UseApiKeyAuthentication(self, new ApiKeyAuthenticationOptions());
+            return UseApiKeyAuthentication(self, new ApiKeyAuthenticationOptions());
         }
 
         public static IAppBuilder UseApiKeyAuthentication(this IAppBuilder self, ApiKeyAuthenticationOptions options)

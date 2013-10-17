@@ -7,6 +7,7 @@ using System.Web;
 using System.Web.Mvc;
 using Moq;
 using NuGetGallery.Authentication;
+using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery
@@ -18,7 +19,7 @@ namespace NuGetGallery
             public TestableCuratedFeedsController()
             {
                 StubCuratedFeed = new CuratedFeed
-                    { Key = 0, Name = "aName", Managers = new HashSet<User>(new[] { new User { Username = "aUsername" } }) };
+                    { Key = 0, Name = "aName", Managers = new HashSet<User>(new[] { Fakes.User }) };
                 StubCuratedFeedService = new Mock<ICuratedFeedService>();
             
                 StubCuratedFeedService
@@ -32,7 +33,9 @@ namespace NuGetGallery
 
                 var httpContext = new Mock<HttpContextBase>();
                 TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, this);
-                this.SetUser("aUsername");
+
+                this.SetCurrentUser(Fakes.User);
+
             }
 
             public CuratedFeed StubCuratedFeed { get; set; }
@@ -67,7 +70,7 @@ namespace NuGetGallery
             public void WillReturn403IfTheCurrentUsersIsNotAManagerOfTheCuratedFeed()
             {
                 var controller = new TestableCuratedFeedsController();
-                controller.SetUser("notAManager");
+                controller.SetCurrentUser(Fakes.Owner);
                 
                 var result = controller.CuratedFeed("aFeedName") as HttpStatusCodeResult;
 
@@ -90,10 +93,11 @@ namespace NuGetGallery
             [Fact]
             public void WillPassTheCuratedFeedManagersToTheView()
             {
+                var user = new User { Username = "theManager" };
                 var controller = new TestableCuratedFeedsController();
-                controller.SetUser("theManager");
+                controller.SetCurrentUser(user);
                 controller.StubCuratedFeed.Name = "aFeedName";
-                controller.StubCuratedFeed.Managers = new HashSet<User>(new[] { new User { Username = "theManager" } });
+                controller.StubCuratedFeed.Managers = new HashSet<User>(new[] { user });
 
                 var viewModel = (controller.CuratedFeed("aFeedName") as ViewResult).Model as CuratedFeedViewModel;
 

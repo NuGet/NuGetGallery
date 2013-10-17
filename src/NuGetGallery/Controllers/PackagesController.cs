@@ -74,7 +74,7 @@ namespace NuGetGallery
         [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
         public virtual ActionResult UploadPackageProgress()
         {
-            string username = UserSession.Name;
+            string username = User.Identity.Name;
 
             AsyncFileUploadProgress progress = _cacheService.GetProgress(username);
             if (progress == null)
@@ -96,7 +96,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!package.IsOwner(HttpContext.User))
+            if (!package.IsOwner(User))
             {
                 return new HttpStatusCodeResult(403, "Forbidden");
             }
@@ -144,7 +144,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("upload a package")]
         public async virtual Task<ActionResult> UploadPackage()
         {
-            var currentUser = _userService.FindByUsername(UserSession.Name);
+            var currentUser = GetCurrentUser();
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -159,11 +159,11 @@ namespace NuGetGallery
 
         [HttpPost]
         [Authorize]
-        [RequiresAccountConfirmation("upload a package")]
         [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("upload a package")]
         public virtual async Task<ActionResult> UploadPackage(HttpPostedFileBase uploadFile)
         {
-            var currentUser = _userService.FindByUsername(UserSession.Name);
+            var currentUser = GetCurrentUser();
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -243,7 +243,7 @@ namespace NuGetGallery
             }
             var model = new DisplayPackageViewModel(package);
 
-            if (package.IsOwner(UserSession))
+            if (package.IsOwner(User))
             {
                 // Tell logged-in package owners not to cache the package page, so they won't be confused about the state of pending edits.
                 Response.Cache.SetCacheability(HttpCacheability.NoCache);
@@ -329,7 +329,7 @@ namespace NuGetGallery
 
             if (Request.IsAuthenticated)
             {
-                var user = _userService.FindByUsername(UserSession.Name);
+                var user = GetCurrentUser();
 
                 // If user logged on in as owner a different tab, then clicked the link, we can redirect them to ReportMyPackage
                 if (package.IsOwner(user))
@@ -359,7 +359,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("contact support about your package")]
         public virtual ActionResult ReportMyPackage(string id, string version)
         {
-            var user = _userService.FindByUsername(UserSession.Name);
+            var user = GetCurrentUser();
 
             var package = _packageService.FindPackageByIdAndVersion(id, version);
 
@@ -369,7 +369,7 @@ namespace NuGetGallery
             }
 
             // If user hit this url by constructing it manually but is not the owner, redirect them to ReportAbuse
-            if (!(HttpContext.User.IsInRole(Constants.AdminRoleName) || package.IsOwner(user)))
+            if (!(User.IsInRole(Constants.AdminRoleName) || package.IsOwner(user)))
             {
                 return RedirectToAction(ActionNames.ReportAbuse, new { id, version });
             }
@@ -408,7 +408,7 @@ namespace NuGetGallery
             MailAddress from;
             if (Request.IsAuthenticated)
             {
-                user = _userService.FindByUsername(UserSession.Name);
+                user = GetCurrentUser();
                 from = user.ToMailAddress();
             }
             else
@@ -454,7 +454,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var user = _userService.FindByUsername(UserSession.Name);
+            var user = GetCurrentUser();
             MailAddress from = user.ToMailAddress();
 
             _messageService.ReportMyPackage(
@@ -512,7 +512,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var user = _userService.FindByUsername(UserSession.Name);
+            var user = GetCurrentUser();
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);
             _messageService.SendContactOwnersMessage(
                 fromAddress, package, contactForm.Message, Url.Action(MVC.Users.Edit(), protocol: Request.Url.Scheme));
@@ -536,12 +536,12 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwner(HttpContext.User))
+            if (!package.IsOwner(User))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
 
-            var model = new ManagePackageOwnersViewModel(package, HttpContext.User);
+            var model = new ManagePackageOwnersViewModel(package, User);
 
             return View(model);
         }
@@ -573,7 +573,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!package.IsOwner(HttpContext.User))
+            if (!package.IsOwner(User))
             {
                 return new HttpStatusCodeResult(403, "Forbidden");
             }
@@ -596,9 +596,9 @@ namespace NuGetGallery
 
         [Authorize]
         [HttpPost]
-        [RequiresAccountConfirmation("edit a package")]
-        [ValidateAntiForgeryToken]
         [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
+        [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("edit a package")]
         public virtual ActionResult Edit(string id, string version, EditPackageRequest formData, string returnUrl)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
@@ -607,12 +607,12 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var user = _userService.FindByUsername(UserSession.Name);
-            if (user == null || !package.IsOwner(HttpContext.User))
+            if (!package.IsOwner(User))
             {
                 return new HttpStatusCodeResult(403, "Forbidden");
             }
 
+            var user = GetCurrentUser();
             if (!ModelState.IsValid)
             {
                 formData.PackageId = package.PackageRegistration.Id;
@@ -646,7 +646,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!String.Equals(username, UserSession.Name, StringComparison.OrdinalIgnoreCase))
+            if (!String.Equals(username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
             {
                 return View(new PackageOwnerConfirmationModel()
                 {
@@ -661,17 +661,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var user = _userService.FindByUsername(username);
-            if (user == null)
-            {
-                return HttpNotFound();
-            }
-
-            if (!String.Equals(user.Username, UserSession.Name, StringComparison.OrdinalIgnoreCase))
-            {
-                return new HttpStatusCodeResult(403);
-            }
-
+            var user = GetCurrentUser();
             ConfirmOwnershipResult result = _packageService.ConfirmPackageOwner(package, user, token);
 
             var model = new PackageOwnerConfirmationModel
@@ -690,7 +680,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwner(HttpContext.User))
+            if (!package.IsOwner(User))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -723,7 +713,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwner(HttpContext.User))
+            if (!package.IsOwner(User))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -736,7 +726,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("upload a package")]
         public virtual async Task<ActionResult> VerifyPackage()
         {
-            var currentUser = _userService.FindByUsername(UserSession.Name);
+            var currentUser = GetCurrentUser();
 
             IPackageMetadata packageMetadata;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
@@ -792,7 +782,7 @@ namespace NuGetGallery
         [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
         public virtual async Task<ActionResult> VerifyPackage(VerifyPackageRequest formData)
         {
-            var currentUser = _userService.FindByUsername(UserSession.Name);
+            var currentUser = GetCurrentUser();
 
             Package package;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
@@ -885,7 +875,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> CancelUpload()
         {
-            var currentUser = _userService.FindByUsername(UserSession.Name);
+            var currentUser = GetCurrentUser();
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
             return RedirectToAction("UploadPackage");
@@ -906,7 +896,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwner(HttpContext.User))
+            if (!package.IsOwner(User))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }

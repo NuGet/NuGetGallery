@@ -33,7 +33,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (curatedFeed.Managers.All(manager => manager.Username != UserSession.Name))
+            if (curatedFeed.Managers.All(manager => manager.Username != User.Identity.Name))
             {
                 return new HttpStatusCodeResult(403);
             }

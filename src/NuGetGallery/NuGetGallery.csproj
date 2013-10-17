@@ -324,7 +324,6 @@
     <Compile Include="Authentication\AuthenticationService.cs" />
     <Compile Include="Authentication\AuthenticationTypes.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
-    <Compile Include="Authentication\ResolvedUserIdentity.cs" />
     <Compile Include="Configuration\ConfigurationService.cs" />
     <Compile Include="Configuration\FeatureConfiguration.cs" />
     <Compile Include="Configuration\LuceneIndexLocation.cs" />

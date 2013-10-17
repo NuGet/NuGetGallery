@@ -23,16 +23,15 @@ namespace NuGetGallery.Filters
                 throw new ArgumentNullException("filterContext");
             }
 
-            var controller = ((AppController)filterContext.Controller);
-            UserSession user = controller.UserSession;
-            if (!user.IsAuthenticated)
+            if (!filterContext.HttpContext.Request.IsAuthenticated)
             {
                 throw new InvalidOperationException("Requires account confirmation attribute is only valid on authenticated actions.");
             }
-
-            var userService = controller.GetService<IUserService>();
-            var currentUser = userService.FindByUsername(user.Name);
-            if (!currentUser.Confirmed)
+            
+            var controller = ((AppController)filterContext.Controller);
+            var user = controller.GetCurrentUser();
+            
+            if (!user.Confirmed)
             {
                 controller.TempData["ConfirmationRequiredMessage"] = String.Format(
                     CultureInfo.CurrentCulture,

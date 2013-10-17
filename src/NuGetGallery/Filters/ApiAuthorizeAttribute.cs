@@ -13,6 +13,7 @@ namespace NuGetGallery.Filters
         {
             var owinContext = filterContext.HttpContext.GetOwinContext();
             owinContext.Authentication.Challenge(AuthenticationTypes.ApiKey);
+            owinContext.Response.StatusCode = 401;
             filterContext.Result = new HttpUnauthorizedResult();
         }
     }

@@ -310,7 +310,17 @@ namespace NuGetGallery
 
         public static string GetClaimOrDefault(this ClaimsPrincipal self, string claimType)
         {
-            return self.Claims
+            return self.Claims.GetClaimOrDefault(claimType);
+        }
+
+        public static string GetClaimOrDefault(this ClaimsIdentity self, string claimType)
+        {
+            return self.Claims.GetClaimOrDefault(claimType);
+        }
+
+        public static string GetClaimOrDefault(this IEnumerable<Claim> self, string claimType)
+        {
+            return self
                 .Where(c => String.Equals(c.Type, claimType, StringComparison.OrdinalIgnoreCase))
                 .Select(c => c.Value)
                 .FirstOrDefault();

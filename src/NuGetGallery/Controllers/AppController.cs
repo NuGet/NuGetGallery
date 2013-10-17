@@ -6,35 +6,23 @@ using System.Web;
 using System.Web.Mvc;
 using Microsoft.Owin;
 using NuGetGallery.Authentication;
+using System.Net;
 
 namespace NuGetGallery
 {
     public abstract partial class AppController : Controller
     {
-        private Lazy<ResolvedUserIdentity> _id;
         private IOwinContext _overrideContext;
-
-        [Obsolete("Use UserSession instead!")]
-        public virtual IIdentity Identity
-        {
-            get { return base.User.Identity; }
-        }
-
-        [Obsolete("Use UserSession instead!")]
-        public new IPrincipal User
-        {
-            get { return base.User; }
-        }
-
+        
         public IOwinContext OwinContext
         {
             get { return _overrideContext ?? HttpContext.GetOwinContext(); }
             set { _overrideContext = value; }
         }
 
-        public AppController()
+        public new ClaimsPrincipal User
         {
-            _session = new Lazy<ResolvedUserIdentity>(ResolveUser);
+            get { return base.User as ClaimsPrincipal; }
         }
 
         protected internal virtual T GetService<T>()
@@ -42,36 +30,61 @@ namespace NuGetGallery
             return DependencyResolver.Current.GetService<T>();
         }
 
-        private ResolvedUserIdentity ResolveUser()
+        // This is a method because the first call will perform a database call
+        /// <summary>
+        /// Get the current user, from the database, or if someone in this request has already
+        /// retrieved it, from memory. This will NEVER return null. It will throw an exception
+        /// that will yield an HTTP 401 if it would return null. As a result, it should only
+        /// be called in actions with the Authorize attribute or a Request.IsAuthenticated check
+        /// </summary>
+        /// <returns>The current user</returns>
+        protected internal User GetCurrentUser()
         {
-            if (OwinContext.Authentication.User == null)
+            User user = null;
+            object obj;
+            if (OwinContext.Environment.TryGetValue(Constants.CurrentUserOwinEnvironmentKey, out obj))
             {
-                return null;
+                user = obj as User;
             }
 
-            ClaimsPrincipal principal = OwinContext.Authentication.User as ClaimsPrincipal;
-            if (principal == null)
+            if (user == null)
             {
-                return null;
+                user = LoadUser();
+                OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey] = user;
             }
-            else
+
+            if (user == null)
             {
-                var id = principal.Identities.OfType<ResolvedUserIdentity>().SingleOrDefault();
-                if (id != null)
-                {
-                    return id;
-                }
-                else
-                {
-                    id = LoadUser();
-                    principal.AddIdentity(id);
-                }
+                // Unauthorized! If we get here it's because a valid session token was presented, but the
+                // user doesn't exist any more. So we just have a generic error.
+                throw new HttpException(401, Strings.Unauthorized);
             }
+
+            return user;
         }
 
-        private ResolvedUserIdentity LoadUser()
+        protected internal void SetCurrentUser(User user)
         {
-            throw new NotImplementedException();
+            OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey] = user;
+        }
+
+        private User LoadUser()
+        {
+            var principal = OwinContext.Authentication.User;
+            if(principal != null)
+            {
+                // Try to authenticate with the user name
+                string userName = principal.GetClaimOrDefault(ClaimTypes.Name);
+                
+                if (!String.IsNullOrEmpty(userName))
+                {
+                    return DependencyResolver
+                        .Current
+                        .GetService<UserService>()
+                        .FindByUsername(userName);
+                }
+            }
+            return null; // No user logged in, or credentials could not be resolved
         }
     }
 }

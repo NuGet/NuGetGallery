@@ -18,7 +18,7 @@ namespace NuGetGallery
         public static readonly string FakeUserName = "theUsername";
         public static readonly string FakeAdminName = "theAdmin";
 
-        public static readonly User FakeUser = new User() { Username = FakeUserName };
+        public static readonly User FakeUser = new User() { Username = FakeUserName, Key = 42 };
         public static readonly User FakeAdminUser = new User() { Username = FakeAdminName, Roles = new List<Role>() { new Role() { Name = Constants.AdminRoleName } } };
 
         // We only need this method because testing URL generation is a pain.

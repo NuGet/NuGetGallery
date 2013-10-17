@@ -22,64 +22,67 @@ namespace NuGetGallery.Authentication
             Auth = auth;
         }
 
-        protected override Task<AuthenticationTicket> AuthenticateCoreAsync()
+        protected override async Task ApplyResponseChallengeAsync()
         {
-            // Check if we should run based on root path
-            if (IsPathMatch(Context.Request.Path))
+            string message = GetChallengeMessage();
+
+            if (message != null)
+            {
+                Response.ReasonPhrase = message;
+                Response.Write(message);
+            }
+            else
+            {
+                await base.ApplyResponseChallengeAsync();
+            }
+        }
+
+        internal string GetChallengeMessage()
+        {
+            string message = null;
+            if (Response.StatusCode == 401 && (Helper.LookupChallenge(Options.AuthenticationType, Options.AuthenticationMode) != null))
             {
                 var apiKey = Request.Headers[Options.ApiKeyHeaderName];
+                message = Strings.ApiKeyRequired;
                 if (!String.IsNullOrEmpty(apiKey))
                 {
-                    // Get the user
-                    var user = Auth.Authenticate(CredentialBuilder.CreateV1ApiKey(apiKey));
-                    if (user != null)
-                    {
-                        return Task.FromResult(
-                            new AuthenticationTicket(
-                                new ResolvedUserIdentity(user, AuthenticationTypes.ApiKey), 
-                                new AuthenticationProperties()));
-                    }
-                    else
-                    {
-                        Logger.WriteWarning("No match for API Key!");
-                    }
+                    // Had an API key, but it wasn't valid
+                    message = Strings.ApiKeyNotAuthorized;
+                }
+
+            }
+            return message;
+        }
+
+        protected override Task<AuthenticationTicket> AuthenticateCoreAsync()
+        {
+            var apiKey = Request.Headers[Options.ApiKeyHeaderName];
+            if (!String.IsNullOrEmpty(apiKey))
+            {
+                // Get the user
+                var user = Auth.Authenticate(CredentialBuilder.CreateV1ApiKey(apiKey));
+                if (user != null)
+                {
+                    // Set the current user
+                    Context.Set(Constants.CurrentUserOwinEnvironmentKey, user);
+
+                    return Task.FromResult(
+                        new AuthenticationTicket(
+                            new ClaimsIdentity(new[] {
+                                new Claim(NuGetClaims.ApiKey, apiKey)
+                            }),
+                            new AuthenticationProperties()));
                 }
                 else
                 {
-                    Logger.WriteVerbose("No API Key Header found in request.");
+                    Logger.WriteWarning("No match for API Key!");
                 }
             }
             else
             {
-                Logger.WriteVerbose("Skipped API Key authentication. Not under specified root path: " + Request.Path);
+                Logger.WriteVerbose("No API Key Header found in request.");
             }
             return Task.FromResult<AuthenticationTicket>(null);
-        }
-
-        protected bool IsPathMatch(string path)
-        {
-            if (String.IsNullOrEmpty(Options.RootPath))
-            {
-                return true;
-            }
-
-            var root = NormalizeRootPath(Options.RootPath);
-            path = String.IsNullOrEmpty(path) ? "/" : path;
-
-            return path.StartsWith(root, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private string NormalizeRootPath(string path)
-        {
-            if (path.StartsWith("~"))
-            {
-                path = path.Substring(1);
-            }
-            if (path.EndsWith("/"))
-            {
-                path = path.Substring(0, path.Length - 1);
-            }
-            return path;
         }
     }
 }

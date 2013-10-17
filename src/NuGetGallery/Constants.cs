@@ -37,6 +37,7 @@
 
         public static readonly string ApiKeyHeaderName = "X-NuGet-ApiKey";
         public static readonly string ReturnUrlParameterName = "ReturnUrl";
+        public static readonly string CurrentUserOwinEnvironmentKey = "nuget.user";
 
         public static class ContentNames
         {
