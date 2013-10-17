@@ -9,5 +9,6 @@ namespace NuGetGallery.Authentication
     {
         public static readonly string Cookie = "cookie";
         public static readonly string ApiKey = "apikey";
+        public static readonly string ResolvedUser = "resolveduser";
     }
 }

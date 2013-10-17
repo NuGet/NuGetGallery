@@ -67,8 +67,8 @@ namespace NuGetGallery
             StatisticsService = statisticsService;
         }
 
-        [ActionName("GetPackageApi")]
         [HttpGet]
+        [ActionName("GetPackageApi")]
         public virtual async Task<ActionResult> GetPackage(string id, string version)
         {
             // some security paranoia about URL hacking somehow creating e.g. open redirects
@@ -127,21 +127,21 @@ namespace NuGetGallery
                 catch (SqlException e)
                 {
                     // Log the error and continue
-                    QuietlyLogException(e);
+                    QuietLog.LogHandledException(e);
                 }
                 catch (DataException e)
                 {
                     // Log the error and continue
-                    QuietlyLogException(e);
+                    QuietLog.LogHandledException(e);
                 }
             }
             catch (SqlException e)
             {
-                QuietlyLogException(e);
+                QuietLog.LogHandledException(e);
             }
             catch (DataException e)
             {
-                QuietlyLogException(e);
+                QuietLog.LogHandledException(e);
             }
             
             // Fall back to constructing the URL based on the package version and ID.
@@ -165,6 +165,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        [Authorize]
         [ActionName("VerifyPackageKeyApi")]
         public virtual ActionResult VerifyPackageKey(string apiKey, string id, string version)
         {
@@ -181,7 +182,7 @@ namespace NuGetGallery
                 var user = GetUserByApiKey(apiKey);
                 if (user == null || !package.IsOwner(user))
                 {
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
                 }
             }
 
@@ -189,6 +190,7 @@ namespace NuGetGallery
         }
 
         [HttpPut]
+        [Authorize]
         [ActionName("PushPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual Task<ActionResult> CreatePackagePut(string apiKey)
@@ -198,6 +200,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
+        [Authorize]
         [ActionName("PushPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual Task<ActionResult> CreatePackagePost(string apiKey)
@@ -255,6 +258,7 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.Created);
         }
 
+        [Authorize]
         [HttpDelete]
         [ActionName("DeletePackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
@@ -286,6 +290,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
+        [Authorize]
         [ActionName("PublishPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual ActionResult PublishPackage(string apiKey, string id, string version)
@@ -354,8 +359,9 @@ namespace NuGetGallery
             return new Nupkg(stream, leaveOpen: false);
         }
 
-        [ActionName("PackageIDs")]
         [HttpGet]
+        [Authorize]
+        [ActionName("PackageIDs")]
         public virtual ActionResult GetPackageIds(string partialId, bool? includePrerelease)
         {
             var query = GetService<IPackageIdsQuery>();
@@ -366,8 +372,9 @@ namespace NuGetGallery
                 };
         }
 
-        [ActionName("PackageVersions")]
         [HttpGet]
+        [Authorize]
+        [ActionName("PackageVersions")]
         public virtual ActionResult GetPackageVersions(string id, bool? includePrerelease)
         {
             var query = GetService<IPackageVersionsQuery>();
@@ -378,8 +385,9 @@ namespace NuGetGallery
                 };
         }
 
-        [ActionName("StatisticsDownloadsApi")]
         [HttpGet]
+        [Authorize]
+        [ActionName("StatisticsDownloadsApi")]
         public virtual async Task<ActionResult> GetStatsDownloads(int? count)
         {
             var result = await StatisticsService.LoadDownloadPackageVersions();
@@ -431,18 +439,6 @@ namespace NuGetGallery
             else
             {
                 return authUser.User;
-            }
-        }
-
-        private static void QuietlyLogException(Exception e)
-        {
-            try
-            {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(e);
-            }
-            catch
-            {
-                // logging failed, don't allow exception to escape
             }
         }
     }

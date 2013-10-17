@@ -609,8 +609,8 @@ namespace NuGetGallery
                 // Assert
                 ResultAssert.IsStatusCode(
                     result,
-                    HttpStatusCode.Forbidden, 
-                    "The specified API key does not provide the authority to push packages.");
+                    HttpStatusCode.Forbidden,
+                    Strings.ApiKeyNotAuthorized);
             }
 
             [Fact]
@@ -670,7 +670,7 @@ namespace NuGetGallery
                 ResultAssert.IsStatusCode(
                     result,
                     HttpStatusCode.Forbidden, 
-                    "The specified API key does not provide the authority to push packages.");
+                    Strings.ApiKeyNotAuthorized);
             }
 
             [Fact]

@@ -12,27 +12,74 @@ namespace NuGetGallery.Authentication
 {
     public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
     {
-        private readonly ILogger _logger;
+        protected ILogger Logger { get; set; }
+        protected AuthenticationService Auth { get; set; }
 
-        public ApiKeyAuthenticationHandler(ILogger logger)
+        internal ApiKeyAuthenticationHandler() { }
+        public ApiKeyAuthenticationHandler(ILogger logger, AuthenticationService auth)
         {
-            _logger = logger;
+            Logger = logger;
+            Auth = auth;
         }
 
-        protected override async Task<AuthenticationTicket> AuthenticateCoreAsync()
+        protected override Task<AuthenticationTicket> AuthenticateCoreAsync()
         {
-            var form = await Request.ReadFormAsync();
-            var apiKey = form.Get(Options.ApiKeyFormName);
-            if (!String.IsNullOrEmpty(apiKey))
+            // Check if we should run based on root path
+            if (IsPathMatch(Context.Request.Path))
             {
-                var id = new ClaimsIdentity(
-                    claims: new[] { 
-                        new Claim(Options.ApiKeyClaim, apiKey)
-                    },
-                    authenticationType: Options.AuthenticationType);
-                return new AuthenticationTicket(id, new AuthenticationProperties());
+                var apiKey = Request.Headers[Options.ApiKeyHeaderName];
+                if (!String.IsNullOrEmpty(apiKey))
+                {
+                    // Get the user
+                    var user = Auth.Authenticate(CredentialBuilder.CreateV1ApiKey(apiKey));
+                    if (user != null)
+                    {
+                        return Task.FromResult(
+                            new AuthenticationTicket(
+                                new ResolvedUserIdentity(user, AuthenticationTypes.ApiKey), 
+                                new AuthenticationProperties()));
+                    }
+                    else
+                    {
+                        Logger.WriteWarning("No match for API Key!");
+                    }
+                }
+                else
+                {
+                    Logger.WriteVerbose("No API Key Header found in request.");
+                }
             }
-            return null;
+            else
+            {
+                Logger.WriteVerbose("Skipped API Key authentication. Not under specified root path: " + Request.Path);
+            }
+            return Task.FromResult<AuthenticationTicket>(null);
+        }
+
+        protected bool IsPathMatch(string path)
+        {
+            if (String.IsNullOrEmpty(Options.RootPath))
+            {
+                return true;
+            }
+
+            var root = NormalizeRootPath(Options.RootPath);
+            path = String.IsNullOrEmpty(path) ? "/" : path;
+
+            return path.StartsWith(root, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private string NormalizeRootPath(string path)
+        {
+            if (path.StartsWith("~"))
+            {
+                path = path.Substring(1);
+            }
+            if (path.EndsWith("/"))
+            {
+                path = path.Substring(0, path.Length - 1);
+            }
+            return path;
         }
     }
 }

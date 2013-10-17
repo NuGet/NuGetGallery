@@ -61,11 +61,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified API key does not provide the authority to {0} packages..
+        ///   Looks up a localized string similar to The specified API key is invalid or does not have permission to access the specified package..
         /// </summary>
         public static string ApiKeyNotAuthorized {
             get {
                 return ResourceManager.GetString("ApiKeyNotAuthorized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An API key must be provided in the &apos;X-NuGet-ApiKey&apos; header to use this service.
+        /// </summary>
+        public static string ApiKeyRequired {
+            get {
+                return ResourceManager.GetString("ApiKeyRequired", resourceCulture);
             }
         }
         

@@ -28,8 +28,9 @@ namespace NuGetGallery
             });
             app.UseApiKeyAuthentication(new ApiKeyAuthenticationOptions()
             {
+                RootPath = "/api",
                 AuthenticationType = AuthenticationTypes.ApiKey,
-                ApiKeyFormName = Constants.ApiKeyParameterName
+                ApiKeyHeaderName = Constants.ApiKeyHeaderName
             });
         }
     }

@@ -136,7 +136,7 @@
     <value>A nuget package's {0} property may not be more than {1} characters long.</value>
   </data>
   <data name="ApiKeyNotAuthorized" xml:space="preserve">
-    <value>The specified API key does not provide the authority to {0} packages.</value>
+    <value>The specified API key is invalid or does not have permission to access the specified package.</value>
   </data>
   <data name="PackageExistsAndCannotBeModified" xml:space="preserve">
     <value>A package with id '{0}' and version '{1}' already exists and cannot be modified.</value>
@@ -188,5 +188,8 @@
   </data>
   <data name="PasswordCredentialsCannotBeUsedHere" xml:space="preserve">
     <value>Password credentials cannot be used with Authenticate(Credential). Use Authenticate(string, string) instead.</value>
+  </data>
+  <data name="ApiKeyRequired" xml:space="preserve">
+    <value>An API key must be provided in the 'X-NuGet-ApiKey' header to use this service</value>
   </data>
 </root>

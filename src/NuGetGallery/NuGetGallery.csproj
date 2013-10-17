@@ -325,6 +325,7 @@
     <Compile Include="Authentication\AuthenticationService.cs" />
     <Compile Include="Authentication\AuthenticationTypes.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
+    <Compile Include="Authentication\ResolvedUserIdentity.cs" />
     <Compile Include="Authentication\UserSession.cs" />
     <Compile Include="Configuration\ConfigurationService.cs" />
     <Compile Include="Configuration\FeatureConfiguration.cs" />
@@ -947,7 +948,6 @@
     <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
     <Compile Include="ViewModels\StatisticsPackagesItemViewModel.cs" />
     <Compile Include="ViewModels\StatisticsPackagesViewModel.cs" />
-    <Compile Include="App_Start\AuthenticationModule.cs" />
     <Compile Include="App_Start\AppActivator.cs" />
     <Compile Include="Controllers\ApiController.cs" />
     <Compile Include="Controllers\JsonApiController.cs" />

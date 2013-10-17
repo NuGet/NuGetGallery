@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.Web.Mvc;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security.Infrastructure;
@@ -21,7 +22,9 @@ namespace NuGetGallery.Authentication
 
         protected override AuthenticationHandler<ApiKeyAuthenticationOptions> CreateHandler()
         {
-            return new ApiKeyAuthenticationHandler(_logger);
+            return new ApiKeyAuthenticationHandler(
+                _logger,
+                DependencyResolver.Current.GetService<AuthenticationService>());
         }
     }
 }

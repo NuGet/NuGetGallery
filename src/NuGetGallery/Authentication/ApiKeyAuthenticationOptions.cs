@@ -8,11 +8,12 @@ namespace NuGetGallery.Authentication
 {
     public class ApiKeyAuthenticationOptions : AuthenticationOptions
     {
-        public string ApiKeyFormName { get; set; }
+        public string ApiKeyHeaderName { get; set; }
         public string ApiKeyClaim { get; set; }
+        public string RootPath { get; set; }
 
         public ApiKeyAuthenticationOptions() : base(AuthenticationTypes.ApiKey) {
-            ApiKeyFormName = "apiKey";
+            ApiKeyHeaderName = Constants.ApiKeyHeaderName;
             ApiKeyClaim = NuGetClaims.ApiKey;
         }
     }
