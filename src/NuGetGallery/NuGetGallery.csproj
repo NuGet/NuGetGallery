@@ -28,8 +28,7 @@
     </UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
     <TargetFrameworkProfile />
-    <IISExpressSSLPort>
-    </IISExpressSSLPort>
+    <IISExpressSSLPort>443</IISExpressSSLPort>
     <DownloadNuGetExe>true</DownloadNuGetExe>
     <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
     <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
@@ -326,7 +325,6 @@
     <Compile Include="Authentication\AuthenticationTypes.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
     <Compile Include="Authentication\ResolvedUserIdentity.cs" />
-    <Compile Include="Authentication\UserSession.cs" />
     <Compile Include="Configuration\ConfigurationService.cs" />
     <Compile Include="Configuration\FeatureConfiguration.cs" />
     <Compile Include="Configuration\LuceneIndexLocation.cs" />
@@ -620,6 +618,7 @@
     </Compile>
     <Compile Include="Diagnostics\DiagnosticsNinjectModule.cs" />
     <Compile Include="Diagnostics\GlimpseRuntimePolicy.cs" />
+    <Compile Include="Filters\ApiAuthorizeAttribute.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Filters\RequiresAccountConfirmationAttribute.cs" />
@@ -1399,9 +1398,9 @@
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
-          <UseIIS>False</UseIIS>
+          <UseIIS>True</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>8085</DevelopmentServerPort>
+          <DevelopmentServerPort>80</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
           <IISUrl>http://nuget.localtest.me</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>

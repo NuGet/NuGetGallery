@@ -36,6 +36,7 @@
         public const string UrlValidationErrorMessage = "This doesn't appear to be a valid HTTP/HTTPS URL";
 
         public static readonly string ApiKeyHeaderName = "X-NuGet-ApiKey";
+        public static readonly string ReturnUrlParameterName = "ReturnUrl";
 
         public static class ContentNames
         {

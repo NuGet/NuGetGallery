@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using System.Web.UI;
 using Newtonsoft.Json.Linq;
@@ -190,27 +191,28 @@ namespace NuGetGallery
         }
 
         [HttpPut]
-        [Authorize]
+        [ApiAuthorize]
         [ActionName("PushPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        public virtual Task<ActionResult> CreatePackagePut(string apiKey)
+        public virtual Task<ActionResult> CreatePackagePut()
         {
-            var user = GetUserByApiKey(apiKey);
-            return CreatePackageInternal(user);
+            return CreatePackageInternal();
         }
 
         [HttpPost]
-        [Authorize]
+        [ApiAuthorize]
         [ActionName("PushPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        public virtual Task<ActionResult> CreatePackagePost(string apiKey)
+        public virtual Task<ActionResult> CreatePackagePost()
         {
-            var user = GetUserByApiKey(apiKey);
-            return CreatePackageInternal(user);
+            return CreatePackageInternal();
         }
 
-        private async Task<ActionResult> CreatePackageInternal(User user)
+        private async Task<ActionResult> CreatePackageInternal()
         {
+            // Get the user
+            
+
             using (var packageToPush = ReadPackageFromRequest())
             {
                 // Ensure that the user can push packages for this partialId.
