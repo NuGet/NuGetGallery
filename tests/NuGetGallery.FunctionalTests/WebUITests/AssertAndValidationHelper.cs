@@ -205,8 +205,10 @@ namespace NuGetGallery.FunctionalTests
 
         #endregion AssertMethods
 
-
-
+        internal static WebTestRequest GetCancelGetRequest()
+        {
+            return GetHttpRequestForUrl(UrlHelper.CancelUrl);
+        }
     }
 }
 

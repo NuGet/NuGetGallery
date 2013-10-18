@@ -34,6 +34,14 @@
 
             WebTestRequest uploadRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
             yield return uploadRequest;
+            if (this.LastResponse.ResponseUri.ToString().Contains("verify-upload"))
+            {
+                WebTestRequest cancelGet = AssertAndValidationHelper.GetCancelGetRequest();
+                yield return cancelGet;
+                cancelGet = null;
+                uploadRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
+                yield return uploadRequest;
+            }
             uploadRequest = null;
 
             //Upload a new package.   

@@ -29,6 +29,7 @@ namespace NuGetGallery.FunctionalTests.Features
         [TestMethod]
         [Description("Creates a package with Windows8 tags. Uploads it and checks if it has been curated")]
         [Priority(1)]
+        [Ignore] 
         public void AddPackageToWindows8CuratedFeed()
         {
              string packageId = testContextInstance.TestName + DateTime.Now.Ticks.ToString();

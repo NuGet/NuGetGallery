@@ -49,6 +49,11 @@ namespace NuGetGallery.FunctionTests.Helpers
             get { return UrlHelper.BaseUrl + LogonPageUrlSuffix; }
         }
 
+        public static string CancelUrl
+        {
+            get { return UrlHelper.BaseUrl + CancelUrlSuffix; }
+        }
+
         public static string SignInPageUrl
         {
             get { return UrlHelper.BaseUrl + SignInPageUrlSuffix; }
@@ -131,6 +136,7 @@ namespace NuGetGallery.FunctionTests.Helpers
 
         #region UrlSuffix
         private const string LogonPageUrlSuffix = "/users/account/LogOn";
+        private const string CancelUrlSuffix = "packages/cancel-upload";
         private const string SignInPageUrlSuffix = "/users/account/SignIn";
         private const string LogOffPageUrlSuffix = "/users/account/LogOff?returnUrl=%2F";
         private const string LogonPageUrlOnPackageUploadSuffix = "Users/Account/LogOn?ReturnUrl=%2fpackages%2fupload";
