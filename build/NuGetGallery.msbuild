@@ -3,9 +3,12 @@
   <PropertyGroup Condition="'$(Configuration)' == ''">
     <Configuration>Debug</Configuration>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <Platform>Any CPU</Platform>
+    <MajorVersion>2</MajorVersion>
+    <Version>$(MajorVersion).$([System.DateTime]::UtcNow.ToString("yyyy")).$([System.DateTime]::UtcNow.ToString("MMdd"))</Version>
+    <ProductionBranch>master</ProductionBranch>
   </PropertyGroup>
 
   <Target Name="PatchAssemblyVersion">
@@ -15,7 +18,12 @@
     <GetGitMetadata RepositoryRoot="$(MSBuildThisFileDirectory)\..">
       <Output TaskParameter="Branch" PropertyName="Branch" />
       <Output TaskParameter="CommitId" PropertyName="CommitId" />
+      <Output TaskParameter="RepositoryUrl" PropertyName="RepositoryUrl" />
     </GetGitMetadata>
+    <PropertyGroup>
+      <SemVer Condition="'$(Branch)' != '$(ProductionBranch)'">$(Version)-$([System.Text.RegularExpressions.Regex]::Replace($(Branch), "[^A-Za-z0-9]", ""))</SemVer>
+      <SemVer Condition="'$(Branch)' == '$(ProductionBranch)'">$(Version)</SemVer>
+    </PropertyGroup>
     <Message Text="Marking AssemblyInfo for build from branch $(Branch), commit $(CommitId)" Importance="high" />
     <RegexReplace 
       Files="@(_RegexReplace)"
@@ -25,14 +33,44 @@
       Files="@(_RegexReplace)"
       Find="\[assembly: AssemblyMetadata\(&quot;CommitId&quot;, .*\)\]"
       Replace="[assembly: AssemblyMetadata(&quot;CommitId&quot;, &quot;$(CommitId)&quot;)]" />
+    <RegexReplace 
+      Files="@(_RegexReplace)"
+      Find="\[assembly: AssemblyMetadata\(&quot;RepositoryUrl&quot;, .*\)\]"
+      Replace="[assembly: AssemblyMetadata(&quot;RepositoryUrl&quot;, &quot;$(RepositoryUrl)&quot;)]" />
+    <RegexReplace 
+      Files="@(_RegexReplace)"
+      Find="\[assembly: AssemblyMetadata\(&quot;BuildDateUtc&quot;, .*\)\]"
+      Replace="[assembly: AssemblyMetadata(&quot;BuildDateUtc&quot;, &quot;$([System.DateTime]::UtcNow.ToString(&quot;O&quot;))&quot;)]" />
+    <RegexReplace 
+      Files="@(_RegexReplace)"
+      Find="\[assembly: AssemblyVersion\(.*\)\]"
+      Replace="[assembly: AssemblyVersion(&quot;$(Version)&quot;)]" />
+    <RegexReplace 
+      Files="@(_RegexReplace)"
+      Find="\[assembly: AssemblyFileVersion\(.*\)\]"
+      Replace="[assembly: AssemblyFileVersion(&quot;$(Version)&quot;)]" />
+    <RegexReplace 
+      Files="@(_RegexReplace)"
+      Find="\[assembly: AssemblyInformationalVersion\(.*\)\]"
+      Replace="[assembly: AssemblyInformationalVersion(&quot;$(SemVer)&quot;)]" />
   </Target>
 
   <Target Name="Clean">
     <MSBuild Projects="..\NuGetGallery.sln" Targets="Clean" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
   </Target>
   
-  <Target Name="Build" DependsOnTargets="Clean;PatchAssemblyVersion">
-    <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);RunFacts=true" />
-    <MSBuild Projects="..\src\NuGetGallery.Backend.Cloud\NuGetGallery.Backend.Cloud.ccproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
+  <Target Name="CoreBuild">
+    <Message Text="*************" Importance="high" />
+    <Message Text="Building ... " Importance="high" />
+    <Message Text="*************" Importance="high" />
+    <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);RunFacts=true;TargetProfile=Local" />
+    
+    <Message Text="**************" Importance="high" />
+    <Message Text="Packaging ... " Importance="high" />
+    <Message Text="**************" Importance="high" />
+    <MSBuild Projects="..\src\NuGetGallery.Cloud\NuGetGallery.Cloud.ccproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=AnyCPU;VMSize=$(Frontend_VMSize);TargetProfile=Local" BuildInParallel="false" />
+    <MSBuild Projects="..\src\NuGetGallery.Backend.Cloud\NuGetGallery.Backend.Cloud.ccproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=AnyCPU;VMSize=$(Backend_VMSize);TargetProfile=Local" BuildInParallel="false" />
   </Target>
+
+  <Target Name="Build" DependsOnTargets="Clean;PatchAssemblyVersion;CoreBuild" />
 </Project>

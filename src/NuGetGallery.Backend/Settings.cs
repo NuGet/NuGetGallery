@@ -17,15 +17,15 @@ namespace NuGetGallery.Backend
         private Uri _licenseReportService;
         private NetworkCredential _licenseReportCredentials;
 
-        public virtual string EnvironmentName { get { return GetSetting("EnvironmentName"); } }
+        public virtual string EnvironmentName { get { return GetSetting("Operations.EnvironmentName"); } }
 
-        public virtual string MainConnectionString { get { return GetSetting("Sql.Primary"); } }
+        public virtual string MainConnectionString { get { return GetSetting("Operations.Sql.Primary"); } }
 
-        public virtual string WarehouseConnectionString { get { return GetSetting("Sql.Warehouse"); } }
+        public virtual string WarehouseConnectionString { get { return GetSetting("Operations.Sql.Warehouse"); } }
 
         public virtual bool WhatIf
         {
-            get { return String.Equals("true", GetSetting("WhatIf"), StringComparison.OrdinalIgnoreCase); }
+            get { return String.Equals("true", GetSetting("Operations.WhatIf"), StringComparison.OrdinalIgnoreCase); }
         }
 
         public virtual Uri SqlDac
@@ -33,7 +33,7 @@ namespace NuGetGallery.Backend
             get
             {
                 return _sqlDac ??
-                    (_sqlDac = new Uri(GetSetting("SqlDac")));
+                    (_sqlDac = new Uri(GetSetting("Operations.SqlDac")));
             }
         }
 
@@ -42,7 +42,7 @@ namespace NuGetGallery.Backend
             get
             {
                 return _licenseReportService ??
-                    (_licenseReportService = new Uri(GetSetting("LicenseReport.Service")));
+                    (_licenseReportService = new Uri(GetSetting("Operations.LicenseReport.Service")));
             }
         }
 
@@ -52,8 +52,8 @@ namespace NuGetGallery.Backend
             {
                 if (_licenseReportCredentials == null)
                 {
-                    string user = GetSetting("LicenseReport.User");
-                    string pass = GetSetting("LicenseReport.Password");
+                    string user = GetSetting("Operations.LicenseReport.User");
+                    string pass = GetSetting("Operations.LicenseReport.Password");
                     _licenseReportCredentials = new NetworkCredential(user, pass);
                 }
                 return _licenseReportCredentials;
@@ -65,7 +65,7 @@ namespace NuGetGallery.Backend
             get
             {
                 return _mainStorage ??
-                    (_mainStorage = GetCloudStorageAccount("Storage.Primary"));
+                    (_mainStorage = GetCloudStorageAccount("Operations.Storage.Primary"));
             }
         }
 
@@ -74,7 +74,16 @@ namespace NuGetGallery.Backend
             get
             {
                 return _backupStorage ??
-                    (_backupStorage = GetCloudStorageAccount("Storage.Backup"));
+                    (_backupStorage = GetCloudStorageAccount("Operations.Storage.Backup"));
+            }
+        }
+
+        public virtual CloudStorageAccount DiagnosticsStorage
+        {
+            get
+            {
+                return _backupStorage ??
+                    (_backupStorage = GetCloudStorageAccount("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString"));
             }
         }
 
@@ -93,7 +102,6 @@ namespace NuGetGallery.Backend
             string val;
             if (!_overrideSettings.TryGetValue(name, out val))
             {
-                name = "Operations." + name;
                 // Try Azure Config
                 try
                 {

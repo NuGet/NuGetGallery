@@ -9,6 +9,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery.Operations.Common;
 using NuGetGallery.Infrastructure;
+using Dapper;
 
 namespace NuGetGallery.Operations
 {
@@ -56,6 +57,14 @@ namespace NuGetGallery.Operations
         protected override CloudStorageAccount GetStorageAccountFromEnvironment(DeploymentEnvironment environment)
         {
             return environment.BackupStorage;
+        }
+    }
+
+    public abstract class DiagnosticsStorageTask : StorageTaskBase
+    {
+        protected override CloudStorageAccount GetStorageAccountFromEnvironment(DeploymentEnvironment environment)
+        {
+            return environment.DiagnosticsStorage;
         }
     }
 
@@ -133,6 +142,42 @@ namespace NuGetGallery.Operations
             {
                 return act(c, e);
             }
+        }
+
+        protected static void WithTableType(SqlConnection connection, string name, string definition, Action act)
+        {
+            try
+            {
+                // Create the table-valued parameter type
+                connection.Execute(String.Format(@"
+                        IF EXISTS (
+                            SELECT * 
+                            FROM sys.types 
+                            WHERE is_table_type = 1 
+                            AND name = '{0}'
+                        )
+                        BEGIN
+                            DROP TYPE {0}
+                        END
+                        CREATE TYPE {0} AS TABLE ({1})", name, definition));
+
+                act();
+            }
+            finally
+            {
+                // Clean up the table-valued parameter type
+                connection.Execute(String.Format(@"
+                        IF EXISTS (
+                            SELECT * 
+                            FROM sys.types 
+                            WHERE is_table_type = 1 
+                            AND name = '{0}'
+                        )
+                        BEGIN
+                            DROP TYPE {0}
+                        END", name));
+            }
+
         }
 
         protected SqlConnection OpenConnection()

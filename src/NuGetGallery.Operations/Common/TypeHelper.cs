@@ -13,19 +13,11 @@ namespace NuGetGallery.Operations
 {
     internal static class TypeHelper
     {
-        private static Dictionary<Type, Func<TypeConverter>> _additionalConverters = new Dictionary<Type, Func<TypeConverter>>();
-
-        static TypeHelper()
-        {
-            RegisterConverter(typeof(Stream), () => new FileStreamConverter());
-            RegisterConverter(typeof(CloudStorageAccount), () => new CloudStorageAccountConverter());
-            RegisterConverter(typeof(SqlConnectionStringBuilder), () => new SqlConnectionStringConverter());
-        }
-
-        public static void RegisterConverter(Type type, Func<TypeConverter> ctor)
-        {
-            _additionalConverters[type] = ctor;
-        }
+        private static Dictionary<Type, Func<TypeConverter>> _additionalConverters = new Dictionary<Type, Func<TypeConverter>>() {
+            { typeof(Stream), () => new FileStreamConverter() },
+            {typeof(CloudStorageAccount), () => new CloudStorageAccountConverter()},
+            {typeof(SqlConnectionStringBuilder), () => new SqlConnectionStringConverter()},
+        };
 
         public static Type RemoveNullableFromType(Type type)
         {

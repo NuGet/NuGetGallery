@@ -24,6 +24,8 @@ namespace NuGetGallery.Operations
 
         public CloudStorageAccount BackupStorage { get; private set; }
 
+        public CloudStorageAccount DiagnosticsStorage { get; private set; }
+
         public Uri SqlDacEndpoint { get; private set; }
 
         public Uri LicenseReportService { get; private set; }
@@ -41,6 +43,7 @@ namespace NuGetGallery.Operations
 
             MainStorage = GetCloudStorageAccount("Operations.Storage.Primary");
             BackupStorage = GetCloudStorageAccount("Operations.Storage.Backup") ?? MainStorage;
+            DiagnosticsStorage = GetCloudStorageAccount("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString") ?? MainStorage;
 
             SqlDacEndpoint = Get("Operations.SqlDac", str => new Uri(str, UriKind.Absolute));
 

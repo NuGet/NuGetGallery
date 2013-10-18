@@ -8,13 +8,14 @@ using NuGet;
 using NLog.Config;
 using NLog.Targets;
 using NLog;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NuGetGallery.Operations.Tools
 {
     [Export]
-    class Program
+    public class Program
     {
-        private Logger _logger = LogManager.GetLogger("Program");
+        private Logger _logger = LogManager.GetLogger("task.Program");
 
         public HelpCommand HelpCommand { get; set; }
 
@@ -104,10 +105,16 @@ namespace NuGetGallery.Operations.Tools
             {
                 Layout = "${message}"
             };
+            var joblogTarget = new SnazzyConsoleTarget()
+            {
+                Layout = "[${date:format=yyyy-MM-dd} ${date:format=HH}:${date:format=mm}:${date:format=ss}] ${message}"
+            };
 
             var config = new LoggingConfiguration();
-            config.AddTarget("console", consoleTarget);
-            config.LoggingRules.Add(new LoggingRule("*", LogLevel.Trace, consoleTarget));
+            config.AddTarget("task", consoleTarget);
+            config.AddTarget("joblog", joblogTarget);
+            config.LoggingRules.Add(new LoggingRule("joblog.*", LogLevel.Trace, joblogTarget));
+            config.LoggingRules.Add(new LoggingRule("task.*", LogLevel.Trace, consoleTarget));
 
             LogManager.Configuration = config;
         }

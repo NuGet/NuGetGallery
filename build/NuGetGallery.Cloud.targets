@@ -1,0 +1,11 @@
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Import Project="$(MSBuildThisFileDirectory)\NuGetGallery.tasks.targets" />
+	<Target Name="SetVMSize" BeforeTargets="PrepareForCsPack" DependsOnTargets="FindServiceDefinition" Condition="'$(VMSize)' != ''">
+		<Message Text="Patching @(TargetServiceDefinition) to set VMSize to $(VMSize)" />
+		<XPathSetAttribute 
+			XmlFiles="@(TargetServiceDefinition)" 
+			XPath="/csdef:ServiceDefinition/csdef:WebRole/@vmsize | /csdef:ServiceDefinition/csdef:WorkerRole/@vmsize"
+			Namespaces="csdef=http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition"
+			Value="$(VMSize)" />
+	</Target>
+</Project>

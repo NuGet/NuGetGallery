@@ -158,6 +158,14 @@ src/NuGetGallery/App_Data/Files/
 !src/NuGetGallery/App_Data/Files/Content
 !src/NuGetGallery/Views/Packages/
 !src/NuGetGallery.Operations/Tasks/Backups/
+!src/NuGetGallery.Cloud/*Content/bin
 
 # Kudu build folder
 build/artifacts/
+
+# Exclude CSCFGs, except the local emulator one
+*.cscfg
+!*.Local*.cscfg
+
+# Exclude Azure Publish Profiles
+*.pubxml
