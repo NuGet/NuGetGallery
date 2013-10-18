@@ -21,7 +21,7 @@ namespace NuGetGallery.FunctionalTests
 
         #region PredefinedText
         internal const string HomePageText = "What is NuGet?";
-        internal const string RegisterNewUserPendingConfirmationText = "An email with instructions on how to activate your account is on its way to you.";
+        internal const string RegisterNewUserPendingConfirmationText = @"<a href=""/account/ConfirmationRequired"">Confirm your account</a> so that you can use an <a href=""/account"">API Key</a> to push nuget packages from scripts.<br />";
         internal const string UserAlreadyExistsText = "User already exists";
         internal const string ReadOnlyModeRegisterNewUserText = "503 : Please try again later! (Read-only)";
         internal const string SearchTerm = "elmah";

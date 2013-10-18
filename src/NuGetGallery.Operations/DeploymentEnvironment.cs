@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -16,17 +17,23 @@ namespace NuGetGallery.Operations
         public string Name { get; private set; }
 
         public SqlConnectionStringBuilder MainDatabase { get; private set; }
+
         public SqlConnectionStringBuilder WarehouseDatabase { get; private set; }
-        
+
         public CloudStorageAccount MainStorage { get; private set; }
+
         public CloudStorageAccount BackupStorage { get; private set; }
 
         public Uri SqlDacEndpoint { get; private set; }
 
+        public Uri LicenseReportService { get; private set; }
+
+        public NetworkCredential LicenseReportServiceCredentials { get; private set; }
+
         public DeploymentEnvironment(IDictionary<string, string> deploymentSettings)
         {
             Settings = deploymentSettings;
-            
+
             Name = Get("Operations.EnvironmentName");
 
             MainDatabase = GetSqlConnectionStringBuilder("Operations.Sql.Primary");
@@ -36,6 +43,15 @@ namespace NuGetGallery.Operations
             BackupStorage = GetCloudStorageAccount("Operations.Storage.Backup") ?? MainStorage;
 
             SqlDacEndpoint = Get("Operations.SqlDac", str => new Uri(str, UriKind.Absolute));
+
+            LicenseReportService = Get("Operations.LicenseReport.Service", str => new Uri(str, UriKind.Absolute));
+
+            string licenseReportUser = Get("Operations.LicenseReport.User");
+            string licenseReportPassword = Get("Operations.LicenseReport.Password");
+            if (!String.IsNullOrEmpty(licenseReportUser) && !String.IsNullOrEmpty(licenseReportPassword))
+            {
+                LicenseReportServiceCredentials = new NetworkCredential(licenseReportUser, licenseReportPassword);
+            }
         }
 
         public static DeploymentEnvironment FromConfigFile(string configFile)

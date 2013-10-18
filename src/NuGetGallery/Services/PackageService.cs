@@ -103,6 +103,7 @@ namespace NuGetGallery
             // This resulted in a gnarly query. 
             // Instead, we can always query for all packages with the ID.
             IEnumerable<Package> packagesQuery = _packageRepository.GetAll()
+                .Include(p => p.LicenseReports)
                 .Include(p => p.PackageRegistration)
                 .Where(p => (p.PackageRegistration.Id == id));
             if (String.IsNullOrEmpty(version) && !allowPrerelease)
@@ -135,7 +136,9 @@ namespace NuGetGallery
             {
                 package = packageVersions.SingleOrDefault(
                     p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) &&
-                         p.Version.Equals(version, StringComparison.OrdinalIgnoreCase));
+                         (
+                            p.NormalizedVersion.Equals(SemanticVersionExtensions.Normalize(version), StringComparison.OrdinalIgnoreCase)
+                         ));
             }
             return package;
         }
@@ -418,7 +421,11 @@ namespace NuGetGallery
 
             package = new Package
             {
+                // Version must always be the exact string from the nuspec, which ToString will return to us. 
+                // However, we do also store a normalized copy for looking up later.
                 Version = nugetPackage.Metadata.Version.ToString(),
+                NormalizedVersion = nugetPackage.Metadata.Version.ToNormalizedString(),
+
                 Description = nugetPackage.Metadata.Description,
                 ReleaseNotes = nugetPackage.Metadata.ReleaseNotes,
                 HashAlgorithm = Constants.Sha512HashAlgorithmId,
@@ -640,6 +647,21 @@ namespace NuGetGallery
         private void NotifyIndexingService()
         {
             _indexingService.UpdateIndex();
+        }
+
+
+        public void SetLicenseReportVisibility(Package package, bool visible, bool commitChanges = true)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException("package");
+            }
+            package.HideLicenseReport = !visible;
+            if (commitChanges)
+            {
+                _packageRepository.CommitChanges();
+            }
+            _packageRepository.CommitChanges();
         }
     }
 }

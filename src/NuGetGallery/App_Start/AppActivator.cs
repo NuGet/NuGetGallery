@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Data.Entity;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using System.Web.UI;
 using Elmah;
 using Elmah.Contrib.Mvc;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Ninject;
-using Ninject.Web.Mvc;
+using Ninject.Web.Common;
 using NuGetGallery;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
-using NuGetGallery.Migrations;
 using WebActivator;
 using WebBackgrounder;
 
@@ -63,6 +61,12 @@ namespace NuGetGallery
             var jQueryBundle = new ScriptBundle("~/Scripts/jquery")
                 .Include("~/Scripts/jquery-{version}.js");
             BundleTable.Bundles.Add(jQueryBundle);
+
+            ScriptManager.ScriptResourceMapping.AddDefinition("jquery",
+                new ScriptResourceDefinition
+                {
+                    Path = jQueryBundle.Path
+                });
 
             var scriptBundle = new ScriptBundle("~/Scripts/all")
                 .Include("~/Scripts/jquery-{version}.js")
@@ -147,8 +151,8 @@ namespace NuGetGallery
 
         private static void NinjectPreStart()
         {
-            DynamicModuleUtility.RegisterModule(typeof(OnePerRequestModule));
-            DynamicModuleUtility.RegisterModule(typeof(HttpApplicationInitializationModule));
+            DynamicModuleUtility.RegisterModule(typeof(OnePerRequestHttpModule));
+            DynamicModuleUtility.RegisterModule(typeof(NinjectHttpModule));
             NinjectBootstrapper.Initialize(() => Container.Kernel);
         }
 

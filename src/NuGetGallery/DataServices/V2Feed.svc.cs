@@ -10,6 +10,7 @@ using System.Web.Routing;
 using NuGet;
 using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
+using QueryInterceptor;
 
 namespace NuGetGallery
 {
@@ -34,7 +35,8 @@ namespace NuGetGallery
                 {
                     Packages = PackageRepository.GetAll()
                         .WithoutVersionSort()
-                        .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
+                        .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
+                        .InterceptWith(new NormalizeVersionInterceptor())
                 };
         }
 
@@ -51,7 +53,7 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Where(p => p.Listed);
-            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: null).ToV2FeedPackageQuery(GetSiteRoot());
+            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: null).ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
         }
 
         [WebGet]
@@ -59,7 +61,7 @@ namespace NuGetGallery
         {
             return PackageRepository.GetAll().Include(p => p.PackageRegistration)
                 .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
-                .ToV2FeedPackageQuery(GetSiteRoot());
+                .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
         }
 
         [WebGet]
@@ -128,7 +130,7 @@ namespace NuGetGallery
                 .OrderBy(p => p.PackageRegistration.Id);
 
             return GetUpdates(packages, versionLookup, targetFrameworkValues, includeAllVersions).AsQueryable()
-                .ToV2FeedPackageQuery(GetSiteRoot());
+                .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
         }
 
         private static IEnumerable<Package> GetUpdates(
@@ -169,7 +171,7 @@ namespace NuGetGallery
             var package = (V2FeedPackage)entity;
             var urlHelper = new UrlHelper(new RequestContext(HttpContext, new RouteData()));
 
-            string url = urlHelper.PackageDownload(FeedVersion, package.Id, package.Version);
+            string url = urlHelper.PackageDownload(FeedVersion, package.Id, package.NormalizedVersion);
 
             return new Uri(url, UriKind.Absolute);
         }

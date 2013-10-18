@@ -7,6 +7,7 @@ GO
 --  'Nexus' refer to www.sonatype.com for details on NuGet integration
 --  'JetBrains TeamCity' refer to www.jetbrains.com for details on NuGet integration
 --  'Artifactory' refer to www.jfrog.com for details on NuGet integration
+--  'MyGet' refer to www.myget.org
 
 CREATE FUNCTION [dbo].[UserAgentClient] (@value nvarchar(900))
 RETURNS NVARCHAR(128)
@@ -34,6 +35,8 @@ BEGIN
         RETURN 'Sonatype Nexus'
     IF CHARINDEX('Artifactory', @value) > 0 
         RETURN 'JFrog Artifactory'
+    IF CHARINDEX('MyGet', @value) > 0 
+        RETURN 'MyGet'
     RETURN 'Other'
 END
 GO

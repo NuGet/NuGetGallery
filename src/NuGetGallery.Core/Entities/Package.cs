@@ -88,6 +88,8 @@ namespace NuGetGallery
         /// </remarks>
         public string LicenseUrl { get; set; }
 
+        public bool HideLicenseReport { get; set; }
+
         [StringLength(20)]
         public string Language { get; set; }
 
@@ -116,9 +118,24 @@ namespace NuGetGallery
         [StringLength(256)]
         public string Title { get; set; }
 
+        /// <summary>
+        /// Gets or sets the version listed in the manifest for this package, which MAY NOT conform to NuGet's use of SemVer
+        /// </summary>
         [StringLength(64)]
         [Required]
         public string Version { get; set; }
+
+        /// <summary>
+        /// Gets or sets the version for this package that has been normalized to conform to NuGet's use of SemVer
+        /// </summary>
+        [StringLength(64)]
+        public string NormalizedVersion { get; set; }
+
+        public virtual ICollection<PackageLicenseReport> LicenseReports { get; set; }
+
+        // Pre-calcuated data for the feed
+        public string LicenseNames { get; set; }
+        public string LicenseReportUrl { get; set; }
 
         public bool Listed { get; set; }
         public bool IsPrerelease { get; set; }

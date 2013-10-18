@@ -103,6 +103,12 @@ namespace NuGetGallery
                 lastEdited = DateTime.Parse(doc.Get("LastEdited"), CultureInfo.InvariantCulture);
             }
 
+            bool hideLicenseReport;
+            if (!Boolean.TryParse(doc.Get("HideLicenseReport") ?? "false", out hideLicenseReport))
+            {
+                hideLicenseReport = false;
+            }
+
             var owners = doc.Get("FlattenedOwners")
                             .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
                             .Select(o => new User {Username = o})
@@ -136,7 +142,6 @@ namespace NuGetGallery
                 Language = doc.Get("Language"),
                 LastUpdated = lastUpdated,
                 LastEdited = lastEdited,
-                LicenseUrl = doc.Get("LicenseUrl"),
                 PackageRegistration = new PackageRegistration
                 {
                     Id = doc.Get("Id-Original"),
@@ -154,8 +159,13 @@ namespace NuGetGallery
                 Tags = doc.Get("Tags"),
                 Title = doc.Get("Title"),
                 Version = doc.Get("Version"),
+                NormalizedVersion = doc.Get("NormalizedVersion"),
                 SupportedFrameworks = frameworks,
                 MinClientVersion = doc.Get("MinClientVersion"),
+                LicenseUrl = doc.Get("LicenseUrl"),
+                LicenseNames = doc.Get("LicenseNames"),
+                LicenseReportUrl = doc.Get("LicenseReportUrl"),
+                HideLicenseReport = hideLicenseReport
             };
         }
 

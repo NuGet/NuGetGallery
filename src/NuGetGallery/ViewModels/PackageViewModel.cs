@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace NuGetGallery
 {
@@ -10,18 +12,28 @@ namespace NuGetGallery
         public PackageViewModel(Package package)
         {
             _package = package;
-            Version = package.Version;
+            Version = String.IsNullOrEmpty(package.NormalizedVersion) ?
+                SemanticVersionExtensions.Normalize(package.Version) :
+                package.NormalizedVersion;
             Description = package.Description;
             ReleaseNotes = package.ReleaseNotes;
             IconUrl = package.IconUrl;
             ProjectUrl = package.ProjectUrl;
             LicenseUrl = package.LicenseUrl;
+            HideLicenseReport = package.HideLicenseReport;
             LatestVersion = package.IsLatest;
             LatestStableVersion = package.IsLatestStable;
             LastUpdated = package.Published;
             Listed = package.Listed;
             DownloadCount = package.DownloadCount;
             Prerelease = package.IsPrerelease;
+            LicenseReportUrl = package.LicenseReportUrl;
+
+            var licenseNames = package.LicenseNames;
+            if (!String.IsNullOrEmpty(licenseNames))
+            {
+                LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
+            }
         }
 
         public string Description { get; set; }
@@ -29,6 +41,9 @@ namespace NuGetGallery
         public string IconUrl { get; set; }
         public string ProjectUrl { get; set; }
         public string LicenseUrl { get; set; }
+        public Boolean HideLicenseReport { get; set; }
+        public IEnumerable<string> LicenseNames { get; set; }
+        public string LicenseReportUrl { get; set; }
         public DateTime LastUpdated { get; set; }
         public bool LatestVersion { get; set; }
         public bool LatestStableVersion { get; set; }

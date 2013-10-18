@@ -1,39 +1,17 @@
-﻿@model SignInRequest
-@{
-    ViewBag.Title = "Log On";
+﻿@{
+    ViewBag.Title = "Sign In";
 }
 
-<h1>Log On</h1>
+<div id="SignIn">
+    <h1>Sign In</h1>
 
-<p>
-    Don't have an account yet? <a href="@Url.Action(MVC.Users.Register())">Register now.</a>
-</p>
+    @Html.Partial("_SignInForm", new SignInRequest())
+</div>
 
-@using (Html.BeginForm())
-{
-    <fieldset class="form">
-        <legend>Log On Form</legend>
+<div id="MiddleSeparator"></div>
 
-        @Html.AntiForgeryToken()
-        @Html.ValidationSummary(true)
+<div id="Register">
+    <h1>Register</h1>
 
-        @if (ViewBag.ConfirmationRequired != null && ViewBag.ConfirmationRequired)
-        {
-            <p class="validation-summary-errors">
-                Before you can log on, you&#8217;ll need to confirm your account. When you registered, 
-                we sent you an email with a URL you can click to confirm your account. 
-                Please check your spam folder if you did not receive the confirmation email.
-            </p>
-            <p class="validation-summary-errors">
-                @Html.ActionLink("Lost your confirmation email?", "ResendConfirmation", "Users")
-            </p>
-        }
-
-        @Html.EditorForModel()
-
-        <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
-
-        <input type="submit" value="Log On" title="Log On" />
-        @Html.ActionLink("Lost your Password?", "ForgotPassword", "Users")
-    </fieldset>
-}
+    @Html.Partial("_RegisterForm", new RegisterRequest())
+</div>

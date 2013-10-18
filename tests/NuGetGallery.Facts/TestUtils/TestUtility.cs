@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.IO;
 using System.Reflection;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -13,6 +14,14 @@ namespace NuGetGallery
 {
     public static class TestUtility
     {
+        public static readonly string FakeUserName = "theUsername";
+        public static readonly string FakeAdminName = "theAdmin";
+
+        public static readonly IPrincipal FakePrincipal = new GenericPrincipal(new GenericIdentity(FakeUserName), new string[0]);
+        public static readonly IPrincipal FakeAdminPrincipal = new GenericPrincipal(new GenericIdentity(FakeAdminName), new [] { Constants.AdminRoleName });
+        public static readonly User FakeUser = new User() { Username = FakeUserName };
+        public static readonly User FakeAdminUser = new User() { Username = FakeAdminName };
+
         // We only need this method because testing URL generation is a pain.
         // Alternatively, we could write our own service for generating URLs.
         public static Mock<HttpContextBase> SetupHttpContextMockForUrlGeneration(Mock<HttpContextBase> httpContext, Controller controller)

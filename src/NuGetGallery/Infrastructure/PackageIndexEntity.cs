@@ -131,6 +131,12 @@ namespace NuGetGallery
             document.Add(new Field("LicenseUrl", Package.LicenseUrl.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("MinClientVersion", Package.MinClientVersion.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Version", Package.Version.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            
+            string normalizedVersion = String.IsNullOrEmpty(Package.NormalizedVersion) ? 
+                SemanticVersionExtensions.Normalize(Package.Version) : 
+                Package.NormalizedVersion;
+            document.Add(new Field("NormalizedVersion", normalizedVersion.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            
             document.Add(new Field("VersionDownloadCount", Package.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("PackageFileSize", Package.PackageFileSize.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("ProjectUrl", Package.ProjectUrl.ToStringSafe(), Field.Store.YES, Field.Index.NO));
@@ -138,6 +144,10 @@ namespace NuGetGallery
             document.Add(new Field("ReleaseNotes", Package.ReleaseNotes.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("RequiresLicenseAcceptance", Package.RequiresLicenseAcceptance.ToString(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Summary", Package.Summary.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("LicenseNames", Package.LicenseNames.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("LicenseReportUrl", Package.LicenseReportUrl.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("HideLicenseReport", Package.HideLicenseReport.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+
             if (Package.SupportedFrameworks.AnySafe())
             {
                 string joinedFrameworks = string.Join(";", Package.SupportedFrameworks.Select(f => f.FrameworkName));

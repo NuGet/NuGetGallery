@@ -4,12 +4,8 @@ namespace NuGetGallery
 {
     public class EditProfileViewModel
     {
-        [Required]
-        [StringLength(255)]
-        [Display(Name = "Email")]
-        //[DataType(DataType.EmailAddress)] - does not work with client side validation
-        [RegularExpression(RegisterRequest.EmailValidationRegex,
-            ErrorMessage = "This doesn't appear to be a valid email address.")]
+        public string Username { get; set; }
+
         public string EmailAddress { get; set; }
 
         public string PendingNewEmailAddress { get; set; }

@@ -28,13 +28,7 @@ namespace NuGetGallery.FunctionalTests
 
             WebTestRequest logonPostRequest = AssertAndValidationHelper.GetLogonPostRequest(this);         
             ValidateHtmlTagInnerText loggedOnUserNameValidationRule;
-            if (UrlHelper.BaseUrl.Contains("qa.nugettest.org")) {
-                loggedOnUserNameValidationRule = AssertAndValidationHelper.GetValidationRuleForHtmlTagInnerText(HtmlTextWriterTag.A.ToString(), HtmlTextWriterAttribute.Href.ToString(), "/account", "TestNuGetAccount");             
-            }
-            else 
-            {
-                loggedOnUserNameValidationRule = AssertAndValidationHelper.GetValidationRuleForHtmlTagInnerText(HtmlTextWriterTag.A.ToString(), HtmlTextWriterAttribute.Href.ToString(), "/account", "NugetTestAccount");             
-            }
+            loggedOnUserNameValidationRule = AssertAndValidationHelper.GetValidationRuleForHtmlTagInnerText(HtmlTextWriterTag.A.ToString(), HtmlTextWriterAttribute.Href.ToString(), "/account", "NugetTestAccount");             
             logonPostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(loggedOnUserNameValidationRule.Validate);
             
             yield return logonPostRequest;

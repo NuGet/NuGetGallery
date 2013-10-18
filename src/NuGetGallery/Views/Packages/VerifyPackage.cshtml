@@ -151,7 +151,9 @@
             $('a.cancel').click(function() {
                 var $anchor = $(this);
                 var $form = $anchor.parents('form');
-                $form.attr('action', $anchor.attr('href'));
+                $form.attr('action', '@Url.CancelUpload()');
+                var validator = $.data($form[0], 'validator');
+                if (validator) { validator.cancelSubmit = true; }
                 $form.submit();
                 return false;
             });

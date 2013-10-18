@@ -45,5 +45,8 @@
         public const string StatisticsPackageDownloadsDetail = "StatisticsPackageDownloadsDetail";
         public const string StatisticsDownloadsApi = "StatisticsDownloadsApi";
         public const string ServiceAlert = "ServiceAlert";
+        public const string LegacyRegister = "LegacyRegister";
+        public const string PackageEnableLicenseReport = "EnableLicenseReport";
+        public const string PackageDisableLicenseReport = "DisableLicenseReport";
     }
 }

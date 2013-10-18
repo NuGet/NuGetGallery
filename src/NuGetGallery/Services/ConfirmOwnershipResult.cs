@@ -8,7 +8,8 @@ namespace NuGetGallery
     public enum ConfirmOwnershipResult
     {
         Success,
-        AlreadyOwner,
-        Failure
+        Failure,
+        NotYourRequest,
+        AlreadyOwner
     }
 }

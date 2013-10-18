@@ -80,20 +80,25 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="Glimpse.Ado">
-      <HintPath>..\..\packages\Glimpse.Ado.1.2.0\lib\net45\Glimpse.Ado.dll</HintPath>
+    <Reference Include="Glimpse.Ado, Version=1.5.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Glimpse.Ado.1.5.1\lib\net45\Glimpse.Ado.dll</HintPath>
     </Reference>
-    <Reference Include="Glimpse.AspNet">
-      <HintPath>..\..\packages\Glimpse.AspNet.1.2.0\lib\net45\Glimpse.AspNet.dll</HintPath>
+    <Reference Include="Glimpse.AspNet, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Glimpse.AspNet.1.4.1\lib\net45\Glimpse.AspNet.dll</HintPath>
     </Reference>
-    <Reference Include="Glimpse.Core">
-      <HintPath>..\..\packages\Glimpse.1.2.0\lib\net45\Glimpse.Core.dll</HintPath>
+    <Reference Include="Glimpse.Core, Version=1.6.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Glimpse.1.6.1\lib\net45\Glimpse.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Glimpse.EF43">
-      <HintPath>..\..\packages\Glimpse.EF43.1.2.0\lib\net40\Glimpse.EF43.dll</HintPath>
+    <Reference Include="Glimpse.EF43, Version=1.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Glimpse.EF43.1.4.0\lib\net40\Glimpse.EF43.dll</HintPath>
     </Reference>
-    <Reference Include="Glimpse.Mvc4">
-      <HintPath>..\..\packages\Glimpse.Mvc4.1.2.0\lib\net40\Glimpse.Mvc4.dll</HintPath>
+    <Reference Include="Glimpse.Mvc4, Version=1.3.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Glimpse.Mvc4.1.3.3\lib\net40\Glimpse.Mvc4.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -166,13 +171,16 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Ninject, Version=2.2.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
+    <Reference Include="Ninject, Version=3.0.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Ninject.2.2.1.4\lib\net40-Full\Ninject.dll</HintPath>
+      <HintPath>..\..\packages\Ninject.3.0.1.10\lib\net45-full\Ninject.dll</HintPath>
     </Reference>
-    <Reference Include="Ninject.Web.Mvc, Version=2.2.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
+    <Reference Include="Ninject.Web.Common">
+      <HintPath>..\..\packages\Ninject.Web.Common.3.0.0.7\lib\net45-full\Ninject.Web.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Ninject.Web.Mvc, Version=3.0.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Ninject.MVC3.2.2.2.0\lib\net40-Full\Ninject.Web.Mvc.dll</HintPath>
+      <HintPath>..\..\packages\Ninject.MVC3.3.0.0.6\lib\net45-full\Ninject.Web.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Core, Version=2.7.40905.79, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -250,9 +258,9 @@
       <HintPath>..\..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.WebPages.Razor.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="WebActivator, Version=1.4.4.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="WebActivator, Version=1.5.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\WebActivator.1.4.4\lib\net40\WebActivator.dll</HintPath>
+      <HintPath>..\..\packages\WebActivator.1.5\lib\net40\WebActivator.dll</HintPath>
     </Reference>
     <Reference Include="WebBackgrounder">
       <HintPath>..\..\packages\WebBackgrounder.0.2.0\lib\net40\WebBackgrounder.dll</HintPath>
@@ -291,10 +299,12 @@
     <Compile Include="Areas\Admin\Controllers\ConfigController.cs" />
     <Compile Include="Areas\Admin\ViewModels\ConfigViewModel.cs" />
     <Compile Include="Configuration\ConfigurationService.cs" />
+    <Compile Include="Configuration\FeatureConfiguration.cs" />
     <Compile Include="Configuration\LuceneIndexLocation.cs" />
     <Compile Include="Configuration\MailAddressConverter.cs" />
     <Compile Include="Configuration\SmtpUri.cs" />
     <Compile Include="Controllers\AppController.cs" />
+    <Compile Include="DataServices\NormalizeVersionInterceptor.cs" />
     <Compile Include="DataServices\RewriteBaseUrlMessageInspector.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
@@ -580,8 +590,11 @@
     </Compile>
     <Compile Include="Diagnostics\DiagnosticsNinjectModule.cs" />
     <Compile Include="Diagnostics\GlimpseRuntimePolicy.cs" />
+    <Compile Include="Filters\ApiKeyAuthorizeAttribute.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
+    <Compile Include="Filters\RequiresAccountConfirmationAttribute.cs" />
+    <Compile Include="Helpers\HttpContextBaseExtensions.cs" />
     <Compile Include="Helpers\EnumHelper.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\HtmlExtensions.cs" />
@@ -797,6 +810,18 @@
     <Compile Include="Migrations\201308302258388_AddPackageEditLastErrorColumn.Designer.cs">
       <DependentUpon>201308302258388_AddPackageEditLastErrorColumn.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201309092040124_LicenseReports.cs" />
+    <Compile Include="Migrations\201309092040124_LicenseReports.Designer.cs">
+      <DependentUpon>201309092040124_LicenseReports.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201309092041546_AddPackageLicenseReportSproc.cs" />
+    <Compile Include="Migrations\201309092041546_AddPackageLicenseReportSproc.Designer.cs">
+      <DependentUpon>201309092041546_AddPackageLicenseReportSproc.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201309101922464_NormalizedVersionColumn.cs" />
+    <Compile Include="Migrations\201309101922464_NormalizedVersionColumn.Designer.cs">
+      <DependentUpon>201309101922464_NormalizedVersionColumn.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -813,10 +838,12 @@
     <Compile Include="Infrastructure\Lucene\NuGetQueryParser.cs" />
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
+    <Compile Include="RequestModels\ChangeEmailRequestModel.cs" />
     <Compile Include="RequestModels\EditPackageRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
+    <Compile Include="RequestModels\SignInOrRegisterRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
@@ -883,11 +910,10 @@
     <Compile Include="ViewModels\CuratedFeedViewModel.cs" />
     <Compile Include="ViewModels\DependencySetsViewModel.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
-    <Compile Include="ViewModels\EmailConfirmationModel.cs" />
+    <Compile Include="ViewModels\ConfirmationViewModel.cs" />
     <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
     <Compile Include="ViewModels\StatisticsPackagesItemViewModel.cs" />
     <Compile Include="ViewModels\StatisticsPackagesViewModel.cs" />
-    <Compile Include="ViewModels\ResendConfirmationEmailViewModel.cs" />
     <Compile Include="App_Start\AuthenticationModule.cs" />
     <Compile Include="App_Start\AppActivator.cs" />
     <Compile Include="Controllers\ApiController.cs" />
@@ -948,6 +974,7 @@
     <Compile Include="ViewModels\ReportAbuseViewModel.cs" />
     <Compile Include="ViewModels\TrivialPackageVersionModel.cs" />
     <Compile Include="ViewModels\UserProfileModel.cs" />
+    <Compile Include="Views\NuGetViewBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
@@ -1139,6 +1166,7 @@
     <Content Include="favicon.ico" />
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
+    <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport.sql" />
     <Content Include="robots.txt" />
     <Content Include="Content\font\fontawesome-webfont.eot" />
     <Content Include="Content\font\fontawesome-webfont.ttf" />
@@ -1194,7 +1222,6 @@
     <Content Include="Views\Shared\UserDisplay.cshtml" />
     <Content Include="Views\Users\Account.cshtml" />
     <Content Include="Views\Users\Packages.cshtml" />
-    <Content Include="Views\Users\Register.cshtml" />
     <Content Include="App_Code\ViewHelpers.cshtml" />
     <Content Include="Views\Users\ChangePassword.cshtml" />
     <Content Include="Views\Users\PasswordChanged.cshtml" />
@@ -1214,10 +1241,14 @@
     <Content Include="Views\Packages\ManagePackageOwners.cshtml" />
     <Content Include="Views\Shared\TwoColumnLayout.cshtml" />
     <Content Include="api\Web.config" />
-    <Content Include="Views\Users\ResendConfirmation.cshtml">
-    </Content>
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
     <Content Include="Views\CuratedPackages\CreateCuratedPackageForm.cshtml" />
+    <Content Include="Views\Users\ConfirmationRequired.cshtml" />
+    <Content Include="Views\Authentication\_SignInForm.cshtml" />
+    <Content Include="Views\Authentication\_RegisterForm.cshtml" />
+    <Content Include="Views\Authentication\Register.cshtml" />
+    <Content Include="Views\Authentication\SignIn.cshtml" />
+    <Content Include="Views\Users\ChangeEmail.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config">
@@ -1245,6 +1276,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201308302258388_AddPackageEditLastErrorColumn.resx">
       <DependentUpon>201308302258388_AddPackageEditLastErrorColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201309092040124_LicenseReports.resx">
+      <DependentUpon>201309092040124_LicenseReports.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201309092041546_AddPackageLicenseReportSproc.resx">
+      <DependentUpon>201309092041546_AddPackageLicenseReportSproc.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201309101922464_NormalizedVersionColumn.resx">
+      <DependentUpon>201309101922464_NormalizedVersionColumn.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
@@ -1291,7 +1331,6 @@
     <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
     <Content Include="Views\Statistics\_PivotTable.cshtml" />
     <Content Include="Views\Statistics\_LastUpdated.cshtml" />
-    <Content Include="Views\Packages\UndoPendingEdits.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />

@@ -123,6 +123,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="xunit">
+      <HintPath>..\..\packages\xunit.1.9.1\lib\net20\xunit.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\CommonAssemblyInfo.cs">
@@ -151,8 +154,12 @@
     <Compile Include="Infrastructure\LogLevelConverter.cs" />
     <Compile Include="Infrastructure\SnazzyConsoleTarget.cs" />
     <Compile Include="Infrastructure\SqlDbExecutorFactory.cs" />
+    <Compile Include="LoggerExtensions.cs" />
+    <Compile Include="Model\AuditEnvironment.cs" />
+    <Compile Include="Model\AuditRecord.cs" />
     <Compile Include="Model\OfflineDatabaseBackup.cs" />
     <Compile Include="Model\OnlineDatabaseBackup.cs" />
+    <Compile Include="Model\PackageAuditRecord.cs" />
     <Compile Include="Service References\SqlDac\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -205,6 +212,9 @@
     <Compile Include="Tasks\CuratedFeeds\CreateCuratedFeed.cs" />
     <Compile Include="Tasks\CuratedFeeds\DeleteCuratedFeedTask.cs" />
     <Compile Include="Tasks\CuratedFeeds\ListCuratedFeedsTask.cs" />
+    <Compile Include="Tasks\DataManagement\DeleteDuplicatePackageVersionsTask.cs" />
+    <Compile Include="Tasks\DataManagement\NormalizePackageFilesTask.cs" />
+    <Compile Include="Tasks\DataManagement\NormalizePackageVersionsTask.cs" />
     <Compile Include="Tasks\ExecuteAggregateStatisticsTask.cs" />
     <Compile Include="Tasks\CopyExternalPackagesTask.cs" />
     <Compile Include="Tasks\CreateWarehouseReportsTask.cs" />
@@ -249,6 +259,7 @@
     <Compile Include="Tasks\TaskBases.cs" />
     <Compile Include="Tasks\SynchronizePackageBackupsTask.cs" />
     <Compile Include="Tasks\ListMigrationsTask.cs" />
+    <Compile Include="Tasks\UpdateLicenseReportsTask.cs" />
     <Compile Include="Tasks\UploadPackageTask.cs" />
     <Compile Include="User.cs" />
     <Compile Include="Util.cs" />

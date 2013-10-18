@@ -22,7 +22,7 @@ namespace NuGetGallery
         /// (and read only mode is don't care).
         /// </summary>
         public EntitiesContext()
-            : base()
+            : base("Gallery.SqlServer") // Use the connection string in a web.config (if one is found)
         {
         }
 
@@ -55,6 +55,17 @@ namespace NuGetGallery
 #pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<PackageLicenseReport>()
+                .HasKey(r => r.Key)
+                .HasMany(r => r.Licenses)
+                .WithMany(l => l.Reports)
+                .Map(c => c.ToTable("PackageLicenseReportLicenses")
+                           .MapLeftKey("ReportKey")
+                           .MapRightKey("LicenseKey"));
+
+            modelBuilder.Entity<PackageLicense>()
+                .HasKey(l => l.Key);
+
             modelBuilder.Entity<User>()
                 .HasKey(u => u.Key);
 

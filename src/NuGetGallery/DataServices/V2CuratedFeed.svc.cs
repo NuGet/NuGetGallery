@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using NuGetGallery;
 using NuGetGallery.Configuration;
+using QueryInterceptor;
 
 namespace NuGetGallery
 {
@@ -49,7 +50,9 @@ namespace NuGetGallery
 
             return new V2FeedContext
                 {
-                    Packages = packages.ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
+                    Packages = packages
+                        .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
+                        .InterceptWith(new NormalizeVersionInterceptor())
                 };
         }
 
@@ -64,7 +67,7 @@ namespace NuGetGallery
             var curatedFeedName = GetCuratedFeedName();
             return _curatedFeedService.GetPackages(curatedFeedName)
                 .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
-                .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
+                .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses);
         }
 
         private string GetCuratedFeedName()
@@ -93,7 +96,7 @@ namespace NuGetGallery
             var curatedPackages = _curatedFeedService.GetPackages(curatedFeedName);
 
             return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, curatedPackages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: curatedFeedKey)
-                .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
+                .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses);
         }
 
         public override Uri GetReadStreamUri(
