@@ -84,6 +84,7 @@ namespace NuGetGallery
                 cacheService.Object,
                 editPackageService.Object);
             controller.CallBase = true;
+            controller.Object.OwinContext = Fakes.CreateOwinContext().Object;
 
             httpContext = httpContext ?? new Mock<HttpContextBase>();
             TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller.Object);

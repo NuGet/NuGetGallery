@@ -21,6 +21,8 @@ namespace NuGetGallery
                     { Key = 0, Name = "aFeedName", Managers = new HashSet<User>(new[] { Fakes.User }) };
                 StubPackageRegistration = new PackageRegistration { Key = 0, Id = "anId" };
 
+                OwinContext = Fakes.CreateOwinContext().Object;
+
                 EntitiesContext = new FakeEntitiesContext();
                 EntitiesContext.CuratedFeeds.Add(StubCuratedFeed);
                 EntitiesContext.PackageRegistrations.Add(StubPackageRegistration);

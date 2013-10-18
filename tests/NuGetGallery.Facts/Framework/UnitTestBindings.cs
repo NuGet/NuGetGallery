@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Microsoft.Owin;
 using Moq;
 using Ninject;
 using Ninject.Activation;
@@ -67,6 +68,10 @@ namespace NuGetGallery.Framework
                     Fakes.ConfigureEntitiesContext(ctxt);
                     return ctxt;
                 })
+                .InSingletonScope();
+
+            Bind<IOwinContext>()
+                .ToMethod(_ => Fakes.CreateOwinContext().Object)
                 .InSingletonScope();
         }
 
