@@ -360,7 +360,8 @@ namespace NuGetGallery
             foreach (var cred in toRemove)
             {
                 creds.Remove(cred);
-                user.Credentials.Remove(cred); 
+                user.Credentials.Remove(cred);
+                CredentialRepository.DeleteOnCommit(cred);
             }
 
             // Now add one if there are no credentials left
@@ -369,7 +370,7 @@ namespace NuGetGallery
                 user.Credentials.Add(CredentialBuilder.CreatePbkdf2Password(password));
             }
 
-            // Save changes, if any
+            // Save changes, if any (even though we only commit one repo, both will get saved because they just wrap entities context)
             UserRepository.CommitChanges();
         }
 
