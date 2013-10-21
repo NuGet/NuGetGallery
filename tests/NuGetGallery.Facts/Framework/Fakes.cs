@@ -103,16 +103,11 @@ namespace NuGetGallery.Framework
             }
         }
 
-        public static Mock<IOwinContext> CreateOwinContext()
+        public static IOwinContext CreateOwinContext()
         {
-            var context = new Mock<IOwinContext>();
-            context.Setup(c => c.Environment).Returns(new Dictionary<string, object>());
-            context.Setup(c => c.Request).Returns(new Mock<IOwinRequest>().Object);
-            context.Setup(c => c.Response).Returns(new Mock<IOwinResponse>().Object);
-            context.Setup(c => c.Authentication).Returns(new Mock<IAuthenticationManager>().Object);
-            context.Setup(c => c.Request.PathBase).Returns("/testroot");
-            context.Setup(c => c.Request.Headers).Returns(new HeaderDictionary(new Dictionary<string, string[]>()));
-            return context;
+            var ctx = new OwinContext();
+            ctx.Set<Action<Action<object>, object>>("server.OnSendingHeaders", (_, __) => { });
+            return ctx;
         }
     }
 }

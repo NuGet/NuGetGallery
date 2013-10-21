@@ -28,7 +28,7 @@ namespace NuGetGallery.Authentication
                 {
                     AuthenticationMode = AuthenticationMode.Active
                 });
-                handler.MockContext.Setup(c => c.Response.StatusCode).Returns(200);
+                handler.OwinContext.Response.StatusCode = 200;
 
                 // Act
                 var message = handler.GetChallengeMessage();
@@ -46,12 +46,9 @@ namespace NuGetGallery.Authentication
                     AuthenticationMode = AuthenticationMode.Passive,
                     AuthenticationType = "blarg"
                 });
-                handler.MockContext
-                    .Setup(c => c.Response.StatusCode)
-                    .Returns(401);
-                handler.MockContext
-                    .Setup(c => c.Authentication.AuthenticationResponseChallenge)
-                    .Returns(new AuthenticationResponseChallenge(new [] { "flarg" }, new AuthenticationProperties()));
+                handler.OwinContext.Response.StatusCode = 401;
+                handler.OwinContext.Authentication.AuthenticationResponseChallenge = 
+                    new AuthenticationResponseChallenge(new [] { "flarg" }, new AuthenticationProperties());
 
                 // Act
                 var message = handler.GetChallengeMessage();
@@ -69,13 +66,10 @@ namespace NuGetGallery.Authentication
                     AuthenticationMode = AuthenticationMode.Passive,
                     AuthenticationType = "blarg"
                 });
-                handler.MockContext
-                    .Setup(c => c.Response.StatusCode)
-                    .Returns(401);
-                handler.MockContext
-                    .Setup(c => c.Authentication.AuthenticationResponseChallenge)
-                    .Returns(new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties()));
-
+                handler.OwinContext.Response.StatusCode = 401;
+                handler.OwinContext.Authentication.AuthenticationResponseChallenge = 
+                    new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties());
+                
                 // Act
                 var message = handler.GetChallengeMessage();
 
@@ -92,13 +86,10 @@ namespace NuGetGallery.Authentication
                     AuthenticationMode = AuthenticationMode.Passive,
                     AuthenticationType = "blarg"
                 });
-                handler.MockContext
-                    .Setup(c => c.Response.StatusCode)
-                    .Returns(401);
-                handler.MockContext
-                    .Setup(c => c.Authentication.AuthenticationResponseChallenge)
-                    .Returns(new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties()));
-                handler.MockContext.Object.Request.Headers[Constants.ApiKeyHeaderName] = "woozle wuzzle";
+                handler.OwinContext.Response.StatusCode = 401;
+                handler.OwinContext.Authentication.AuthenticationResponseChallenge = 
+                    new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties());
+                handler.OwinContext.Request.Headers[Constants.ApiKeyHeaderName] = "woozle wuzzle";
 
                 // Act
                 var message = handler.GetChallengeMessage();
@@ -116,12 +107,9 @@ namespace NuGetGallery.Authentication
                     AuthenticationMode = AuthenticationMode.Active,
                     AuthenticationType = "blarg"
                 });
-                handler.MockContext
-                    .Setup(c => c.Response.StatusCode)
-                    .Returns(401);
-                handler.MockContext
-                    .Setup(c => c.Authentication.AuthenticationResponseChallenge)
-                    .Returns(new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties()));
+                handler.OwinContext.Response.StatusCode = 401;
+                handler.OwinContext.Authentication.AuthenticationResponseChallenge = 
+                    new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties());
 
                 // Act
                 var message = handler.GetChallengeMessage();
@@ -139,13 +127,10 @@ namespace NuGetGallery.Authentication
                     AuthenticationMode = AuthenticationMode.Active,
                     AuthenticationType = "blarg"
                 });
-                handler.MockContext
-                    .Setup(c => c.Response.StatusCode)
-                    .Returns(401);
-                handler.MockContext
-                    .Setup(c => c.Authentication.AuthenticationResponseChallenge)
-                    .Returns(new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties()));
-                handler.MockContext.Object.Request.Headers[Constants.ApiKeyHeaderName] = "woozle wuzzle";
+                handler.OwinContext.Response.StatusCode = 401;
+                handler.OwinContext.Authentication.AuthenticationResponseChallenge = 
+                    new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties());
+                handler.OwinContext.Request.Headers[Constants.ApiKeyHeaderName] = "woozle wuzzle";
 
                 // Act
                 var message = handler.GetChallengeMessage();
@@ -165,7 +150,7 @@ namespace NuGetGallery.Authentication
                 {
                     RootPath = "/api"
                 });
-                handler.MockContext.Setup(c => c.Request.Path).Returns("/packages");
+                handler.OwinContext.Request.Path = "/packages";
                 
                 // Act
                 var ticket = await handler.InvokeAuthenticateCoreAsync();
@@ -182,7 +167,7 @@ namespace NuGetGallery.Authentication
                 {
                     RootPath = "/api"
                 });
-                handler.MockContext.Setup(c => c.Request.Path).Returns("/api/v2/packages");
+                handler.OwinContext.Request.Path = "/api/v2/packages";
                 
                 // Act
                 var ticket = await handler.InvokeAuthenticateCoreAsync();
@@ -200,8 +185,8 @@ namespace NuGetGallery.Authentication
                 {
                     RootPath = "/api"
                 });
-                handler.MockContext.Setup(c => c.Request.Path).Returns("/api/v2/packages");
-                handler.MockContext.Object.Request.Headers.Set(
+                handler.OwinContext.Request.Path = "/api/v2/packages";
+                handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName, 
                     apiKey.ToString().ToLowerInvariant());
 
@@ -222,8 +207,8 @@ namespace NuGetGallery.Authentication
                 {
                     RootPath = "/api"
                 });
-                handler.MockContext.Setup(c => c.Request.Path).Returns("/api/v2/packages");
-                handler.MockContext.Object.Request.Headers.Set(
+                handler.OwinContext.Request.Path = "/api/v2/packages";
+                handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
                     apiKey.ToString().ToLowerInvariant());
                 handler.MockAuth.SetupAuth(CredentialBuilder.CreateV1ApiKey(apiKey), user);
@@ -233,7 +218,7 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.NotNull(ticket);
-                Assert.Equal("theUser", ticket.Identity.GetClaimOrDefault(ClaimTypes.Name));
+                Assert.Equal(apiKey.ToString().ToLower(), ticket.Identity.GetClaimOrDefault(NuGetClaims.ApiKey));
             }
 
             [Fact]
@@ -246,8 +231,8 @@ namespace NuGetGallery.Authentication
                 {
                     RootPath = "/api"
                 });
-                handler.MockContext.Setup(c => c.Request.Path).Returns("/api/v2/packages");
-                handler.MockContext.Object.Request.Headers.Set(
+                handler.OwinContext.Request.Path = "/api/v2/packages";
+                handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
                     apiKey.ToString().ToLowerInvariant());
                 handler.MockAuth.SetupAuth(CredentialBuilder.CreateV1ApiKey(apiKey), user);
@@ -256,16 +241,18 @@ namespace NuGetGallery.Authentication
                 await handler.InvokeAuthenticateCoreAsync();
 
                 // Assert
-                Assert.Same(user, handler.MockContext.Object.Environment[Constants.CurrentUserOwinEnvironmentKey]);
+                var authUser = Assert.IsType<AuthenticatedUser>(
+                    handler.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey]);
+                Assert.Same(user, authUser.User);
             }
         }
 
         // Why a TestableNNN class? Because we need to access protected members.
         public class TestableApiKeyAuthenticationHandler : ApiKeyAuthenticationHandler
         {
-            public Mock<IOwinContext> MockContext { get; private set; }
             public Mock<AuthenticationService> MockAuth { get; private set; }
             public Mock<ILogger> MockLogger { get; private set; }
+            public IOwinContext OwinContext { get { return base.Context; } }
 
             private TestableApiKeyAuthenticationHandler()
             {
@@ -285,7 +272,7 @@ namespace NuGetGallery.Authentication
 
                 var handler = new TestableApiKeyAuthenticationHandler();
 
-                var ctxt = (handler.MockContext = Fakes.CreateOwinContext()).Object;
+                var ctxt = Fakes.CreateOwinContext();
 
                 // Grr, have to make an internal call to initialize...
                 await (Task)(typeof(AuthenticationHandler<ApiKeyAuthenticationOptions>)

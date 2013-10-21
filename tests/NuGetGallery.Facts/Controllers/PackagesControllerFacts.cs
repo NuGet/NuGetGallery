@@ -84,7 +84,7 @@ namespace NuGetGallery
                 cacheService.Object,
                 editPackageService.Object);
             controller.CallBase = true;
-            controller.Object.OwinContext = Fakes.CreateOwinContext().Object;
+            controller.Object.OwinContext = Fakes.CreateOwinContext();
 
             httpContext = httpContext ?? new Mock<HttpContextBase>();
             TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller.Object);
@@ -369,8 +369,7 @@ namespace NuGetGallery
                 packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(new PackageRegistration());
                 var controller = CreateController(packageService: packageService);
                 controller.SetCurrentUser(new User { Username = "username" });
-                controller.SetPrincipal("username");
-
+                
                 var result = controller.ConfirmOwner("foo", "username", "");
 
                 Assert.IsType<HttpNotFoundResult>(result);
@@ -379,11 +378,14 @@ namespace NuGetGallery
             [Fact]
             public void WithNonExistentPackageIdReturnsHttpNotFound()
             {
+                // Arrange
                 var controller = CreateController();
-                var result = controller.ConfirmOwner("foo", "username", "token");
                 controller.SetCurrentUser(new User { Username = "username" });
-                controller.SetPrincipal("username");
                 
+                // Act
+                var result = controller.ConfirmOwner("foo", "username", "token");
+                
+                // Assert
                 Assert.IsType<HttpNotFoundResult>(result);
             }
 
@@ -391,8 +393,8 @@ namespace NuGetGallery
             public void WithIdentityNotMatchingUserInRequestReturnsViewWithMessage()
             {
                 var controller = CreateController();
+                controller.SetCurrentUser("userA");
                 var result = controller.ConfirmOwner("foo", "userB", "token");
-                controller.SetPrincipal("userA");
                 
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result);
                 Assert.Equal(ConfirmOwnershipResult.NotYourRequest, model.Result);
@@ -412,8 +414,7 @@ namespace NuGetGallery
                 packageService.Setup(p => p.ConfirmPackageOwner(package, user, "token")).Returns(confirmationResult);
                 var controller = CreateController(packageService: packageService);
                 controller.SetCurrentUser(user);
-                controller.SetPrincipal(user.Username);
-
+                
                 var result = controller.ConfirmOwner("foo", "username", "token");
 
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result);
@@ -527,13 +528,10 @@ namespace NuGetGallery
                 packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>(), It.IsAny<bool>())).Verifiable();
                 packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
 
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
-                httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
-
                 var indexingService = new Mock<IIndexingService>();
 
-                var controller = CreateController(packageService: packageService, httpContext: httpContext, indexingService: indexingService);
+                var controller = CreateController(packageService: packageService, indexingService: indexingService);
+                controller.SetCurrentUser("Frodo");
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
@@ -563,13 +561,10 @@ namespace NuGetGallery
                 packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>(), It.IsAny<bool>())).Throws(new Exception("Shouldn't be called"));
                 packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
 
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
-                httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
-
                 var indexingService = new Mock<IIndexingService>();
 
-                var controller = CreateController(packageService: packageService, httpContext: httpContext, indexingService: indexingService);
+                var controller = CreateController(packageService: packageService, indexingService: indexingService);
+                controller.SetCurrentUser("Frodo");
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
@@ -588,13 +583,8 @@ namespace NuGetGallery
             [Fact]
             public void TrimsSearchTerm()
             {
-                var fakeIdentity = new Mock<IIdentity>();
-                var httpContext = new Mock<HttpContextBase>();
                 var searchService = new Mock<ISearchService>();
-
-                var controller = CreateController(
-                    httpContext: httpContext,
-                    searchService: searchService);
+                var controller = CreateController(searchService: searchService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var result = controller.ListPackages(" test ") as ViewResult;
@@ -652,6 +642,7 @@ namespace NuGetGallery
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
                     s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
+                var user = new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo", Key = 1 };
                 var package = new Package
                     {
                         PackageRegistration = new PackageRegistration { Id = "mordor" },
@@ -664,11 +655,11 @@ namespace NuGetGallery
                     packageService: packageService,
                     messageService: messageService,
                     httpContext: httpContext);
-                controller.SetCurrentUser(new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo", Key = 1 });
+                controller.SetCurrentUser(user);
                 var model = new ReportAbuseViewModel
                     {
                         Message = "Mordor took my finger",
-                        Reason = ReportPackageReason.IsFraudulent,
+                        Reason = ReportPackageReason.IsFraudulent
                     };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
@@ -687,9 +678,10 @@ namespace NuGetGallery
             [Fact]
             public void FormRedirectsPackageOwnerToReportMyPackage()
             {
+                var user = new User { EmailAddress = "darklord@mordor.com", Username = "Sauron" };
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Id = "Mordor", Owners = { new User { Username = "Sauron" } } },
+                    PackageRegistration = new PackageRegistration { Id = "Mordor", Owners = { user } },
                     Version = "2.0.1"
                 };
                 var packageService = new Mock<IPackageService>();
@@ -698,7 +690,7 @@ namespace NuGetGallery
                 var controller = CreateController(
                     packageService: packageService,
                     httpContext: httpContext);
-                controller.SetCurrentUser(new User { EmailAddress = "darklord@mordor.com", Username = "Sauron" });
+                controller.SetCurrentUser(user);
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
                 ActionResult result = controller.ReportAbuse("Mordor", "2.0.1");
@@ -757,13 +749,14 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Id = "Mordor", Owners = { new User { Username = "Sauron", Key = 1 } } },
                     Version = "2.0.1"
                 };
+                var user = new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo", Key = 2 };
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageByIdAndVersion("Mordor", It.IsAny<string>(), true)).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();
                 var controller = CreateController(
                     packageService: packageService,
                     httpContext: httpContext);
-                controller.SetCurrentUser(new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo", Key = 2 });
+                controller.SetCurrentUser(user);
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
                 ActionResult result = controller.ReportMyPackage("Mordor", "2.0.1");
@@ -1735,6 +1728,7 @@ namespace NuGetGallery
                 var indexingService = new Mock<IIndexingService>();
 
                 var controller = CreateController(packageService: packageService, httpContext: httpContext, indexingService: indexingService);
+                controller.SetCurrentUser("Smeagol");
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act

@@ -17,20 +17,18 @@ namespace NuGetGallery.Controllers
             [Fact]
             public void WillLogTheUserOff()
             {
-                GetMock<IOwinContext>()
-                    .Setup(c => c.Authentication.SignOut());
                 var controller = GetController<AuthenticationController>();
                 
                 controller.LogOff("theReturnUrl");
 
-                GetMock<IOwinContext>()
-                    .Verify(c => c.Authentication.SignOut());
+                var revoke = controller.OwinContext.Authentication.AuthenticationResponseRevoke;
+                Assert.NotNull(revoke);
+                Assert.Empty(revoke.AuthenticationTypes);
             }
 
             [Fact]
             public void WillRedirectToTheReturnUrl()
             {
-                GetMock<IOwinContext>().Setup(c => c.Authentication.SignOut());
                 var controller = GetController<AuthenticationController>();
                 
                 var result = controller.LogOff("theReturnUrl");

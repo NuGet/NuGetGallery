@@ -22,7 +22,7 @@ namespace NuGetGallery
                     { Key = 0, Name = "aName", Managers = new HashSet<User>(new[] { Fakes.User }) };
                 StubCuratedFeedService = new Mock<ICuratedFeedService>();
 
-                OwinContext = Fakes.CreateOwinContext().Object;
+                OwinContext = Fakes.CreateOwinContext();
 
                 StubCuratedFeedService
                     .Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>()))
@@ -63,7 +63,7 @@ namespace NuGetGallery
                 var controller = new TestableCuratedFeedsController();
                 controller.StubCuratedFeedService.Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
 
-                var result = controller.CuratedFeed("aFeedName");
+                var result = controller.CuratedFeed("aName");
 
                 Assert.IsType<HttpNotFoundResult>(result);
             }
@@ -73,8 +73,8 @@ namespace NuGetGallery
             {
                 var controller = new TestableCuratedFeedsController();
                 controller.SetCurrentUser(Fakes.Owner);
-                
-                var result = controller.CuratedFeed("aFeedName") as HttpStatusCodeResult;
+
+                var result = controller.CuratedFeed("aName") as HttpStatusCodeResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(403, result.StatusCode);
@@ -84,27 +84,22 @@ namespace NuGetGallery
             public void WillPassTheCuratedFeedNameToTheView()
             {
                 var controller = new TestableCuratedFeedsController();
-                controller.StubCuratedFeed.Name = "theCuratedFeedName";
-
-                var viewModel = (controller.CuratedFeed("aFeedName") as ViewResult).Model as CuratedFeedViewModel;
+                
+                var viewModel = (controller.CuratedFeed("aName") as ViewResult).Model as CuratedFeedViewModel;
 
                 Assert.NotNull(viewModel);
-                Assert.Equal("theCuratedFeedName", viewModel.Name);
+                Assert.Equal("aName", viewModel.Name);
             }
 
             [Fact]
             public void WillPassTheCuratedFeedManagersToTheView()
             {
-                var user = new User { Username = "theManager" };
                 var controller = new TestableCuratedFeedsController();
-                controller.SetCurrentUser(user);
-                controller.StubCuratedFeed.Name = "aFeedName";
-                controller.StubCuratedFeed.Managers = new HashSet<User>(new[] { user });
-
-                var viewModel = (controller.CuratedFeed("aFeedName") as ViewResult).Model as CuratedFeedViewModel;
+                
+                var viewModel = (controller.CuratedFeed("aName") as ViewResult).Model as CuratedFeedViewModel;
 
                 Assert.NotNull(viewModel);
-                Assert.Equal("theManager", viewModel.Managers.First());
+                Assert.Equal(Fakes.User.Username, viewModel.Managers.First());
             }
 
             [Fact]
@@ -134,7 +129,7 @@ namespace NuGetGallery
                                 }
                         });
 
-                var viewModel = (controller.CuratedFeed("aFeedName") as ViewResult).Model as CuratedFeedViewModel;
+                var viewModel = (controller.CuratedFeed("aName") as ViewResult).Model as CuratedFeedViewModel;
 
                 Assert.NotNull(viewModel);
                 Assert.Equal(2, viewModel.IncludedPackages.Count());
@@ -169,7 +164,7 @@ namespace NuGetGallery
                                 }
                         });
 
-                var viewModel = (controller.CuratedFeed("aFeedName") as ViewResult).Model as CuratedFeedViewModel;
+                var viewModel = (controller.CuratedFeed("aName") as ViewResult).Model as CuratedFeedViewModel;
 
                 Assert.NotNull(viewModel);
                 Assert.Equal(1, viewModel.ExcludedPackages.Count());

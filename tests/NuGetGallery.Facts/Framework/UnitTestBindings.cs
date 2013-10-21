@@ -71,7 +71,7 @@ namespace NuGetGallery.Framework
                 .InSingletonScope();
 
             Bind<IOwinContext>()
-                .ToMethod(_ => Fakes.CreateOwinContext().Object)
+                .ToMethod(_ => Fakes.CreateOwinContext())
                 .InSingletonScope();
         }
 

@@ -31,13 +31,12 @@ namespace NuGetGallery
         public Mock<IContentService> MockContentService { get; private set; }
         public Mock<IStatisticsService> MockStatisticsService { get; private set; }
         public Mock<IIndexingService> MockIndexingService { get; private set; }
-        public Mock<IOwinContext> MockOwinContext { get; set; }
-
+        
         private INupkg PackageFromInputStream { get; set; }
 
         public TestableApiController(MockBehavior behavior = MockBehavior.Default)
         {
-            OwinContext = (MockOwinContext = Fakes.CreateOwinContext()).Object;
+            OwinContext = Fakes.CreateOwinContext();
             EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
             PackageService = (MockPackageService = new Mock<IPackageService>(behavior)).Object;
             UserService = (MockUserService = new Mock<IUserService>(behavior)).Object;
@@ -49,6 +48,8 @@ namespace NuGetGallery
             MockPackageFileService = new Mock<IPackageFileService>(MockBehavior.Strict);
             MockPackageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>())).Returns(Task.FromResult(0));
             PackageFileService = MockPackageFileService.Object;
+
+            TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), this);
         }
 
         internal void SetupPackageFromInputStream(Mock<INupkg> nuGetPackage)

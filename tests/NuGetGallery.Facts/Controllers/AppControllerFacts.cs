@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using Moq;
+using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery.Controllers
@@ -17,9 +18,8 @@ namespace NuGetGallery.Controllers
             public void GivenNoActiveUserPrincipal_ItReturnsNull()
             {
                 // Arrange
-                var context = new Mock<IOwinContext>();
                 var ctrl = new TestableAppController();
-                ctrl.OwinContext = context.Object;
+                ctrl.OwinContext = Fakes.CreateOwinContext();
 
                 // Act
                 var user = ctrl.InvokeGetCurrentUser();

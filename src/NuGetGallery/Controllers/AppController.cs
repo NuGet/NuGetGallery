@@ -13,7 +13,7 @@ namespace NuGetGallery
     public abstract partial class AppController : Controller
     {
         private IOwinContext _overrideContext;
-        
+
         public IOwinContext OwinContext
         {
             get { return _overrideContext ?? HttpContext.GetOwinContext(); }
@@ -40,6 +40,11 @@ namespace NuGetGallery
         /// <returns>The current user</returns>
         protected internal User GetCurrentUser()
         {
+            if (OwinContext.Request.User == null)
+            {
+                return null;
+            }
+
             User user = null;
             object obj;
             if (OwinContext.Environment.TryGetValue(Constants.CurrentUserOwinEnvironmentKey, out obj))
@@ -63,19 +68,14 @@ namespace NuGetGallery
             return user;
         }
 
-        protected internal void SetCurrentUser(User user)
-        {
-            OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey] = user;
-        }
-
         private User LoadUser()
         {
             var principal = OwinContext.Authentication.User;
-            if(principal != null)
+            if (principal != null)
             {
                 // Try to authenticate with the user name
                 string userName = principal.GetClaimOrDefault(ClaimTypes.Name);
-                
+
                 if (!String.IsNullOrEmpty(userName))
                 {
                     return DependencyResolver

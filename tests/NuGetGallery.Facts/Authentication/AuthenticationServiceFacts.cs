@@ -192,11 +192,7 @@ namespace NuGetGallery.Authentication
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
-                ClaimsIdentity id = null;
-                var context = GetMock<IOwinContext>();
-                context
-                    .Setup(c => c.Authentication.SignIn(It.IsAny<ClaimsIdentity[]>()))
-                    .Callback<ClaimsIdentity[]>(ids => id = ids.SingleOrDefault());
+                var context = Fakes.CreateOwinContext();
                 
                 var passwordCred = Fakes.Admin.Credentials.SingleOrDefault(
                     c => String.Equals(c.Type, CredentialTypes.Password.Pbkdf2, StringComparison.OrdinalIgnoreCase));
@@ -204,11 +200,13 @@ namespace NuGetGallery.Authentication
                 var authUser = new AuthenticatedUser(Fakes.Admin, passwordCred);
 
                 // Act
-                service.CreateSession(context.Object, authUser.User, AuthenticationTypes.Cookie);
+                service.CreateSession(context, authUser.User, AuthenticationTypes.Cookie);
 
                 // Assert
+                var principal = context.Authentication.AuthenticationResponseGrant.Principal;
+                var id = principal.Identity;
+                Assert.NotNull(principal);
                 Assert.NotNull(id);
-                var principal = new ClaimsPrincipal(id);
                 Assert.Equal(Fakes.Admin.Username, id.Name);
                 Assert.Equal(AuthenticationTypes.Cookie, id.AuthenticationType);
                 Assert.True(principal.IsInRole(Constants.AdminRoleName));

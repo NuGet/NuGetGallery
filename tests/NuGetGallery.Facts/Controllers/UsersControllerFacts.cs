@@ -591,7 +591,7 @@ namespace NuGetGallery
                     .Returns(false);
 
                 var controller = GetController<UsersController>();
-                controller.SetPrincipal("user");
+                controller.SetCurrentUser("user");
 
                 var inputModel = new PasswordChangeViewModel()
                 {
@@ -623,7 +623,7 @@ namespace NuGetGallery
                     .Setup(u => u.ChangePassword("user", "old", "new"))
                     .Returns(true);
                 var controller = GetController<UsersController>();
-                controller.SetPrincipal("user");
+                controller.SetCurrentUser("user");
                 var inputModel = new PasswordChangeViewModel()
                 {
                     OldPassword = "old",
