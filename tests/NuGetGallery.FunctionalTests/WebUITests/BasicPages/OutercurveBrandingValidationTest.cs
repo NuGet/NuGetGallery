@@ -20,8 +20,8 @@
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
             //send a request to home page and check for default home page text.
-            WebTestRequest pageRequest = new WebTestRequest(UrlHelper.BaseUrl);
-            ValidationRuleFindText homePageTextValidationRuleLogo = AssertAndValidationHelper.GetValidationRuleForFindText(@"<a href=""http://outercurve.org""><img src=""/Content/Images/outercurve.png"" alt=""Outercurve Foundation"" /></a>");
+            WebTestRequest pageRequest = new WebTestRequest(UrlHelper.BaseUrl);           
+            ValidationRuleFindText homePageTextValidationRuleLogo = AssertAndValidationHelper.GetValidationRuleForFindText(@"<a href=""http://outercurve.org""><img src=""/Content/Images/outercurve.png"" alt=""Outercurve Foundation"" /></a>");               
             ValidationRuleFindText homePageTextValidationRuleCopyright = AssertAndValidationHelper.GetValidationRuleForFindText(@"&copy; 2013 Outercurve Foundation");
             ValidationRuleFindText homePageTextValidationRuleTOU = AssertAndValidationHelper.GetValidationRuleForFindText(@"<a href=""/policies/Terms"">Terms of Use</a>");
             ValidationRuleFindText homePageTextValidationRulePrivacy = AssertAndValidationHelper.GetValidationRuleForFindText(@"<a href=""/policies/Privacy"">Privacy Policy</a>");

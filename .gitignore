@@ -166,3 +166,6 @@ build/artifacts/
 # Exclude CSCFGs, except the local emulator one
 *.cscfg
 !*.Local*.cscfg
+
+# Exclude Azure Publish Profiles
+*.pubxml

@@ -24,7 +24,6 @@ namespace NuGetGallery.Filters
                 throw new ArgumentNullException("filterContext");
             }
 
-            var controller = filterContext.Controller;
             string apiKeyStr = (string)filterContext.ActionParameters["apiKey"];
             filterContext.Result = CheckForResult(apiKeyStr);
         }

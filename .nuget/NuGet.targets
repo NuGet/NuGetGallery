@@ -17,11 +17,7 @@
     </PropertyGroup>
     
     <ItemGroup Condition=" '$(PackageSources)' == '' ">
-        <!-- Package sources used to restore packages. By default will used the registered sources under %APPDATA%\NuGet\NuGet.Config -->
-        <!--
-            <PackageSource Include="https://nuget.org/api/v2/" />
-            <PackageSource Include="https://my-nuget-source/nuget/" />
-        -->
+        <PackageSource Include="https://staging.nuget.org/api/v2/" />
     </ItemGroup>
 
     <PropertyGroup Condition=" '$(OS)' == 'Windows_NT'">
