@@ -34,7 +34,6 @@ namespace NuGetGallery
         private readonly IPackageFileService _packageFileService;
         private readonly ISearchService _searchService;
         private readonly IUploadFileService _uploadFileService;
-        private readonly IUserService _userService;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IIndexingService _indexingService;
         private readonly ICacheService _cacheService;
@@ -43,7 +42,6 @@ namespace NuGetGallery
         public PackagesController(
             IPackageService packageService,
             IUploadFileService uploadFileService,
-            IUserService userService,
             IMessageService messageService,
             ISearchService searchService,
             IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
@@ -57,7 +55,6 @@ namespace NuGetGallery
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
-            _userService = userService;
             _messageService = messageService;
             _searchService = searchService;
             _autoCuratedPackageCmd = autoCuratedPackageCmd;

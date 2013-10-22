@@ -7,7 +7,7 @@ using NuGetGallery.Authentication;
 
 namespace NuGetGallery.Filters
 {
-    public class ApiAuthorizeAttribute : AuthorizeAttribute
+    public sealed class ApiAuthorizeAttribute : AuthorizeAttribute
     {
         protected override void HandleUnauthorizedRequest(AuthorizationContext filterContext)
         {

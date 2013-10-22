@@ -216,6 +216,7 @@
     <Compile Include="AppConfigIsCorrectlyApplied.cs" />
     <Compile Include="Authentication\ApiKeyAuthenticationHandlerFacts.cs" />
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
+    <Compile Include="Authentication\ForceSslWhenAuthenticatedMiddlewareFacts.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommandFacts.cs" />
     <Compile Include="App_Start\ConfigurationServiceFacts.cs" />
     <Compile Include="Controllers\AppControllerFacts.cs" />
@@ -236,7 +237,7 @@
     <Compile Include="Entities\EntitiesContextFacts.cs" />
     <Compile Include="Entities\PackageFacts.cs" />
     <Compile Include="ExtensionMethodsFacts.cs" />
-    <Compile Include="Filters\RequireRemoteHttpsAttributeFacts.cs" />
+    <Compile Include="Filters\RequireSslAttributeFacts.cs" />
     <Compile Include="Framework\Fakes.cs" />
     <Compile Include="Framework\TestContainer.cs" />
     <Compile Include="Framework\TestExtensionMethods.cs" />
@@ -272,6 +273,8 @@
     <Compile Include="TestUtils\FakeEntitiesContext.cs" />
     <Compile Include="TestUtils\MockExtensions.cs" />
     <Compile Include="TestUtils\ModelStateAssert.cs" />
+    <Compile Include="TestUtils\OwinAssert.cs" />
+    <Compile Include="TestUtils\OwinTestExtensions.cs" />
     <Compile Include="TestUtils\ResultAssert.cs" />
     <Compile Include="TestUtils\TaskAssert.cs" />
     <Compile Include="TestUtils\TestUtility.cs" />

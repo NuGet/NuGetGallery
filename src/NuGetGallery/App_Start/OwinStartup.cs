@@ -5,6 +5,7 @@ using System.Web;
 using Owin;
 using Ninject;
 using Microsoft.Owin;
+using Microsoft.Owin.Logging;
 using Microsoft.Owin.Extensions;
 using Microsoft.Owin.Diagnostics;
 using Microsoft.Owin.Security;
@@ -21,13 +22,23 @@ namespace NuGetGallery
         // This method is auto-detected by the OWIN pipeline. DO NOT RENAME IT!
         public static void Configuration(IAppBuilder app)
         {
-            
+            // Get config
             var config = Container.Kernel.Get<ConfigurationService>();
             var cookieSecurity = config.Current.RequireSSL ? CookieSecureOption.Always : CookieSecureOption.Never;
 
+            // Configure logging
+            app.SetLoggerFactory(new DiagnosticsLoggerFactory());
+
+            if (config.Current.RequireSSL)
+            {
+                // Put a middleware at the top of the stack to force the user over to SSL
+                // if authenticated.
+                app.UseForceSslWhenAuthenticated(config.Current.SSLPort);
+            }
+
             app.UseCookieAuthentication(new CookieAuthenticationOptions()
             {
-                AuthenticationType = AuthenticationTypes.Cookie,
+                AuthenticationType = AuthenticationTypes.Password,
                 AuthenticationMode = AuthenticationMode.Active,
                 CookieHttpOnly = true,
                 CookieSecure = cookieSecurity,

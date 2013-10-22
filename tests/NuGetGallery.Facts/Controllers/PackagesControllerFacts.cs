@@ -25,7 +25,6 @@ namespace NuGetGallery
         private static PackagesController CreateController(
             Mock<IPackageService> packageService = null,
             Mock<IUploadFileService> uploadFileService = null,
-            Mock<IUserService> userService = null,
             Mock<IMessageService> messageService = null,
             Mock<HttpContextBase> httpContext = null,
             Mock<EditPackageService> editPackageService = null,
@@ -48,7 +47,6 @@ namespace NuGetGallery
                 uploadFileService.Setup(x => x.GetUploadFileAsync(42)).Returns(Task.FromResult<Stream>(null));
                 uploadFileService.Setup(x => x.SaveUploadFileAsync(42, It.IsAny<Stream>())).Returns(Task.FromResult(0));
             }
-            userService = userService ?? new Mock<IUserService>();
             messageService = messageService ?? new Mock<IMessageService>();
             searchService = searchService ?? CreateSearchService();
             autoCuratePackageCmd = autoCuratePackageCmd ?? new Mock<IAutomaticallyCuratePackageCommand>();
@@ -72,7 +70,6 @@ namespace NuGetGallery
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 uploadFileService.Object,
-                userService.Object,
                 messageService.Object,
                 searchService.Object,
                 autoCuratePackageCmd.Object,
@@ -122,13 +119,10 @@ namespace NuGetGallery
             [Fact]
             public async Task DeletesTheInProgressPackageUpload()
             {
-                var fakeUserService = new Mock<IUserService>();
-                fakeUserService.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(42)).Returns(Task.FromResult(0));
                 var controller = CreateController(
-                    uploadFileService: fakeUploadFileService,
-                    userService: fakeUserService);
+                    uploadFileService: fakeUploadFileService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 await controller.CancelUpload();
@@ -139,21 +133,16 @@ namespace NuGetGallery
             [Fact]
             public async Task RedirectsToUploadPageAfterDelete()
             {
-                var fakeUserService = new Mock<IUserService>();
-                fakeUserService.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(42)).Returns(Task.FromResult(0));
                 var controller = CreateController(
-                    uploadFileService: fakeUploadFileService,
-                    userService: fakeUserService);
+                    uploadFileService: fakeUploadFileService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var result = await controller.CancelUpload() as RedirectToRouteResult;
 
                 Assert.False(result.Permanent);
                 Assert.Equal("UploadPackage", result.RouteValues["Action"]);
-                // TODO: Figure out why the RouteValues collection no longer contains "Controller" parameter
-                //Assert.Equal("Packages", result.RouteValues["Controller"]);
             }
         }
 

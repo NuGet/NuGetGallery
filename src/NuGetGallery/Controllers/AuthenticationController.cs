@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
+using NuGetGallery.Filters;
 
 namespace NuGetGallery
 {
@@ -22,7 +23,7 @@ namespace NuGetGallery
             AuthService = authService;
         }
 
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
+        [RequireSsl]
         public virtual ActionResult LogOn(string returnUrl)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
@@ -39,7 +40,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
+        [RequireSsl]
         public virtual ActionResult SignIn(SignInRequest request, string returnUrl)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
@@ -67,13 +68,13 @@ namespace NuGetGallery
                 return View();
             }
 
-            AuthService.CreateSession(OwinContext, user.User, AuthenticationTypes.Cookie);
+            AuthService.CreateSession(OwinContext, user.User, AuthenticationTypes.Password);
             return SafeRedirect(returnUrl);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
+        [RequireSsl]
         public virtual ActionResult Register(RegisterRequest request, string returnUrl)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
@@ -104,7 +105,7 @@ namespace NuGetGallery
                 return View();
             }
 
-            AuthService.CreateSession(OwinContext, user.User, AuthenticationTypes.Cookie);
+            AuthService.CreateSession(OwinContext, user.User, AuthenticationTypes.Password);
 
             if (RedirectHelper.SafeRedirectUrl(Url, returnUrl) != RedirectHelper.SafeRedirectUrl(Url, null))
             {

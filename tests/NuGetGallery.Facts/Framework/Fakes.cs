@@ -106,8 +106,18 @@ namespace NuGetGallery.Framework
         public static IOwinContext CreateOwinContext()
         {
             var ctx = new OwinContext();
+
+            // Fill in some values that cause exceptions if not present
             ctx.Set<Action<Action<object>, object>>("server.OnSendingHeaders", (_, __) => { });
+
             return ctx;
+        }
+
+        public static Mock<OwinMiddleware> CreateOwinMiddleware()
+        {
+            var middleware = new Mock<OwinMiddleware>(new object[] { null });
+            middleware.Setup(m => m.Invoke(It.IsAny<OwinContext>())).ReturnsAsync();
+            return middleware;
         }
     }
 }

@@ -7,8 +7,7 @@ namespace NuGetGallery.Authentication
 {
     public static class AuthenticationTypes
     {
-        public static readonly string Cookie = "cookie";
+        public static readonly string Password = "password";
         public static readonly string ApiKey = "apikey";
-        public static readonly string ResolvedUser = "resolveduser";
     }
 }

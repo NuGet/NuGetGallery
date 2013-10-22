@@ -324,6 +324,7 @@
     <Compile Include="Authentication\AuthenticationService.cs" />
     <Compile Include="Authentication\AuthenticationTypes.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
+    <Compile Include="Authentication\ForceSslWhenAuthenticatedMiddleware.cs" />
     <Compile Include="Configuration\ConfigurationService.cs" />
     <Compile Include="Configuration\FeatureConfiguration.cs" />
     <Compile Include="Configuration\LuceneIndexLocation.cs" />
@@ -907,7 +908,7 @@
     <Compile Include="Services\LocalFileReference.cs" />
     <Compile Include="Services\NuGetExeDownloaderService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
-    <Compile Include="RequireRemoteHttpsAttribute.cs" />
+    <Compile Include="Filters\RequireSslAttribute.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\AggregateStatsService.cs" />
     <Compile Include="Services\ReportPackageRequest.cs" />

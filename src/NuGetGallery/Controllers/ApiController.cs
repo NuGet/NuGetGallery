@@ -162,6 +162,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        [RequireSsl]
         [ApiAuthorize]
         [ActionName("VerifyPackageKeyApi")]
         public virtual ActionResult VerifyPackageKey(string id, string version)
@@ -187,18 +188,18 @@ namespace NuGetGallery
         }
 
         [HttpPut]
+        [RequireSsl]
         [ApiAuthorize]
         [ActionName("PushPackageApi")]
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual Task<ActionResult> CreatePackagePut()
         {
             return CreatePackageInternal();
         }
 
         [HttpPost]
+        [RequireSsl]
         [ApiAuthorize]
         [ActionName("PushPackageApi")]
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual Task<ActionResult> CreatePackagePost()
         {
             return CreatePackageInternal();
@@ -257,9 +258,9 @@ namespace NuGetGallery
         }
 
         [HttpDelete]
+        [RequireSsl]
         [ApiAuthorize]
         [ActionName("DeletePackageApi")]
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual ActionResult DeletePackage(string id, string version)
         {
             var package = PackageService.FindPackageByIdAndVersion(id, version);
@@ -273,7 +274,7 @@ namespace NuGetGallery
             if (!package.IsOwner(user))
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
+                    HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
 
             PackageService.MarkPackageUnlisted(package);
@@ -282,9 +283,9 @@ namespace NuGetGallery
         }
 
         [HttpPost]
+        [RequireSsl]
         [ApiAuthorize]
         [ActionName("PublishPackageApi")]
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual ActionResult PublishPackage(string id, string version)
         {
             var package = PackageService.FindPackageByIdAndVersion(id, version);
@@ -346,7 +347,6 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [ApiAuthorize]
         [ActionName("PackageIDs")]
         public virtual ActionResult GetPackageIds(string partialId, bool? includePrerelease)
         {
@@ -359,7 +359,6 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [ApiAuthorize]
         [ActionName("PackageVersions")]
         public virtual ActionResult GetPackageVersions(string id, bool? includePrerelease)
         {
@@ -372,7 +371,6 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [ApiAuthorize]
         [ActionName("StatisticsDownloadsApi")]
         public virtual async Task<ActionResult> GetStatsDownloads(int? count)
         {

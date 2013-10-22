@@ -60,17 +60,18 @@ namespace NuGetGallery.Authentication
             if (!String.IsNullOrEmpty(apiKey))
             {
                 // Get the user
-                var user = Auth.Authenticate(CredentialBuilder.CreateV1ApiKey(apiKey));
-                if (user != null)
+                var authUser = Auth.Authenticate(CredentialBuilder.CreateV1ApiKey(apiKey));
+                if (authUser != null)
                 {
                     // Set the current user
-                    Context.Set(Constants.CurrentUserOwinEnvironmentKey, user);
+                    Context.Set(Constants.CurrentUserOwinEnvironmentKey, authUser);
 
                     return Task.FromResult(
                         new AuthenticationTicket(
-                            new ClaimsIdentity(new[] {
-                                new Claim(NuGetClaims.ApiKey, apiKey)
-                            }),
+                            AuthenticationService.CreateIdentity(
+                                authUser.User, 
+                                AuthenticationTypes.ApiKey, 
+                                new Claim(NuGetClaims.ApiKey, apiKey)),
                             new AuthenticationProperties()));
                 }
                 else

@@ -48,7 +48,7 @@ namespace NuGetGallery.Authentication
                     Trace.Information("Password validation failed: " + userNameOrEmail);
                     return null;
                 }
-                
+
                 var passwordCredentials = user
                     .Credentials
                     .Where(c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase))
@@ -215,7 +215,7 @@ namespace NuGetGallery.Authentication
             if (expirationInMinutes < 1)
             {
                 throw new ArgumentException(
-                    "Token expiration should give the user at least a minute to change their password", "tokenExpirationMinutes");
+                    "Token expiration should give the user at least a minute to change their password", "expirationInMinutes");
             }
 
             var user = FindByUserNameOrEmail(usernameOrEmail);
@@ -241,13 +241,24 @@ namespace NuGetGallery.Authentication
             return user;
         }
 
-        public static ClaimsIdentity CreateIdentity(User user, string authenticationType)
+        public static ClaimsIdentity CreateIdentity(User user, string authenticationType, params Claim[] additionalClaims)
         {
+            var claims = Enumerable.Concat(new[] {
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Username),
+                new Claim(ClaimTypes.AuthenticationMethod, authenticationType),
+
+                // Needed for anti-forgery token, also good practice to have a unique identifier claim
+                new Claim(ClaimTypes.NameIdentifier, user.Username)
+            }, user.Roles.Select(r => new Claim(ClaimsIdentity.DefaultRoleClaimType, r.Name)));
+
+            if (additionalClaims.Length > 0)
+            {
+                claims = Enumerable.Concat(claims, additionalClaims);
+            }
+
             ClaimsIdentity identity = new ClaimsIdentity(
-                claims: Enumerable.Concat(new[] {
-                    new Claim(ClaimsIdentity.DefaultNameClaimType, user.Username)
-                }, user.Roles.Select(r => new Claim(ClaimsIdentity.DefaultRoleClaimType, r.Name))),
-                authenticationType: authenticationType,
+                claims,
+                authenticationType,
                 nameType: ClaimsIdentity.DefaultNameClaimType,
                 roleType: ClaimsIdentity.DefaultRoleClaimType);
             return identity;
@@ -257,7 +268,7 @@ namespace NuGetGallery.Authentication
         {
             // Find the credentials we're replacing, if any
             var creds = user.Credentials
-                .Where(cred => 
+                .Where(cred =>
                     // If we're replacing a password credential, remove ALL password credentials
                     (credential.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase) &&
                      cred.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase)) ||
@@ -280,7 +291,7 @@ namespace NuGetGallery.Authentication
                 .Include(u => u.User.Roles)
                 .Where(c => c.Type == credential.Type && c.Value == credential.Value)
                 .ToList();
-            
+
             if (results.Count == 0)
             {
                 return null;
@@ -314,8 +325,8 @@ namespace NuGetGallery.Authentication
             {
                 var allMatches = users
                     .Where(u => u.EmailAddress == userNameOrEmail)
-				    .Take(2)
-				    .ToList();
+                    .Take(2)
+                    .ToList();
 
                 if (allMatches.Count == 1)
                 {
