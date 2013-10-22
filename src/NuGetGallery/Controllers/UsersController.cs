@@ -322,7 +322,7 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult ChangeEmail()
         {
-            User user = UserService.FindByUsername(Identity.Name);
+            User user = UserService.FindByUsername(User.Identity.Name);
             var model = new ChangeEmailRequestModel
             {
                 NewEmail = String.IsNullOrEmpty(user.UnconfirmedEmailAddress) ?
