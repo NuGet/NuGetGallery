@@ -21,7 +21,7 @@
         </div>
 
         <div class="form-field">
-            @Html.LabelFor(m => m.EmailAddress)
+            <label for="EmailAddress">Email (<a href="http://www.gravatar.com">Gravatar</a>, notifications, and password recovery)</label>
             @Html.EditorFor(m => m.EmailAddress)
             @Html.ValidationMessageFor(m => m.EmailAddress)
         </div>
