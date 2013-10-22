@@ -13,6 +13,7 @@ namespace NuGetGallery
         public User(string username)
         {
             Credentials = new List<Credential>();
+            Roles = new List<Role>();
             Username = username;
         }
 

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Microsoft.Owin;
 using Moq;
 using Ninject;
 using Ninject.Activation;
@@ -19,9 +20,9 @@ namespace NuGetGallery.Framework
 {
     internal class UnitTestBindings : NinjectModule
     {
-        internal static IKernel CreateContainer()
+        internal static IKernel CreateContainer(bool autoMock)
         {
-            var kernel = new TestKernel(new UnitTestBindings());
+            var kernel = autoMock ? new TestKernel(new UnitTestBindings()) : new StandardKernel(new UnitTestBindings());
             return kernel;
         }
 
@@ -58,6 +59,19 @@ namespace NuGetGallery.Framework
                     mockService.Setup(u => u.FindByUsername(Fakes.Admin.Username)).Returns(Fakes.Admin);
                     return mockService.Object;
                 })
+                .InSingletonScope();
+
+            Bind<IEntitiesContext>()
+                .ToMethod(_ =>
+                {
+                    var ctxt = new FakeEntitiesContext();
+                    Fakes.ConfigureEntitiesContext(ctxt);
+                    return ctxt;
+                })
+                .InSingletonScope();
+
+            Bind<IOwinContext>()
+                .ToMethod(_ => Fakes.CreateOwinContext())
                 .InSingletonScope();
         }
 

@@ -11,7 +11,7 @@
     <ProductionBranch>master</ProductionBranch>
   </PropertyGroup>
 
-  <Target Name="PatchAssemblyVersion">
+  <Target Name="PatchAssemblyVersion" Condition="'$(SetVersion)' != 'false'">
     <ItemGroup>
       <_RegexReplace Include="$(MSBuildThisFileDirectory)\..\src\CommonAssemblyInfo.cs" />
     </ItemGroup>

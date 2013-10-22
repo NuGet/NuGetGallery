@@ -9,7 +9,7 @@ namespace NuGetGallery
             get
             {
                 var statistics = DependencyResolver.Current.GetService<IStatisticsService>();
-                return (statistics != null);
+                return (statistics != NullStatisticsService.Instance);
             }
         }
     }

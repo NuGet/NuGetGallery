@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Security.Principal;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
+using NuGetGallery.Authentication;
+using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery
@@ -16,12 +19,11 @@ namespace NuGetGallery
             public TestableCuratedFeedsController()
             {
                 StubCuratedFeed = new CuratedFeed
-                    { Key = 0, Name = "aName", Managers = new HashSet<User>(new[] { new User { Username = "aUsername" } }) };
+                    { Key = 0, Name = "aName", Managers = new HashSet<User>(new[] { Fakes.User }) };
                 StubCuratedFeedService = new Mock<ICuratedFeedService>();
-                StubIdentity = new Mock<IIdentity>();
 
-                StubIdentity.Setup(stub => stub.IsAuthenticated).Returns(true);
-                StubIdentity.Setup(stub => stub.Name).Returns("aUsername");
+                OwinContext = Fakes.CreateOwinContext();
+
                 StubCuratedFeedService
                     .Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>()))
                     .Returns(StubCuratedFeed);
@@ -30,18 +32,18 @@ namespace NuGetGallery
 
                 StubSearchService = new Mock<ISearchService>();
                 SearchService = StubSearchService.Object;
+
+                var httpContext = new Mock<HttpContextBase>();
+                TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, this);
+
+                this.SetCurrentUser(Fakes.User);
+
             }
 
             public CuratedFeed StubCuratedFeed { get; set; }
             public Mock<ICuratedFeedService> StubCuratedFeedService { get; private set; }
             public Mock<ISearchService> StubSearchService { get; private set; }
-            public Mock<IIdentity> StubIdentity { get; private set; }
-
-            public override IIdentity Identity
-            {
-                get { return StubIdentity.Object; }
-            }
-
+            
             protected internal override T GetService<T>()
             {
                 if (typeof(T) == typeof(ICuratedFeedService))
@@ -61,7 +63,7 @@ namespace NuGetGallery
                 var controller = new TestableCuratedFeedsController();
                 controller.StubCuratedFeedService.Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
 
-                var result = controller.CuratedFeed("aFeedName");
+                var result = controller.CuratedFeed("aName");
 
                 Assert.IsType<HttpNotFoundResult>(result);
             }
@@ -70,9 +72,9 @@ namespace NuGetGallery
             public void WillReturn403IfTheCurrentUsersIsNotAManagerOfTheCuratedFeed()
             {
                 var controller = new TestableCuratedFeedsController();
-                controller.StubIdentity.Setup(stub => stub.Name).Returns("notAManager");
+                controller.SetCurrentUser(Fakes.Owner);
 
-                var result = controller.CuratedFeed("aFeedName") as HttpStatusCodeResult;
+                var result = controller.CuratedFeed("aName") as HttpStatusCodeResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(403, result.StatusCode);
@@ -82,26 +84,22 @@ namespace NuGetGallery
             public void WillPassTheCuratedFeedNameToTheView()
             {
                 var controller = new TestableCuratedFeedsController();
-                controller.StubCuratedFeed.Name = "theCuratedFeedName";
-
-                var viewModel = (controller.CuratedFeed("aFeedName") as ViewResult).Model as CuratedFeedViewModel;
+                
+                var viewModel = (controller.CuratedFeed("aName") as ViewResult).Model as CuratedFeedViewModel;
 
                 Assert.NotNull(viewModel);
-                Assert.Equal("theCuratedFeedName", viewModel.Name);
+                Assert.Equal("aName", viewModel.Name);
             }
 
             [Fact]
             public void WillPassTheCuratedFeedManagersToTheView()
             {
                 var controller = new TestableCuratedFeedsController();
-                controller.StubIdentity.Setup(stub => stub.Name).Returns("theManager");
-                controller.StubCuratedFeed.Name = "aFeedName";
-                controller.StubCuratedFeed.Managers = new HashSet<User>(new[] { new User { Username = "theManager" } });
-
-                var viewModel = (controller.CuratedFeed("aFeedName") as ViewResult).Model as CuratedFeedViewModel;
+                
+                var viewModel = (controller.CuratedFeed("aName") as ViewResult).Model as CuratedFeedViewModel;
 
                 Assert.NotNull(viewModel);
-                Assert.Equal("theManager", viewModel.Managers.First());
+                Assert.Equal(Fakes.User.Username, viewModel.Managers.First());
             }
 
             [Fact]
@@ -131,7 +129,7 @@ namespace NuGetGallery
                                 }
                         });
 
-                var viewModel = (controller.CuratedFeed("aFeedName") as ViewResult).Model as CuratedFeedViewModel;
+                var viewModel = (controller.CuratedFeed("aName") as ViewResult).Model as CuratedFeedViewModel;
 
                 Assert.NotNull(viewModel);
                 Assert.Equal(2, viewModel.IncludedPackages.Count());
@@ -166,7 +164,7 @@ namespace NuGetGallery
                                 }
                         });
 
-                var viewModel = (controller.CuratedFeed("aFeedName") as ViewResult).Model as CuratedFeedViewModel;
+                var viewModel = (controller.CuratedFeed("aName") as ViewResult).Model as CuratedFeedViewModel;
 
                 Assert.NotNull(viewModel);
                 Assert.Equal(1, viewModel.ExcludedPackages.Count());
