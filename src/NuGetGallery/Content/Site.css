@@ -1290,6 +1290,14 @@ ul.pager li.next { padding-left: 10px; }
     stroke-width: 1.5px;
 }
 
+.line-graph-dot {
+    fill: steelblue;
+}
+
+.line-graph-dot:hover {
+    fill: orange;
+}
+
     /* NuGet Badge */
 
 .nuget-badge code {
