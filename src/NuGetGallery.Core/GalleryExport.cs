@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 
@@ -10,28 +11,50 @@ namespace NuGetGallery
     {
         public static TextWriter TraceWriter = Console.Out;
 
-        public static List<Tuple<Package, IEnumerable<string>>> GetPackagesSince(string sqlConnectionString, DateTime indexTime, DateTime lastIndexTime)
+        public static int ChunkSize = 4000;
+
+        public static List<Package> GetPublishedPackagesSince(string sqlConnectionString, DateTime indexTime, int highestPackageKey)
         {
-            return GetPackages(sqlConnectionString, indexTime, lastIndexTime, null);
+            return GetPackages(sqlConnectionString, indexTime, highestPackageKey, null);
         }
 
-        public static List<Tuple<Package, IEnumerable<string>>> GetEditedPackagesSince(string sqlConnectionString, DateTime indexTime, DateTime lastIndexTime)
+        public static List<Package> GetEditedPackagesSince(string sqlConnectionString, DateTime indexTime, DateTime lastIndexTime)
         {
             return GetPackages(sqlConnectionString, indexTime, null, lastIndexTime);
         }
 
-        public static List<Tuple<Package, IEnumerable<string>>> GetAllPackages(string sqlConnectionString, DateTime indexTime)
+        public static List<Package> GetAllPackages(string sqlConnectionString, DateTime indexTime)
         {
             return GetPackages(sqlConnectionString, indexTime, null, null);
         }
 
-        public static List<Tuple<Package, IEnumerable<string>>> GetPackages(string sqlConnectionString, DateTime indexTime, DateTime? published, DateTime? lastEdited)
+        public static List<Package> GetPackages(string sqlConnectionString, DateTime indexTime, int? highestPackageKey, DateTime? mostRecentEdited)
         {
             EntitiesContext context = new EntitiesContext(sqlConnectionString, readOnly: true);
             IEntityRepository<Package> packageSource = new EntityRepository<Package>(context);
-            IEntityRepository<CuratedPackage> curatedPackageSource = new EntityRepository<CuratedPackage>(context);
 
             IQueryable<Package> set = packageSource.GetAll();
+
+            if (highestPackageKey.HasValue)
+            {
+                Tuple<int, int> range = GetNextRange(sqlConnectionString, highestPackageKey.Value, ChunkSize);
+
+                if (range.Item1 == 0 && range.Item2 == 0)
+                {
+                    //  make sure Key == 0 returns no rows and so we quit
+                    set = set.Where(p => 1 == 2);
+                }
+                else
+                {
+                    set = set.Where(p => p.Key >= range.Item1 && p.Key <= range.Item2);
+                    set = set.OrderBy(p => p.Key);
+                }
+            }
+            else if (mostRecentEdited.HasValue)
+            {
+                set = set.Where(p => p.LastEdited >= mostRecentEdited.Value);
+                set = set.OrderBy(p => p.LastEdited);
+            }
 
             set = set
                 .Include(p => p.PackageRegistration)
@@ -39,18 +62,7 @@ namespace NuGetGallery
                 .Include(p => p.SupportedFrameworks);
 
             //  always set an upper bound on the set we get as this is what we will timestamp the index with
-            set = set.Where(p => p.LastUpdated < indexTime);
-
-            if (published != null)
-            {
-                //TODO: should this be lastUpdated...
-                set = set.Where(p => p.Published >= published);
-            }
-
-            else if (lastEdited != null)
-            {
-                set = set.Where(p => p.LastEdited >= lastEdited);
-            }
+            //set = set.Where(p => p.LastUpdated < indexTime);
 
             TraceWriter.WriteLine(EntityFrameworkTracing.ToTraceString(set));
 
@@ -60,9 +72,19 @@ namespace NuGetGallery
 
             List<Package> list = set.ToList();
 
-            TraceWriter.WriteLine("Packages: {0} rows returned, duration {1} seconds", list.Count, (DateTime.Now - before).TotalSeconds);
+            DateTime after = DateTime.Now;
 
-            var curatedFeedsPerPackageRegistrationGrouping = curatedPackageSource.GetAll()
+            TraceWriter.WriteLine("Packages: {0} rows returned, duration {1} seconds", list.Count, (after - before).TotalSeconds);
+
+            return list;
+        }
+
+        public static IDictionary<int, IEnumerable<string>>  GetFeedsByPackageRegistration(string sqlConnectionString)
+        {
+            EntitiesContext context = new EntitiesContext(sqlConnectionString, readOnly: true);
+            IEntityRepository<CuratedPackage> curatedPackageRepository = new EntityRepository<CuratedPackage>(context);
+
+            var curatedFeedsPerPackageRegistrationGrouping = curatedPackageRepository.GetAll()
                 .Include(c => c.CuratedFeed)
                 .Select(cp => new { PackageRegistrationKey = cp.PackageRegistrationKey, FeedName = cp.CuratedFeed.Name })
                 .GroupBy(x => x.PackageRegistrationKey);
@@ -71,25 +93,51 @@ namespace NuGetGallery
 
             //  database call
 
-            before = DateTime.Now;
+            DateTime before = DateTime.Now;
 
-            IDictionary<int, IEnumerable<string>> curatedFeedsPerPackageRegistration = curatedFeedsPerPackageRegistrationGrouping
+            IDictionary<int, IEnumerable<string>> feeds = curatedFeedsPerPackageRegistrationGrouping
                 .ToDictionary(group => group.Key, element => element.Select(x => x.FeedName));
 
-            TraceWriter.WriteLine("Feeds: {0} rows returned, duration {1} seconds", curatedFeedsPerPackageRegistration.Count, (DateTime.Now - before).TotalSeconds);
+            DateTime after = DateTime.Now;
 
-            Func<int, IEnumerable<string>> GetFeeds = packageRegistrationKey =>
+            TraceWriter.WriteLine("Feeds: {0} rows returned, duration {1} seconds", feeds.Count, (after - before).TotalSeconds);
+
+            return feeds;
+        }
+
+        private static Tuple<int, int> GetNextRange(string sqlConnectionString, int lastHighestPackageKey, int chunkSize)
+        {
+            string sql = @"
+                SELECT ISNULL(MIN(A.[Key]), 0), ISNULL(MAX(A.[Key]), 0)
+                FROM (
+                    SELECT TOP(@ChunkSize) Packages.[Key]
+                    FROM Packages
+                    INNER JOIN PackageRegistrations ON Packages.[PackageRegistrationKey] = PackageRegistrations.[Key]
+                    WHERE Packages.[Key] > @LastHighestPackageKey
+                    ORDER BY Packages.[Key]) AS A
+            ";
+
+            using (SqlConnection connection = new SqlConnection(sqlConnectionString))
             {
-                IEnumerable<string> ret = null;
-                curatedFeedsPerPackageRegistration.TryGetValue(packageRegistrationKey, out ret);
-                return ret;
-            };
+                connection.Open();
 
-            List<Tuple<Package, IEnumerable<string>>> packagesAndFeeds = list
-                .Select(p => new Tuple<Package, IEnumerable<string>>(p, GetFeeds(p.PackageRegistrationKey)))
-                .ToList();
+                SqlCommand command = new SqlCommand(sql, connection);
+                command.Parameters.AddWithValue("ChunkSize", chunkSize);
+                command.Parameters.AddWithValue("LastHighestPackageKey", lastHighestPackageKey);
 
-            return packagesAndFeeds;
+                SqlDataReader reader = command.ExecuteReader();
+
+                int min = 0;
+                int max = 0;
+
+                while (reader.Read())
+                {
+                    min = reader.GetInt32(0);
+                    max = reader.GetInt32(1);
+                }
+
+                return new Tuple<int, int>(min, max);
+            }
         }
     }
 }
