@@ -232,9 +232,11 @@ namespace NuGetGallery.Operations
             string id,
             string version)
         {
+            string normalizedVersion = SemanticVersionExtensions.Normalize(version);
+
             return dbExecutor.Query<Package>(
-                "SELECT p.[Key], pr.Id, p.Version, p.Hash FROM Packages p JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey WHERE pr.Id = @id AND p.Version = @version",
-                new { id, version }).SingleOrDefault();
+                "SELECT p.[Key], pr.Id, p.Version, p.Hash FROM Packages p JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey WHERE pr.Id = @id AND p.NormalizedVersion = @normalizedVersion",
+                new { id, normalizedVersion }).SingleOrDefault();
         }
 
         internal static PackageRegistration GetPackageRegistration(
