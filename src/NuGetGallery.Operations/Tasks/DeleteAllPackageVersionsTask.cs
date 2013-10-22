@@ -1,5 +1,6 @@
 ﻿using System.Data.SqlClient;
 using AnglicanGeek.DbExecutor;
+using Microsoft.WindowsAzure.Storage;
 using NuGetGallery.Operations.Common;
 
 namespace NuGetGallery.Operations
