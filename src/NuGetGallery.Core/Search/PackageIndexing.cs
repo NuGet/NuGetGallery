@@ -14,8 +14,8 @@ namespace NuGetGallery
 {
     public static class PackageIndexing
     {
-        const int MaxDocumentsPerCommit = 8000;     //  The maximum number of Lucene documents in a single commit. The min size for a segment.
-        const int MergeFactor = 100;                //  Define the size of a file in a level (exponentially) and the count of files that constitue a level
+        const int MaxDocumentsPerCommit = 1000;     //  The maximum number of Lucene documents in a single commit. The min size for a segment.
+        const int MergeFactor = 10;                 //  Define the size of a file in a level (exponentially) and the count of files that constitue a level
         const int MaxMergeDocs = 7999;              //  Except never merge segments that have more docs than this 
 
         public static TextWriter TraceWriter = Console.Out;
@@ -24,10 +24,9 @@ namespace NuGetGallery
         {
             CreateNewEmptyIndex(directory);
 
-            DateTime indexTime = DateTime.UtcNow;
-
-            TraceWriter.WriteLine("get all packages from gallery");
-            List<Tuple<Package, IEnumerable<string>>> packages = GalleryExport.GetAllPackages(sqlConnectionString, indexTime);
+            //  what happens if we change the feed - is there an incremental update story we can create for that
+            TraceWriter.WriteLine("get curated feeds by PackageRegistration");
+            IDictionary<int, IEnumerable<string>> feeds = GalleryExport.GetFeedsByPackageRegistration(sqlConnectionString);
 
             TraceWriter.WriteLine("get overall ranking from warehouse");
             IDictionary<string, int> overallRanking = packageRanking.GetOverallRanking();
@@ -35,8 +34,31 @@ namespace NuGetGallery
             TraceWriter.WriteLine("get project ranking from warehouse");
             IDictionary<string, IDictionary<string, int>> projectRankings = packageRanking.GetProjectRankings();
 
-            AddPackagesToIndex(packages, directory, overallRanking, projectRankings, indexTime);
+            while (true)
+            {
+                DateTime indexTime = DateTime.UtcNow;
+                int highestPackageKey = GetHighestPackageKey(directory);
+
+                TraceWriter.WriteLine("indexTime = {0} mostRecentPublished = {1}", indexTime, highestPackageKey);
+
+                TraceWriter.WriteLine("get packages from gallery where the Package.Key > {0}", highestPackageKey);
+                List<Package> packages = GalleryExport.GetPublishedPackagesSince(sqlConnectionString, indexTime, highestPackageKey);
+
+                if (packages.Count == 0)
+                {
+                    break;
+                }
+
+                TraceWriter.WriteLine("associate the feeds with gallery");
+                List<Tuple<Package, IEnumerable<string>>> packagesWithFeeds = AssociatedFeedsWithPackages(packages, feeds);
+
+                AddPackagesToIndex(packagesWithFeeds, directory, overallRanking, projectRankings, indexTime);
+            }
+
+            TraceWriter.WriteLine("all done");
         }
+
+        /*
 
         public static void UpdateIndex(string sqlConnectionString, Lucene.Net.Store.Directory directory, PackageRanking packageRanking)
         {
@@ -73,6 +95,24 @@ namespace NuGetGallery
             {
                 CreateFreshIndex(sqlConnectionString, directory, packageRanking);
             }
+        }
+
+        */
+
+        private static List<Tuple<Package, IEnumerable<string>>> AssociatedFeedsWithPackages(IList<Package> packages, IDictionary<int, IEnumerable<string>> feeds)
+        {
+            Func<int, IEnumerable<string>> GetFeeds = packageRegistrationKey =>
+            {
+                IEnumerable<string> ret = null;
+                feeds.TryGetValue(packageRegistrationKey, out ret);
+                return ret;
+            };
+
+            List<Tuple<Package, IEnumerable<string>>> packagesAndFeeds = packages
+                .Select(p => new Tuple<Package, IEnumerable<string>>(p, GetFeeds(p.PackageRegistrationKey)))
+                .ToList();
+
+            return packagesAndFeeds;
         }
 
         private static void AddPackagesToIndex(List<Tuple<Package, IEnumerable<string>>> packages, Lucene.Net.Store.Directory directory, IDictionary<string, int> overallRanking, IDictionary<string, IDictionary<string, int>> projectRankings, DateTime indexTime)
@@ -132,21 +172,32 @@ namespace NuGetGallery
             using (IndexWriter indexWriter = new IndexWriter(directory, new PackageAnalyzer(), false, IndexWriter.MaxFieldLength.UNLIMITED))
             {
                 indexWriter.MergeFactor = MergeFactor;
-                indexWriter.MaxMergeDocs = MaxMergeDocs; 
+                indexWriter.MaxMergeDocs = MaxMergeDocs;
+
+                int highestPackageKey = -1;
 
                 foreach (Tuple<Package, IEnumerable<string>> packageToIndex in packagesToIndex)
                 {
+                    int currentPackageKey = packageToIndex.Item1.Key;
+                    
                     int rank = GetDocumentRank(overallRanking, packageToIndex.Item1.PackageRegistration.Id);
                     IDictionary<string, int> projectTypeRankings = PivotProjectTypeRanking(projectRankings, packageToIndex.Item1.PackageRegistration.Id);
 
                     Document newDocument = PackageIndexing.CreateLuceneDocument(packageToIndex.Item1, packageToIndex.Item2, rank, projectTypeRankings);
 
                     indexWriter.AddDocument(newDocument);
+
+                    if (currentPackageKey <= highestPackageKey)
+                    {
+                        throw new Exception("(currentPackageKey <= highestPackageKey) the data must not be ordered correctly");
+                    }
+                    
+                    highestPackageKey = currentPackageKey;
                 }
 
                 TraceWriter.WriteLine("about to commit {0} packages", packagesToIndex.Count);
 
-                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(indexTime, packagesToIndex.Count));
+                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(indexTime, highestPackageKey, packagesToIndex.Count, "publish"));
             }
         }
 
@@ -181,7 +232,7 @@ namespace NuGetGallery
 
                 TraceWriter.WriteLine("about to commit {0} packages", packagesToUpdate.Count);
 
-                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(indexTime, packagesToUpdate.Count));
+                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(indexTime, 0, packagesToUpdate.Count, "update"));
             }
         }
 
@@ -189,15 +240,21 @@ namespace NuGetGallery
         {
             using (IndexWriter indexWriter = new IndexWriter(directory, new PackageAnalyzer(), true, IndexWriter.MaxFieldLength.UNLIMITED))
             {
-                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(DateTime.UtcNow, 0));
+                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(DateTime.MinValue, 0, 0, "creation"));
             }
         }
 
-        private static IDictionary<string, string> CreateCommitMetadata(DateTime indexTime, int count)
+        private static IDictionary<string, string> CreateCommitMetadata(DateTime lastIndexTime, int highestPackageKey, int count, string description)
         {
             IDictionary<string, string> commitMetadata = new Dictionary<string, string>();
-            commitMetadata.Add("last-index-time", indexTime.ToString());
-            commitMetadata.Add("document-count", count.ToString());
+            commitMetadata.Add("commit-time-stamp",  DateTime.UtcNow.ToString());
+            commitMetadata.Add("commit-description", description);
+            commitMetadata.Add("highest-package-key", highestPackageKey.ToString());
+            commitMetadata.Add("last-index-time", lastIndexTime.ToString());
+            commitMetadata.Add("last-commit-document-count", count.ToString());
+            commitMetadata.Add("MaxDocumentsPerCommit", MaxDocumentsPerCommit.ToString());
+            commitMetadata.Add("MergeFactor", MergeFactor.ToString());
+            commitMetadata.Add("MaxMergeDocs", MaxMergeDocs.ToString());
             return commitMetadata;
         }
 
@@ -212,6 +269,19 @@ namespace NuGetGallery
             }
 
             return null;
+        }
+
+        private static int GetHighestPackageKey(Lucene.Net.Store.Directory directory)
+        {
+            IDictionary<string, string> commitMetadata = IndexReader.GetCommitUserData(directory);
+
+            string highestPackageKey;
+            if (commitMetadata.TryGetValue("highest-package-key", out highestPackageKey))
+            {
+                return int.Parse(highestPackageKey);
+            }
+
+            return 0;
         }
 
         private static Document CreateLuceneDocument(Package package, IEnumerable<string> feeds, int rank, IDictionary<string, int> projectTypeRankings)
