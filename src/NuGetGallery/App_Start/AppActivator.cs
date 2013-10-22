@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Data.Entity;
+using System.Security.Claims;
+using System.Web.Helpers;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
@@ -30,6 +32,8 @@ namespace NuGetGallery
 
         public static void PreStart()
         {
+            AntiForgeryConfig.UniqueClaimTypeIdentifier = ClaimTypes.NameIdentifier;
+
             NinjectPreStart();
             ElmahPreStart();
             GlimpsePreStart();
@@ -101,7 +105,6 @@ namespace NuGetGallery
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new AntiForgeryErrorFilter());
-            GlobalFilters.Filters.Add(new RequireRemoteHttpsAttribute() { OnlyWhenAuthenticated = true });
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 

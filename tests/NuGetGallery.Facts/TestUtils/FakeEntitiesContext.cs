@@ -59,6 +59,18 @@ namespace NuGetGallery
             }
         }
 
+        public IDbSet<Credential> Credentials
+        {
+            get
+            {
+                return Set<Credential>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public IDbSet<User> Users
         {
             get

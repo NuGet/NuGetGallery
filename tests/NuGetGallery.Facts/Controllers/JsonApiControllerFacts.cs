@@ -39,7 +39,9 @@ namespace NuGetGallery.Controllers
             public void ReturnsFailureWhenRequestedNewOwnerDoesNotExist()
             {
                 var controller = GetController<JsonApiController>();
-                controller.SetUser(Fakes.Owner);
+                GetMock<HttpContextBase>()
+                    .Setup(c => c.User)
+                    .Returns(Fakes.Owner.ToPrincipal());
 
                 dynamic result = controller.AddPackageOwner(Fakes.Package.Id, "notARealUser");
 
@@ -51,7 +53,9 @@ namespace NuGetGallery.Controllers
             public void CreatesPackageOwnerRequestSendsEmailAndReturnsPendingState()
             {
                 var controller = GetController<JsonApiController>();
-                controller.SetUser(Fakes.Owner);
+                GetMock<HttpContextBase>()
+                    .Setup(c => c.User)
+                    .Returns(Fakes.Owner.ToPrincipal());
 
                 GetMock<IPackageService>()
                     .Setup(p => p.CreatePackageOwnerRequest(Fakes.Package, Fakes.Owner, Fakes.User))
