@@ -73,6 +73,16 @@ namespace NuGetGallery
             return obj.ToString();
         }
 
+        public static string ToEncodedUrlStringOrNull(this Uri uri)
+        {
+            if (uri == null)
+            {
+                return null;
+            }
+
+            return uri.AbsoluteUri;
+        }
+
         public static string ToStringSafe(this object obj)
         {
             if (obj != null)
