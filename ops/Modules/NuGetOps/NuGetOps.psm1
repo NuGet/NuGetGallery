@@ -28,6 +28,11 @@ if(!$AzureSDKRoot) {
 	Write-Host "Using Azure SDK at: $AzureSDKRoot"
 }
 
+$accounts = @(Get-AzureAccount)
+if($accounts.Length -eq 0) {
+	Write-Warning "No Azure Accounts found. Run Add-AzureAccount to configure your Azure account."
+}
+
 # Check for v0.2 level environment scripts
 $Global:Environments = @{}
 if($NuGetOpsDefinition -and (Test-Path $NuGetOpsDefinition)) {
@@ -56,31 +61,33 @@ if($NuGetOpsDefinition -and (Test-Path $NuGetOpsDefinition)) {
 		$x = [xml](cat $SubscriptionsList)
 		$Global:Subscriptions = @{};
 		$x.subscriptions.subscription | ForEach-Object {
+			# Get the subscription object
+			$sub = $null;
+			if($accounts.Length -gt 0) {
+				$sub = Get-AzureSubscription $_.name
+			}
+			if($sub -eq $null) {
+				Write-Warning "Could not find subscription $_ in Subscriptions.xml. Do you have access to it?"
+			}
+
 			$Subscriptions[$_.name] = New-Object PSCustomObject
 			Add-Member -NotePropertyMembers @{
 				Version = $NuGetOpsVersion;
 				Id = $_.id;
-				Name = $_.name
+				Name = $_.name;
+				Subscription = $sub;
 			} -InputObject $Subscriptions[$_.name]
 		}
 
 		$Environments.Keys | foreach {
-			$sub = $Environments[$_].Subscription
-			if($Subscriptions[$sub] -ne $null) {
-				$Environments[$_].Subscription = $Subscriptions[$sub];
+			$subName = $Environments[$_].Subscription
+			if($Subscriptions[$subName] -ne $null) {
+				$Environments[$_].Subscription = $Subscriptions[$subName];
 			}
 		}
 	} else {
 		Write-Warning "Subscriptions list not found at $SubscriptionsList. No Subscriptions will be available."
 	}
-}
-
-try {
-	if(@(Get-AzureSubscription).Length -eq 0) {
-		Write-Warning "No Azure Subscriptions registered with the Azure Management Tools! Use the 'New-AzureManagementCertificate' function to generate a cert, and then the 'Enable-AzurePowerShell' script to configure it (both have '-?' help parameters if you need further info)"
-	}
-} catch {
-	
 }
 
 function Get-Environment([switch]$ListAvailable) {
