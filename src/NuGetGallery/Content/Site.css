@@ -448,7 +448,7 @@ div #Register {
 }
 
 hgroup.page-heading h1,
-hgroup.page-heading h2 { display: inline; }
+hgroup.page-heading h2 { display: inline; word-break: break-all; }
 
 hgroup.page-heading h2 { padding-left: 7px; }
 
@@ -753,6 +753,7 @@ button.undo-button {
 
 .edit-root {
     font-size: 1.3em;
+    word-break: break-all;
 }
 
 .edit-tree, .edit-tree-selected {
@@ -1121,7 +1122,7 @@ ul.pager li.next { padding-left: 10px; }
 
 .sexy-table tbody tr:hover { background-color: #f4f5f6; }
 
-.sexy-table tbody tr.recommended { font-weight: 800; }
+.sexy-table tbody tr.recommended { font-weight: 800; word-break: break-all; }
 
 .sexy-table tbody td { padding: 5px 25px 5px 0; }
 
