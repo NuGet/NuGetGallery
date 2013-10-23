@@ -7,7 +7,6 @@ using Ninject;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Extensions;
-using Microsoft.Owin.Diagnostics;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using NuGetGallery.Authentication;
@@ -42,7 +41,7 @@ namespace NuGetGallery
                 AuthenticationMode = AuthenticationMode.Active,
                 CookieHttpOnly = true,
                 CookieSecure = cookieSecurity,
-                LoginPath = "/users/account/LogOn"
+                LoginPath = new PathString("/users/account/LogOn")
             });
             app.UseApiKeyAuthentication();
         }

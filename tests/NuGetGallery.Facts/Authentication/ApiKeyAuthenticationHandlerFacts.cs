@@ -150,7 +150,7 @@ namespace NuGetGallery.Authentication
                 {
                     RootPath = "/api"
                 });
-                handler.OwinContext.Request.Path = "/packages";
+                handler.OwinContext.Request.Path = new PathString("/packages");
                 
                 // Act
                 var ticket = await handler.InvokeAuthenticateCoreAsync();
@@ -167,7 +167,7 @@ namespace NuGetGallery.Authentication
                 {
                     RootPath = "/api"
                 });
-                handler.OwinContext.Request.Path = "/api/v2/packages";
+                handler.OwinContext.Request.Path = new PathString("/api/v2/packages");
                 
                 // Act
                 var ticket = await handler.InvokeAuthenticateCoreAsync();
@@ -185,7 +185,7 @@ namespace NuGetGallery.Authentication
                 {
                     RootPath = "/api"
                 });
-                handler.OwinContext.Request.Path = "/api/v2/packages";
+                handler.OwinContext.Request.Path = new PathString("/api/v2/packages");
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName, 
                     apiKey.ToString().ToLowerInvariant());
@@ -207,7 +207,7 @@ namespace NuGetGallery.Authentication
                 {
                     RootPath = "/api"
                 });
-                handler.OwinContext.Request.Path = "/api/v2/packages";
+                handler.OwinContext.Request.Path = new PathString("/api/v2/packages");
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
                     apiKey.ToString().ToLowerInvariant());
@@ -231,7 +231,7 @@ namespace NuGetGallery.Authentication
                 {
                     RootPath = "/api"
                 });
-                handler.OwinContext.Request.Path = "/api/v2/packages";
+                handler.OwinContext.Request.Path = new PathString("/api/v2/packages");
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
                     apiKey.ToString().ToLowerInvariant());
