@@ -22,12 +22,14 @@
       <Setting name="Gallery.GoogleAnalyticsPropertyId" value="" />
       <Setting name="Gallery.AzureCdnHost" value="" />
       <Setting name="Gallery.SiteRoot" value="nuget.localtest.me" />
+      
       <!-- *************** -->
       <!-- STABLE SETTINGS -->
       <!-- *************** -->
       <!-- Depending on your policy, these likely do not need to vary -->
       <!-- SmtpUri is expected to be of the format: smtps://username:password@host:port. Note that if username contains an "@", you need to URI Encode it! -->
       <Setting name="Gallery.SmtpUri" value="" />
+      <Setting name="Gallery.HasWorker" value="true" />
       <Setting name="Gallery.RequireSSL" value="true" />
       <Setting name="Gallery.StorageType" value="AzureStorage" />
       <Setting name="Gallery.LuceneIndexLocation" value="Temp" />
