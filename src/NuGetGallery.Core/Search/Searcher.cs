@@ -13,6 +13,30 @@ namespace NuGetGallery
     {
         static IDictionary<string, Filter> _filters = new Dictionary<string, Filter>();
 
+        public static string KeyRangeQuery(PackageSearcherManager searcherManager, int minKey, int maxKey)
+        {
+            if ((DateTime.UtcNow - searcherManager.WarmTimeStampUtc) > TimeSpan.FromMinutes(1))
+            {
+                searcherManager.MaybeReopen();
+            }
+
+            IndexSearcher searcher = searcherManager.Get();
+
+            try
+            {
+                NumericRangeQuery<int> numericRangeQuery = NumericRangeQuery.NewIntRange("Key", minKey, maxKey, true, true);
+
+                JArray keys = new JArray();
+                searcher.Search(numericRangeQuery, new KeyCollector(keys));
+
+                return keys.ToString();
+            }
+            finally
+            {
+                searcherManager.Release(searcher);
+            }
+        }
+
         public static string Search(PackageSearcherManager searcherManager, string q, bool countOnly, string projectType, bool includePrerelease, string feed, string sortBy, int page, bool includeExplanation, bool ignoreFilter)
         {
             if ((DateTime.UtcNow - searcherManager.WarmTimeStampUtc) > TimeSpan.FromMinutes(1))

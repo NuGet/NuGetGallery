@@ -116,15 +116,16 @@
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\User.cs" />
-    <Compile Include="EntityFrameworkTracing.cs" />
     <Compile Include="GalleryExport.cs" />
     <Compile Include="PackageJson.cs" />
     <Compile Include="Packaging\INupkg.cs" />
     <Compile Include="Packaging\Nupkg.cs" />
     <Compile Include="Packaging\NupkgRewriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Search\AzureDirectoryManagement.cs" />
     <Compile Include="Search\CamelCaseFilter.cs" />
     <Compile Include="Search\IdentifierKeywordAnalyzer.cs" />
+    <Compile Include="Search\KeyCollector.cs" />
     <Compile Include="Search\PackageIndexing.cs" />
     <Compile Include="Search\PackageQueryParser.cs" />
     <Compile Include="Search\PackageRanking.cs" />
