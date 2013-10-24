@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using NuGetGallery.Authentication;
 using Microsoft.Owin.Extensions;
+using NuGetGallery.Authentication.Providers.ApiKey;
 
 namespace Owin
 {

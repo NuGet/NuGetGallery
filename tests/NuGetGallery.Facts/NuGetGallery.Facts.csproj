@@ -214,7 +214,7 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="AppConfigIsCorrectlyApplied.cs" />
-    <Compile Include="Authentication\ApiKeyAuthenticationHandlerFacts.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandlerFacts.cs" />
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
     <Compile Include="Authentication\ForceSslWhenAuthenticatedMiddlewareFacts.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommandFacts.cs" />

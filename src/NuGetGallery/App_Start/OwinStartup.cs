@@ -23,8 +23,8 @@ namespace NuGetGallery
         {
             // Get config
             var config = Container.Kernel.Get<ConfigurationService>();
-            var cookieSecurity = config.Current.RequireSSL ? CookieSecureOption.Always : CookieSecureOption.Never;
-
+            var auth = Container.Kernel.Get<AuthenticationService>();
+            
             // Configure logging
             app.SetLoggerFactory(new DiagnosticsLoggerFactory());
 
@@ -35,15 +35,11 @@ namespace NuGetGallery
                 app.UseForceSslWhenAuthenticated(config.Current.SSLPort);
             }
 
-            app.UseCookieAuthentication(new CookieAuthenticationOptions()
+            // Attach auth providers
+            foreach (var provider in auth.Providers)
             {
-                AuthenticationType = AuthenticationTypes.Password,
-                AuthenticationMode = AuthenticationMode.Active,
-                CookieHttpOnly = true,
-                CookieSecure = cookieSecurity,
-                LoginPath = new PathString("/users/account/LogOn")
-            });
-            app.UseApiKeyAuthentication();
+                provider.Startup(config, app);
+            }
         }
     }
 }

@@ -8,7 +8,7 @@ using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security.Infrastructure;
 using Owin;
 
-namespace NuGetGallery.Authentication
+namespace NuGetGallery.Authentication.Providers.ApiKey
 {
     public class ApiKeyAuthenticationMiddleware : AuthenticationMiddleware<ApiKeyAuthenticationOptions>
     {

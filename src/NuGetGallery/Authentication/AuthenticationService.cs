@@ -10,6 +10,7 @@ using Microsoft.Owin;
 using System.Security.Claims;
 using NuGetGallery.Configuration;
 using Microsoft.Owin.Security;
+using NuGetGallery.Authentication.Providers;
 
 namespace NuGetGallery.Authentication
 {
@@ -17,15 +18,17 @@ namespace NuGetGallery.Authentication
     {
         public IEntitiesContext Entities { get; private set; }
         public IAppConfiguration Config { get; private set; }
+        public IList<AuthenticationProvider> Providers { get; private set; }
         private IDiagnosticsSource Trace { get; set; }
 
         protected AuthenticationService() { }
 
-        public AuthenticationService(IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics)
+        public AuthenticationService(IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics, IEnumerable<AuthenticationProvider> providers)
         {
             Entities = entities;
             Config = config;
             Trace = diagnostics.SafeGetSource("AuthenticationService");
+            Providers = providers.ToList();
         }
 
         public virtual AuthenticatedUser Authenticate(string userNameOrEmail, string password)

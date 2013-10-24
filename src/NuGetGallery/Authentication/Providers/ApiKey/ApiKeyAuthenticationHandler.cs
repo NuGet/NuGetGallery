@@ -8,7 +8,7 @@ using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
 
-namespace NuGetGallery.Authentication
+namespace NuGetGallery.Authentication.Providers.ApiKey
 {
     public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
     {
@@ -24,12 +24,13 @@ namespace NuGetGallery.Authentication
 
         protected override async Task ApplyResponseChallengeAsync()
         {
-            string message = GetChallengeMessage();
+            var message = GetChallengeMessage();
 
             if (message != null)
             {
-                Response.ReasonPhrase = message;
-                Response.Write(message);
+                Response.StatusCode = message.Item2;
+                Response.ReasonPhrase = message.Item1;
+                Response.Write(message.Item1);
             }
             else
             {
@@ -37,21 +38,24 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        internal string GetChallengeMessage()
+        internal Tuple<string, int> GetChallengeMessage()
         {
-            string message = null;
             if (Response.StatusCode == 401 && (Helper.LookupChallenge(Options.AuthenticationType, Options.AuthenticationMode) != null))
             {
                 var apiKey = Request.Headers[Options.ApiKeyHeaderName];
-                message = Strings.ApiKeyRequired;
                 if (!String.IsNullOrEmpty(apiKey))
                 {
-                    // Had an API key, but it wasn't valid
-                    message = Strings.ApiKeyNotAuthorized;
+                    // Had an API key, but it didn't match a user
+                    return Tuple.Create(Strings.ApiKeyNotAuthorized, 403);
+                }
+                else
+                {
+                    // No API Key present
+                    return Tuple.Create(Strings.ApiKeyRequired, 401);
                 }
 
             }
-            return message;
+            return null;
         }
 
         protected override Task<AuthenticationTicket> AuthenticateCoreAsync()

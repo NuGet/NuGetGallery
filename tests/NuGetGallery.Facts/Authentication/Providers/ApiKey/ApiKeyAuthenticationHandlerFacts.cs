@@ -14,7 +14,7 @@ using NuGetGallery.Framework;
 using Xunit;
 using Xunit.Extensions;
 
-namespace NuGetGallery.Authentication
+namespace NuGetGallery.Authentication.Providers.ApiKey
 {
     public class ApiKeyAuthenticationHandlerFacts
     {
@@ -74,7 +74,8 @@ namespace NuGetGallery.Authentication
                 var message = handler.GetChallengeMessage();
 
                 // Assert
-                Assert.Equal(Strings.ApiKeyRequired, message);
+                Assert.Equal(Strings.ApiKeyRequired, message.Item1);
+                Assert.Equal(401, message.Item2);
             }
 
             [Fact]
@@ -95,7 +96,8 @@ namespace NuGetGallery.Authentication
                 var message = handler.GetChallengeMessage();
 
                 // Assert
-                Assert.Equal(Strings.ApiKeyNotAuthorized, message);
+                Assert.Equal(Strings.ApiKeyNotAuthorized, message.Item1);
+                Assert.Equal(403, message.Item2);
             }
 
             [Fact]
@@ -115,7 +117,8 @@ namespace NuGetGallery.Authentication
                 var message = handler.GetChallengeMessage();
 
                 // Assert
-                Assert.Equal(Strings.ApiKeyRequired, message);
+                Assert.Equal(Strings.ApiKeyRequired, message.Item1);
+                Assert.Equal(401, message.Item2);
             }
 
             [Fact]
@@ -136,37 +139,18 @@ namespace NuGetGallery.Authentication
                 var message = handler.GetChallengeMessage();
 
                 // Assert
-                Assert.Equal(Strings.ApiKeyNotAuthorized, message);
+                Assert.Equal(Strings.ApiKeyNotAuthorized, message.Item1);
+                Assert.Equal(403, message.Item2);
             }
         }
 
         public class TheAuthenticateCoreAsyncMethod
         {
             [Fact]
-            public async Task GivenANonMatchingPath_ItReturnsNull()
-            {
-                // Arrange
-                var handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
-                {
-                    RootPath = "/api"
-                });
-                handler.OwinContext.Request.Path = new PathString("/packages");
-                
-                // Act
-                var ticket = await handler.InvokeAuthenticateCoreAsync();
-                
-                // Assert
-                Assert.Null(ticket);
-            }
-
-            [Fact]
             public async Task GivenNoApiKeyHeader_ItReturnsNull()
             {
                 // Arrange
-                TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
-                {
-                    RootPath = "/api"
-                });
+                TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
                 handler.OwinContext.Request.Path = new PathString("/api/v2/packages");
                 
                 // Act
@@ -181,10 +165,7 @@ namespace NuGetGallery.Authentication
             {
                 // Arrange
                 Guid apiKey = Guid.NewGuid();
-                TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
-                {
-                    RootPath = "/api"
-                });
+                TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
                 handler.OwinContext.Request.Path = new PathString("/api/v2/packages");
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName, 
@@ -203,10 +184,7 @@ namespace NuGetGallery.Authentication
                 // Arrange
                 Guid apiKey = Guid.NewGuid();
                 var user = new User() { Username = "theUser", EmailAddress = "confirmed@example.com" };
-                TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
-                {
-                    RootPath = "/api"
-                });
+                TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
                 handler.OwinContext.Request.Path = new PathString("/api/v2/packages");
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
@@ -227,10 +205,7 @@ namespace NuGetGallery.Authentication
                 // Arrange
                 Guid apiKey = Guid.NewGuid();
                 var user = new User() { Username = "theUser", EmailAddress = "confirmed@example.com" };
-                TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
-                {
-                    RootPath = "/api"
-                });
+                TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
                 handler.OwinContext.Request.Path = new PathString("/api/v2/packages");
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
