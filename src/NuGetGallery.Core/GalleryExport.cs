@@ -10,50 +10,30 @@ namespace NuGetGallery
     public static class GalleryExport
     {
         public static TextWriter TraceWriter = Console.Out;
+        public static bool Verbose = false;
 
         public static int ChunkSize = 4000;
 
-        public static List<Package> GetPublishedPackagesSince(string sqlConnectionString, DateTime indexTime, int highestPackageKey)
-        {
-            return GetPackages(sqlConnectionString, indexTime, highestPackageKey, null);
-        }
-
-        public static List<Package> GetEditedPackagesSince(string sqlConnectionString, DateTime indexTime, DateTime lastIndexTime)
-        {
-            return GetPackages(sqlConnectionString, indexTime, null, lastIndexTime);
-        }
-
-        public static List<Package> GetAllPackages(string sqlConnectionString, DateTime indexTime)
-        {
-            return GetPackages(sqlConnectionString, indexTime, null, null);
-        }
-
-        public static List<Package> GetPackages(string sqlConnectionString, DateTime indexTime, int? highestPackageKey, DateTime? mostRecentEdited)
+        public static List<Package> GetPublishedPackagesSince(string sqlConnectionString, int highestPackageKey)
         {
             EntitiesContext context = new EntitiesContext(sqlConnectionString, readOnly: true);
-            IEntityRepository<Package> packageSource = new EntityRepository<Package>(context);
+            IEntityRepository<Package> packageRepository = new EntityRepository<Package>(context);
 
-            IQueryable<Package> set = packageSource.GetAll();
+            IQueryable<Package> set = packageRepository.GetAll();
 
-            if (highestPackageKey.HasValue)
+            //  the query to get the id range is cheap and provides a workaround for EF limitations on Take() 
+
+            Tuple<int, int> range = GetNextRange(sqlConnectionString, highestPackageKey, ChunkSize);
+
+            if (range.Item1 == 0 && range.Item2 == 0)
             {
-                Tuple<int, int> range = GetNextRange(sqlConnectionString, highestPackageKey.Value, ChunkSize);
-
-                if (range.Item1 == 0 && range.Item2 == 0)
-                {
-                    //  make sure Key == 0 returns no rows and so we quit
-                    set = set.Where(p => 1 == 2);
-                }
-                else
-                {
-                    set = set.Where(p => p.Key >= range.Item1 && p.Key <= range.Item2);
-                    set = set.OrderBy(p => p.Key);
-                }
+                //  make sure Key == 0 returns no rows and so we quit
+                set = set.Where(p => 1 == 2);
             }
-            else if (mostRecentEdited.HasValue)
+            else
             {
-                set = set.Where(p => p.LastEdited >= mostRecentEdited.Value);
-                set = set.OrderBy(p => p.LastEdited);
+                set = set.Where(p => p.Key >= range.Item1 && p.Key <= range.Item2);
+                set = set.OrderBy(p => p.Key);
             }
 
             set = set
@@ -61,16 +41,46 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration.Owners)
                 .Include(p => p.SupportedFrameworks);
 
-            //  always set an upper bound on the set we get as this is what we will timestamp the index with
-            //set = set.Where(p => p.LastUpdated < indexTime);
+            return ExecuteQuery(set);
+        }
 
-            TraceWriter.WriteLine(EntityFrameworkTracing.ToTraceString(set));
+        public static List<Package> GetEditedPackagesSince(string sqlConnectionString, int highestPackageKey, DateTime lastEditsIndexTime)
+        {
+            EntitiesContext context = new EntitiesContext(sqlConnectionString, readOnly: true);
+            IEntityRepository<Package> packageRepository = new EntityRepository<Package>(context);
 
-            //  database call
+            IQueryable<Package> set = packageRepository.GetAll();
+
+            //  older edits can be reapplied so duplicates don't matter
+            TimeSpan delta = TimeSpan.FromMinutes(2);
+            DateTime startOfWindow = DateTime.MinValue;
+            if (lastEditsIndexTime > DateTime.MinValue + delta)
+            {
+                startOfWindow = lastEditsIndexTime - delta;
+            }
+
+            //  we want to make sure we only apply edits for packages that we actually have in the index - to avoid a publish thread overwriting
+            set = set.Where(p => p.LastEdited > startOfWindow && p.Key <= highestPackageKey);
+            set = set.OrderBy(p => p.LastEdited);
+
+            set = set
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .Include(p => p.SupportedFrameworks);
+
+            return ExecuteQuery(set);
+        }
+
+        public static List<Package> ExecuteQuery(IQueryable<Package> query)
+        {
+            if (Verbose)
+            {
+                TraceWriter.WriteLine(query.ToString());
+            }
 
             DateTime before = DateTime.Now;
 
-            List<Package> list = set.ToList();
+            List<Package> list = query.ToList();
 
             DateTime after = DateTime.Now;
 
@@ -89,7 +99,10 @@ namespace NuGetGallery
                 .Select(cp => new { PackageRegistrationKey = cp.PackageRegistrationKey, FeedName = cp.CuratedFeed.Name })
                 .GroupBy(x => x.PackageRegistrationKey);
 
-            TraceWriter.WriteLine(EntityFrameworkTracing.ToTraceString(curatedFeedsPerPackageRegistrationGrouping));
+            if (Verbose)
+            {
+                TraceWriter.WriteLine(curatedFeedsPerPackageRegistrationGrouping.ToString());
+            }
 
             //  database call
 
@@ -107,6 +120,8 @@ namespace NuGetGallery
 
         private static Tuple<int, int> GetNextRange(string sqlConnectionString, int lastHighestPackageKey, int chunkSize)
         {
+            //  this code only exists to work-around an EF limitation on using Take() with no Skip() but with additional constraints 
+
             string sql = @"
                 SELECT ISNULL(MIN(A.[Key]), 0), ISNULL(MAX(A.[Key]), 0)
                 FROM (
