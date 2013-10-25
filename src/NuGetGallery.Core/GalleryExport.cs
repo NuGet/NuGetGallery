@@ -154,5 +154,59 @@ namespace NuGetGallery
                 return new Tuple<int, int>(min, max);
             }
         }
+
+        public static Tuple<int, int, HashSet<int>> GetNextBlockOfPackageIds(string sqlConnectionString, int lastHighestPackageKey, int chunkSize)
+        {
+            string sql = @"
+                SELECT TOP(@ChunkSize) Packages.[Key]
+                FROM Packages
+                WHERE Packages.[Key] > @LastHighestPackageKey
+                ORDER BY Packages.[Key]
+            ";
+
+            using (SqlConnection connection = new SqlConnection(sqlConnectionString))
+            {
+                connection.Open();
+
+                SqlCommand command = new SqlCommand(sql, connection);
+                command.Parameters.AddWithValue("ChunkSize", chunkSize);
+                command.Parameters.AddWithValue("LastHighestPackageKey", lastHighestPackageKey);
+
+                SqlDataReader reader = command.ExecuteReader();
+
+                int minPackageId = 0;
+                int maxPackageId = 0;
+                HashSet<int> packageIds = new HashSet<int>();
+
+                bool firstIteration = true;
+
+                while (reader.Read())
+                {
+                    int packageId = reader.GetInt32(0);
+
+                    if (firstIteration)
+                    {
+                        firstIteration = false;
+                        minPackageId = packageId;
+                    }
+                    else
+                    {
+                        if (packageId < minPackageId)
+                        {
+                            minPackageId = packageId;
+                        }
+                    }
+
+                    if (packageId > maxPackageId)
+                    {
+                        maxPackageId = packageId;
+                    }
+                    
+                    packageIds.Add(packageId);
+                }
+
+                return new Tuple<int, int, HashSet<int>>(minPackageId, maxPackageId, packageIds);
+            }
+        }
     }
 }

@@ -125,6 +125,7 @@
     <Compile Include="Search\AzureDirectoryManagement.cs" />
     <Compile Include="Search\CamelCaseFilter.cs" />
     <Compile Include="Search\IdentifierKeywordAnalyzer.cs" />
+    <Compile Include="Search\IndexAnalyzer.cs" />
     <Compile Include="Search\KeyCollector.cs" />
     <Compile Include="Search\PackageIndexing.cs" />
     <Compile Include="Search\PackageQueryParser.cs" />

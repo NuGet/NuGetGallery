@@ -84,6 +84,11 @@ namespace NuGetGallery
                     break;
                 }
 
+                foreach (Package package in packages)
+                {
+                    TraceWriter.WriteLine(package.Key);
+                }
+
                 TraceWriter.WriteLine("associate the feeds with gallery");
                 List<Tuple<Package, IEnumerable<string>>> packagesWithFeeds = AssociatedFeedsWithPackages(packages, feeds);
 
