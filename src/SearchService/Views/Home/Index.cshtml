@@ -1,0 +1,341 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Search Test Page</h2>
+
+    <div id="query-div">
+        <p>
+            <input id="query" size="25" type="text">
+            <input id="lucene-query" size="110" type="text">
+            <button id="go">Go</button>
+        </p>
+        <p>
+            <select id="prerelease">
+                <option value="false" selected>Stable Only</option>
+                <option value="true">Include Prerelease</option>
+            </select>
+
+            Sort by:
+
+            <select id="sortBy">
+                <option value="relevance" selected>Relevance</option>
+                <option value="rank">Popularity</option>
+                <option value="title-asc">A-Z</option>
+                <option value="title-desc">Z-A</option>
+                <option value="published">Recent</option>
+                <option value="last-edited">Edited</option>
+            </select>
+        </p>
+        <div style="border-width:3px;border-style:solid;border-color:green">
+            <p>
+                &nbsp;&nbsp;
+                    
+                Count Call: <input id="countCall" type="checkbox">
+
+                Curated Feed:
+
+                <select id="feed">
+                    <option value="none" selected>None</option>
+                    <option value="windows8-packages">windows8-packages</option>
+                    <option value="webmatrix">webmatrix</option>
+                    <option value="dotnetframework">dotnetframework</option>
+                    <option value="microsoftdotnet">microsoftdotnet</option>
+                </select>
+
+                ProjectType: <input id="projectType" type="text" size="40">
+
+                Explanation: <input id="explanation" type="checkbox">
+
+                Ignore Filter: <input id="ignore-filter" type="checkbox">
+
+                <a href="segments">Segments</a>
+
+                &nbsp;&nbsp;
+
+                <a href="rangeQuery">Range Query</a>
+
+                &nbsp;&nbsp;
+            </p>
+        </div>
+    </div>
+
+    <div id ="results-div" style="clear:both">
+        <em>Result Go Here</em>
+    </div>
+
+    <script>
+
+        function highlightWords(line, word) {
+            if (line === null || line === undefined) {
+                return line;
+            }
+            var regex = new RegExp('(' + word + ')', 'gi');
+            return line.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        var Highlight = function (propertyName, propertyValue, searchTerm) {
+
+            //  different propertyName have different search tokenizing algorithms
+
+            //  but for now...
+
+            return highlightWords(propertyValue, searchTerm);
+        }
+
+        $(document).ajaxError(function () {
+            alert("An error occurred!");
+        });
+
+        var displayPackage = function (data, i, page) {
+
+            var number = ((page - 1) * 20) + (i + 1);
+
+            var html = '';
+
+            html += '<p><span class="result-number">' + number + '</span>&nbsp;<span class="result-title">' + data[i].Title + '<span></p>';
+
+            html += '<div class="result-details-div">';
+
+            html += '<p><span class="result-id">' + data[i].Id + ' ' + data[i].Version + '<span></p>';
+
+            html += '<p><span class="result-description">' + data[i].Description + '<span></p>';
+
+            html += '<p><span class="result-published">' + data[i].Published + '<span></p>';
+
+            if (data[i].Tags != undefined || data[i].Tags != null) {
+                html += '<p><span class="result-tags">' + data[i].Tags + '<span></p>';
+            }
+
+            html += '</div>';
+
+            return html;
+        }
+
+        var displayExplanation = function (data, i) {
+
+            var html = '';
+
+            html += '<div class="explanation">'
+            html += '<div style="margin-left:20px">';
+            html += '<p>';
+            html += '<span style="color:black">Rank:</span>';
+            html += ' <span style="color:green;font-weight:bold">' + data[i].Rank + '</span>';
+            html += ' <span style="color:black">Score:</span>';
+            html += ' <span style="color:green;font-weight:bold">' + data[i].Score + '</span>';
+            html += '</p>';
+            html += '<p><span class="term-name">Id:</span> <span class="term-value">' + JSON.stringify(data[i].IdTerms) + '</span></p>';
+            html += '<p><span class="term-name">TokenizedId:</span> <span class="term-value">' + JSON.stringify(data[i].TokenizedIdTerms) + '</span></p>';
+            html += '<p><span class="term-name">Version:</span> <span class="term-value">' + JSON.stringify(data[i].VersionTerms) + '</span></p>';
+            html += '<p><span class="term-name">Title:</span> <span class="term-value">' + JSON.stringify(data[i].TitleTerms) + '</span></p>';
+            html += '<p><span class="term-name">Description:</span> <span class="term-value">' + JSON.stringify(data[i].DescriptionTerms) + '</span></p>';
+            html += '<p><span class="term-name">Authors:</span> <span class="term-value">' + JSON.stringify(data[i].AuthorsTerms) + '</span></p>';
+            html += '<p><span class="term-name">Owners:</span> <span class="term-value">' + JSON.stringify(data[i].OwnersTerms) + '</span></p>';
+            html += '<p><span class="term-name">Tags:</span> <span class="term-value">' + JSON.stringify(data[i].TagsTerms) + '</span></p>';
+            html += '<pre style="color:blue">' + data[i].Explanation + '</pre>';
+            html += '</div>';
+            html += '</div>';
+
+            return html;
+        }
+
+        var getDocumentCount = function (query, success) {
+
+            var countQuery = {
+                q: query.q,
+                projectType: query.projectType,
+                prerelease: query.prerelease,
+                feed: query.feed,
+                ignoreFilter: query.ignoreFilter,
+                countOnly: true
+            };
+
+            $.get('search', countQuery, function (data, status) {
+
+                if (status == "success") {
+
+                    success(data.totalHits, "success");
+                }
+                else {
+                    success(null, "error");
+                }
+            });
+        }
+
+        var createNavigationFunction = function (query, total, page) {
+            return function () {
+                var navQuery = {
+                    q: query.q,
+                    projectType: query.projectType,
+                    prerelease: query.prerelease,
+                    feed: query.feed,
+                    sortBy: query.sortBy,
+                    page: page,
+                    explanation: query.explanation,
+                    ignoreFilter: query.ignoreFilter
+                };
+                $.get('search', navQuery, function (data, status) {
+                    updateResultsDiv(navQuery, total, data.data);
+                });
+            };
+        }
+
+        var displayNavigationButtons = function (total, page) {
+
+            var html = '';
+
+            html += '<div id="navigation-buttons">';
+            if (page > 1) {
+                html += '<button id="prev">Prev</button>'
+            }
+            if ((total - (page * 20)) > 0) {
+                html += '<button id="next">Next</button>'
+            }
+            html += '</div>';
+
+            return html;
+        }
+
+        var updateResultsDiv = function (query, total, data) {
+
+            var html = '';
+
+            html += '<p>Total: ' + total + '</p>';
+
+            for (var i = 0; i < data.length; i += 1) {
+                html += displayPackage(data, i, query.page);
+                if (query.explanation) {
+                    html += displayExplanation(data, i);
+                }
+            }
+
+            html += displayNavigationButtons(total, query.page);
+
+            $('#results-div').html(html);
+
+            $('#prev').click(createNavigationFunction(query, total, query.page - 1));
+            $('#next').click(createNavigationFunction(query, total, query.page + 1));
+        }
+
+        var createFieldClause = function (field, query) {
+
+            if (query.length >= 2 && query[0] === '"' && query[query.length - 1] === '"') {
+                return query;
+            }
+
+            var t = query.split(' ');
+            var subterms = [];
+            for (var i = 0; i < t.length; i += 1) {
+                var s = $.trim(t[i]);
+                if (s.length > 0) {
+                    subterms[subterms.length] = s;
+                }
+            }
+            
+            if (subterms.length === 0) {
+                return '';
+            }
+
+            if (subterms.length === 1) {
+                return field + ':' + subterms[0];
+            }
+
+            var clause = '(' + field + ':' + subterms[0];
+            for (var i = 1; i < subterms.length; i += 1) {
+                clause += ' OR ' + field + ':' + subterms[i];
+            }
+            clause += ')';
+
+            return clause;
+        }
+
+        var createLuceneQuery = function (query) {
+
+            if (query === '') {
+                return '';
+            }
+
+            if (query.indexOf(':') !== -1) {
+                return query;
+            }
+
+            var luceneQuery = '';
+
+            luceneQuery += createFieldClause('Id', query);
+            luceneQuery += ' ' + createFieldClause('TokenizedId', query);
+            luceneQuery += ' ' + createFieldClause('Title', query);
+            luceneQuery += ' ' + createFieldClause('Tags', query);
+            luceneQuery += ' ' + createFieldClause('Description', query);
+            luceneQuery += ' ' + createFieldClause('Authors', query);
+            luceneQuery += ' ' + createFieldClause('Owners', query);
+
+            return luceneQuery;
+        }
+
+        var go = function (e) {
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            var q = $('#lucene-query').val();
+            var projectType = $('#projectType').val();
+            var prerelease = $('#prerelease').val();
+            var sortBy = $('#sortBy').val();
+            var feed = $('#feed').val();
+            var explanation = $('#explanation').is(':checked');
+            var ignoreFilter = $('#ignore-filter').is(':checked');
+
+            var query = {
+                q: q,
+                projectType: projectType,
+                prerelease: prerelease,
+                feed: feed,
+                sortBy: sortBy,
+                page: 1,
+                explanation: explanation,
+                ignoreFilter: ignoreFilter
+            };
+
+            $('#results-div').html('<em>fetching results</em>');
+
+            if ($('#countCall').is(':checked')) {
+
+                //  this mimics the behavior of the NuGet Manage Packages Dialog in Visual Studio
+
+                getDocumentCount(query, function (totalHits, status) {
+
+                    if (status === 'success') {
+
+                        $.get('search', query, function (data, status) {
+
+                            if (status === 'success') {
+
+                                updateResultsDiv(query, totalHits, data.data);
+                            }
+                        });
+                    }
+                });
+            }
+            else {
+
+                $.get('search', query, function (data, status) {
+
+                    if (status === 'success') {
+
+                        updateResultsDiv(query, data.totalHits, data.data);
+                    }
+                });
+            }
+        }
+
+        $(document).ready(function () {
+
+            $('#query').keyup(function () {
+                var q = $('#query').val();
+                q = createLuceneQuery(q);
+                $('#lucene-query').val(q);
+            });
+
+            $('#go').click(go);
+        });
+    </script>
