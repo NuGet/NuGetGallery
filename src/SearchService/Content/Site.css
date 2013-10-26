@@ -1,0 +1,141 @@
+﻿body {
+    font-size: .85em;
+    font-family: "Segoe UI", Verdana, Helvetica, Sans-Serif;
+    color: #232323;
+    background-color: #fff;
+}
+
+header, footer, nav, section {
+    display: block;
+}
+
+
+/* Styles for basic forms
+-----------------------------------------------------------*/
+fieldset {
+    border: 1px solid #ddd;
+    padding: 0 1.4em 1.4em 1.4em;
+    margin: 0 0 1.5em 0;
+}
+
+legend {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+textarea {
+    min-height: 75px;
+}
+
+.editor-label {
+    margin: 1em 0 0 0;
+}
+
+.editor-field {
+    margin: 0.5em 0 0 0;
+}
+
+
+/* Styles for validation helpers
+-----------------------------------------------------------*/
+.field-validation-error {
+    color: #f00;
+}
+
+.field-validation-valid {
+    display: none;
+}
+
+.input-validation-error {
+    border: 1px solid #f00;
+    background-color: #fee;
+}
+
+.validation-summary-errors {
+    font-weight: bold;
+    color: #f00;
+}
+
+.validation-summary-valid {
+    display: none;
+}
+
+/* Custom Styles
+-----------------------------------------------------------*/
+
+.result-number {
+    font-size:large;
+    color:blue;
+    font-weight:bold;
+    width:40px;
+    float:left;
+}
+
+.result-title {
+    font-size: large;
+    font-weight: bold;
+}
+
+.result-id {
+    font-size: small;
+    font-weight: bold;
+}
+
+.result-description {
+}
+
+.result-published {
+}
+
+.result-tags {
+    font-weight: bold;
+}
+
+.result-details-div {
+    width:90%;
+    margin-left:auto;
+}
+
+.highlight {
+    background-color: yellow;
+}
+
+.explanation {
+    border-style: solid;
+    border-width: medium;
+    border-color: red;
+    margin: 10px;
+}
+
+#navigation-buttons {
+    text-align:center;
+    width:100%;
+}
+
+#query {
+}
+
+#lucene-query {
+    color:blue;
+}
+
+.term-name {
+    color:black;
+}
+
+.term-value {
+    color:red;
+}
+
+/* styles for D3 graph of segments */
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.bar {
+  fill: green;
+}

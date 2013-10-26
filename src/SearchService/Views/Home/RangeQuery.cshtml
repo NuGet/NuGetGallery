@@ -1,0 +1,61 @@
+﻿@{
+    ViewBag.Title = "RangeQuery";
+}
+
+<h2>RangeQuery</h2>
+
+<p>
+    Get all Package Keys between 
+    <input id="minKey" size="12" type="text">
+    and
+    <input id="maxKey" size="12" type="text">
+    inclusive.
+    <button id="go">Go</button>
+</p>
+
+<div id ="results-div" style="clear:both">
+    <em>Result Go Here</em>
+</div>
+
+<script>
+
+    var updateResultsDiv = function (keys) {
+        var html = '';
+        html += '<b>Found ' + keys.length + ' Keys in range</b>';
+        html += '<p>';
+        html += JSON.stringify(keys);
+        html += '</p>';
+        $('#results-div').html(html);
+    }
+
+    var go = function (e) {
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        var minKey = $('#minKey').val();
+        var maxKey = $('#maxKey').val();
+
+        var query = {
+            min: minKey,
+            max: maxKey
+        };
+
+        $('#results-div').html('<em>fetching results</em>');
+
+        $.get('range', query, function (data, status) {
+
+            if (status === 'success') {
+
+                updateResultsDiv(data);
+            }
+        });
+    }
+
+    $(document).ready(function () {
+
+        $('#go').click(go);
+    });
+
+</script>
+

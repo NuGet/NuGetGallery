@@ -1,0 +1,114 @@
+﻿@{
+    ViewBag.Title = "Segments";
+}
+
+<h2>Segments</h2>
+
+<div id="result"></div>
+
+<script>
+
+    var showGraph = function (data) {
+
+        var margin = { top: 20, right: 20, bottom: 30, left: 40 },
+            width = 800 - margin.left - margin.right,
+            height = 300 - margin.top - margin.bottom;
+
+        var x = d3.scale.ordinal()
+            .rangeRoundBands([0, width], .1);
+
+        var y = d3.scale.linear()
+            .range([height, 0]);
+
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom");
+
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left");
+
+        var svg = d3.select("#result").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        x.domain(data.map(function (d) { return d.segment; }));
+        y.domain([0, d3.max(data, function (d) { return d.documents; })]);
+
+        svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+        svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text("Documents");
+
+        svg.selectAll(".bar")
+            .data(data)
+            .enter().append("rect")
+            .attr("class", "bar")
+            .attr("x", function (d) { return x(d.segment); })
+            .attr("width", x.rangeBand())
+            .attr("y", function (d) { return y(d.documents); })
+            .attr("height", function (d) { return height - y(d.documents); })
+            .append("title")
+            .text(function (d) { return d.documents; });
+
+        function type(d) {
+            d.size = +d.size;
+            return d;
+        }
+    }
+
+    var load = function () {
+
+        $('#result').html('<p>Loading...</p>');
+
+        $.get('diag', function (data, status) {
+
+            if (status === 'success') {
+
+                var html = '<p>Total Documents:&nbsp;<span id="totalDocuments">' + data.NumDocs + '</span></p>';
+
+                if (data.CommitUserData !== undefined) {
+
+                    html += '<p>CommitUserData:</p>';
+
+                    html += '<table>';
+                    for (var prop in data.CommitUserData) {
+
+                        html += '<tr><td><b>' + prop + '</b></td><td><b>' + data.CommitUserData[prop] + '</b></td></tr>';
+                    }
+                    html += '</table>';
+                }
+
+                $('#result').html(html);
+
+                showGraph(data.Segments);
+            }
+            else {
+                var html = '';
+
+                html = 'ERROR';
+
+                $('#result').html(html);
+            }
+        });
+    }
+
+    $(document).ready(function () {
+
+        load();
+        setInterval(load, 30000);
+    });
+
+</script>
