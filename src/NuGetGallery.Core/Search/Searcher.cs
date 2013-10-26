@@ -168,16 +168,18 @@ namespace NuGetGallery
             }
         }
 
-        private static string MakeCountResult(int count)
+        private static string MakeCountResult(int totalHits)
         {
-            return (new JObject { { "count", count } }).ToString();
+            return (new JObject { { "totalHits", totalHits } }).ToString();
         }
 
         private static string MakeResults(IndexSearcher searcher, TopDocs topDocs, int page, bool includeExplanation, Query query)
         {
+            //  note the use of a StringBuilder because we have the response data already formatted as JSON in the fields in the index
+
             StringBuilder strBldr = new StringBuilder();
 
-            strBldr.Append("[");
+            strBldr.AppendFormat("{{\"totalHits\":{0},\"data\":[", topDocs.TotalHits);
 
             bool hasResult = false;
 
@@ -204,7 +206,7 @@ namespace NuGetGallery
                 strBldr.Remove(strBldr.Length - 1, 1);
             }
 
-            strBldr.Append("]");
+            strBldr.Append("]}");
 
             string result = strBldr.ToString();
 
