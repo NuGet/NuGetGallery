@@ -212,8 +212,10 @@
     { 
         <p>Requires NuGet @Model.MinClientVersion or higher.</p>
     }
-    <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>
-    <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
+    <div id="socialbuttons" style="height: 60px; display: block;">
+        <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>
+        <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
+    </div>
 
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
     {
