@@ -93,7 +93,7 @@
         <li>@EditableField("Tags", m => m.Edit.Tags)</li>
         <li>@EditableField("Release Notes", m => m.Edit.ReleaseNotes, pre: true)</li>
 
-        @if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
+        @if (!String.IsNullOrEmpty(Model.LicenseUrl))
         {
             <li>
                 <h4>Requires License Acceptance

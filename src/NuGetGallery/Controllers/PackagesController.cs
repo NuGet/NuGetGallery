@@ -749,27 +749,28 @@ namespace NuGetGallery
                 }
             }
 
-            return View(
-                new VerifyPackageRequest
+            var model = new VerifyPackageRequest
+            {
+                Id = packageMetadata.Id,
+                Version = packageMetadata.Version.ToNormalizedStringSafe(),
+                LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
+                Listed = true,
+                Edit = new EditPackageVersionRequest
                 {
-                    Id = packageMetadata.Id,
-                    Version = packageMetadata.Version.ToNormalizedStringSafe(),
+                    Authors = packageMetadata.Authors.Flatten(),
+                    Copyright = packageMetadata.Copyright,
+                    Description = packageMetadata.Description,
+                    IconUrl = packageMetadata.IconUrl.ToEncodedUrlStringOrNull(),
                     LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
-                    Listed = true,
-                    Edit = new EditPackageVersionRequest
-                    {
-                        Authors = packageMetadata.Authors.Flatten(),
-                        Copyright = packageMetadata.Copyright,
-                        Description = packageMetadata.Description,
-                        IconUrl = packageMetadata.IconUrl.ToEncodedUrlStringOrNull(),
-                        ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull(),
-                        ReleaseNotes = packageMetadata.ReleaseNotes,
-                        RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
-                        Summary = packageMetadata.Summary,
-                        Tags = PackageHelper.ParseTags(packageMetadata.Tags),
-                        VersionTitle = packageMetadata.Title,
-                    }
-                });
+                    ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull(),
+                    ReleaseNotes = packageMetadata.ReleaseNotes,
+                    RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
+                    Summary = packageMetadata.Summary,
+                    Tags = PackageHelper.ParseTags(packageMetadata.Tags),
+                    VersionTitle = packageMetadata.Title,
+                }
+            };
+            return View(model);
         }
 
         [Authorize]
