@@ -305,6 +305,7 @@ namespace NuGetGallery
             ReportPackageReason.ViolatesALicenseIOwn,
             ReportPackageReason.ContainsMaliciousCode,
             ReportPackageReason.HasABug,
+            ReportPackageReason.FailedToInstall,
             ReportPackageReason.Other
         };
 
