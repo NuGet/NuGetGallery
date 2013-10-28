@@ -2,17 +2,46 @@
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace NuGetGallery.Operations.Infrastructure
 {
     public static class MonitoringHelpers
     {
-        public static void Append2Blob(string storageConnectionString, string container, string name, int maxDepth, JObject newEntry)
+        public static void AppendToBlob(string storageConnectionString, string container, string name, int maxDepth, JObject newEntry)
+        {
+            int attempts = 0;
+            bool execute = true;
+            while (execute)
+            {
+                try
+                {
+                    InnerAppendToBlob(storageConnectionString, container, name, maxDepth, newEntry);
+                    execute = false;
+                }
+                catch (StorageException storageException)
+                {
+                    int statusCode = storageException.RequestInformation.HttpStatusCode;
+                    if (statusCode == 412  || statusCode == 409)
+                    {
+                        //  retry for 5 minutes
+                        if (attempts++ == 60)
+                        {
+                            throw;
+                        }
+                        Thread.Sleep(10 * 1000);
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+        }
+
+        public static void InnerAppendToBlob(string storageConnectionString, string container, string name, int maxDepth, JObject newEntry)
         {
             CloudStorageAccount cloudStorageAccount = CloudStorageAccount.Parse(storageConnectionString);
             CloudBlobClient cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
@@ -24,9 +53,16 @@ namespace NuGetGallery.Operations.Infrastructure
 
             JArray report;
 
+            string lease = null;
+
             if (cloudBlockBlob.Exists())
             {
+                lease = cloudBlockBlob.AcquireLease(TimeSpan.FromSeconds(30), null);
+
                 string json = cloudBlockBlob.DownloadText();
+
+                Console.WriteLine("hit enter");
+                Console.ReadLine();
 
                 report = JArray.Parse(json);
 
@@ -52,7 +88,15 @@ namespace NuGetGallery.Operations.Infrastructure
             cloudBlockBlob.Properties.ContentType = "application/json";
             cloudBlockBlob.Properties.CacheControl = "no-cache";
 
-            cloudBlockBlob.UploadText(report.ToString());
+            if (lease != null)
+            {
+                cloudBlockBlob.UploadText(report.ToString(), null, new AccessCondition { LeaseId = lease });
+                cloudBlockBlob.ReleaseLease(new AccessCondition { LeaseId = lease });
+            }
+            else
+            {
+                cloudBlockBlob.UploadText(report.ToString());
+            }
         }
 
         //  these functions make the code above look like it is using the very latest Storage API - delete these when we do
@@ -74,14 +118,14 @@ namespace NuGetGallery.Operations.Infrastructure
             }
         }
 
-        private static void UploadText(this CloudBlockBlob cloudBlockBlob, string text)
+        private static void UploadText(this CloudBlockBlob cloudBlockBlob, string text, Encoding encoding = null, AccessCondition accessCondition = null)
         {
             MemoryStream stream = new MemoryStream();
             StreamWriter writer = new StreamWriter(stream);
             writer.Write(text);
             writer.Flush();
             stream.Seek(0, SeekOrigin.Begin);
-            cloudBlockBlob.UploadFromStream(stream);
+            cloudBlockBlob.UploadFromStream(stream, accessCondition);
         }
     }
 }
