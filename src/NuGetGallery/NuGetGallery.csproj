@@ -260,7 +260,6 @@
     </Reference>
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data.Entity" />
-    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
@@ -659,14 +658,10 @@
     </Compile>
     <Compile Include="Diagnostics\DiagnosticsNinjectModule.cs" />
     <Compile Include="Diagnostics\GlimpseRuntimePolicy.cs" />
-    <Compile Include="Filters\ApiAuthorizeAttribute.cs" />
-    <Compile Include="ErrorController.generated.cs">
-      <DependentUpon>T4MVC.tt</DependentUpon>
-    </Compile>
     <Compile Include="ErrorsController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
-    <Compile Include="Filters\ApiKeyAuthorizeAttribute.cs" />
+    <Compile Include="Filters\ApiAuthorizeAttribute.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Filters\RequiresAccountConfirmationAttribute.cs" />
@@ -1326,6 +1321,7 @@
     <Content Include="Views\Authentication\SignIn.cshtml" />
     <Content Include="Views\Users\ChangeEmail.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
+    <Content Include="T4MVC.tt.settings.t4" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config">
@@ -1374,10 +1370,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Errors\ReadOnlyMode.cshtml" />
-    <Content Include="Diagnostics.wadcfg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </Content>
     <Content Include="Views\Errors\ReadOnlyMode.cshtml" />
     <Content Include="Areas\Admin\DynamicData\Site.master" />
     <Content Include="Areas\Admin\DynamicData\web.config" />

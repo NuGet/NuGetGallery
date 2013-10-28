@@ -89,79 +89,24 @@ namespace NuGetGallery {
     public class T4MVC_ApiController: NuGetGallery.ApiController {
         public T4MVC_ApiController() : base(Dummy.Instance) { }
 
-        partial void GetPackageOverride(T4MVC_System_Web_Mvc_ActionResult callInfo, string id, string version);
-
-        public override System.Threading.Tasks.Task<System.Web.Mvc.ActionResult> GetPackage(string id, string version)
-        {
-            var callInfo = new T4MVC_System_Web_Mvc_ActionResult(Area, Name, ActionNames.GetPackage);
-            ModelUnbinderHelpers.AddRouteValues(callInfo.RouteValueDictionary, "id", id);
-            ModelUnbinderHelpers.AddRouteValues(callInfo.RouteValueDictionary, "version", version);
-            GetPackageOverride(callInfo, id, version);
-            return System.Threading.Tasks.Task.FromResult(callInfo as ActionResult);
-        }
-
-        partial void GetNuGetExeOverride(T4MVC_System_Web_Mvc_ActionResult callInfo);
-
-        public override System.Threading.Tasks.Task<System.Web.Mvc.ActionResult> GetNuGetExe()
-        {
-            var callInfo = new T4MVC_System_Web_Mvc_ActionResult(Area, Name, ActionNames.GetNuGetExe);
-            GetNuGetExeOverride(callInfo);
-            return System.Threading.Tasks.Task.FromResult(callInfo as ActionResult);
-        }
-
-        partial void VerifyPackageKeyOverride(T4MVC_System_Web_Mvc_ActionResult callInfo, string apiKey, string id, string version);
-
-        public override System.Web.Mvc.ActionResult VerifyPackageKey(string apiKey, string id, string version)
-        {
-            var callInfo = new T4MVC_System_Web_Mvc_ActionResult(Area, Name, ActionNames.VerifyPackageKey);
-            ModelUnbinderHelpers.AddRouteValues(callInfo.RouteValueDictionary, "apiKey", apiKey);
-            ModelUnbinderHelpers.AddRouteValues(callInfo.RouteValueDictionary, "id", id);
-            ModelUnbinderHelpers.AddRouteValues(callInfo.RouteValueDictionary, "version", version);
-            VerifyPackageKeyOverride(callInfo, apiKey, id, version);
+        public override System.Web.Mvc.ActionResult VerifyPackageKey(string id, string version) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.VerifyPackageKey);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
-        partial void CreatePackagePutOverride(T4MVC_System_Web_Mvc_ActionResult callInfo, string apiKey);
-
-        public override System.Threading.Tasks.Task<System.Web.Mvc.ActionResult> CreatePackagePut(string apiKey)
-        {
-            var callInfo = new T4MVC_System_Web_Mvc_ActionResult(Area, Name, ActionNames.CreatePackagePut);
-            ModelUnbinderHelpers.AddRouteValues(callInfo.RouteValueDictionary, "apiKey", apiKey);
-            CreatePackagePutOverride(callInfo, apiKey);
-            return System.Threading.Tasks.Task.FromResult(callInfo as ActionResult);
-        }
-
-        partial void CreatePackagePostOverride(T4MVC_System_Web_Mvc_ActionResult callInfo, string apiKey);
-
-        public override System.Threading.Tasks.Task<System.Web.Mvc.ActionResult> CreatePackagePost(string apiKey)
-        {
-            var callInfo = new T4MVC_System_Web_Mvc_ActionResult(Area, Name, ActionNames.CreatePackagePost);
-            ModelUnbinderHelpers.AddRouteValues(callInfo.RouteValueDictionary, "apiKey", apiKey);
-            CreatePackagePostOverride(callInfo, apiKey);
-            return System.Threading.Tasks.Task.FromResult(callInfo as ActionResult);
-        }
-
-        partial void DeletePackageOverride(T4MVC_System_Web_Mvc_ActionResult callInfo, string apiKey, string id, string version);
-
-        public override System.Web.Mvc.ActionResult DeletePackage(string apiKey, string id, string version)
-        {
-            var callInfo = new T4MVC_System_Web_Mvc_ActionResult(Area, Name, ActionNames.DeletePackage);
-            ModelUnbinderHelpers.AddRouteValues(callInfo.RouteValueDictionary, "apiKey", apiKey);
-            ModelUnbinderHelpers.AddRouteValues(callInfo.RouteValueDictionary, "id", id);
-            ModelUnbinderHelpers.AddRouteValues(callInfo.RouteValueDictionary, "version", version);
-            DeletePackageOverride(callInfo, apiKey, id, version);
+        public override System.Web.Mvc.ActionResult DeletePackage(string id, string version) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.DeletePackage);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
-        partial void PublishPackageOverride(T4MVC_System_Web_Mvc_ActionResult callInfo, string apiKey, string id, string version);
-
-        public override System.Web.Mvc.ActionResult PublishPackage(string apiKey, string id, string version)
-        {
-            var callInfo = new T4MVC_System_Web_Mvc_ActionResult(Area, Name, ActionNames.PublishPackage);
-            ModelUnbinderHelpers.AddRouteValues(callInfo.RouteValueDictionary, "apiKey", apiKey);
-            ModelUnbinderHelpers.AddRouteValues(callInfo.RouteValueDictionary, "id", id);
-            ModelUnbinderHelpers.AddRouteValues(callInfo.RouteValueDictionary, "version", version);
-            PublishPackageOverride(callInfo, apiKey, id, version);
+        public override System.Web.Mvc.ActionResult PublishPackage(string id, string version) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.PublishPackage);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
