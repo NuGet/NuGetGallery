@@ -11,7 +11,7 @@ CREATE PROCEDURE [dbo].[AddDownloadFact]
 @PackageDescription NVARCHAR(MAX),
 @PackageIconUrl NVARCHAR(MAX),
 @DownloadUserAgent NVARCHAR(MAX),
-@DownloadOperation NVARCHAR(18),
+@DownloadOperation NVARCHAR(128),
 @DownloadTimestamp DATETIME,
 @DownloadProjectTypes NVARCHAR(MAX),
 @DownloadDependentPackageId NVARCHAR(128),
