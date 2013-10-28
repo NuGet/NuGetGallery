@@ -1,4 +1,8 @@
-﻿@model NuGetGallery.RegisterRequest
+﻿@model RegisterRequest
+
+@{
+    var localUserRequest = Model as RegisterLocalUserRequest;
+}
 
 @using (Html.BeginForm("Register", "Authentication"))
 {
@@ -14,11 +18,13 @@
             @Html.ValidationMessageFor(m => m.Username)
         </div>
 
-        <div class="form-field">
-            @Html.LabelFor(m => m.Password)
-            @Html.EditorFor(m => m.Password)
-            @Html.ValidationMessageFor(m => m.Password)
-        </div>
+        @if(Model.ShowPassword) {        
+            <div class="form-field">
+                @Html.LabelFor(m => m.Password)
+                @Html.EditorFor(m => m.Password)
+                @Html.ValidationMessageFor(m => m.Password)
+            </div>
+        }
 
         <div class="form-field">
             <label for="EmailAddress">Email (<a href="http://www.gravatar.com">Gravatar</a>, notifications, and password recovery)</label>

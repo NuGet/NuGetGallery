@@ -34,7 +34,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 
         public IDictionary<string, string> Config { get; private set; }
 
-        public AuthConfigViewModel(AuthenticationProvider provider)
+        public AuthConfigViewModel(Authenticator provider)
         {
             Name = provider.Name;
             Config = provider.BaseConfig.GetConfigValues();
@@ -49,7 +49,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 
         public IList<AuthConfigViewModel> AuthProviders { get; private set; }
 
-        public ConfigViewModel(IDictionary<string, Tuple<Type, object>> appSettings, IList<FeatureConfigViewModel> features, IList<AuthenticationProvider> authProviders)
+        public ConfigViewModel(IDictionary<string, Tuple<Type, object>> appSettings, IList<FeatureConfigViewModel> features, IEnumerable<Authenticator> authProviders)
         {
             AppSettings = appSettings;
             Features = features;

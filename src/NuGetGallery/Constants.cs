@@ -60,5 +60,6 @@
             public static readonly string Sha1 = Prefix + "sha1";
         }
         public static readonly string ApiKeyV1 = "apikey.v1";
+        public static readonly string ExternalPrefix = "external.";
     }
 }

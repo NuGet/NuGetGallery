@@ -39,7 +39,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                             .ToList();
 
 
-            var configModel = new ConfigViewModel(settings, features, _auth.Providers);
+            var configModel = new ConfigViewModel(settings, features, _auth.Authenticators.Values);
 
             return View(configModel);
         }

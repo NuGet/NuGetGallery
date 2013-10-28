@@ -1,11 +1,22 @@
-﻿@{
+﻿@model LogOnViewModel
+@{
     ViewBag.Title = "Sign In";
+}
+
+@if (Model.AssociatingExternalLogin)
+{
+    <h1>Who are you?</h1>
+    <p>
+        It looks like we haven't seen you before. That's alright, we love to meet new people! If you've already
+        got a NuGet account, sign-in using the form on the left and we'll add this login credential to that account. If you
+        don't, use the register form on the right to fill in the information for a new user account.
+    </p>
 }
 
 <div id="SignIn">
     <h1>Sign In</h1>
 
-    @Html.Partial("_SignInForm", new SignInRequest())
+    @Html.Partial("_SignInForm", Model.SignIn)
 </div>
 
 <div id="MiddleSeparator"></div>
@@ -13,5 +24,5 @@
 <div id="Register">
     <h1>Register</h1>
 
-    @Html.Partial("_RegisterForm", new RegisterRequest())
+    @Html.Partial("_RegisterForm", Model.Register)
 </div>

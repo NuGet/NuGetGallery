@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using NuGetGallery.Authentication.Providers;
 
 namespace NuGetGallery
 {
@@ -13,5 +15,13 @@ namespace NuGetGallery
         [DataType(DataType.Password)]
         [Hint("Passwords must be at least 7 characters long.")]
         public string Password { get; set; }
+
+        public IList<AuthenticationProviderViewModel> Providers { get; set; }
+    }
+
+    public class AuthenticationProviderViewModel
+    {
+        public string ProviderName { get; set; }
+        public AuthenticatorUI UI { get; set; }
     }
 }

@@ -38,5 +38,10 @@ namespace NuGetGallery
         {
             return new Credential(CredentialTypes.ApiKeyV1, apiKey.ToLowerInvariant());
         }
+
+        internal static Credential CreateExternalCredential(string issuer, string value)
+        {
+            return new Credential(CredentialTypes.ExternalPrefix + issuer, value);
+        }
     }
 }

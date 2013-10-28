@@ -200,7 +200,7 @@ namespace NuGetGallery.Authentication
                 var authUser = new AuthenticatedUser(Fakes.Admin, passwordCred);
 
                 // Act
-                service.CreateSession(context, authUser.User, AuthenticationTypes.Password);
+                service.CreateSession(context, authUser.User, AuthenticationTypes.LocalUser);
 
                 // Assert
                 var principal = context.Authentication.AuthenticationResponseGrant.Principal;
@@ -209,7 +209,7 @@ namespace NuGetGallery.Authentication
                 Assert.NotNull(id);
                 Assert.Equal(Fakes.Admin.Username, id.Name);
                 Assert.Equal(Fakes.Admin.Username, principal.GetClaimOrDefault(ClaimTypes.NameIdentifier));
-                Assert.Equal(AuthenticationTypes.Password, id.AuthenticationType);
+                Assert.Equal(AuthenticationTypes.LocalUser, id.AuthenticationType);
                 Assert.True(principal.IsInRole(Constants.AdminRoleName));
             }
         }

@@ -11,9 +11,9 @@ namespace NuGetGallery.Authentication
     {
         public override void Load()
         {
-            foreach (var instance in AuthenticationProvider.GetAllAvailable())
+            foreach (var instance in Authenticator.GetAllAvailable())
             {
-                Bind(typeof(AuthenticationProvider))
+                Bind(typeof(Authenticator))
                     .ToConstant(instance)
                     .InSingletonScope();
             }

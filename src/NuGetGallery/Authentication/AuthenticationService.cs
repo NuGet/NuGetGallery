@@ -11,6 +11,8 @@ using System.Security.Claims;
 using NuGetGallery.Configuration;
 using Microsoft.Owin.Security;
 using NuGetGallery.Authentication.Providers;
+using System.Web.Mvc;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.Authentication
 {
@@ -18,17 +20,17 @@ namespace NuGetGallery.Authentication
     {
         public IEntitiesContext Entities { get; private set; }
         public IAppConfiguration Config { get; private set; }
-        public IList<AuthenticationProvider> Providers { get; private set; }
+        public IDictionary<string, Authenticator> Authenticators { get; private set; }
         private IDiagnosticsSource Trace { get; set; }
 
         protected AuthenticationService() { }
 
-        public AuthenticationService(IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics, IEnumerable<AuthenticationProvider> providers)
+        public AuthenticationService(IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics, IEnumerable<Authenticator> providers)
         {
             Entities = entities;
             Config = config;
             Trace = diagnostics.SafeGetSource("AuthenticationService");
-            Providers = providers.ToList();
+            Authenticators = providers.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
         }
 
         public virtual AuthenticatedUser Authenticate(string userNameOrEmail, string password)
@@ -244,6 +246,38 @@ namespace NuGetGallery.Authentication
             return user;
         }
 
+        public virtual ActionResult Challenge(string providerName, string redirectUrl)
+        {
+            Authenticator provider;
+            if (!Authenticators.TryGetValue(providerName, out provider))
+            {
+                return new HttpUnauthorizedResult(); // Unknown provider
+            }
+
+            return provider.Challenge(redirectUrl);
+        }
+
+        public async virtual Task<AuthenticateExternalLoginResult> AuthenticateExternalLogin(IOwinContext context)
+        {
+            var result = await context.Authentication.AuthenticateAsync(AuthenticationTypes.External);
+            if (result == null)
+            {
+                Trace.Information("No external login found.");
+                return new AuthenticateExternalLoginResult();
+            }
+            var idClaim = result.Identity.FindFirst(ClaimTypes.NameIdentifier);
+
+            // Build the credential to search for
+            var cred = CredentialBuilder.CreateExternalCredential(idClaim.Issuer, idClaim.Value);
+                
+            // Authenticate!
+            return new AuthenticateExternalLoginResult()
+            {
+                Authentication = Authenticate(cred),
+                ExternalIdentity = result.Identity
+            };
+        }
+
         public static ClaimsIdentity CreateIdentity(User user, string authenticationType, params Claim[] additionalClaims)
         {
             var claims = Enumerable.Concat(new[] {
@@ -390,6 +424,12 @@ namespace NuGetGallery.Authentication
 
             // Save changes, if any
             Entities.SaveChanges();
+        }
+
+        public class AuthenticateExternalLoginResult
+        {
+            public AuthenticatedUser Authentication { get; set; }
+            public ClaimsIdentity ExternalIdentity { get; set; }
         }
     }
 }

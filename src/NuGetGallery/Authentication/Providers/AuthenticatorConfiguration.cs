@@ -8,13 +8,10 @@ using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Authentication.Providers
 {
-    public class AuthenticationProviderConfiguration
+    public class AuthenticatorConfiguration
     {
         [DefaultValue(false)]
         public bool Enabled { get; set; }
-
-        [DefaultValue(AuthenticationMode.Active)]
-        public AuthenticationMode AuthenticationMode { get; set; }
 
         public string AuthenticationType { get; set; }
 
@@ -32,7 +29,6 @@ namespace NuGetGallery.Authentication.Providers
             {
                 options.AuthenticationType = AuthenticationType;
             }
-            options.AuthenticationMode = AuthenticationMode;
         }
     }
 }

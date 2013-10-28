@@ -26,3 +26,17 @@
         @Html.ActionLink("Lost your Password?", "ForgotPassword", "Users")
     </fieldset>
 }
+
+<ul id="signin-providerlist">
+    @foreach (var provider in Model.Providers)
+    {
+        <li class="signin-authprovider">
+            <a class="signin-authprovider-link" href="@Url.Action("Authenticate", new { provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey] })">
+                @if(provider.UI.LogoUrl != null) {
+                    <img class="signin-authprovider-logo" src="@provider.UI.LogoUrl.AbsoluteUri" alt="@provider.UI.SignInMessage" />
+                }
+                @provider.UI.SignInMessage
+            </a>
+        </li>
+    }
+</ul>

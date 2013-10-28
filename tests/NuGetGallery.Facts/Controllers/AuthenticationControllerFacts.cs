@@ -64,7 +64,7 @@ namespace NuGetGallery.Controllers
                     .Returns(authUser);
                 var controller = GetController<AuthenticationController>();
                 GetMock<AuthenticationService>()
-                    .Setup(a => a.CreateSession(controller.OwinContext, authUser.User, AuthenticationTypes.Password))
+                    .Setup(a => a.CreateSession(controller.OwinContext, authUser.User, AuthenticationTypes.LocalUser))
                     .Verifiable();
                 
                 // Act
@@ -88,7 +88,7 @@ namespace NuGetGallery.Controllers
                     .Returns(authUser);
                 var controller = GetController<AuthenticationController>();
                 GetMock<AuthenticationService>()
-                    .Setup(a => a.CreateSession(controller.OwinContext, authUser.User, AuthenticationTypes.Password))
+                    .Setup(a => a.CreateSession(controller.OwinContext, authUser.User, AuthenticationTypes.LocalUser))
                     .Verifiable();
                 
                 // Act
@@ -112,7 +112,7 @@ namespace NuGetGallery.Controllers
                     .Returns(authUser);
                 var controller = GetController<AuthenticationController>();
                 GetMock<AuthenticationService>()
-                    .Setup(a => a.CreateSession(controller.OwinContext, authUser.User, AuthenticationTypes.Password))
+                    .Setup(a => a.CreateSession(controller.OwinContext, authUser.User, AuthenticationTypes.LocalUser))
                     .Verifiable();
                 
                 // Act
@@ -150,7 +150,7 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
                     .Returns(authUser);
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User, AuthenticationTypes.Password));
+                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User, AuthenticationTypes.LocalUser));
                 var controller = GetController<AuthenticationController>();
                 
                 var result = controller.SignIn(
@@ -170,7 +170,7 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
                     .Returns(authUser);
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User, AuthenticationTypes.Password));
+                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User, AuthenticationTypes.LocalUser));
                 var controller = GetController<AuthenticationController>();
                 
                 var result = controller.SignIn(
@@ -205,7 +205,7 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.Register("theUsername", "thePassword", "theEmailAddress"))
                     .Returns(authUser);
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User, AuthenticationTypes.Password))
+                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User, AuthenticationTypes.LocalUser))
                     .Verifiable();
                 var controller = GetController<AuthenticationController>();
                 
@@ -249,7 +249,7 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.Register("theUsername", "thepassword", "unconfirmed@example.com"))
                     .Returns(new AuthenticatedUser(user, new Credential()));
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), user, AuthenticationTypes.Password));
+                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), user, AuthenticationTypes.LocalUser));
                 var controller = GetController<AuthenticationController>();
                 
                 var result = controller.Register(new RegisterRequest

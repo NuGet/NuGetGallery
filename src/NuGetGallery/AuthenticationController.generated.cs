@@ -51,6 +51,11 @@ namespace NuGetGallery {
         public System.Web.Mvc.ActionResult LogOff() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.LogOff);
         }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult Authenticate() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.Authenticate);
+        }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public AuthenticationController Actions { get { return MVC.Authentication; } }
@@ -68,6 +73,7 @@ namespace NuGetGallery {
             public readonly string SignIn = "SignIn";
             public readonly string Register = "Register";
             public readonly string LogOff = "LogOff";
+            public readonly string Authenticate = "Authenticate";
         }
 
 
@@ -79,8 +85,6 @@ namespace NuGetGallery {
             public readonly string _RegisterForm = "~/Views/Authentication/_RegisterForm.cshtml";
             public readonly string _SignInForm = "~/Views/Authentication/_SignInForm.cshtml";
             public readonly string LogOn = "~/Views/Authentication/LogOn.cshtml";
-            public readonly string Register = "~/Views/Authentication/Register.cshtml";
-            public readonly string SignIn = "~/Views/Authentication/SignIn.cshtml";
         }
     }
 
@@ -111,6 +115,13 @@ namespace NuGetGallery {
         public override System.Web.Mvc.ActionResult LogOff(string returnUrl) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LogOff);
             callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Authenticate(string returnUrl, string provider) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Authenticate);
+            callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
+            callInfo.RouteValueDictionary.Add("provider", provider);
             return callInfo;
         }
 

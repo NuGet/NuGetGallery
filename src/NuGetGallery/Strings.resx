@@ -195,4 +195,7 @@
   <data name="Unauthorized" xml:space="preserve">
     <value>User is not authorized</value>
   </data>
+  <data name="MicrosoftAccount_SignInMessage" xml:space="preserve">
+    <value>Sign in with a Microsoft Account</value>
+  </data>
 </root>

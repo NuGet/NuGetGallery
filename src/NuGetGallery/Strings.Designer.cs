@@ -133,6 +133,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Sign in with a Microsoft Account.
+        /// </summary>
+        public static string MicrosoftAccount_SignInMessage {
+            get {
+                return ResourceManager.GetString("MicrosoftAccount_SignInMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Multiple Credentials match &apos;{0}&apos; credential with Key {1}.
         /// </summary>
         public static string MultipleMatchingCredentials {

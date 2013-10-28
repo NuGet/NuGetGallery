@@ -125,6 +125,16 @@ namespace NuGetGallery
                     "Users/Account/ChallengeEmail")).To(confirmationRequiredRoute);
 
             routes.MapRoute(
+                RouteName.ExternalAuthenticationCallback,
+                "users/account/authenticate/{provider}/return",
+                new { controller = MVC.Authentication.Name, action = "LinkExternalAccount" });
+
+            routes.MapRoute(
+                RouteName.ExternalAuthentication,
+                "users/account/authenticate/{provider}",
+                new { controller = MVC.Authentication.Name, action = MVC.Authentication.ActionNames.Authenticate });
+
+            routes.MapRoute(
                 RouteName.Authentication,
                 "users/account/{action}",
                 new { controller = MVC.Authentication.Name });

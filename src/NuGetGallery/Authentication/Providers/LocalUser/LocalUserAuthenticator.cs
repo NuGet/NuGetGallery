@@ -10,7 +10,7 @@ using Owin;
 
 namespace NuGetGallery.Authentication.Providers.Cookie
 {
-    public class CookieAuthenticationProvider : AuthenticationProvider
+    public class LocalUserAuthenticator : Authenticator
     {
         protected override void AttachToOwinApp(ConfigurationService config, IAppBuilder app)
         {
@@ -20,7 +20,8 @@ namespace NuGetGallery.Authentication.Providers.Cookie
 
             var options = new CookieAuthenticationOptions()
             {
-                AuthenticationType = AuthenticationTypes.Password,
+                AuthenticationType = AuthenticationTypes.LocalUser,
+                AuthenticationMode = AuthenticationMode.Active,
                 CookieHttpOnly = true,
                 CookieSecure = cookieSecurity,
                 LoginPath = new PathString("/users/account/LogOn")
@@ -28,6 +29,7 @@ namespace NuGetGallery.Authentication.Providers.Cookie
             
             BaseConfig.ApplyToOwinSecurityOptions(options);
             app.UseCookieAuthentication(options);
+            app.SetDefaultSignInAsAuthenticationType(AuthenticationTypes.LocalUser);
         }
     }
 }
