@@ -1,5 +1,4 @@
-﻿@using System.Configuration
-@using System.Web.Mvc
+﻿@using System.Web.Mvc
 @using Microsoft.Web.Helpers
 @using Microsoft.WindowsAzure.ServiceRuntime
 @using NuGetGallery
@@ -122,11 +121,13 @@
 
 @helper ReleaseTag()
 {
-    // Get Version info
+    // Get Version info and gallery brand name
     var ver = ApplicationVersionHelper.GetVersion();
+    var config = Container.Kernel.TryGet<ConfigurationService>();
+    string brand = config == null ? "" : config.Current.Brand;
 
     <p id="releaseTag">
-        This is the @(ConfigurationManager.AppSettings["Gallery.Brand"].Trim()).
+        This is the @brand.
         @if (ver.Present)
         {
             if(!String.IsNullOrEmpty(ver.ShortCommit)) {
