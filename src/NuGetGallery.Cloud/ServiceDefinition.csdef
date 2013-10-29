@@ -5,6 +5,7 @@
   </LoadBalancerProbes>
   <WebRole name="NuGetGallery" vmsize="Medium">
     <ConfigurationSettings>
+      <Setting name="Gallery.Brand" />
       <Setting name="Gallery.Environment" />
       <Setting name="Gallery.RequireSSL" />
       <Setting name="Gallery.AzureStorageConnectionString" />
