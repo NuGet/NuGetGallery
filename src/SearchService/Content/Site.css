@@ -139,3 +139,16 @@ textarea {
 .bar {
   fill: green;
 }
+
+/* styles for segments page data */
+
+#totalMemory {
+  font-size: 2em;
+  font-family: 'Courier New';
+}
+
+#totalDocuments {
+  font-size: 2em;
+  font-family: 'Courier New';
+}
+
