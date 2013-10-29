@@ -18,6 +18,7 @@ namespace NuGetGallery
         // This will let you add 'static' cshtml pages to the site under View/Pages or Branding/Views/Pages
         public virtual ActionResult Page(string pageName)
         {
+            // Prevent traversal attacks and serving non-pages by disallowing ., /, %, and more!
             if (pageName == null || pageName.Any(c => !Char.IsLetterOrDigit(c)))
             {
                 return HttpNotFound();
