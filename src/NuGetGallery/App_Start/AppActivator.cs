@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.Entity;
 using System.Diagnostics;
+using System.IO;
 using System.Security.Claims;
 using System.Web.Helpers;
 using System.Web.Mvc;
@@ -136,10 +137,17 @@ namespace NuGetGallery
                 .Include("~/Scripts/modernizr-{version}.js");
             BundleTable.Bundles.Add(modernizrBundle);
 
-            var stylesBundle = new StyleBundle("~/Content/css")
-                .Include("~/Content/Layout.css")
-                .Include("~/Content/site.css")
-                .Include("~/Content/PageStylings.css");
+            Bundle stylesBundle = new StyleBundle("~/Content/css");
+            foreach (string filename in new[] {
+                    "Site.css",
+                    "Layout.css",
+                    "PageStylings.css",
+                })
+            {
+                stylesBundle = stylesBundle.Include("~/Content/" + filename);
+                stylesBundle = stylesBundle.Include("~/Branding/Content/" + filename);
+            }
+
             BundleTable.Bundles.Add(stylesBundle);
         }
 
