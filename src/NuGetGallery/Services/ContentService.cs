@@ -18,7 +18,6 @@ namespace NuGetGallery
         // Each entry should _always_ have a value. Values never expire, they just need to be updated. Updates use the existing data,
         // so we don't want data just vanishing from a cache.
         private ConcurrentDictionary<string, ContentItem> _contentCache = new ConcurrentDictionary<string, ContentItem>(StringComparer.OrdinalIgnoreCase);
-        private static readonly Markdown MarkdownProcessor = new Markdown();
 
         private IDiagnosticsSource Trace { get; set; }
 
@@ -144,10 +143,7 @@ namespace NuGetGallery
                                     }
                                     else if (fileName.EndsWith(".md"))
                                     {
-                                        lock (MarkdownProcessor)
-                                        {
-                                            looseHtml = MarkdownProcessor.Transform(text);
-                                        }
+                                        looseHtml = new Markdown().Transform(text);
                                     }
                                     else
                                     {
