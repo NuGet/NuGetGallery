@@ -20,7 +20,7 @@ namespace NuGetGallery
 
         public static TextWriter TraceWriter = Console.Out;
 
-        public static void CreateFreshIndex(string sqlConnectionString, Lucene.Net.Store.Directory directory, PackageRanking packageRanking)
+        public static void CreateFreshIndex(Lucene.Net.Store.Directory directory)
         {
             CreateNewEmptyIndex(directory);
         }

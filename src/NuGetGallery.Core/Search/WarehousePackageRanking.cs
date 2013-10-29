@@ -10,16 +10,16 @@ namespace NuGetGallery
 {
     public class WarehousePackageRanking : PackageRanking
     {
-        string _storageConnectionString;
+        CloudStorageAccount _storageAccount;
 
-        public WarehousePackageRanking(string storageConnectionString)
+        public WarehousePackageRanking(CloudStorageAccount storageAccount)
         {
-            _storageConnectionString = storageConnectionString;
+            _storageAccount = storageAccount;
         }
 
         public override IDictionary<string, IDictionary<string, int>> GetProjectRankings()
         {
-            IList<string> projectGuids = GetProjectGuids(_storageConnectionString);
+            IList<string> projectGuids = GetProjectGuids(_storageAccount);
 
             Console.WriteLine("Gathering statistics for project types:");
 
@@ -27,7 +27,7 @@ namespace NuGetGallery
 
             foreach (string projectGuid in projectGuids)
             {
-                IDictionary<string, int> ranking = GetRanking(_storageConnectionString, projectGuid);
+                IDictionary<string, int> ranking = GetRanking(_storageAccount, projectGuid);
 
                 if (ranking.Count > 0)
                 {
@@ -42,14 +42,13 @@ namespace NuGetGallery
 
         public override IDictionary<string, int> GetOverallRanking()
         {
-            return GetRanking(_storageConnectionString, "Overall");
+            return GetRanking(_storageAccount, "Overall");
         }
 
-        private static IDictionary<string, int> GetRanking(string storageConnectionString, string blobName)
+        private static IDictionary<string, int> GetRanking(CloudStorageAccount storageAccount, string blobName)
         {
             IDictionary<string, int> ranking = new Dictionary<string, int>();
 
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConnectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference("ranking");
 
@@ -77,9 +76,8 @@ namespace NuGetGallery
             return ranking;
         }
 
-        private static IList<string> GetProjectGuids(string storageConnectionString)
+        private static IList<string> GetProjectGuids(CloudStorageAccount storageAccount)
         {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConnectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference("ranking");
 

@@ -8,11 +8,10 @@ namespace NuGetGallery
 {
     public static class AzureDirectoryManagement
     {
-        public static void ForceUnlockAzureDirectory(string storageConnectionString, string container)
+        public static void ForceUnlockAzureDirectory(CloudStorageAccount cloudStorageAccount, string container)
         {
             //  unlocks the write.lock object - this should only be used after a system crash and only form a singleton
 
-            CloudStorageAccount cloudStorageAccount = CloudStorageAccount.Parse(storageConnectionString);
             CloudBlobClient cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
             CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(container);
             CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference("write.lock");

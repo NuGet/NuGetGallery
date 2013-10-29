@@ -22,6 +22,9 @@ namespace NuGetGallery
                 IndexReader indexReader = searcher.IndexReader;
 
                 JObject report = new JObject();
+
+                report.Add("TotalMemory", GC.GetTotalMemory(false));
+
                 report.Add("NumDocs", indexReader.NumDocs());
 
                 if (indexReader.CommitUserData != null)
