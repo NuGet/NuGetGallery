@@ -77,10 +77,12 @@
 
             if (status === 'success') {
 
+                var numberFormat = d3.format(',');
+
                 var html = '';
 
-                html += '<p>Total Memory:&nbsp;<span id="totalMemory">' + data.TotalMemory + '</span></p>';
-                html += '<p>Total Documents:&nbsp;<span id="totalDocuments">' + data.NumDocs + '</span></p>';
+                html += '<p>Total Memory:&nbsp;<span id="totalMemory">' + numberFormat(data.TotalMemory) + ' bytes</span></p>';
+                html += '<p>Total Documents:&nbsp;<span id="totalDocuments">' + numberFormat(data.NumDocs) + '</span></p>';
 
                 if (data.CommitUserData !== undefined) {
 
