@@ -1,6 +1,6 @@
 ﻿@{
-    Layout = "~/Errors/ErrorLayout.cshtml";
-    Page.Title = "Error";
+    Page.Title = "Internal Server Error";
+    Response.StatusCode = 500;
 }
 
 <h2>
@@ -18,17 +18,18 @@
 
     <p>
         We have logged the error and we will look into it, and make sure it doesn’t happen again. However if you keep 
-        seeing this page please File a bug in <a href="https://github.com/NuGet/NuGetGallery/issues">the NuGet Gallery issue tracker</a>.
+        seeing this page please file a bug in <a href="https://github.com/NuGet/NuGetGallery/issues">the 
+        @(Config.Current.Brand) issue tracker</a>.
     </p>
 
     <h2 class="search">Search For Something Else</h2>
-    <form action="" onsubmit="return submitQuery()">
-        <input name="q" id="searchBoxInput" placeholder="Search Gallery" />
+    <form action="~/packages" onsubmit="return submitQuery()">
+        <input name="q" id="searchBoxInput" value="" placeholder="Search Gallery" />
         <input id="searchBoxSubmit" type="submit" value=" " />
     </form>
-
 </div>
 
+@section BottomScripts {
 <script type="text/javascript">
     function submitQuery() {
         window.location = "@Href("~/packages")?q="
@@ -37,3 +38,4 @@
     }
 </script>
 
+}

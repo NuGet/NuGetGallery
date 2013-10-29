@@ -48,9 +48,7 @@ namespace NuGetGallery.Services
                 // Arrange
                 var file = TestFileReference.Create(FileContent);
                 var contentService = new TestableContentService();
-                contentService.MockFileStorage
-                              .Setup(fs => fs.GetFileReferenceAsync(Constants.ContentFolderName, "TestContentItem.md", null))
-                              .Returns(Task.FromResult<IFileReference>(file));
+                contentService.SetFile("TestContentItem.md", null, file);
 
                 // Act
                 var actual = await contentService.GetContentItemAsync("TestContentItem", TimeSpan.Zero);
@@ -66,9 +64,7 @@ namespace NuGetGallery.Services
                 var testStart = DateTime.UtcNow;
                 var file = TestFileReference.Create(FileContent);
                 var contentService = new TestableContentService();
-                contentService.MockFileStorage
-                              .Setup(fs => fs.GetFileReferenceAsync(Constants.ContentFolderName, "TestContentItem.md", null))
-                              .Returns(Task.FromResult<IFileReference>(file));
+                contentService.SetFile("TestContentItem.md", null, file);
 
                 // Act
                 await contentService.GetContentItemAsync("TestContentItem", TimeSpan.FromSeconds(42));
@@ -112,11 +108,9 @@ namespace NuGetGallery.Services
                 var file = TestFileReference.Create(CachedContent);
                 var contentService = new TestableContentService();
                 var retrieved = testStart.AddDays(-1d);
-                var cachedContentId = 
+                var cachedContentId =
                     contentService.SetCached("TestContentItem", CachedContent, retrieved.AddSeconds(1), retrieved);
-                contentService.MockFileStorage
-                              .Setup(fs => fs.GetFileReferenceAsync(Constants.ContentFolderName, "TestContentItem.md", cachedContentId))
-                              .Returns(Task.FromResult<IFileReference>(file));
+                contentService.SetFile("TestContentItem.md", cachedContentId, CloudFileReference.NotModified(cachedContentId));
                 
                 // Act
                 var actual = await contentService.GetContentItemAsync("TestContentItem", TimeSpan.FromHours(12));
@@ -131,7 +125,7 @@ namespace NuGetGallery.Services
                 Assert.NotNull(updatedCache);
                 Assert.Equal(CachedContent, updatedCache.Content.ToString());
                 Assert.Equal(file.ContentId, updatedCache.ContentId);
-                Assert.True(EqualWithDrift(TimeSpan.FromHours(12), (updatedCache.ExpiryUtc - updatedCache.RetrievedUtc), TimeSpan.FromSeconds(2)));
+                Assert.True(EqualWithDrift(TimeSpan.FromHours(12), (updatedCache.ExpiryUtc - DateTime.UtcNow), TimeSpan.FromSeconds(2)));
             }
 
             [Fact]
@@ -144,9 +138,7 @@ namespace NuGetGallery.Services
                 var retrieved = testStart.AddDays(-1d);
                 var cachedContentId =
                     contentService.SetCached("TestContentItem", CachedContent, retrieved.AddSeconds(1), retrieved);
-                contentService.MockFileStorage
-                              .Setup(fs => fs.GetFileReferenceAsync(Constants.ContentFolderName, "TestContentItem.md", cachedContentId))
-                              .Returns(Task.FromResult<IFileReference>(file));
+                contentService.SetFile("TestContentItem.md", cachedContentId, file);
 
                 // Act
                 var actual = await contentService.GetContentItemAsync("TestContentItem", TimeSpan.FromHours(12));
@@ -179,7 +171,6 @@ namespace NuGetGallery.Services
             public TestableContentService()
             {
                 FileStorage = (MockFileStorage = new Mock<IFileStorageService>()).Object;
-                
             }
 
             public ContentItem GetCached(string key)
@@ -190,6 +181,16 @@ namespace NuGetGallery.Services
                     return null;
                 }
                 return item;
+            }
+
+            public void SetFile(string filename, string cachedContentId, IFileReference file)
+            {
+                MockFileStorage
+                    .Setup(fs => fs.GetFileReferenceAsync(Constants.ContentFolderName, filename, cachedContentId))
+                    .Returns(Task.FromResult<IFileReference>(file));
+                MockFileStorage
+                    .Setup(fs => fs.GetFileReferenceAsync(Constants.ContentFolderName, It.Is<string>(s => !s.Equals(filename)), It.IsAny<string>()))
+                    .Returns(Task.FromResult<IFileReference>(null));
             }
 
             public string SetCached(string key, string content, DateTime expiryUtc, DateTime retrievedUtc)

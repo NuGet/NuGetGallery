@@ -4,9 +4,7 @@
     ViewBag.Tab = "Packages";
 }
 
-
-
-<hgroup class="search">
+<div class="search">
     @if (!String.IsNullOrEmpty(Model.SearchTerm))
     {
         <h1>Search for <i>@Model.SearchTerm</i> returned @Model.TotalCount @if (Model.TotalCount == 1)
@@ -33,7 +31,7 @@
     {
         <h2>Displaying results @Model.FirstResultIndex - @Model.LastResultIndex.</h2>
     }
-</hgroup>
+</div>
 
 <form method="get" action="">
     <fieldset class="form search">
@@ -60,14 +58,14 @@
     </fieldset>
 </form>
 
-<ol id="searchResults">
+<ul id="searchResults">
     @foreach (var package in Model.Items)
     {
         <li>
-            @Html.Partial(MVC.Packages.Views._ListPackage, package)
+            @Html.Partial("_ListPackage", package)
         </li>
     }
-</ol>
+</ul>
 
 
 @ViewHelpers.PreviousNextPager(Model.Pager)
