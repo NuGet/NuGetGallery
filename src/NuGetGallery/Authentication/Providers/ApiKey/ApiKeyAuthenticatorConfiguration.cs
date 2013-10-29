@@ -6,7 +6,7 @@ using System.Web;
 
 namespace NuGetGallery.Authentication.Providers.ApiKey
 {
-    public class ApiKeyAuthenticationProviderConfiguration : AuthenticatorConfiguration
+    public class ApiKeyAuthenticatorConfiguration : AuthenticatorConfiguration
     {
         [DefaultValue(Constants.ApiKeyHeaderName)]
         public string HeaderName { get; set; }

@@ -11,7 +11,7 @@ using Owin;
 
 namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
 {
-    public class MicrosoftAccountAuthenticator : AuthenticationProvider<MicrosoftAccountAuthenticatorConfiguration>
+    public class MicrosoftAccountAuthenticator : Authenticator<MicrosoftAccountAuthenticatorConfiguration>
     {
         public static readonly string DefaultAuthenticationType = "MicrosoftAccount";
 

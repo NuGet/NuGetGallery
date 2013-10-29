@@ -44,8 +44,8 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         [RequireSsl]
+        [ValidateAntiForgeryToken]
         public virtual ActionResult SignIn(SignInRequest request, string returnUrl)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
@@ -78,8 +78,8 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         [RequireSsl]
+        [ValidateAntiForgeryToken]
         public virtual ActionResult Register(RegisterRequest request, string returnUrl)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
@@ -193,6 +193,7 @@ namespace NuGetGallery
         private List<AuthenticationProviderViewModel> GetProviders()
         {
             return (from p in AuthService.Authenticators.Values
+                    where p.BaseConfig.Enabled
                     let ui = p.GetUI()
                     where ui != null
                     select new AuthenticationProviderViewModel()

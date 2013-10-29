@@ -198,4 +198,10 @@
   <data name="MicrosoftAccount_SignInMessage" xml:space="preserve">
     <value>Sign in with a Microsoft Account</value>
   </data>
+  <data name="MissingRequiredConfigurationValue" xml:space="preserve">
+    <value>Missing required configuration value: '{0}'</value>
+  </data>
+  <data name="UnknownAuthenticationProvider" xml:space="preserve">
+    <value>Unknown authentication provider: '{0}'</value>
+  </data>
 </root>

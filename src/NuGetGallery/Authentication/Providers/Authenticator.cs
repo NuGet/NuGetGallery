@@ -81,7 +81,7 @@ namespace NuGetGallery.Authentication.Providers
         }
     }
 
-    public abstract class AuthenticationProvider<TConfig> : Authenticator 
+    public abstract class Authenticator<TConfig> : Authenticator 
         where TConfig : AuthenticatorConfiguration, new()
     {
         public TConfig Config { get; private set; }

@@ -251,7 +251,10 @@ namespace NuGetGallery.Authentication
             Authenticator provider;
             if (!Authenticators.TryGetValue(providerName, out provider))
             {
-                return new HttpUnauthorizedResult(); // Unknown provider
+                throw new InvalidOperationException(String.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.UnknownAuthenticationProvider,
+                    providerName));
             }
 
             return provider.Challenge(redirectUrl);

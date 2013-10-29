@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.Owin.Security;
@@ -24,7 +26,24 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
             var opts = options as MicrosoftAccountAuthenticationOptions;
             if (opts != null)
             {
+                if (String.IsNullOrEmpty(ClientId))
+                {
+                    throw new ConfigurationErrorsException(String.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.MissingRequiredConfigurationValue,
+                        "Auth.MicrosoftAccount.ClientId"));
+                }
+
                 opts.ClientId = ClientId;
+
+                if (String.IsNullOrEmpty(ClientSecret))
+                {
+                    throw new ConfigurationErrorsException(String.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.MissingRequiredConfigurationValue,
+                        "Auth.MicrosoftAccount.ClientSecret"));
+                }
+
                 opts.ClientSecret = ClientSecret;
             }
         }

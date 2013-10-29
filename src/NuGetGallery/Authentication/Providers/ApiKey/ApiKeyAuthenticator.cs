@@ -7,7 +7,7 @@ using Owin;
 
 namespace NuGetGallery.Authentication.Providers.ApiKey
 {
-    public class ApiKeyAuthenticationProvider : AuthenticationProvider<ApiKeyAuthenticationProviderConfiguration>
+    public class ApiKeyAuthenticator : Authenticator<ApiKeyAuthenticatorConfiguration>
     {
         protected override void AttachToOwinApp(ConfigurationService config, IAppBuilder app)
         {

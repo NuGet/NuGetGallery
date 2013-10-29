@@ -336,8 +336,8 @@
     <Compile Include="Authentication\AuthNinjectModule.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
     <Compile Include="Authentication\ForceSslWhenAuthenticatedMiddleware.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationProvider.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationProviderConfiguration.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticator.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\Authenticator.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorUI.cs" />
@@ -1302,7 +1302,6 @@
     <Content Include="Views\Authentication\_SignInForm.cshtml" />
     <Content Include="Views\Authentication\_RegisterForm.cshtml" />
     <Content Include="Views\Users\ChangeEmail.cshtml" />
-    <None Include="Web.appSettings.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config">

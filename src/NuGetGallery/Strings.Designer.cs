@@ -142,6 +142,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Missing required configuration value: &apos;{0}&apos;.
+        /// </summary>
+        public static string MissingRequiredConfigurationValue {
+            get {
+                return ResourceManager.GetString("MissingRequiredConfigurationValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Multiple Credentials match &apos;{0}&apos; credential with Key {1}.
         /// </summary>
         public static string MultipleMatchingCredentials {
@@ -246,6 +255,15 @@ namespace NuGetGallery {
         public static string Unauthorized {
             get {
                 return ResourceManager.GetString("Unauthorized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown authentication provider: &apos;{0}&apos;.
+        /// </summary>
+        public static string UnknownAuthenticationProvider {
+            get {
+                return ResourceManager.GetString("UnknownAuthenticationProvider", resourceCulture);
             }
         }
         
