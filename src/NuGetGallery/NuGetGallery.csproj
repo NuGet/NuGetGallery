@@ -877,6 +877,10 @@
     <Compile Include="Migrations\201309172217450_CredentialsTable.Designer.cs">
       <DependentUpon>201309172217450_CredentialsTable.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201310301757446_RemoveOldCredentialColumns.cs" />
+    <Compile Include="Migrations\201310301757446_RemoveOldCredentialColumns.Designer.cs">
+      <DependentUpon>201310301757446_RemoveOldCredentialColumns.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -1337,6 +1341,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201309172217450_CredentialsTable.resx">
       <DependentUpon>201309172217450_CredentialsTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201310301757446_RemoveOldCredentialColumns.resx">
+      <DependentUpon>201310301757446_RemoveOldCredentialColumns.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

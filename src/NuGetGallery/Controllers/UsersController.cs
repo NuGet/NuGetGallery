@@ -48,7 +48,7 @@ namespace NuGetGallery
                 new AccountViewModel
                     {
                         ApiKey = apiCredential == null ? 
-                            user.ApiKey.ToString() :
+                            String.Empty :    
                             apiCredential.Value,
                         IsConfirmed = user.Confirmed,
                         CuratedFeeds = curatedFeeds.Select(cf => cf.Name)
@@ -156,9 +156,6 @@ namespace NuGetGallery
 
             // Generate an API Key
             var apiKey = Guid.NewGuid();
-
-            // Set the existing API Key field
-            user.ApiKey = apiKey;
 
             // Add/Replace the API Key credential, and save to the database
             AuthService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));

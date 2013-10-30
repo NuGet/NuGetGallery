@@ -38,16 +38,6 @@ namespace NuGetGallery {
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult SignIn() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.SignIn);
-        }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult Register() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.Register);
-        }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult LogOff() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.LogOff);
         }
@@ -70,8 +60,6 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
             public readonly string LogOn = "LogOn";
-            public readonly string SignIn = "SignIn";
-            public readonly string Register = "Register";
             public readonly string LogOff = "LogOff";
             public readonly string Authenticate = "Authenticate";
         }
@@ -93,22 +81,6 @@ namespace NuGetGallery {
         public override System.Web.Mvc.ActionResult LogOn(string returnUrl) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LogOn);
             callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult SignIn(NuGetGallery.LogOnViewModel model, string returnUrl, bool external) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.SignIn);
-            callInfo.RouteValueDictionary.Add("model", model);
-            callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
-            callInfo.RouteValueDictionary.Add("external", external);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Register(NuGetGallery.LogOnViewModel model, string returnUrl, bool external) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Register);
-            callInfo.RouteValueDictionary.Add("model", model);
-            callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
-            callInfo.RouteValueDictionary.Add("external", external);
             return callInfo;
         }
 

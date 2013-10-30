@@ -16,7 +16,7 @@ namespace NuGetGallery
     public partial class AuthenticationController : AppController
     {
         public AuthenticationService AuthService { get; protected set; }
-        
+
         // For sub-classes to initialize services themselves
         protected AuthenticationController()
         {
@@ -50,13 +50,8 @@ namespace NuGetGallery
         [HttpPost]
         [RequireSsl]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult SignIn(LogOnViewModel model, string returnUrl, bool external)
+        public virtual async Task<ActionResult> SignIn(LogOnViewModel model, string returnUrl, bool linkingAccount)
         {
-            if (external)
-            {
-                return Content("Associating with " + model.SignIn.UserNameOrEmail);
-            }
-
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
 
@@ -76,26 +71,32 @@ namespace NuGetGallery
             if (user == null)
             {
                 ModelState.AddModelError(
-                    String.Empty,
+                    "SignIn",
                     Strings.UsernameAndPasswordNotFound);
 
                 return LogOnView(model);
             }
 
-            AuthService.CreateSession(OwinContext, user.User, AuthenticationTypes.LocalUser);
+            if (linkingAccount)
+            {
+                // Link with an external account
+                user = await AssociateCredential(user, returnUrl);
+                if (user == null)
+                {
+                    return ExternalLinkExpired();
+                }
+            }
+
+            // Now log in!
+            AuthService.CreateSession(OwinContext, user.User);
             return SafeRedirect(returnUrl);
         }
 
         [HttpPost]
         [RequireSsl]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult Register(LogOnViewModel model, string returnUrl, bool external)
+        public async virtual Task<ActionResult> Register(LogOnViewModel model, string returnUrl, bool linkingAccount)
         {
-            if (external)
-            {
-                return Content("Creating account for " + model.Register.Username);
-            }
-
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
 
@@ -103,6 +104,11 @@ namespace NuGetGallery
             {
                 ModelState.AddModelError(String.Empty, "You are already logged in!");
                 return LogOnView(model);
+            }
+
+            if (linkingAccount)
+            {
+                ModelState.Remove("Register.Password");
             }
 
             if (!ModelState.IsValid)
@@ -113,19 +119,42 @@ namespace NuGetGallery
             AuthenticatedUser user;
             try
             {
-                user = AuthService.Register(
-                    model.Register.Username,
-                    model.Register.Password,
-                    model.Register.EmailAddress);
+
+                if (linkingAccount)
+                {
+                    var result = await AuthService.ExtractExternalLoginCredential(OwinContext);
+                    if (result.ExternalIdentity == null)
+                    {
+                        return ExternalLinkExpired();
+                    }
+
+                    user = AuthService.Register(
+                        model.Register.Username, 
+                        model.Register.EmailAddress, 
+                        result.Credential);
+                }
+                else
+                {
+                    user = AuthService.Register(
+                        model.Register.Username,
+                        model.Register.EmailAddress,
+                        CredentialBuilder.CreatePbkdf2Password(model.Register.Password));
+                }
             }
             catch (EntityException ex)
             {
-                ModelState.AddModelError(String.Empty, ex.Message);
+                ModelState.AddModelError("Register", ex.Message);
                 return LogOnView(model);
             }
 
-            AuthService.CreateSession(OwinContext, user.User, AuthenticationTypes.LocalUser);
+            // We're logging in!
+            AuthService.CreateSession(OwinContext, user.User);
 
+            return RedirectFromRegister(returnUrl);
+        }
+
+        private ActionResult RedirectFromRegister(string returnUrl)
+        {
             if (RedirectHelper.SafeRedirectUrl(Url, returnUrl) != RedirectHelper.SafeRedirectUrl(Url, null))
             {
                 // User was on their way to a page other than the home page. Redirect them with a thank you for registering message.
@@ -158,12 +187,13 @@ namespace NuGetGallery
             {
                 // User got here without an external login cookie (or an expired one)
                 // Send them to the logon action
-                return RedirectToAction("LogOn");
+                return ExternalLinkExpired();
             }
 
             if (result.Authentication != null)
             {
-                return Content("Authenticated: " + result.Authentication.User.Username);
+                AuthService.CreateSession(OwinContext, result.Authentication.User);
+                return SafeRedirect(returnUrl);
             }
             else
             {
@@ -174,16 +204,21 @@ namespace NuGetGallery
                     .ExternalIdentity
                     .GetClaimOrDefault(ClaimTypes.Name);
                 var userName = RegisterViewModel.NormalizeUserName(name);
+                var external = new AssociateExternalAccountViewModel()
+                {
+                    ProviderAccountNoun = authUI.AccountNoun,
+                    AccountName = name
+                };
 
-                var model = new LogOnViewModel() {
-                    External = new AssociateExternalAccountViewModel() {
-                        ProviderAccountNoun = authUI.AccountNoun,
-                        AccountName = name
-                    },
-                    SignIn = new SignInViewModel() {
+                var model = new LogOnViewModel()
+                {
+                    External = external,
+                    SignIn = new SignInViewModel()
+                    {
                         UserNameOrEmail = email
                     },
-                    Register = new RegisterViewModel() {
+                    Register = new RegisterViewModel()
+                    {
                         Username = userName,
                         EmailAddress = email
                     }
@@ -197,6 +232,21 @@ namespace NuGetGallery
         protected virtual ActionResult SafeRedirect(string returnUrl)
         {
             return Redirect(RedirectHelper.SafeRedirectUrl(Url, returnUrl));
+        }
+
+        private async Task<AuthenticatedUser> AssociateCredential(AuthenticatedUser user, string returnUrl)
+        {
+            var result = await AuthService.ExtractExternalLoginCredential(OwinContext);
+            if (result.ExternalIdentity == null)
+            {
+                // User got here without an external login cookie (or an expired one)
+                // Send them to the logon action
+                return null;
+            }
+
+            AuthService.AddCredential(user.User, result.Credential);
+
+            return new AuthenticatedUser(user.User, result.Credential);
         }
 
         private List<AuthenticationProviderViewModel> GetProviders()
@@ -220,6 +270,14 @@ namespace NuGetGallery
                 Register = new RegisterViewModel(),
                 Providers = GetProviders()
             });
+        }
+
+        private ActionResult ExternalLinkExpired()
+        {
+            // User got here without an external login cookie (or an expired one)
+            // Send them to the logon action with a message
+            TempData["Message"] = Strings.ExternalAccountLinkExpired;
+            return RedirectToAction("LogOn");
         }
 
         private ActionResult LogOnView(LogOnViewModel existingModel)

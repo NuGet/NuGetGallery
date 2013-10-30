@@ -115,6 +115,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your external account credential expired. Try logging in again..
+        /// </summary>
+        public static string ExternalAccountLinkExpired {
+            get {
+                return ResourceManager.GetString("ExternalAccountLinkExpired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to read the package file..
         /// </summary>
         public static string FailedToReadUploadFile {

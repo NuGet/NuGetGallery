@@ -92,16 +92,17 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public virtual void CreateSession(IOwinContext owinContext, User user, string authenticationType)
+        public virtual void CreateSession(IOwinContext owinContext, User user)
         {
             // Create a claims identity for the session
-            ClaimsIdentity identity = CreateIdentity(user, authenticationType);
+            ClaimsIdentity identity = CreateIdentity(user, AuthenticationTypes.LocalUser);
 
-            // Issue the session token
+            // Issue the session token and clean up the external token if present
             owinContext.Authentication.SignIn(identity);
+            owinContext.Authentication.SignOut(AuthenticationTypes.External);
         }
 
-        public virtual AuthenticatedUser Register(string username, string password, string emailAddress)
+        public virtual AuthenticatedUser Register(string username, string emailAddress, Credential credential)
         {
             var existingUser = Entities.Users
                 .FirstOrDefault(u => u.Username == username || u.EmailAddress == emailAddress);
@@ -117,24 +118,18 @@ namespace NuGetGallery.Authentication
                 }
             }
 
-            var hashedPassword = CryptographyService.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
-
             var apiKey = Guid.NewGuid();
             var newUser = new User(username)
             {
-                ApiKey = apiKey,
                 EmailAllowed = true,
                 UnconfirmedEmailAddress = emailAddress,
                 EmailConfirmationToken = CryptographyService.GenerateToken(),
-                HashedPassword = hashedPassword,
-                PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
                 CreatedUtc = DateTime.UtcNow
             };
 
             // Add a credential for the password and the API Key
-            var passCred = new Credential(CredentialTypes.Password.Pbkdf2, newUser.HashedPassword);
             newUser.Credentials.Add(CredentialBuilder.CreateV1ApiKey(apiKey));
-            newUser.Credentials.Add(passCred);
+            newUser.Credentials.Add(credential);
 
             if (!Config.ConfirmEmailAddresses)
             {
@@ -144,7 +139,15 @@ namespace NuGetGallery.Authentication
             Entities.Users.Add(newUser);
             Entities.SaveChanges();
 
-            return new AuthenticatedUser(newUser, passCred);
+            return new AuthenticatedUser(newUser, credential);
+        }
+
+        [Obsolete("Use Register(string, string, Credential) now")]
+        public virtual AuthenticatedUser Register(string username, string password, string emailAddress)
+        {
+            var hashedPassword = CryptographyService.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
+            var passCred = new Credential(CredentialTypes.Password.Pbkdf2, hashedPassword);
+            return Register(username, emailAddress, passCred);
         }
 
         public virtual void ReplaceCredential(string username, Credential credential)
@@ -260,7 +263,26 @@ namespace NuGetGallery.Authentication
             return provider.Challenge(redirectUrl);
         }
 
+        public virtual void AddCredential(User user, Credential credential)
+        {
+            user.Credentials.Add(credential);
+            Entities.SaveChanges();
+        }
+
         public async virtual Task<AuthenticateExternalLoginResult> AuthenticateExternalLogin(IOwinContext context)
+        {
+            var result = await ExtractExternalLoginCredential(context);
+
+            // Authenticate!
+            if (result.Credential != null)
+            {
+                result.Authentication = Authenticate(result.Credential);
+            }
+
+            return result;
+        }
+
+        public async virtual Task<AuthenticateExternalLoginResult> ExtractExternalLoginCredential(IOwinContext context)
         {
             var result = await context.Authentication.AuthenticateAsync(AuthenticationTypes.External);
             if (result == null)
@@ -270,21 +292,18 @@ namespace NuGetGallery.Authentication
             }
             var idClaim = result.Identity.FindFirst(ClaimTypes.NameIdentifier);
 
-            // Build the credential to search for
-            var cred = CredentialBuilder.CreateExternalCredential(idClaim.Issuer, idClaim.Value);
-
             Authenticator auther;
             if (!Authenticators.TryGetValue(idClaim.Issuer, out auther))
             {
                 auther = null;
             }
-                
-            // Authenticate!
+
             return new AuthenticateExternalLoginResult()
             {
-                Authentication = Authenticate(cred),
+                Authentication = null,
                 ExternalIdentity = result.Identity,
-                Authenticator = auther
+                Authenticator = auther,
+                Credential = CredentialBuilder.CreateExternalCredential(idClaim.Issuer, idClaim.Value)
             };
         }
 
@@ -441,6 +460,7 @@ namespace NuGetGallery.Authentication
             public AuthenticatedUser Authentication { get; set; }
             public ClaimsIdentity ExternalIdentity { get; set; }
             public Authenticator Authenticator { get; set; }
+            public Credential Credential { get; set; }
         }
     }
 }

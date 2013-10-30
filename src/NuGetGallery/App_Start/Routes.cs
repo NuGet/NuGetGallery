@@ -147,7 +147,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.LegacyRegister,
                 "account/register",
-                new { controller = MVC.Authentication.Name, action = MVC.Authentication.ActionNames.Register });
+                new { controller = MVC.Authentication.Name, action = "Register" });
 
             routes.MapRoute(
                 RouteName.PasswordReset,
