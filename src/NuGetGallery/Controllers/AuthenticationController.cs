@@ -9,6 +9,7 @@ using NuGetGallery.ViewModels;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -27,6 +28,9 @@ namespace NuGetGallery
             AuthService = authService;
         }
 
+        /// <summary>
+        /// Sign In\Register view
+        /// </summary>
         [RequireSsl]
         public virtual ActionResult LogOn(string returnUrl)
         {
@@ -46,23 +50,28 @@ namespace NuGetGallery
         [HttpPost]
         [RequireSsl]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult SignIn(SignInRequest request, string returnUrl)
+        public virtual ActionResult SignIn(LogOnViewModel model, string returnUrl, bool external)
         {
+            if (external)
+            {
+                return Content("Associating with " + model.SignIn.UserNameOrEmail);
+            }
+
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
 
             if (Request.IsAuthenticated)
             {
                 ModelState.AddModelError(String.Empty, "You are already logged in!");
-                return LogOnView(signIn: request);
+                return LogOnView(model);
             }
 
             if (!ModelState.IsValid)
             {
-                return LogOnView(signIn: request);
+                return LogOnView(model);
             }
 
-            var user = AuthService.Authenticate(request.UserNameOrEmail, request.Password);
+            var user = AuthService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
 
             if (user == null)
             {
@@ -70,7 +79,7 @@ namespace NuGetGallery
                     String.Empty,
                     Strings.UsernameAndPasswordNotFound);
 
-                return LogOnView(signIn: request);
+                return LogOnView(model);
             }
 
             AuthService.CreateSession(OwinContext, user.User, AuthenticationTypes.LocalUser);
@@ -80,34 +89,39 @@ namespace NuGetGallery
         [HttpPost]
         [RequireSsl]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult Register(RegisterRequest request, string returnUrl)
+        public virtual ActionResult Register(LogOnViewModel model, string returnUrl, bool external)
         {
+            if (external)
+            {
+                return Content("Creating account for " + model.Register.Username);
+            }
+
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
 
             if (Request.IsAuthenticated)
             {
                 ModelState.AddModelError(String.Empty, "You are already logged in!");
-                return LogOnView(register: request);
+                return LogOnView(model);
             }
 
             if (!ModelState.IsValid)
             {
-                return LogOnView(register: request);
+                return LogOnView(model);
             }
 
             AuthenticatedUser user;
             try
             {
                 user = AuthService.Register(
-                    request.Username,
-                    request.Password,
-                    request.EmailAddress);
+                    model.Register.Username,
+                    model.Register.Password,
+                    model.Register.EmailAddress);
             }
             catch (EntityException ex)
             {
                 ModelState.AddModelError(String.Empty, ex.Message);
-                return LogOnView(register: request);
+                return LogOnView(model);
             }
 
             AuthService.CreateSession(OwinContext, user.User, AuthenticationTypes.LocalUser);
@@ -140,7 +154,7 @@ namespace NuGetGallery
         {
             // Extract the external login info
             var result = await AuthService.AuthenticateExternalLogin(OwinContext);
-            if (result.ExternalIdentity == null)
+            if (result.ExternalIdentity == null || result.Authenticator == null || result.Authenticator.GetUI() == null)
             {
                 // User got here without an external login cookie (or an expired one)
                 // Send them to the logon action
@@ -153,19 +167,29 @@ namespace NuGetGallery
             }
             else
             {
-                // Gather data for register model
+                // Gather data for view model
+                var authUI = result.Authenticator.GetUI();
                 var email = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Email);
-                var name = RegisterRequest.NormalizeUserName(result
+                var name = result
                     .ExternalIdentity
-                    .GetClaimOrDefault(ClaimTypes.Name));
+                    .GetClaimOrDefault(ClaimTypes.Name);
+                var userName = RegisterViewModel.NormalizeUserName(name);
 
-                var register = new RegisterRequest()
-                {
-                    Username = name,
-                    EmailAddress = email
+                var model = new LogOnViewModel() {
+                    External = new AssociateExternalAccountViewModel() {
+                        ProviderAccountNoun = authUI.AccountNoun,
+                        AccountName = name
+                    },
+                    SignIn = new SignInViewModel() {
+                        UserNameOrEmail = email
+                    },
+                    Register = new RegisterViewModel() {
+                        Username = userName,
+                        EmailAddress = email
+                    }
                 };
 
-                return LogOnView(associatingExternalLogin: true, register: register);
+                return LogOnView(model);
             }
         }
 
@@ -173,21 +197,6 @@ namespace NuGetGallery
         protected virtual ActionResult SafeRedirect(string returnUrl)
         {
             return Redirect(RedirectHelper.SafeRedirectUrl(Url, returnUrl));
-        }
-
-        private ViewResult LogOnView(SignInRequest signIn = null, RegisterRequest register = null, bool associatingExternalLogin = false) {
-            signIn = signIn ?? new SignInRequest();
-            register = register ?? (associatingExternalLogin ? new RegisterRequest() : new RegisterLocalUserRequest());
-
-            register.ShowPassword = !associatingExternalLogin;
-            signIn.Providers = GetProviders();
-
-            return View("LogOn", new LogOnViewModel()
-            {
-                SignIn = signIn,
-                Register = register,
-                AssociatingExternalLogin = associatingExternalLogin
-            });
         }
 
         private List<AuthenticationProviderViewModel> GetProviders()
@@ -201,6 +210,28 @@ namespace NuGetGallery
                         ProviderName = p.Name,
                         UI = ui
                     }).ToList();
+        }
+
+        private ActionResult LogOnView()
+        {
+            return LogOnView(new LogOnViewModel()
+            {
+                SignIn = new SignInViewModel(),
+                Register = new RegisterViewModel(),
+                Providers = GetProviders()
+            });
+        }
+
+        private ActionResult LogOnView(LogOnViewModel existingModel)
+        {
+            // Fill the providers list
+            existingModel.Providers = GetProviders();
+
+            // Reinitialize any nulled-out sub models
+            existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
+            existingModel.Register = existingModel.Register ?? new RegisterViewModel();
+
+            return View("LogOn", existingModel);
         }
     }
 }

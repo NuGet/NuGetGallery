@@ -1011,8 +1011,6 @@
     </Compile>
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RequestModels\SignInRequest.cs" />
-    <Compile Include="RequestModels\RegisterRequest.cs" />
     <Compile Include="RequestModels\SubmitPackageRequest.cs" />
     <Compile Include="RouteNames.cs" />
     <Compile Include="UrlExtensions.cs" />
@@ -1299,8 +1297,6 @@
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
     <Content Include="Views\CuratedPackages\CreateCuratedPackageForm.cshtml" />
     <Content Include="Views\Users\ConfirmationRequired.cshtml" />
-    <Content Include="Views\Authentication\_SignInForm.cshtml" />
-    <Content Include="Views\Authentication\_RegisterForm.cshtml" />
     <Content Include="Views\Users\ChangeEmail.cshtml" />
   </ItemGroup>
   <ItemGroup>

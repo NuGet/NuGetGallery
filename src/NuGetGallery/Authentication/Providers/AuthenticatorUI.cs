@@ -9,6 +9,13 @@ namespace NuGetGallery.Authentication.Providers
     public class AuthenticatorUI
     {
         public Uri LogoUrl { get; set; }
-        public string SignInMessage { get; set; }
+        public string SignInMessage { get; private set; }
+        public string AccountNoun { get; private set; }
+
+        public AuthenticatorUI(string signInMessage, string accountNoun)
+        {
+            SignInMessage = signInMessage;
+            AccountNoun = accountNoun;
+        }
     }
 }

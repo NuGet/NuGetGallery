@@ -272,12 +272,19 @@ namespace NuGetGallery.Authentication
 
             // Build the credential to search for
             var cred = CredentialBuilder.CreateExternalCredential(idClaim.Issuer, idClaim.Value);
+
+            Authenticator auther;
+            if (!Authenticators.TryGetValue(idClaim.Issuer, out auther))
+            {
+                auther = null;
+            }
                 
             // Authenticate!
             return new AuthenticateExternalLoginResult()
             {
                 Authentication = Authenticate(cred),
-                ExternalIdentity = result.Identity
+                ExternalIdentity = result.Identity,
+                Authenticator = auther
             };
         }
 
@@ -433,6 +440,7 @@ namespace NuGetGallery.Authentication
         {
             public AuthenticatedUser Authentication { get; set; }
             public ClaimsIdentity ExternalIdentity { get; set; }
+            public Authenticator Authenticator { get; set; }
         }
     }
 }

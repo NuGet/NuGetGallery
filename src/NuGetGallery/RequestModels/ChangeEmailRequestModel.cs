@@ -8,7 +8,7 @@ namespace NuGetGallery
         [StringLength(255)]
         [Display(Name = "New Email Address")]
         //[DataType(DataType.EmailAddress)] - does not work with client side validation
-        [RegularExpression(RegisterRequest.EmailValidationRegex, ErrorMessage = RegisterRequest.EmailValidationErrorMessage)]
+        [RegularExpression(RegisterViewModel.EmailValidationRegex, ErrorMessage = RegisterViewModel.EmailValidationErrorMessage)]
         public string NewEmail { get; set; }
 
         [Required]

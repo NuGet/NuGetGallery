@@ -69,7 +69,7 @@ namespace NuGetGallery.Controllers
                 
                 // Act
                 controller.SignIn(
-                    new SignInRequest { UserNameOrEmail = authUser.User.Username, Password = "thePassword" },
+                    new SignInViewModel { UserNameOrEmail = authUser.User.Username, Password = "thePassword" },
                     "theReturnUrl");
 
                 // Assert
@@ -93,7 +93,7 @@ namespace NuGetGallery.Controllers
                 
                 // Act
                 controller.SignIn(
-                    new SignInRequest { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" },
+                    new SignInViewModel { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" },
                     "theReturnUrl");
 
                 // Assert
@@ -117,7 +117,7 @@ namespace NuGetGallery.Controllers
                 
                 // Act
                 controller.SignIn(
-                    new SignInRequest { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" },
+                    new SignInViewModel { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" },
                     "theReturnUrl");
 
                 // Assert
@@ -132,7 +132,7 @@ namespace NuGetGallery.Controllers
                     .ReturnsNull();
                 var controller = GetController<AuthenticationController>();
                 
-                var result = controller.SignIn(new SignInRequest(), "theReturnUrl") as ViewResult;
+                var result = controller.SignIn(new SignInViewModel(), "theReturnUrl") as ViewResult;
 
                 Assert.NotNull(result);
                 Assert.Empty(result.ViewName);
@@ -154,7 +154,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<AuthenticationController>();
                 
                 var result = controller.SignIn(
-                    new SignInRequest { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" }, 
+                    new SignInViewModel { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" }, 
                     "http://www.microsoft.com");
 
                 ResultAssert.IsRedirectTo(result, "/");
@@ -174,7 +174,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<AuthenticationController>();
                 
                 var result = controller.SignIn(
-                    new SignInRequest { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" }, 
+                    new SignInViewModel { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" }, 
                     "/packages/upload");
 
                 ResultAssert.IsRedirectTo(result, "/packages/upload");
@@ -210,7 +210,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<AuthenticationController>();
                 
                 controller.Register(
-                    new RegisterRequest
+                    new RegisterViewModel
                     {
                         Username = "theUsername",
                         Password = "thePassword",
@@ -228,7 +228,7 @@ namespace NuGetGallery.Controllers
                     .Throws(new EntityException("aMessage"));
                 var controller = GetController<AuthenticationController>();
                 
-                var request = new RegisterRequest
+                var request = new RegisterViewModel
                 {
                     Username = "theUsername",
                     Password = "thePassword",
@@ -252,7 +252,7 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), user, AuthenticationTypes.LocalUser));
                 var controller = GetController<AuthenticationController>();
                 
-                var result = controller.Register(new RegisterRequest
+                var result = controller.Register(new RegisterViewModel
                     {
                         EmailAddress = "unconfirmed@example.com",
                         Password = "thepassword",

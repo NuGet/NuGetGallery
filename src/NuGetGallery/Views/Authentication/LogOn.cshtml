@@ -3,20 +3,61 @@
     ViewBag.Title = "Sign In";
 }
 
-@if (Model.AssociatingExternalLogin)
+@if (Model.External != null)
 {
     <h1>Who are you?</h1>
     <p>
-        It looks like we haven't seen you before. That's alright, we love to meet new people! If you've already
-        got a NuGet account, sign-in using the form on the left and we'll add this login credential to that account. If you
-        don't, use the register form on the right to fill in the information for a new user account.
+        It looks like we haven't seen the @Model.External.ProviderAccountNoun '@Model.External.AccountName' 
+        before. That's just fine, we love meeting new people! If you already have a NuGet account, please use
+        the sign-in form on the left to verify it and we'll associate your @Model.External.ProviderAccountNoun
+        with it. If you don't have a NuGet account, use the register form on the right to create a new one.
     </p>
 }
 
 <div id="SignIn">
     <h1>Sign In</h1>
+    @using (Html.BeginForm("SignIn", "Authentication"))
+    {
+        <fieldset class="form">
+            <legend>Sign In Form</legend>
 
-    @Html.Partial("_SignInForm", Model.SignIn)
+            @Html.AntiForgeryToken()
+            @Html.Hidden("ReturnUrl", ViewData[Constants.ReturnUrlViewDataKey])
+            @Html.Hidden("External", Model.External != null)
+            
+            <div class="form-field">
+                @Html.LabelFor(m => m.SignIn.UserNameOrEmail)
+                @Html.EditorFor(m => m.SignIn.UserNameOrEmail)
+                @Html.ValidationMessageFor(m => m.SignIn.UserNameOrEmail)
+            </div>
+
+            <div class="form-field">
+                @Html.LabelFor(m => m.SignIn.Password)
+                @Html.EditorFor(m => m.SignIn.Password)
+                @Html.ValidationMessageFor(m => m.SignIn.Password)
+            </div>
+
+            <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
+
+            <input type="submit" value="Sign In" title="Sign In" />
+            @Html.ActionLink("Lost your Password?", "ForgotPassword", "Users")
+        </fieldset>
+    }
+
+    <ul id="signin-providerlist">
+        @foreach (var provider in Model.Providers)
+        {
+            <li class="signin-authprovider">
+                <a class="signin-authprovider-link" href="@Url.Action("Authenticate", new { provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey] })">
+                    @if (provider.UI.LogoUrl != null)
+                    {
+                        <img class="signin-authprovider-logo" src="@provider.UI.LogoUrl.AbsoluteUri" alt="@provider.UI.SignInMessage" />
+                    }
+                    @provider.UI.SignInMessage
+                </a>
+            </li>
+        }
+    </ul>
 </div>
 
 <div id="MiddleSeparator"></div>
@@ -24,5 +65,43 @@
 <div id="Register">
     <h1>Register</h1>
 
-    @Html.Partial("_RegisterForm", Model.Register)
+    @using (Html.BeginForm("Register", "Authentication"))
+    {
+        <fieldset class="form">
+            <legend>Register Form</legend>
+
+            @Html.AntiForgeryToken()
+            @Html.Hidden("ReturnUrl", ViewData[Constants.ReturnUrlViewDataKey])
+            @Html.Hidden("External", Model.External != null)
+
+            <div class="form-field">
+                @Html.LabelFor(m => m.Register.Username)
+                @Html.EditorFor(m => m.Register.Username)
+                @Html.ValidationMessageFor(m => m.Register.Username)
+            </div>
+
+            @if(Model.External == null) {
+                <div class="form-field">
+                    @Html.LabelFor(m => m.Register.Password)
+                    @Html.EditorFor(m => m.Register.Password)
+                    @Html.ValidationMessageFor(m => m.Register.Password)
+                </div>
+            }
+
+            <div class="form-field">
+                <label for="EmailAddress">Email (<a href="http://www.gravatar.com">Gravatar</a>, notifications, and password recovery)</label>
+                @Html.EditorFor(m => m.Register.EmailAddress)
+                @Html.ValidationMessageFor(m => m.Register.EmailAddress)
+            </div>
+
+            <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
+
+            <input type="submit" value="Register" title="Register" />
+
+            <p id="form-field-register-policies">
+                By clicking Register you agree that you have read and accept our
+                <a href="@Url.Terms()">Terms of Use</a> and <a href="@Url.Privacy()">Privacy Policy</a>
+            </p>
+        </fieldset>
+    }
 </div>

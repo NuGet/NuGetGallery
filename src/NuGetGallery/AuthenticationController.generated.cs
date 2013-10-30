@@ -82,8 +82,6 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
-            public readonly string _RegisterForm = "~/Views/Authentication/_RegisterForm.cshtml";
-            public readonly string _SignInForm = "~/Views/Authentication/_SignInForm.cshtml";
             public readonly string LogOn = "~/Views/Authentication/LogOn.cshtml";
         }
     }
@@ -98,17 +96,19 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult SignIn(NuGetGallery.SignInRequest request, string returnUrl) {
+        public override System.Web.Mvc.ActionResult SignIn(NuGetGallery.LogOnViewModel model, string returnUrl, bool external) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.SignIn);
-            callInfo.RouteValueDictionary.Add("request", request);
+            callInfo.RouteValueDictionary.Add("model", model);
             callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
+            callInfo.RouteValueDictionary.Add("external", external);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult Register(NuGetGallery.RegisterRequest request, string returnUrl) {
+        public override System.Web.Mvc.ActionResult Register(NuGetGallery.LogOnViewModel model, string returnUrl, bool external) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Register);
-            callInfo.RouteValueDictionary.Add("request", request);
+            callInfo.RouteValueDictionary.Add("model", model);
             callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
+            callInfo.RouteValueDictionary.Add("external", external);
             return callInfo;
         }
 

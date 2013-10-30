@@ -133,6 +133,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Microsoft Account.
+        /// </summary>
+        public static string MicrosoftAccount_AccountNoun {
+            get {
+                return ResourceManager.GetString("MicrosoftAccount_AccountNoun", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sign in with a Microsoft Account.
         /// </summary>
         public static string MicrosoftAccount_SignInMessage {

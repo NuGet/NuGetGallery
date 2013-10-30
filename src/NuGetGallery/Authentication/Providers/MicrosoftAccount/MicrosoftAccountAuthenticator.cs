@@ -25,10 +25,9 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
 
         public override AuthenticatorUI GetUI()
         {
-            return new AuthenticatorUI()
-            {
-                SignInMessage = Strings.MicrosoftAccount_SignInMessage
-            };
+            return new AuthenticatorUI(
+                Strings.MicrosoftAccount_SignInMessage,
+                Strings.MicrosoftAccount_AccountNoun);
         }
 
         public override ActionResult Challenge(string redirectUrl)
