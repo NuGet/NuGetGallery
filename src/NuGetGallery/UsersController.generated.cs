@@ -41,6 +41,11 @@ namespace NuGetGallery {
         public System.Web.Mvc.ActionResult Profiles() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.Profiles);
         }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult ChangePassword() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.ChangePassword);
+        }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public UsersController Actions { get { return MVC.Users; } }
@@ -67,6 +72,7 @@ namespace NuGetGallery {
             public readonly string Confirm = "Confirm";
             public readonly string Profiles = "Profiles";
             public readonly string ChangeEmail = "ChangeEmail";
+            public readonly string ManageCredentials = "ManageCredentials";
             public readonly string ChangePassword = "ChangePassword";
             public readonly string PasswordChanged = "PasswordChanged";
         }
@@ -79,11 +85,11 @@ namespace NuGetGallery {
         public class ViewNames {
             public readonly string Account = "~/Views/Users/Account.cshtml";
             public readonly string ChangeEmail = "~/Views/Users/ChangeEmail.cshtml";
-            public readonly string ChangePassword = "~/Views/Users/ChangePassword.cshtml";
             public readonly string Confirm = "~/Views/Users/Confirm.cshtml";
             public readonly string ConfirmationRequired = "~/Views/Users/ConfirmationRequired.cshtml";
             public readonly string Edit = "~/Views/Users/Edit.cshtml";
             public readonly string ForgotPassword = "~/Views/Users/ForgotPassword.cshtml";
+            public readonly string ManageCredentials = "~/Views/Users/ManageCredentials.cshtml";
             public readonly string Packages = "~/Views/Users/Packages.cshtml";
             public readonly string PasswordChanged = "~/Views/Users/PasswordChanged.cshtml";
             public readonly string PasswordSent = "~/Views/Users/PasswordSent.cshtml";
@@ -191,12 +197,12 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ChangePassword() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ChangePassword);
+        public override System.Web.Mvc.ActionResult ManageCredentials() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ManageCredentials);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ChangePassword(NuGetGallery.PasswordChangeViewModel model) {
+        public override System.Web.Mvc.ActionResult ChangePassword(NuGetGallery.ManageCredentialsViewModel model) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ChangePassword);
             callInfo.RouteValueDictionary.Add("model", model);
             return callInfo;

@@ -50,5 +50,7 @@
         public const string PackageDisableLicenseReport = "DisableLicenseReport";
         public const string ExternalAuthentication = "ExternalAuthentication";
         public const string ExternalAuthenticationCallback = "ExternalAuthenticationCallback";
+        public const string RemoveCredential = "RemoveCredential";
+        public const string RemovePassword = "RemovePassword";
     }
 }

@@ -27,7 +27,11 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
         {
             return new AuthenticatorUI(
                 Strings.MicrosoftAccount_SignInMessage,
-                Strings.MicrosoftAccount_AccountNoun);
+                Strings.MicrosoftAccount_AccountNoun,
+                Strings.MicrosoftAccount_Caption)
+                {
+                    CssClass = "externallogin-microsoftaccount"
+                };
         }
 
         public override ActionResult Challenge(string redirectUrl)

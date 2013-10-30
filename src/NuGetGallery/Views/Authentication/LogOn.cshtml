@@ -54,15 +54,18 @@
     }
 
     @if(Model.External == null) {
+        <h2>Use an external account</h2>
+        <p>
+            You can also use an external account to log in to NuGet. If you already have an account, 
+            you'll have a chance to associate your external account with NuGet. If you don't have an
+            account, you'll have a chance to create one.
+        </p>
+        
         <ul id="signin-providerlist">
             @foreach (var provider in Model.Providers)
             {
-                <li class="signin-authprovider">
-                    <a class="signin-authprovider-link" href="@Url.Action("Authenticate", new { provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey] })">
-                        @if (provider.UI.LogoUrl != null)
-                        {
-                            <img class="signin-authprovider-logo" src="@provider.UI.LogoUrl.AbsoluteUri" alt="@provider.UI.SignInMessage" />
-                        }
+                <li class="signin-authprovider @provider.UI.CssClass">
+                    <a class="btn signin-authprovider-link" href="@Url.Action("Authenticate", new { provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey] })">
                         @provider.UI.SignInMessage
                     </a>
                 </li>

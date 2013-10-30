@@ -23,9 +23,19 @@ namespace NuGetGallery.Authentication
         public IDictionary<string, Authenticator> Authenticators { get; private set; }
         private IDiagnosticsSource Trace { get; set; }
 
-        protected AuthenticationService() { }
+        private readonly Dictionary<string, Func<string, string>> _credentialFormatters;
+
+        protected AuthenticationService()
+        {
+            _credentialFormatters = new Dictionary<string, Func<string, string>>(StringComparer.OrdinalIgnoreCase) {
+                { "password", _ => Strings.CredentialType_Password },
+                { "apikey", _ => Strings.CredentialType_ApiKey },
+                { "external", FormatExternalCredentialType }
+            };
+        }
 
         public AuthenticationService(IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics, IEnumerable<Authenticator> providers)
+            : this()
         {
             Entities = entities;
             Config = config;
@@ -198,18 +208,20 @@ namespace NuGetGallery.Authentication
             return false;
         }
 
-        public virtual bool ChangePassword(string username, string oldPassword, string newPassword)
+        public virtual bool ChangePassword(User user, string oldPassword, string newPassword)
         {
-            // Review: If the old password is hashed using something other than PBKDF2, we end up making an extra db call that changes the old hash password.
-            // This operation is rare enough that I'm not inclined to change it.
-            var authUser = Authenticate(username, oldPassword);
-            if (authUser == null)
+            var hasPassword = user.Credentials.Any(
+                c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
+            Credential _;
+            if (hasPassword && !ValidatePasswordCredential(user.Credentials, oldPassword, out _))
             {
+                // Invalid old password!
                 return false;
             }
 
+            // Replace/Set password credential
             var cred = CredentialBuilder.CreatePbkdf2Password(newPassword);
-            ReplaceCredentialInternal(authUser.User, cred);
+            ReplaceCredentialInternal(user, cred);
             Entities.SaveChanges();
             return true;
         }
@@ -291,6 +303,7 @@ namespace NuGetGallery.Authentication
                 return new AuthenticateExternalLoginResult();
             }
             var idClaim = result.Identity.FindFirst(ClaimTypes.NameIdentifier);
+            var nameClaim = result.Identity.FindFirst(ClaimTypes.Name);
 
             Authenticator auther;
             if (!Authenticators.TryGetValue(idClaim.Issuer, out auther))
@@ -303,8 +316,36 @@ namespace NuGetGallery.Authentication
                 Authentication = null,
                 ExternalIdentity = result.Identity,
                 Authenticator = auther,
-                Credential = CredentialBuilder.CreateExternalCredential(idClaim.Issuer, idClaim.Value)
+                Credential = CredentialBuilder.CreateExternalCredential(idClaim.Issuer, idClaim.Value, nameClaim.Value)
             };
+        }
+
+        public virtual CredentialViewModel DescribeCredential(Credential credential)
+        {
+            var kind = GetCredentialKind(credential.Type);
+            Authenticator auther = null;
+            if(kind == CredentialKind.External) {
+                string providerName = credential.Type.Split('.')[1];
+                if(!Authenticators.TryGetValue(providerName, out auther)) {
+                    auther = null;
+                }
+            }
+            return new CredentialViewModel()
+            {
+                Type = credential.Type,
+                TypeCaption = FormatCredentialType(credential.Type),
+                Identity = credential.Identity,
+                Value = kind == CredentialKind.Token ? credential.Value : String.Empty,
+                Kind = kind,
+                AuthUI = auther == null ? null : auther.GetUI()
+            };
+        }
+
+        public virtual void RemoveCredential(User user, Credential cred)
+        {
+            user.Credentials.Remove(cred);
+            Entities.Credentials.Remove(cred);
+            Entities.SaveChanges();
         }
 
         public static ClaimsIdentity CreateIdentity(User user, string authenticationType, params Claim[] additionalClaims)
@@ -347,6 +388,48 @@ namespace NuGetGallery.Authentication
             }
 
             user.Credentials.Add(credential);
+        }
+
+        private CredentialKind GetCredentialKind(string type)
+        {
+            if (type.StartsWith("apikey", StringComparison.OrdinalIgnoreCase))
+            {
+                return CredentialKind.Token;
+            }
+            else if (type.StartsWith("password", StringComparison.OrdinalIgnoreCase))
+            {
+                return CredentialKind.Password;
+            }
+            return CredentialKind.External;
+        }
+
+        private string FormatCredentialType(string credentialType)
+        {
+            string[] splitted = credentialType.Split('.');
+            if (splitted.Length < 2)
+            {
+                return credentialType;
+            }
+            string prefix = splitted[0];
+            string subtype = credentialType.Substring(splitted[0].Length + 1);
+
+            Func<string, string> formatter;
+            if (!_credentialFormatters.TryGetValue(prefix, out formatter))
+            {
+                return credentialType;
+            }
+            return formatter(subtype);
+        }
+
+        private string FormatExternalCredentialType(string externalType)
+        {
+            Authenticator auther;
+            if (!Authenticators.TryGetValue(externalType, out auther))
+            {
+                return externalType;
+            }
+            var ui = auther.GetUI();
+            return ui == null ? auther.Name : ui.Caption;
         }
 
         private Credential FindMatchingCredential(Credential credential)

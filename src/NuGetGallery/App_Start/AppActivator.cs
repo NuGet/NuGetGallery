@@ -106,7 +106,8 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(modernizrBundle);
 
             var stylesBundle = new StyleBundle("~/Content/css")
-                .Include("~/Content/site.css");
+                .Include("~/Content/site.css")
+                .Include("~/Content/font-awesome.css");
             BundleTable.Bundles.Add(stylesBundle);
 
         }

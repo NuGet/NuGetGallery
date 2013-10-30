@@ -146,22 +146,6 @@ namespace NuGetGallery
             return View(model);
         }
 
-        [Authorize]
-        [ValidateAntiForgeryToken]
-        [HttpPost]
-        public virtual ActionResult GenerateApiKey()
-        {
-            // Get the user
-            var user = GetCurrentUser();
-
-            // Generate an API Key
-            var apiKey = Guid.NewGuid();
-
-            // Add/Replace the API Key credential, and save to the database
-            AuthService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
-            return RedirectToAction(MVC.Users.Account());
-        }
-
         public virtual ActionResult ForgotPassword()
         {
             // We don't want Login to have us as a return URL
@@ -378,36 +362,116 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        public virtual ActionResult ChangePassword()
+        public virtual ActionResult ManageCredentials()
         {
-            return View();
+            return ManageCredentialsView(new ManageCredentialsViewModel());
         }
 
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult ChangePassword(PasswordChangeViewModel model)
+        public virtual ActionResult ChangePassword(ManageCredentialsViewModel model)
         {
-            if (!ModelState.IsValid)
+            var user = GetCurrentUser();
+
+            var oldPassword = user.Credentials.FirstOrDefault(
+                c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
+            
+            if(!ModelState.IsValidField("NewPassword") ||
+                (oldPassword != null && !ModelState.IsValidField("OldPassword")))
             {
-                return View(model);
+                return ManageCredentialsView(model);
             }
 
-            if (!AuthService.ChangePassword(User.Identity.Name, model.OldPassword, model.NewPassword))
+            if (!AuthService.ChangePassword(user, model.OldPassword, model.NewPassword))
             {
-                ModelState.AddModelError(
-                    "OldPassword",
-                    Strings.CurrentPasswordIncorrect);
-
-                return View(model);
+                ModelState.AddModelError("OldPassword", Strings.CurrentPasswordIncorrect);
+                return ManageCredentialsView(model);
             }
 
-            return RedirectToAction(MVC.Users.PasswordChanged());
+            TempData["Message"] = oldPassword == null ?
+                Strings.PasswordSet :
+                Strings.PasswordChanged;
+
+            return RedirectToAction("ManageCredentials");
         }
 
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public virtual ActionResult RemovePassword()
+        {
+            var user = GetCurrentUser();
+            var passwordCred = user.Credentials.SingleOrDefault(
+                c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
+
+            return RemoveCredential(user, passwordCred);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public virtual ActionResult RemoveCredential(string credentialType)
+        {
+            var user = GetCurrentUser();
+            var cred = user.Credentials.SingleOrDefault(
+                c => String.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase));
+            
+            return RemoveCredential(user, cred);
+        }
+
+        [Authorize]
         public virtual ActionResult PasswordChanged()
         {
             return View();
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual ActionResult GenerateApiKey()
+        {
+            // Get the user
+            var user = GetCurrentUser();
+
+            // Generate an API Key
+            var apiKey = Guid.NewGuid();
+
+            // Add/Replace the API Key credential, and save to the database
+            TempData["Message"] = Strings.ApiKeyReset;
+            AuthService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
+            return RedirectToAction("ManageCredentials");
+        }
+
+        private ActionResult RemoveCredential(User user, Credential cred)
+        {
+            // Count login credentials
+            if (CountLoginCredentials(user) <= 1)
+            {
+                TempData["Message"] = Strings.CannotRemoveOnlyLoginCredential;
+            }
+            else if (cred != null)
+            {
+                AuthService.RemoveCredential(user, cred);
+                TempData["Message"] = Strings.CredentialRemoved;
+            }
+            return RedirectToAction("ManageCredentials");
+        }
+
+        private ActionResult ManageCredentialsView(ManageCredentialsViewModel model)
+        {
+            var user = GetCurrentUser();
+            var creds = user.Credentials.Select(c => AuthService.DescribeCredential(c)).ToList();
+            model.UserConfirmed = user.Confirmed;
+            model.Credentials = creds;
+            return View("ManageCredentials", model);
+        }
+
+        private int CountLoginCredentials(User user)
+        {
+            return user.Credentials.Count(c =>
+                c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase) ||
+                c.Type.StartsWith(CredentialTypes.ExternalPrefix, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

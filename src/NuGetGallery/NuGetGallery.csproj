@@ -881,6 +881,10 @@
     <Compile Include="Migrations\201310301757446_RemoveOldCredentialColumns.Designer.cs">
       <DependentUpon>201310301757446_RemoveOldCredentialColumns.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201310301947399_AddCredentialDescriptionColumn.cs" />
+    <Compile Include="Migrations\201310301947399_AddCredentialDescriptionColumn.Designer.cs">
+      <DependentUpon>201310301947399_AddCredentialDescriptionColumn.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -959,6 +963,7 @@
     <Compile Include="ViewModels\AccountViewModel.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />
     <Compile Include="ViewModels\LogOnViewModel.cs" />
+    <Compile Include="ViewModels\ManageCredentialsViewModel.cs" />
     <Compile Include="ViewModels\StatisticsMonthlyUsageItem.cs" />
     <Compile Include="ViewModels\StatisticsNuGetUsageItem.cs" />
     <Compile Include="ViewModels\StatisticsFact.cs" />
@@ -985,7 +990,6 @@
     <Compile Include="Services\Extensions.cs" />
     <Compile Include="Services\IMessageService.cs" />
     <Compile Include="Services\MessageService.cs" />
-    <Compile Include="ViewModels\PasswordChangeViewModel.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
     <Compile Include="ViewModels\PasswordResetViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageOwnersViewModel.cs" />
@@ -1280,7 +1284,7 @@
     <Content Include="Views\Users\Account.cshtml" />
     <Content Include="Views\Users\Packages.cshtml" />
     <Content Include="App_Code\ViewHelpers.cshtml" />
-    <Content Include="Views\Users\ChangePassword.cshtml" />
+    <Content Include="Views\Users\ManageCredentials.cshtml" />
     <Content Include="Views\Users\PasswordChanged.cshtml" />
     <Content Include="Views\Users\ForgotPassword.cshtml" />
     <Content Include="Views\Users\PasswordSent.cshtml" />
@@ -1344,6 +1348,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201310301757446_RemoveOldCredentialColumns.resx">
       <DependentUpon>201310301757446_RemoveOldCredentialColumns.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201310301947399_AddCredentialDescriptionColumn.resx">
+      <DependentUpon>201310301947399_AddCredentialDescriptionColumn.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

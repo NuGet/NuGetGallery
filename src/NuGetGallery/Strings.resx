@@ -210,4 +210,31 @@
   <data name="MicrosoftAccount_AccountNoun" xml:space="preserve">
     <value>Microsoft Account</value>
   </data>
+  <data name="CredentialType_ApiKey" xml:space="preserve">
+    <value>API Key</value>
+  </data>
+  <data name="CredentialType_Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="MicrosoftAccount_Caption" xml:space="preserve">
+    <value>Microsoft Account</value>
+  </data>
+  <data name="ApiKeyReset" xml:space="preserve">
+    <value>Your API Key has been reset, check the new value below.</value>
+  </data>
+  <data name="CannotRemoveOnlyLoginCredential" xml:space="preserve">
+    <value>Oops! You can't remove the only credential that can be used to log in to the website!</value>
+  </data>
+  <data name="CredentialRemoved" xml:space="preserve">
+    <value>The external account has been removed</value>
+  </data>
+  <data name="PasswordChanged" xml:space="preserve">
+    <value>Your password has been changed</value>
+  </data>
+  <data name="PasswordRemoved" xml:space="preserve">
+    <value>Your password has been removed</value>
+  </data>
+  <data name="PasswordSet" xml:space="preserve">
+    <value>Your password has been set</value>
+  </data>
 </root>

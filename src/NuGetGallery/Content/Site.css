@@ -339,7 +339,8 @@ nav.main ul a:hover {
     border-radius: 0 4px 4px 0;
     cursor: pointer;
     height: 27px;
-    margin-left: 0;
+    margin: 0;
+    box-shadow: none;
     
     text-indent: -9999px;
     vertical-align: bottom;
@@ -614,14 +615,12 @@ hgroup.page-heading h2 { padding-left: 7px; }
 
 #generateKey { position: relative; }
 
-#generateKey h2 { font-size: 1.7em; }
+#generateKey h3 { font-size: 1.7em; }
 
 #generateKey #key {
     font-size: 1.7em;
     margin-bottom: 0;
 }
-
-#generateKey .form input[type="submit"] { width: auto; }
 
 /* Sequence Steps */
 
@@ -1502,7 +1501,19 @@ textarea + .field-validation-error {
 
 input:focus ~ .field-validation-error ~ .field-hint-message { display: none; }
 
-.form input[type="submit"] {
+a.btn {
+    color: white;
+    text-decoration: none;
+    padding: 5px;
+    display: inline-block;
+}
+
+a:hover.btn {
+    color: white;
+    text-decoration: none;
+}
+
+input[type="submit"], .btn {
     background-color: #4585aa;
     background-image: -ms-linear-gradient(top, #4585aa 0%, #376783 100%);
     background-image: -o-linear-gradient(top, #4585aa 0%, #376783 100%);
@@ -1516,10 +1527,10 @@ input:focus ~ .field-validation-error ~ .field-hint-message { display: none; }
     font-weight: 500;
     margin: 0 10px 0 0;
     text-decoration: none;
-    width: 100px;
+    width: auto;
 }
 
-.form input[type="submit"]:hover {
+input[type="submit"]:hover, .btn:hover {
     background-color: #307A25;
     background-image: -ms-linear-gradient(top, #307A25 0%, #2C9E1B 100%);
     background-image: -o-linear-gradient(top, #307A25 0%, #2C9E1B 100%);
@@ -1667,4 +1678,53 @@ form .async-upload-progress-advance
     clear: both;
     color: grey;
     font-size: 8pt;
+}
+
+
+/* External sign in/Manage Credentials */
+li.signin-authprovider {
+    font-size: 14pt;
+    list-style-type: none;
+    margin-left: -40px;
+    padding: 5px;
+    padding-left: 2px;
+}
+
+a.signin-authprovider-link {
+    width: 400px;
+}
+
+a.signin-authprovider-link:hover {
+    text-decoration: none;
+}
+
+li.externallogin-microsoftaccount a:before {
+    font-family: FontAwesome;
+    content: "\F17A";
+    font-size: 22pt;
+    margin: 0;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+ul#managecreds-external-list {
+    margin: 0;
+    padding: 5px;
+}
+
+li.managecreds-external-cred {
+    padding: 5px;
+    list-style-type: none;
+    border: solid 1px #376783;
+    box-shadow: inset 0px 0px 1px rgba(255, 255, 255, 1), 1px 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+div.managecreds-external-cred-caption {
+    font-size: 16pt;
+    margin-bottom: 1em;
+}
+
+div.managecreds-external-cred-id {
+    font-size: 12pt;
+    margin-left: 1em;
 }

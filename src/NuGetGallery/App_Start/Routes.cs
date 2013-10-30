@@ -150,6 +150,16 @@ namespace NuGetGallery
                 new { controller = MVC.Authentication.Name, action = "Register" });
 
             routes.MapRoute(
+                RouteName.RemovePassword,
+                "account/RemoveCredential/password",
+                new { controller = MVC.Users.Name, action = "RemovePassword" });
+
+            routes.MapRoute(
+                RouteName.RemoveCredential,
+                "account/RemoveCredential/{credentialType}",
+                new { controller = MVC.Users.Name, action = "RemoveCredential" });
+
+            routes.MapRoute(
                 RouteName.PasswordReset,
                 "account/{action}/{username}/{token}",
                 MVC.Users.ResetPassword());

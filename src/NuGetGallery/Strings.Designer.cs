@@ -79,11 +79,56 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your API Key has been reset, check the new value below..
+        /// </summary>
+        public static string ApiKeyReset {
+            get {
+                return ResourceManager.GetString("ApiKeyReset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You must confirm the email address for the account in order to use the API key..
         /// </summary>
         public static string ApiKeyUserAccountIsUnconfirmed {
             get {
                 return ResourceManager.GetString("ApiKeyUserAccountIsUnconfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Oops! You can&apos;t remove the only credential that can be used to log in to the website!.
+        /// </summary>
+        public static string CannotRemoveOnlyLoginCredential {
+            get {
+                return ResourceManager.GetString("CannotRemoveOnlyLoginCredential", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The external account has been removed.
+        /// </summary>
+        public static string CredentialRemoved {
+            get {
+                return ResourceManager.GetString("CredentialRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to API Key.
+        /// </summary>
+        public static string CredentialType_ApiKey {
+            get {
+                return ResourceManager.GetString("CredentialType_ApiKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password.
+        /// </summary>
+        public static string CredentialType_Password {
+            get {
+                return ResourceManager.GetString("CredentialType_Password", resourceCulture);
             }
         }
         
@@ -147,6 +192,15 @@ namespace NuGetGallery {
         public static string MicrosoftAccount_AccountNoun {
             get {
                 return ResourceManager.GetString("MicrosoftAccount_AccountNoun", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Microsoft Account.
+        /// </summary>
+        public static string MicrosoftAccount_Caption {
+            get {
+                return ResourceManager.GetString("MicrosoftAccount_Caption", resourceCulture);
             }
         }
         
@@ -241,11 +295,38 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your password has been changed.
+        /// </summary>
+        public static string PasswordChanged {
+            get {
+                return ResourceManager.GetString("PasswordChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Password credentials cannot be used with Authenticate(Credential). Use Authenticate(string, string) instead..
         /// </summary>
         public static string PasswordCredentialsCannotBeUsedHere {
             get {
                 return ResourceManager.GetString("PasswordCredentialsCannotBeUsedHere", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your password has been removed.
+        /// </summary>
+        public static string PasswordRemoved {
+            get {
+                return ResourceManager.GetString("PasswordRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your password has been set.
+        /// </summary>
+        public static string PasswordSet {
+            get {
+                return ResourceManager.GetString("PasswordSet", resourceCulture);
             }
         }
         
