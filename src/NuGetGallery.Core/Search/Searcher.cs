@@ -241,23 +241,113 @@ namespace NuGetGallery
             return array;
         }
 
+        private static JToken GetInt(IndexSearcher searcher, int doc, string name)
+        {
+            IFieldable field = searcher.Doc(doc).GetFieldable(name);
+            if (field != null)
+            {
+                string s = field.StringValue;
+                int i = 0;
+                if (int.TryParse(s, out i))
+                {
+                    return new JValue(i);
+                }
+            }
+            return null;
+        }
+
+        private static JToken GetBool(IndexSearcher searcher, int doc, string name)
+        {
+            string s = searcher.Doc(doc).Get(name);
+            if (s != null)
+            {
+                if (s == "0")
+                {
+                    return new JValue(false);
+                }
+                else if (s == "1")
+                {
+                    return new JValue(true);
+                }
+            }
+            return null;
+        }
+
+        private static JArray GetMultiValue(IndexSearcher searcher, int doc, string name)
+        {
+            string[] values = searcher.Doc(doc).GetValues(name);
+            JArray result = new JArray(values);
+            return result;
+        }
+
+        private static HashSet<string> _fieldNames = new HashSet<string>(new string[] { 
+            "IdTerms",
+            "TokenizedIdTerms",
+            "VersionTerms",
+            "TitleTerms",
+            "TagsTerms",
+            "DescriptionTerms",
+            "AuthorsTerms",
+            "OwnersTerms",
+            "PublishedDate",
+            "EditedDate",
+            "DisplayName",
+            "IsLatest",
+            "IsLatestStable",
+            "CuratedFeed",
+            "Key",
+            "Rank"
+        });
+
+        private static bool IsProjectGuid(string name)
+        {
+            return !_fieldNames.Contains(name);
+        }
+
+        private static JArray GetProjectGuidRankings(IndexSearcher searcher, int doc)
+        {
+            JArray result = new JArray();
+            Document document = searcher.Doc(doc);
+            foreach (IFieldable fieldable in document.GetFields())
+            {
+                if (IsProjectGuid(fieldable.Name))
+                {
+                    int rank = 0;
+                    int.TryParse(fieldable.StringValue, out rank);
+                    result.Add(new JObject { { fieldable.Name, new JValue(rank) } });
+                }
+            }
+            return result;
+        }
+
         private static string AddExplanation(IndexSearcher searcher, string data, Query query, ScoreDoc scoreDoc)
         {
             Explanation explanation = searcher.Explain(query, scoreDoc.Doc);
 
+            JObject diagnostics = new JObject();
+
+            diagnostics.Add("Rank", GetInt(searcher, scoreDoc.Doc, "Rank"));
+            diagnostics.Add("Score", scoreDoc.Score.ToString());
+            diagnostics.Add("Explanation", explanation.ToString());
+
+            diagnostics.Add("IdTerms", GetTerms(searcher, scoreDoc.Doc, "Id"));
+            diagnostics.Add("TokenizedIdTerms", GetTerms(searcher, scoreDoc.Doc, "TokenizedId"));
+            diagnostics.Add("VersionTerms", GetTerms(searcher, scoreDoc.Doc, "Version"));
+            diagnostics.Add("TitleTerms", GetTerms(searcher, scoreDoc.Doc, "Title"));
+            diagnostics.Add("TagsTerms", GetTerms(searcher, scoreDoc.Doc, "Tags"));
+            diagnostics.Add("DescriptionTerms", GetTerms(searcher, scoreDoc.Doc, "Description"));
+            diagnostics.Add("AuthorsTerms", GetTerms(searcher, scoreDoc.Doc, "Authors"));
+            diagnostics.Add("OwnersTerms", GetTerms(searcher, scoreDoc.Doc, "Owners"));
+
+            diagnostics.Add("PublishedDate", GetInt(searcher, scoreDoc.Doc, "PublishedDate"));
+            diagnostics.Add("EditedDate", GetInt(searcher, scoreDoc.Doc, "EditedDate"));
+
+            diagnostics.Add("CuratedFeed", GetMultiValue(searcher, scoreDoc.Doc, "CuratedFeed"));
+            diagnostics.Add("Key", GetInt(searcher, scoreDoc.Doc, "Key"));
+            diagnostics.Add("ProjectGuidRankings", GetProjectGuidRankings(searcher, scoreDoc.Doc));
+
             JObject obj = JObject.Parse(data);
-            obj.Add("Score", scoreDoc.Score.ToString());
-            obj.Add("Explanation", explanation.ToString());
-
-            obj.Add("IdTerms", GetTerms(searcher, scoreDoc.Doc, "Id"));
-            obj.Add("TokenizedIdTerms", GetTerms(searcher, scoreDoc.Doc, "TokenizedId"));
-            obj.Add("VersionTerms", GetTerms(searcher, scoreDoc.Doc, "Version"));
-            obj.Add("TitleTerms", GetTerms(searcher, scoreDoc.Doc, "Title"));
-            obj.Add("TagsTerms", GetTerms(searcher, scoreDoc.Doc, "Tags"));
-            obj.Add("DescriptionTerms", GetTerms(searcher, scoreDoc.Doc, "Description"));
-            obj.Add("AuthorsTerms", GetTerms(searcher, scoreDoc.Doc, "Authors"));
-            obj.Add("OwnersTerms", GetTerms(searcher, scoreDoc.Doc, "Owners"));
-
+            obj.Add("diagnostics", diagnostics);
             data = obj.ToString();
 
             return data;

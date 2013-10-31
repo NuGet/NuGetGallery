@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery.Operations.Tasks.Search
 {
+    [Command("indexpackageadds", "Index Package Adds Task", AltName = "indexadds")]
     public class IndexPackageAddsTask : IndexTask
     {
         [Option("When using blob storage force unlock the index for write", AltName = "force")]
@@ -19,7 +20,7 @@ namespace NuGetGallery.Operations.Tasks.Search
 
         public override void ExecuteCommand()
         {
-            if (Force && StorageAccount != null && Container != null)
+            if (Force && StorageAccount != null && !string.IsNullOrEmpty(Container))
             {
                 AzureDirectoryManagement.ForceUnlockAzureDirectory(StorageAccount, Container);
             }

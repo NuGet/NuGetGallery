@@ -348,7 +348,8 @@ namespace NuGetGallery
             {
                 foreach (string feed in feeds)
                 {
-                    Add(doc, "CuratedFeed", feed, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+                    //  Store this to aid with debugging
+                    Add(doc, "CuratedFeed", feed, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
                 }
             }
 
@@ -370,18 +371,9 @@ namespace NuGetGallery
 
             doc.Add(new NumericField("Key", Field.Store.YES, true).SetIntValue(package.Key));
 
-            //  Data we wnat to store in index - these cannot be queried
+            //  Data we want to store in index - these cannot be queried
 
             JObject obj = PackageJson.ToJson(package);
-
-            //  add these to help with debugging boosting
-
-            obj.Add("Rank", rank);
-            foreach (KeyValuePair<string, int> item in projectTypeRankings)
-            {
-                obj.Add(item.Key, item.Value);
-            }
-
             string data = obj.ToString();
 
             Add(doc, "Data", data, Field.Store.YES, Field.Index.NO, Field.TermVector.NO);

@@ -3,6 +3,7 @@ using Lucene.Net.Store.Azure;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
 using NuGetGallery;
+using System.Collections.Generic;
 using System.IO;
 using System.Web;
 using System.Web.Configuration;
@@ -104,6 +105,18 @@ namespace SearchService.Controllers
             InitializeSearcherManager();
 
             return MakeResponse(IndexAnalyzer.Analyze(_searcherManager));
+        }
+
+        //
+        // GET: /fields
+
+        [ActionName("Fields")]
+        [HttpGet]
+        public virtual ActionResult Fields()
+        {
+            InitializeSearcherManager();
+
+            return MakeResponse(IndexAnalyzer.GetDistinctStoredFieldNames(_searcherManager));
         }
 
         //

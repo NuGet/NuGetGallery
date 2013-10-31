@@ -56,6 +56,10 @@
                 <a href="rangeQuery">Range Query</a>
 
                 &nbsp;&nbsp;
+
+                <a href="storedFields">Stored Fields</a>
+
+                &nbsp;&nbsp;
             </p>
         </div>
     </div>
@@ -112,6 +116,19 @@
             return html;
         }
 
+        var displayArray = function (array) {
+            if (array === undefined || array === null) {
+                return '';
+            }
+            var html = '';
+            for (var i = 0; i < array.length; i += 1) {
+                html += '<p>';
+                html += JSON.stringify(array[i]);
+                html += '</p>';
+            }
+            return html;
+        }
+
         var displayExplanation = function (data, i) {
 
             var html = '';
@@ -119,20 +136,32 @@
             html += '<div class="explanation">'
             html += '<div style="margin-left:20px">';
             html += '<p>';
-            html += '<span style="color:black">Rank:</span>';
-            html += ' <span style="color:green;font-weight:bold">' + data[i].Rank + '</span>';
+            html += ' <span style="color:black">Rank:</span>';
+            html += ' <span style="color:green;font-weight:bold">' + data[i].diagnostics.Rank + '</span>';
             html += ' <span style="color:black">Score:</span>';
-            html += ' <span style="color:green;font-weight:bold">' + data[i].Score + '</span>';
+            html += ' <span style="color:green;font-weight:bold">' + data[i].diagnostics.Score + '</span>';
             html += '</p>';
-            html += '<p><span class="term-name">Id:</span> <span class="term-value">' + JSON.stringify(data[i].IdTerms) + '</span></p>';
-            html += '<p><span class="term-name">TokenizedId:</span> <span class="term-value">' + JSON.stringify(data[i].TokenizedIdTerms) + '</span></p>';
-            html += '<p><span class="term-name">Version:</span> <span class="term-value">' + JSON.stringify(data[i].VersionTerms) + '</span></p>';
-            html += '<p><span class="term-name">Title:</span> <span class="term-value">' + JSON.stringify(data[i].TitleTerms) + '</span></p>';
-            html += '<p><span class="term-name">Description:</span> <span class="term-value">' + JSON.stringify(data[i].DescriptionTerms) + '</span></p>';
-            html += '<p><span class="term-name">Authors:</span> <span class="term-value">' + JSON.stringify(data[i].AuthorsTerms) + '</span></p>';
-            html += '<p><span class="term-name">Owners:</span> <span class="term-value">' + JSON.stringify(data[i].OwnersTerms) + '</span></p>';
-            html += '<p><span class="term-name">Tags:</span> <span class="term-value">' + JSON.stringify(data[i].TagsTerms) + '</span></p>';
-            html += '<pre style="color:blue">' + data[i].Explanation + '</pre>';
+
+            html += '<p><em><b>Analyzed Fields</b></em></p>';
+
+            html += '<p><span class="term-name">Id:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.IdTerms) + '</span></p>';
+            html += '<p><span class="term-name">TokenizedId:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.TokenizedIdTerms) + '</span></p>';
+            html += '<p><span class="term-name">Version:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.VersionTerms) + '</span></p>';
+            html += '<p><span class="term-name">Title:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.TitleTerms) + '</span></p>';
+            html += '<p><span class="term-name">Description:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.DescriptionTerms) + '</span></p>';
+            html += '<p><span class="term-name">Authors:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.AuthorsTerms) + '</span></p>';
+            html += '<p><span class="term-name">Owners:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.OwnersTerms) + '</span></p>';
+            html += '<p><span class="term-name">Tags:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.TagsTerms) + '</span></p>';
+
+            html += '<p><em><b>Non-Analyzed Fields</b></em></p>';
+
+            html += '<p><span class="term-name">PublishedDate:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.PublishedDate) + '</span></p>';
+            html += '<p><span class="term-name">EditedDate:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.EditedDate) + '</span></p>';
+            html += '<p><span class="term-name">CuratedFeed:</span> <div class="term-value">' + displayArray(data[i].diagnostics.CuratedFeed) + '</div></p>';
+            html += '<p><span class="term-name">Key:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.Key) + '</span></p>';
+            html += '<p><span class="term-name">ProjectGuidRankings:</span> <div class="term-value">' + displayArray(data[i].diagnostics.ProjectGuidRankings) + '</div></p>';
+
+            html += '<pre style="color:blue">' + data[i].diagnostics.Explanation + '</pre>';
             html += '</div>';
             html += '</div>';
 

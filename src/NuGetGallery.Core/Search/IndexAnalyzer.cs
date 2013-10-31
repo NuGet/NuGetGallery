@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Index;
+﻿using Lucene.Net.Documents;
+using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Newtonsoft.Json.Linq;
 using System;
@@ -48,6 +49,48 @@ namespace NuGetGallery
                 report.Add("Segments", segments);
 
                 return report.ToString();
+            }
+            finally
+            {
+                searcherManager.Release(searcher);
+            }
+        }
+
+        public static string GetDistinctStoredFieldNames(PackageSearcherManager searcherManager)
+        {
+            if ((DateTime.UtcNow - searcherManager.WarmTimeStampUtc) > TimeSpan.FromMinutes(1))
+            {
+                searcherManager.MaybeReopen();
+            }
+
+            IndexSearcher searcher = searcherManager.Get();
+
+            try
+            {
+                IndexReader indexReader = searcher.IndexReader;
+
+                HashSet<string> distinctFieldNames = new HashSet<string>();
+
+                for (int i = 0; i < indexReader.MaxDoc; i++)
+                {
+                    if (!indexReader.IsDeleted(i))
+                    {
+                        Document document = indexReader.Document(i);
+                        IList<IFieldable> fields = document.GetFields();
+                        foreach (IFieldable field in fields)
+                        {
+                            distinctFieldNames.Add(field.Name);
+                        }
+                    }
+                }
+
+                JArray array = new JArray();
+                foreach (string fieldName in distinctFieldNames)
+                {
+                    array.Add(fieldName);
+                }
+
+                return array.ToString();
             }
             finally
             {
