@@ -2,6 +2,11 @@
 /// <reference path="jquery-1.6.4.js" />
 (function (window, $, undefined) {
     function attachSearchBoxBehavior($input, $menu) {
+        if ($input.length == 0 || $menu.length == 0) {
+            // If we were given nothing, just return.
+            return;
+        }
+
         // Remember the previous state in order to perform smooth animation transforms
         var prevstate = false;
         function popit(assumeFocused) {
@@ -72,7 +77,7 @@
         // Get the service status
         checkServiceStatus();
 
-        attachSearchBoxBehavior($('#searchBoxInput'), $('#menu'));
+        attachSearchBoxBehavior($('#searchBoxInput.expanding-search'), $('#menu.expanding-search'));
     });
 
 	// Add validator that ensures provided value is NOT equal to a specified value.
