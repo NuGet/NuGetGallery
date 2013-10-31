@@ -1059,7 +1059,7 @@ namespace NuGetGallery
 
                 Assert.DoesNotThrow(() => service.FindPackageByIdAndVersion("theId", "1.0.42"));
 
-                // Nothing to assert because it's too damn complicated to test the actual LINQ expression.
+                // Nothing to assert because it's too complicated to test the actual LINQ expression.
                 // What we're testing via the throw above is that it didn't load the registration and get the latest version.
             }
 
