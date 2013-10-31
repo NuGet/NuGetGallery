@@ -1,0 +1,59 @@
+﻿@{
+    ViewBag.Title = "StoredFields";
+}
+
+<h2>StoredFields</h2>
+
+<p>
+    Get the stored field names.
+    <button id="go">Go</button>
+</p>
+
+<div id ="results-div" style="clear:both">
+    <em>Result Go Here</em>
+</div>
+
+<script>
+
+    var displayArray = function (array) {
+        if (array === undefined || array === null) {
+            return '';
+        }
+        var html = '';
+        for (var i = 0; i < array.length; i += 1) {
+            html += '<p>';
+            html += JSON.stringify(array[i]);
+            html += '</p>';
+        }
+        return html;
+    }
+
+    var updateResultsDiv = function (fields) {
+        var html = '';
+        html += '<b>Found ' + fields.length + ' distinct stored fields</b>';
+        html += displayArray(fields);
+        $('#results-div').html(html);
+    }
+
+    var go = function (e) {
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        $('#results-div').html('<em>fetching results</em>');
+
+        $.get('fields', function (data, status) {
+
+            if (status === 'success') {
+
+                updateResultsDiv(data);
+            }
+        });
+    }
+
+    $(document).ready(function () {
+
+        $('#go').click(go);
+    });
+
+</script>

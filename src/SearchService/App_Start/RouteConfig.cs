@@ -33,6 +33,13 @@ namespace SearchService
             );
 
             routes.MapRoute(
+                name: "Fields",
+                url: "fields",
+                defaults: new { controller = "Api", action = "Fields" },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") }
+            );
+
+            routes.MapRoute(
                 name: "Where",
                 url: "where",
                 defaults: new { controller = "Api", action = "Where" },
@@ -49,6 +56,12 @@ namespace SearchService
                 name: "RangeQuery",
                 url: "rangeQuery",
                 defaults: new { controller = "Home", action = "RangeQuery", id = UrlParameter.Optional }
+            );
+
+            routes.MapRoute(
+                name: "StoredFields",
+                url: "storedFields",
+                defaults: new { controller = "Home", action = "StoredFields", id = UrlParameter.Optional }
             );
 
             routes.MapRoute(

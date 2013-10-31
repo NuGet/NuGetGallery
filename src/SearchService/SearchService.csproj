@@ -249,6 +249,7 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Home\Segments.cshtml" />
     <Content Include="Views\Home\RangeQuery.cshtml" />
+    <Content Include="Views\Home\StoredFields.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery.Operations.Tasks.Search
 {
+    [Command("indexpackageupdates", "Index Package Updates Task", AltName = "indexupdates")]
     public class IndexPackageUpdatesTask : IndexTask
     {
         public override void ExecuteCommand()

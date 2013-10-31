@@ -53,11 +53,11 @@ namespace NuGetGallery.Operations.Tasks.Search
         {
             Lucene.Net.Store.Directory directory = null;
 
-            if (string.IsNullOrEmpty(Container))
+            if (!string.IsNullOrEmpty(Container))
             {
                 directory = new AzureDirectory(StorageAccount, Container, new RAMDirectory());
             }
-            else if (string.IsNullOrEmpty(Folder))
+            else if (!string.IsNullOrEmpty(Folder))
             {
                 directory = new SimpleFSDirectory(new DirectoryInfo(Folder));
             }

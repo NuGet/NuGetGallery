@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery.Operations.Tasks.Search
 {
+    [Command("indexpackagedeletes", "Index Package Deletes Task", AltName = "indexdeletes")]
     public class IndexPackageDeletesTask : IndexTask
     {
         public override void ExecuteCommand()

@@ -31,5 +31,13 @@ namespace SearchService.Controllers
         {
             return View();
         }
+
+        //
+        // GET: /StoredFields/
+
+        public ActionResult StoredFields()
+        {
+            return View();
+        }
     }
 }
