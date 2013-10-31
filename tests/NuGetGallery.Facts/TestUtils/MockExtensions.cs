@@ -3,6 +3,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Moq;
+using NuGetGallery.Authentication;
+using System;
+using Xunit;
 
 namespace NuGetGallery
 {
@@ -46,6 +49,12 @@ namespace NuGetGallery
             return self.Setup(e => e.GetAll()).Returns(fakeData.AsQueryable());
         }
 
+        public static void VerifyCommitChanges(this IEntitiesContext self)
+        {
+            FakeEntitiesContext context = Assert.IsAssignableFrom<FakeEntitiesContext>(self);
+            context.VerifyCommitChanges();
+        }
+
         public static void VerifyCommitted<T>(this Mock<IEntityRepository<T>> self)
             where T : class, IEntity, new()
         {
@@ -55,6 +64,14 @@ namespace NuGetGallery
         public static void VerifyCommitted(this Mock<IEntitiesContext> self)
         {
             self.Verify(e => e.SaveChanges());
+        }
+
+        public static IReturnsResult<AuthenticationService> SetupAuth(this Mock<AuthenticationService> self, Credential cred, User user)
+        {
+            return self.Setup(us => us.Authenticate(It.Is<Credential>(c =>
+                String.Equals(c.Type, cred.Type, StringComparison.OrdinalIgnoreCase) &&
+                String.Equals(c.Value, cred.Value, StringComparison.Ordinal))))
+                .Returns(user == null ? null : new AuthenticatedUser(user, cred));
         }
     }
 }

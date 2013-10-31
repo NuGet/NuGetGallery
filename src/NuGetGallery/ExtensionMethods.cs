@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Net.Mail;
 using System.Runtime.Versioning;
 using System.Security;
+using System.Security.Claims;
 using System.Security.Principal;
 using System.ServiceModel.Activation;
 using System.Text;
@@ -71,6 +72,16 @@ namespace NuGetGallery
             }
 
             return obj.ToString();
+        }
+
+        public static string ToEncodedUrlStringOrNull(this Uri uri)
+        {
+            if (uri == null)
+            {
+                return null;
+            }
+
+            return uri.AbsoluteUri;
         }
 
         public static string ToStringSafe(this object obj)
@@ -305,6 +316,24 @@ namespace NuGetGallery
                 }
             }
             return sb.ToString();
+        }
+
+        public static string GetClaimOrDefault(this ClaimsPrincipal self, string claimType)
+        {
+            return self.Claims.GetClaimOrDefault(claimType);
+        }
+
+        public static string GetClaimOrDefault(this ClaimsIdentity self, string claimType)
+        {
+            return self.Claims.GetClaimOrDefault(claimType);
+        }
+
+        public static string GetClaimOrDefault(this IEnumerable<Claim> self, string claimType)
+        {
+            return self
+                .Where(c => String.Equals(c.Type, claimType, StringComparison.OrdinalIgnoreCase))
+                .Select(c => c.Value)
+                .FirstOrDefault();
         }
     }
 }

@@ -1204,7 +1204,7 @@ namespace NuGetGallery
             {
                 var owner = new User { Username = "someone" };
                 var packageRegistration = new PackageRegistration { Id = "theId", Owners = { owner } };
-                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true };
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false, IsLatest = false, IsLatestStable = false };
                 packageRegistration.Packages.Add(package);
 
                 var context = GetFakeContext();

@@ -30,6 +30,7 @@ namespace NuGetGallery
         public IDbSet<CuratedFeed> CuratedFeeds { get; set; }
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
+        public IDbSet<Credential> Credentials { get; set; }
         public IDbSet<User> Users { get; set; }
 
         IDbSet<T> IEntitiesContext.Set<T>()

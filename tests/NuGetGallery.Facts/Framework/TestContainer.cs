@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Microsoft.Owin;
 using Moq;
 using Ninject;
 using Ninject.Modules;
@@ -17,14 +18,19 @@ namespace NuGetGallery.Framework
     {
         public IKernel Kernel { get; private set; }
 
-        protected TestContainer()
+        public TestContainer() : this(UnitTestBindings.CreateContainer(autoMock: true)) { }
+        protected TestContainer(IKernel kernel)
         {
             // Initialize the container
-            Kernel = UnitTestBindings.CreateContainer();
+            Kernel = kernel;
         }
 
         protected TController GetController<TController>() where TController : Controller
         {
+            if (!Kernel.GetBindings(typeof(TController)).Any())
+            {
+                Kernel.Bind<TController>().ToSelf();
+            }
             var c = Kernel.Get<TController>();
             c.ControllerContext = new ControllerContext(
                 new RequestContext(Kernel.Get<HttpContextBase>(), new RouteData()), c);
@@ -32,6 +38,12 @@ namespace NuGetGallery.Framework
             var routeCollection = new RouteCollection();
             Routes.RegisterRoutes(routeCollection);
             c.Url = new UrlHelper(c.ControllerContext.RequestContext, routeCollection);
+
+            var appCtrl = c as AppController;
+            if (appCtrl != null)
+            {
+                appCtrl.OwinContext = Kernel.Get<IOwinContext>();
+            }
             
             return c;
         }
@@ -64,6 +76,10 @@ namespace NuGetGallery.Framework
 
         protected Mock<T> GetMock<T>() where T : class
         {
+            if (!Kernel.GetBindings(typeof(T)).Any())
+            {
+                Kernel.Bind<T>().ToConstant((new Mock<T>() { CallBase = true }).Object);
+            }
             T instance = Kernel.Get<T>();
             return Mock.Get(instance);
         }
