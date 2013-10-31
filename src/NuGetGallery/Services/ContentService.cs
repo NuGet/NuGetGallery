@@ -65,10 +65,10 @@ namespace NuGetGallery
                 ContentItem item = null;
                 if (ContentCache.TryGetValue(name, out item) && DateTime.UtcNow < item.ExpiryUtc)
                 {
-                    Trace.Information("Cache Valid. Expires at: " + item.ExpiryUtc.ToString());
+                    Trace.Verbose("Cache Valid. Expires at: " + item.ExpiryUtc.ToString());
                     return item.Content;
                 }
-                Trace.Information("Cache Expired.");
+                Trace.Verbose("Cache Expired.");
 
                 // Get the file from the content service
                 string fileName = name + ContentFileExtension;
@@ -85,26 +85,26 @@ namespace NuGetGallery
                 HtmlString result = new HtmlString(String.Empty);
                 if (reference == null)
                 {
-                    Trace.Error("Requested Content File Not Found: " + fileName);
+                    Trace.Verbose("Requested Content File Not Found: " + fileName);
                 }
                 else
                 {
                     // Check the content ID to see if it's different
                     if (item != null && String.Equals(item.ContentId, reference.ContentId, StringComparison.Ordinal))
                     {
-                        Trace.Information("No change to content item. Using Cache");
+                        Trace.Verbose("No change to content item. Using Cache");
                         // No change, just use the cache.
                         result = item.Content;
                     }
                     else
                     {
                         // Process the file
-                        Trace.Information("Content Item changed. Updating...");
+                        Trace.Verbose("Content Item changed. Updating...");
                         using (var stream = reference.OpenRead())
                         {
                             if (stream == null)
                             {
-                                Trace.Error("Requested Content File Not Found: " + fileName);
+                                Trace.Verbose("Requested Content File Not Found: " + fileName);
                                 reference = null;
                             }
                             else
