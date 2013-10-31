@@ -420,7 +420,6 @@ namespace NuGetGallery
             return RemoveCredential(user, cred);
         }
 
-        [Authorize]
         public virtual ActionResult PasswordChanged()
         {
             return View();
