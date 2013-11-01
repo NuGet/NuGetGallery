@@ -149,5 +149,18 @@ var drawMonthlyDownloadsLineChart = function () {
         .datum(data)
         .attr("class", "line")
         .attr("d", line);
+
+    var formatDownloads = d3.format(',');
+
+    svg.selectAll('.point')
+        .data(data)
+        .enter()
+        .append("svg:circle")
+        .attr("class", "line-graph-dot")
+        .attr("cx", function (d) { return xScale(d.month); })
+        .attr("cy", function (d) { return yScale(d.downloads); })
+        .attr("r", 5)
+        .append("title")
+            .text(function (d) { return formatDownloads(d.downloads); });
 }
 

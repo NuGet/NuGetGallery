@@ -223,6 +223,12 @@ namespace NuGetGallery
             Bind<IFileStorageService>()
                 .To<FileSystemFileStorageService>()
                 .InSingletonScope();
+
+            // Ninject is doing some weird things with constructor selection without these.
+            // Anyone requesting an IReportService or IStatisticsService should be prepared
+            // to receive null anyway.
+            Bind<IReportService>().ToConstant(NullReportService.Instance);
+            Bind<IStatisticsService>().ToConstant(NullStatisticsService.Instance);
         }
 
         private void ConfigureForAzureStorage(ConfigurationService configuration)

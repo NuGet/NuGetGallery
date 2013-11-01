@@ -17,10 +17,7 @@ namespace NuGetGallery
 
         public static Credential CreateV1ApiKey(Guid apiKey)
         {
-            var value = apiKey
-                .ToString()
-                .ToLowerInvariant();
-            return new Credential(CredentialTypes.ApiKeyV1, value);
+            return CreateV1ApiKey(apiKey.ToString());
         }
 
         public static Credential CreatePbkdf2Password(string plaintextPassword)
@@ -35,6 +32,11 @@ namespace NuGetGallery
             return new Credential(
                 CredentialTypes.Password.Sha1,
                 CryptographyService.GenerateSaltedHash(plaintextPassword, Constants.Sha1HashAlgorithmId));
+        }
+
+        internal static Credential CreateV1ApiKey(string apiKey)
+        {
+            return new Credential(CredentialTypes.ApiKeyV1, apiKey.ToLowerInvariant());
         }
     }
 }

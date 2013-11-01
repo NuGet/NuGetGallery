@@ -7,10 +7,12 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using System.Web.UI;
 using Newtonsoft.Json.Linq;
 using NuGet;
+using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
 
@@ -26,7 +28,7 @@ namespace NuGetGallery
         public IStatisticsService StatisticsService { get; set; }
         public IContentService ContentService { get; set; }
         public IIndexingService IndexingService { get; set; }
-
+        
         protected ApiController() { }
 
         public ApiController(
@@ -62,8 +64,8 @@ namespace NuGetGallery
             StatisticsService = statisticsService;
         }
 
-        [ActionName("GetPackageApi")]
         [HttpGet]
+        [ActionName("GetPackageApi")]
         public virtual async Task<ActionResult> GetPackage(string id, string version)
         {
             // some security paranoia about URL hacking somehow creating e.g. open redirects
@@ -122,21 +124,21 @@ namespace NuGetGallery
                 catch (SqlException e)
                 {
                     // Log the error and continue
-                    QuietlyLogException(e);
+                    QuietLog.LogHandledException(e);
                 }
                 catch (DataException e)
                 {
                     // Log the error and continue
-                    QuietlyLogException(e);
+                    QuietLog.LogHandledException(e);
                 }
             }
             catch (SqlException e)
             {
-                QuietlyLogException(e);
+                QuietLog.LogHandledException(e);
             }
             catch (DataException e)
             {
-                QuietlyLogException(e);
+                QuietLog.LogHandledException(e);
             }
             
             // Fall back to constructing the URL based on the package version and ID.
@@ -160,9 +162,10 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        [RequireSsl]
+        [ApiAuthorize]
         [ActionName("VerifyPackageKeyApi")]
-        [ApiKeyAuthorize]
-        public virtual ActionResult VerifyPackageKey(string apiKey, string id, string version)
+        public virtual ActionResult VerifyPackageKey(string id, string version)
         {
             if (!String.IsNullOrEmpty(id))
             {
@@ -174,10 +177,10 @@ namespace NuGetGallery
                         HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
                 }
 
-                var user = GetUserByApiKey(apiKey);
-                if (user == null || !package.IsOwner(user))
+                var user = GetCurrentUser();
+                if (!package.IsOwner(user))
                 {
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
                 }
             }
 
@@ -185,27 +188,28 @@ namespace NuGetGallery
         }
 
         [HttpPut]
+        [RequireSsl]
+        [ApiAuthorize]
         [ActionName("PushPackageApi")]
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorize]
-        public virtual Task<ActionResult> CreatePackagePut(string apiKey)
+        public virtual Task<ActionResult> CreatePackagePut()
         {
-            var user = GetUserByApiKey(apiKey);
-            return CreatePackageInternal(user);
+            return CreatePackageInternal();
         }
 
         [HttpPost]
+        [RequireSsl]
+        [ApiAuthorize]
         [ActionName("PushPackageApi")]
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorize]
-        public virtual Task<ActionResult> CreatePackagePost(string apiKey)
+        public virtual Task<ActionResult> CreatePackagePost()
         {
-            var user = GetUserByApiKey(apiKey);
-            return CreatePackageInternal(user);
+            return CreatePackageInternal();
         }
 
-        private async Task<ActionResult> CreatePackageInternal(User user)
+        private async Task<ActionResult> CreatePackageInternal()
         {
+            // Get the user
+            var user = GetCurrentUser();
+
             using (var packageToPush = ReadPackageFromRequest())
             {
                 // Ensure that the user can push packages for this partialId.
@@ -254,10 +258,10 @@ namespace NuGetGallery
         }
 
         [HttpDelete]
+        [RequireSsl]
+        [ApiAuthorize]
         [ActionName("DeletePackageApi")]
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorize]
-        public virtual ActionResult DeletePackage(string apiKey, string id, string version)
+        public virtual ActionResult DeletePackage(string id, string version)
         {
             var package = PackageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -266,17 +270,11 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            User user = GetUserByApiKey(apiKey);
-            if (user == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
-            }
-
+            var user = GetCurrentUser();
             if (!package.IsOwner(user))
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
+                    HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
 
             PackageService.MarkPackageUnlisted(package);
@@ -285,10 +283,10 @@ namespace NuGetGallery
         }
 
         [HttpPost]
+        [RequireSsl]
+        [ApiAuthorize]
         [ActionName("PublishPackageApi")]
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorize]
-        public virtual ActionResult PublishPackage(string apiKey, string id, string version)
+        public virtual ActionResult PublishPackage(string id, string version)
         {
             var package = PackageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -297,13 +295,7 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            User user = GetUserByApiKey(apiKey);
-            if (user == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
-            }
-
+            User user = GetCurrentUser();
             if (!package.IsOwner(user))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
@@ -354,8 +346,8 @@ namespace NuGetGallery
             return new Nupkg(stream, leaveOpen: false);
         }
 
-        [ActionName("PackageIDs")]
         [HttpGet]
+        [ActionName("PackageIDs")]
         public virtual ActionResult GetPackageIds(string partialId, bool? includePrerelease)
         {
             var query = GetService<IPackageIdsQuery>();
@@ -366,8 +358,8 @@ namespace NuGetGallery
                 };
         }
 
-        [ActionName("PackageVersions")]
         [HttpGet]
+        [ActionName("PackageVersions")]
         public virtual ActionResult GetPackageVersions(string id, bool? includePrerelease)
         {
             var query = GetService<IPackageVersionsQuery>();
@@ -378,79 +370,47 @@ namespace NuGetGallery
                 };
         }
 
-        [ActionName("StatisticsDownloadsApi")]
         [HttpGet]
+        [ActionName("StatisticsDownloadsApi")]
         public virtual async Task<ActionResult> GetStatsDownloads(int? count)
         {
-            if (StatisticsService != null)
+            var result = await StatisticsService.LoadDownloadPackageVersions();
+
+            if (result.Loaded)
             {
-                var result = await StatisticsService.LoadDownloadPackageVersions();
+                int i = 0;
 
-                if (result.Loaded)
+                JArray content = new JArray();
+                foreach (StatisticsPackagesItemViewModel row in StatisticsService.DownloadPackageVersionsAll)
                 {
-                    int i = 0;
+                    JObject item = new JObject();
 
-                    JArray content = new JArray();
-                    foreach (StatisticsPackagesItemViewModel row in StatisticsService.DownloadPackageVersionsAll)
+                    item.Add("PackageId", row.PackageId);
+                    item.Add("PackageVersion", row.PackageVersion);
+                    item.Add("Gallery", Url.PackageGallery(row.PackageId, row.PackageVersion));
+                    item.Add("PackageTitle", row.PackageTitle ?? row.PackageId);
+                    item.Add("PackageDescription", row.PackageDescription);
+                    item.Add("PackageIconUrl", row.PackageIconUrl ?? Url.PackageDefaultIcon());
+                    item.Add("Downloads", row.Downloads);
+
+                    content.Add(item);
+
+                    i++;
+
+                    if (count.HasValue && count.Value == i)
                     {
-                        JObject item = new JObject();
-
-                        item.Add("PackageId", row.PackageId);
-                        item.Add("PackageVersion", row.PackageVersion);
-                        item.Add("Gallery", Url.PackageGallery(row.PackageId, row.PackageVersion));
-                        item.Add("PackageTitle", row.PackageTitle ?? row.PackageId);
-                        item.Add("PackageDescription", row.PackageDescription);
-                        item.Add("PackageIconUrl", row.PackageIconUrl ?? Url.PackageDefaultIcon());
-                        item.Add("Downloads", row.Downloads);
-
-                        content.Add(item);
-
-                        i++;
-
-                        if (count.HasValue && count.Value == i)
-                        {
-                            break;
-                        }
+                        break;
                     }
-
-                    return new ContentResult
-                    {
-                        Content = content.ToString(),
-                        ContentType = "application/json"
-                    };
                 }
+
+                return new ContentResult
+                {
+                    Content = content.ToString(),
+                    ContentType = "application/json"
+                };
             }
 
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-        }
-
-        private User GetUserByApiKey(string apiKey)
-        {
-            var cred = UserService.AuthenticateCredential(CredentialTypes.ApiKeyV1, apiKey.ToLowerInvariant());
-            User user;
-            if (cred == null)
-            {
-#pragma warning disable 0618
-                user = UserService.FindByApiKey(Guid.Parse(apiKey));
-#pragma warning restore 0618
-            }
-            else
-            {
-                user = cred.User;
-            }
-            return user;
-        }
-
-        private static void QuietlyLogException(Exception e)
-        {
-            try
-            {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(e);
-            }
-            catch
-            {
-                // logging failed, don't allow exception to escape
-            }
         }
     }
 }

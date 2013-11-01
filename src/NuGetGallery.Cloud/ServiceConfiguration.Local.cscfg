@@ -23,6 +23,11 @@
       <Setting name="Gallery.AzureCdnHost" value="" />
       <Setting name="Gallery.SiteRoot" value="nuget.localtest.me" />
       
+      <!-- **************** -->
+      <!-- FEATURE SETTINGS -->
+      <!-- **************** -->
+      <Setting name="Feature.FriendlyLicenses" value="true" />
+
       <!-- *************** -->
       <!-- STABLE SETTINGS -->
       <!-- *************** -->

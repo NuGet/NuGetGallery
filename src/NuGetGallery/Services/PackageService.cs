@@ -158,9 +158,9 @@ namespace NuGetGallery
         public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted)
         {
             // Like DisplayPackage we should prefer to show you information from the latest stable version,
-            // but show you the latest version otherwise.
+            // but show you the latest version (potentially latest UNLISTED version) otherwise.
 
-            var latestStablePackageVersions = _packageRepository.GetAll()
+            IQueryable<Package> latestStablePackageVersions = _packageRepository.GetAll()
                 .Where(p => 
                     p.PackageRegistration.Owners.Any(owner => owner.Key == user.Key)
                     && p.IsLatestStable)
@@ -174,12 +174,21 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners);
 
+            if (includeUnlisted)
+            {
+                latestPackageVersions = _packageRegistrationRepository.GetAll()
+                .Where(pr => pr.Owners.Where(owner => owner.Username == user.Username).Any())
+                .Select(pr => pr.Packages.OrderByDescending(p => p.Version).FirstOrDefault())
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners);
+            }
+
             var mergedResults = new Dictionary<string, Package>(StringComparer.OrdinalIgnoreCase);
             foreach (var package in latestPackageVersions)
             {
                 mergedResults.Add(package.PackageRegistration.Id, package);
             }
-            foreach (var package in latestStablePackageVersions)
+            foreach (var package in latestStablePackageVersions.Where(p => p != null))
             {
                 mergedResults[package.PackageRegistration.Id] = package;
             }
@@ -446,9 +455,9 @@ namespace NuGetGallery
                 User = user,
             };
 
-            package.IconUrl = nugetPackage.Metadata.IconUrl.ToStringOrNull();
-            package.LicenseUrl = nugetPackage.Metadata.LicenseUrl.ToStringOrNull();
-            package.ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToStringOrNull();
+            package.IconUrl = nugetPackage.Metadata.IconUrl.ToEncodedUrlStringOrNull();
+            package.LicenseUrl = nugetPackage.Metadata.LicenseUrl.ToEncodedUrlStringOrNull();
+            package.ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToEncodedUrlStringOrNull();
             package.MinClientVersion = nugetPackage.Metadata.MinClientVersion.ToStringOrNull();
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
@@ -524,15 +533,15 @@ namespace NuGetGallery
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Description", "4000");
             }
-            if (nugetPackage.IconUrl != null && nugetPackage.IconUrl.ToString().Length > 4000)
+            if (nugetPackage.IconUrl != null && nugetPackage.IconUrl.AbsoluteUri.Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "IconUrl", "4000");
             }
-            if (nugetPackage.LicenseUrl != null && nugetPackage.LicenseUrl.ToString().Length > 4000)
+            if (nugetPackage.LicenseUrl != null && nugetPackage.LicenseUrl.AbsoluteUri.Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "LicenseUrl", "4000");
             }
-            if (nugetPackage.ProjectUrl != null && nugetPackage.ProjectUrl.ToString().Length > 4000)
+            if (nugetPackage.ProjectUrl != null && nugetPackage.ProjectUrl.AbsoluteUri.Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "ProjectUrl", "4000");
             }

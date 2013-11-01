@@ -45,5 +45,13 @@ namespace NuGetGallery
         public string Copyright { get; set; }
 
         public bool HasPendingMetadata { get; private set; }
+
+        public bool HasNewerPrerelease
+        {
+            get
+            {
+                return PackageVersions.Any(pv => pv.LatestVersion && !pv.LatestStableVersion);
+            }
+        }
     }
 }

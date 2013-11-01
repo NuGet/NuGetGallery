@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Reflection;
@@ -17,10 +18,8 @@ namespace NuGetGallery
         public static readonly string FakeUserName = "theUsername";
         public static readonly string FakeAdminName = "theAdmin";
 
-        public static readonly IPrincipal FakePrincipal = new GenericPrincipal(new GenericIdentity(FakeUserName), new string[0]);
-        public static readonly IPrincipal FakeAdminPrincipal = new GenericPrincipal(new GenericIdentity(FakeAdminName), new [] { Constants.AdminRoleName });
-        public static readonly User FakeUser = new User() { Username = FakeUserName };
-        public static readonly User FakeAdminUser = new User() { Username = FakeAdminName };
+        public static readonly User FakeUser = new User() { Username = FakeUserName, Key = 42 };
+        public static readonly User FakeAdminUser = new User() { Username = FakeAdminName, Roles = new List<Role>() { new Role() { Name = Constants.AdminRoleName } } };
 
         // We only need this method because testing URL generation is a pain.
         // Alternatively, we could write our own service for generating URLs.
