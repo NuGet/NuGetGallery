@@ -98,13 +98,13 @@ namespace NuGetGallery
             }
 
             // Just update the provided package
-            using (Trace.Activity(String.Format(CultureInfo.CurrentCulture, "Updating Lucene Index for: {0} {1} [PackageKey:{2}]", id, version, key)))
+            using (Trace.Activity(String.Format(CultureInfo.CurrentCulture, "Updating Document: {0}", updateTerm.ToString())))
             {
                 EnsureIndexWriter(creatingIndex: false);
                 if (package != null)
                 {
                     var indexEntity = new PackageIndexEntity(package);
-                    Trace.Information(String.Format(CultureInfo.CurrentCulture, "Updating Document: {0}", updateTerm.ToString()));
+                    Trace.Information(String.Format(CultureInfo.CurrentCulture, "Updating Lucene Index for: {0} {1} [PackageKey:{2}]", package.PackageRegistration.Id, package.Version, package.Key));
                     _indexWriter.UpdateDocument(updateTerm, indexEntity.ToDocument());
                 }
                 else
