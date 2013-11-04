@@ -14,7 +14,7 @@ namespace NuGetGallery
         public string UserAgent { get; set; }
         public int Key { get; set; }
         
-        [StringLength(18)] // must be at least long enough to handle string 'Install-Dependency'
+        [StringLength(128)] // must be at least long enough to handle string 'Reinstall-Dependency'
         public string Operation { get; set; }
 
         [StringLength(128)] // max package ID length

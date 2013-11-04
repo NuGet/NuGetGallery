@@ -20,7 +20,7 @@ namespace NuGetGallery
             TokenFilter filter = new CachingTokenFilter(stream);
             filter.Reset();
 
-            // This attribute way of getting token properties sucks, but it's the non-obsolete one.
+            // This attribute way of getting token properties isn't very good, but it's the non-obsolete one.
             var attr1 = filter.GetAttribute<ITermAttribute>();
             Func<string> getText = () => attr1 != null ? attr1.Term : null;
 

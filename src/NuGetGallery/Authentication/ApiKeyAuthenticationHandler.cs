@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
@@ -48,8 +49,19 @@ namespace NuGetGallery.Authentication
                 {
                     // Had an API key, but it wasn't valid
                     message = Strings.ApiKeyNotAuthorized;
-                }
 
+                    // Return a 403, since the user is attempting to authenticating but failing.
+                    // 401 indicates that authentication was not attempted but is required.
+                    Response.StatusCode = 403;
+                }
+                else
+                {
+                    // Keep the 401, but add the authentication information
+                    Response.Headers.Append("WWW-Authenticate", String.Format(
+                        CultureInfo.InvariantCulture,
+                        "ApiKey realm=\"{0}\"",
+                        Request.Uri.Host));
+                }
             }
             return message;
         }
