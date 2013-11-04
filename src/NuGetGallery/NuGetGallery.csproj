@@ -1061,7 +1061,7 @@
     <Content Include="Areas\Admin\DynamicData\PageTemplates\Insert.aspx" />
     <Content Include="Areas\Admin\DynamicData\PageTemplates\List.aspx" />
     <Content Include="Areas\Admin\DynamicData\Site.css" />
-    <Content Include="clientaccesspolicy.xml" />
+    <Content Include="Public\clientaccesspolicy.xml" />
     <Content Include="Content\clippy.swf" />
     <Content Include="Content\font-awesome-ie7.min.css" />
     <Content Include="Content\font-awesome.css" />
@@ -1204,8 +1204,8 @@
     <Content Include="DataServices\V2CuratedFeed.svc" />
     <Content Include="DataServices\V1Feed.svc" />
     <Content Include="DataServices\V2Feed.svc" />
-    <Content Include="Errors\Error.html" />
-    <Content Include="favicon.ico" />
+    <Content Include="Public\Error.html" />
+    <Content Include="Public\favicon.ico" />
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport.sql" />
@@ -1344,7 +1344,9 @@
   <ItemGroup>
     <Content Include="Errors\ReadOnlyMode.cshtml" />
     <Content Include="Areas\Admin\DynamicData\Site.master" />
-    <Content Include="Areas\Admin\DynamicData\web.config" />
+    <Content Include="Areas\Admin\DynamicData\web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Areas\Admin\Views\Home\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Web.config" />
     <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
@@ -1364,7 +1366,6 @@
     </None>
     <None Include="T4MVC.tt.settings.t4" />
     <Content Include="Views\Packages\_PackageDependencies.cshtml" />
-    <Content Include="Web.ForbiddenHandlers.config" />
     <Content Include="Views\Statistics\Index.cshtml" />
     <Content Include="Views\Statistics\Packages.cshtml" />
     <Content Include="Views\Statistics\PackageVersions.cshtml" />
