@@ -32,6 +32,9 @@ namespace NuGetGallery
 
         [Description("The package was not intended to be published publically on nuget.org")]
         ReleasedInPublicByAccident,
+
+        [Description("The package failed to install")]
+        FailedToInstall,
     }
 
     public class ReportAbuseViewModel
@@ -45,6 +48,7 @@ namespace NuGetGallery
         public bool AlreadyContactedOwner { get; set; }
 
         [NotEqual(ReportPackageReason.HasABug, ErrorMessage = "Unfortunately we cannot provide support for bugs in NuGet Packages. You should contact the owner(s) for assistance.")]
+        [NotEqual(ReportPackageReason.FailedToInstall, ErrorMessage = "Unfortunately we cannot provide support for bugs in NuGet Packages. You should contact the owner(s) for assistance.")]
         [Required(ErrorMessage = "You must select a reason for reporting the package")]
         [Display(Name = "Reason")]
         public ReportPackageReason? Reason { get; set; }
