@@ -19,6 +19,7 @@
       <Setting name="Gallery.LuceneIndexLocation" />
       <Setting name="Gallery.GoogleAnalyticsPropertyId" />
       <Setting name="Gallery.HasWorker" />
+      <Setting name="Feature.FriendlyLicenses" />
     </ConfigurationSettings>
     <Sites>
       <Site name="Web">
