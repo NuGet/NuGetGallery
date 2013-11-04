@@ -18,6 +18,7 @@
       <Setting name="Gallery.AzureCdnHost" />
       <Setting name="Gallery.LuceneIndexLocation" />
       <Setting name="Gallery.GoogleAnalyticsPropertyId" />
+      <Setting name="Gallery.HasWorker" />
     </ConfigurationSettings>
     <Sites>
       <Site name="Web">
