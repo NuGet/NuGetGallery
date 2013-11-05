@@ -15,7 +15,7 @@ namespace NuGetGallery.Backend
     public class WorkerRole : RoleEntryPoint
     {
         private JobRunner _runner;
-        private CancellationTokenSource _cancelSource;
+        private CancellationTokenSource _cancelSource = new CancellationTokenSource();
 
         public override void Run()
         {
@@ -41,7 +41,7 @@ namespace NuGetGallery.Backend
                 var diagnostics = ConfigureDiagnostics(RoleEnvironment.GetConfigurationSettingValue("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString"));
                 var dispatcher = DiscoverJobs(config, diagnostics);
 
-                var queue = config.PrimaryStorage.CreateCloudQueueClient().GetQueueReference("NuGetWorkerQueue");
+                var queue = config.PrimaryStorage.CreateCloudQueueClient().GetQueueReference("nugetworkerqueue");
                 queue.CreateIfNotExists();
 
                 _runner = new JobRunner(dispatcher, queue, diagnostics);

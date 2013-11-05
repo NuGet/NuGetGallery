@@ -38,6 +38,10 @@ namespace NuGetGallery.Backend
         private async Task<JobResponse> DispatchOne(CancellationToken cancelToken)
         {
             var message = await _queue.GetMessageAsync(cancelToken);
+            if (message == null)
+            {
+                return null;
+            }
 
             // Parse the message
             JObject parsed;

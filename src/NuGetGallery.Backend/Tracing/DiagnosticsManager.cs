@@ -19,6 +19,7 @@ namespace NuGetGallery.Backend.Tracing
     {
         private bool _initialized = false;
         private CloudTable _resultTable;
+        private CloudTableClient _tables;
 
         public string StorageConnectionString { get; private set; }
         public string LogDirectory { get; private set; }
@@ -27,6 +28,8 @@ namespace NuGetGallery.Backend.Tracing
         {
             LogDirectory = logDirectory;
             StorageConnectionString = storageConnectionString;
+
+            _tables = CloudStorageAccount.Parse(StorageConnectionString).CreateCloudTableClient();
         }
 
         public void Initialize()
@@ -54,10 +57,12 @@ namespace NuGetGallery.Backend.Tracing
             try
             {
                 // Set up log table
+                var tableName = "NuGetWorkerJob" + job.Name;
                 var logListener = WindowsAzureTableLog.CreateListener(
                     RoleEnvironment.CurrentRoleInstance.Id,
                     connectionString: StorageConnectionString,
-                    tableAddress: "NuGetWorkerJob" + job.Name);
+                    tableAddress: tableName);
+                _tables.GetTableReference(tableName).CreateIfNotExists();
                 logListener.EnableEvents(job.BaseLog, EventLevel.Informational);
             }
             catch (Exception ex)
@@ -108,6 +113,7 @@ namespace NuGetGallery.Backend.Tracing
                 RoleEnvironment.CurrentRoleInstance.Id,
                 StorageConnectionString,
                 tableAddress: "NuGetWorkerMaster");
+            _tables.GetTableReference("NuGetWorkerMaster").CreateIfNotExists();
             AttachCoreLoggers(masterTableLog);
         }
 
