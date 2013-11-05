@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ServiceDefinition name="NuGetGallery.Backend.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2013-10.2.2">
-  <WorkerRole name="NuGetGallery.Backend" vmsize="Medium">
+<ServiceDefinition name="NuGetGallery.Backend.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2013-03.2.0">
+  <WorkerRole name="NuGetGallery.Backend.Poller" vmsize="Medium">
     <ConfigurationSettings>
       <Setting name="Operations.EnvironmentName" />
       <Setting name="Operations.Sql.Primary" />
@@ -19,5 +19,16 @@
     <LocalResources>
       <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="2048" />
     </LocalResources>
+  </WorkerRole>
+  <WorkerRole name="NuGetGallery.Backend" vmsize="Small">
+    <Imports>
+      <Import moduleName="Diagnostics" />
+    </Imports>
+    <ConfigurationSettings>
+      <Setting name="Storage.Primary" />
+      <Setting name="Storage.Backup" />
+      <Setting name="Sql.Primary" />
+      <Setting name="Sql.Warehouse" />
+    </ConfigurationSettings>
   </WorkerRole>
 </ServiceDefinition>

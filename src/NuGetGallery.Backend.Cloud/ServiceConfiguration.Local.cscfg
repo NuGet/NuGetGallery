@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ServiceConfiguration serviceName="NuGetGallery.Backend.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*" schemaVersion="2013-10.2.2">
-  <Role name="NuGetGallery.Backend">
+<ServiceConfiguration serviceName="NuGetGallery.Backend.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*" schemaVersion="2013-03.2.0">
+  <Role name="NuGetGallery.Backend.Poller">
     <Instances count="1" />
     <ConfigurationSettings>
       <!-- ******************* -->
@@ -34,5 +34,13 @@
       <!-- Totally bogus set of Hex digits that get replaced by the actual thumbprints when generating a CSCFG -->
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="D2CA3A778E08936DD4C61E2734158B0044831010" thumbprintAlgorithm="sha1" />
     </Certificates>
+  </Role>
+  <Role name="NuGetGallery.Backend">
+    <Instances count="1" />
+    <ConfigurationSettings>
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="Storage.Primary" value="UseDevelopmentStorage=true" />
+      <Setting name="Storage.Backup" value="UseDevelopmentStorage=true" />
+    </ConfigurationSettings>
   </Role>
 </ServiceConfiguration>
