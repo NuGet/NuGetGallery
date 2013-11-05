@@ -98,6 +98,7 @@
     <Reference Include="System.Spatial, Version=5.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\System.Spatial.5.5.0\lib\net40\System.Spatial.dll</HintPath>
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Spatial, Version=5.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Spatial.5.2.0\lib\net40\System.Spatial.dll</HintPath>
     </Reference>
@@ -164,6 +165,7 @@
     <Compile Include="Search\RankingBoostingQuery.cs" />
     <Compile Include="Search\Searcher.cs" />
     <Compile Include="Search\SearcherManager.cs" />
+    <Compile Include="Search\SearchServiceClient.cs" />
     <Compile Include="Search\SemanticVersionFilter.cs" />
     <Compile Include="Search\TagsAnalyzer.cs" />
     <Compile Include="Search\PackageAnalyzer.cs" />

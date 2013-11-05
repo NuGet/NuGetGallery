@@ -213,6 +213,12 @@
     <Content Include="Content\Site.css" />
     <None Include="Properties\PublishProfiles\nuget-search - FTP.pubxml" />
     <None Include="Properties\PublishProfiles\nuget-search - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\nuget-search-back-1 - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\nuget-search-back-1 - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\nuget-search-back-2 - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\nuget-search-back-2 - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\nuget-search-back-3 - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\nuget-search-back-3 - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\nuget-test-search - FTP.pubxml" />
     <None Include="Properties\PublishProfiles\nuget-test-search - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-1.8.2.intellisense.js" />

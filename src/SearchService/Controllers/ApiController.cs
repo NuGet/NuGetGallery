@@ -4,6 +4,7 @@ using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
 using NuGetGallery;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Web;
 using System.Web.Configuration;
@@ -17,6 +18,7 @@ namespace SearchService.Controllers
 
         public ApiController()
         {
+            Trace.TraceInformation("ApiController constructor");
         }
 
         //
@@ -26,6 +28,8 @@ namespace SearchService.Controllers
         [HttpGet]
         public virtual ActionResult Search()
         {
+            Trace.TraceInformation("Search: {0}", Request.QueryString.ToString());
+
             InitializeSearcherManager();
 
             string q = Request.QueryString["q"];
@@ -78,6 +82,8 @@ namespace SearchService.Controllers
         [HttpGet]
         public virtual ActionResult Range()
         {
+            Trace.TraceInformation("Range: {0}", Request.QueryString.ToString());
+
             InitializeSearcherManager();
 
             string min = Request.QueryString["min"];
@@ -102,6 +108,8 @@ namespace SearchService.Controllers
         [HttpGet]
         public virtual ActionResult Diag()
         {
+            Trace.TraceInformation("Diag");
+
             InitializeSearcherManager();
 
             return MakeResponse(IndexAnalyzer.Analyze(_searcherManager));
@@ -114,6 +122,8 @@ namespace SearchService.Controllers
         [HttpGet]
         public virtual ActionResult Fields()
         {
+            Trace.TraceInformation("Fields");
+
             InitializeSearcherManager();
 
             return MakeResponse(IndexAnalyzer.GetDistinctStoredFieldNames(_searcherManager));
@@ -126,6 +136,8 @@ namespace SearchService.Controllers
         [HttpGet]
         public virtual ActionResult Where()
         {
+            Trace.TraceInformation("Where");
+
             JObject response = new JObject();
             
             bool useStorage = bool.Parse(WebConfigurationManager.AppSettings["UseStorage"]);
@@ -163,6 +175,8 @@ namespace SearchService.Controllers
         {
             if (_searcherManager == null)
             {
+                Trace.TraceInformation("InitializeSearcherManager: new PackageSearcherManager");
+
                 Lucene.Net.Store.Directory directory = GetDirectory();
                 _searcherManager = new PackageSearcherManager(directory);
             }
@@ -175,11 +189,17 @@ namespace SearchService.Controllers
             {
                 string storageContainer = WebConfigurationManager.AppSettings["StorageContainer"];
                 string storageConnectionString = WebConfigurationManager.AppSettings["StorageConnectionString"];
+
+                Trace.TraceInformation("GetDirectory using storage. Container: {0}", storageContainer);
+                
                 return new AzureDirectory(CloudStorageAccount.Parse(storageConnectionString), storageContainer, new RAMDirectory());
             }
             else
             {
                 string fileSystemPath = WebConfigurationManager.AppSettings["FileSystemPath"];
+
+                Trace.TraceInformation("GetDirectory using filesystem. Folder: {0}", fileSystemPath);
+
                 return new SimpleFSDirectory(new DirectoryInfo(fileSystemPath));
             }
         }

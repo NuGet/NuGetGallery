@@ -273,6 +273,7 @@
     <Compile Include="Tasks\RestorePackagesTask.cs" />
     <Compile Include="Tasks\RunMigrationsTask.cs" />
     <Compile Include="Tasks\SanitizeDatabaseTask.cs" />
+    <Compile Include="Tasks\Search\CheckIndexTask.cs" />
     <Compile Include="Tasks\Search\IndexPackageAddsTask.cs" />
     <Compile Include="Tasks\Search\IndexPackageDeletesTask.cs" />
     <Compile Include="Tasks\Search\IndexPackageUpdatesTask.cs" />
