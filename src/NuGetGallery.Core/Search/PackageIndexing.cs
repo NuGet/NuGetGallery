@@ -168,11 +168,8 @@ namespace NuGetGallery
 
         private static void AddToIndex(Lucene.Net.Store.Directory directory, IList<Tuple<Package, IEnumerable<string>>> packagesToIndex, IDictionary<string, int> overallRanking, IDictionary<string, IDictionary<string, int>> projectRankings)
         {
-            using (IndexWriter indexWriter = new IndexWriter(directory, new PackageAnalyzer(), false, IndexWriter.MaxFieldLength.UNLIMITED))
+            using (IndexWriter indexWriter = CreateIndexWriter(directory, false))
             {
-                indexWriter.MergeFactor = MergeFactor;
-                indexWriter.MaxMergeDocs = MaxMergeDocs;
-
                 int highestPackageKey = -1;
 
                 foreach (Tuple<Package, IEnumerable<string>> packageToIndex in packagesToIndex)
@@ -198,17 +195,16 @@ namespace NuGetGallery
 
                 IDictionary<string, string> commitUserData = indexWriter.GetReader().CommitUserData;
 
-                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(commitUserData["last-edits-index-time"], highestPackageKey, packagesToIndex.Count, "publish"));
+                string lastEditsIndexTime = commitUserData["last-edits-index-time"];
+
+                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(lastEditsIndexTime, highestPackageKey, packagesToIndex.Count, "publish"));
             }
         }
 
         private static void UpdateInIndex(Lucene.Net.Store.Directory directory, IList<Tuple<Package, IEnumerable<string>>> packagesToUpdate, IDictionary<string, int> overallRanking, IDictionary<string, IDictionary<string, int>> projectRankings, int highestPackageKey, DateTime indexTime)
         {
-            using (IndexWriter indexWriter = new IndexWriter(directory, new PackageAnalyzer(), false, IndexWriter.MaxFieldLength.UNLIMITED))
+            using (IndexWriter indexWriter = CreateIndexWriter(directory, false))
             {
-                indexWriter.MergeFactor = MergeFactor;
-                indexWriter.MaxMergeDocs = MaxMergeDocs;
-
                 PackageQueryParser queryParser = new PackageQueryParser(Lucene.Net.Util.Version.LUCENE_30, "Id", new PackageAnalyzer());
 
                 foreach (Tuple<Package, IEnumerable<string>> packageToUpdate in packagesToUpdate)
@@ -237,25 +233,21 @@ namespace NuGetGallery
             }
         }
 
-        public static Tuple<IEnumerable<int>, IEnumerable<int>> DifferenceInRange(Lucene.Net.Store.Directory directory, HashSet<int> packageKeys)
-        {
-            //  (1) find min and max packageKeys 
-            //  (2) execute range query on index
-            //  (3) if result size from index == hashset size then we are good - return Tuple(new in[], new int[]>)
-            //  (4) else iterate over index result to determine what is in hashset etc.
-            //  (5) build lists of missing from hashset and missing from index
-
-            //  Note: general idea is that packages have been deleted in db (and therefore hashset) but are still in index
-
-            return new Tuple<IEnumerable<int>,IEnumerable<int>>(new int[0], new int[0]);
-        }
-
         public static void CreateNewEmptyIndex(Lucene.Net.Store.Directory directory)
         {
-            using (IndexWriter indexWriter = new IndexWriter(directory, new PackageAnalyzer(), true, IndexWriter.MaxFieldLength.UNLIMITED))
+            using (IndexWriter indexWriter = CreateIndexWriter(directory, true))
             {
                 indexWriter.Commit(PackageIndexing.CreateCommitMetadata(DateTime.MinValue, 0, 0, "creation"));
             }
+        }
+
+        private static IndexWriter CreateIndexWriter(Lucene.Net.Store.Directory directory, bool create)
+        {
+            IndexWriter indexWriter = new IndexWriter(directory, new PackageAnalyzer(), create, IndexWriter.MaxFieldLength.UNLIMITED);
+            indexWriter.MergeFactor = MergeFactor;
+            indexWriter.MaxMergeDocs = MaxMergeDocs;
+            ((LogMergePolicy)indexWriter.MergePolicy).SetUseCompoundFile(false);
+            return indexWriter;
         }
 
         private static IDictionary<string, string> CreateCommitMetadata(DateTime lastEditsIndexTime, int highestPackageKey, int count, string description)
@@ -268,11 +260,11 @@ namespace NuGetGallery
             IDictionary<string, string> commitMetadata = new Dictionary<string, string>();
 
             commitMetadata.Add("commit-time-stamp",  DateTime.UtcNow.ToString());
-            commitMetadata.Add("commit-description", description);
+            commitMetadata.Add("commit-description", description ?? string.Empty);
             commitMetadata.Add("commit-document-count", count.ToString());
 
             commitMetadata.Add("highest-package-key", highestPackageKey.ToString());
-            commitMetadata.Add("last-edits-index-time", lastEditsIndexTime);
+            commitMetadata.Add("last-edits-index-time", lastEditsIndexTime ?? DateTime.MinValue.ToString());
 
             commitMetadata.Add("MaxDocumentsPerCommit", MaxDocumentsPerCommit.ToString());
             commitMetadata.Add("MergeFactor", MergeFactor.ToString());
@@ -313,7 +305,13 @@ namespace NuGetGallery
 
             //  Query Fields
 
-            float idBoost = (package.Title != null) ? 1.5f : 3.0f;
+            float titleBoost = 3.0f;
+            float idBoost = 1.5f;
+
+            if (package.Title != null)
+            {
+                idBoost += titleBoost;
+            }
 
             Add(doc, "Id", package.PackageRegistration.Id, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
             Add(doc, "TokenizedId", package.PackageRegistration.Id, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
@@ -396,6 +394,27 @@ namespace NuGetGallery
         private static void Add(Document doc, string name, int value, Field.Store store, Field.Index index, Field.TermVector termVector, float boost = 1.0f)
         {
             Add(doc, name, value.ToString(CultureInfo.InvariantCulture), store, index, termVector, boost);
+        }
+
+        public static void DeletePackageFromIndex(IList<int> packagesToDelete, Lucene.Net.Store.Directory directory)
+        {
+            PackageQueryParser queryParser = new PackageQueryParser(Lucene.Net.Util.Version.LUCENE_30, "Id", new PackageAnalyzer());
+
+            using (IndexWriter indexWriter = CreateIndexWriter(directory, false))
+            {
+                IDictionary<string, string> commitUserData = indexWriter.GetReader().CommitUserData;
+
+                foreach (int packageKey in packagesToDelete)
+                {
+                    Query query = NumericRangeQuery.NewIntRange("Key", packageKey, packageKey, true, true);
+                    indexWriter.DeleteDocuments(query);
+                }
+
+                commitUserData["count"] = packagesToDelete.Count.ToString();
+                commitUserData["commit-description"] = "delete";
+
+                indexWriter.Commit(commitUserData);
+            }
         }
     }
 }

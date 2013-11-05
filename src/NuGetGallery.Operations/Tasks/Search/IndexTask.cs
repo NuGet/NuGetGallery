@@ -29,23 +29,12 @@ namespace NuGetGallery.Operations.Tasks.Search
             {
                 throw new CommandLineException("Either specify a Folder or a Container not both");
             }
-            if (Folder != null)
-            {
-                //  using file system - make sure there is no confusion about that - force the StorageAccount argument to be null
 
-                if (StorageAccount != null)
-                {
-                    throw new CommandLineException("Specifying a folder means you shouldn't specify a StorageAccount");
-                }
-            }
-            else
-            {
-                //  using Blob Storage so we must have both the Container and the StorageAccount
+            //  we still always need Blob Storage at least for the ranking
 
-                if (Container == null || StorageAccount == null)
-                {
-                    throw new CommandLineException("You must specify a StorageAccount with a Container");
-                }
+            if (StorageAccount == null)
+            {
+                throw new CommandLineException("You must specify a StorageAccount with a Container");
             }
         }
 
@@ -64,7 +53,7 @@ namespace NuGetGallery.Operations.Tasks.Search
 
             if (directory == null)
             {
-                throw new Exception("You must specify either a folder or storage");
+                throw new Exception("You must specify either a folder or container");
             }
 
             return directory;
