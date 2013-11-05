@@ -17,6 +17,7 @@ namespace NuGetGallery.Backend.Tracing
 
         protected JobEventSource(string jobName) { _jobName = jobName; }
 
+#pragma warning disable 0618
         [Event(
             eventId: 1,
             Level = EventLevel.Informational,
@@ -49,10 +50,23 @@ namespace NuGetGallery.Backend.Tracing
         public void JobFaulted(string jobName, string exception, string stackTrace, string invocationId) { WriteEvent(3, jobName, exception, stackTrace, invocationId); }
         [NonEvent]
         public void JobFaulted(Exception ex, Guid invocationId) { JobFaulted(_jobName, ex.ToString(), ex.StackTrace, invocationId.ToString("N")); }
+#pragma warning restore 0618
 
         public class Tasks
         {
             public const EventTask Job = (EventTask)0x01;
+        }
+    }
+
+    public abstract class JobEventSource<TJob> : JobEventSource
+        where TJob : Job, new()
+    {
+        public JobEventSource() : base(GetJobName()) { }
+
+        private static string GetJobName()
+        {
+            var job = new TJob();
+            return job.Name;
         }
     }
 }

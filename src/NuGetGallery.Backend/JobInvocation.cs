@@ -11,13 +11,15 @@ namespace NuGetGallery.Backend
         public JobRequest Request { get; private set; }
         public DateTimeOffset RecievedAt { get; private set; }
         public string Source { get; private set; }
+        public BackendConfiguration Configuration { get; private set; }
 
-        public JobInvocation(Guid id, JobRequest request, DateTimeOffset recievedAt, string source)
+        public JobInvocation(Guid id, JobRequest request, DateTimeOffset recievedAt, string source, BackendConfiguration config)
         {
             Id = id;
             Request = request;
             RecievedAt = recievedAt;
             Source = source;
+            Configuration = config;
         }
     }
 }

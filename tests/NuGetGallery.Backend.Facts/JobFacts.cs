@@ -32,7 +32,7 @@ namespace NuGetGallery.Backend
                 {
                 }
 
-                protected override JobEventSource BaseLog
+                public override JobEventSource BaseLog
                 {
                     get { return TestJobEventSouce.Log; }
                 }
@@ -52,7 +52,8 @@ namespace NuGetGallery.Backend
                         "Test", 
                         new Dictionary<string, string>()), 
                     DateTimeOffset.UtcNow, 
-                    "test");
+                    "test",
+                    BackendConfiguration.CreateEmpty());
 
                 // Act
                 job.Invoke(invocation);
@@ -76,7 +77,8 @@ namespace NuGetGallery.Backend
                             {"NotMapped", "bar"}
                         }),
                     DateTimeOffset.UtcNow,
-                    "test");
+                    "test",
+                    BackendConfiguration.CreateEmpty());
 
                 // Act
                 job.Invoke(invocation);
@@ -99,7 +101,8 @@ namespace NuGetGallery.Backend
                             {"ConvertValue", "frob"},
                         }),
                     DateTimeOffset.UtcNow,
-                    "test");
+                    "test",
+                    BackendConfiguration.CreateEmpty());
 
                 // Act
                 job.Invoke(invocation);
@@ -119,7 +122,8 @@ namespace NuGetGallery.Backend
                         "Jerb",
                         new Dictionary<string, string>()),
                     DateTimeOffset.UtcNow,
-                    "test");
+                    "test",
+                    BackendConfiguration.CreateEmpty());
 
                 // Act
                 var result = job.Object.Invoke(invocation);
@@ -139,7 +143,8 @@ namespace NuGetGallery.Backend
                         "Jerb",
                         new Dictionary<string, string>()),
                     DateTimeOffset.UtcNow,
-                    "test");
+                    "test",
+                    BackendConfiguration.CreateEmpty());
                 var ex = new NotImplementedException("Broked!");
                 job.Setup(j => j.Execute()).Throws(ex);
                 
@@ -162,7 +167,7 @@ namespace NuGetGallery.Backend
             {
             }
 
-            protected override JobEventSource BaseLog
+            public override JobEventSource BaseLog
             {
                 get { return TestJobEventSouce.Log; }
             }

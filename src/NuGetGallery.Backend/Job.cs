@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -11,14 +10,13 @@ using NuGetGallery.Backend.Tracing;
 
 namespace NuGetGallery.Backend
 {
-    [InheritedExport]
     public abstract class Job
     {
         private static readonly Regex NameExtractor = new Regex(@"^(?<shortname>.*)Job$");
 
         public virtual string Name { get; private set; }
         public JobInvocation Invocation { get; protected set; }
-        protected abstract JobEventSource BaseLog { get; }
+        public abstract JobEventSource BaseLog { get; }
         
         protected Job()
         {
@@ -40,7 +38,6 @@ namespace NuGetGallery.Backend
             // Invoke the job
             BaseLog.JobStarted(invocation.Id);
             JobResult result;
-            bool threw = false;
             try
             {
                 Execute();
