@@ -9,7 +9,7 @@ website for the NuGet client. For information about the NuGet clients, visit htt
  1. Visual Studio 2012
  2. PowerShell 2.0 (comes with Windows 7+)
  3. [NuGet](http://docs.nuget.org/docs/start-here/installing-nuget)
- 4. [Windows Azure SDK v2.1 or later](http://www.microsoft.com/windowsazure/sdk/)
+ 4. [Windows Azure SDK v2.2](http://www.microsoft.com/windowsazure/sdk/) - Note that later versions may be supported, but will require you to manually upgrade the ".Cloud" projects in the solution.
  5. (Optional, for unit tests) [xUnit for Visual Studio 2012](http://visualstudiogallery.msdn.microsoft.com/463c5987-f82b-46c8-a97e-b1cde42b9099)
 2. Clone it!
     

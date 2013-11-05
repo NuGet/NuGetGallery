@@ -129,7 +129,7 @@ namespace NuGetGallery
                 () =>
                 {
                     var settings = Kernel.Get<ConfigurationService>();
-                    if (settings.Current.SmtpUri != null)
+                    if (settings.Current.SmtpUri != null && settings.Current.SmtpUri.IsAbsoluteUri)
                     {
                         var smtpUri = new SmtpUri(settings.Current.SmtpUri);
 

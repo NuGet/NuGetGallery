@@ -18,6 +18,7 @@
     
     <ItemGroup Condition=" '$(PackageSources)' == '' ">
         <PackageSource Include="https://staging.nuget.org/api/v2/" />
+        <PackageSource Include="https://nuget.org/api/v2/" />
     </ItemGroup>
 
     <PropertyGroup Condition=" '$(OS)' == 'Windows_NT'">
