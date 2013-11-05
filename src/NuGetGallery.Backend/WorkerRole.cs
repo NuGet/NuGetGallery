@@ -9,7 +9,7 @@ using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 
-namespace NuGetGallery.Backend.Worker
+namespace NuGetGallery.Backend
 {
     public class WorkerRole : RoleEntryPoint
     {

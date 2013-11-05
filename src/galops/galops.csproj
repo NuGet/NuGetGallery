@@ -89,6 +89,10 @@
     <Compile Include="SnazzyConsoleTarget.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NuGetGallery.Backend.Poller\NuGetGallery.Backend.Poller.csproj">
+      <Project>{7f92c174-5310-4090-a6a3-3cc7c67c19d6}</Project>
+      <Name>NuGetGallery.Backend.Poller</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGetGallery.Operations\NuGetGallery.Operations.csproj">
       <Project>{DBECF66B-8F2F-4B32-9143-E243BAFF12DF}</Project>
       <Name>NuGetGallery.Operations</Name>

@@ -4,9 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGetGallery.Backend.Worker.Jobs
+namespace NuGetGallery.Backend.Jobs
 {
-    public class HelloWorldJob
-    {
-    }
 }

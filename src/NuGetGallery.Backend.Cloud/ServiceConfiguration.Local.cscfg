@@ -41,6 +41,8 @@
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
       <Setting name="Storage.Primary" value="UseDevelopmentStorage=true" />
       <Setting name="Storage.Backup" value="UseDevelopmentStorage=true" />
+      <Setting name="Sql.Primary" value="" />
+      <Setting name="Sql.Warehouse" value="" />
     </ConfigurationSettings>
   </Role>
 </ServiceConfiguration>

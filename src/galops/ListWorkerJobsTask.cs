@@ -1,5 +1,4 @@
 ﻿using NuGetGallery.Backend;
-
 namespace NuGetGallery.Operations.Tools.Tasks
 {
     [Command("listworkerjobs", "Lists the available job in the worker", AltName="lwj")]

@@ -8,8 +8,8 @@
     <ProjectGuid>{125152B4-8520-4719-8778-939F3B97A6FB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGetGallery.Backend.Worker</RootNamespace>
-    <AssemblyName>NuGetGallery.Backend.Worker</AssemblyName>
+    <RootNamespace>NuGetGallery.Backend</RootNamespace>
+    <AssemblyName>NuGetGallery.Backend</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <RoleType>Worker</RoleType>
@@ -72,6 +72,7 @@
     <Compile Include="JobResult.cs" />
     <Compile Include="Jobs\HelloWorldJob.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tracing\JobEventSource.cs" />
     <Compile Include="Tracing\OrchestrationEventSource.cs" />
     <Compile Include="WorkerRole.cs" />
   </ItemGroup>

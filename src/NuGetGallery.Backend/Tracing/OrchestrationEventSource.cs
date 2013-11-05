@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGetGallery.Backend.Worker.Tracing
+namespace NuGetGallery.Backend.Tracing
 {
     [EventSource(Name="NuGet-Backend-Orchestration")]
     internal class OrchestrationEventSource : EventSource

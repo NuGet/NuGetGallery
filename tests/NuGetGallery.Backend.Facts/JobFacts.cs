@@ -1,0 +1,189 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Moq;
+using NuGetGallery.Backend.Tracing;
+using Xunit;
+
+namespace NuGetGallery.Backend
+{
+    public class JobFacts
+    {
+        public class TheNameProperty
+        {
+            [Fact]
+            public void GivenAJobWithClassNameEndingJob_ItReturnsThePartBeforeTheWordJob()
+            {
+                Assert.Equal("Test", new TestJob().Name);
+            }
+
+            [Fact]
+            public void GivenAJobWithClassNameNotEndingJob_ItReturnsTheWholeTypeName()
+            {
+                Assert.Equal("ATestJerb", new ATestJerb().Name);
+            }
+
+            public class ATestJerb : Job
+            {
+                protected internal override void Execute()
+                {
+                }
+
+                protected override JobEventSource BaseLog
+                {
+                    get { return TestJobEventSouce.Log; }
+                }
+            }
+        }
+
+        public class TheExecuteMethod
+        {
+            [Fact]
+            public void GivenAnInvocation_ItSetsTheInvocationProperty()
+            {
+                // Arrange
+                var job = new TestJob();
+                var invocation = new JobInvocation(
+                    Guid.NewGuid(), 
+                    new JobRequest(
+                        "Test", 
+                        new Dictionary<string, string>()), 
+                    DateTimeOffset.UtcNow, 
+                    "test");
+
+                // Act
+                job.Invoke(invocation);
+
+                // Assert
+                Assert.Same(invocation, job.Invocation);
+            }
+
+            [Fact]
+            public void GivenParametersThatMatchPropertyNames_ItSetsPropertiesToThoseValues()
+            {
+                // Arrange
+                var job = new TestJob();
+                var invocation = new JobInvocation(
+                    Guid.NewGuid(),
+                    new JobRequest(
+                        "Test",
+                        new Dictionary<string, string>()
+                        {
+                            {"TestParameter", "frob"},
+                            {"NotMapped", "bar"}
+                        }),
+                    DateTimeOffset.UtcNow,
+                    "test");
+
+                // Act
+                job.Invoke(invocation);
+
+                // Assert
+                Assert.Equal("frob", job.TestParameter);
+            }
+
+            [Fact]
+            public void GivenPropertiesWithConverters_ItUsesTheConverterToChangeTheValue()
+            {
+                // Arrange
+                var job = new TestJob();
+                var invocation = new JobInvocation(
+                    Guid.NewGuid(),
+                    new JobRequest(
+                        "Test",
+                        new Dictionary<string, string>()
+                        {
+                            {"ConvertValue", "frob"},
+                        }),
+                    DateTimeOffset.UtcNow,
+                    "test");
+
+                // Act
+                job.Invoke(invocation);
+
+                // Assert
+                Assert.Equal("http://it.was.a.string/frob", job.ConvertValue.AbsoluteUri);
+            }
+
+            [Fact]
+            public void GivenAJobExecutesWithoutException_ItReturnsCompletedJobResult()
+            {
+                // Arrange
+                var job = new Mock<TestJob>() { CallBase = true };
+                var invocation = new JobInvocation(
+                    Guid.NewGuid(),
+                    new JobRequest(
+                        "Jerb",
+                        new Dictionary<string, string>()),
+                    DateTimeOffset.UtcNow,
+                    "test");
+
+                // Act
+                var result = job.Object.Invoke(invocation);
+
+                // Assert
+                Assert.Equal(JobResult.Completed(), result);
+            }
+
+            [Fact]
+            public void GivenAJobThrows_ItReturnsFaultedJobResult()
+            {
+                // Arrange
+                var job = new Mock<TestJob>() { CallBase = true };
+                var invocation = new JobInvocation(
+                    Guid.NewGuid(),
+                    new JobRequest(
+                        "Jerb",
+                        new Dictionary<string, string>()),
+                    DateTimeOffset.UtcNow,
+                    "test");
+                var ex = new NotImplementedException("Broked!");
+                job.Setup(j => j.Execute()).Throws(ex);
+                
+                // Act
+                var result = job.Object.Invoke(invocation);
+
+                // Assert
+                Assert.Equal(JobResult.Faulted(ex), result);
+            }
+        }
+
+        public class TestJob : Job
+        {
+            public string TestParameter { get; set; }
+
+            [TypeConverter(typeof(TestUriConverter))]
+            public Uri ConvertValue { get; set; }
+
+            protected internal override void Execute()
+            {
+            }
+
+            protected override JobEventSource BaseLog
+            {
+                get { return TestJobEventSouce.Log; }
+            }
+        }
+
+        public class TestUriConverter : TypeConverter
+        {
+            public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
+            {
+                if (value is string)
+                {
+                    return new Uri("http://it.was.a.string/" + (string)value);
+                }
+                return base.ConvertFrom(context, culture, value);
+            }
+        }
+
+        public class TestJobEventSouce : JobEventSource {
+            public static readonly TestJobEventSouce Log = new TestJobEventSouce();
+
+            private TestJobEventSouce() : base("test") { }
+        }
+    }
+}
