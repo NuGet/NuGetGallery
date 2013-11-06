@@ -3,118 +3,42 @@
     ViewBag.Title = "Sign In";
 }
 
-@helper CommonFields() {
-    @Html.AntiForgeryToken()
-    @Html.Hidden("ReturnUrl", ViewData[Constants.ReturnUrlViewDataKey])
-    @Html.Hidden("LinkingAccount", Model.External != null)
-    if(Model.External != null) {
-        @Html.HiddenFor(m => m.External.ProviderAccountNoun)
-        @Html.HiddenFor(m => m.External.AccountName)
-    }
-}
-
-@if (Model.External != null)
-{
-    <h1>Who are you?</h1>
-    <p>
-        It looks like we haven't seen the @Model.External.ProviderAccountNoun '@Model.External.AccountName' 
-        before. That's just fine, we love meeting new people! If you already have a NuGet account, please use
-        the sign-in form on the left to verify it and we'll associate your @Model.External.ProviderAccountNoun
-        with it. If you don't have a NuGet account, use the register form on the right to create a new one.
-    </p>
-}
-
-<div id="SignIn">
-    <h1>Sign In</h1>
-    @using (Html.BeginForm("SignIn", "Authentication"))
+<div id="logon">
+    @if (Model.External != null)
     {
-        <fieldset class="form">
-            <legend>Sign In Form</legend>
-            
-            @CommonFields()
-            @Html.ValidationSummaryFor("SignIn")
-            
-            <div class="form-field">
-                @Html.LabelFor(m => m.SignIn.UserNameOrEmail)
-                @Html.EditorFor(m => m.SignIn.UserNameOrEmail)
-                @Html.ValidationMessageFor(m => m.SignIn.UserNameOrEmail)
-            </div>
-
-            <div class="form-field">
-                @Html.LabelFor(m => m.SignIn.Password)
-                @Html.EditorFor(m => m.SignIn.Password)
-                @Html.ValidationMessageFor(m => m.SignIn.Password)
-            </div>
-
-            <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
-
-            <input type="submit" value="Sign In" title="Sign In" />
-            @Html.ActionLink("Lost your Password?", "ForgotPassword", "Users")
-        </fieldset>
-    }
-
-    @if(Model.External == null) {
-        <h2>Use an external account</h2>
-        <p>
-            You can also use an external account to log in to NuGet. If you already have an account, 
-            you'll have a chance to associate your external account with NuGet. If you don't have an
-            account, you'll have a chance to create one.
-        </p>
-        
-        <ul id="signin-providerlist">
-            @foreach (var provider in Model.Providers)
-            {
-                <li class="signin-authprovider @provider.UI.CssClass">
-                    <a class="btn signin-authprovider-link" href="@Url.Action("Authenticate", new { provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey] })">
-                        @provider.UI.SignInMessage
-                    </a>
-                </li>
-            }
-        </ul>
-    }
-</div>
-
-<div id="MiddleSeparator"></div>
-
-<div id="Register">
-    <h1>Register</h1>
-
-    @using (Html.BeginForm("Register", "Authentication"))
-    {
-        <fieldset class="form">
-            <legend>Register Form</legend>
-
-            @CommonFields()
-            @Html.ValidationSummaryFor("Register")
-
-            <div class="form-field">
-                @Html.LabelFor(m => m.Register.Username)
-                @Html.EditorFor(m => m.Register.Username)
-                @Html.ValidationMessageFor(m => m.Register.Username)
-            </div>
-
-            @if(Model.External == null) {
-                <div class="form-field">
-                    @Html.LabelFor(m => m.Register.Password)
-                    @Html.EditorFor(m => m.Register.Password)
-                    @Html.ValidationMessageFor(m => m.Register.Password)
-                </div>
-            }
-
-            <div class="form-field">
-                <label for="EmailAddress">Email (<a href="http://www.gravatar.com">Gravatar</a>, notifications, and password recovery)</label>
-                @Html.EditorFor(m => m.Register.EmailAddress)
-                @Html.ValidationMessageFor(m => m.Register.EmailAddress)
-            </div>
-
-            <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
-
-            <input type="submit" value="Register" title="Register" />
-
-            <p id="form-field-register-policies">
-                By clicking Register you agree that you have read and accept our
-                <a href="@Url.Terms()">Terms of Use</a> and <a href="@Url.Privacy()">Privacy Policy</a>
+        <div id="register">
+            <h1>Who are you?</h1>
+            <p>
+                It looks like we haven't seen the @Model.External.ProviderAccountNoun '@Model.External.AccountName'
+                before. That's just fine, we love meeting new people! In order to use NuGet, you need to provide a user name
+                and email address. We pre-filled the email address from your @Model.External.ProviderAccountNoun information, but
+                feel free to change it.
             </p>
-        </fieldset>
+
+            <div id="externalaccount-register">
+                <p class="message">Already have an account? You can <a class="s-toggle" data-show="#externalaccount-signin" data-hide="#externalaccount-register" href="#">Sign In</a> with it to associate this credential with that account.</p>
+                <div class="externalaccount-form">
+                    @Html.Partial("_Register", Model)
+                </div>
+            </div>
+            <div id="externalaccount-signin" class="s-hidden">
+                <p class="message">Don't have an account? You can <a class="s-toggle" data-show="#externalaccount-register" data-hide="#externalaccount-signin" href="#">Register</a> a new one instead.</p>
+                <div class="externalaccount-form">
+                    @Html.Partial("_SignIn", Model)
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div id="signIn">
+            @Html.Partial("_SignIn", Model)
+        </div>
+
+        <div class="verticalSeparator"></div>
+
+        <div id="register-sidecar">
+            @Html.Partial("_Register", Model)
+        </div>
     }
 </div>

@@ -412,29 +412,6 @@ nav.main ul a:hover {
     width: 25%;
 }
 
-div #SignIn {
-    float: left;
-    display: block;
-    margin-bottom: 50px;
-    width: 45%;
-}
-
-div #MiddleSeparator {
-    border-right: solid;
-    border-right-width: 1px;
-    float: left;
-    width: 4%;
-    margin-top: 100px;
-    height: 200px;
-}
-
-div #Register {
-    float: left;
-    margin-left: 5%;
-    margin-bottom: 50px;
-    width: 45%;
-}
-
 #mainColumn {
     float: right;
     margin-bottom: 20px;
@@ -1342,28 +1319,6 @@ fieldset.form legend { display: none; }
     margin-bottom: 5px;
 }
 
-#form-field-register-policies {
-    margin-bottom: 0;
-}
-
-#form-field-register-policies label
-{
-    width: 300px;
-    display: inline-block;
-    vertical-align: middle;
-}
-
-#form-field-register-policies input
-{
-    display: inline;
-    vertical-align: middle;
-}
-
-#form-field-register-policies span.field-validation-error
-{
-    top: 0px;
-}
-
 .form-field label.checkbox { display: inline; }
 
 .form-field textarea,
@@ -1379,6 +1334,15 @@ fieldset.form legend { display: none; }
     padding: 5px 0 5px 10px;
     vertical-align: middle;
     width: 400px;
+    
+    /* This won't work in IE7, but it will only produce a minor layout quirk */
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.form-field.form-field-full input {
+    width: 100%;
 }
 
 .form-field textarea {
@@ -1506,6 +1470,11 @@ a.btn {
     text-decoration: none;
     padding: 5px;
     display: inline-block;
+    
+    /* This won't work in IE7, but it will only produce a minor layout quirk */
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 a:hover.btn {
@@ -1514,6 +1483,7 @@ a:hover.btn {
 }
 
 input[type="submit"], .btn {
+    font-family: "Segoe UI", "Trebuchet MS", Verdana, Helvetica, Sans-Serif;
     background-color: #4585aa;
     background-image: -ms-linear-gradient(top, #4585aa 0%, #376783 100%);
     background-image: -o-linear-gradient(top, #4585aa 0%, #376783 100%);
@@ -1525,7 +1495,7 @@ input[type="submit"], .btn {
     cursor: pointer;
     font-size: 1.25em;
     font-weight: 500;
-    margin: 0 10px 0 0;
+    margin: 0;
     text-decoration: none;
     width: auto;
 }
@@ -1680,25 +1650,93 @@ form .async-upload-progress-advance
     font-size: 8pt;
 }
 
+.btn.btn-big {
+    width: 100%;
+    font-size: 23px;
+    padding: 0.25em;
+}
 
-/* External sign in/Manage Credentials */
+
+/* Sign In/Register */
+#signIn {
+    display: inline-block;
+    vertical-align: top;
+    width: 45%;
+    height: 100%;
+    margin-right: 5%;
+}
+
+#signIn-lostpassword {
+    margin-top: 1em;
+}
+
+.verticalSeparator {
+    display: inline-block;
+    vertical-align: middle;
+    border-left: solid 1px black;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    margin-top: 5%;
+    margin-bottom: 5%;
+}
+
+.externalaccount-form {
+    width: 45%;
+}
+
+#register-sidecar {
+    /* Register form, as a "side-car", i.e. sharing space with the sign-in form */
+    height: 100%;
+    display: inline-block;
+    vertical-align: top;
+    width: 45%;
+    margin-left: 3%;
+}
+
+#register-form {
+    margin-bottom: 1em;
+}
+
+#register-policies {
+    background-color: #eff7fa;
+    border: solid 1px;
+    color: #52a4ca;
+    font-size: 1.3em;
+    padding: 10px;
+}
+
+#signin-providermessage {
+    margin-top: 1em;
+}
+
+ul#signin-providerlist {
+    padding: 0;
+    margin-top: 1em;
+}
+
 li.signin-authprovider {
     font-size: 14pt;
     list-style-type: none;
-    margin-left: -40px;
-    padding: 5px;
-    padding-left: 2px;
+    padding-bottom: 5px;
 }
 
-a.signin-authprovider-link {
-    width: 400px;
+.btn.signin-authprovider-link {
+    text-align: left;
 }
 
 a.signin-authprovider-link:hover {
     text-decoration: none;
 }
 
-li.externallogin-microsoftaccount a:before {
+.signin-authprovider-icon {
+    font-size: 22pt;
+    margin: 0;
+    margin-left: 5px;
+    margin-right: 8px;
+}
+
+a.externallogin-microsoftaccount:before {
     font-family: FontAwesome;
     content: "\F17A";
     font-size: 22pt;
@@ -1727,4 +1765,9 @@ div.managecreds-external-cred-caption {
 div.managecreds-external-cred-id {
     font-size: 12pt;
     margin-left: 1em;
+}
+
+/* Script-related Classes */
+.s-hidden {
+    display: none;
 }

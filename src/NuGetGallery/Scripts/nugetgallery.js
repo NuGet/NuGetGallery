@@ -83,4 +83,13 @@
     // Add unobtrusive adapters for mandatory checkboxes and notequal values
     $.validator.unobtrusive.adapters.addBool("mandatory", "required");
     $.validator.unobtrusive.adapters.addSingleVal('notequal', 'disallowed');
+
+    // Attach script plugins
+    $('.s-toggle[data-show][data-hide]').delegate('', 'click', function () {
+        var $hide = $($(this).data().hide);
+        var $show = $($(this).data().show);
+        $hide.fadeOut('fast', function () {
+            $show.fadeIn('fast');
+        });
+    });
 })(window, jQuery);

@@ -91,27 +91,6 @@ namespace NuGetGallery
         [StringLength(64, MinimumLength = 7)]
         [Hint("Passwords must be at least 7 characters long.")]
         public string Password { get; set; }
-
-        /// <summary>
-        /// Takes in a potential username string and returns a version with invalid characters stripped out.
-        /// </summary>
-        /// <param name="candidateUserName">The user name to strip</param>
-        /// <returns></returns>
-        public static string NormalizeUserName(string candidateUserName)
-        {
-            // Remove characters that aren't allowed as prefixes/suffixes
-            if (!String.IsNullOrEmpty(candidateUserName) && !Char.IsLetterOrDigit(candidateUserName[0]))
-            {
-                candidateUserName = candidateUserName.Substring(1);
-            }
-            if (!String.IsNullOrEmpty(candidateUserName) && !Char.IsLetterOrDigit(candidateUserName[candidateUserName.Length - 1]))
-            {
-                candidateUserName = candidateUserName.Substring(0, candidateUserName.Length - 1);
-            }
-
-            // Strip inner characters that are invalid
-            return UsernameNormalizationRegex.Replace(candidateUserName, "");
-        }
     }
 
     public class AuthenticationProviderViewModel

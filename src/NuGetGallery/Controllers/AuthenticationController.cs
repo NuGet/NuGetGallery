@@ -203,7 +203,6 @@ namespace NuGetGallery
                 var name = result
                     .ExternalIdentity
                     .GetClaimOrDefault(ClaimTypes.Name);
-                var userName = RegisterViewModel.NormalizeUserName(name);
                 var external = new AssociateExternalAccountViewModel()
                 {
                     ProviderAccountNoun = authUI.AccountNoun,
@@ -219,7 +218,6 @@ namespace NuGetGallery
                     },
                     Register = new RegisterViewModel()
                     {
-                        Username = userName,
                         EmailAddress = email
                     }
                 };
