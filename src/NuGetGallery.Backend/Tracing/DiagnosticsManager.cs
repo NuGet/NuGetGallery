@@ -67,7 +67,7 @@ namespace NuGetGallery.Backend.Tracing
                         RoleEnvironment.CurrentRoleInstance.Id,
                         connectionString: StorageConnectionString,
                         tableAddress: tableName);
-                    logListener.EnableEvents(job.BaseLog, EventLevel.Informational);
+                    logListener.EnableEvents(job.GetLog(), EventLevel.Informational);
                     WorkerEventSource.Log.DiagnosticsJobRegistered(job.Name, tableName);
                 }
                 catch (Exception ex)

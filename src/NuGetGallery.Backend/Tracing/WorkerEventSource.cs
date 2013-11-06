@@ -213,6 +213,34 @@ namespace NuGetGallery.Backend.Tracing
 
         [NonEvent]
         public void MessageParseError(string message, Exception ex) { MessageParseError(message, ex.ToString(), ex.StackTrace); }
+
+        [Event(
+            eventId: 23,
+            Level = EventLevel.Informational,
+            Message = "Job {0} started execution. Invocation: {1}")]
+        [Obsolete("This method supports ETL infrastructure. Use other overloads instead")]
+        public void JobStarted(string jobName, string invocationId) { WriteEvent(23, jobName, invocationId); }
+        [NonEvent]
+        public void JobStarted(string jobName, Guid invocationId) { JobStarted(jobName, invocationId.ToString("N")); }
+
+        [Event(
+            eventId: 24,
+            Level = EventLevel.Informational,
+            Message = "Job {0} completed. Invocation: {1}")]
+        [Obsolete("This method supports ETL infrastructure. Use other overloads instead")]
+        public void JobCompleted(string jobName, string invocationId) { WriteEvent(24, jobName, invocationId); }
+        [NonEvent]
+        public void JobCompleted(string jobName, Guid invocationId) { JobCompleted(jobName, invocationId.ToString("N")); }
+
+        [Event(
+            eventId: 25,
+            Level = EventLevel.Error,
+            Message = "Job {0} failed. Exception: {1}\r\nStack Trace: {2}\r\nInvocation: {3}")]
+        [Obsolete("This method supports ETL infrastructure. Use other overloads instead")]
+        public void JobFaulted(string jobName, string exception, string stackTrace, string invocationId) { WriteEvent(25, jobName, exception, stackTrace, invocationId); }
+        [NonEvent]
+        public void JobFaulted(string jobName, Exception ex, Guid invocationId) { JobFaulted(jobName, ex.ToString(), ex.StackTrace, invocationId.ToString("N")); }
+
 #pragma warning restore 0618
     }
 }

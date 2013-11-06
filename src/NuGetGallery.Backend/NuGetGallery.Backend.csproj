@@ -91,7 +91,6 @@
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
     <Compile Include="Tracing\DiagnosticsManager.cs" />
-    <Compile Include="Tracing\JobEventSource.cs" />
     <Compile Include="Tracing\JobResponseTableEntity.cs" />
     <Compile Include="Tracing\WorkerEventSource.cs" />
     <Compile Include="UnknownJobException.cs" />

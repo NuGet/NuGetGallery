@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -16,7 +17,6 @@ namespace NuGetGallery.Backend
 
         public virtual string Name { get; private set; }
         public JobInvocation Invocation { get; protected set; }
-        public abstract JobEventSource BaseLog { get; }
         
         protected Job()
         {
@@ -36,7 +36,7 @@ namespace NuGetGallery.Backend
             BindProperties(invocation.Request.Parameters);
 
             // Invoke the job
-            BaseLog.JobStarted(invocation.Id);
+            WorkerEventSource.Log.JobStarted(invocation.Request.Name, invocation.Id);
             JobResult result;
             try
             {
@@ -50,16 +50,18 @@ namespace NuGetGallery.Backend
 
             if (result.Status != JobStatus.Faulted)
             {
-                BaseLog.JobCompleted(invocation.Id);
+                WorkerEventSource.Log.JobCompleted(invocation.Request.Name, invocation.Id);
             }
             else
             {
-                BaseLog.JobFaulted(result.Exception, invocation.Id);
+                WorkerEventSource.Log.JobFaulted(invocation.Request.Name, result.Exception, invocation.Id);
             }
 
             // Return the result
             return result;
         }
+
+        public abstract EventSource GetLog();
 
         protected internal abstract void Execute();
 

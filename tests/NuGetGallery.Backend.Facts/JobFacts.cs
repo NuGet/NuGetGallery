@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,9 +33,9 @@ namespace NuGetGallery.Backend
                 {
                 }
 
-                public override JobEventSource BaseLog
+                public override EventSource GetLog()
                 {
-                    get { return TestJobEventSouce.Log; }
+                    return TestJobEventSource.Log;
                 }
             }
         }
@@ -167,9 +168,9 @@ namespace NuGetGallery.Backend
             {
             }
 
-            public override JobEventSource BaseLog
+            public override EventSource GetLog()
             {
-                get { return TestJobEventSouce.Log; }
+                return TestJobEventSource.Log;
             }
         }
 
@@ -185,10 +186,11 @@ namespace NuGetGallery.Backend
             }
         }
 
-        public class TestJobEventSouce : JobEventSource {
-            public static readonly TestJobEventSouce Log = new TestJobEventSouce();
+        public class TestJobEventSource : EventSource
+        {
+            public static readonly TestJobEventSource Log = new TestJobEventSource();
 
-            private TestJobEventSouce() : base("test") { }
+            private TestJobEventSource()  { }
         }
     }
 }
