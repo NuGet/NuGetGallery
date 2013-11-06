@@ -236,12 +236,26 @@ namespace NuGetGallery.Authentication
             {
                 throw new ArgumentException(
                     "Token expiration should give the user at least a minute to change their password", "expirationInMinutes");
-            }
-
+            }    
             var user = FindByUserNameOrEmail(usernameOrEmail);
             if (user == null)
             {
                 return null;
+            }
+            GeneratePasswordResetToken(user, expirationInMinutes);
+            return user;
+        }
+
+        public virtual void GeneratePasswordResetToken(User user, int expirationInMinutes)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+            if (expirationInMinutes < 1)
+            {
+                throw new ArgumentException(
+                    "Token expiration should give the user at least a minute to change their password", "expirationInMinutes");
             }
 
             if (!user.Confirmed)
@@ -251,14 +265,14 @@ namespace NuGetGallery.Authentication
 
             if (!String.IsNullOrEmpty(user.PasswordResetToken) && !user.PasswordResetTokenExpirationDate.IsInThePast())
             {
-                return user;
+                return;
             }
 
             user.PasswordResetToken = CryptographyService.GenerateToken();
             user.PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMinutes(expirationInMinutes);
 
             Entities.SaveChanges();
-            return user;
+            return;
         }
 
         public virtual ActionResult Challenge(string providerName, string redirectUrl)

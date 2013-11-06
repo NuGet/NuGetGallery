@@ -7,9 +7,10 @@ namespace NuGetGallery.Migrations
     {
         public override void Up()
         {
-            DropColumn("dbo.Users", "ApiKey");
-            DropColumn("dbo.Users", "HashedPassword");
-            DropColumn("dbo.Users", "PasswordHashAlgorithm");
+            // Columns must be dropped manually after verifying data is transferred
+            //DropColumn("dbo.Users", "ApiKey");
+            //DropColumn("dbo.Users", "HashedPassword");
+            //DropColumn("dbo.Users", "PasswordHashAlgorithm");
 
             Sql(@"
                 IF EXISTS (SELECT * FROM sys.views WHERE name = 'UsersAndCredentials')
@@ -23,9 +24,10 @@ namespace NuGetGallery.Migrations
         
         public override void Down()
         {
-            AddColumn("dbo.Users", "PasswordHashAlgorithm", c => c.String());
-            AddColumn("dbo.Users", "HashedPassword", c => c.String(maxLength: 256));
-            AddColumn("dbo.Users", "ApiKey", c => c.Guid(nullable: false));
+            // Columns must be added manually
+            //AddColumn("dbo.Users", "PasswordHashAlgorithm", c => c.String());
+            //AddColumn("dbo.Users", "HashedPassword", c => c.String(maxLength: 256));
+            //AddColumn("dbo.Users", "ApiKey", c => c.Guid(nullable: false));
         }
     }
 }

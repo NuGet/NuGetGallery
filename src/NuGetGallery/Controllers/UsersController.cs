@@ -168,12 +168,7 @@ namespace NuGetGallery
                 var user = AuthService.GeneratePasswordResetToken(model.Email, Constants.DefaultPasswordResetTokenExpirationHours * 60);
                 if (user != null)
                 {
-                    var resetPasswordUrl = Url.ConfirmationUrl(
-                        MVC.Users.ResetPassword(), user.Username, user.PasswordResetToken, protocol: Request.Url.Scheme);
-                    MessageService.SendPasswordResetInstructions(user, resetPasswordUrl);
-
-                    TempData["Email"] = user.EmailAddress;
-                    return RedirectToAction(MVC.Users.PasswordSent());
+                    return SendPasswordResetEmail(user, forgotPassword: true);
                 }
 
                 ModelState.AddModelError("Email", "Could not find anyone with that email.");
@@ -193,25 +188,27 @@ namespace NuGetGallery
             return View();
         }
 
-        public virtual ActionResult ResetPassword()
+        public virtual ActionResult ResetPassword(bool forgot)
         {
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
             
             ViewBag.ResetTokenValid = true;
+            ViewBag.ForgotPassword = forgot;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult ResetPassword(string username, string token, PasswordResetViewModel model)
+        public virtual ActionResult ResetPassword(string username, string token, bool forgot, PasswordResetViewModel model)
         {
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
             
             ViewBag.ResetTokenValid = AuthService.ResetPasswordWithToken(username, token, model.NewPassword);
+            ViewBag.ForgotPassword = forgot;
 
             if (!ViewBag.ResetTokenValid)
             {
@@ -376,24 +373,32 @@ namespace NuGetGallery
 
             var oldPassword = user.Credentials.FirstOrDefault(
                 c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
-            
-            if(!ModelState.IsValidField("NewPassword") ||
-                (oldPassword != null && !ModelState.IsValidField("OldPassword")))
+
+            if (oldPassword == null)
             {
-                return ManageCredentialsView(model);
+                // User is requesting a password set email
+                AuthService.GeneratePasswordResetToken(user, Constants.DefaultPasswordResetTokenExpirationHours * 60);
+                return SendPasswordResetEmail(user, forgotPassword: false);
             }
-
-            if (!AuthService.ChangePassword(user, model.OldPassword, model.NewPassword))
+            else
             {
-                ModelState.AddModelError("OldPassword", Strings.CurrentPasswordIncorrect);
-                return ManageCredentialsView(model);
+                if (!ModelState.IsValid)
+                {
+                    return ManageCredentialsView(model);
+                }
+
+                if (!AuthService.ChangePassword(user, model.OldPassword, model.NewPassword))
+                {
+                    ModelState.AddModelError("OldPassword", Strings.CurrentPasswordIncorrect);
+                    return ManageCredentialsView(model);
+                }
+
+                TempData["Message"] = oldPassword == null ?
+                    Strings.PasswordSet :
+                    Strings.PasswordChanged;
+
+                return RedirectToAction("ManageCredentials");
             }
-
-            TempData["Message"] = oldPassword == null ?
-                Strings.PasswordSet :
-                Strings.PasswordChanged;
-
-            return RedirectToAction("ManageCredentials");
         }
 
         [HttpPost]
@@ -471,6 +476,16 @@ namespace NuGetGallery
             return user.Credentials.Count(c =>
                 c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase) ||
                 c.Type.StartsWith(CredentialTypes.ExternalPrefix, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private ActionResult SendPasswordResetEmail(User user, bool forgotPassword)
+        {
+            var resetPasswordUrl = Url.ConfirmationUrl(
+                        MVC.Users.ResetPassword(forgotPassword), user.Username, user.PasswordResetToken, protocol: Request.Url.Scheme);
+            MessageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
+
+            TempData["Email"] = user.EmailAddress;
+            return RedirectToAction(MVC.Users.PasswordSent());
         }
     }
 }

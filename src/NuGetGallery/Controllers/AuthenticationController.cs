@@ -41,7 +41,9 @@ namespace NuGetGallery
             if (Request.IsAuthenticated)
             {
                 TempData["Message"] = "You are already logged in!";
-                return Redirect(returnUrl);
+                return String.IsNullOrEmpty(returnUrl) ?
+                    RedirectToAction("Home", "Pages") :
+                    SafeRedirect(returnUrl);
             }
 
             return LogOnView();

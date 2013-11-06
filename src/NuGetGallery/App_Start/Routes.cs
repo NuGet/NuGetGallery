@@ -161,8 +161,13 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 RouteName.PasswordReset,
-                "account/{action}/{username}/{token}",
-                MVC.Users.ResetPassword());
+                "account/forgotpassword/{username}/{token}",
+                MVC.Users.ResetPassword(forgot: true));
+
+            routes.MapRoute(
+                RouteName.PasswordSet,
+                "account/setpassword/{username}/{token}",
+                MVC.Users.ResetPassword(forgot: false));
 
             routes.MapRoute(
                 RouteName.Account,

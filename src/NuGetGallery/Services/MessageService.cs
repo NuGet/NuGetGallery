@@ -268,26 +268,16 @@ The {0} Team";
             }
         }
 
-        public void SendPasswordResetInstructions(User user, string resetPasswordUrl)
+        public void SendPasswordResetInstructions(User user, string resetPasswordUrl, bool forgotPassword)
         {
-            string body = @"The word on the street is you lost your password. Sorry to hear it!
-If you haven't forgotten your password you can safely ignore this email. Your password has not been changed.
-
-Click the following link within the next {0} hours to reset your password:
-
-[{1}]({1})
-
-Thanks,
-The {2} Team";
-
-            body = String.Format(
+            string body = String.Format(
                 CultureInfo.CurrentCulture,
-                body,
+                forgotPassword ? Strings.Emails_ForgotPassword_Body : Strings.Emails_SetPassword_Body,
                 Constants.DefaultPasswordResetTokenExpirationHours,
                 resetPasswordUrl,
                 _config.GalleryOwner.DisplayName);
 
-            string subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Please reset your password.", _config.GalleryOwner.DisplayName);
+            string subject = String.Format(CultureInfo.CurrentCulture, forgotPassword ? Strings.Emails_ForgotPassword_Subject : Strings.Emails_SetPassword_Subject, _config.GalleryOwner.DisplayName);
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;

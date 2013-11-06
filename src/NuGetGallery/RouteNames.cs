@@ -29,6 +29,7 @@
         public const string DeletePackageApi = "DeletePackageApi";
         public const string UserAction = "UserAction";
         public const string PasswordReset = "PasswordReset";
+        public const string PasswordSet = "PasswordSet";
         public const string NewSubmission = "NewSubmission";
         public const string VerifyPackage = "VerifyPackage";
         public const string VerifyPackageKey = "VerifyPackageKey";

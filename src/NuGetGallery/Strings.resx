@@ -237,4 +237,32 @@
   <data name="PasswordSet" xml:space="preserve">
     <value>Your password has been set</value>
   </data>
+  <data name="Emails_ForgotPassword_Body" xml:space="preserve">
+    <value>The word on the street is you lost your password. Sorry to hear it!
+If you haven't forgotten your password you can safely ignore this email. Your password has not been changed.
+
+Click the following link within the next {0} hours to reset your password:
+
+[{1}]({1})
+
+Thanks,
+The {2} Team</value>
+  </data>
+  <data name="Emails_ForgotPassword_Subject" xml:space="preserve">
+    <value>[{0}] Please reset your password.</value>
+  </data>
+  <data name="Emails_SetPassword_Body" xml:space="preserve">
+    <value>The word on the street is you want to set a password for your account.
+If you didn't request a password, you can safely ignore this message. A password has not yet been set.
+
+Click the following link within the next {0} hours to set your password:
+
+[{1}]({1})
+
+Thanks,
+The {2} Team</value>
+  </data>
+  <data name="Emails_SetPassword_Subject" xml:space="preserve">
+    <value>[{0}] Please set your password.</value>
+  </data>
 </root>

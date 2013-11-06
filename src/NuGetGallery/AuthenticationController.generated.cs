@@ -70,6 +70,8 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
+            public readonly string _Register = "~/Views/Authentication/_Register.cshtml";
+            public readonly string _SignIn = "~/Views/Authentication/_SignIn.cshtml";
             public readonly string LogOn = "~/Views/Authentication/LogOn.cshtml";
         }
     }
