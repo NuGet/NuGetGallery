@@ -59,54 +59,16 @@ namespace NuGetGallery.Backend
 
             string name;
             var parameters = new Dictionary<string, string>();
+            JobRequest req;
             try
             {
-                // Parse the message
-                JObject parsed;
-                try
-                {
-                    parsed = JObject.Parse(message.AsString);
-                }
-                catch (Exception ex)
-                {
-                    WorkerEventSource.Log.InvalidQueueMessage(message.AsString, ex);
-                    return null;
-                }
-
-                var nameProp = parsed.Property("name");
-                if (nameProp == null)
-                {
-                    WorkerEventSource.Log.InvalidQueueMessage(message.AsString, "Missing 'name' property");
-                    return null;
-                }
-                else if (nameProp.Value.Type != JTokenType.String)
-                {
-                    WorkerEventSource.Log.InvalidQueueMessage(message.AsString, "'name' property must have string value");
-                    return null;
-                }
-                name = nameProp.Value.Value<string>();
-
-                var parametersProp = parsed.Property("parameters");
-                if (parametersProp != null)
-                {
-                    if (parametersProp.Value.Type != JTokenType.Object)
-                    {
-                        WorkerEventSource.Log.InvalidQueueMessage(message.AsString, "'parameters' must be a JSON object");
-                        return null;
-                    }
-                    foreach (var prop in ((JObject)parametersProp.Value).Properties())
-                    {
-                        parameters[prop.Name] = prop.Value.Value<string>();
-                    }
-                }
+                req = JobRequest.Parse(message.AsString);
             }
             catch (Exception ex)
             {
                 WorkerEventSource.Log.MessageParseError(message.AsString, ex);
                 return null;
             }
-
-            JobRequest req = new JobRequest(name, parameters);
             
             try
             {

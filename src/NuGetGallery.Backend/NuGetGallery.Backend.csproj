@@ -83,7 +83,7 @@
     <Compile Include="Infrastructure\JobResponse.cs" />
     <Compile Include="Infrastructure\JobResult.cs" />
     <Compile Include="Infrastructure\JobRunner.cs" />
-    <Compile Include="Jobs\HelloWorldJob.cs" />
+    <Compile Include="InvalidJobRequestException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Strings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -107,6 +107,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Jobs\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
