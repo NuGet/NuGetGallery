@@ -19,11 +19,13 @@ namespace NuGetGallery.Backend
 
         public override void Run()
         {
-            _runner.Run(_cancelSource.Token);
+            _runner.Run(_cancelSource.Token).Wait();
         }
 
         public override void OnStop()
         {
+            WorkerEventSource.Log.Stopping();
+
             _cancelSource.Cancel();
             base.OnStop();
         }
@@ -37,21 +39,19 @@ namespace NuGetGallery.Backend
                 // Set the maximum number of concurrent connections 
                 ServicePointManager.DefaultConnectionLimit = 12;
 
-                var config = BackendConfiguration.Load();
-                var diagnostics = ConfigureDiagnostics(RoleEnvironment.GetConfigurationSettingValue("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString"));
+                var config = BackendConfiguration.CreateAzure();
+                var diagnostics = ConfigureDiagnostics(config);
                 var dispatcher = DiscoverJobs(config, diagnostics);
 
-                var queue = config.PrimaryStorage.CreateCloudQueueClient().GetQueueReference("nugetworkerqueue");
-                queue.CreateIfNotExists();
+                _runner = new JobRunner(dispatcher, config, diagnostics);
 
-                _runner = new JobRunner(dispatcher, queue, diagnostics);
-
+                WorkerEventSource.Log.StartupComplete();
                 return base.OnStart();
             }
             catch (Exception ex)
             {
                 // Exceptions that escape to this level are fatal
-                WorkerEventSource.Log.StartupFatal(ex.ToString(), ex.StackTrace);
+                WorkerEventSource.Log.StartupFatal(ex);
                 return false;
             }
         }
@@ -72,10 +72,11 @@ namespace NuGetGallery.Backend
             return dispatcher;
         }
 
-        private DiagnosticsManager ConfigureDiagnostics(string diagnosticsStorage)
+        private DiagnosticsManager ConfigureDiagnostics(BackendConfiguration config)
         {
+            var connectionString = config.Get("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString");
             var logDirectory = RoleEnvironment.GetLocalResource("Logs").RootPath;
-            var diagnostics = new DiagnosticsManager(logDirectory, diagnosticsStorage);
+            var diagnostics = new DiagnosticsManager(logDirectory, connectionString);
             diagnostics.Initialize();
             return diagnostics;
         }

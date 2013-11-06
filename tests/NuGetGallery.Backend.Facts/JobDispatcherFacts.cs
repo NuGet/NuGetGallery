@@ -16,7 +16,7 @@ namespace NuGetGallery.Backend
             public void GivenNoJobWithName_ItThrowsUnknownJobException()
             {
                 // Arrange
-                var dispatcher = new JobDispatcher(BackendConfiguration.CreateEmpty(), Enumerable.Empty<Job>());
+                var dispatcher = new JobDispatcher(BackendConfiguration.Create(), Enumerable.Empty<Job>());
                 var request = new JobRequest("flarg", new Dictionary<string, string>());
 
                 // Act/Assert
@@ -38,7 +38,7 @@ namespace NuGetGallery.Backend
                        return JobResult.Completed();
                    });
 
-                var dispatcher = new JobDispatcher(BackendConfiguration.CreateEmpty(), new[] { job.Object });
+                var dispatcher = new JobDispatcher(BackendConfiguration.Create(), new[] { job.Object });
                 var request = new JobRequest("Test", new Dictionary<string, string>());
 
                 // Act
@@ -65,7 +65,7 @@ namespace NuGetGallery.Backend
                        return JobResult.Faulted(ex);
                    });
 
-                var dispatcher = new JobDispatcher(BackendConfiguration.CreateEmpty(), new[] { job.Object });
+                var dispatcher = new JobDispatcher(BackendConfiguration.Create(), new[] { job.Object });
                 var request = new JobRequest("Test", new Dictionary<string, string>());
 
                 // Act

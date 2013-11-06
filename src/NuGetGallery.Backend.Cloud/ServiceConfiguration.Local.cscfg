@@ -8,6 +8,7 @@
       <Setting name="Storage.Backup" value="UseDevelopmentStorage=true" />
       <Setting name="Sql.Primary" value="" />
       <Setting name="Sql.Warehouse" value="" />
+      <Setting name="Queue.PollInterval" value="00:00:01" />
     </ConfigurationSettings>
   </Role>
 </ServiceConfiguration>

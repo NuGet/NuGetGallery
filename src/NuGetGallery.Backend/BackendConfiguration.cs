@@ -9,35 +9,97 @@ using Microsoft.WindowsAzure.Storage;
 
 namespace NuGetGallery.Backend
 {
+    public delegate bool TryParse<T>(string input, out T val);
+
     public class BackendConfiguration
     {
-        public CloudStorageAccount PrimaryStorage { get; private set; }
-        public CloudStorageAccount BackupStorage { get; private set; }
-        public CloudStorageAccount DiagnosticsStorage { get; private set; }
+        private Func<string, string> _configThunk;
+        
+        public string InstanceId { get; private set; }
 
-        public SqlConnectionStringBuilder PrimaryDatabase { get; private set; }
-        public SqlConnectionStringBuilder WarehouseDatabase { get; private set; }
+        public CloudStorageAccount PrimaryStorage { get { return GetStorageAccount("Storage.Primary"); } }
+        public CloudStorageAccount BackupStorage { get { return GetStorageAccount("Storage.Backup"); } }
+        public CloudStorageAccount DiagnosticsStorage { get { return GetStorageAccount("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString"); } }
+
+        public SqlConnectionStringBuilder PrimaryDatabase { get { return GetSqlConnection("Sql.Primary"); } }
+        public SqlConnectionStringBuilder WarehouseDatabase { get { return GetSqlConnection("Sql.Warehouse"); } }
+
+        public TimeSpan QueuePollInterval { get { return Get<TimeSpan>("Queue.PollInterval", TimeSpan.TryParse, TimeSpan.FromSeconds(1)); } }
 
         private BackendConfiguration()
+            : this(Environment.MachineName, NullThunk)
         {
         }
 
-        public static BackendConfiguration CreateEmpty()
+        private BackendConfiguration(string instanceId, Func<string, string> configThunk)
         {
-            return new BackendConfiguration();
+            InstanceId = instanceId;
+            _configThunk = configThunk;
         }
 
-        public static BackendConfiguration Load()
+        public string Get(string key)
         {
-            var config = new BackendConfiguration();
+            return _configThunk(key);
+        }
 
-            config.PrimaryStorage = TryGetStorageAccount("Storage.Primary");
-            config.BackupStorage = TryGetStorageAccount("Storage.Backup");
-            config.DiagnosticsStorage = TryGetStorageAccount("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString");
+        public T Get<T>(string key, Func<string, T> converter)
+        {
+            return Get<T>(key, converter, default(T));
+        }
 
-            config.PrimaryDatabase = TryGetSqlConfig("Sql.Primary");
-            config.WarehouseDatabase = TryGetSqlConfig("Sql.Warehouse");
-            return config;
+        public T Get<T>(string key, Func<string, T> converter, T defaultValue)
+        {
+            string val = Get(key);
+            if (String.IsNullOrEmpty(val))
+            {
+                return defaultValue;
+            }
+            return converter(val);
+        }
+
+        public T Get<T>(string key, TryParse<T> tryConverter)
+        {
+            return Get<T>(key, tryConverter, default(T));
+        }
+
+        public T Get<T>(string key, TryParse<T> tryConverter, T defaultValue)
+        {
+            string val = Get(key);
+            T ret;
+            if (String.IsNullOrEmpty(val) || !tryConverter(val, out ret))
+            {
+                return defaultValue;
+            }
+            return ret;
+        }
+
+        public CloudStorageAccount GetStorageAccount(string key)
+        {
+            return Get<CloudStorageAccount>(key, CloudStorageAccount.TryParse);
+        }
+
+        public SqlConnectionStringBuilder GetSqlConnection(string key)
+        {
+            return Get(key, v => new SqlConnectionStringBuilder(v));
+        }
+
+        public static BackendConfiguration Create()
+        {
+            return Create(new Dictionary<string, string>());
+        }
+
+        public static BackendConfiguration Create(IDictionary<string, string> config)
+        {
+            return new BackendConfiguration(
+                Environment.MachineName, 
+                key => config.ContainsKey(key) ? config[key] : null);
+        }
+
+        public static BackendConfiguration CreateAzure()
+        {
+            return new BackendConfiguration(
+                RoleEnvironment.CurrentRoleInstance.Id,
+                key => RoleEnvironment.GetConfigurationSettingValue(key));
         }
 
         private static CloudStorageAccount TryGetStorageAccount(string name)
@@ -51,5 +113,7 @@ namespace NuGetGallery.Backend
             string val = RoleEnvironment.GetConfigurationSettingValue(name);
             return String.IsNullOrEmpty(val) ? null : new SqlConnectionStringBuilder(val);
         }
+
+        private static string NullThunk(string key) { return String.Empty; }
     }
 }

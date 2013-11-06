@@ -24,7 +24,7 @@ namespace NuGetGallery.Backend
 
             foreach (var job in _jobs)
             {
-                DispatcherEventSource.Log.JobDiscovered(job);
+                WorkerEventSource.Log.JobDiscovered(job);
             }
         }
 
@@ -37,7 +37,7 @@ namespace NuGetGallery.Backend
             }
 
             var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow, "Dispatcher", Config);
-            DispatcherEventSource.Log.Dispatching(invocation);
+            WorkerEventSource.Log.DispatchingRequest(invocation);
             var result = job.Invoke(invocation);
 
             return new JobResponse(invocation, result, DateTimeOffset.UtcNow);

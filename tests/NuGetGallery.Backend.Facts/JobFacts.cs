@@ -53,7 +53,7 @@ namespace NuGetGallery.Backend
                         new Dictionary<string, string>()), 
                     DateTimeOffset.UtcNow, 
                     "test",
-                    BackendConfiguration.CreateEmpty());
+                    BackendConfiguration.Create());
 
                 // Act
                 job.Invoke(invocation);
@@ -78,7 +78,7 @@ namespace NuGetGallery.Backend
                         }),
                     DateTimeOffset.UtcNow,
                     "test",
-                    BackendConfiguration.CreateEmpty());
+                    BackendConfiguration.Create());
 
                 // Act
                 job.Invoke(invocation);
@@ -102,7 +102,7 @@ namespace NuGetGallery.Backend
                         }),
                     DateTimeOffset.UtcNow,
                     "test",
-                    BackendConfiguration.CreateEmpty());
+                    BackendConfiguration.Create());
 
                 // Act
                 job.Invoke(invocation);
@@ -123,7 +123,7 @@ namespace NuGetGallery.Backend
                         new Dictionary<string, string>()),
                     DateTimeOffset.UtcNow,
                     "test",
-                    BackendConfiguration.CreateEmpty());
+                    BackendConfiguration.Create());
 
                 // Act
                 var result = job.Object.Invoke(invocation);
@@ -144,7 +144,7 @@ namespace NuGetGallery.Backend
                         new Dictionary<string, string>()),
                     DateTimeOffset.UtcNow,
                     "test",
-                    BackendConfiguration.CreateEmpty());
+                    BackendConfiguration.Create());
                 var ex = new NotImplementedException("Broked!");
                 job.Setup(j => j.Execute()).Throws(ex);
                 

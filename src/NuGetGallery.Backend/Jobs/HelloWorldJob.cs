@@ -23,6 +23,7 @@ namespace NuGetGallery.Backend.Jobs
             HelloWorldJobEventSource.Log.HelloWorld(Message);
         }
 
+        [EventSource(Name = "NuGet-Jobs-HelloWorld")]
         public class HelloWorldJobEventSource : JobEventSource<HelloWorldJob>
         {
             public static readonly HelloWorldJobEventSource Log = new HelloWorldJobEventSource();

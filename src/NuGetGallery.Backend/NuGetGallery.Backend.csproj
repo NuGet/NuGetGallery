@@ -76,13 +76,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BackendConfiguration.cs" />
-    <Compile Include="Job.cs" />
-    <Compile Include="JobDispatcher.cs" />
-    <Compile Include="JobInvocation.cs" />
-    <Compile Include="JobRequest.cs" />
-    <Compile Include="JobResponse.cs" />
-    <Compile Include="JobResult.cs" />
-    <Compile Include="JobRunner.cs" />
+    <Compile Include="Infrastructure\Job.cs" />
+    <Compile Include="Infrastructure\JobDispatcher.cs" />
+    <Compile Include="Infrastructure\JobInvocation.cs" />
+    <Compile Include="Infrastructure\JobRequest.cs" />
+    <Compile Include="Infrastructure\JobResponse.cs" />
+    <Compile Include="Infrastructure\JobResult.cs" />
+    <Compile Include="Infrastructure\JobRunner.cs" />
     <Compile Include="Jobs\HelloWorldJob.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Strings.Designer.cs">
@@ -92,8 +92,7 @@
     </Compile>
     <Compile Include="Tracing\DiagnosticsManager.cs" />
     <Compile Include="Tracing\JobEventSource.cs" />
-    <Compile Include="Tracing\DispatcherEventSource.cs" />
-    <Compile Include="Tracing\JobResposeTableEntity.cs" />
+    <Compile Include="Tracing\JobResponseTableEntity.cs" />
     <Compile Include="Tracing\WorkerEventSource.cs" />
     <Compile Include="UnknownJobException.cs" />
     <Compile Include="WorkerRole.cs" />

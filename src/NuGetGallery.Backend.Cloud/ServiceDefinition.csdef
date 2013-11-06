@@ -9,6 +9,7 @@
       <Setting name="Storage.Backup" />
       <Setting name="Sql.Primary" />
       <Setting name="Sql.Warehouse" />
+      <Setting name="Queue.PollInterval" />
     </ConfigurationSettings>
     <LocalResources>
       <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="2048" />

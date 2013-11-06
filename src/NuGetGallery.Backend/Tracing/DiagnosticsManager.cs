@@ -35,6 +35,8 @@ namespace NuGetGallery.Backend.Tracing
         public void Initialize()
         {
             // Initialization should not kill the service, but should be able to report a failure
+            WorkerEventSource.Log.DiagnosticsInitializing();
+
             try
             {
                 InitializeCore();
@@ -42,7 +44,7 @@ namespace NuGetGallery.Backend.Tracing
             }
             catch (Exception ex)
             {
-                WorkerEventSource.Log.StartupError(ex.ToString(), ex.StackTrace);
+                WorkerEventSource.Log.DiagnosticsInitializationError(ex);
                 _initialized = false;
             }
 
@@ -54,36 +56,43 @@ namespace NuGetGallery.Backend.Tracing
 
         public void RegisterJob(Job job)
         {
-            try
+            if (_initialized)
             {
-                // Set up log table
-                var tableName = "NuGetWorkerJob" + job.Name;
-                var logListener = WindowsAzureTableLog.CreateListener(
-                    RoleEnvironment.CurrentRoleInstance.Id,
-                    connectionString: StorageConnectionString,
-                    tableAddress: tableName);
-                _tables.GetTableReference(tableName).CreateIfNotExists();
-                logListener.EnableEvents(job.BaseLog, EventLevel.Informational);
-            }
-            catch (Exception ex)
-            {
-                WorkerEventSource.Log.StartupError(ex.ToString(), ex.StackTrace);
+                WorkerEventSource.Log.DiagnosticsRegisterJob(job.Name);
+                try
+                {
+                    // Set up log table
+                    var tableName = "NuGetWorkerJob" + job.Name;
+                    var logListener = WindowsAzureTableLog.CreateListener(
+                        RoleEnvironment.CurrentRoleInstance.Id,
+                        connectionString: StorageConnectionString,
+                        tableAddress: tableName);
+                    logListener.EnableEvents(job.BaseLog, EventLevel.Informational);
+                    WorkerEventSource.Log.DiagnosticsJobRegistered(job.Name, tableName);
+                }
+                catch (Exception ex)
+                {
+                    WorkerEventSource.Log.DiagnosticsJobRegisterError(job.Name, ex);
+                }
             }
         }
 
         public async Task ReportJobResponse(JobResponse response)
         {
-            try
+            if (_initialized)
             {
-                await _resultTable.CreateIfNotExistsAsync();
+                try
+                {
+                    await _resultTable.CreateIfNotExistsAsync();
 
-                await _resultTable.ExecuteAsync(
-                    TableOperation.InsertOrReplace(
-                        new JobResposeTableEntity(RoleEnvironment.CurrentRoleInstance.Id, response)));
-            }
-            catch (Exception ex)
-            {
-                WorkerEventSource.Log.ReportingFailure(response.Invocation.Id, ex);
+                    await _resultTable.ExecuteAsync(
+                        TableOperation.InsertOrReplace(
+                            new JobResposeTableEntity(RoleEnvironment.CurrentRoleInstance.Id, response)));
+                }
+                catch (Exception ex)
+                {
+                    WorkerEventSource.Log.ReportingFailure(response, ex);
+                }
             }
         }
 
@@ -113,7 +122,6 @@ namespace NuGetGallery.Backend.Tracing
                 RoleEnvironment.CurrentRoleInstance.Id,
                 StorageConnectionString,
                 tableAddress: "NuGetWorkerMaster");
-            _tables.GetTableReference("NuGetWorkerMaster").CreateIfNotExists();
             AttachCoreLoggers(masterTableLog);
         }
 
@@ -121,9 +129,10 @@ namespace NuGetGallery.Backend.Tracing
         {
             listener.EnableEvents(
                 WorkerEventSource.Log,
-                EventLevel.LogAlways);
+                // All but Verbose
+                EventLevel.Informational);
             listener.EnableEvents(
-                DispatcherEventSource.Log,
+                SemanticLoggingEventSource.Log,
                 EventLevel.LogAlways);
         }
     }
