@@ -92,4 +92,16 @@
             $show.fadeIn('fast');
         });
     });
+    $('.s-expand[data-target]').delegate('', 'click', function () {
+        var $self = $(this);
+        var data = $self.data();
+        var $target = $(data.target);
+        var toggletext = data.toggletext || $self.text();
+
+        $target.slideToggle('fast', function () {
+            var oldText = $self.text();
+            $self.text(toggletext);
+            data.toggletext = oldText;
+        });
+    });
 })(window, jQuery);

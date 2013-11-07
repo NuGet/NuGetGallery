@@ -573,31 +573,6 @@ hgroup.page-heading h2 { padding-left: 7px; }
     background: url("Images/editProfile.png") no-repeat 0 50%;
     padding-left: 20px;
 }
-    
-    /* Account/API Key */
-
-#apiKey h1 { font-size: 2em; }
-
-#apiKey pre {
-    background-color: #202020;
-    border: 2px solid #c0c0c0;
-    color: #c0c0c0;
-    display: block;
-    font: 1.2em 'andale mono', 'lucida console', monospace;
-    line-height: 1.5em;
-    margin: 15px 0 0;
-    overflow: auto;
-    padding: 15px;
-}
-
-#generateKey { position: relative; }
-
-#generateKey h3 { font-size: 1.7em; }
-
-#generateKey #key {
-    font-size: 1.7em;
-    margin-bottom: 0;
-}
 
 /* Sequence Steps */
 
@@ -1293,6 +1268,10 @@ ul.pager li.next { padding-left: 10px; }
 
     /* Forms */
 
+.form-inline {
+    display: inline-block;
+}
+
 #unlist-form {
     border: solid 1px #ccc;
     margin: 20px;
@@ -1468,8 +1447,8 @@ input:focus ~ .field-validation-error ~ .field-hint-message { display: none; }
 a.btn {
     color: white;
     text-decoration: none;
-    padding: 5px;
-    display: inline-block;
+    padding: 1px 6px;
+    display: block;
     
     /* This won't work in IE7, but it will only produce a minor layout quirk */
     -moz-box-sizing: border-box;
@@ -1477,12 +1456,16 @@ a.btn {
     box-sizing: border-box;
 }
 
+.btn.btn-inline {
+    display: inline-block
+}
+
 a:hover.btn {
     color: white;
     text-decoration: none;
 }
 
-input[type="submit"], .btn {
+button, input[type="submit"], .btn {
     font-family: "Segoe UI", "Trebuchet MS", Verdana, Helvetica, Sans-Serif;
     background-color: #4585aa;
     background-image: -ms-linear-gradient(top, #4585aa 0%, #376783 100%);
@@ -1736,35 +1719,70 @@ a.signin-authprovider-link:hover {
     margin-right: 8px;
 }
 
-a.externallogin-microsoftaccount:before {
-    font-family: FontAwesome;
-    content: "\F17A";
-    font-size: 22pt;
-    margin: 0;
-    margin-left: 5px;
-    margin-right: 5px;
-}
-
-ul#managecreds-external-list {
+ul#managecreds-list {
     margin: 0;
     padding: 5px;
 }
 
-li.managecreds-external-cred {
-    padding: 5px;
+li.managecreds-cred {
+    background-color: #eff7fa;
+    margin: 0.5em 0;
+    padding: 0.5em;
     list-style-type: none;
-    border: solid 1px #376783;
+    border: 1px solid silver;
     box-shadow: inset 0px 0px 1px rgba(255, 255, 255, 1), 1px 1px 1px rgba(0, 0, 0, 0.3);
 }
 
-div.managecreds-external-cred-caption {
+.managecreds-cred-actions {
+    float: right;
+}
+
+.managecreds-cred-caption {
     font-size: 16pt;
     margin-bottom: 1em;
 }
 
-div.managecreds-external-cred-id {
+.managecreds-cred-id {
     font-size: 12pt;
     margin-left: 1em;
+}
+
+#managecreds-cred-changepassword-fieldset 
+{
+    margin: 0;
+    margin-top: 1em;
+}
+
+.managecreds-cred.managecreds-cred-disabled {
+    background-color: white;
+    border: 1px dashed silver;
+}
+
+.managecreds-cred.managecreds-cred-disabled .managecreds-cred-caption {
+    font-style: italic;
+}
+
+#managecreds-cred-apikeyinfo {
+    margin-top: 1em;
+}
+
+#managecreds-cred-apikeysample {
+    background-color: #202020;
+    border: 2px solid #c0c0c0;
+    color: #c0c0c0;
+    display: block;
+    font: 1.2em 'andale mono', 'lucida console', monospace;
+    line-height: 1.5em;
+    margin: 15px 0 0;
+    overflow: auto;
+    padding: 15px;
+}
+
+i.managecreds-cred-icon {
+    font-size: 22pt;
+    width: 32px;
+    display: inline-block;
+    text-align: right;
 }
 
 /* Script-related Classes */

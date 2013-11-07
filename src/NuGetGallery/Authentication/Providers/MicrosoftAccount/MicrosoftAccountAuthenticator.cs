@@ -30,7 +30,7 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
                 Strings.MicrosoftAccount_AccountNoun,
                 Strings.MicrosoftAccount_Caption)
                 {
-                    CssClass = "externallogin-microsoftaccount"
+                    IconCssClass = "icon-windows"
                 };
         }
 

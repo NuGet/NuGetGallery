@@ -46,8 +46,9 @@
             <ul id="signin-providerlist">
                 @foreach (var provider in Model.Providers)
                 {
-                    <li class="signin-authprovider @provider.UI.CssClass">
-                        <a class="btn btn-big signin-authprovider-link @provider.UI.CssClass" href="@Url.Action("Authenticate", new { provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey] })">
+                    <li class="signin-authprovider">
+                        <a class="btn btn-big signin-authprovider-link" href="@Url.Action("Authenticate", new { provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey] })">
+                            <i class="@provider.UI.IconCssClass signin-authprovider-icon"></i>
                             @provider.UI.SignInMessage
                         </a>
                     </li>
