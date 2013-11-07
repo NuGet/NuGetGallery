@@ -1756,6 +1756,7 @@ li.managecreds-cred {
 .managecreds-cred.managecreds-cred-disabled {
     background-color: white;
     border: 1px dashed silver;
+    box-shadow: none;
 }
 
 .managecreds-cred.managecreds-cred-disabled .managecreds-cred-caption {

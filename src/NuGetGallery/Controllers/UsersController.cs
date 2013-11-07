@@ -410,7 +410,7 @@ namespace NuGetGallery
             var passwordCred = user.Credentials.SingleOrDefault(
                 c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
 
-            return RemoveCredential(user, passwordCred);
+            return RemoveCredential(user, passwordCred, Strings.PasswordRemoved);
         }
 
         [HttpPost]
@@ -422,7 +422,7 @@ namespace NuGetGallery
             var cred = user.Credentials.SingleOrDefault(
                 c => String.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase));
             
-            return RemoveCredential(user, cred);
+            return RemoveCredential(user, cred, Strings.CredentialRemoved);
         }
 
         public virtual ActionResult PasswordChanged()
@@ -447,7 +447,7 @@ namespace NuGetGallery
             return RedirectToAction("ManageCredentials");
         }
 
-        private ActionResult RemoveCredential(User user, Credential cred)
+        private ActionResult RemoveCredential(User user, Credential cred, string message)
         {
             // Count login credentials
             if (CountLoginCredentials(user) <= 1)
@@ -457,7 +457,7 @@ namespace NuGetGallery
             else if (cred != null)
             {
                 AuthService.RemoveCredential(user, cred);
-                TempData["Message"] = Strings.CredentialRemoved;
+                TempData["Message"] = message;
             }
             return RedirectToAction("ManageCredentials");
         }
