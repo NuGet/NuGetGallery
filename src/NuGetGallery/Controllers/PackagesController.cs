@@ -746,7 +746,7 @@ namespace NuGetGallery
                     // Log the exception in case we get support requests about it.
                     QuietLog.LogHandledException(e);
 
-                    return View(Views.UnverifiablePackage);
+                    return View("UnverifiablePackage");
                 }
             }
 

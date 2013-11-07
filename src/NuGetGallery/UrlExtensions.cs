@@ -154,11 +154,6 @@ namespace NuGetGallery
             return url.Action(originalResult);
         }
 
-        public static string Privacy(this UrlHelper url)
-        {
-            return url.Action("Privacy", MVC.Pages.Name);
-        }
-
         public static string Register(this UrlHelper url)
         {
             return url.Action(MVC.Authentication.LogOn());
@@ -167,11 +162,6 @@ namespace NuGetGallery
         public static string Search(this UrlHelper url, string searchTerm)
         {
             return url.RouteUrl(RouteName.ListPackages, new { q = searchTerm });
-        }
-
-        public static string Terms(this UrlHelper url)
-        {
-            return url.Action("Terms", MVC.Pages.Name);
         }
 
         public static string UploadPackage(this UrlHelper url)

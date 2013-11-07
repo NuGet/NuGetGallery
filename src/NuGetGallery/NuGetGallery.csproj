@@ -33,6 +33,7 @@
     <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
     <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
     <IISExpressUseClassicPipelineMode>false</IISExpressUseClassicPipelineMode>
+    <CodeContractsAssemblyMode>0</CodeContractsAssemblyMode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -45,6 +46,38 @@
     <Prefer32Bit>false</Prefer32Bit>
     <UseVSHostingProcess>true</UseVSHostingProcess>
     <CodeAnalysisRuleSet>..\Frontend.ruleset</CodeAnalysisRuleSet>
+    <CodeContractsEnableRuntimeChecking>False</CodeContractsEnableRuntimeChecking>
+    <CodeContractsRuntimeOnlyPublicSurface>False</CodeContractsRuntimeOnlyPublicSurface>
+    <CodeContractsRuntimeThrowOnFailure>True</CodeContractsRuntimeThrowOnFailure>
+    <CodeContractsRuntimeCallSiteRequires>False</CodeContractsRuntimeCallSiteRequires>
+    <CodeContractsRuntimeSkipQuantifiers>False</CodeContractsRuntimeSkipQuantifiers>
+    <CodeContractsRunCodeAnalysis>False</CodeContractsRunCodeAnalysis>
+    <CodeContractsNonNullObligations>False</CodeContractsNonNullObligations>
+    <CodeContractsBoundsObligations>False</CodeContractsBoundsObligations>
+    <CodeContractsArithmeticObligations>False</CodeContractsArithmeticObligations>
+    <CodeContractsEnumObligations>False</CodeContractsEnumObligations>
+    <CodeContractsRedundantAssumptions>False</CodeContractsRedundantAssumptions>
+    <CodeContractsInferRequires>False</CodeContractsInferRequires>
+    <CodeContractsInferEnsures>False</CodeContractsInferEnsures>
+    <CodeContractsInferObjectInvariants>False</CodeContractsInferObjectInvariants>
+    <CodeContractsSuggestAssumptions>False</CodeContractsSuggestAssumptions>
+    <CodeContractsSuggestRequires>True</CodeContractsSuggestRequires>
+    <CodeContractsSuggestEnsures>False</CodeContractsSuggestEnsures>
+    <CodeContractsSuggestObjectInvariants>False</CodeContractsSuggestObjectInvariants>
+    <CodeContractsRunInBackground>True</CodeContractsRunInBackground>
+    <CodeContractsShowSquigglies>True</CodeContractsShowSquigglies>
+    <CodeContractsUseBaseLine>False</CodeContractsUseBaseLine>
+    <CodeContractsEmitXMLDocs>False</CodeContractsEmitXMLDocs>
+    <CodeContractsCustomRewriterAssembly />
+    <CodeContractsCustomRewriterClass />
+    <CodeContractsLibPaths />
+    <CodeContractsExtraRewriteOptions />
+    <CodeContractsExtraAnalysisOptions />
+    <CodeContractsBaseLineFile />
+    <CodeContractsCacheAnalysisResults>True</CodeContractsCacheAnalysisResults>
+    <CodeContractsRuntimeCheckingLevel>Full</CodeContractsRuntimeCheckingLevel>
+    <CodeContractsReferenceAssembly>DoNotBuild</CodeContractsReferenceAssembly>
+    <CodeContractsAnalysisWarningLevel>0</CodeContractsAnalysisWarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -336,6 +369,8 @@
     <Compile Include="Configuration\MailAddressConverter.cs" />
     <Compile Include="Configuration\SmtpUri.cs" />
     <Compile Include="Controllers\AppController.cs" />
+    <Compile Include="Controllers\ErrorsController.cs" />
+    <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="DataServices\NormalizeVersionInterceptor.cs" />
     <Compile Include="DataServices\RewriteBaseUrlMessageInspector.cs" />
     <Compile Include="Diagnostics\AuthenticationGlimpseTab.cs" />
@@ -623,6 +658,9 @@
     </Compile>
     <Compile Include="Diagnostics\DiagnosticsNinjectModule.cs" />
     <Compile Include="Diagnostics\GlimpseRuntimePolicy.cs" />
+    <Compile Include="ErrorsController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="Filters\ApiAuthorizeAttribute.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
@@ -875,10 +913,10 @@
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Infrastructure\Lucene\NuGetQueryParser.cs" />
     <Compile Include="PagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
-    <Compile Include="Infrastructure\Lucene\NuGetQueryParser.cs" />
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
     <Compile Include="RequestModels\ChangeEmailRequestModel.cs" />
@@ -948,7 +986,6 @@
     <Compile Include="ViewModels\StatisticsFact.cs" />
     <Compile Include="ViewModels\StatisticsPivot.cs" />
     <Compile Include="ViewModels\StatisticsDimension.cs" />
-    <Compile Include="ViewModels\HomeViewModel.cs" />
     <Compile Include="ViewModels\StatisticsPackagesReport.cs" />
     <Compile Include="ViewModels\CuratedFeedViewModel.cs" />
     <Compile Include="ViewModels\DependencySetsViewModel.cs" />
@@ -960,7 +997,6 @@
     <Compile Include="App_Start\AppActivator.cs" />
     <Compile Include="Controllers\ApiController.cs" />
     <Compile Include="Controllers\JsonApiController.cs" />
-    <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Controllers\PackagesController.cs" />
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
@@ -1016,10 +1052,23 @@
     <Compile Include="ViewModels\ReportAbuseViewModel.cs" />
     <Compile Include="ViewModels\TrivialPackageVersionModel.cs" />
     <Compile Include="ViewModels\UserProfileModel.cs" />
+    <Content Include="Branding\Views\_ViewStart.cshtml" />
+    <Content Include="App_Data\Files\Content\Privacy-Policy.md" />
+    <Content Include="App_Data\Files\Content\Terms-Of-Use.md" />
+    <Content Include="Branding\Views\web.config" />
     <Compile Include="Views\NuGetViewBase.cs" />
+    <Content Include="Views\Shared\LayoutFooter.cshtml" />
+    <Content Include="Views\Shared\SiteMenu.cshtml">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="Views\Shared\Title.cshtml" />
+    <Content Include="Views\Pages\Home.cshtml" />
+    <Content Include="Views\Pages\Privacy.cshtml" />
+    <Content Include="Views\Pages\Terms.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
+    <Content Include="App_Data\Files\Content\Home.html" />
     <Content Include="App_Offline-Planned.htm" />
     <Content Include="App_Offline-Unplanned.htm" />
     <Content Include="Areas\Admin\DynamicData\Content\GridViewPager.ascx" />
@@ -1072,39 +1121,27 @@
     <Content Include="Content\Images\errorPage.png" />
     <Content Include="Content\Images\editProfile.png" />
     <Content Include="Content\Images\managePackages.png" />
-    <Content Include="Content\Images\outercurve.png" />
-    <Content Include="Content\Images\treeview\ajax-loader.gif" />
-    <Content Include="Content\Images\treeview\file.gif" />
-    <Content Include="Content\Images\treeview\folder-closed.gif" />
-    <Content Include="Content\Images\treeview\folder.gif" />
-    <Content Include="Content\Images\treeview\minus.gif" />
-    <Content Include="Content\Images\treeview\plus.gif" />
-    <Content Include="Content\Images\treeview\treeview-black-line.gif" />
-    <Content Include="Content\Images\treeview\treeview-black.gif" />
-    <Content Include="Content\Images\treeview\treeview-default-line.gif" />
-    <Content Include="Content\Images\treeview\treeview-default.gif" />
-    <Content Include="Content\Images\treeview\treeview-famfamfam-line.gif" />
-    <Content Include="Content\Images\treeview\treeview-famfamfam.gif" />
-    <Content Include="Content\Images\treeview\treeview-gray-line.gif" />
-    <Content Include="Content\Images\treeview\treeview-gray.gif" />
-    <Content Include="Content\Images\treeview\treeview-red-line.gif" />
-    <Content Include="Content\Images\treeview\treeview-red.gif" />
+    <Content Include="Content\Logos\outercurve.png" />
     <Content Include="Content\Images\uploadPackage.png" />
     <Content Include="Content\Images\YourPackage.png" />
+    <Content Include="Content\Layout.css" />
+    <Content Include="Content\PageStylings.css" />
     <Content Include="Content\Site.css" />
     <Content Include="Content\Images\download.png" />
     <Content Include="Content\Images\editIcon.png" />
     <Content Include="Content\Images\greenArrow.png" />
     <Content Include="Content\Images\headerbackground.png" />
-    <Content Include="Content\Images\hero.png" />
-    <Content Include="Content\Images\herowithlogo.png" />
+    <Content Include="Content\Logos\hero.png">
+      <BrowseToURL>hero.png</BrowseToURL>
+    </Content>
+    <Content Include="Content\Logos\herowithlogo.png" />
     <Content Include="Content\Images\inputBackground.png" />
     <Content Include="Content\Images\invalidBG.png" />
     <Content Include="Content\Images\mine.png" />
     <Content Include="Content\Images\navbackground.png" />
     <Content Include="Content\Images\newAccountGraphic.png" />
-    <Content Include="Content\Images\nugetlogo.png" />
-    <Content Include="Content\Images\nugetLogoFooter.png" />
+    <Content Include="Content\Logos\nugetlogo.png" />
+    <Content Include="Content\Logos\nugetLogoFooter.png" />
     <Content Include="Content\Images\packageDefaultIcon-50x50.png" />
     <Content Include="Content\Images\packageDefaultIcon.png" />
     <Content Include="Content\Images\packageOwnerActionIcons.png" />
@@ -1247,19 +1284,18 @@
     </Content>
     <Content Include="Views\web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
-    <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\Errors\InternalError.cshtml" />
     <Content Include="Views\Users\Confirm.cshtml" />
     <Content Include="Views\Users\Thanks.cshtml" />
     <Content Include="Views\Users\Profiles.cshtml" />
     <Content Include="Views\Authentication\LogOn.cshtml" />
     <Content Include="Views\Packages\ContactOwners.cshtml" />
     <Content Include="Views\Packages\DisplayPackage.cshtml" />
-    <Content Include="Views\Packages\ListPackages.cshtml" />
+    <Content Include="Views\Shared\ListPackages.cshtml" />
     <Content Include="Views\Packages\VerifyPackage.cshtml" />
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
     <Content Include="Views\Packages\UploadPackage.cshtml" />
-    <Content Include="Views\Packages\_ListPackage.cshtml" />
-    <Content Include="Views\Pages\Home.cshtml" />
+    <Content Include="Views\Shared\_ListPackage.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\Object.cshtml" />
     <Content Include="Views\Shared\Layout.cshtml" />
     <Content Include="Views\Shared\UserDisplay.cshtml" />
@@ -1274,13 +1310,9 @@
     <Content Include="Views\Users\Edit.cshtml" />
     <Content Include="Views\Packages\Download.cshtml" />
     <Content Include="Views\Packages\ConfirmOwner.cshtml" />
-    <Content Include="Errors\404.cshtml" />
-    <Content Include="Errors\ErrorLayout.cshtml" />
-    <Content Include="Errors\_PageStart.cshtml" />
+    <Content Include="Views\Errors\NotFound.cshtml" />
     <Content Include="Views\Packages\Delete.cshtml" />
     <Content Include="Views\Packages\Edit.cshtml" />
-    <Content Include="Views\Pages\Terms.cshtml" />
-    <Content Include="Views\Pages\Privacy.cshtml" />
     <Content Include="Views\Packages\ManagePackageOwners.cshtml" />
     <Content Include="Views\Shared\TwoColumnLayout.cshtml" />
     <Content Include="api\Web.config" />
@@ -1292,6 +1324,8 @@
     <Content Include="Views\Authentication\Register.cshtml" />
     <Content Include="Views\Authentication\SignIn.cshtml" />
     <Content Include="Views\Users\ChangeEmail.cshtml" />
+    <Content Include="Views\Pages\Contact.cshtml" />
+    <Content Include="T4MVC.tt.settings.t4" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config">
@@ -1343,6 +1377,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Errors\ReadOnlyMode.cshtml" />
+    <Content Include="Views\Errors\ReadOnlyMode.cshtml" />
     <Content Include="Areas\Admin\DynamicData\Site.master" />
     <Content Include="Areas\Admin\DynamicData\web.config">
       <SubType>Designer</SubType>
@@ -1350,21 +1385,16 @@
     <Content Include="Areas\Admin\Views\Home\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Web.config" />
     <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
-    <Content Include="App_Data\Files\Content\FrontPage-Announcement.md" />
-    <Content Include="App_Data\Files\Content\FrontPage-About.md" />
     <Content Include="App_Data\Files\Content\Alert.md" />
     <Content Include="Areas\Admin\Views\Lucene\Index.cshtml">
       <SubType>Code</SubType>
     </Content>
     <Content Include="Areas\Admin\Views\Config\Index.cshtml" />
-    <Content Include="App_Data\Files\Content\Privacy-Policy.md" />
-    <Content Include="App_Data\Files\Content\Terms-Of-Use.md" />
-    <Content Include="Errors\CookieError.cshtml" />
+    <Content Include="Views\Errors\CookieError.cshtml" />
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>
     </None>
-    <None Include="T4MVC.tt.settings.t4" />
     <Content Include="Views\Packages\_PackageDependencies.cshtml" />
     <Content Include="Views\Statistics\Index.cshtml" />
     <Content Include="Views\Statistics\Packages.cshtml" />
@@ -1373,7 +1403,6 @@
     <Content Include="Views\CuratedFeeds\CuratedFeed.cshtml" />
     <Content Include="Views\Packages\UnverifiablePackage.cshtml" />
     <Content Include="Views\Packages\ReportMyPackage.cshtml" />
-    <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
     <Content Include="Views\Statistics\_PivotTable.cshtml" />
     <Content Include="Views\Statistics\_LastUpdated.cshtml" />

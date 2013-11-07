@@ -90,7 +90,7 @@ namespace NuGetGallery.Configuration
                     }
                 }
 
-                if (value != null)
+                if (!String.IsNullOrEmpty(value))
                 {
                     if (property.PropertyType.IsAssignableFrom(typeof(string)))
                     {

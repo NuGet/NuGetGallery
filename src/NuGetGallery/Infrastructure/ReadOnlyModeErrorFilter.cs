@@ -14,7 +14,7 @@ namespace NuGetGallery.Infrastructure
 
                 context.Result = new ViewResult
                 {
-                    ViewName = "~/Errors/ReadOnlyMode.cshtml",
+                    ViewName = "~/Views/Errors/ReadOnlyMode.cshtml",
                 };
 
                 context.ExceptionHandled = true;

@@ -41,11 +41,8 @@
 
         public static class ContentNames
         {
-            public static readonly string FrontPageAnnouncement = "FrontPage-Announcement";
-            public static readonly string FrontPageAbout = "FrontPage-About";
-
+            public static readonly string Home = "Home";
             public static readonly string Alert = "Alert";
-
             public static readonly string TermsOfUse = "Terms-Of-Use";
             public static readonly string PrivacyPolicy = "Privacy-Policy";
         }

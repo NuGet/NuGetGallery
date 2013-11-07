@@ -1,5 +1,4 @@
-﻿@* Generator : WebPage *@
-@{
+﻿@{
     Page.Title = "Page Not Found";
     var errorPath = Request.QueryString["aspxerrorpath"];
 
@@ -24,22 +23,27 @@
 
     <h2 class="search">Try Searching</h2>
     <div id="pageSearchBox">
-        <form action="@Href("~/packages")" onsubmit="return submitQuery()">
-            <input name="q" id="searchBoxInput" value="@errorPath" placeholder="Search Gallery" />
+        <form action="~/packages" onsubmit="return submitQuery()">
+            <input name="q" id="searchBoxInput" placeholder="Search Gallery" />
             <input id="searchBoxSubmit" type="submit" value=" " />
         </form>
     </div>
 
     <h2>Still Nothing?</h2>
     <ul>
-        <li>File a bug in <a href="https://github.com/NuGet/NuGetGallery/issues">the NuGet Gallery issue tracker</a> so we can fix it.</li>
+        <li>File a bug in <a href="https://github.com/NuGet/NuGetGallery/issues">the issue tracker</a> so we can fix it.</li>
     </ul>
 </div>
 
+@section BottomScripts {
 <script type="text/javascript">
     function submitQuery() {
         window.location = "@Href("~/packages")?q="
             + encodeURIComponent($("#searchBoxInput").val());
         return false;
     }
+    $(function () {
+        $("#searchBoxInput").val("@errorPath");
+    });
 </script>
+}
