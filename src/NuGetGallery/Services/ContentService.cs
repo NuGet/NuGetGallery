@@ -28,10 +28,11 @@ namespace NuGetGallery
 
         protected ConcurrentDictionary<string, ContentItem> ContentCache { get { return _contentCache; } }
 
-        protected ContentService() {
+        protected ContentService()
+        {
             Trace = NullDiagnosticsSource.Instance;
         }
-        
+
         public ContentService(IFileStorageService fileStorage, IDiagnosticsService diagnosticsService)
         {
             if (fileStorage == null)
@@ -66,8 +67,8 @@ namespace NuGetGallery
                 ContentItem cachedItem = null;
                 if (ContentCache.TryGetValue(name, out cachedItem) && DateTime.UtcNow < cachedItem.ExpiryUtc)
                 {
-                    Trace.Verbose("Cache Valid. Expires at: " + item.ExpiryUtc.ToString());
-                    return item.Content;
+                    Trace.Verbose("Cache Valid. Expires at: " + cachedItem.ExpiryUtc.ToString());
+                    return cachedItem.Content;
                 }
                 Trace.Verbose("Cache Expired.");
 
@@ -103,30 +104,35 @@ namespace NuGetGallery
                 if (reference == null)
                 {
                     Trace.Error("Requested Content File Not Found: " + fileName);
+                    return null;
                 }
-                else
+
+                // Check the content ID to see if it's different
+                if (cachedItem != null && String.Equals(cachedItem.ContentId, reference.ContentId, StringComparison.Ordinal))
                 {
-                    // Check the content ID to see if it's different
-                    if (item != null && String.Equals(item.ContentId, reference.ContentId, StringComparison.Ordinal))
+                    Trace.Verbose("No change to content item. Using Cache");
+
+                    // Update the expiry time
+                    cachedItem.ExpiryUtc = DateTime.UtcNow + expiresIn;
+                    Trace.Verbose(String.Format("Updating Cache: {0} expires at {1}", fileName, cachedItem.ExpiryUtc));
+                    return cachedItem;
+                }
+
+                // Retrieve the content
+                Trace.Verbose("Content Item changed. Trying to update...");
+                try
+                {
+                    using (var stream = reference.OpenRead())
                     {
-                        Trace.Verbose("No change to content item. Using Cache");
-                        // No change, just use the cache.
-                        result = item.Content;
-                    }
-                    else
-                    {
-                        // Process the file
-                        Trace.Verbose("Content Item changed. Updating...");
-                        using (var stream = reference.OpenRead())
+                        if (stream == null)
                         {
-                            if (stream == null)
+                            Trace.Error("Requested Content File Not Found: " + fileName);
+                            return null;
+                        }
+                        else
+                        {
+                            using (Trace.Activity("Reading Content File: " + fileName))
                             {
-                                Trace.Error("Requested Content File Not Found: " + fileName);
-                                reference = null;
-                            }
-                            else
-                            {
-                                using (Trace.Activity("Reading Content File: " + fileName))
                                 using (var reader = new StreamReader(stream))
                                 {
                                     string text = await reader.ReadToEndAsync();
