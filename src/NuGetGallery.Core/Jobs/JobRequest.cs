@@ -15,11 +15,14 @@ namespace NuGetGallery.Jobs
         public string Source { get; private set; }
         public Dictionary<string, string> Parameters { get; private set; }
         public CloudQueueMessage Message { get; private set; }
+        public DateTimeOffset? ExpiresAt { get { return Message == null ? null : Message.ExpirationTime; } }
+        
+        public DateTimeOffset InsertionTime { get; private set; }
+        public string Id { get; private set; }
 
         public JobRequest(string name, string source, Dictionary<string, string> parameters)
             : this(name, source, parameters, null)
         {
-
         }
 
         public JobRequest(string name, string source, Dictionary<string, string> parameters, CloudQueueMessage message)
@@ -28,6 +31,17 @@ namespace NuGetGallery.Jobs
             Source = source;
             Parameters = parameters;
             Message = message;
+
+            if (message == null)
+            {
+                Id = Guid.NewGuid().ToString();
+                InsertionTime = DateTimeOffset.UtcNow;
+            }
+            else
+            {
+                Id = message.Id;
+                InsertionTime = message.InsertionTime ?? DateTimeOffset.UtcNow;
+            }
         }
 
         public static JobRequest Parse(string requestString)

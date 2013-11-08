@@ -38,8 +38,6 @@ namespace NuGetGallery.Monitoring.Tables
             Tables = DiagnosticsStorage.CreateCloudTableClient();
             Blobs = DiagnosticsStorage.CreateCloudBlobClient();
             Queues = DiagnosticsStorage.CreateCloudQueueClient();
-
-            DiscoverTables();
         }
 
         public string GetTableFullName(string tableName)
@@ -47,15 +45,13 @@ namespace NuGetGallery.Monitoring.Tables
             return TableNamePrefix + tableName;
         }
 
-        public MonitoringTable<TEntity> Table<TEntity>() where TEntity : TableEntity, IMonitoringTableEntry
+        public MonitoringTable<TEntity> Table<TEntity>() where TEntity : ITableEntity
         {
             string tableName;
             if (!_tableNameMap.TryGetValue(typeof(TEntity), out tableName))
             {
-                throw new InvalidOperationException(String.Format(
-                    CultureInfo.InvariantCulture,
-                    Strings.MonitoringHub_UnknownTableType,
-                    typeof(TEntity).Name));
+                tableName = GetTableName(typeof(TEntity));
+                _tableNameMap[typeof(TEntity)] = tableName;
             }
             var table = Tables.GetTableReference(tableName);
             return new MonitoringTable<TEntity>(table);
@@ -82,15 +78,6 @@ namespace NuGetGallery.Monitoring.Tables
         {
             // Starts monitoring tasks.
             return Task.FromResult<object>(null);
-        }
-
-        protected virtual void DiscoverTables()
-        {
-            _tableNameMap = typeof(MonitoringHub)
-                .Assembly
-                .GetExportedTypes()
-                .Where(t => !t.IsAbstract && typeof(IMonitoringTableEntry).IsAssignableFrom(t))
-                .ToDictionary(t => t, t => GetTableName(t));
         }
 
         private string GetTableName(Type typ)

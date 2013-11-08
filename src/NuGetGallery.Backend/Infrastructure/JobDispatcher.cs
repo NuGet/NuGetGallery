@@ -35,15 +35,15 @@ namespace NuGetGallery.Backend
         public virtual async Task<JobResponse> Dispatch(JobInvocation invocation)
         {
             Job job;
-            if (!_jobMap.TryGetValue(request.Name, out job))
+            if (!_jobMap.TryGetValue(invocation.Request.Name, out job))
             {
-                throw new UnknownJobException(request.Name);
+                throw new UnknownJobException(invocation.Request.Name);
             }
 
             IAsyncDeferred<JobResult> monitorCompletion = null;
             if (_monitor != null)
             {
-                monitorCompletion = _monitor.InvokingJob(invocation, job);
+                monitorCompletion = await _monitor.InvokingJob(invocation, job);
             }
 
             WorkerEventSource.Log.DispatchingRequest(invocation);

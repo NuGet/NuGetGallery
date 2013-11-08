@@ -48,5 +48,13 @@ namespace NuGetGallery.Jobs
                 return JobRequest.Parse(message.AsString, message);
             }
         }
+
+        public async Task Acknowledge(JobRequest request)
+        {
+            if (request.Message != null)
+            {
+                await _queue.SafeExecute(q => q.DeleteMessageAsync(request.Message));
+            }
+        }
     }
 }

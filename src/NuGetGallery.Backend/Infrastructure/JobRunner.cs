@@ -62,22 +62,22 @@ namespace NuGetGallery.Backend
                 return null;
             }
             Debug.Assert(request.Message != null); // Since we dequeued, there'd better be a CloudQueueMessage.
-            WorkerEventSource.Log.RequestReceived(request.Message.Id, request.InsertionTime);
+            WorkerEventSource.Log.RequestReceived(request.Id, request.InsertionTime);
 
             var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
             try
             {
-                JobResponse response = _dispatcher.Dispatch(invocation);
+                JobResponse response = await _dispatcher.Dispatch(invocation);
 
-                if (request.ExpirationTime.HasValue && DateTimeOffset.UtcNow > request.ExpirationTime.Value)
+                if (request.ExpiresAt.HasValue && DateTimeOffset.UtcNow > request.ExpiresAt.Value)
                 {
-                    WorkerEventSource.Log.JobRequestExpired(req, request.Id, DateTimeOffset.UtcNow - request.ExpirationTime.Value);
+                    WorkerEventSource.Log.JobRequestExpired(request, request.Id, DateTimeOffset.UtcNow - request.ExpiresAt.Value);
                 }
 
                 // If dispatch throws, we don't delete the message
                 // NOTE: If the JOB throws, the dispatcher should catch it and return the error in the response
                 // Thus the request is considered "handled"
-                await _queue.DeleteMessageAsync(request);
+                await _queue.Acknowledge(request);
 
                 return response;
             }

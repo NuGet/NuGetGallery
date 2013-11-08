@@ -45,6 +45,7 @@ namespace NuGetGallery.Jobs
 
     public enum JobStatus
     {
+        Unspecified = 0,
         Executing,
         Completed,
         Faulted

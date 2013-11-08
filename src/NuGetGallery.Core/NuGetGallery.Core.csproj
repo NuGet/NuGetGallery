@@ -124,9 +124,12 @@
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\User.cs" />
-    <Compile Include="Monitoring\Tables\BackendInstanceStatusEntry.cs" />
-    <Compile Include="Monitoring\Tables\BackendJobInvocationEntry.cs" />
-    <Compile Include="Monitoring\Tables\IMonitoringTableEntry.cs" />
+    <Compile Include="Monitoring\Tables\InvocationsEntry.cs" />
+    <Compile Include="Monitoring\Tables\JobHistoryEntry.cs" />
+    <Compile Include="Monitoring\Tables\ReverseChronologicalTableEntry.cs" />
+    <Compile Include="Monitoring\Tables\WorkerInstanceHistoryEntry.cs" />
+    <Compile Include="Monitoring\Tables\WorkerInstanceStatusEntry.cs" />
+    <Compile Include="Monitoring\Tables\JobStatusEntry.cs" />
     <Compile Include="Monitoring\Tables\MonitoringTable.cs" />
     <Compile Include="Monitoring\Tables\MonitoringHub.cs" />
     <Compile Include="Packaging\INupkg.cs" />

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -64,14 +65,19 @@ namespace NuGetGallery.Backend
                 .Where(t => !t.IsAbstract && typeof(Job).IsAssignableFrom(t))
                 .Select(t => Activator.CreateInstance(t))
                 .Cast<Job>();
-            return new JobDispatcher(config, jobs);
+            return new JobDispatcher(config, jobs, monitoring);
         }
 
         private BackendMonitoringHub ConfigureMonitoring(BackendConfiguration config)
         {
             var connectionString = config.Get("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString");
             var logDirectory = RoleEnvironment.GetLocalResource("Logs").RootPath;
-            var monitoring = new BackendMonitoringHub(connectionString, logDirectory);
+            var tempDirectory = Path.Combine(Path.GetTempPath(), "NuGetWorkerTemp");
+            var monitoring = new BackendMonitoringHub(
+                connectionString, 
+                logDirectory,
+                tempDirectory,
+                RoleEnvironment.CurrentRoleInstance.Id);
             monitoring.Start();
             return monitoring;
         }

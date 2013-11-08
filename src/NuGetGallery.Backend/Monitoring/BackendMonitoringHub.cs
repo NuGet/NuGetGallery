@@ -24,11 +24,15 @@ namespace NuGetGallery.Backend.Monitoring
     public class BackendMonitoringHub : MonitoringHub
     {
         private const string BackendMonitoringContainerName = "backend-monitoring";
-        private const string BackendServiceName = "Backend";
+        private const string BackendTraceTableName = "BackendTrace";
 
         private Dictionary<Job, ObservableEventListener> _eventStreams = new Dictionary<Job, ObservableEventListener>();
-        private MonitoringTable<BackendInstanceStatusEntry> _instanceStatusTable;
-        private MonitoringTable<BackendJobInvocationEntry> _invocationsTable;
+        
+        private MonitoringTable<WorkerInstanceStatusEntry> _instanceStatusTable;
+        private MonitoringTable<WorkerInstanceHistoryEntry> _instanceHistoryTable;
+        private MonitoringTable<JobStatusEntry> _jobStatusTable;
+        private MonitoringTable<JobHistoryEntry> _jobHistoryTable;
+        private MonitoringTable<InvocationsEntry> _invocationsTable;
 
         public string LogsDirectory { get; private set; }
         public string TempDirectory { get; private set; }
@@ -45,8 +49,11 @@ namespace NuGetGallery.Backend.Monitoring
             TempDirectory = tempDirectory;
             InstanceName = instanceName;
 
-            _instanceStatusTable = Table<BackendInstanceStatusEntry>();
-            _invocationsTable = Table<BackendJobInvocationEntry>();
+            _instanceStatusTable = Table<WorkerInstanceStatusEntry>();
+            _instanceHistoryTable = Table<WorkerInstanceHistoryEntry>();
+            _jobStatusTable = Table<JobStatusEntry>();
+            _jobHistoryTable = Table<JobHistoryEntry>();
+            _invocationsTable = Table<InvocationsEntry>();
         }
 
         /// <summary>
@@ -66,18 +73,23 @@ namespace NuGetGallery.Backend.Monitoring
                 InstanceName,
                 StorageConnectionString,
                 tableAddress: tableName);
+
+            // Log an entry for the job in the status table
+            _jobStatusTable.InsertOrIgnoreDuplicate(new JobStatusEntry(job.Name, DateTimeOffset.UtcNow));
         }
 
         public override async Task Start()
         {
-            // Log Status
-            await _instanceStatusTable.Upsert(new BackendInstanceStatusEntry(BackendServiceName, InstanceName)
-            {
-                Status = BackendInstanceStatus.Started,
-                LastInvocation = Guid.Empty,
-                LastJob = String.Empty,
-                LastUpdatedAt = DateTimeOffset.UtcNow
-            });
+            // Set up worker logging
+            var listener = WindowsAzureTableLog.CreateListener(
+                InstanceName,
+                StorageConnectionString,
+                tableAddress: GetTableFullName(BackendTraceTableName));
+            listener.EnableEvents(WorkerEventSource.Log, EventLevel.Informational);
+            listener.EnableEvents(SemanticLoggingEventSource.Log, EventLevel.Informational);
+
+            // Log Instance Status
+            await _instanceStatusTable.Upsert(new WorkerInstanceStatusEntry(InstanceName, DateTimeOffset.UtcNow, BackendInstanceStatus.Started));
         }
 
         /// <summary>
@@ -86,30 +98,15 @@ namespace NuGetGallery.Backend.Monitoring
         /// </summary>
         public async Task<IAsyncDeferred<JobResult>> InvokingJob(JobInvocation invocation, Job job)
         {
-            // Log Invocation Status
-            await _invocationsTable.Upsert(new BackendJobInvocationEntry(job.Name, invocation.Id)
-            {
-                Status = JobStatus.Executing,
-                RecievedAt = invocation.RecievedAt,
-                Source = invocation.Request.Source,
-                Payload = invocation.Request.Message != null ? invocation.Request.Message.AsString : String.Empty,
-                LogUrl = String.Empty
-            });
-
-            // Log Instance Status
-            await _instanceStatusTable.Upsert(new BackendInstanceStatusEntry(BackendServiceName, InstanceName)
-            {
-                Status = BackendInstanceStatus.Executing,
-                LastInvocation = invocation.Id,
-                LastJob = job.Name,
-                LastUpdatedAt = DateTimeOffset.UtcNow
-            });
+            // Record start of job
+            DateTimeOffset startTime = DateTimeOffset.UtcNow;
+            await ReportStartJob(invocation, job, startTime);
 
             // Get the event stream for this job
             ObservableEventListener eventStream;
             if (!_eventStreams.TryGetValue(job, out eventStream))
             {
-                return;
+                return null;
             }
 
             // Capture the events into a flat file
@@ -117,8 +114,7 @@ namespace NuGetGallery.Backend.Monitoring
             var path = Path.Combine(TempDirectory, "Invocations", fileName);
             var token = eventStream.LogToFlatFile(
                 path,
-                new JsonEventTextFormatter(EventTextFormatting), 
-                isAsync: true);
+                new JsonEventTextFormatter(EventTextFormatting.None));
             return new AsyncDeferred<JobResult>(async result =>
             {
                 // Disconnect the listener
@@ -130,27 +126,39 @@ namespace NuGetGallery.Backend.Monitoring
                 // Delete the temp file
                 File.Delete(path);
 
-                // Log Invocation status
-                await _invocationsTable.Upsert(new BackendJobInvocationEntry(job.Name, invocation.Id)
-                {
-                    Status = result.Status,
-                    RecievedAt = invocation.RecievedAt,
-                    Source = invocation.Request.Source,
-                    Payload = invocation.Request.Message != null ? invocation.Request.Message.AsString : String.Empty,
-                    LogUrl = blob.Uri.AbsoluteUri
-                });
-
-                // Log Instance Status
-                await _instanceStatusTable.Upsert(new BackendInstanceStatusEntry(BackendServiceName, InstanceName)
-                {
-                    PartitionKey = BackendServiceName,
-                    RowKey = InstanceName,
-                    Status = BackendInstanceStatus.Idle,
-                    LastInvocation = invocation.Id,
-                    LastJob = job.Name,
-                    LastUpdatedAt = DateTimeOffset.UtcNow
-                });
+                // Record end of job
+                await ReportEndJob(invocation, result, job, blob.Uri.AbsoluteUri, startTime, DateTimeOffset.UtcNow);
             });
+        }
+
+        private Task ReportStartJob(JobInvocation invocation, Job job, DateTimeOffset startTime)
+        {
+            return Task.WhenAll(
+                // Add History Rows
+                _jobHistoryTable.Upsert(new JobHistoryEntry(job.Name, startTime, invocation.Id, InstanceName)),
+                _instanceHistoryTable.Upsert(new WorkerInstanceHistoryEntry(InstanceName, startTime, invocation.Id, job.Name)),
+
+                // Upsert Status Rows
+                _jobStatusTable.Upsert(new JobStatusEntry(job.Name, startTime, invocation.Id, InstanceName)),
+                _instanceStatusTable.Upsert(new WorkerInstanceStatusEntry(InstanceName, startTime, BackendInstanceStatus.Executing, invocation.Id, job.Name)),
+                
+                // Add invocation row
+                _invocationsTable.Upsert(new InvocationsEntry(invocation)));
+        }
+
+        private Task ReportEndJob(JobInvocation invocation, JobResult result, Job job, string logUrl, DateTimeOffset startTime, DateTimeOffset completionTime)
+        {
+            return Task.WhenAll(
+                // Add History Rows
+                _jobHistoryTable.Upsert(new JobHistoryEntry(job.Name, completionTime, invocation.Id, InstanceName, result, completionTime)),
+                _instanceHistoryTable.Upsert(new WorkerInstanceHistoryEntry(InstanceName, completionTime, invocation.Id, job.Name, result, completionTime)),
+
+                // Add Status rows
+                _jobStatusTable.Upsert(new JobStatusEntry(job.Name, startTime, invocation.Id, result, InstanceName, completionTime)),
+                _instanceStatusTable.Upsert(new WorkerInstanceStatusEntry(InstanceName, startTime, BackendInstanceStatus.Idle, invocation.Id, job.Name, result, completionTime)),
+
+                // Update invocation row
+                _invocationsTable.Upsert(new InvocationsEntry(invocation, result, logUrl)));
         }
     }
 }
