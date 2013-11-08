@@ -8,7 +8,7 @@ using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
-using NuGetGallery.Backend.Tracing;
+using NuGetGallery.Backend.Monitoring;
 
 namespace NuGetGallery.Backend
 {
@@ -40,10 +40,10 @@ namespace NuGetGallery.Backend
                 ServicePointManager.DefaultConnectionLimit = 12;
 
                 var config = BackendConfiguration.CreateAzure();
-                var diagnostics = ConfigureDiagnostics(config);
-                var dispatcher = DiscoverJobs(config, diagnostics);
+                var monitoring = ConfigureMonitoring(config);
+                var dispatcher = DiscoverJobs(config, monitoring);
 
-                _runner = new JobRunner(dispatcher, config, diagnostics);
+                _runner = new JobRunner(dispatcher, config, monitoring);
 
                 WorkerEventSource.Log.StartupComplete();
                 return base.OnStart();
@@ -56,7 +56,7 @@ namespace NuGetGallery.Backend
             }
         }
 
-        private JobDispatcher DiscoverJobs(BackendConfiguration config, DiagnosticsManager diagnostics)
+        private JobDispatcher DiscoverJobs(BackendConfiguration config, BackendMonitoringHub monitoring)
         {
             var jobs = typeof(WorkerRole)
                 .Assembly
@@ -64,21 +64,16 @@ namespace NuGetGallery.Backend
                 .Where(t => !t.IsAbstract && typeof(Job).IsAssignableFrom(t))
                 .Select(t => Activator.CreateInstance(t))
                 .Cast<Job>();
-            var dispatcher = new JobDispatcher(config, jobs);
-            foreach (var job in dispatcher.Jobs)
-            {
-                diagnostics.RegisterJob(job);
-            }
-            return dispatcher;
+            return new JobDispatcher(config, jobs);
         }
 
-        private DiagnosticsManager ConfigureDiagnostics(BackendConfiguration config)
+        private BackendMonitoringHub ConfigureMonitoring(BackendConfiguration config)
         {
             var connectionString = config.Get("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString");
             var logDirectory = RoleEnvironment.GetLocalResource("Logs").RootPath;
-            var diagnostics = new DiagnosticsManager(logDirectory, connectionString);
-            diagnostics.Initialize();
-            return diagnostics;
+            var monitoring = new BackendMonitoringHub(connectionString, logDirectory);
+            monitoring.Start();
+            return monitoring;
         }
     }
 }

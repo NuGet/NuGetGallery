@@ -1,36 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json.Linq;
-using NuGetGallery.Backend.Tracing;
+using NuGetGallery.Backend.Monitoring;
+using NuGetGallery.Jobs;
 
 namespace NuGetGallery.Backend
 {
     public class JobRunner
     {
-        private JobDispatcher _dispatcher;
-        private CloudQueue _queue;
-        private BackendConfiguration _config;
-        private DiagnosticsManager _diagnostics;
+        public static readonly TimeSpan DefaultInvisibilityPeriod = TimeSpan.FromSeconds(30);
 
-        public JobRunner(JobDispatcher dispatcher, BackendConfiguration config, DiagnosticsManager diagnostics)
+        private JobDispatcher _dispatcher;
+        private JobRequestQueue _queue;
+        private BackendConfiguration _config;
+        private BackendMonitoringHub _monitoring;
+
+        public JobRunner(JobDispatcher dispatcher, BackendConfiguration config, BackendMonitoringHub monitoring)
         {
             _dispatcher = dispatcher;
             _config = config;
-            _diagnostics = diagnostics;
+            _monitoring = monitoring;
 
-            var queueClient = config.PrimaryStorage.CreateCloudQueueClient();
-            _queue = queueClient.GetQueueReference("nugetworkerrequests");
+            _queue = JobRequestQueue.WithDefaultName(config.PrimaryStorage);
+            
+            // Register jobs
+            foreach (Job job in dispatcher.Jobs)
+            {
+                monitoring.RegisterJob(job);
+            }
         }
 
         public async Task Run(CancellationToken cancelToken)
         {
-            await _queue.CreateIfNotExistsAsync();
-
             WorkerEventSource.Log.WorkerDispatching();
             while (!cancelToken.IsCancellationRequested)
             {
@@ -38,7 +45,6 @@ namespace NuGetGallery.Backend
                 if (response != null)
                 {
                     WorkerEventSource.Log.JobExecuted(response);
-                    await _diagnostics.ReportJobResponse(response);
                 }
                 else
                 {
@@ -50,45 +56,34 @@ namespace NuGetGallery.Backend
 
         private async Task<JobResponse> DispatchOne(CancellationToken cancelToken)
         {
-            var message = await _queue.GetMessageAsync(cancelToken);
-            if (message == null)
+            var request = await _queue.Dequeue(DefaultInvisibilityPeriod, cancelToken);
+            if (request == null)
             {
                 return null;
             }
-            WorkerEventSource.Log.RequestReceived(message.Id, message.InsertionTime);
+            Debug.Assert(request.Message != null); // Since we dequeued, there'd better be a CloudQueueMessage.
+            WorkerEventSource.Log.RequestReceived(request.Message.Id, request.InsertionTime);
 
-            string name;
-            var parameters = new Dictionary<string, string>();
-            JobRequest req;
+            var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
             try
             {
-                req = JobRequest.Parse(message.AsString);
-            }
-            catch (Exception ex)
-            {
-                WorkerEventSource.Log.MessageParseError(message.AsString, ex);
-                return null;
-            }
-            
-            try
-            {
-                JobResponse response = _dispatcher.Dispatch(req);
+                JobResponse response = _dispatcher.Dispatch(invocation);
 
-                if (message.ExpirationTime.HasValue && DateTimeOffset.UtcNow > message.ExpirationTime.Value)
+                if (request.ExpirationTime.HasValue && DateTimeOffset.UtcNow > request.ExpirationTime.Value)
                 {
-                    WorkerEventSource.Log.JobRequestExpired(req, message.Id, DateTimeOffset.UtcNow - message.ExpirationTime.Value);
+                    WorkerEventSource.Log.JobRequestExpired(req, request.Id, DateTimeOffset.UtcNow - request.ExpirationTime.Value);
                 }
 
                 // If dispatch throws, we don't delete the message
                 // NOTE: If the JOB throws, the dispatcher should catch it and return the error in the response
                 // Thus the request is considered "handled"
-                await _queue.DeleteMessageAsync(message);
+                await _queue.DeleteMessageAsync(request);
 
                 return response;
             }
             catch(Exception ex)
             {
-                WorkerEventSource.Log.DispatchError(req, ex);
+                WorkerEventSource.Log.DispatchError(invocation, ex);
                 return null;
             }
         }

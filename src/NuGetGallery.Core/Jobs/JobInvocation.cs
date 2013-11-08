@@ -3,23 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace NuGetGallery.Backend
+namespace NuGetGallery.Jobs
 {
     public class JobInvocation
     {
         public Guid Id { get; private set; }
         public JobRequest Request { get; private set; }
         public DateTimeOffset RecievedAt { get; private set; }
-        public string Source { get; private set; }
-        public BackendConfiguration Configuration { get; private set; }
 
-        public JobInvocation(Guid id, JobRequest request, DateTimeOffset recievedAt, string source, BackendConfiguration config)
+        public JobInvocation(Guid id, JobRequest request, DateTimeOffset recievedAt)
         {
             Id = id;
             Request = request;
             RecievedAt = recievedAt;
-            Source = source;
-            Configuration = config;
         }
     }
 }

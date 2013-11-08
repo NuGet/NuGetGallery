@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NuGetGallery.Backend.Tracing;
+using NuGetGallery.Backend.Monitoring;
+using NuGetGallery.Jobs;
 
 namespace NuGetGallery.Backend
 {
@@ -11,14 +12,17 @@ namespace NuGetGallery.Backend
     {
         private Dictionary<string, Job> _jobMap;
         private List<Job> _jobs;
+        private BackendMonitoringHub _monitor;
 
         public IReadOnlyList<Job> Jobs { get { return _jobs.AsReadOnly(); } }
         public BackendConfiguration Config { get; private set; }
 
-        public JobDispatcher(BackendConfiguration config, IEnumerable<Job> jobs)
+        public JobDispatcher(BackendConfiguration config, IEnumerable<Job> jobs) : this(config, jobs, null) { }
+        public JobDispatcher(BackendConfiguration config, IEnumerable<Job> jobs, BackendMonitoringHub monitor)
         {
             _jobs = jobs.ToList();
             _jobMap = _jobs.ToDictionary(j => j.Name);
+            _monitor = monitor;
 
             Config = config;
 
@@ -28,7 +32,7 @@ namespace NuGetGallery.Backend
             }
         }
 
-        public virtual JobResponse Dispatch(JobRequest request)
+        public virtual async Task<JobResponse> Dispatch(JobInvocation invocation)
         {
             Job job;
             if (!_jobMap.TryGetValue(request.Name, out job))
@@ -36,9 +40,27 @@ namespace NuGetGallery.Backend
                 throw new UnknownJobException(request.Name);
             }
 
-            var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow, "Dispatcher", Config);
+            IAsyncDeferred<JobResult> monitorCompletion = null;
+            if (_monitor != null)
+            {
+                monitorCompletion = _monitor.InvokingJob(invocation, job);
+            }
+
             WorkerEventSource.Log.DispatchingRequest(invocation);
-            var result = job.Invoke(invocation);
+            JobResult result = null;
+            try
+            {
+                result = await job.Invoke(invocation, Config);
+            }
+            catch (Exception ex)
+            {
+                result = JobResult.Faulted(ex);
+            }
+            
+            if (monitorCompletion != null)
+            {
+                await monitorCompletion.Complete(result);
+            }
 
             return new JobResponse(invocation, result, DateTimeOffset.UtcNow);
         }

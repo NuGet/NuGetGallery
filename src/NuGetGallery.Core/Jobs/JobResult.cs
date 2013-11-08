@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace NuGetGallery.Backend
+namespace NuGetGallery.Jobs
 {
     public class JobResult : IEquatable<JobResult>
     {
@@ -45,6 +45,7 @@ namespace NuGetGallery.Backend
 
     public enum JobStatus
     {
+        Executing,
         Completed,
         Faulted
     }

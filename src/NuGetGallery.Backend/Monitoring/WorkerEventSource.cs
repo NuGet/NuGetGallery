@@ -4,8 +4,9 @@ using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NuGetGallery.Jobs;
 
-namespace NuGetGallery.Backend.Tracing
+namespace NuGetGallery.Backend.Monitoring
 {
     [EventSource(Name = "NuGet-Worker")]
     public class WorkerEventSource : EventSource
@@ -153,12 +154,12 @@ namespace NuGetGallery.Backend.Tracing
         [Event(
             eventId: 17,
             Level = EventLevel.Informational,
-            Message = "Error dispatching {0} job.\r\nException: {1}\r\nStack Trace: {2}")]
+            Message = "Error dispatching {1} job (invocation {0}).\r\nException: {1}\r\nStack Trace: {2}")]
         [Obsolete("This method supports ETL infrastructure. Use other overloads instead")]
-        public void DispatchError(string jobName, string exception, string stackTrace) { WriteEvent(17, jobName, exception, stackTrace); }
+        public void DispatchError(string invocationId, string jobName, string exception, string stackTrace) { WriteEvent(17, jobName, exception, stackTrace); }
 
         [NonEvent]
-        public void DispatchError(JobRequest req, Exception ex) { DispatchError(req.Name, ex.ToString(), ex.StackTrace); }
+        public void DispatchError(JobInvocation invocation, Exception ex) { DispatchError(invocation.Id.ToString("N"), invocation.Request.Name, ex.ToString(), ex.StackTrace); }
 
         [Event(
             eventId: 18,

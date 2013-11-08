@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace NuGetGallery.Backend
+namespace NuGetGallery.Jobs
 {
     public class JobResponse
     {

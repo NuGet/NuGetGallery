@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
-using NuGetGallery.Backend.Tracing;
 using Xunit;
 
 namespace NuGetGallery.Backend
@@ -33,7 +32,7 @@ namespace NuGetGallery.Backend
                 {
                 }
 
-                public override EventSource GetLog()
+                public override EventSource GetEventSource()
                 {
                     return TestJobEventSource.Log;
                 }
@@ -50,7 +49,8 @@ namespace NuGetGallery.Backend
                 var invocation = new JobInvocation(
                     Guid.NewGuid(), 
                     new JobRequest(
-                        "Test", 
+                        "Test",
+                        "Test",
                         new Dictionary<string, string>()), 
                     DateTimeOffset.UtcNow, 
                     "test",
@@ -71,6 +71,7 @@ namespace NuGetGallery.Backend
                 var invocation = new JobInvocation(
                     Guid.NewGuid(),
                     new JobRequest(
+                        "Test",
                         "Test",
                         new Dictionary<string, string>()
                         {
@@ -97,6 +98,7 @@ namespace NuGetGallery.Backend
                     Guid.NewGuid(),
                     new JobRequest(
                         "Test",
+                        "Test",
                         new Dictionary<string, string>()
                         {
                             {"ConvertValue", "frob"},
@@ -121,6 +123,7 @@ namespace NuGetGallery.Backend
                     Guid.NewGuid(),
                     new JobRequest(
                         "Jerb",
+                        "Test",
                         new Dictionary<string, string>()),
                     DateTimeOffset.UtcNow,
                     "test",
@@ -142,6 +145,7 @@ namespace NuGetGallery.Backend
                     Guid.NewGuid(),
                     new JobRequest(
                         "Jerb",
+                        "Test",
                         new Dictionary<string, string>()),
                     DateTimeOffset.UtcNow,
                     "test",
@@ -168,7 +172,7 @@ namespace NuGetGallery.Backend
             {
             }
 
-            public override EventSource GetLog()
+            public override EventSource GetEventSource()
             {
                 return TestJobEventSource.Log;
             }

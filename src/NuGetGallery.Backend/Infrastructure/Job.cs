@@ -7,7 +7,8 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using NuGetGallery.Backend.Tracing;
+using NuGetGallery.Backend.Monitoring;
+using NuGetGallery.Jobs;
 
 namespace NuGetGallery.Backend
 {
@@ -17,7 +18,8 @@ namespace NuGetGallery.Backend
 
         public virtual string Name { get; private set; }
         public JobInvocation Invocation { get; protected set; }
-        
+        public BackendConfiguration Config { get; protected set; }
+
         protected Job()
         {
             Name = InferName();
@@ -29,10 +31,11 @@ namespace NuGetGallery.Backend
             Name = name;
         }
 
-        public virtual JobResult Invoke(JobInvocation invocation)
+        public virtual async Task<JobResult> Invoke(JobInvocation invocation, BackendConfiguration config)
         {
             // Bind invocation information
             Invocation = invocation;
+            Config = config;
             BindProperties(invocation.Request.Parameters);
 
             // Invoke the job
@@ -40,7 +43,7 @@ namespace NuGetGallery.Backend
             JobResult result;
             try
             {
-                Execute();
+                await Execute();
                 result = JobResult.Completed();
             }
             catch (Exception ex)
@@ -61,9 +64,9 @@ namespace NuGetGallery.Backend
             return result;
         }
 
-        public abstract EventSource GetLog();
+        public abstract EventSource GetEventSource();
 
-        protected internal abstract void Execute();
+        protected internal abstract Task Execute();
 
         protected virtual void BindProperties(Dictionary<string, string> dictionary)
         {

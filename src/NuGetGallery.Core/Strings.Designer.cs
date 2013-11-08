@@ -70,3 +70,12 @@ namespace NuGetGallery {
         }
     }
 }
+        ///   Looks up a localized string similar to Table type {0} is not known. Only entities implementing IMonitoringTable are supported.
+        /// </summary>
+        internal static string MonitoringHub_UnknownTableType {
+            get {
+                return ResourceManager.GetString("MonitoringHub_UnknownTableType", resourceCulture);
+            }
+        }
+    }
+}
