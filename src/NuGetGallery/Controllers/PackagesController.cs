@@ -505,7 +505,8 @@ namespace NuGetGallery
             var model = new ContactOwnersViewModel
             {
                 PackageId = package.Id,
-                Owners = package.Owners.Where(u => u.EmailAllowed)
+                Owners = package.Owners.Where(u => u.EmailAllowed),
+                CopySender = true
             };
 
             return View(model);
@@ -534,7 +535,7 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);
             _messageService.SendContactOwnersMessage(
-                fromAddress, package, contactForm.Message, Url.Action(MVC.Users.Account(), protocol: Request.Url.Scheme));
+                fromAddress, package, contactForm.Message, Url.Action(MVC.Users.Account(), protocol: Request.Url.Scheme), contactForm.CopySender);
 
             string message = String.Format(CultureInfo.CurrentCulture, "Your message has been sent to the owners of {0}.", id);
             TempData["Message"] = message;
