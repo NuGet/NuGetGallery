@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
+using NuGetGallery.Jobs;
 using Xunit;
 
 namespace NuGetGallery.Backend
@@ -13,63 +14,58 @@ namespace NuGetGallery.Backend
         public class TheDispatchMethod
         {
             [Fact]
-            public void GivenNoJobWithName_ItThrowsUnknownJobException()
+            public async Task GivenNoJobWithName_ItThrowsUnknownJobException()
             {
                 // Arrange
                 var dispatcher = new JobDispatcher(BackendConfiguration.Create(), Enumerable.Empty<Job>());
-                var request = new JobRequest("flarg", new Dictionary<string, string>());
+                var request = new JobRequest("flarg", "test", new Dictionary<string, string>());
+                var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
 
                 // Act/Assert
-                var ex = Assert.Throws<UnknownJobException>(() => dispatcher.Dispatch(request));
+                var ex = await AssertEx.Throws<UnknownJobException>(() => dispatcher.Dispatch(invocation));
                 Assert.Equal("flarg", ex.JobName);
             }
 
             [Fact]
-            public void GivenJobWithName_ItCreatesAnInvocationAndInvokesJob()
+            public async Task GivenJobWithName_ItCreatesAnInvocationAndInvokesJob()
             {
                 // Arrange
                 var job = new Mock<Job>();
-                JobInvocation invocation = null;
                 job.Setup(j => j.Name).Returns("Test");
-                job.Setup(j => j.Invoke(It.IsAny<JobInvocation>()))
-                   .Returns<JobInvocation>(i =>
-                   {
-                       invocation = i;
-                       return JobResult.Completed();
-                   });
-
+                
                 var dispatcher = new JobDispatcher(BackendConfiguration.Create(), new[] { job.Object });
-                var request = new JobRequest("Test", new Dictionary<string, string>());
+                var request = new JobRequest("Test", "test", new Dictionary<string, string>());
+                var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
+
+                job.Setup(j => j.Invoke(invocation, dispatcher.Config))
+                   .Returns(Task.FromResult(JobResult.Completed()));
+
 
                 // Act
-                dispatcher.Dispatch(request);
+                var response = await dispatcher.Dispatch(invocation);
 
                 // Assert
-                Assert.NotNull(invocation);
-                Assert.Same(request, invocation.Request);
-                Assert.Equal("Dispatcher", invocation.Source);
+                Assert.Same(invocation, response.Invocation);
+                Assert.Equal(JobResult.Completed(), response.Result);
             }
 
             [Fact]
-            public void GivenJobWithName_ItReturnsResponseContainingInvocationAndResult()
+            public async Task GivenJobWithName_ItReturnsResponseContainingInvocationAndResult()
             {
                 // Arrange
                 var job = new Mock<Job>();
-                var ex = new Exception();
-                JobInvocation invocation = null;
                 job.Setup(j => j.Name).Returns("Test");
-                job.Setup(j => j.Invoke(It.IsAny<JobInvocation>()))
-                   .Returns<JobInvocation>(i =>
-                   {
-                       invocation = i;
-                       return JobResult.Faulted(ex);
-                   });
-
+                
+                var ex = new Exception();
                 var dispatcher = new JobDispatcher(BackendConfiguration.Create(), new[] { job.Object });
-                var request = new JobRequest("Test", new Dictionary<string, string>());
+                var request = new JobRequest("Test", "test", new Dictionary<string, string>());
+                var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
+
+                job.Setup(j => j.Invoke(invocation, dispatcher.Config))
+                   .Returns(Task.FromResult(JobResult.Faulted(ex)));
 
                 // Act
-                var response = dispatcher.Dispatch(request);
+                var response = await dispatcher.Dispatch(invocation);
 
                 // Assert
                 Assert.Same(invocation, response.Invocation);

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
+using NuGetGallery.Jobs;
 using Xunit;
 
 namespace NuGetGallery.Backend
@@ -28,8 +29,9 @@ namespace NuGetGallery.Backend
 
             public class ATestJerb : Job
             {
-                protected internal override void Execute()
+                protected internal override Task Execute()
                 {
+                    return Task.FromResult<object>(null);
                 }
 
                 public override EventSource GetEventSource()
@@ -42,7 +44,7 @@ namespace NuGetGallery.Backend
         public class TheExecuteMethod
         {
             [Fact]
-            public void GivenAnInvocation_ItSetsTheInvocationProperty()
+            public async Task GivenAnInvocation_ItSetsTheInvocationProperty()
             {
                 // Arrange
                 var job = new TestJob();
@@ -52,19 +54,17 @@ namespace NuGetGallery.Backend
                         "Test",
                         "Test",
                         new Dictionary<string, string>()), 
-                    DateTimeOffset.UtcNow, 
-                    "test",
-                    BackendConfiguration.Create());
+                    DateTimeOffset.UtcNow);
 
                 // Act
-                job.Invoke(invocation);
+                await job.Invoke(invocation, BackendConfiguration.Create());
 
                 // Assert
                 Assert.Same(invocation, job.Invocation);
             }
 
             [Fact]
-            public void GivenParametersThatMatchPropertyNames_ItSetsPropertiesToThoseValues()
+            public async Task GivenParametersThatMatchPropertyNames_ItSetsPropertiesToThoseValues()
             {
                 // Arrange
                 var job = new TestJob();
@@ -78,19 +78,17 @@ namespace NuGetGallery.Backend
                             {"TestParameter", "frob"},
                             {"NotMapped", "bar"}
                         }),
-                    DateTimeOffset.UtcNow,
-                    "test",
-                    BackendConfiguration.Create());
+                    DateTimeOffset.UtcNow);
 
                 // Act
-                job.Invoke(invocation);
+                await job.Invoke(invocation, BackendConfiguration.Create());
 
                 // Assert
                 Assert.Equal("frob", job.TestParameter);
             }
 
             [Fact]
-            public void GivenPropertiesWithConverters_ItUsesTheConverterToChangeTheValue()
+            public async Task GivenPropertiesWithConverters_ItUsesTheConverterToChangeTheValue()
             {
                 // Arrange
                 var job = new TestJob();
@@ -103,19 +101,17 @@ namespace NuGetGallery.Backend
                         {
                             {"ConvertValue", "frob"},
                         }),
-                    DateTimeOffset.UtcNow,
-                    "test",
-                    BackendConfiguration.Create());
+                    DateTimeOffset.UtcNow);
 
                 // Act
-                job.Invoke(invocation);
+                await job.Invoke(invocation, BackendConfiguration.Create());
 
                 // Assert
                 Assert.Equal("http://it.was.a.string/frob", job.ConvertValue.AbsoluteUri);
             }
 
             [Fact]
-            public void GivenAJobExecutesWithoutException_ItReturnsCompletedJobResult()
+            public async Task GivenAJobExecutesWithoutException_ItReturnsCompletedJobResult()
             {
                 // Arrange
                 var job = new Mock<TestJob>() { CallBase = true };
@@ -125,19 +121,17 @@ namespace NuGetGallery.Backend
                         "Jerb",
                         "Test",
                         new Dictionary<string, string>()),
-                    DateTimeOffset.UtcNow,
-                    "test",
-                    BackendConfiguration.Create());
+                    DateTimeOffset.UtcNow);
 
                 // Act
-                var result = job.Object.Invoke(invocation);
+                var result = await job.Object.Invoke(invocation, BackendConfiguration.Create());
 
                 // Assert
                 Assert.Equal(JobResult.Completed(), result);
             }
 
             [Fact]
-            public void GivenAJobThrows_ItReturnsFaultedJobResult()
+            public async Task GivenAJobThrows_ItReturnsFaultedJobResult()
             {
                 // Arrange
                 var job = new Mock<TestJob>() { CallBase = true };
@@ -147,14 +141,12 @@ namespace NuGetGallery.Backend
                         "Jerb",
                         "Test",
                         new Dictionary<string, string>()),
-                    DateTimeOffset.UtcNow,
-                    "test",
-                    BackendConfiguration.Create());
+                    DateTimeOffset.UtcNow);
                 var ex = new NotImplementedException("Broked!");
                 job.Setup(j => j.Execute()).Throws(ex);
                 
                 // Act
-                var result = job.Object.Invoke(invocation);
+                var result = await job.Object.Invoke(invocation, BackendConfiguration.Create());
 
                 // Assert
                 Assert.Equal(JobResult.Faulted(ex), result);
@@ -168,8 +160,9 @@ namespace NuGetGallery.Backend
             [TypeConverter(typeof(TestUriConverter))]
             public Uri ConvertValue { get; set; }
 
-            protected internal override void Execute()
+            protected internal override Task Execute()
             {
+                return Task.FromResult<object>(null);
             }
 
             public override EventSource GetEventSource()
