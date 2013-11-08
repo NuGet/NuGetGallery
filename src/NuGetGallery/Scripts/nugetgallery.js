@@ -104,4 +104,7 @@
             data.toggletext = oldText;
         });
     });
+    $('.s-confirm[data-confirm]').delegate('', 'click', function () {
+        return confirm($(this).data().confirm);
+    });
 })(window, jQuery);

@@ -7,37 +7,44 @@
     @if (Model.External != null)
     {
         <div id="register">
-            <h1>Who are you?</h1>
+            <h1>Do we know you?</h1>
             <p>
                 It looks like we haven't seen the @Model.External.ProviderAccountNoun '@Model.External.AccountName'
-                before. That's just fine, we love meeting new people! In order to use NuGet, you need to provide a user name
-                and email address. We pre-filled the email address from your @Model.External.ProviderAccountNoun information, but
-                feel free to change it.
+                before.
             </p>
 
-            <div id="externalaccount-register">
-                <p class="message">Already have an account? You can <a class="s-toggle" data-show="#externalaccount-signin" data-hide="#externalaccount-register" href="#">Sign In</a> with it to associate this credential with that account.</p>
-                <div class="externalaccount-form">
-                    @Html.Partial("_Register", Model)
-                </div>
+            <div id="signIn">
+                <h1>I already have an account</h1>
+                <p>
+                    Already have an account? Sorry, we didn't recognize you! Sign in with your user name and password
+                    below and we'll remember you next time.
+                </p>
+                @Html.Partial("_SignIn", Model)
             </div>
-            <div id="externalaccount-signin" class="s-hidden">
-                <p class="message">Don't have an account? You can <a class="s-toggle" data-show="#externalaccount-register" data-hide="#externalaccount-signin" href="#">Register</a> a new one instead.</p>
-                <div class="externalaccount-form">
-                    @Html.Partial("_SignIn", Model)
-                </div>
+
+            <div class="verticalSeparator"></div>
+
+            <div id="register-sidecar">
+                <h1>I don't have an account</h1>
+                <p>
+                    Don't have a NuGet account yet? That's OK! We love meeting new people! Please fill in the information 
+                    below and we'll start a new account for you. You'll be pushing packages in no time!
+                </p>
+                @Html.Partial("_Register", Model)
             </div>
         </div>
     }
     else
     {
         <div id="signIn">
+            <h1>Sign In</h1>
             @Html.Partial("_SignIn", Model)
         </div>
 
         <div class="verticalSeparator"></div>
 
         <div id="register-sidecar">
+            <h1>Register</h1>
             @Html.Partial("_Register", Model)
         </div>
     }
