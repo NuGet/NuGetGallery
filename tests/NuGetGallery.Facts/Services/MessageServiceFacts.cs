@@ -109,6 +109,35 @@ namespace NuGetGallery
         public class TheSendContactOwnersMessageMethod
         {
             [Fact]
+            public void WillCopySenderIfAsked()
+            {
+                var from = new MailAddress("smangit@example.com", "flossy");
+                var package = new PackageRegistration { Id = "smangit" };
+                package.Owners = new[]
+                    {
+                        new User { EmailAddress = "yung@example.com", EmailAllowed = true },
+                        new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
+                    };
+                var mailSender = new Mock<IMailSender>();
+                var config = new Mock<IAppConfiguration>();
+                config.Setup(x => x.GalleryOwner).Returns(TestGalleryOwner);
+                var messageService = new MessageService(mailSender.Object, config.Object);
+                MailMessage message = null;
+                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
+
+                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", true);
+
+                mailSender.Verify(m => m.Send(It.IsAny<MailMessage>()));
+                Assert.Equal(package.Owners.Count + 1, message.To.Count);
+                Assert.Equal("yung@example.com", message.To[0].Address);
+                Assert.Equal("flynt@example.com", message.To[1].Address);
+                Assert.Equal(message.ReplyToList.Single().Address, message.To.Last().Address);
+                Assert.Equal(TestGalleryOwner.Address, message.From.Address);
+                Assert.Equal("smangit@example.com", message.ReplyToList.Single().Address);
+                
+            }
+
+            [Fact]
             public void WillSendEmailToAllOwners()
             {
                 var from = new MailAddress("smangit@example.com", "flossy");
@@ -125,7 +154,7 @@ namespace NuGetGallery
                 MailMessage message = null;
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
 
-                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/");
+                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
 
                 mailSender.Verify(m => m.Send(It.IsAny<MailMessage>()));
                 Assert.Equal("yung@example.com", message.To[0].Address);
@@ -156,7 +185,7 @@ namespace NuGetGallery
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
 
 
-                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/");
+                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
 
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal(1, message.To.Count);
@@ -180,7 +209,7 @@ namespace NuGetGallery
                 MailMessage message = null;
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
 
-                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/");
+                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
 
                 mailSender.Verify(m => m.Send(It.IsAny<MailMessage>()), Times.Never());
                 Assert.Null(message);

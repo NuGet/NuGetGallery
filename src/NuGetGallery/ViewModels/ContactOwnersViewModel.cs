@@ -4,12 +4,15 @@ using System.Web.Mvc;
 
 namespace NuGetGallery
 {
-    [Bind(Include = "Message")]
+    [Bind(Include = "Message,CopySender")]
     public class ContactOwnersViewModel
     {
         public string PackageId { get; set; }
 
         public IEnumerable<User> Owners { get; set; }
+
+        [Display(Name = "CC Me")]
+        public bool CopySender { get; set; }
 
         [AllowHtml]
         [Required(ErrorMessage = "Please enter a message.")]
