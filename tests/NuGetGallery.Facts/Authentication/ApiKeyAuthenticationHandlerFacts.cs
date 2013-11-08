@@ -99,7 +99,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public async Task GivenA401ResponseInActiveModeAndNoHeader_ItReturnsApiKeyRequired()
+            public async Task GivenA401ResponseInActiveModeAndNoHeader_ItReturns401ApiKeyRequired()
             {
                 // Arrange
                 var handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
@@ -108,6 +108,7 @@ namespace NuGetGallery.Authentication
                     AuthenticationType = "blarg"
                 });
                 handler.OwinContext.Response.StatusCode = 401;
+                handler.OwinContext.Response.Headers.Set("WWW-Authenticate", "existing");
                 handler.OwinContext.Authentication.AuthenticationResponseChallenge = 
                     new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties());
 
@@ -116,10 +117,19 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.Equal(Strings.ApiKeyRequired, message);
+                Assert.Equal(401, handler.OwinContext.Response.StatusCode);
+
+                var authenticateValues = handler.OwinContext.Response.Headers.GetCommaSeparatedValues("WWW-Authenticate");
+                Assert.Contains(
+                    "ApiKey realm=\"nuget.local\"", 
+                    authenticateValues);
+                Assert.Contains(
+                    "existing",
+                    authenticateValues);
             }
 
             [Fact]
-            public async Task GivenA401ResponseInActiveModeAndHeader_ItReturnsApiKeyNotAuthorized()
+            public async Task GivenA401ResponseInActiveModeAndHeader_ItReturns403ApiKeyNotAuthorized()
             {
                 // Arrange
                 var handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
@@ -137,6 +147,7 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.Equal(Strings.ApiKeyNotAuthorized, message);
+                Assert.Equal(403, handler.OwinContext.Response.StatusCode);
             }
         }
 

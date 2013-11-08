@@ -195,6 +195,7 @@ namespace NuGetGallery.Operations
             do
             {
                 int originalKey = GetLastOriginalKey(destination);
+                Log.Trace("replicating records since {0}", originalKey);
 
                 DateTime before = DateTime.Now;
                 DownloadBatch batch = GetDownloadRecords(source, originalKey, batchSize);
@@ -206,7 +207,10 @@ namespace NuGetGallery.Operations
                 if (batch.Rows.Count > 0)
                 {
                     hasWork = true;
-                    PutDownloadRecords(destination, batch, CancellationToken);
+                    if (!WhatIf)
+                    {
+                        PutDownloadRecords(destination, batch, CancellationToken);
+                    }
 
                     if (CancellationToken.IsCancellationRequested)
                     {
