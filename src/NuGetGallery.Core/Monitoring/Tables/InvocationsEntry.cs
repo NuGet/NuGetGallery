@@ -17,8 +17,8 @@ namespace NuGetGallery.Monitoring.Tables
         
         public InvocationsEntry(Guid invocationId)
         {
-            PartitionKey = invocationId.ToString().Substring(0, 8);
-            RowKey = invocationId.ToString().Substring(8);
+            PartitionKey = invocationId.ToString("N").Substring(0, 8);
+            RowKey = invocationId.ToString("N").Substring(8);
             InvocationId = invocationId;
         }
 

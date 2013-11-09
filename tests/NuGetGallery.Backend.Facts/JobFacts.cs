@@ -55,9 +55,10 @@ namespace NuGetGallery.Backend
                         "Test",
                         new Dictionary<string, string>()), 
                     DateTimeOffset.UtcNow);
+                var context = new JobInvocationContext(invocation, BackendConfiguration.Create(), monitor: null);
 
                 // Act
-                await job.Invoke(invocation, BackendConfiguration.Create());
+                await job.Invoke(context);
 
                 // Assert
                 Assert.Same(invocation, job.Invocation);
@@ -79,9 +80,10 @@ namespace NuGetGallery.Backend
                             {"NotMapped", "bar"}
                         }),
                     DateTimeOffset.UtcNow);
+                var context = new JobInvocationContext(invocation, BackendConfiguration.Create(), monitor: null);
 
                 // Act
-                await job.Invoke(invocation, BackendConfiguration.Create());
+                await job.Invoke(context);
 
                 // Assert
                 Assert.Equal("frob", job.TestParameter);
@@ -102,9 +104,10 @@ namespace NuGetGallery.Backend
                             {"ConvertValue", "frob"},
                         }),
                     DateTimeOffset.UtcNow);
+                var context = new JobInvocationContext(invocation, BackendConfiguration.Create(), monitor: null);
 
                 // Act
-                await job.Invoke(invocation, BackendConfiguration.Create());
+                await job.Invoke(context);
 
                 // Assert
                 Assert.Equal("http://it.was.a.string/frob", job.ConvertValue.AbsoluteUri);
@@ -122,9 +125,10 @@ namespace NuGetGallery.Backend
                         "Test",
                         new Dictionary<string, string>()),
                     DateTimeOffset.UtcNow);
+                var context = new JobInvocationContext(invocation, BackendConfiguration.Create(), monitor: null);
 
                 // Act
-                var result = await job.Object.Invoke(invocation, BackendConfiguration.Create());
+                var result = await job.Object.Invoke(context);
 
                 // Assert
                 Assert.Equal(JobResult.Completed(), result);
@@ -144,9 +148,10 @@ namespace NuGetGallery.Backend
                     DateTimeOffset.UtcNow);
                 var ex = new NotImplementedException("Broked!");
                 job.Setup(j => j.Execute()).Throws(ex);
-                
+                var context = new JobInvocationContext(invocation, BackendConfiguration.Create(), monitor: null);
+
                 // Act
-                var result = await job.Object.Invoke(invocation, BackendConfiguration.Create());
+                var result = await job.Object.Invoke(context);
 
                 // Assert
                 Assert.Equal(JobResult.Faulted(ex), result);

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
@@ -20,6 +21,7 @@ namespace NuGetGallery.Backend
 
         public override void Run()
         {
+            // Start the runner on it's own "thread" and just sleep until cancelled
             _runner.Run(_cancelSource.Token).Wait();
         }
 

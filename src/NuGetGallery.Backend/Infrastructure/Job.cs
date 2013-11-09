@@ -9,6 +9,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using NuGetGallery.Backend.Monitoring;
 using NuGetGallery.Jobs;
+using System.Diagnostics;
+using System.Data.SqlClient;
 
 namespace NuGetGallery.Backend
 {
@@ -17,9 +19,11 @@ namespace NuGetGallery.Backend
         private static readonly Regex NameExtractor = new Regex(@"^(?<shortname>.*)Job$");
 
         public virtual string Name { get; private set; }
-        public JobInvocation Invocation { get; protected set; }
-        public BackendConfiguration Config { get; protected set; }
+        public JobInvocationContext Context { get; protected set; }
 
+        public JobInvocation Invocation { get { return Context.Invocation; } }
+        public BackendConfiguration Config { get { return Context.Config; } }
+        
         protected Job()
         {
             Name = InferName();
@@ -31,15 +35,14 @@ namespace NuGetGallery.Backend
             Name = name;
         }
 
-        public virtual async Task<JobResult> Invoke(JobInvocation invocation, BackendConfiguration config)
+        public virtual async Task<JobResult> Invoke(JobInvocationContext context)
         {
             // Bind invocation information
-            Invocation = invocation;
-            Config = config;
-            BindProperties(invocation.Request.Parameters);
+            Context = context;
+            BindProperties(Invocation.Request.Parameters);
 
             // Invoke the job
-            WorkerEventSource.Log.JobStarted(invocation.Request.Name, invocation.Id);
+            WorkerEventSource.Log.JobStarted(Invocation.Request.Name, Invocation.Id);
             JobResult result;
             try
             {
@@ -53,11 +56,11 @@ namespace NuGetGallery.Backend
 
             if (result.Status != JobStatus.Faulted)
             {
-                WorkerEventSource.Log.JobCompleted(invocation.Request.Name, invocation.Id);
+                WorkerEventSource.Log.JobCompleted(Invocation.Request.Name, Invocation.Id);
             }
             else
             {
-                WorkerEventSource.Log.JobFaulted(invocation.Request.Name, result.Exception, invocation.Id);
+                WorkerEventSource.Log.JobFaulted(Invocation.Request.Name, result.Exception, Invocation.Id);
             }
 
             // Return the result
@@ -93,8 +96,17 @@ namespace NuGetGallery.Backend
             prop.SetValue(this, convertedValue);
         }
 
+        private IList<TypeConverter> _converters = new List<TypeConverter>() {
+            new SqlConnectionStringBuilderConverter()
+        };
+
         protected virtual object ConvertPropertyValue(PropertyDescriptor prop, string value)
         {
+            var converter = _converters.FirstOrDefault(c => c.CanConvertFrom(typeof(string)) && c.CanConvertTo(prop.PropertyType));
+            if (converter != null)
+            {
+                return converter.ConvertFromString(value);
+            }
             return prop.Converter.ConvertFromString(value);
         }
 
@@ -107,6 +119,29 @@ namespace NuGetGallery.Backend
                 return match.Groups["shortname"].Value;
             }
             return name;
+        }
+
+        private class SqlConnectionStringBuilderConverter : TypeConverter
+        {
+            public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+            {
+                return sourceType == typeof(string);
+            }
+
+            public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
+            {
+                return destinationType == typeof(SqlConnectionStringBuilder);
+            }
+
+            public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
+            {
+                string strVal = value as string;
+                if (strVal == null)
+                {
+                    return null;
+                }
+                return new SqlConnectionStringBuilder(strVal);
+            }
         }
     }
 }

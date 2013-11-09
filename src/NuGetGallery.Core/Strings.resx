@@ -120,6 +120,9 @@
   <data name="CloudAuditingService_DuplicateAuditRecord" xml:space="preserve">
     <value>Unable to write audit record: '{0}'. Record already exists.</value>
   </data>
+  <data name="CommandExecutor_UnhandledCommand" xml:space="preserve">
+    <value>No handler for the {0} command is registered.</value>
+  </data>
   <data name="MonitoringHub_UnknownTableType" xml:space="preserve">
     <value>Table type {0} is not known. Only entities implementing IMonitoringTable are supported</value>
   </data>

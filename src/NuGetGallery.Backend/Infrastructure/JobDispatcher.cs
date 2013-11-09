@@ -48,9 +48,10 @@ namespace NuGetGallery.Backend
 
             WorkerEventSource.Log.DispatchingRequest(invocation);
             JobResult result = null;
+            var context = new JobInvocationContext(invocation, Config, _monitor);
             try
             {
-                result = await job.Invoke(invocation, Config);
+                result = await job.Invoke(context);
             }
             catch (Exception ex)
             {

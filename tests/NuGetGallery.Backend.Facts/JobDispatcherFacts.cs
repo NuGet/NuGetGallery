@@ -37,7 +37,7 @@ namespace NuGetGallery.Backend
                 var request = new JobRequest("Test", "test", new Dictionary<string, string>());
                 var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
 
-                job.Setup(j => j.Invoke(invocation, dispatcher.Config))
+                job.Setup(j => j.Invoke(It.IsAny<JobInvocationContext>()))
                    .Returns(Task.FromResult(JobResult.Completed()));
 
 
@@ -61,7 +61,7 @@ namespace NuGetGallery.Backend
                 var request = new JobRequest("Test", "test", new Dictionary<string, string>());
                 var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
 
-                job.Setup(j => j.Invoke(invocation, dispatcher.Config))
+                job.Setup(j => j.Invoke(It.IsAny<JobInvocationContext>()))
                    .Returns(Task.FromResult(JobResult.Faulted(ex)));
 
                 // Act

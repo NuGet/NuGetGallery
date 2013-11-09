@@ -61,6 +61,24 @@ namespace NuGetGallery.Backend {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unknown Sql Server: {0}.
+        /// </summary>
+        internal static string BackendConfiguration_UnknownSqlServer {
+            get {
+                return ResourceManager.GetString("BackendConfiguration_UnknownSqlServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown Storage Account: {0}.
+        /// </summary>
+        internal static string BackendConfiguration_UnknownStorageAccount {
+            get {
+                return ResourceManager.GetString("BackendConfiguration_UnknownStorageAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unknown job: {0}.
         /// </summary>
         internal static string UnknownJobException_Message {

@@ -68,8 +68,17 @@ namespace NuGetGallery {
                 return ResourceManager.GetString("CloudAuditingService_DuplicateAuditRecord", resourceCulture);
             }
         }
-    }
-}
+ 
+        /// <summary>
+        ///   Looks up a localized string similar to No handler for the {0} command is registered..
+        /// </summary>
+        internal static string CommandExecutor_UnhandledCommand {
+            get {
+                return ResourceManager.GetString("CommandExecutor_UnhandledCommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Table type {0} is not known. Only entities implementing IMonitoringTable are supported.
         /// </summary>
         internal static string MonitoringHub_UnknownTableType {

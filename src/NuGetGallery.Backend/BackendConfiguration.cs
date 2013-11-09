@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -100,6 +101,40 @@ namespace NuGetGallery.Backend
             return new BackendConfiguration(
                 RoleEnvironment.CurrentRoleInstance.Id,
                 key => RoleEnvironment.GetConfigurationSettingValue(key));
+        }
+
+        public SqlConnectionStringBuilder GetSqlServer(KnownSqlServer server)
+        {
+            switch (server)
+            {
+                case KnownSqlServer.Primary:
+                    return PrimaryDatabase;
+                case KnownSqlServer.Warehouse:
+                    return WarehouseDatabase;
+                default:
+                    throw new InvalidOperationException(String.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.BackendConfiguration_UnknownSqlServer,
+                        server.ToString()));
+            }
+        }
+
+        public CloudStorageAccount GetStorageAccount(KnownStorageAccount account)
+        {
+            switch (account)
+            {
+                case KnownStorageAccount.Primary:
+                    return PrimaryStorage;
+                case KnownStorageAccount.Backup:
+                    return BackupStorage;
+                case KnownStorageAccount.Diagnostics:
+                    return DiagnosticsStorage;
+                default:
+                    throw new InvalidOperationException(String.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.BackendConfiguration_UnknownStorageAccount,
+                        account.ToString()));
+            }
         }
 
         private static CloudStorageAccount TryGetStorageAccount(string name)

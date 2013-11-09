@@ -242,6 +242,18 @@ namespace NuGetGallery.Backend.Monitoring
         [NonEvent]
         public void JobFaulted(string jobName, Exception ex, Guid invocationId) { JobFaulted(jobName, ex.ToString(), ex.StackTrace, invocationId.ToString("N")); }
 
+        [Event(
+            eventId: 26,
+            Level = EventLevel.Verbose,
+            Message = "Invoking Query: {0}")]
+        public void InvokingQuery(string name) { WriteEvent(26, name); }
+
+        [Event(
+            eventId: 27,
+            Level = EventLevel.Verbose,
+            Message = "Invoked Query: {0}")]
+        public void InvokedQuery(string name) { WriteEvent(27, name); }
+
 #pragma warning restore 0618
     }
 }
