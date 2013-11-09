@@ -146,6 +146,7 @@
     <Compile Include="Common\StreamConverter.cs" />
     <Compile Include="DatabaseBackupHelper.cs" />
     <Compile Include="DeploymentEnvironment.cs" />
+    <Compile Include="Tasks\HandleFailedPackageEditsTask.cs" />
     <Compile Include="Infrastructure\CommandLineParser.cs" />
     <Compile Include="Infrastructure\EntitiesContextFactory.cs" />
     <Compile Include="Infrastructure\GalleryGateway.cs" />
@@ -162,6 +163,8 @@
     <Compile Include="LoggerExtensions.cs" />
     <Compile Include="Model\OfflineDatabaseBackup.cs" />
     <Compile Include="Model\OnlineDatabaseBackup.cs" />
+    <Compile Include="Model\PackageAuditRecord.cs" />
+    <Compile Include="Tasks\SendMailTask.cs" />
     <Compile Include="Service References\SqlDac\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

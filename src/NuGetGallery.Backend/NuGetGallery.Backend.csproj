@@ -121,6 +121,7 @@
     <Compile Include="Jobs\CreateWarehouseReportsJob.cs" />
     <Compile Include="Jobs\CleanOnlineDatabaseBackupsJob.cs" />
     <Compile Include="Jobs\ExportDailyBackupsJob.cs" />
+    <Compile Include="Jobs\HandleFailedPackageEditsJob.cs" />
     <Compile Include="Jobs\HandleQueuedPackageEditsJob.cs" />
     <Compile Include="Jobs\PurgePackageStatisticsJob.cs" />
     <Compile Include="Jobs\ReplicatePackageStatisticsJob.cs" />
