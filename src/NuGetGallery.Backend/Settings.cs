@@ -5,6 +5,7 @@ using System.Net;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 
+
 namespace NuGetGallery.Backend
 {
     public class Settings
@@ -16,6 +17,7 @@ namespace NuGetGallery.Backend
         private Uri _sqlDac;
         private Uri _licenseReportService;
         private NetworkCredential _licenseReportCredentials;
+        private string _smtpUri;
 
         public virtual string EnvironmentName { get { return GetSetting("Operations.EnvironmentName"); } }
 
@@ -26,6 +28,15 @@ namespace NuGetGallery.Backend
         public virtual bool WhatIf
         {
             get { return String.Equals("true", GetSetting("Operations.WhatIf"), StringComparison.OrdinalIgnoreCase); }
+        }
+
+        public virtual String SmtpUri
+        {
+            get
+            {
+                return _smtpUri ??
+                    (_smtpUri = GetSetting("Operations.SmtpUri"));
+            }
         }
 
         public virtual Uri SqlDac
