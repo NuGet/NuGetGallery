@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Net.Mail;
@@ -121,19 +122,22 @@ namespace NuGetGallery
                 var config = new Mock<IAppConfiguration>();
                 config.Setup(x => x.GalleryOwner).Returns(TestGalleryOwner);
                 var messageService = new MessageService(mailSender.Object, config.Object);
-                MailMessage message = null;
-                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
+                var messages = new List<MailMessage>(2);
+                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => messages.Add(m.Clone()));
 
                 messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", true);
 
                 mailSender.Verify(m => m.Send(It.IsAny<MailMessage>()));
-                Assert.Equal(package.Owners.Count + 1, message.To.Count);
-                Assert.Equal("yung@example.com", message.To[0].Address);
-                Assert.Equal("flynt@example.com", message.To[1].Address);
-                Assert.Equal(message.ReplyToList.Single().Address, message.To.Last().Address);
-                Assert.Equal(TestGalleryOwner.Address, message.From.Address);
-                Assert.Equal("smangit@example.com", message.ReplyToList.Single().Address);
-                
+                Assert.Equal(2, messages.Count);
+                Assert.Equal(package.Owners.Count, messages[0].To.Count);
+                Assert.Equal(1, messages[1].To.Count);
+                Assert.Equal("yung@example.com", messages[0].To[0].Address);
+                Assert.Equal("flynt@example.com", messages[0].To[1].Address);
+                Assert.Equal(messages[1].ReplyToList.Single().Address, messages[1].To.First().Address);
+                Assert.Equal(TestGalleryOwner.Address, messages[0].From.Address);
+                Assert.Equal(TestGalleryOwner.Address, messages[1].From.Address);
+                Assert.Equal("smangit@example.com", messages[0].ReplyToList.Single().Address);
+                Assert.Equal("smangit@example.com", messages[1].ReplyToList.Single().Address);
             }
 
             [Fact]
