@@ -449,7 +449,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         false))
-                    .Callback<MailAddress, PackageRegistration, string, string>((_, __, msg, ___) => sentMessage = msg);
+                    .Callback<MailAddress, PackageRegistration, string, string, bool>((_, __, msg, ___, ____) => sentMessage = msg);
                 var package = new PackageRegistration { Id = "factory" };
 
                 var packageService = new Mock<IPackageService>();

@@ -176,13 +176,10 @@ namespace NuGetGallery
                 mailMessage.ReplyToList.Add(fromAddress);
 
                 AddOwnersToMailMessage(packageRegistration, mailMessage);
-                if (copySender)
-                {
-                    mailMessage.To.Add(fromAddress);
-                }
+
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage);
+                    SendMessage(mailMessage, copySender);
                 }
             }
         }
@@ -381,11 +378,20 @@ The {3} Team";
             }
         }
 
-        private void SendMessage(MailMessage mailMessage)
+        private void SendMessage(MailMessage mailMessage, bool copySender = false)
         {
             try
             {
                 MailSender.Send(mailMessage);
+                if (copySender)
+                {
+                    mailMessage.Subject = "[Sender Copy] " + mailMessage.Subject;
+                    mailMessage.Body = string.Format("You sent the following message via {0}: {1}{1}{2}",
+                        _config.GalleryOwner.DisplayName, Environment.NewLine, mailMessage.Body);
+                    mailMessage.To.Clear();
+                    mailMessage.To.Add(mailMessage.ReplyToList.First());
+                    MailSender.Send(mailMessage);
+                }
             }
             catch (SmtpException ex)
             {

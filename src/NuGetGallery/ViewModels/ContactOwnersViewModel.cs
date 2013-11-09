@@ -11,7 +11,7 @@ namespace NuGetGallery
 
         public IEnumerable<User> Owners { get; set; }
 
-        [Display(Name = "CC Me")]
+        [Display(Name = "Send me a copy")]
         public bool CopySender { get; set; }
 
         [AllowHtml]
