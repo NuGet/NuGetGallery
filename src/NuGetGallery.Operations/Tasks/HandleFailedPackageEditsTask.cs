@@ -35,12 +35,10 @@ namespace NuGetGallery.Operations.Tasks
             var failedEdits = entitiesContext.Set<PackageEdit>()
                 .Where(pe => pe.TriedCount == 3).Include(pe => pe.Package).Include(pe => pe.Package.PackageRegistration);
 
-            Console.WriteLine(failedEdits.Count());
+         
             //For each ofthe failed edit, send out a support request mail.
             foreach (PackageEdit edit in failedEdits)
-            {
-                Console.WriteLine(edit.Package.Key);
-                Console.WriteLine(edit.Package.PackageRegistration.Id);
+            { 
                 Log.Info(
                "Sending support request for  '{0}'",
                edit.Package.PackageRegistration.Id);
@@ -62,8 +60,7 @@ namespace NuGetGallery.Operations.Tasks
                 catch (Exception e)
                 {
                     Log.Error("Creating support request for package {0} failed with error {1}", edit.Package.PackageRegistration.Id, e.Message);
-                }
-                break;
+                }                
             }
         }
     }
