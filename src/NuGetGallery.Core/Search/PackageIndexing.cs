@@ -144,10 +144,13 @@ namespace NuGetGallery
 
         private static int GetDocumentRank(IDictionary<string, int> rank, string packageId)
         {
-            int val;
-            if (rank.TryGetValue(packageId, out val))
+            if (rank != null)
             {
-                return val;
+                int val;
+                if (rank.TryGetValue(packageId, out val))
+                {
+                    return val;
+                }
             }
             return 100000;
         }
@@ -155,6 +158,12 @@ namespace NuGetGallery
         private static IDictionary<string, int> PivotProjectTypeRanking(IDictionary<string, IDictionary<string, int>> rankings, string packageId)
         {
             IDictionary<string, int> result = new Dictionary<string, int>();
+
+            if (rankings == null)
+            {
+                return result;
+            }
+
             foreach (KeyValuePair<string, IDictionary<string, int>> ranking in rankings)
             {
                 int rank;
@@ -168,6 +177,8 @@ namespace NuGetGallery
 
         private static void AddToIndex(Lucene.Net.Store.Directory directory, IList<Tuple<Package, IEnumerable<string>>> packagesToIndex, IDictionary<string, int> overallRanking, IDictionary<string, IDictionary<string, int>> projectRankings)
         {
+            TraceWriter.WriteLine("begin AddToIndex");
+
             using (IndexWriter indexWriter = CreateIndexWriter(directory, false))
             {
                 int highestPackageKey = -1;
@@ -197,12 +208,24 @@ namespace NuGetGallery
 
                 string lastEditsIndexTime = commitUserData["last-edits-index-time"];
 
+                if (lastEditsIndexTime == null)
+                {
+                    //  this should never happen but if it did Lucene would throw 
+                    lastEditsIndexTime = DateTime.MinValue.ToString();
+                }
+
                 indexWriter.Commit(PackageIndexing.CreateCommitMetadata(lastEditsIndexTime, highestPackageKey, packagesToIndex.Count, "publish"));
+
+                TraceWriter.WriteLine("commit done");
             }
+
+            TraceWriter.WriteLine("end AddToIndex");
         }
 
         private static void UpdateInIndex(Lucene.Net.Store.Directory directory, IList<Tuple<Package, IEnumerable<string>>> packagesToUpdate, IDictionary<string, int> overallRanking, IDictionary<string, IDictionary<string, int>> projectRankings, int highestPackageKey, DateTime indexTime)
         {
+            TraceWriter.WriteLine("begin UpdateInIndex");
+
             using (IndexWriter indexWriter = CreateIndexWriter(directory, false))
             {
                 PackageQueryParser queryParser = new PackageQueryParser(Lucene.Net.Util.Version.LUCENE_30, "Id", new PackageAnalyzer());
@@ -230,7 +253,11 @@ namespace NuGetGallery
                 TraceWriter.WriteLine("about to commit {0} packages", packagesToUpdate.Count);
 
                 indexWriter.Commit(PackageIndexing.CreateCommitMetadata(indexTime, highestPackageKey, packagesToUpdate.Count, "update"));
+
+                TraceWriter.WriteLine("commit done");
             }
+
+            TraceWriter.WriteLine("end UpdateInIndex");
         }
 
         public static void CreateNewEmptyIndex(Lucene.Net.Store.Directory directory)
@@ -246,7 +273,8 @@ namespace NuGetGallery
             IndexWriter indexWriter = new IndexWriter(directory, new PackageAnalyzer(), create, IndexWriter.MaxFieldLength.UNLIMITED);
             indexWriter.MergeFactor = MergeFactor;
             indexWriter.MaxMergeDocs = MaxMergeDocs;
-            ((LogMergePolicy)indexWriter.MergePolicy).SetUseCompoundFile(false);
+            // this should theoretically work but appears to cause empty commit commitMetadata to not be saved
+            //((LogMergePolicy)indexWriter.MergePolicy).SetUseCompoundFile(false);
             return indexWriter;
         }
 

@@ -27,5 +27,39 @@ namespace NuGetGallery
 
             return result;
         }
+
+        public static JObject Search(
+            string q, 
+            string projectType,
+            bool prerelease,
+            bool countOnly,
+            string feed,
+            string sortBy,
+            int page,
+            string host)
+        {
+            IDictionary<string, string> nameValue = new Dictionary<string, string>();
+            nameValue.Add("q", q);
+            nameValue.Add("projectType", projectType);
+            nameValue.Add("prerelease", prerelease.ToString());
+            nameValue.Add("countOnly", countOnly.ToString());
+            nameValue.Add("feed", feed);
+            nameValue.Add("sortBy", sortBy);
+            nameValue.Add("page", page.ToString());
+
+            FormUrlEncodedContent query = new FormUrlEncodedContent(nameValue);
+            string url = string.Format("http://{0}/search?{1}", host, query.ReadAsStringAsync().Result);
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            HttpClient client = new HttpClient();
+            HttpResponseMessage response = client.SendAsync(request).Result;
+
+            string content = response.Content.ReadAsStringAsync().Result;
+
+            JObject obj = JObject.Parse(content);
+
+            return obj;
+        }
     }
 }

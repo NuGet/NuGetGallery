@@ -46,6 +46,14 @@ namespace NuGetGallery
                 _queue.Enqueue(subTerm);
             }
 
+            if (_queue.Count > 1)
+            {
+                _termAttribute.SetTermBuffer(term);
+                _offsetAttribute.SetOffset(_startOffset, _startOffset + term.Length);
+                _endOffset = _startOffset;
+                return true;
+            }
+
             if (_queue.Count > 0)
             {
                 string next = _queue.Dequeue();

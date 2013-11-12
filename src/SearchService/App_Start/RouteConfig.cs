@@ -47,6 +47,13 @@ namespace SearchService
             );
 
             routes.MapRoute(
+                name: "Feedback",
+                url: "feedback",
+                defaults: new { controller = "Feedback", action = "Feedback" },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") }
+            );
+
+            routes.MapRoute(
                 name: "Segments",
                 url: "segments",
                 defaults: new { controller = "Home", action = "Segments", id = UrlParameter.Optional }

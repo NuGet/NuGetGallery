@@ -1,8 +1,10 @@
 ﻿using Lucene.Net.Store;
 using Lucene.Net.Store.Azure;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 using NuGetGallery;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -30,49 +32,67 @@ namespace SearchService.Controllers
         {
             Trace.TraceInformation("Search: {0}", Request.QueryString.ToString());
 
-            InitializeSearcherManager();
-
-            string q = Request.QueryString["q"];
-            
-            string projectType = Request.QueryString["projectType"];
-
-            bool includePrerelease;
-            if (!bool.TryParse(Request.QueryString["prerelease"], out includePrerelease))
+            try
             {
-                includePrerelease = false;
-            }
+                InitializeSearcherManager();
 
-            bool countOnly;
-            if (!bool.TryParse(Request.QueryString["countOnly"], out countOnly))
+                string q = Request.QueryString["q"];
+
+                string projectType = Request.QueryString["projectType"];
+
+                bool includePrerelease;
+                if (!bool.TryParse(Request.QueryString["prerelease"], out includePrerelease))
+                {
+                    includePrerelease = false;
+                }
+
+                bool countOnly;
+                if (!bool.TryParse(Request.QueryString["countOnly"], out countOnly))
+                {
+                    countOnly = false;
+                }
+
+                string sortBy = Request.QueryString["sortBy"] ?? "relevance";
+
+                string feed = Request.QueryString["feed"] ?? "none";
+
+                int page;
+                if (!int.TryParse(Request.QueryString["page"], out page))
+                {
+                    page = 1;
+                }
+
+                bool includeExplanation;
+                if (!bool.TryParse(Request.QueryString["explanation"], out includeExplanation))
+                {
+                    includeExplanation = false;
+                }
+
+                bool ignoreFilter;
+                if (!bool.TryParse(Request.QueryString["ignoreFilter"], out ignoreFilter))
+                {
+                    ignoreFilter = false;
+                }
+
+                Trace.TraceInformation("Searcher.Search(..., {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8})", q, countOnly, projectType, includePrerelease, feed, sortBy, page, includeExplanation, ignoreFilter);
+
+                string content = Searcher.Search(_searcherManager, q, countOnly, projectType, includePrerelease, feed, sortBy, page, includeExplanation, ignoreFilter);
+
+                return MakeResponse(content);
+            }
+            catch (Exception e)
             {
-                countOnly = false;
+                Trace.TraceError(e.Message);
+                Trace.TraceError(e.StackTrace);
+
+                if (e.InnerException != null)
+                {
+                    Trace.TraceError(e.InnerException.Message);
+                    Trace.TraceError(e.InnerException.StackTrace);
+                }
+
+                throw;
             }
-
-            string sortBy = Request.QueryString["sortBy"] ?? "relevance";
-
-            string feed = Request.QueryString["feed"] ?? "none";
-
-            int page;
-            if (!int.TryParse(Request.QueryString["page"], out page))
-            {
-                page = 1;
-            }
-
-            bool includeExplanation;
-            if (!bool.TryParse(Request.QueryString["explanation"], out includeExplanation))
-            {
-                includeExplanation = false;
-            }
-
-            bool ignoreFilter;
-            if (!bool.TryParse(Request.QueryString["ignoreFilter"], out ignoreFilter))
-            {
-                ignoreFilter = false;
-            }
-
-            string content = Searcher.Search(_searcherManager, q, countOnly, projectType, includePrerelease, feed, sortBy, page, includeExplanation, ignoreFilter);
-
-            return MakeResponse(content);
         }
 
         //
@@ -84,21 +104,39 @@ namespace SearchService.Controllers
         {
             Trace.TraceInformation("Range: {0}", Request.QueryString.ToString());
 
-            InitializeSearcherManager();
-
-            string min = Request.QueryString["min"];
-            string max = Request.QueryString["max"];
-
-            string content = "[]";
-
-            int minKey;
-            int maxKey;
-            if (min != null && max != null && int.TryParse(min, out minKey) && int.TryParse(max, out maxKey))
+            try
             {
-                content = Searcher.KeyRangeQuery(_searcherManager, minKey, maxKey);
-            }
+                InitializeSearcherManager();
 
-            return MakeResponse(content);
+                string min = Request.QueryString["min"];
+                string max = Request.QueryString["max"];
+
+                string content = "[]";
+
+                int minKey;
+                int maxKey;
+                if (min != null && max != null && int.TryParse(min, out minKey) && int.TryParse(max, out maxKey))
+                {
+                    Trace.TraceInformation("Searcher.KeyRangeQuery(..., {0}, {1})", minKey, maxKey);
+
+                    content = Searcher.KeyRangeQuery(_searcherManager, minKey, maxKey);
+                }
+
+                return MakeResponse(content);
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.Message);
+                Trace.TraceError(e.StackTrace);
+
+                if (e.InnerException != null)
+                {
+                    Trace.TraceError(e.InnerException.Message);
+                    Trace.TraceError(e.InnerException.StackTrace);
+                }
+
+                throw;
+            }
         }
 
         //
@@ -110,9 +148,25 @@ namespace SearchService.Controllers
         {
             Trace.TraceInformation("Diag");
 
-            InitializeSearcherManager();
+            try
+            {
+                InitializeSearcherManager();
 
-            return MakeResponse(IndexAnalyzer.Analyze(_searcherManager));
+                return MakeResponse(IndexAnalyzer.Analyze(_searcherManager));
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.Message);
+                Trace.TraceError(e.StackTrace);
+
+                if (e.InnerException != null)
+                {
+                    Trace.TraceError(e.InnerException.Message);
+                    Trace.TraceError(e.InnerException.StackTrace);
+                }
+
+                throw;
+            }
         }
 
         //
@@ -124,9 +178,25 @@ namespace SearchService.Controllers
         {
             Trace.TraceInformation("Fields");
 
-            InitializeSearcherManager();
+            try
+            {
+                InitializeSearcherManager();
 
-            return MakeResponse(IndexAnalyzer.GetDistinctStoredFieldNames(_searcherManager));
+                return MakeResponse(IndexAnalyzer.GetDistinctStoredFieldNames(_searcherManager));
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.Message);
+                Trace.TraceError(e.StackTrace);
+
+                if (e.InnerException != null)
+                {
+                    Trace.TraceError(e.InnerException.Message);
+                    Trace.TraceError(e.InnerException.StackTrace);
+                }
+
+                throw;
+            }
         }
 
         //
@@ -139,14 +209,29 @@ namespace SearchService.Controllers
             Trace.TraceInformation("Where");
 
             JObject response = new JObject();
-            
-            bool useStorage = bool.Parse(WebConfigurationManager.AppSettings["UseStorage"]);
 
-            response.Add("UseStorage", useStorage);
-            
-            if (useStorage)
+            if (GetUseStorageConfiguration())
             {
-                response.Add("StorageContainer", WebConfigurationManager.AppSettings["StorageContainer"]);
+                string storageConnectionString = WebConfigurationManager.AppSettings["StorageConnectionString"];
+                CloudStorageAccount cloudStorageAccount;
+                if (storageConnectionString != null && CloudStorageAccount.TryParse(storageConnectionString, out cloudStorageAccount))
+                {
+                    string accountName = cloudStorageAccount.Credentials.AccountName;
+                    response.Add("AccountName", accountName);
+
+                    string storageContainer = WebConfigurationManager.AppSettings["StorageContainer"];
+                    response.Add("StorageContainer", storageContainer);
+
+                    CloudBlobClient client = cloudStorageAccount.CreateCloudBlobClient();
+                    CloudBlobContainer container = client.GetContainerReference(storageContainer);
+                    CloudBlockBlob blob = container.GetBlockBlobReference("segments.gen");
+
+                    response.Add("IndexExists", blob.Exists());
+                }
+                else
+                {
+                    response.Add("AccountName", null);
+                }
             }
             else
             {
@@ -184,8 +269,7 @@ namespace SearchService.Controllers
 
         private static Lucene.Net.Store.Directory GetDirectory()
         {
-            bool useStorage = bool.Parse(WebConfigurationManager.AppSettings["UseStorage"]);
-            if (useStorage)
+            if (GetUseStorageConfiguration())
             {
                 string storageContainer = WebConfigurationManager.AppSettings["StorageContainer"];
                 string storageConnectionString = WebConfigurationManager.AppSettings["StorageConnectionString"];
@@ -202,6 +286,14 @@ namespace SearchService.Controllers
 
                 return new SimpleFSDirectory(new DirectoryInfo(fileSystemPath));
             }
+        }
+
+        private static bool GetUseStorageConfiguration()
+        {
+            string useStorageStr = WebConfigurationManager.AppSettings["UseStorage"];
+            bool useStorage = false;
+            bool.TryParse(useStorageStr ?? "false", out useStorage);
+            return useStorage;
         }
     }
 }

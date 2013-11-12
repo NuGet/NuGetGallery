@@ -19,30 +19,48 @@ namespace NuGetGallery
 
         public override IDictionary<string, IDictionary<string, int>> GetProjectRankings()
         {
-            IList<string> projectGuids = GetProjectGuids(_storageAccount);
-
-            Console.WriteLine("Gathering statistics for project types:");
-
-            IDictionary<string, IDictionary<string, int>> result = new Dictionary<string, IDictionary<string, int>>(); 
-
-            foreach (string projectGuid in projectGuids)
+            try
             {
-                IDictionary<string, int> ranking = GetRanking(_storageAccount, projectGuid);
+                IList<string> projectGuids = GetProjectGuids(_storageAccount);
 
-                if (ranking.Count > 0)
+                Console.WriteLine("Gathering statistics for project types:");
+
+                IDictionary<string, IDictionary<string, int>> result = new Dictionary<string, IDictionary<string, int>>();
+
+                foreach (string projectGuid in projectGuids)
                 {
-                    result.Add(projectGuid, ranking);
+                    IDictionary<string, int> ranking = GetRanking(_storageAccount, projectGuid);
+
+                    if (ranking.Count > 0)
+                    {
+                        result.Add(projectGuid, ranking);
+                    }
+
+                    Console.WriteLine(projectGuid);
                 }
 
-                Console.WriteLine(projectGuid);
+                return result;
             }
-
-            return result;
+            catch (Exception e)
+            {
+                Console.WriteLine("Project rankings are not available.");
+                Console.WriteLine("Exception: {0}", e.Message);
+                return null;
+            }
         }
 
         public override IDictionary<string, int> GetOverallRanking()
         {
-            return GetRanking(_storageAccount, "Overall");
+            try
+            {
+                return GetRanking(_storageAccount, "Overall");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Overall rankings are not available.");
+                Console.WriteLine("Exception: {0}", e.Message);
+                return null;
+            }
         }
 
         private static IDictionary<string, int> GetRanking(CloudStorageAccount storageAccount, string blobName)

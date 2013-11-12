@@ -112,6 +112,7 @@
     <Compile Include="DebugHelper.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="JobRunner.cs" />
+    <Compile Include="Jobs\AddToIndexJob.cs" />
     <Compile Include="Jobs\CleanJobLogsJob.cs" />
     <Compile Include="Jobs\BackupPackagesJob.cs" />
     <Compile Include="Jobs\BackupWarehouseJob.cs" />
@@ -125,6 +126,7 @@
     <Compile Include="Jobs\HandleQueuedPackageEditsJob.cs" />
     <Compile Include="Jobs\PurgePackageStatisticsJob.cs" />
     <Compile Include="Jobs\ReplicatePackageStatisticsJob.cs" />
+    <Compile Include="Jobs\UpdateIndexJob.cs" />
     <Compile Include="Jobs\UpdateLicenseReportsJob.cs" />
     <Compile Include="Jobs\WorkerJob.cs" />
     <Compile Include="JsonLayout.cs" />
