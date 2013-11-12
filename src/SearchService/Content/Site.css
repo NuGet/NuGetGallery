@@ -63,6 +63,10 @@ textarea {
 /* Custom Styles
 -----------------------------------------------------------*/
 
+#query-div {
+    font-size:large;
+}
+
 .result-number {
     font-size:large;
     color:blue;
@@ -74,6 +78,19 @@ textarea {
 .result-title {
     font-size: large;
     font-weight: bold;
+}
+
+.json-display {
+    color:blue;
+}
+
+.result-json {
+    font-size: xx-small;
+    font-weight:bold;
+    color:blue;
+    height:16px;
+    width:40px;
+    margin:10px;
 }
 
 .result-id {
@@ -125,6 +142,17 @@ textarea {
 
 .term-value {
     color:red;
+}
+
+.json-display {
+    border-width: 3px;
+    border-style: solid;
+    border-color: blue;
+    display: none;
+}
+
+.json-display-content {
+    margin: 15px;
 }
 
 /* styles for D3 graph of segments */

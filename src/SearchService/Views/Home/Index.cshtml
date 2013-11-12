@@ -1,71 +1,87 @@
 ﻿@{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "NuGet Search Test Page";
 }
 
-<h2>Search Test Page</h2>
+<h2>NuGet Search Test Page</h2>
 
-    <div id="query-div">
-        <p>
-            <input id="query" size="25" type="text">
-            <input id="lucene-query" size="110" type="text">
-            <button id="go">Go</button>
-        </p>
-        <p>
-            <select id="prerelease">
-                <option value="false" selected>Stable Only</option>
-                <option value="true">Include Prerelease</option>
-            </select>
+    <div style="border-width:3px;border-style:solid;border-color:black;display:block;margin:4px;background-color:lightgray">
+        <div style="margin:6px">
+            <span style="font-size:large;font-weight:bold;color:black">Test</span>
+            <div id="query-div" style="display:inline-block;text-align:center;width:720px">
+                    <input id="query" size="25" type="text">
+                    <button id="go">Go</button>
+                    &nbsp;&nbsp;&nbsp;
+                    &nbsp;&nbsp;&nbsp;
+                    <select id="prerelease">
+                        <option value="false" selected>Stable Only</option>
+                        <option value="true">Include Prerelease</option>
+                    </select>
+                    Sort by:<select id="sortBy">
+                        <option value="relevance" selected>Relevance</option>
+                        <option value="rank">Popularity</option>
+                        <option value="title-asc">A-Z</option>
+                        <option value="title-desc">Z-A</option>
+                        <option value="published">Recent</option>
+                        <option value="last-edited">Edited</option>
+                    </select>
+            </div>
+        </div>
+    </div>
 
-            Sort by:
+    <div style="border-width:3px;border-style:solid;border-color:orange;display:block;margin:4px;">
+        <div style="margin:4px">
+            <span style="font-size:large;font-weight:bold;color:orange">Feedback</span> 
+            Expected better:&nbsp;<input id="expectedPackageId" size="35" type="text" value="id/version">
+            Contact details:&nbsp;<input id="contactDetails" size="35" type="text" value="email:your-name@your-organization">
+            <button id="submitFeedback">Submit Feedback</button>
+        </div>
+    </div>
 
-            <select id="sortBy">
-                <option value="relevance" selected>Relevance</option>
-                <option value="rank">Popularity</option>
-                <option value="title-asc">A-Z</option>
-                <option value="title-desc">Z-A</option>
-                <option value="published">Recent</option>
-                <option value="last-edited">Edited</option>
-            </select>
-        </p>
-        <div style="border-width:3px;border-style:solid;border-color:green">
-            <p>
-                &nbsp;&nbsp;
-                    
-                Count Call: <input id="countCall" type="checkbox">
+    <div style="border-width:3px;border-style:solid;border-color:green;display:block;margin:4px">
+        <div style="margin:4px">
 
-                Curated Feed:
+                <span style="font-size:large;font-weight:bold;color:green">Diagnostics</span>
 
-                <select id="feed">
-                    <option value="none" selected>None</option>
-                    <option value="windows8-packages">windows8-packages</option>
-                    <option value="webmatrix">webmatrix</option>
-                    <option value="dotnetframework">dotnetframework</option>
-                    <option value="microsoftdotnet">microsoftdotnet</option>
-                </select>
+                <div style="display:inline-block">                   
+                    Lucene query:
+                    <input id="lucene-query" size="110" type="text">
+                </div>
 
-                ProjectType: <input id="projectType" type="text" size="40">
+                <div style="width:240px;display:inline-block;">
+                    <div style="display:block">
+                        Curated Feed:&nbsp;<select id="feed">
+                            <option value="none" selected>None</option>
+                            <option value="windows8-packages">windows8-packages</option>
+                            <option value="webmatrix">webmatrix</option>
+                            <option value="dotnetframework">dotnetframework</option>
+                            <option value="microsoftdotnet">microsoftdotnet</option>
+                        </select>
+                    </div>
+                    <div style="display:block">
+                        <input id="countCall" type="checkbox">&nbsp;Make&nbsp;extra&nbsp;count&nbsp;call
+                    </div>
+                </div>
 
-                Explanation: <input id="explanation" type="checkbox">
+                <div style="width:360px;display:inline-block;">
+                    ProjectType:&nbsp;<input id="projectType" type="text" size="40">
+                    (see Stored Fields for VS Project guid sets)
+                </div>
 
-                Ignore Filter: <input id="ignore-filter" type="checkbox">
+                <div style="width:100px;display:inline-block;">
+                    <input id="explanation" type="checkbox">Explanation
+                    <input id="ignore-filter" type="checkbox">No Filter
+                </div>
 
-                <a href="segments">Segments</a>
-
-                &nbsp;&nbsp;
-
-                <a href="rangeQuery">Range Query</a>
-
-                &nbsp;&nbsp;
-
-                <a href="storedFields">Stored Fields</a>
-
-                &nbsp;&nbsp;
-            </p>
+                <div style="with:160px;display:inline-block;vertical-align:top">
+                    <a href="segments">Segments</a>
+                    <a href="rangeQuery">Range Query</a>
+                    <a href="storedFields">Stored Fields</a>
+                </div>
         </div>
     </div>
 
     <div id ="results-div" style="clear:both">
-        <em>Result Go Here</em>
+        <p><em>Results Go Here</em></p>
     </div>
 
     <script>
@@ -97,18 +113,30 @@
 
             var html = '';
 
-            html += '<p><span class="result-number">' + number + '</span>&nbsp;<span class="result-title">' + data[i].Title + '<span></p>';
+            var title = data[i].Title;
+            if (title === null || title === '') {
+                title = data[i].PackageRegistration.Id;
+            }
+
+            html += '<p>';
+            html += '<span class="result-number">' + number + '</span>&nbsp;<span class="result-title">' + title + '</span>';
+            html += '&nbsp;&nbsp;<button id="result-index-' + i + '" class="result-json">JSON</button>'
+            html += '</p>';
+
+            html += '<div class="json-display"><div class="json-display-content" id="result-display-json-' + i + '"></div></div>';
 
             html += '<div class="result-details-div">';
 
-            html += '<p><span class="result-id">' + data[i].Id + ' ' + data[i].Version + '<span></p>';
+            html += '<p><span class="result-id">';
+            html += data[i].PackageRegistration.Id + ' ' + data[i].Version;
+            html += '</span></p>';
 
-            html += '<p><span class="result-description">' + data[i].Description + '<span></p>';
+            html += '<p><span class="result-description">' + data[i].Description + '</span></p>';
 
-            html += '<p><span class="result-published">' + data[i].Published + '<span></p>';
+            html += '<p><span class="result-published">' + data[i].Published + '</span></p>';
 
             if (data[i].Tags != undefined || data[i].Tags != null) {
-                html += '<p><span class="result-tags">' + data[i].Tags + '<span></p>';
+                html += '<p><span class="result-tags">' + data[i].Tags + '</span></p>';
             }
 
             html += '</div>';
@@ -225,6 +253,25 @@
             return html;
         }
 
+        var showJson = function (data) {
+            return function () {
+                var id = $(this).attr('Id');
+                var i = parseInt(id.substr(13));
+                if ($('#result-display-json-' + i).text() === '') {
+                    var resultObj = JSON.parse(JSON.stringify(data[i]));
+                    delete resultObj['diagnostics'];
+                    var div = $('#result-display-json-' + i);
+                    div.html(json2html(resultObj));
+                    div.parent().css('display', 'block');
+                }
+                else {
+                    var div = $('#result-display-json-' + i);
+                    div.html('')
+                    div.parent().css('display', 'none');
+                }
+            };
+        }
+
         var updateResultsDiv = function (query, total, data) {
 
             var html = '';
@@ -244,13 +291,11 @@
 
             $('#prev').click(createNavigationFunction(query, total, query.page - 1));
             $('#next').click(createNavigationFunction(query, total, query.page + 1));
+
+            $('.result-json').click(showJson(data));
         }
 
         var createFieldClause = function (field, query) {
-
-            if (query.length >= 2 && query[0] === '"' && query[query.length - 1] === '"') {
-                return query;
-            }
 
             var t = query.split(' ');
             var subterms = [];
@@ -357,6 +402,43 @@
             }
         }
 
+        var defaultExpectedPackageId = "package-id/package-version";
+        var defaultContactDetails = "email:your-name@your-organization";
+
+        var submitFeedback = function () {
+
+            var expectedPackageId = $('#expectedPackageId').val();
+            var contactDetails = $('#contactDetails').val();
+
+            if (expectedPackageId === defaultExpectedPackageId || contactDetails === defaultContactDetails) {
+                return;
+            }
+
+            var query = {
+                query: $('#query').val(),
+                prerelease: $('#prerelease').val(),
+                sortBy: $('#sortBy').val(),
+                expectedPackageId: $('#expectedPackageId').val(),
+                contactDetails: $('#contactDetails').val()
+            };
+
+            $.get('feedback', query, function (data, status) {
+
+                if (status === 'success') {
+
+                    alert('thanks for your feedback');
+
+                    $('#expectedPackageId').val(defaultExpectedPackageId);
+                    $('#contactDetails').val(defaultContactDetails);
+                }
+                else {
+                    alert('there was a problem processing your request please contact the NuGet team');
+                }
+            });
+
+            console.log(expectedPackageId + ' ' + contactDetails);
+        }
+
         $(document).ready(function () {
 
             $('#query').keyup(function () {
@@ -366,5 +448,9 @@
             });
 
             $('#go').click(go);
+
+            $('#expectedPackageId').val(defaultExpectedPackageId);
+            $('#contactDetails').val(defaultContactDetails);
+            $('#submitFeedback').click(submitFeedback);
         });
     </script>

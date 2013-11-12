@@ -20,6 +20,8 @@ namespace NuGetGallery.Operations.Tasks.Search
 
         public override void ExecuteCommand()
         {
+            DateTime before = DateTime.Now;
+
             if (Force && StorageAccount != null && !string.IsNullOrEmpty(Container))
             {
                 AzureDirectoryManagement.ForceUnlockAzureDirectory(StorageAccount, Container);
@@ -34,6 +36,9 @@ namespace NuGetGallery.Operations.Tasks.Search
 
             PackageRanking packageRanking = new WarehousePackageRanking(StorageAccount);
             PackageIndexing.IncrementallyUpdateIndex(ConnectionString.ToString(), directory, packageRanking);
+
+            DateTime after = DateTime.Now;
+            Console.WriteLine("duration = {0} seconds", (after - before).TotalSeconds);
         }
     }
 }

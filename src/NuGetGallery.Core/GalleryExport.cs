@@ -39,7 +39,8 @@ namespace NuGetGallery
             set = set
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
-                .Include(p => p.SupportedFrameworks);
+                .Include(p => p.SupportedFrameworks)
+                .Include(p => p.Dependencies);
 
             return ExecuteQuery(set);
         }
@@ -66,7 +67,8 @@ namespace NuGetGallery
             set = set
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
-                .Include(p => p.SupportedFrameworks);
+                .Include(p => p.SupportedFrameworks)
+                .Include(p => p.Dependencies);
 
             return ExecuteQuery(set);
         }
