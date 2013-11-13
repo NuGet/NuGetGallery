@@ -19,6 +19,7 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
         {
             var options = new MicrosoftAccountAuthenticationOptions();
             options.Scope.Add("wl.emails");
+            options.Scope.Add("wl.signin");
             Config.ApplyToOwinSecurityOptions(options);
             app.UseMicrosoftAccountAuthentication(options);
         }
