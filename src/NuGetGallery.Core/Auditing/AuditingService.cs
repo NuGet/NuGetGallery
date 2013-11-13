@@ -41,7 +41,7 @@ namespace NuGetGallery.Auditing
             string rendered = RenderAuditEntry(entry);
 
             // Save the record
-            return SaveAuditRecord(rendered, record.GetResourceType(), record.GetPath());
+            return SaveAuditRecord(rendered, record.GetResourceType(), record.GetPath(), record.GetAction(), entry.Environment.TimestampUtc);
         }
 
         public virtual string RenderAuditEntry(AuditEntry entry)
@@ -55,8 +55,10 @@ namespace NuGetGallery.Auditing
         /// <param name="auditData">The data to store in the audit record</param>
         /// <param name="resourceType">The type of resource affected by the audit (usually used as the first-level folder)</param>
         /// <param name="filePath">The file-system path to use to identify the audit record</param>
-        /// <returns></returns>
-        protected abstract Task<Uri> SaveAuditRecord(string auditData, string resourceType, string filePath);
+        /// <param name="action">The action recorded in this audit record</param>
+        /// <param name="timestamp">A timestamp indicating when the record was created</param>
+        /// <returns>The URI identifying the audit record resource</returns>
+        protected abstract Task<Uri> SaveAuditRecord(string auditData, string resourceType, string filePath, string action, DateTime timestamp);
 
         protected virtual AuditEnvironment GetCurrentAuditEnvironment()
         {
@@ -65,9 +67,9 @@ namespace NuGetGallery.Auditing
 
         private class NullAuditingService : AuditingService
         {
-            protected override Task<Uri> SaveAuditRecord(string auditData, string resourceType, string filePath)
+            protected override Task<Uri> SaveAuditRecord(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
             {
-                return Task.FromResult<Uri>(new Uri("http://auditing.local/" + resourceType + "/" + filePath));
+                return Task.FromResult<Uri>(new Uri("http://auditing.local/" + resourceType + "/" + filePath + "/" + timestamp.ToString("s") + "-" + action.ToLowerInvariant()));
             }
         }
     }

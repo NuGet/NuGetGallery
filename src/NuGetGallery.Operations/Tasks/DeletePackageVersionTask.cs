@@ -3,6 +3,7 @@ using System.Data.SqlClient;
 using System.Globalization;
 using AnglicanGeek.DbExecutor;
 using Microsoft.WindowsAzure.Storage;
+using NuGetGallery.Auditing;
 using NuGetGallery.Operations.Common;
 using NuGetGallery.Operations.Model;
 

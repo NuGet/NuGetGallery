@@ -8,7 +8,7 @@ using Newtonsoft.Json.Converters;
 
 namespace NuGetGallery.Auditing
 {
-    public class UserAuditRecord : AuditRecord
+    public class UserAuditRecord : AuditRecord<UserAuditAction>
     {
         public string Username { get; set; }
         public string EmailAddress { get; set; }
@@ -16,11 +16,11 @@ namespace NuGetGallery.Auditing
         public string[] Roles { get; set; }
         public CredentialAuditRecord[] Credentials { get; set; }
         public CredentialAuditRecord AffectedCredential { get; set; }
-        public UserAuditAction Action { get; set; }
-
+        
         public UserAuditRecord(User user, UserAuditAction action)
             : this(user, null, action) { }
         public UserAuditRecord(User user, Credential affected, UserAuditAction action)
+            : base(action)
         {
             Username = user.Username;
             EmailAddress = user.EmailAddress;
@@ -38,11 +38,7 @@ namespace NuGetGallery.Auditing
 
         public override string GetPath()
         {
-            return String.Format(
-                "{0}/{1}-{2}.json",
-                Username.ToLowerInvariant(),
-                DateTime.UtcNow.ToString("s"), // Sortable DateTime Format
-                Action.ToString().ToLowerInvariant());
+            return Username.ToLowerInvariant();
         }
     }
 

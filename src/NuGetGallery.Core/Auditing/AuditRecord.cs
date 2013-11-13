@@ -16,6 +16,8 @@ namespace NuGetGallery.Auditing
             return _resourceType ?? (_resourceType = InferResourceType());
         }
 
+        public abstract string GetAction();
+
         private string InferResourceType()
         {
             string type = GetType().Name;
@@ -24,6 +26,22 @@ namespace NuGetGallery.Auditing
                 return type.Substring(0, type.Length - 11);
             }
             return type;
+        }
+    }
+
+    public abstract class AuditRecord<T> : AuditRecord
+        where T : struct
+    {
+        public T Action { get; set; }
+
+        protected AuditRecord(T action)
+        {
+            Action = action;
+        }
+
+        public override string GetAction()
+        {
+            return Action.ToString().ToLowerInvariant();
         }
     }
 }

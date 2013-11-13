@@ -51,10 +51,13 @@ namespace NuGetGallery.Auditing
                 DateTime.UtcNow);
         }
 
-        protected override async Task<Uri> SaveAuditRecord(string auditData, string resourceType, string filePath)
+        protected override async Task<Uri> SaveAuditRecord(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
         {
             string fullPath = String.Concat(
-                resourceType, "/", filePath.Replace(Path.DirectorySeparatorChar, '/'));
+                resourceType, "/", 
+                filePath.Replace(Path.DirectorySeparatorChar, '/'), "/",
+                timestamp.ToString("s"), "-", // Sortable DateTime format
+                action.ToLowerInvariant(), ".audit.v1.json");
 
             var blob = _auditContainer.GetBlockBlobReference(fullPath);
             bool retry = false;
