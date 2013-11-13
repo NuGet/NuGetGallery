@@ -6,12 +6,37 @@
 <div id="logon">
     @if (Model.External != null)
     {
-        <div id="register">
+        if (Model.External.FoundExistingUser)
+        {
+            <div id="signIn" class="signIn-solo">
+                <h1>We found an existing account</h1>
+                <p>
+                    We found an account with this email address. Sign in with your password to link with this account. 
+                    Don't have a password? Sorry, you'll have to log in using an existing credential and 
+                    set a password to associate a Microsoft Account. If you're still having trouble, you can 
+                    <a href="mailto:@Config.Current.GalleryOwner.Address">contact support.</a>
+                </p>
+                <div id="signIn-solo-form">
+                    @Html.Partial("_SignIn", Model)
+                </div>
+            </div>
+        } else {
             <h1>Do we know you?</h1>
             <p>
                 It looks like we haven't seen the @Model.External.ProviderAccountNoun '@Model.External.AccountName'
                 before.
             </p>
+        
+            <div id="register">
+                <h1>I don't have an account</h1>
+                <p>
+                    Don't have a NuGet account yet? That's OK! We love meeting new people! Please fill in the information
+                    below and we'll start a new account for you. You'll be pushing packages in no time!
+                </p>
+                @Html.Partial("_Register", Model)
+            </div>
+
+            <div class="verticalSeparator"></div>
 
             <div id="signIn">
                 <h1>I already have an account</h1>
@@ -21,31 +46,20 @@
                 </p>
                 @Html.Partial("_SignIn", Model)
             </div>
-
-            <div class="verticalSeparator"></div>
-
-            <div id="register-sidecar">
-                <h1>I don't have an account</h1>
-                <p>
-                    Don't have a NuGet account yet? That's OK! We love meeting new people! Please fill in the information 
-                    below and we'll start a new account for you. You'll be pushing packages in no time!
-                </p>
-                @Html.Partial("_Register", Model)
-            </div>
-        </div>
+        }
     }
     else
     {
-        <div id="signIn">
-            <h1>Sign In</h1>
-            @Html.Partial("_SignIn", Model)
+        <div id="register">
+            <h1>Register</h1>
+            @Html.Partial("_Register", Model)
         </div>
 
         <div class="verticalSeparator"></div>
-
-        <div id="register-sidecar">
-            <h1>Register</h1>
-            @Html.Partial("_Register", Model)
+        
+        <div id="signIn">
+            <h1>Sign In</h1>
+            @Html.Partial("_SignIn", Model)
         </div>
     }
 </div>

@@ -6,6 +6,7 @@ using System.Text;
 using System.Web;
 using AnglicanGeek.MarkdownMailer;
 using Elmah;
+using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
@@ -14,11 +15,13 @@ namespace NuGetGallery
     {
         private readonly IMailSender _mailSender;
         private readonly IAppConfiguration _config;
+        private readonly AuthenticationService _authService;
 
-        public MessageService(IMailSender mailSender, IAppConfiguration config)
+        public MessageService(IMailSender mailSender, IAppConfiguration config, AuthenticationService authService)
         {
             _mailSender = mailSender;
             _config = config;
+            _authService = authService;
         }
 
         public void ReportAbuse(ReportPackageRequest request)
@@ -319,6 +322,55 @@ The {3} Team";
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
                 mailMessage.To.Add(toUser.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendCredentialRemovedNotice(User user, Credential removed)
+        {
+            SendCredentialChangeNotice(
+                user, 
+                removed, 
+                Strings.Emails_CredentialRemoved_Body, 
+                Strings.Emails_CredentialRemoved_Subject);
+        }
+
+        public void SendCredentialAddedNotice(User user, Credential added)
+        {
+            SendCredentialChangeNotice(
+                user,
+                added,
+                Strings.Emails_CredentialAdded_Body,
+                Strings.Emails_CredentialAdded_Subject);
+        }
+
+        private void SendCredentialChangeNotice(User user, Credential changed, string bodyTemplate, string subjectTemplate)
+        {
+            // What kind of credential is this?
+            var credViewModel = _authService.DescribeCredential(changed);
+            string name = credViewModel.AuthUI == null ? credViewModel.TypeCaption : credViewModel.AuthUI.AccountNoun;
+
+            string body = String.Format(
+                CultureInfo.CurrentCulture,
+                bodyTemplate,
+                name);
+            string subject = String.Format(
+                CultureInfo.CurrentCulture,
+                subjectTemplate,
+                _config.GalleryOwner.DisplayName,
+                name);
+            SendSupportMessage(user, body, subject);
+        }
+
+        private void SendSupportMessage(User user, string body, string subject)
+        {
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = _config.GalleryOwner;
+
+                mailMessage.To.Add(user.ToMailAddress());
                 SendMessage(mailMessage);
             }
         }

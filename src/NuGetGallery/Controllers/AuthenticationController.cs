@@ -16,6 +16,8 @@ namespace NuGetGallery
     public partial class AuthenticationController : AppController
     {
         public AuthenticationService AuthService { get; protected set; }
+        public IUserService UserService { get; protected set; }
+        public IMessageService MessageService { get; protected set; }
 
         // For sub-classes to initialize services themselves
         protected AuthenticationController()
@@ -23,9 +25,13 @@ namespace NuGetGallery
         }
 
         public AuthenticationController(
-            AuthenticationService authService)
+            AuthenticationService authService,
+            IUserService userService,
+            IMessageService messageService)
         {
             AuthService = authService;
+            UserService = userService;
+            MessageService = messageService;
         }
 
         /// <summary>
@@ -205,10 +211,19 @@ namespace NuGetGallery
                 var name = result
                     .ExternalIdentity
                     .GetClaimOrDefault(ClaimTypes.Name);
+
+                // Check for a user with this email address
+                User existingUser = null;
+                if (!String.IsNullOrEmpty(email))
+                {
+                    existingUser = UserService.FindByEmailAddress(email);
+                }
+
                 var external = new AssociateExternalAccountViewModel()
                 {
                     ProviderAccountNoun = authUI.AccountNoun,
-                    AccountName = name
+                    AccountName = name,
+                    FoundExistingUser = existingUser != null
                 };
 
                 var model = new LogOnViewModel()
@@ -245,6 +260,9 @@ namespace NuGetGallery
             }
 
             AuthService.AddCredential(user.User, result.Credential);
+
+            // Notify the user of the change
+            MessageService.SendCredentialAddedNotice(user.User, result.Credential);
 
             return new AuthenticatedUser(user.User, result.Credential);
         }

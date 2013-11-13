@@ -160,6 +160,42 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A {0} was added to your account and can now be used to log in. If you did not request this change, please reply to this email to contact support..
+        /// </summary>
+        public static string Emails_CredentialAdded_Body {
+            get {
+                return ResourceManager.GetString("Emails_CredentialAdded_Body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [{0}] {1} added to your account.
+        /// </summary>
+        public static string Emails_CredentialAdded_Subject {
+            get {
+                return ResourceManager.GetString("Emails_CredentialAdded_Subject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A {0} was removed from your account and can no longer be used to log in. If you did not request this change, please reply to this email to contact support..
+        /// </summary>
+        public static string Emails_CredentialRemoved_Body {
+            get {
+                return ResourceManager.GetString("Emails_CredentialRemoved_Body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [{0}] {1} removed from your account.
+        /// </summary>
+        public static string Emails_CredentialRemoved_Subject {
+            get {
+                return ResourceManager.GetString("Emails_CredentialRemoved_Subject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The word on the street is you lost your password. Sorry to hear it!
         ///If you haven&apos;t forgotten your password you can safely ignore this email. Your password has not been changed.
         ///
@@ -235,6 +271,15 @@ namespace NuGetGallery {
         public static string InvalidApiKey {
             get {
                 return ResourceManager.GetString("InvalidApiKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot send added/removed email for credentials of type &apos;{0}&apos;.
+        /// </summary>
+        public static string MessageService_CannotSendEmailForCredential {
+            get {
+                return ResourceManager.GetString("MessageService_CannotSendEmailForCredential", resourceCulture);
             }
         }
         

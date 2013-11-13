@@ -12,6 +12,7 @@
         {
             @Html.HiddenFor(m => m.External.ProviderAccountNoun)
             @Html.HiddenFor(m => m.External.AccountName)
+            @Html.HiddenFor(m => m.External.FoundExistingUser)
         }
         @Html.ValidationSummaryFor("SignIn")
 

@@ -1,4 +1,5 @@
-﻿namespace NuGetGallery
+﻿using System.Collections.Generic;
+namespace NuGetGallery
 {
     public static class Constants
     {

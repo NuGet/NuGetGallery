@@ -179,7 +179,7 @@ namespace NuGetGallery.Authentication
             Entities.SaveChanges();
         }
 
-        public virtual bool ResetPasswordWithToken(string username, string token, string newPassword)
+        public virtual Credential ResetPasswordWithToken(string username, string token, string newPassword)
         {
             if (String.IsNullOrEmpty(newPassword))
             {
@@ -198,14 +198,15 @@ namespace NuGetGallery.Authentication
                     throw new InvalidOperationException(Strings.UserIsNotYetConfirmed);
                 }
 
-                ReplaceCredentialInternal(user, CredentialBuilder.CreatePbkdf2Password(newPassword));
+                var cred = CredentialBuilder.CreatePbkdf2Password(newPassword);
+                ReplaceCredentialInternal(user, cred);
                 user.PasswordResetToken = null;
                 user.PasswordResetTokenExpirationDate = null;
                 Entities.SaveChanges();
-                return true;
+                return cred;
             }
 
-            return false;
+            return null;
         }
 
         public virtual bool ChangePassword(User user, string oldPassword, string newPassword)

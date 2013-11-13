@@ -12,5 +12,7 @@ namespace NuGetGallery
         void SendPasswordResetInstructions(User user, string resetPasswordUrl, bool forgotPassword);
         void SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress);
         void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl);
+        void SendCredentialRemovedNotice(User user, Credential removed);
+        void SendCredentialAddedNotice(User user, Credential added);
     }
 }

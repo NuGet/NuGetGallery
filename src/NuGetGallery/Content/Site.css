@@ -1646,7 +1646,16 @@ form .async-upload-progress-advance
     vertical-align: top;
     width: 45%;
     height: 100%;
-    margin-right: 5%;
+    margin-left: 5%;
+}
+
+    #signIn.signIn-solo {
+        margin: 0;
+        width: 100%;
+    }
+
+#signIn-solo-form {
+    width: 45%;
 }
 
 #signIn-lostpassword {
@@ -1668,13 +1677,13 @@ form .async-upload-progress-advance
     width: 45%;
 }
 
-#register-sidecar {
+#register {
     /* Register form, as a "side-car", i.e. sharing space with the sign-in form */
     height: 100%;
     display: inline-block;
     vertical-align: top;
     width: 45%;
-    margin-left: 3%;
+    margin-right: 3%;
 }
 
 #register-form {
@@ -1784,6 +1793,11 @@ i.managecreds-cred-icon {
     width: 32px;
     display: inline-block;
     text-align: right;
+}
+
+.managecreds-moreinfo-button {
+    display: inline-block;
+    margin-top: 0.25em;
 }
 
 /* Script-related Classes */

@@ -207,7 +207,8 @@ namespace NuGetGallery
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
             
-            ViewBag.ResetTokenValid = AuthService.ResetPasswordWithToken(username, token, model.NewPassword);
+            var cred = AuthService.ResetPasswordWithToken(username, token, model.NewPassword);
+            ViewBag.ResetTokenValid = cred != null;
             ViewBag.ForgotPassword = forgot;
 
             if (!ViewBag.ResetTokenValid)
@@ -215,6 +216,13 @@ namespace NuGetGallery
                 ModelState.AddModelError("", "The Password Reset Token is not valid or expired.");
                 return View(model);
             }
+
+            if (cred != null && !forgot)
+            {
+                // Setting a password, so notify the user
+                MessageService.SendCredentialAddedNotice(cred.User, cred);
+            }
+
             return RedirectToAction(MVC.Users.PasswordChanged());
         }
 
@@ -457,6 +465,10 @@ namespace NuGetGallery
             else if (cred != null)
             {
                 AuthService.RemoveCredential(user, cred);
+                
+                // Notify the user of the change
+                MessageService.SendCredentialRemovedNotice(user, cred);
+                
                 TempData["Message"] = message;
             }
             return RedirectToAction("ManageCredentials");
