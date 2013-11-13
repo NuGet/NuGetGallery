@@ -46,16 +46,6 @@ namespace NuGetGallery {
         public System.Web.Mvc.ActionResult Profiles() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.Profiles);
         }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult ChangePassword() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.ChangePassword);
-        }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult RemoveCredential() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.RemoveCredential);
-        }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public UsersController Actions { get { return MVC.Users; } }
@@ -82,11 +72,7 @@ namespace NuGetGallery {
             public readonly string Profiles = "Profiles";
             public readonly string ChangeEmail = "ChangeEmail";
             public readonly string ManageCredentials = "ManageCredentials";
-            public readonly string ChangePassword = "ChangePassword";
-            public readonly string RemovePassword = "RemovePassword";
-            public readonly string RemoveCredential = "RemoveCredential";
             public readonly string PasswordChanged = "PasswordChanged";
-            public readonly string GenerateApiKey = "GenerateApiKey";
         }
 
 
@@ -156,12 +142,6 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ForgotPassword(NuGetGallery.ForgotPasswordViewModel model) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ForgotPassword);
-            callInfo.RouteValueDictionary.Add("model", model);
-            return callInfo;
-        }
-
         public override System.Web.Mvc.ActionResult PasswordSent() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.PasswordSent);
             return callInfo;
@@ -170,15 +150,6 @@ namespace NuGetGallery {
         public override System.Web.Mvc.ActionResult ResetPassword(bool forgot) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ResetPassword);
             callInfo.RouteValueDictionary.Add("forgot", forgot);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult ResetPassword(string username, string token, bool forgot, NuGetGallery.PasswordResetViewModel model) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ResetPassword);
-            callInfo.RouteValueDictionary.Add("username", username);
-            callInfo.RouteValueDictionary.Add("token", token);
-            callInfo.RouteValueDictionary.Add("forgot", forgot);
-            callInfo.RouteValueDictionary.Add("model", model);
             return callInfo;
         }
 
@@ -200,41 +171,13 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ChangeEmail(NuGetGallery.ChangeEmailRequestModel model) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ChangeEmail);
-            callInfo.RouteValueDictionary.Add("model", model);
-            return callInfo;
-        }
-
         public override System.Web.Mvc.ActionResult ManageCredentials() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ManageCredentials);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ChangePassword(NuGetGallery.ManageCredentialsViewModel model) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ChangePassword);
-            callInfo.RouteValueDictionary.Add("model", model);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult RemovePassword() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.RemovePassword);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult RemoveCredential(string credentialType) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.RemoveCredential);
-            callInfo.RouteValueDictionary.Add("credentialType", credentialType);
-            return callInfo;
-        }
-
         public override System.Web.Mvc.ActionResult PasswordChanged() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.PasswordChanged);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult GenerateApiKey() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.GenerateApiKey);
             return callInfo;
         }
 

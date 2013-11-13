@@ -389,9 +389,16 @@ namespace Links {
             public static readonly string FontAwesome_otf = Url("FontAwesome.otf");
         }
     
-        public static readonly string font_awesome_ie7_min_css = Url("font-awesome-ie7.min.css");
-        public static readonly string font_awesome_css = Url("font-awesome.css");
-        public static readonly string font_awesome_min_css = Url("font-awesome.min.css");
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public static class fontawesome {
+            private const string URLPATH = "~/Content/fontawesome";
+            public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+            public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+            public static readonly string font_awesome_ie7_min_css = Url("font-awesome-ie7.min.css");
+            public static readonly string font_awesome_css = Url("font-awesome.css");
+            public static readonly string font_awesome_min_css = Url("font-awesome.min.css");
+        }
+    
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public static class Images {
             private const string URLPATH = "~/Content/Images";

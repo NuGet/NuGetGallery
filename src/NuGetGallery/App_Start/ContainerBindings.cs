@@ -14,6 +14,7 @@ using Ninject.Modules;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
 using System.Diagnostics;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery
 {
@@ -54,7 +55,7 @@ namespace NuGetGallery
             Bind<ICacheService>()
                 .To<HttpContextCacheService>()
                 .InRequestScope();
-            
+
             Bind<IContentService>()
                 .To<ContentService>()
                 .InSingletonScope();
@@ -229,6 +230,7 @@ namespace NuGetGallery
             // to receive null anyway.
             Bind<IReportService>().ToConstant(NullReportService.Instance);
             Bind<IStatisticsService>().ToConstant(NullStatisticsService.Instance);
+            Bind<AuditingService>().ToConstant(AuditingService.None);
         }
 
         private void ConfigureForAzureStorage(ConfigurationService configuration)
@@ -248,6 +250,21 @@ namespace NuGetGallery
             Bind<IStatisticsService>()
                 .To<JsonStatisticsService>()
                 .InSingletonScope();
+
+            string instanceId;
+            try
+            {
+                instanceId = RoleEnvironment.CurrentRoleInstance.Id;
+            }
+            catch (Exception)
+            {
+                instanceId = Environment.MachineName;
+            }
+
+            Bind<AuditingService>()
+                .To<CloudAuditingService>()
+                .WithConstructorArgument("instanceId", instanceId)
+                .WithConstructorArgument("storageConnectionString", configuration.Current.AzureStorageConnectionString);
         }
     }
 }

@@ -74,7 +74,7 @@ namespace NuGetGallery
                 return LogOnView(model);
             }
 
-            var user = AuthService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
+            var user = await AuthService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
 
             if (user == null)
             {
@@ -136,14 +136,14 @@ namespace NuGetGallery
                         return ExternalLinkExpired();
                     }
 
-                    user = AuthService.Register(
+                    user = await AuthService.Register(
                         model.Register.Username, 
                         model.Register.EmailAddress, 
                         result.Credential);
                 }
                 else
                 {
-                    user = AuthService.Register(
+                    user = await AuthService.Register(
                         model.Register.Username,
                         model.Register.EmailAddress,
                         CredentialBuilder.CreatePbkdf2Password(model.Register.Password));
@@ -259,7 +259,7 @@ namespace NuGetGallery
                 return null;
             }
 
-            AuthService.AddCredential(user.User, result.Credential);
+            await AuthService.AddCredential(user.User, result.Credential);
 
             // Notify the user of the change
             MessageService.SendCredentialAddedNotice(user.User, result.Credential);

@@ -12,6 +12,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using NLog;
+using NuGetGallery.Auditing;
 using NuGetGallery.Operations.Model;
 
 namespace NuGetGallery.Operations

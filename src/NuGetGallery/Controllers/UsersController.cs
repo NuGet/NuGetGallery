@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
@@ -157,7 +158,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult ForgotPassword(ForgotPasswordViewModel model)
+        public virtual async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
@@ -165,7 +166,7 @@ namespace NuGetGallery
             
             if (ModelState.IsValid)
             {
-                var user = AuthService.GeneratePasswordResetToken(model.Email, Constants.DefaultPasswordResetTokenExpirationHours * 60);
+                var user = await AuthService.GeneratePasswordResetToken(model.Email, Constants.DefaultPasswordResetTokenExpirationHours * 60);
                 if (user != null)
                 {
                     return SendPasswordResetEmail(user, forgotPassword: true);
@@ -201,13 +202,13 @@ namespace NuGetGallery
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult ResetPassword(string username, string token, bool forgot, PasswordResetViewModel model)
+        public virtual async Task<ActionResult> ResetPassword(string username, string token, bool forgot, PasswordResetViewModel model)
         {
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
             
-            var cred = AuthService.ResetPasswordWithToken(username, token, model.NewPassword);
+            var cred = await AuthService.ResetPasswordWithToken(username, token, model.NewPassword);
             ViewBag.ResetTokenValid = cred != null;
             ViewBag.ForgotPassword = forgot;
 
@@ -319,14 +320,14 @@ namespace NuGetGallery
 
         [HttpPost]
         [Authorize]
-        public virtual ActionResult ChangeEmail(ChangeEmailRequestModel model)
+        public virtual async Task<ActionResult> ChangeEmail(ChangeEmailRequestModel model)
         {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            var authUser = AuthService.Authenticate(User.Identity.Name, model.Password);
+            var authUser = await AuthService.Authenticate(User.Identity.Name, model.Password);
             if (authUser == null)
             {
                 ModelState.AddModelError("Password", Strings.CurrentPasswordIncorrect);
@@ -375,7 +376,7 @@ namespace NuGetGallery
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult ChangePassword(ManageCredentialsViewModel model)
+        public virtual async Task<ActionResult> ChangePassword(ManageCredentialsViewModel model)
         {
             var user = GetCurrentUser();
 
@@ -385,7 +386,7 @@ namespace NuGetGallery
             if (oldPassword == null)
             {
                 // User is requesting a password set email
-                AuthService.GeneratePasswordResetToken(user, Constants.DefaultPasswordResetTokenExpirationHours * 60);
+                await AuthService.GeneratePasswordResetToken(user, Constants.DefaultPasswordResetTokenExpirationHours * 60);
                 return SendPasswordResetEmail(user, forgotPassword: false);
             }
             else
@@ -395,7 +396,7 @@ namespace NuGetGallery
                     return ManageCredentialsView(model);
                 }
 
-                if (!AuthService.ChangePassword(user, model.OldPassword, model.NewPassword))
+                if (!(await AuthService.ChangePassword(user, model.OldPassword, model.NewPassword)))
                 {
                     ModelState.AddModelError("OldPassword", Strings.CurrentPasswordIncorrect);
                     return ManageCredentialsView(model);
@@ -412,7 +413,7 @@ namespace NuGetGallery
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult RemovePassword()
+        public virtual Task<ActionResult> RemovePassword()
         {
             var user = GetCurrentUser();
             var passwordCred = user.Credentials.SingleOrDefault(
@@ -424,7 +425,7 @@ namespace NuGetGallery
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult RemoveCredential(string credentialType)
+        public virtual Task<ActionResult> RemoveCredential(string credentialType)
         {
             var user = GetCurrentUser();
             var cred = user.Credentials.SingleOrDefault(
@@ -441,7 +442,7 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult GenerateApiKey()
+        public virtual async Task<ActionResult> GenerateApiKey()
         {
             // Get the user
             var user = GetCurrentUser();
@@ -451,11 +452,11 @@ namespace NuGetGallery
 
             // Add/Replace the API Key credential, and save to the database
             TempData["Message"] = Strings.ApiKeyReset;
-            AuthService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
+            await AuthService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
             return RedirectToAction("ManageCredentials");
         }
 
-        private ActionResult RemoveCredential(User user, Credential cred, string message)
+        private async Task<ActionResult> RemoveCredential(User user, Credential cred, string message)
         {
             // Count login credentials
             if (CountLoginCredentials(user) <= 1)
@@ -464,7 +465,7 @@ namespace NuGetGallery
             }
             else if (cred != null)
             {
-                AuthService.RemoveCredential(user, cred);
+                await AuthService.RemoveCredential(user, cred);
                 
                 // Notify the user of the change
                 MessageService.SendCredentialRemovedNotice(user, cred);

@@ -13,6 +13,7 @@ using Microsoft.Owin.Security;
 using NuGetGallery.Authentication.Providers;
 using System.Web.Mvc;
 using System.Threading.Tasks;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery.Authentication
 {
@@ -21,6 +22,8 @@ namespace NuGetGallery.Authentication
         public IEntitiesContext Entities { get; private set; }
         public IAppConfiguration Config { get; private set; }
         public IDictionary<string, Authenticator> Authenticators { get; private set; }
+        public AuditingService Auditing { get; private set; }
+
         private IDiagnosticsSource Trace { get; set; }
 
         private readonly Dictionary<string, Func<string, string>> _credentialFormatters;
@@ -34,16 +37,17 @@ namespace NuGetGallery.Authentication
             };
         }
 
-        public AuthenticationService(IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics, IEnumerable<Authenticator> providers)
+        public AuthenticationService(IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics, AuditingService auditing, IEnumerable<Authenticator> providers)
             : this()
         {
             Entities = entities;
             Config = config;
+            Auditing = auditing;
             Trace = diagnostics.SafeGetSource("AuthenticationService");
             Authenticators = providers.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
         }
 
-        public virtual AuthenticatedUser Authenticate(string userNameOrEmail, string password)
+        public virtual async Task<AuthenticatedUser> Authenticate(string userNameOrEmail, string password)
         {
             using (Trace.Activity("Authenticate:" + userNameOrEmail))
             {
@@ -70,7 +74,7 @@ namespace NuGetGallery.Authentication
                     .ToList();
                 if (passwordCredentials.Count > 1 || !passwordCredentials.Any(c => String.Equals(c.Type, CredentialTypes.Password.Pbkdf2, StringComparison.OrdinalIgnoreCase)))
                 {
-                    MigrateCredentials(user, passwordCredentials, password);
+                    await MigrateCredentials(user, passwordCredentials, password);
                 }
 
                 // Return the result
@@ -112,7 +116,7 @@ namespace NuGetGallery.Authentication
             owinContext.Authentication.SignOut(AuthenticationTypes.External);
         }
 
-        public virtual AuthenticatedUser Register(string username, string emailAddress, Credential credential)
+        public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential)
         {
             var existingUser = Entities.Users
                 .FirstOrDefault(u => u.Username == username || u.EmailAddress == emailAddress);
@@ -146,6 +150,9 @@ namespace NuGetGallery.Authentication
                 newUser.ConfirmEmailAddress();
             }
 
+            // Write an audit record
+            await Auditing.SaveAuditRecord(new UserAuditRecord(newUser, UserAuditAction.Registered));
+
             Entities.Users.Add(newUser);
             Entities.SaveChanges();
 
@@ -153,14 +160,14 @@ namespace NuGetGallery.Authentication
         }
 
         [Obsolete("Use Register(string, string, Credential) now")]
-        public virtual AuthenticatedUser Register(string username, string password, string emailAddress)
+        public virtual Task<AuthenticatedUser> Register(string username, string password, string emailAddress)
         {
             var hashedPassword = CryptographyService.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
             var passCred = new Credential(CredentialTypes.Password.Pbkdf2, hashedPassword);
             return Register(username, emailAddress, passCred);
         }
 
-        public virtual void ReplaceCredential(string username, Credential credential)
+        public virtual Task ReplaceCredential(string username, Credential credential)
         {
             var user = Entities
                 .Users
@@ -170,16 +177,16 @@ namespace NuGetGallery.Authentication
             {
                 throw new InvalidOperationException(Strings.UserNotFound);
             }
-            ReplaceCredential(user, credential);
+            return ReplaceCredential(user, credential);
         }
 
-        public virtual void ReplaceCredential(User user, Credential credential)
+        public virtual async Task ReplaceCredential(User user, Credential credential)
         {
-            ReplaceCredentialInternal(user, credential);
+            await ReplaceCredentialInternal(user, credential);
             Entities.SaveChanges();
         }
 
-        public virtual Credential ResetPasswordWithToken(string username, string token, string newPassword)
+        public virtual async Task<Credential> ResetPasswordWithToken(string username, string token, string newPassword)
         {
             if (String.IsNullOrEmpty(newPassword))
             {
@@ -199,7 +206,7 @@ namespace NuGetGallery.Authentication
                 }
 
                 var cred = CredentialBuilder.CreatePbkdf2Password(newPassword);
-                ReplaceCredentialInternal(user, cred);
+                await ReplaceCredentialInternal(user, cred);
                 user.PasswordResetToken = null;
                 user.PasswordResetTokenExpirationDate = null;
                 Entities.SaveChanges();
@@ -209,7 +216,7 @@ namespace NuGetGallery.Authentication
             return null;
         }
 
-        public virtual bool ChangePassword(User user, string oldPassword, string newPassword)
+        public virtual async Task<bool> ChangePassword(User user, string oldPassword, string newPassword)
         {
             var hasPassword = user.Credentials.Any(
                 c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
@@ -222,12 +229,12 @@ namespace NuGetGallery.Authentication
 
             // Replace/Set password credential
             var cred = CredentialBuilder.CreatePbkdf2Password(newPassword);
-            ReplaceCredentialInternal(user, cred);
+            await ReplaceCredentialInternal(user, cred);
             Entities.SaveChanges();
             return true;
         }
 
-        public virtual User GeneratePasswordResetToken(string usernameOrEmail, int expirationInMinutes)
+        public virtual async Task<User> GeneratePasswordResetToken(string usernameOrEmail, int expirationInMinutes)
         {
             if (String.IsNullOrEmpty(usernameOrEmail))
             {
@@ -243,11 +250,11 @@ namespace NuGetGallery.Authentication
             {
                 return null;
             }
-            GeneratePasswordResetToken(user, expirationInMinutes);
+            await GeneratePasswordResetToken(user, expirationInMinutes);
             return user;
         }
 
-        public virtual void GeneratePasswordResetToken(User user, int expirationInMinutes)
+        public virtual async Task GeneratePasswordResetToken(User user, int expirationInMinutes)
         {
             if (user == null)
             {
@@ -272,6 +279,8 @@ namespace NuGetGallery.Authentication
             user.PasswordResetToken = CryptographyService.GenerateToken();
             user.PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMinutes(expirationInMinutes);
 
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.RequestedPasswordReset));
+
             Entities.SaveChanges();
             return;
         }
@@ -290,8 +299,9 @@ namespace NuGetGallery.Authentication
             return provider.Challenge(redirectUrl);
         }
 
-        public virtual void AddCredential(User user, Credential credential)
+        public virtual async Task AddCredential(User user, Credential credential)
         {
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, credential, UserAuditAction.AddedCredential));
             user.Credentials.Add(credential);
             Entities.SaveChanges();
         }
@@ -356,8 +366,9 @@ namespace NuGetGallery.Authentication
             };
         }
 
-        public virtual void RemoveCredential(User user, Credential cred)
+        public virtual async Task RemoveCredential(User user, Credential cred)
         {
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, cred, UserAuditAction.RemovedCredential));
             user.Credentials.Remove(cred);
             Entities.Credentials.Remove(cred);
             Entities.SaveChanges();
@@ -386,23 +397,26 @@ namespace NuGetGallery.Authentication
             return identity;
         }
 
-        private void ReplaceCredentialInternal(User user, Credential credential)
+        private async Task ReplaceCredentialInternal(User user, Credential credential)
         {
             // Find the credentials we're replacing, if any
-            var creds = user.Credentials
+            var toRemove = user.Credentials
                 .Where(cred =>
                     // If we're replacing a password credential, remove ALL password credentials
                     (credential.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase) &&
                      cred.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase)) ||
                     cred.Type == credential.Type)
                 .ToList();
-            foreach (var cred in creds)
+            foreach (var cred in toRemove)
             {
                 user.Credentials.Remove(cred);
                 Entities.DeleteOnCommit(cred);
             }
 
             user.Credentials.Add(credential);
+
+            await Auditing.SaveAuditRecord(new UserAuditRecord(
+                user, credential, UserAuditAction.ReplacedCredential));
         }
 
         private CredentialKind GetCredentialKind(string type)
@@ -526,7 +540,7 @@ namespace NuGetGallery.Authentication
             return validator(password, cred);
         }
 
-        private void MigrateCredentials(User user, List<Credential> creds, string password)
+        private async Task MigrateCredentials(User user, List<Credential> creds, string password)
         {
             var toRemove = creds.Where(c =>
                 !String.Equals(
@@ -546,7 +560,9 @@ namespace NuGetGallery.Authentication
             // Now add one if there are no credentials left
             if (creds.Count == 0)
             {
-                user.Credentials.Add(CredentialBuilder.CreatePbkdf2Password(password));
+                var newCred = CredentialBuilder.CreatePbkdf2Password(password);
+                await Auditing.SaveAuditRecord(new UserAuditRecord(user, newCred, UserAuditAction.MigratedCredential));
+                user.Credentials.Add(newCred);
             }
 
             // Save changes, if any
