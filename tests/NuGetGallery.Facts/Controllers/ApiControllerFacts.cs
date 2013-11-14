@@ -251,8 +251,7 @@ namespace NuGetGallery
             [Fact]
             public void WillUnlistThePackageIfApiKeyBelongsToAnOwner()
             {
-                var apiKey = Guid.NewGuid();
-                var owner = new User { Key = 1, ApiKey = apiKey };
+                var owner = new User { Key = 1 };
                 var package = new Package
                     {
                         PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }

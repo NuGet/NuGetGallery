@@ -69,20 +69,23 @@ namespace NuGetGallery.Operations
 
                 // Write a delete audit record
                 var auditRecord = new PackageAuditRecord(
-                    package, packageRecord, registrationRecord, PackageAuditAction.Deleted, Reason, AuditEnvironment.GetCurrent());
+                    package.Id, 
+                    package.Version, 
+                    package.Hash, 
+                    packageRecord, 
+                    registrationRecord, 
+                    PackageAuditAction.Deleted, 
+                    Reason);
 
-                string recordName = Util.GetPackageAuditBlobName(package.Id, package.Version, PackageAuditAction.Deleted);
                 if (WhatIf)
                 {
-                    var record = Util.RenderAuditRecord(auditRecord);
-                    Log.Info("Would Write Audit Record to " + recordName);
-                    Log.Info(record);
+                    Log.Info("Would Write Audit Record to " + auditRecord.GetPath());
                 }
                 else
                 {
                     Log.Info("Writing Audit Record");
-                    Util.SaveAuditRecord(BackupStorage, recordName, auditRecord);
-                    Log.Info("Successfully wrote audit record to: auditing/" + recordName);
+                    var uri = Util.SaveAuditRecord(BackupStorage, auditRecord).Result;
+                    Log.Info("Successfully wrote audit record to: " + uri.AbsoluteUri);
                 }
 
                 if (package == null)

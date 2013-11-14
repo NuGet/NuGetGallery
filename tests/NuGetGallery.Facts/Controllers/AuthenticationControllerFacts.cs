@@ -7,6 +7,7 @@ using System.Net.Mail;
 using NuGetGallery.Framework;
 using NuGetGallery.Authentication;
 using Microsoft.Owin;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.Controllers
 {
@@ -39,12 +40,12 @@ namespace NuGetGallery.Controllers
         public class TheSignInAction : TestContainer
         {
             [Fact]
-            public void WillShowTheViewWithErrorsIfTheModelStateIsInvalid()
+            public async Task WillShowTheViewWithErrorsIfTheModelStateIsInvalid()
             {
                 var controller = GetController<AuthenticationController>();
                 controller.ModelState.AddModelError(String.Empty, "aFakeError");
 
-                var result = controller.SignIn(null, null);
+                var result = await controller.SignIn(null, null, linkingAccount: false);
 
                 ResultAssert.IsView(result, viewData: new
                 {
@@ -53,7 +54,7 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public void CanLogTheUserOnWithUserName()
+            public async Task CanLogTheUserOnWithUserName()
             {
                 // Arrange
                 var authUser = new AuthenticatedUser(
@@ -61,23 +62,30 @@ namespace NuGetGallery.Controllers
                     new Credential() { Type = "Foo" });
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate(authUser.User.Username, "thePassword"))
-                    .Returns(authUser);
+                    .ReturnsAsync(authUser);
                 var controller = GetController<AuthenticationController>();
                 GetMock<AuthenticationService>()
-                    .Setup(a => a.CreateSession(controller.OwinContext, authUser.User, AuthenticationTypes.LocalUser))
+                    .Setup(a => a.CreateSession(controller.OwinContext, authUser.User))
                     .Verifiable();
                 
                 // Act
-                controller.SignIn(
-                    new SignInViewModel { UserNameOrEmail = authUser.User.Username, Password = "thePassword" },
-                    "theReturnUrl");
+                await controller.SignIn(
+                    new LogOnViewModel()
+                    {
+                        SignIn = new SignInViewModel
+                        {
+                            UserNameOrEmail = authUser.User.Username,
+                            Password = "thePassword"
+                        }
+                    },
+                    "theReturnUrl", linkingAccount: false);
 
                 // Assert
                 GetMock<AuthenticationService>().VerifyAll();
             }
 
             [Fact]
-            public void CanLogTheUserOnWithEmailAddress()
+            public async Task CanLogTheUserOnWithEmailAddress()
             {
                 // Arrange
                 var authUser = new AuthenticatedUser(
@@ -85,23 +93,30 @@ namespace NuGetGallery.Controllers
                     new Credential() { Type = "Foo" });
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
-                    .Returns(authUser);
+                    .ReturnsAsync(authUser);
                 var controller = GetController<AuthenticationController>();
                 GetMock<AuthenticationService>()
-                    .Setup(a => a.CreateSession(controller.OwinContext, authUser.User, AuthenticationTypes.LocalUser))
+                    .Setup(a => a.CreateSession(controller.OwinContext, authUser.User))
                     .Verifiable();
                 
                 // Act
-                controller.SignIn(
-                    new SignInViewModel { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" },
-                    "theReturnUrl");
+                await controller.SignIn(
+                    new LogOnViewModel()
+                    {
+                        SignIn = new SignInViewModel
+                        {
+                            UserNameOrEmail = "confirmed@example.com",
+                            Password = "thePassword"
+                        }
+                    },
+                    "theReturnUrl", linkingAccount: false);
 
                 // Assert
                 GetMock<AuthenticationService>().VerifyAll();
             }
 
             [Fact]
-            public void WillLogTheUserOnWithUsernameEvenWithoutConfirmedEmailAddress()
+            public async Task WillLogTheUserOnWithUsernameEvenWithoutConfirmedEmailAddress()
             {
                 // Arrange
                 var authUser = new AuthenticatedUser(
@@ -109,30 +124,39 @@ namespace NuGetGallery.Controllers
                     new Credential() { Type = "Foo" });
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
-                    .Returns(authUser);
+                    .ReturnsAsync(authUser);
                 var controller = GetController<AuthenticationController>();
                 GetMock<AuthenticationService>()
-                    .Setup(a => a.CreateSession(controller.OwinContext, authUser.User, AuthenticationTypes.LocalUser))
+                    .Setup(a => a.CreateSession(controller.OwinContext, authUser.User))
                     .Verifiable();
                 
                 // Act
-                controller.SignIn(
-                    new SignInViewModel { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" },
-                    "theReturnUrl");
+                await controller.SignIn(
+                    new LogOnViewModel()
+                    {
+                        SignIn = new SignInViewModel
+                        {
+                            UserNameOrEmail = "confirmed@example.com",
+                            Password = "thePassword"
+                        }
+                    },
+                    "theReturnUrl", linkingAccount: false);
 
                 // Assert
                 GetMock<AuthenticationService>().VerifyAll();
             }
 
             [Fact]
-            public void WillInvalidateModelStateAndShowTheViewWithErrorsWhenTheUsernameAndPasswordAreNotValid()
+            public async Task WillInvalidateModelStateAndShowTheViewWithErrorsWhenTheUsernameAndPasswordAreNotValid()
             {
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate(It.IsAny<string>(), It.IsAny<string>()))
                     .ReturnsNull();
                 var controller = GetController<AuthenticationController>();
-                
-                var result = controller.SignIn(new SignInViewModel(), "theReturnUrl") as ViewResult;
+
+                var result = await controller.SignIn(
+                    new LogOnViewModel() { SignIn = new SignInViewModel() },
+                    "theReturnUrl", linkingAccount: false) as ViewResult;
 
                 Assert.NotNull(result);
                 Assert.Empty(result.ViewName);
@@ -141,41 +165,55 @@ namespace NuGetGallery.Controllers
             }
             
             [Fact]
-            public void WillRedirectToHomeIfReturnUrlNotLocal()
+            public async Task WillRedirectToHomeIfReturnUrlNotLocal()
             {
                 var authUser = new AuthenticatedUser(
                     new User("theUsername") { UnconfirmedEmailAddress = "unconfirmed@example.com" },
                     new Credential() { Type = "Foo" });
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
-                    .Returns(authUser);
+                    .ReturnsAsync(authUser);
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User, AuthenticationTypes.LocalUser));
+                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User));
                 var controller = GetController<AuthenticationController>();
-                
-                var result = controller.SignIn(
-                    new SignInViewModel { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" }, 
-                    "http://www.microsoft.com");
+
+                var result = await controller.SignIn(
+                    new LogOnViewModel()
+                    {
+                        SignIn = new SignInViewModel
+                        {
+                            UserNameOrEmail = "confirmed@example.com",
+                            Password = "thePassword"
+                        }
+                    },
+                    "http://www.microsoft.com", linkingAccount: false);
 
                 ResultAssert.IsRedirectTo(result, "/");
             }
             
             [Fact]
-            public void WillRedirectToTheReturnUrlIfLocal()
+            public async Task WillRedirectToTheReturnUrlIfLocal()
             {
                 var authUser = new AuthenticatedUser(
                     new User("theUsername") { UnconfirmedEmailAddress = "unconfirmed@example.com" },
                     new Credential() { Type = "Foo" });
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
-                    .Returns(authUser);
+                    .ReturnsAsync(authUser);
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User, AuthenticationTypes.LocalUser));
+                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User));
                 var controller = GetController<AuthenticationController>();
-                
-                var result = controller.SignIn(
-                    new SignInViewModel { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" }, 
-                    "/packages/upload");
+
+                var result = await controller.SignIn(
+                    new LogOnViewModel()
+                    {
+                        SignIn = new SignInViewModel
+                        {
+                            UserNameOrEmail = "confirmed@example.com",
+                            Password = "thePassword"
+                        }
+                    },
+                    "/packages/upload", linkingAccount: false);
 
                 ResultAssert.IsRedirectTo(result, "/packages/upload");
             }
@@ -184,12 +222,12 @@ namespace NuGetGallery.Controllers
         public class TheRegisterAction : TestContainer
         {
             [Fact]
-            public void WillShowTheViewWithErrorsIfTheModelStateIsInvalid()
+            public async Task WillShowTheViewWithErrorsIfTheModelStateIsInvalid()
             {
                 var controller = GetController<AuthenticationController>();
                 controller.ModelState.AddModelError(String.Empty, "aFakeError");
 
-                var result = controller.Register(null, null);
+                var result = await controller.Register(null, null, linkingAccount: false);
 
                 ResultAssert.IsView(result, viewData: new
                 {
@@ -198,43 +236,49 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public void WillCreateAndLogInTheUser()
+            public async Task WillCreateAndLogInTheUser()
             {
                 var authUser = new AuthenticatedUser(new User("theUsername"), new Credential());
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "thePassword", "theEmailAddress"))
-                    .Returns(authUser);
+                    .ReturnsAsync(authUser);
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User, AuthenticationTypes.LocalUser))
+                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User))
                     .Verifiable();
                 var controller = GetController<AuthenticationController>();
-                
-                controller.Register(
-                    new RegisterViewModel
+
+                await controller.Register(
+                    new LogOnViewModel()
                     {
-                        Username = "theUsername",
-                        Password = "thePassword",
-                        EmailAddress = "theEmailAddress",
-                    }, null);
+                        Register = new RegisterViewModel
+                        {
+                            Username = "theUsername",
+                            Password = "thePassword",
+                            EmailAddress = "theEmailAddress",
+                        }
+                    }, null, linkingAccount: false);
 
                 GetMock<AuthenticationService>().VerifyAll();
             }
 
             [Fact]
-            public void WillInvalidateModelStateAndShowTheViewWhenAnEntityExceptionIsThrow()
+            public async Task WillInvalidateModelStateAndShowTheViewWhenAnEntityExceptionIsThrow()
             {
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Throws(new EntityException("aMessage"));
                 var controller = GetController<AuthenticationController>();
-                
-                var request = new RegisterViewModel
+
+                var request = new LogOnViewModel()
                 {
-                    Username = "theUsername",
-                    Password = "thePassword",
-                    EmailAddress = "theEmailAddress",
+                    Register = new RegisterViewModel
+                    {
+                        Username = "theUsername",
+                        Password = "thePassword",
+                        EmailAddress = "theEmailAddress",
+                    }
                 };
-                var result = controller.Register(request, null);
+                var result = await controller.Register(request, null, linkingAccount: false);
 
                 ResultAssert.IsView(result);
                 Assert.False(controller.ModelState.IsValid);
@@ -242,22 +286,25 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public void WillRedirectToTheReturnUrl()
+            public async Task WillRedirectToTheReturnUrl()
             {
                 var user = new User("theUsername") { UnconfirmedEmailAddress = "unconfirmed@example.com" };
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "thepassword", "unconfirmed@example.com"))
-                    .Returns(new AuthenticatedUser(user, new Credential()));
+                    .ReturnsAsync(new AuthenticatedUser(user, new Credential()));
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), user, AuthenticationTypes.LocalUser));
+                    .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), user));
                 var controller = GetController<AuthenticationController>();
-                
-                var result = controller.Register(new RegisterViewModel
+
+                var result = await controller.Register(new LogOnViewModel()
+                {
+                    Register = new RegisterViewModel
                     {
                         EmailAddress = "unconfirmed@example.com",
                         Password = "thepassword",
                         Username = "theUsername",
-                    }, "/theReturnUrl");
+                    }
+                }, "/theReturnUrl", linkingAccount: false);
 
                 ResultAssert.IsRedirectTo(result, "/theReturnUrl");
             }

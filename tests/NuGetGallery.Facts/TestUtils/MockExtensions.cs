@@ -32,7 +32,6 @@ namespace NuGetGallery
 
         public static IReturnsResult<TMock> ReturnsAsync<TMock, TRet>(this ISetup<TMock, Task<TRet>> self, TRet value)
             where TMock : class
-            where TRet : class
         {
             return self.Returns(Task.FromResult(value));
         }

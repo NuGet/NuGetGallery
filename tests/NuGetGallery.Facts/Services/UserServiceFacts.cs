@@ -10,32 +10,6 @@ namespace NuGetGallery
 {
     public class UserServiceFacts
     {
-        public static User CreateAUser(
-            string username,
-            string emailAddress)
-        {
-            return CreateAUser(username, password: null, emailAddress: emailAddress);
-        }
-
-        public static User CreateAUser(
-            string username, 
-            string password,
-            string emailAddress,
-            string hashAlgorithm = Constants.PBKDF2HashAlgorithmId)
-        {
-            return new User
-            {
-                Username = username,
-                HashedPassword = String.IsNullOrEmpty(password) ? 
-                    null : 
-                    CryptographyService.GenerateSaltedHash(password, hashAlgorithm),
-                PasswordHashAlgorithm = String.IsNullOrEmpty(password) ?
-                    null :
-                    hashAlgorithm,
-                EmailAddress = emailAddress,
-            };
-        }
-
         public static bool VerifyPasswordHash(string hash, string algorithm, string password)
         {
             bool canAuthenticate = CryptographyService.ValidateSaltedHash(
@@ -192,21 +166,10 @@ namespace NuGetGallery
 
         public class TheChangeEmailMethod
         {
-            User CreateUser(string username, string password, string emailAddress)
-            {
-                return new User
-                {
-                    Username = username,
-                    EmailAddress = emailAddress,
-                    HashedPassword = CryptographyService.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId),
-                    PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId
-                };
-            }
-
             [Fact]
             public void SetsUnconfirmedEmailWhenEmailIsChanged()
             {
-                var user = CreateUser("Bob", "ThePassword", "old@example.org");
+                var user = new User { Username = "Bob", EmailAddress = "old@example.org" };
                 var service = new TestableUserServiceWithDBFaking
                 {
                     Users = new[] { user }

@@ -11,25 +11,28 @@ namespace NuGetGallery.Auditing
     public class PackageAuditRecord : AuditRecord<PackageAuditAction>
     {
         public string Id { get; set; }
-
         public string Version { get; set; }
-
         public string Hash { get; set; }
 
         public DataTable PackageRecord { get; set; }
         public DataTable RegistrationRecord { get; set; }
 
         public string Reason { get; set; }
-        
-        public PackageAuditRecord(Package package, DataTable packageRecord, DataTable registrationRecord, PackageAuditAction action, string reason)
+
+        public PackageAuditRecord(string id, string version, string hash, DataTable packageRecord, DataTable registrationRecord, PackageAuditAction action, string reason)
             : base(action)
         {
-            Id = package.PackageRegistration.Id;
-            Version = package.Version;
-            Hash = package.Hash;
+            Id = id;
+            Version = version;
+            Hash = hash;
             PackageRecord = packageRecord;
             RegistrationRecord = registrationRecord;
             Reason = reason;
+        }
+
+        public PackageAuditRecord(Package package, DataTable packageRecord, DataTable registrationRecord, PackageAuditAction action, string reason)
+            : this(package.PackageRegistration.Id, package.Version, package.Hash, packageRecord, registrationRecord, action, reason)
+        {
         }
 
         public override string GetPath()

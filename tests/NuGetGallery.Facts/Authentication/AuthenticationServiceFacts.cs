@@ -34,39 +34,39 @@ namespace NuGetGallery.Authentication
         public class TheAuthenticateMethod : TestContainer
         {
             [Fact]
-            public void GivenNoUserWithName_ItReturnsNull()
+            public async Task GivenNoUserWithName_ItReturnsNull()
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
 
                 // Act
-                var result = service.Authenticate("notARealUser", "password");
+                var result = await service.Authenticate("notARealUser", "password");
 
                 // Assert
                 Assert.Null(result);
             }
 
             [Fact]
-            public void GivenUserNameDoesNotMatchPassword_ItReturnsNull()
+            public async Task GivenUserNameDoesNotMatchPassword_ItReturnsNull()
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
 
                 // Act
-                var result = service.Authenticate(Fakes.User.Username, "bogus password!!");
+                var result = await service.Authenticate(Fakes.User.Username, "bogus password!!");
 
                 // Assert
                 Assert.Null(result);
             }
 
             [Fact]
-            public void GivenUserNameWithMatchingPasswordCredential_ItReturnsAuthenticatedUser()
+            public async Task GivenUserNameWithMatchingPasswordCredential_ItReturnsAuthenticatedUser()
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
 
                 // Act
-                var result = service.Authenticate(Fakes.User.Username, Fakes.Password);
+                var result = await service.Authenticate(Fakes.User.Username, Fakes.Password);
 
                 // Assert
                 var expectedCred = Fakes.User.Credentials.SingleOrDefault(
@@ -88,8 +88,7 @@ namespace NuGetGallery.Authentication
                 var cred = CredentialBuilder.CreatePbkdf2Password("bogus");
 
                 // Act
-                var ex = Assert.Throws<ArgumentException>(() =>
-                    service.Authenticate(cred));
+                var ex = Assert.Throws<ArgumentException>(() => service.Authenticate(cred));
 
                 // Assert
                 Assert.Equal(Strings.PasswordCredentialsCannotBeUsedHere + Environment.NewLine + "Parameter name: credential", ex.Message);
@@ -151,13 +150,13 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void GivenOnlyASHA1PasswordItAuthenticatesUserAndReplacesItWithAPBKDF2Password()
+            public async Task GivenOnlyASHA1PasswordItAuthenticatesUserAndReplacesItWithAPBKDF2Password()
             {
                 var user = Fakes.CreateUser("tempUser", CredentialBuilder.CreateSha1Password("thePassword"));
                 var service = Get<AuthenticationService>();
                 service.Entities.Users.Add(user);
 
-                var foundByUserName = service.Authenticate("tempUser", "thePassword");
+                var foundByUserName = await service.Authenticate("tempUser", "thePassword");
 
                 var cred = foundByUserName.User.Credentials.Single();
                 Assert.Same(user, foundByUserName.User);
@@ -167,7 +166,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void GivenASHA1AndAPBKDF2PasswordItAuthenticatesUserAndRemovesTheSHA1Password()
+            public async Task GivenASHA1AndAPBKDF2PasswordItAuthenticatesUserAndRemovesTheSHA1Password()
             {
                 var user = Fakes.CreateUser("tempUser", 
                     CredentialBuilder.CreateSha1Password("thePassword"),
@@ -175,7 +174,7 @@ namespace NuGetGallery.Authentication
                 var service = Get<AuthenticationService>();
                 service.Entities.Users.Add(user);
 
-                var foundByUserName = service.Authenticate("tempUser", "thePassword");
+                var foundByUserName = await service.Authenticate("tempUser", "thePassword");
 
                 var cred = foundByUserName.User.Credentials.Single();
                 Assert.Same(user, foundByUserName.User);
@@ -200,7 +199,7 @@ namespace NuGetGallery.Authentication
                 var authUser = new AuthenticatedUser(Fakes.Admin, passwordCred);
 
                 // Act
-                service.CreateSession(context, authUser.User, AuthenticationTypes.LocalUser);
+                service.CreateSession(context, authUser.User);
 
                 // Assert
                 var principal = context.Authentication.AuthenticationResponseGrant.Principal;
@@ -216,88 +215,64 @@ namespace NuGetGallery.Authentication
 
         public class TheChangePasswordMethod : TestContainer
         {
-            [Fact]
-            public void ReturnsFalseIfUserIsNotFound()
-            {
-                // Arrange
-                var service = Get<AuthenticationService>();
-                
-                // Act
-                var changed = service.ChangePassword("totallyNotARealUser", "oldpwd", "newpwd");
-
-                // Assert
-                Assert.False(changed);
-            }
 
             [Fact]
-            public void ReturnsFalseIfPasswordDoesNotMatchUser_SHA1()
+            public async Task ReturnsFalseIfPasswordDoesNotMatchUser_SHA1()
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
                 var user = Fakes.CreateUser("tempUser", 
                     CredentialBuilder.CreateSha1Password("oldpwd"));
-                service.Entities
-                    .Set<User>()
-                    .Add(user);
 
                 // Act
-                var changed = service.ChangePassword(user.Username, "not_the_password", "newpwd");
+                var changed = await service.ChangePassword(user, "not_the_password", "newpwd");
 
                 // Assert
                 Assert.False(changed);
             }
 
             [Fact]
-            public void ReturnsFalseIfPasswordDoesNotMatchUser_PBKDF2()
+            public async Task ReturnsFalseIfPasswordDoesNotMatchUser_PBKDF2()
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
                 var user = Fakes.CreateUser("tempUser",
                     CredentialBuilder.CreatePbkdf2Password("oldpwd"));
-                service.Entities
-                    .Set<User>()
-                    .Add(user);
-
+                
                 // Act
-                var changed = service.ChangePassword(user.Username, "not_the_password", "newpwd");
+                var changed = await service.ChangePassword(user, "not_the_password", "newpwd");
 
                 // Assert
                 Assert.False(changed);
             }
 
             [Fact]
-            public void ReturnsTrueWhenSuccessful()
+            public async Task ReturnsTrueWhenSuccessful()
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
                 var user = Fakes.CreateUser(
                     "tempUser",
                     CredentialBuilder.CreateSha1Password("oldpwd"));
-                service.Entities
-                    .Set<User>()
-                    .Add(user);
-
+                
                 // Act
-                var changed = service.ChangePassword(user.Username, "oldpwd", "newpwd");
+                var changed = await service.ChangePassword(user, "oldpwd", "newpwd");
 
                 // Assert
                 Assert.True(changed);
             }
 
             [Fact]
-            public void UpdatesThePasswordCredential()
+            public async Task UpdatesThePasswordCredential()
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
                 var user = Fakes.CreateUser(
                     "tempUser",
                     CredentialBuilder.CreatePbkdf2Password("oldpwd"));
-                service.Entities
-                    .Set<User>()
-                    .Add(user);
                 
                 // Act
-                var changed = service.ChangePassword(user.Username, "oldpwd", "newpwd");
+                var changed = await service.ChangePassword(user, "oldpwd", "newpwd");
 
                 // Assert
                 var cred = user.Credentials.Single();
@@ -307,19 +282,16 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void MigratesPasswordIfHashAlgorithmIsNotPBKDF2()
+            public async Task MigratesPasswordIfHashAlgorithmIsNotPBKDF2()
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
                 var user = Fakes.CreateUser(
                     "tempUser",
                     CredentialBuilder.CreateSha1Password("oldpwd"));
-                service.Entities
-                    .Set<User>()
-                    .Add(user);
-
+                
                 // Act
-                var changed = service.ChangePassword(user.Username, "oldpwd", "newpwd");
+                var changed = await service.ChangePassword(user, "oldpwd", "newpwd");
 
                 // Assert
                 var cred = user.Credentials.Single(c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
@@ -332,13 +304,13 @@ namespace NuGetGallery.Authentication
         public class TheRegisterMethod : TestContainer
         {
             [Fact]
-            public void WillThrowIfTheUsernameIsAlreadyInUse()
+            public async Task WillThrowIfTheUsernameIsAlreadyInUse()
             {
                 // Arrange
                 var auth = Get<AuthenticationService>();
 
                 // Act
-                var ex = Assert.Throws<EntityException>(() =>
+                var ex = await AssertEx.Throws<EntityException>(() =>
                     auth.Register(
                         Fakes.User.Username,
                         "thePassword",
@@ -349,13 +321,13 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void WillThrowIfTheEmailAddressIsAlreadyInUse()
+            public async Task WillThrowIfTheEmailAddressIsAlreadyInUse()
             {
                 // Arrange
                 var auth = Get<AuthenticationService>();
 
                 // Act
-                var ex = Assert.Throws<EntityException>(
+                var ex = await AssertEx.Throws<EntityException>(
                     () =>
                     auth.Register(
                         "theUsername",
@@ -367,13 +339,13 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void WillHashThePasswordWithPBKDF2()
+            public async Task WillHashThePasswordWithPBKDF2()
             {
                 // Arrange
                 var auth = Get<AuthenticationService>();
 
                 // Act
-                var authUser = auth.Register(
+                var authUser = await auth.Register(
                     "aNewUser",
                     "thePassword",
                     "theEmailAddress");
@@ -385,13 +357,13 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void WillSaveTheNewUser()
+            public async Task WillSaveTheNewUser()
             {
                 // Arrange
                 var auth = Get<AuthenticationService>();
 
                 // Arrange
-                var authUser = auth.Register(
+                var authUser = await auth.Register(
                     "theUsername",
                     "thePassword",
                     "theEmailAddress");
@@ -402,7 +374,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void WillSaveTheNewUserAsConfirmedWhenConfigured()
+            public async Task WillSaveTheNewUserAsConfirmedWhenConfigured()
             {
                 // Arrange
                 var auth = Get<AuthenticationService>();
@@ -411,7 +383,7 @@ namespace NuGetGallery.Authentication
                     .Returns(false);
 
                 // Act
-                var authUser = auth.Register(
+                var authUser = await auth.Register(
                     "theUsername",
                     "thePassword",
                     "theEmailAddress");
@@ -423,13 +395,13 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void SetsAnApiKey()
+            public async Task SetsAnApiKey()
             {
                 // Arrange
                 var auth = Get<AuthenticationService>();
 
                 // Arrange
-                var authUser = auth.Register(
+                var authUser = await auth.Register(
                     "theUsername",
                     "thePassword",
                     "theEmailAddress");
@@ -443,7 +415,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void SetsAConfirmationToken()
+            public async Task SetsAConfirmationToken()
             {
                 // Arrange
                 var auth = Get<AuthenticationService>();
@@ -452,7 +424,7 @@ namespace NuGetGallery.Authentication
                     .Returns(true);
 
                 // Arrange
-                var authUser = auth.Register(
+                var authUser = await auth.Register(
                     "theUsername",
                     "thePassword",
                     "theEmailAddress");
@@ -466,13 +438,13 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void SetsCreatedDate()
+            public async Task SetsCreatedDate()
             {
                 // Arrange
                 var auth = Get<AuthenticationService>();
 
                 // Arrange
-                var authUser = auth.Register(
+                var authUser = await auth.Register(
                     "theUsername",
                     "thePassword",
                     "theEmailAddress");
@@ -489,13 +461,13 @@ namespace NuGetGallery.Authentication
         public class TheReplaceCredentialMethod : TestContainer
         {
             [Fact]
-            public void ThrowsExceptionIfNoUserWithProvidedUserName()
+            public async Task ThrowsExceptionIfNoUserWithProvidedUserName()
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
                 
                 // Act
-                var ex = Assert.Throws<InvalidOperationException>(() =>
+                var ex = await AssertEx.Throws<InvalidOperationException>(() =>
                     service.ReplaceCredential("definitelyNotARealUser", new Credential()));
 
                 // Assert
@@ -503,7 +475,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void AddsNewCredentialIfNoneWithSameTypeForUser()
+            public async Task AddsNewCredentialIfNoneWithSameTypeForUser()
             {
                 // Arrange
                 var existingCred = new Credential("foo", "bar");
@@ -513,7 +485,7 @@ namespace NuGetGallery.Authentication
                 service.Entities.Users.Add(user);
 
                 // Act
-                service.ReplaceCredential(user.Username, newCred);
+                await service.ReplaceCredential(user.Username, newCred);
 
                 // Assert
                 Assert.Equal(new[] { existingCred, newCred }, user.Credentials.ToArray());
@@ -521,7 +493,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void ReplacesExistingCredentialIfOneWithSameTypeExistsForUser()
+            public async Task ReplacesExistingCredentialIfOneWithSameTypeExistsForUser()
             {
                 // Arrange
                 var frozenCred = new Credential("foo", "bar");
@@ -532,7 +504,7 @@ namespace NuGetGallery.Authentication
                 service.Entities.Users.Add(user);
 
                 // Act
-                service.ReplaceCredential(user.Username, newCred);
+                await service.ReplaceCredential(user.Username, newCred);
 
                 // Assert
                 Assert.Equal(new[] { frozenCred, newCred }, user.Credentials.ToArray());
@@ -544,20 +516,20 @@ namespace NuGetGallery.Authentication
         public class TheResetPasswordWithTokenMethod : TestContainer
         {
             [Fact]
-            public void ReturnsFalseIfUserNotFound()
+            public async Task ReturnsNullIfUserNotFound()
             {
                 // Arrange
                 var authService = Get<AuthenticationService>();
                 
                 // Act
-                bool result = authService.ResetPasswordWithToken("definitelyAFakeUser", "some-token", "new-password");
+                var result = await authService.ResetPasswordWithToken("definitelyAFakeUser", "some-token", "new-password");
 
                 // Assert
-                Assert.False(result);
+                Assert.Null(result);
             }
 
             [Fact]
-            public void ThrowsExceptionIfUserNotConfirmed()
+            public async Task ThrowsExceptionIfUserNotConfirmed()
             {
                 // Arrange
                 var user = new User
@@ -570,11 +542,11 @@ namespace NuGetGallery.Authentication
                 authService.Entities.Users.Add(user);
 
                 // Act/Assert
-                Assert.Throws<InvalidOperationException>(() => authService.ResetPasswordWithToken("tempUser", "some-token", "new-password"));
+                await AssertEx.Throws<InvalidOperationException>(() => authService.ResetPasswordWithToken("tempUser", "some-token", "new-password"));
             }
 
             [Fact]
-            public void ResetsPasswordCredential()
+            public async Task ResetsPasswordCredential()
             {
                 // Arrange
                 var oldCred = CredentialBuilder.CreatePbkdf2Password("thePassword");
@@ -591,18 +563,19 @@ namespace NuGetGallery.Authentication
                 authService.Entities.Users.Add(user);
 
                 // Act
-                bool result = authService.ResetPasswordWithToken("user", "some-token", "new-password");
+                var result = await authService.ResetPasswordWithToken("user", "some-token", "new-password");
 
                 // Assert
-                Assert.True(result);
+                Assert.NotNull(result);
                 var newCred = user.Credentials.Single();
+                Assert.Same(result, newCred);
                 Assert.Equal(CredentialTypes.Password.Pbkdf2, newCred.Type);
                 Assert.True(VerifyPasswordHash(newCred.Value, Constants.PBKDF2HashAlgorithmId, "new-password"));
                 authService.Entities.VerifyCommitChanges();
             }
 
             [Fact]
-            public void ResetsPasswordMigratesPasswordHash()
+            public async Task ResetsPasswordMigratesPasswordHash()
             {
                 var oldCred = CredentialBuilder.CreateSha1Password("thePassword");
                 var user = new User
@@ -617,11 +590,12 @@ namespace NuGetGallery.Authentication
                 var authService = Get<AuthenticationService>();
                 authService.Entities.Users.Add(user);
 
-                bool result = authService.ResetPasswordWithToken("user", "some-token", "new-password");
+                var result = await authService.ResetPasswordWithToken("user", "some-token", "new-password");
 
                 // Assert
-                Assert.True(result);
+                Assert.NotNull(result);
                 var newCred = user.Credentials.Single();
+                Assert.Same(result, newCred);
                 Assert.Equal(CredentialTypes.Password.Pbkdf2, newCred.Type);
                 Assert.True(VerifyPasswordHash(newCred.Value, Constants.PBKDF2HashAlgorithmId, "new-password"));
                 authService.Entities.VerifyCommitChanges();
@@ -631,20 +605,20 @@ namespace NuGetGallery.Authentication
         public class TheGeneratePasswordResetTokenMethod : TestContainer
         {
             [Fact]
-            public void ReturnsNullIfEmailIsNotFound()
+            public async Task ReturnsNullIfEmailIsNotFound()
             {
                 // Arrange
                 var authService = Get<AuthenticationService>();
 
                 // Act
-                var token = authService.GeneratePasswordResetToken("nobody@nowhere.com", 1440);
+                var token = await authService.GeneratePasswordResetToken("nobody@nowhere.com", 1440);
 
                 // Assert
                 Assert.Null(token);
             }
 
             [Fact]
-            public void ThrowsExceptionIfUserIsNotConfirmed()
+            public async Task ThrowsExceptionIfUserIsNotConfirmed()
             {
                 // Arrange
                 var user = new User("user") { UnconfirmedEmailAddress = "unique@example.com" };
@@ -652,11 +626,11 @@ namespace NuGetGallery.Authentication
                 authService.Entities.Users.Add(user);
 
                 // Act/Assert
-                Assert.Throws<InvalidOperationException>(() => authService.GeneratePasswordResetToken(user.Username, 1440));
+                await AssertEx.Throws<InvalidOperationException>(() => authService.GeneratePasswordResetToken(user.Username, 1440));
             }
 
             [Fact]
-            public void SetsPasswordResetTokenUsingEmail()
+            public async Task SetsPasswordResetTokenUsingEmail()
             {
                 // Arrange
                 var user = new User
@@ -670,7 +644,7 @@ namespace NuGetGallery.Authentication
                 var currentDate = DateTime.UtcNow;
 
                 // Act
-                var returnedUser = authService.GeneratePasswordResetToken(user.EmailAddress, 1440);
+                var returnedUser = await authService.GeneratePasswordResetToken(user.EmailAddress, 1440);
 
                 // Assert
                 Assert.Same(user, returnedUser);
@@ -680,7 +654,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void WithExistingNotYetExpiredTokenReturnsExistingToken()
+            public async Task WithExistingNotYetExpiredTokenReturnsExistingToken()
             {
                 // Arrange
                 var user = new User
@@ -694,7 +668,7 @@ namespace NuGetGallery.Authentication
                 authService.Entities.Users.Add(user);
 
                 // Act
-                var returnedUser = authService.GeneratePasswordResetToken(user.EmailAddress, 1440);
+                var returnedUser = await authService.GeneratePasswordResetToken(user.EmailAddress, 1440);
 
                 // Assert
                 Assert.Same(user, returnedUser);
@@ -702,7 +676,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public void WithExistingExpiredTokenReturnsNewToken()
+            public async Task WithExistingExpiredTokenReturnsNewToken()
             {
                 // Arrange
                 var user = new User
@@ -717,7 +691,7 @@ namespace NuGetGallery.Authentication
                 var currentDate = DateTime.UtcNow;
 
                 // Act
-                var returnedUser = authService.GeneratePasswordResetToken(user.EmailAddress, 1440);
+                var returnedUser = await authService.GeneratePasswordResetToken(user.EmailAddress, 1440);
 
                 // Assert
                 Assert.Same(user, returnedUser);
