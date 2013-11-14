@@ -8,13 +8,15 @@
 <h1 class="page-heading">Report Abuse</h1>
 
 <p class="message">
-    Important: This form is for reporting <em>abusive</em> packages such as 
+    <strong>Important: Please do not use this form to report a bug in a package you are using!</strong><br />
+    This form is for reporting <em>abusive</em> packages such as 
     packages containing <em>malicious code</em> or spam. If "@Model.PackageId" simply doesn't 
-    appear to work or work correctly, please 
-    <a href="@Url.Action(MVC.Packages.ContactOwners(Model.PackageId))" title="contact the owners">contact the owners of "@Model.PackageId".</a> 
+    work, or if you need help getting the package installed, please 
+    <a href="@Url.Action(MVC.Packages.ContactOwners(Model.PackageId))" title="contact the owners">contact the owners instead.</a> 
 </p>
 
-<p>Please provide a detailed abuse report. Include exactly what the package did.</p>
+<p>Please provide a detailed abuse report. Include exactly what the package did, for example if you are reporting a package with a virus or malicious code, 
+    <em>please provide evidence to support your claim!</em> We cannot delete packages without evidence that they exhibit malicious behavior.</p>
 
 @if (!Model.ConfirmedUser)
 {
@@ -56,7 +58,7 @@
         </div>
         <div class="form-field">
             @Html.LabelFor(m => m.Message, "Abuse Report")
-            <p>In addition to selecting the reason for reporting the package, you <em>must</em> provide details of the problem.</p>
+            <p>In addition to selecting the reason for reporting the package, you must provide details of the problem here.</p>
             @Html.TextAreaFor(m => m.Message, 10, 50, null)
             @Html.ValidationMessageFor(m => m.Message, null, new { id = "report-abuse-message" })
         </div>

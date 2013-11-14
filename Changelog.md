@@ -1,3 +1,44 @@
+#Nov 1,2013
+
+Bug fixes in new user registration, stats, search indexing and "Manage my packages" page. Complete list can be found here: [I3 -10/18 QA - 11/1 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=35&page=1&state=closed)
+
+#Oct 19,2013
+
+### OAuth Phase 1
+
+The back end changes to support OAuth in NuGet Gallery.
+
+### Other bug fixes
+
+Complete list can be found here: [10/04 - QA (10/18 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=34&page=1&state=closed)
+
+#Oct 9,2013
+
+### Friendly License Names
+
+NuGet Gallery will now display the list of license names for a package in addition to simply providing a link to the license text. The big idea behind this feature is that it will aid in the decision making process over whether or not to use a package.
+More details [here.](http://blog.nuget.org/20131011/friendly-license-names.html)
+
+### Simplified user registration
+
+New user registration workflow has been simplified with this deployment. Going forward, users don't have to confirm email for signing in. Email comfirmation can be done anytime before uploading a package.
+
+### Normalized package versions
+
+The package versions will be normalized in the package display page. For example, for a package with version "1.0", the version will be displayed as "1.0.0".
+The normalized version will be displayed in the "Verify package details" page while uploading a new package. This avoids the issue where packages with version "1.1" and "1.1.0" co-exists in the Gallery.
+
+### Other bug fixes
+
+Other bug fixes in Glimpse integration and OData feed.Complete list can be found here: [09/20 - QA (10/09 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=33&state=closed)
+
+
+#Sep 19, 2013
+
+### Edit package and other bug fixes
+
+A bunch of fixes around Edit package and expandable search box. Complete list can be found here: [09/6 - QA (09/19 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=32&page=1&state=closed)
+
 #Sep 3, 2013
 
 ### Edit Package

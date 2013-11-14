@@ -21,7 +21,7 @@
                     @Html.Partial(MVC.Shared.Views.UserDisplay)
                 </header>
                 <nav class="main">
-                    <ul id="menu">
+                    <ul id="menu" class="expanding-search">
                         @{
                             var homeClass = ViewBag.Tab == "Home" ? "current" : "";
                             var packagesClass = ViewBag.Tab == "Packages" ? "current" : "";
@@ -45,7 +45,7 @@
                     </ul>
                     <div id="searchBox" role="search">
                         <form action="@Url.PackageList()" method="get">
-                            <input name="q" id="searchBoxInput" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" />
+                            <input name="q" id="searchBoxInput" class="expanding-search" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" />
                             <input id="searchBoxSubmit" type="submit" value=" " />
                         </form>
                     </div>

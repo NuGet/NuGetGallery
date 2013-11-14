@@ -208,7 +208,6 @@
 
 @helper EditableField(string name, Expression<Func<EditPackageRequest, object>> func, bool link = false, bool pre = false, bool multiline = false)
 {
-    var formName = Html.EditorForModel();
     var formid = ExpressionHelper.GetExpressionText(func).Replace(".", "_");
     object temp = func.Compile().Invoke(Model);
     string value = temp == null ? null : temp.ToString();
