@@ -7,6 +7,7 @@ using System.Web.Mvc;
 
 namespace NuGetGallery.Infrastructure
 {
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
     public sealed class NotEqualAttribute : ValidationAttribute, IClientValidatable
     {
         public object DisallowedValue { get; private set; }

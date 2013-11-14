@@ -3,6 +3,12 @@
 Enters the NuGet Operations Console
 #>
 
+function Get-AvailableModule($name) {
+	(Get-Module -ListAvailable $name | 
+		Sort -Desc Version | 
+		Select -First 1)
+}
+
 $MsftDomainNames = @("REDMOND","FAREAST","NORTHAMERICA","NTDEV")
 
 $OpsProfile = $MyInvocation.MyCommand.Path
@@ -43,10 +49,20 @@ LoadOrReloadModule PS-VsVars
 Import-VsVars -Architecture x86
 
 if(!(Get-Module posh-git)) {
-	Import-Module posh-git
+	if((Get-AvailableModule posh-git) -eq $null) {
+		Write-Warning "Posh-Git not found, it is recommended you install it!"
+	} else {
+		Import-Module posh-git
+	}
 } else {
 	Write-Host "Module posh-git already loaded, can't reload"
 }
+
+$azMod = Get-AvailableModule Azure
+if(($azMod -eq $null) -or ($azMod.Version -lt (New-Object Version "0.7.0"))) {
+	throw "NuGet Operations requires Azure PowerShell 0.7 or higher!"
+}
+
 LoadOrReloadModule Azure
 LoadOrReloadModule NuGetOps
 
