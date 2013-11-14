@@ -104,7 +104,7 @@ namespace NuGetGallery
             [Fact]
             public async Task SendsEmailWithPasswordResetUrl()
             {
-                const string resetUrl = "https://nuget.local/account/ResetPassword/somebody/confirmation";
+                const string resetUrl = "https://nuget.local/account/forgotpassword/somebody/confirmation";
                 var user = new User("somebody")
                 {
                     EmailAddress = "some@example.com",
@@ -175,7 +175,7 @@ namespace NuGetGallery
                 
                 var result = await controller.GenerateApiKey();
 
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account", controller = "Users" });
+                ResultAssert.IsRedirectToRoute(result, new { action = "ManageCredentials" });
             }
 
             [Fact]
@@ -186,6 +186,7 @@ namespace NuGetGallery
                     .Setup(u => u.ReplaceCredential(
                         user,
                         It.Is<Credential>(c => c.Type == CredentialTypes.ApiKeyV1)))
+                    .ReturnsAsync()
                     .Verifiable();
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -522,12 +523,18 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.ModelState.AddModelError("test", "test");
                 var inputModel = new ManageCredentialsViewModel();
+                controller.SetCurrentUser(new User()
+                {
+                    Credentials = new List<Credential>() {
+                        CredentialBuilder.CreatePbkdf2Password("abc")
+                    }
+                });
 
                 // Act
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<ManageCredentialsViewModel>(result);
+                var outputModel = ResultAssert.IsView<ManageCredentialsViewModel>(result, viewName: "ManageCredentials");
                 Assert.Same(inputModel, outputModel);
             }
 
@@ -555,7 +562,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<ManageCredentialsViewModel>(result);
+                var outputModel = ResultAssert.IsView<ManageCredentialsViewModel>(result, viewName: "ManageCredentials");
                 Assert.Same(inputModel, outputModel);
 
                 var errorMessages = controller
@@ -590,8 +597,7 @@ namespace NuGetGallery
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new
                 {
-                    controller = "Users",
-                    action = "PasswordChanged"
+                    action = "ManageCredentials"
                 });
             }
         }

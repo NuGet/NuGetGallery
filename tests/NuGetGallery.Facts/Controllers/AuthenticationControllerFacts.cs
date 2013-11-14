@@ -240,7 +240,7 @@ namespace NuGetGallery.Controllers
             {
                 var authUser = new AuthenticatedUser(new User("theUsername"), new Credential());
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.Register("theUsername", "thePassword", "theEmailAddress"))
+                    .Setup(x => x.Register("theUsername", "theEmailAddress", It.IsAny<Credential>()))
                     .ReturnsAsync(authUser);
                 GetMock<AuthenticationService>()
                     .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User))
@@ -265,7 +265,7 @@ namespace NuGetGallery.Controllers
             public async Task WillInvalidateModelStateAndShowTheViewWhenAnEntityExceptionIsThrow()
             {
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.Register(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .Setup(x => x.Register(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Credential>()))
                     .Throws(new EntityException("aMessage"));
                 var controller = GetController<AuthenticationController>();
 
@@ -290,7 +290,7 @@ namespace NuGetGallery.Controllers
             {
                 var user = new User("theUsername") { UnconfirmedEmailAddress = "unconfirmed@example.com" };
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.Register("theUsername", "thepassword", "unconfirmed@example.com"))
+                    .Setup(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>()))
                     .ReturnsAsync(new AuthenticatedUser(user, new Credential()));
                 GetMock<AuthenticationService>()
                     .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), user));
