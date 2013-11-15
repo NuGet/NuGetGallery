@@ -65,9 +65,10 @@
             {
                 <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
             }
+            <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))" title="Ask the package owners a question">Contact Owners</a></li>
             @if (Model.IsOwner(User))
             {
-                <li><a href="@Url.Action(MVC.Packages.ReportMyPackage(Model.Id, Model.Version))" title="Contact support for help with your package">
+                <li><a href="@Url.Action(MVC.Packages.ReportMyPackage(Model.Id, Model.Version))" title="Contact the NuGet team for help with your package">
                         Contact Support</a></li>
             }
             else
@@ -75,7 +76,6 @@
                 <li><a href="@Url.Action(MVC.Packages.ReportAbuse(Model.Id, Model.Version))" title="Report the package as abusive">
                         Report Abuse</a></li>
             }
-            <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))">Contact Owners</a></li>
             @if (User.Identity.IsAuthenticated)
             {
                 <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file.">Download</a></li>
@@ -212,8 +212,10 @@
     { 
         <p>Requires NuGet @Model.MinClientVersion or higher.</p>
     }
-    <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>
-    <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
+    <div id="socialbuttons" style="height: 60px; display: block;">
+        <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>
+        <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
+    </div>
 
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
     {

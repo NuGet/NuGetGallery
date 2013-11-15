@@ -11,7 +11,7 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// Gets a boolean indicating if license reports are enabled.
         /// </summary>
-        [DefaultValue(false)] // Default: Disabled
+        [DefaultValue(true)] // Default: Enabled
         [Description("Displays reports on license data")]
         public bool FriendlyLicenses { get; set; }
     }
