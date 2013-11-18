@@ -344,7 +344,6 @@
     <Compile Include="Authentication\Providers\LocalUser\LocalUserAuthenticator.cs" />
     <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticator.cs" />
     <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticatorConfiguration.cs" />
-    <Compile Include="Authentication\SessionCookieAuthenticationProvider.cs" />
     <Compile Include="Configuration\ConfigurationService.cs" />
     <Compile Include="Configuration\FeatureConfiguration.cs" />
     <Compile Include="Configuration\LuceneIndexLocation.cs" />

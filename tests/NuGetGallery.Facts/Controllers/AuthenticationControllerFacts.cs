@@ -63,7 +63,7 @@ namespace NuGetGallery.Controllers
                     new Credential() { Type = "Foo" });
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate(authUser.User.Username, "thePassword"))
-                    .ReturnsAsync(authUser);
+                    .CompletesWith(authUser);
                 var controller = GetController<AuthenticationController>();
                 GetMock<AuthenticationService>()
                     .Setup(a => a.CreateSession(controller.OwinContext, authUser.User))
@@ -94,7 +94,7 @@ namespace NuGetGallery.Controllers
                     new Credential() { Type = "Foo" });
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
-                    .ReturnsAsync(authUser);
+                    .CompletesWith(authUser);
                 var controller = GetController<AuthenticationController>();
                 GetMock<AuthenticationService>()
                     .Setup(a => a.CreateSession(controller.OwinContext, authUser.User))
@@ -125,7 +125,7 @@ namespace NuGetGallery.Controllers
                     new Credential() { Type = "Foo" });
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
-                    .ReturnsAsync(authUser);
+                    .CompletesWith(authUser);
                 var controller = GetController<AuthenticationController>();
                 GetMock<AuthenticationService>()
                     .Setup(a => a.CreateSession(controller.OwinContext, authUser.User))
@@ -152,7 +152,7 @@ namespace NuGetGallery.Controllers
             {
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate(It.IsAny<string>(), It.IsAny<string>()))
-                    .ReturnsNull();
+                    .CompletesWithNull();
                 var controller = GetController<AuthenticationController>();
 
                 var result = await controller.SignIn(
@@ -172,7 +172,7 @@ namespace NuGetGallery.Controllers
                     new Credential() { Type = "Foo" });
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
-                    .ReturnsAsync(authUser);
+                    .CompletesWith(authUser);
                 GetMock<AuthenticationService>()
                     .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User));
                 var controller = GetController<AuthenticationController>();
@@ -199,7 +199,7 @@ namespace NuGetGallery.Controllers
                     new Credential() { Type = "Foo" });
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
-                    .ReturnsAsync(authUser);
+                    .CompletesWith(authUser);
                 GetMock<AuthenticationService>()
                     .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User));
                 var controller = GetController<AuthenticationController>();
@@ -241,7 +241,7 @@ namespace NuGetGallery.Controllers
                 var authUser = new AuthenticatedUser(new User("theUsername"), new Credential());
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "theEmailAddress", It.IsAny<Credential>()))
-                    .ReturnsAsync(authUser);
+                    .CompletesWith(authUser);
                 GetMock<AuthenticationService>()
                     .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), authUser.User))
                     .Verifiable();
@@ -291,7 +291,7 @@ namespace NuGetGallery.Controllers
                 var user = new User("theUsername") { UnconfirmedEmailAddress = "unconfirmed@example.com" };
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>()))
-                    .ReturnsAsync(new AuthenticatedUser(user, new Credential()));
+                    .CompletesWith(new AuthenticatedUser(user, new Credential()));
                 GetMock<AuthenticationService>()
                     .Setup(x => x.CreateSession(It.IsAny<IOwinContext>(), user));
                 var controller = GetController<AuthenticationController>();

@@ -261,7 +261,7 @@ namespace NuGetGallery.Authentication
                             c.Value,
                             Constants.PBKDF2HashAlgorithmId,
                             password))))
-                    .ReturnsNull()
+                    .CompletesWithNull()
                     .Verifiable();
 
                 // Act

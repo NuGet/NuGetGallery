@@ -19,15 +19,13 @@ namespace NuGetGallery
         public IAppConfiguration Config { get; protected set; }
         public AuthenticationService AuthService { get; protected set; }
 
-        protected UsersController() { }
-
         public UsersController(
             ICuratedFeedService feedsQuery,
             IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
             IAppConfiguration config,
-            AuthenticationService authService) : this()
+            AuthenticationService authService)
         {
             CuratedFeedService = feedsQuery;
             UserService = userService;
@@ -42,15 +40,9 @@ namespace NuGetGallery
         {
             var user = GetCurrentUser();
             var curatedFeeds = CuratedFeedService.GetFeedsForManager(user.Key);
-            var apiCredential = user
-                .Credentials
-                .FirstOrDefault(c => c.Type == CredentialTypes.ApiKeyV1);
             return View(
                 new AccountViewModel
                     {
-                        ApiKey = apiCredential == null ? 
-                            String.Empty :    
-                            apiCredential.Value,
                         IsConfirmed = user.Confirmed,
                         CuratedFeeds = curatedFeeds.Select(cf => cf.Name)
                     });
@@ -402,9 +394,7 @@ namespace NuGetGallery
                     return ManageCredentialsView(model);
                 }
 
-                TempData["Message"] = oldPassword == null ?
-                    Strings.PasswordSet :
-                    Strings.PasswordChanged;
+                TempData["Message"] = Strings.PasswordChanged;
 
                 return RedirectToAction("ManageCredentials");
             }

@@ -57,18 +57,10 @@
 
 <section id="apiKey">
     <h1>API Key</h1>
-    
-    @if (!Model.IsConfirmed)
-    {
-        <p>
-            Your API key provides you with a token that can identify you to the gallery. The 
-            <a href="http://nuget.codeplex.com/">NuGet</a> command-line utility allows you to 
-            submit a NuGet package to the gallery using your API key to authenticate.
-            To get an API Key you will need to <a href="@Url.ConfirmationRequired()">confirm your account.</a>
-        </p>
-    }
-    else
-    {
-        <p>View your API Key on the @Html.ActionLink("Manage Credentials page", MVC.Users.ManageCredentials()).</p>
-    }
+    <p>
+        View your API Key on the @Html.ActionLink("Manage Credentials page", MVC.Users.ManageCredentials()).
+        @if (!Model.IsConfirmed) {
+            @: NOTE: Before you can view your API Key you will need to <a href="@Url.ConfirmationRequired()">confirm your account.</a>
+        }
+    </p>
 </section>
