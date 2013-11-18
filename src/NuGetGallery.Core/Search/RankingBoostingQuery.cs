@@ -1,6 +1,7 @@
 ﻿using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Function;
+using System;
 
 namespace NuGetGallery
 {
@@ -32,11 +33,11 @@ namespace NuGetGallery
             public override float CustomScore(int doc, float subQueryScore, float valSrcScore)
             {
                 int ranking = _rankings[doc];
-                if (ranking == 0 || ranking > 1000)
+                if (ranking == 0 || ranking > 200)
                 {
                     return subQueryScore;
                 }
-                float boost = (((1000.0f - ranking) / 100.0f) * 5.0f) + 1.0f;
+                float boost = (float)Math.Pow(10.0, (1.0 - ((double)ranking / 200.0)));
                 float adjustedScore = subQueryScore * boost;
                 return adjustedScore;
             }
