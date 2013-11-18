@@ -484,7 +484,7 @@ namespace NuGetGallery
             return View("ManageCredentials", model);
         }
 
-        private int CountLoginCredentials(User user)
+        private static int CountLoginCredentials(User user)
         {
             return user.Credentials.Count(c =>
                 c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase) ||

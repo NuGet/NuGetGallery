@@ -22,6 +22,13 @@ namespace NuGetGallery.Authentication.Providers
             get { return GetName(GetType()); }
         }
 
+        protected Authenticator() {
+            BaseConfig = new AuthenticatorConfiguration()
+            {
+                Enabled = false
+            };
+        }
+
         public void Startup(ConfigurationService config, IAppBuilder app)
         {
             Configure(config);

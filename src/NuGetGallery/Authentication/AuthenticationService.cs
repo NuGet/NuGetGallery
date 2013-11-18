@@ -29,17 +29,18 @@ namespace NuGetGallery.Authentication
         private readonly Dictionary<string, Func<string, string>> _credentialFormatters;
 
         protected AuthenticationService()
+            : this(null, null, null, AuditingService.None, Enumerable.Empty<Authenticator>())
+        {
+        }
+
+        public AuthenticationService(IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics, AuditingService auditing, IEnumerable<Authenticator> providers)
         {
             _credentialFormatters = new Dictionary<string, Func<string, string>>(StringComparer.OrdinalIgnoreCase) {
                 { "password", _ => Strings.CredentialType_Password },
                 { "apikey", _ => Strings.CredentialType_ApiKey },
                 { "external", FormatExternalCredentialType }
             };
-        }
 
-        public AuthenticationService(IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics, AuditingService auditing, IEnumerable<Authenticator> providers)
-            : this()
-        {
             Entities = entities;
             Config = config;
             Auditing = auditing;
@@ -419,7 +420,7 @@ namespace NuGetGallery.Authentication
                 user, credential, UserAuditAction.ReplacedCredential));
         }
 
-        private CredentialKind GetCredentialKind(string type)
+        private static CredentialKind GetCredentialKind(string type)
         {
             if (type.StartsWith("apikey", StringComparison.OrdinalIgnoreCase))
             {

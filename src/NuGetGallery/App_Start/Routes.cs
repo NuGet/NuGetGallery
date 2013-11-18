@@ -170,6 +170,11 @@ namespace NuGetGallery
                 MVC.Users.ResetPassword(forgot: false));
 
             routes.MapRoute(
+                RouteName.ConfirmAccount,
+                "account/confirm/{username}/{token}",
+                MVC.Users.Confirm());
+
+            routes.MapRoute(
                 RouteName.Account,
                 "account/{action}",
                 MVC.Users.Account());

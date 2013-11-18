@@ -509,7 +509,7 @@ namespace NuGetGallery
 
                 // We use a catch-all route for unit tests so we can see the parameters 
                 // are passed correctly.
-                Assert.Equal("https://nuget.local/account/Confirm/theUsername/confirmation", sentConfirmationUrl);
+                Assert.Equal("https://nuget.local/account/confirm/theUsername/confirmation", sentConfirmationUrl);
                 Assert.Equal("to@example.com", sentToAddress.Address);
             }
         }

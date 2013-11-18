@@ -53,5 +53,6 @@
         public const string ExternalAuthenticationCallback = "ExternalAuthenticationCallback";
         public const string RemoveCredential = "RemoveCredential";
         public const string RemovePassword = "RemovePassword";
+        public const string ConfirmAccount = "ConfirmAccount";
     }
 }

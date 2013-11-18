@@ -8,6 +8,7 @@ using NuGetGallery.Framework;
 using NuGetGallery.Authentication;
 using Microsoft.Owin;
 using System.Threading.Tasks;
+using NuGetGallery.Authentication.Providers;
 
 namespace NuGetGallery.Controllers
 {
@@ -45,9 +46,9 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<AuthenticationController>();
                 controller.ModelState.AddModelError(String.Empty, "aFakeError");
 
-                var result = await controller.SignIn(null, null, linkingAccount: false);
+                var result = await controller.SignIn(new LogOnViewModel(), null, linkingAccount: false);
 
-                ResultAssert.IsView(result, viewData: new
+                ResultAssert.IsView(result, viewName: "LogOn", viewData: new
                 {
                     ReturnUrl = (string)null
                 });
@@ -156,12 +157,11 @@ namespace NuGetGallery.Controllers
 
                 var result = await controller.SignIn(
                     new LogOnViewModel() { SignIn = new SignInViewModel() },
-                    "theReturnUrl", linkingAccount: false) as ViewResult;
+                    "theReturnUrl", linkingAccount: false);
 
-                Assert.NotNull(result);
-                Assert.Empty(result.ViewName);
+                ResultAssert.IsView(result, viewName: "LogOn");
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(Strings.UsernameAndPasswordNotFound, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+                Assert.Equal(Strings.UsernameAndPasswordNotFound, controller.ModelState["SignIn"].Errors[0].ErrorMessage);
             }
             
             [Fact]
@@ -227,9 +227,9 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<AuthenticationController>();
                 controller.ModelState.AddModelError(String.Empty, "aFakeError");
 
-                var result = await controller.Register(null, null, linkingAccount: false);
+                var result = await controller.Register(new LogOnViewModel(), null, linkingAccount: false);
 
-                ResultAssert.IsView(result, viewData: new
+                ResultAssert.IsView(result, viewName: "LogOn", viewData: new
                 {
                     ReturnUrl = (string)null
                 });
@@ -280,9 +280,9 @@ namespace NuGetGallery.Controllers
                 };
                 var result = await controller.Register(request, null, linkingAccount: false);
 
-                ResultAssert.IsView(result);
+                ResultAssert.IsView(result, viewName: "LogOn");
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal("aMessage", controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+                Assert.Equal("aMessage", controller.ModelState["Register"].Errors[0].ErrorMessage);
             }
 
             [Fact]
