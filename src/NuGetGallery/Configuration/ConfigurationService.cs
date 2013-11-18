@@ -66,7 +66,7 @@ namespace NuGetGallery.Configuration
             return ResolveConfigObject(new AppConfiguration(), SettingPrefix);
         }
 
-        public T ResolveConfigObject<T>(T instance, string prefix)
+        public virtual T ResolveConfigObject<T>(T instance, string prefix)
         {
             // Iterate over the properties
             foreach (var property in GetConfigProperties<T>(instance))

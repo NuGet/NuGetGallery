@@ -61,9 +61,16 @@ namespace NuGetGallery.Authentication.Providers
         internal static IEnumerable<Authenticator> GetAllAvailable()
         {
             // Find all available auth providers
-            var configTypes = typeof(ConfigurationService)
+            return GetAllAvailable(typeof(Authenticator)
                 .Assembly
-                .GetExportedTypes()
+                .GetExportedTypes());
+        }
+
+        internal static IEnumerable<Authenticator> GetAllAvailable(IEnumerable<Type> typesToSearch)
+        {
+            // Find all available auth providers
+            var configTypes = 
+                typesToSearch
                 .Where(t => !t.IsAbstract && typeof(Authenticator).IsAssignableFrom(t))
                 .ToList();
             var providers = configTypes
@@ -72,7 +79,7 @@ namespace NuGetGallery.Authentication.Providers
             return providers;
         }
 
-        protected virtual AuthenticatorConfiguration CreateConfigObject()
+        protected internal virtual AuthenticatorConfiguration CreateConfigObject()
         {
             return new AuthenticatorConfiguration();
         }
@@ -93,7 +100,7 @@ namespace NuGetGallery.Authentication.Providers
     {
         public TConfig Config { get; private set; }
 
-        protected override AuthenticatorConfiguration CreateConfigObject()
+        protected internal override AuthenticatorConfiguration CreateConfigObject()
         {
             Config = new TConfig();
             return Config;
