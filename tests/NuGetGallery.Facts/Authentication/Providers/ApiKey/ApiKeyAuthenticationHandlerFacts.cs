@@ -18,10 +18,10 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
 {
     public class ApiKeyAuthenticationHandlerFacts
     {
-        public class TheGetChallengeMessageMethod
+        public class TheApplyResponseChallengeAsyncMethod
         {
             [Fact]
-            public async Task GivenANon401ResponseInActiveMode_ItReturnsNull()
+            public async Task GivenANon401ResponseInActiveMode_ItPassesThrough()
             {
                 // Arrange
                 var handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
@@ -31,14 +31,14 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 handler.OwinContext.Response.StatusCode = 200;
 
                 // Act
-                var message = handler.GetChallengeMessage();
+                await handler.InvokeApplyResponseChallengeAsync();
 
                 // Assert
-                Assert.Null(message);
+                Assert.Equal(200, handler.OwinContext.Response.StatusCode);
             }
 
             [Fact]
-            public async Task GivenA401ResponseInPassiveModeWithoutMatchingAuthenticationType_ItReturnsNull()
+            public async Task GivenA401ResponseInPassiveModeWithoutMatchingAuthenticationType_ItPassesThrough()
             {
                 // Arrange
                 var handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
@@ -47,18 +47,18 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                     AuthenticationType = "blarg"
                 });
                 handler.OwinContext.Response.StatusCode = 401;
-                handler.OwinContext.Authentication.AuthenticationResponseChallenge = 
-                    new AuthenticationResponseChallenge(new [] { "flarg" }, new AuthenticationProperties());
+                handler.OwinContext.Authentication.AuthenticationResponseChallenge =
+                    new AuthenticationResponseChallenge(new[] { "flarg" }, new AuthenticationProperties());
 
                 // Act
-                var message = handler.GetChallengeMessage();
+                await handler.InvokeApplyResponseChallengeAsync();
 
                 // Assert
-                Assert.Null(message);
+                Assert.Equal(401, handler.OwinContext.Response.StatusCode);
             }
 
             [Fact]
-            public async Task GivenA401ResponseInPassiveModeWithMatchingAuthenticationTypeAndNoHeader_ItReturnsApiKeyRequired()
+            public async Task GivenA401ResponseInPassiveModeWithMatchingAuthenticationTypeAndNoHeader_ItWrites401WithApiKeyRequiredMessage()
             {
                 // Arrange
                 var handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions()
@@ -67,15 +67,17 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                     AuthenticationType = "blarg"
                 });
                 handler.OwinContext.Response.StatusCode = 401;
-                handler.OwinContext.Authentication.AuthenticationResponseChallenge = 
-                    new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties());
-                
+                handler.OwinContext.Authentication.AuthenticationResponseChallenge =
+                    new AuthenticationResponseChallenge(new[] { "blarg" }, new AuthenticationProperties());
+
                 // Act
-                var message = handler.GetChallengeMessage();
+                var body = await handler.OwinContext.Response.CaptureBodyAsString(async () =>
+                    await handler.InvokeApplyResponseChallengeAsync());
 
                 // Assert
-                Assert.Equal(Strings.ApiKeyRequired, message.Item1);
-                Assert.Equal(401, message.Item2);
+                Assert.Equal(Strings.ApiKeyRequired, handler.OwinContext.Response.ReasonPhrase);
+                Assert.Equal(Strings.ApiKeyRequired, body);
+                Assert.Equal(401, handler.OwinContext.Response.StatusCode);
             }
 
             [Fact]
@@ -88,16 +90,18 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                     AuthenticationType = "blarg"
                 });
                 handler.OwinContext.Response.StatusCode = 401;
-                handler.OwinContext.Authentication.AuthenticationResponseChallenge = 
-                    new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties());
+                handler.OwinContext.Authentication.AuthenticationResponseChallenge =
+                    new AuthenticationResponseChallenge(new[] { "blarg" }, new AuthenticationProperties());
                 handler.OwinContext.Request.Headers[Constants.ApiKeyHeaderName] = "woozle wuzzle";
 
                 // Act
-                var message = handler.GetChallengeMessage();
+                var body = await handler.OwinContext.Response.CaptureBodyAsString(async () =>
+                    await handler.InvokeApplyResponseChallengeAsync());
 
                 // Assert
-                Assert.Equal(Strings.ApiKeyNotAuthorized, message.Item1);
-                Assert.Equal(403, message.Item2);
+                Assert.Equal(Strings.ApiKeyNotAuthorized, handler.OwinContext.Response.ReasonPhrase);
+                Assert.Equal(Strings.ApiKeyNotAuthorized, body);
+                Assert.Equal(403, handler.OwinContext.Response.StatusCode);
             }
 
             [Fact]
@@ -110,15 +114,17 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                     AuthenticationType = "blarg"
                 });
                 handler.OwinContext.Response.StatusCode = 401;
-                handler.OwinContext.Authentication.AuthenticationResponseChallenge = 
-                    new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties());
+                handler.OwinContext.Authentication.AuthenticationResponseChallenge =
+                    new AuthenticationResponseChallenge(new[] { "blarg" }, new AuthenticationProperties());
 
                 // Act
-                var message = handler.GetChallengeMessage();
+                var body = await handler.OwinContext.Response.CaptureBodyAsString(async () =>
+                    await handler.InvokeApplyResponseChallengeAsync());
 
                 // Assert
-                Assert.Equal(Strings.ApiKeyRequired, message.Item1);
-                Assert.Equal(401, message.Item2);
+                Assert.Equal(Strings.ApiKeyRequired, handler.OwinContext.Response.ReasonPhrase);
+                Assert.Equal(Strings.ApiKeyRequired, body);
+                Assert.Equal(401, handler.OwinContext.Response.StatusCode);
             }
 
             [Fact]
@@ -131,16 +137,18 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                     AuthenticationType = "blarg"
                 });
                 handler.OwinContext.Response.StatusCode = 401;
-                handler.OwinContext.Authentication.AuthenticationResponseChallenge = 
-                    new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties());
+                handler.OwinContext.Authentication.AuthenticationResponseChallenge =
+                    new AuthenticationResponseChallenge(new[] { "blarg" }, new AuthenticationProperties());
                 handler.OwinContext.Request.Headers[Constants.ApiKeyHeaderName] = "woozle wuzzle";
 
                 // Act
-                var message = handler.GetChallengeMessage();
+                var body = await handler.OwinContext.Response.CaptureBodyAsString(async () =>
+                    await handler.InvokeApplyResponseChallengeAsync());
 
                 // Assert
-                Assert.Equal(Strings.ApiKeyNotAuthorized, message.Item1);
-                Assert.Equal(403, message.Item2);
+                Assert.Equal(Strings.ApiKeyNotAuthorized, handler.OwinContext.Response.ReasonPhrase);
+                Assert.Equal(Strings.ApiKeyNotAuthorized, body);
+                Assert.Equal(403, handler.OwinContext.Response.StatusCode);
             }
         }
 
@@ -151,7 +159,6 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             {
                 // Arrange
                 TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
-                handler.OwinContext.Request.Path = new PathString("/api/v2/packages");
                 
                 // Act
                 var ticket = await handler.InvokeAuthenticateCoreAsync();
@@ -166,9 +173,8 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 // Arrange
                 Guid apiKey = Guid.NewGuid();
                 TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
-                handler.OwinContext.Request.Path = new PathString("/api/v2/packages");
                 handler.OwinContext.Request.Headers.Set(
-                    Constants.ApiKeyHeaderName, 
+                    Constants.ApiKeyHeaderName,
                     apiKey.ToString().ToLowerInvariant());
 
                 // Act
@@ -185,7 +191,6 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 Guid apiKey = Guid.NewGuid();
                 var user = new User() { Username = "theUser", EmailAddress = "confirmed@example.com" };
                 TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
-                handler.OwinContext.Request.Path = new PathString("/api/v2/packages");
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
                     apiKey.ToString().ToLowerInvariant());
@@ -206,7 +211,6 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 Guid apiKey = Guid.NewGuid();
                 var user = new User() { Username = "theUser", EmailAddress = "confirmed@example.com" };
                 TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
-                handler.OwinContext.Request.Path = new PathString("/api/v2/packages");
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
                     apiKey.ToString().ToLowerInvariant());
@@ -249,20 +253,19 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
 
                 var ctxt = Fakes.CreateOwinContext();
 
-                // Grr, have to make an internal call to initialize...
-                await (Task)(typeof(AuthenticationHandler<ApiKeyAuthenticationOptions>)
-                    .InvokeMember(
-                        "Initialize",
-                        BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod,
-                        Type.DefaultBinder,
-                        handler,
-                        new object[] { options, ctxt }));
+                await handler.InitializeAsync(options, ctxt);
+
                 return handler;
             }
 
             public Task<AuthenticationTicket> InvokeAuthenticateCoreAsync()
             {
                 return AuthenticateCoreAsync();
+            }
+
+            public Task InvokeApplyResponseChallengeAsync()
+            {
+                return ApplyResponseChallengeAsync();
             }
         }
     }

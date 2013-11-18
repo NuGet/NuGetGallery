@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
@@ -12,8 +13,12 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
 {
     public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
     {
+        private ApiKeyAuthenticationOptions _options;
+
         protected ILogger Logger { get; set; }
         protected AuthenticationService Auth { get; set; }
+
+        private ApiKeyAuthenticationOptions TheOptions { get { return _options ?? Options; } }
 
         internal ApiKeyAuthenticationHandler() { }
         public ApiKeyAuthenticationHandler(ILogger logger, AuthenticationService auth)
@@ -22,15 +27,27 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             Auth = auth;
         }
 
+        internal Task InitializeAsync(ApiKeyAuthenticationOptions options, IOwinContext context)
+        {
+            _options = options; // Override the Options property
+            return BaseInitializeAsync(options, context);
+        }
+
         protected override async Task ApplyResponseChallengeAsync()
         {
-            var message = GetChallengeMessage();
-
-            if (message != null)
+            if (Response.StatusCode == 401 && (Helper.LookupChallenge(TheOptions.AuthenticationType, TheOptions.AuthenticationMode) != null))
             {
-                Response.StatusCode = message.Item2;
-                Response.ReasonPhrase = message.Item1;
-                Response.Write(message.Item1);
+                var apiKey = Request.Headers[TheOptions.ApiKeyHeaderName];
+                if (!String.IsNullOrEmpty(apiKey))
+                {
+                    // Had an API key, but it didn't match a user
+                    WriteStatus(Strings.ApiKeyNotAuthorized, 403);
+                }
+                else
+                {
+                    // No API Key present
+                    WriteStatus(Strings.ApiKeyRequired, 401);
+                }
             }
             else
             {
@@ -38,29 +55,16 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             }
         }
 
-        internal Tuple<string, int> GetChallengeMessage()
+        internal void WriteStatus(string message, int statusCode)
         {
-            if (Response.StatusCode == 401 && (Helper.LookupChallenge(Options.AuthenticationType, Options.AuthenticationMode) != null))
-            {
-                var apiKey = Request.Headers[Options.ApiKeyHeaderName];
-                if (!String.IsNullOrEmpty(apiKey))
-                {
-                    // Had an API key, but it didn't match a user
-                    return Tuple.Create(Strings.ApiKeyNotAuthorized, 403);
-                }
-                else
-                {
-                    // No API Key present
-                    return Tuple.Create(Strings.ApiKeyRequired, 401);
-                }
-
-            }
-            return null;
+            Response.StatusCode = statusCode;
+            Response.ReasonPhrase = message;
+            Response.Write(message);
         }
 
         protected override Task<AuthenticationTicket> AuthenticateCoreAsync()
         {
-            var apiKey = Request.Headers[Options.ApiKeyHeaderName];
+            var apiKey = Request.Headers[TheOptions.ApiKeyHeaderName];
             if (!String.IsNullOrEmpty(apiKey))
             {
                 // Get the user
