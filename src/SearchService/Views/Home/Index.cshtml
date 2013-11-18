@@ -16,6 +16,7 @@
                         <option value="false" selected>Stable Only</option>
                         <option value="true">Include Prerelease</option>
                     </select>
+                    <!--
                     Sort by:<select id="sortBy">
                         <option value="relevance" selected>Relevance</option>
                         <option value="rank">Popularity</option>
@@ -24,6 +25,7 @@
                         <option value="published">Recent</option>
                         <option value="last-edited">Edited</option>
                     </select>
+                    -->
             </div>
         </div>
     </div>
@@ -37,7 +39,9 @@
         </div>
     </div>
 
-    <div style="border-width:3px;border-style:solid;border-color:green;display:block;margin:4px">
+    <button id="show-diagnostics">Diagnostics</button>
+
+    <div id="diagnostics" style="border-width:3px;border-style:solid;border-color:green;display:none;margin:4px">
         <div style="margin:4px">
 
                 <span style="font-size:large;font-weight:bold;color:green">Diagnostics</span>
@@ -323,6 +327,34 @@
             return clause;
         }
 
+        var createFieldClauseAND = function (field, query, boost) {
+
+            var t = query.split(' ');
+            var subterms = [];
+            for (var i = 0; i < t.length; i += 1) {
+                var s = $.trim(t[i]);
+                if (s.length > 0) {
+                    subterms[subterms.length] = s;
+                }
+            }
+
+            if (subterms.length === 0) {
+                return '';
+            }
+
+            if (subterms.length === 1) {
+                return field + ':' + subterms[0];
+            }
+
+            var clause = '(' + field + ':' + subterms[0];
+            for (var i = 1; i < subterms.length; i += 1) {
+                clause += ' AND ' + field + ':' + subterms[i];
+            }
+            clause += ')^' + boost;
+
+            return clause;
+        }
+
         var createLuceneQuery = function (query) {
 
             if (query === '') {
@@ -336,8 +368,11 @@
             var luceneQuery = '';
 
             luceneQuery += createFieldClause('Id', query);
+            luceneQuery += ' ' + createFieldClause('Version', query);
             luceneQuery += ' ' + createFieldClause('TokenizedId', query);
+            luceneQuery += ' ' + createFieldClauseAND('TokenizedId', query, 4);
             luceneQuery += ' ' + createFieldClause('Title', query);
+            luceneQuery += ' ' + createFieldClauseAND('Title', query, 4);
             luceneQuery += ' ' + createFieldClause('Tags', query);
             luceneQuery += ' ' + createFieldClause('Description', query);
             luceneQuery += ' ' + createFieldClause('Authors', query);
@@ -417,7 +452,7 @@
             var query = {
                 query: $('#query').val(),
                 prerelease: $('#prerelease').val(),
-                sortBy: $('#sortBy').val(),
+                sortBy: 'NA',
                 expectedPackageId: $('#expectedPackageId').val(),
                 contactDetails: $('#contactDetails').val()
             };
@@ -439,6 +474,19 @@
             console.log(expectedPackageId + ' ' + contactDetails);
         }
 
+        var diagnosticsVisible = false;
+
+        var toggleDiagnostics = function () {
+            if (diagnosticsVisible === false) {
+                $('#diagnostics').css('display', 'block');
+                diagnosticsVisible = true;
+            }
+            else {
+                $('#diagnostics').css('display', 'none');
+                diagnosticsVisible = false;
+            }
+        }
+
         $(document).ready(function () {
 
             $('#query').keyup(function () {
@@ -452,5 +500,7 @@
             $('#expectedPackageId').val(defaultExpectedPackageId);
             $('#contactDetails').val(defaultContactDetails);
             $('#submitFeedback').click(submitFeedback);
+
+            $('#show-diagnostics').click(toggleDiagnostics)
         });
     </script>

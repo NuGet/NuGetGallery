@@ -19,32 +19,51 @@ namespace SearchService.Controllers
         {
             Trace.TraceInformation("Feedback");
 
-            string query = Request.QueryString["query"];
-            string prerelease = Request.QueryString["prerelease"];
-            string sortBy = Request.QueryString["sortBy"];
-            string expectedPackageId = Request.QueryString["expectedPackageId"];
-            string contactDetails = Request.QueryString["contactDetails"];
-
-            string connectionString = WebConfigurationManager.ConnectionStrings["Feedback"].ConnectionString;
-
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            try
             {
-                connection.Open();
+                string query = Request.QueryString["query"];
+                string prerelease = Request.QueryString["prerelease"];
+                string sortBy = Request.QueryString["sortBy"];
+                string expectedPackageId = Request.QueryString["expectedPackageId"];
+                string contactDetails = Request.QueryString["contactDetails"];
 
-                string sql = @"INSERT Feedback VALUES ( @query, @prerelease, @sortBy, @expectedPackageId, @contactDetails )";
+                Trace.TraceInformation("Feedback query: {0} prerelease: {1}, sortBy: {2} expectedPackageId: {3} contactDetails: {4}",
+                    query, prerelease, sortBy, expectedPackageId, contactDetails);
 
-                SqlCommand command = new SqlCommand(sql, connection);
+                string connectionString = WebConfigurationManager.ConnectionStrings["Feedback"].ConnectionString;
 
-                command.Parameters.AddWithValue("query", query);
-                command.Parameters.AddWithValue("prerelease", prerelease);
-                command.Parameters.AddWithValue("sortBy", sortBy);
-                command.Parameters.AddWithValue("expectedPackageId", expectedPackageId);
-                command.Parameters.AddWithValue("contactDetails", contactDetails);
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
 
-                command.ExecuteNonQuery();
+                    string sql = @"INSERT Feedback VALUES ( @query, @prerelease, @sortBy, @expectedPackageId, @contactDetails )";
+
+                    SqlCommand command = new SqlCommand(sql, connection);
+
+                    command.Parameters.AddWithValue("query", query);
+                    command.Parameters.AddWithValue("prerelease", prerelease);
+                    command.Parameters.AddWithValue("sortBy", sortBy);
+                    command.Parameters.AddWithValue("expectedPackageId", expectedPackageId);
+                    command.Parameters.AddWithValue("contactDetails", contactDetails);
+
+                    command.ExecuteNonQuery();
+                }
+
+                return new HttpStatusCodeResult(200);
             }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.Message);
+                Trace.TraceError(e.StackTrace);
 
-            return new HttpStatusCodeResult(200);
+                if (e.InnerException != null)
+                {
+                    Trace.TraceError(e.InnerException.Message);
+                    Trace.TraceError(e.InnerException.StackTrace);
+                }
+
+                throw;
+            }
         }
     }
 }

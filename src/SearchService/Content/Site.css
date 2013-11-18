@@ -155,6 +155,15 @@ textarea {
     margin: 15px;
 }
 
+#show-diagnostics {
+    font-size: xx-small;
+    font-weight:bold;
+    color:green;
+    height:16px;
+    width:70px;
+    margin:10px;
+}
+
 /* styles for D3 graph of segments */
 
 .axis path,

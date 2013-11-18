@@ -273,6 +273,9 @@ namespace NuGetGallery
             IndexWriter indexWriter = new IndexWriter(directory, new PackageAnalyzer(), create, IndexWriter.MaxFieldLength.UNLIMITED);
             indexWriter.MergeFactor = MergeFactor;
             indexWriter.MaxMergeDocs = MaxMergeDocs;
+
+            indexWriter.SetSimilarity(new CustomSimilarity());
+
             // this should theoretically work but appears to cause empty commit commitMetadata to not be saved
             //((LogMergePolicy)indexWriter.MergePolicy).SetUseCompoundFile(false);
             return indexWriter;
@@ -334,7 +337,7 @@ namespace NuGetGallery
             //  Query Fields
 
             float titleBoost = 3.0f;
-            float idBoost = 1.5f;
+            float idBoost = 2.0f;
 
             if (package.Title != null)
             {
@@ -344,7 +347,7 @@ namespace NuGetGallery
             Add(doc, "Id", package.PackageRegistration.Id, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
             Add(doc, "TokenizedId", package.PackageRegistration.Id, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
             Add(doc, "Version", package.Version, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
-            Add(doc, "Title", package.Title, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, 1.5f);
+            Add(doc, "Title", package.Title, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, titleBoost);
             Add(doc, "Tags", package.Tags, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, 1.5f);
             Add(doc, "Description", package.Description, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "Authors", package.FlattenedAuthors, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
