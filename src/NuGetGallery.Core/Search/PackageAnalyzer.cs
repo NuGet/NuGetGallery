@@ -18,6 +18,7 @@ namespace NuGetGallery
             {
                 { "Id", new IdentifierKeywordAnalyzer() },
                 { "TokenizedId", new IdentifierAnalyzer() },
+                { "ShingledId", new ShingledIdentifierAnalyzer() },
                 { "Version", new VersionAnalyzer() },
                 { "Title", new DescriptionAnalyzer() },
                 { "Description", new DescriptionAnalyzer() },
