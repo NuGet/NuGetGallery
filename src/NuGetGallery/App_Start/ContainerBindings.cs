@@ -261,10 +261,12 @@ namespace NuGetGallery
                 instanceId = Environment.MachineName;
             }
 
+            var localIP = AuditActor.GetLocalIP().Result;
+
             Bind<AuditingService>()
-                .To<CloudAuditingService>()
-                .WithConstructorArgument("instanceId", instanceId)
-                .WithConstructorArgument("storageConnectionString", configuration.Current.AzureStorageConnectionString);
+                .ToMethod(_ => new CloudAuditingService(
+                    instanceId, localIP, configuration.Current.AzureStorageConnectionString, CloudAuditingService.AspNetActorThunk))
+                .InSingletonScope();
         }
     }
 }

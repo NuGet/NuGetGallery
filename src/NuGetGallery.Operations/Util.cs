@@ -383,12 +383,15 @@ namespace NuGetGallery.Operations
                 id, version, action.ToString(), DateTime.UtcNow.ToString("O"));
         }
 
-        internal static Task<Uri> SaveAuditRecord(CloudStorageAccount storage, AuditRecord auditRecord)
+        internal static async Task<Uri> SaveAuditRecord(CloudStorageAccount storage, AuditRecord auditRecord)
         {
+            string localIP = await AuditActor.GetLocalIP();
             CloudAuditingService audit = new CloudAuditingService(
                 Environment.MachineName,
-                storage.CreateCloudBlobClient().GetContainerReference("auditing"));
-            return audit.SaveAuditRecord(auditRecord);
+                localIP,
+                storage.CreateCloudBlobClient().GetContainerReference("auditing"),
+                onBehalfOfThunk: null);
+            return await audit.SaveAuditRecord(auditRecord);
         }
 
         public static string GenerateStatusString(int total, ref int counter)

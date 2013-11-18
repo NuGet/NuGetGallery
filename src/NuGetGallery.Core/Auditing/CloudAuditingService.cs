@@ -21,34 +21,67 @@ namespace NuGetGallery.Auditing
 
         private CloudBlobContainer _auditContainer;
         private string _instanceId;
+        private string _localIP;
+        private Func<Task<AuditActor>> _onBehalfOfThunk;
 
-        public CloudAuditingService(string instanceId, string storageConnectionString)
-            : this(instanceId, GetContainer(storageConnectionString))
+        public CloudAuditingService(string instanceId, string localIP, string storageConnectionString, Func<Task<AuditActor>> onBehalfOfThunk)
+            : this(instanceId, localIP, GetContainer(storageConnectionString), onBehalfOfThunk)
         {
 
         }
-        
-        public CloudAuditingService(string instanceId, CloudBlobContainer auditContainer)
+
+        public CloudAuditingService(string instanceId, string localIP, CloudBlobContainer auditContainer, Func<Task<AuditActor>> onBehalfOfThunk)
         {
             _instanceId = instanceId;
+            _localIP = localIP;
             _auditContainer = auditContainer;
+            _onBehalfOfThunk = onBehalfOfThunk;
         }
 
-        protected override AuditEnvironment GetCurrentAuditEnvironment()
+        public static Task<AuditActor> AspNetActorThunk()
         {
-            string user = null;
-            string authType = null;
-            if (HttpContext.Current != null && HttpContext.Current.User != null)
+            // Use HttpContext to build an actor representing the user performing the action
+            var context = HttpContext.Current;
+            if (context == null)
             {
-                user = HttpContext.Current.User.Identity.Name;
-                authType = HttpContext.Current.User.Identity.AuthenticationType;
+                return null;
             }
 
-            return new AuditEnvironment(
-                _instanceId,
+            // Try to identify the client IP using various server variables
+            string clientIP = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+            if (String.IsNullOrEmpty(clientIP)) // Try REMOTE_ADDR server variable
+            {
+                clientIP = context.Request.ServerVariables["REMOTE_ADDR"];
+            }
+            if (String.IsNullOrEmpty(clientIP)) // Try UserHostAddress property
+            {
+                clientIP = context.Request.UserHostAddress;
+            }
+
+            string user = null;
+            string authType = null;
+            if (context.User != null)
+            {
+                user = context.User.Identity.Name;
+                authType = context.User.Identity.AuthenticationType;
+            }
+
+            return Task.FromResult(new AuditActor(
+                null,
+                clientIP,
                 user,
                 authType,
-                DateTime.UtcNow);
+                DateTime.UtcNow));
+        }
+
+        protected override async Task<AuditActor> GetActor()
+        {
+            // Construct an actor representing the user the service is acting on behalf of
+            AuditActor onBehalfOf = null;
+            if(_onBehalfOfThunk != null) {
+                onBehalfOf = await _onBehalfOfThunk();
+            }
+            return await AuditActor.GetCurrentMachineActor(onBehalfOf);
         }
 
         protected override async Task<Uri> SaveAuditRecord(string auditData, string resourceType, string filePath, string action, DateTime timestamp)

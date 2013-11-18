@@ -82,7 +82,7 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Auditing\AuditEntry.cs" />
-    <Compile Include="Auditing\AuditEnvironment.cs" />
+    <Compile Include="Auditing\AuditActor.cs" />
     <Compile Include="Auditing\AuditingService.cs" />
     <Compile Include="Auditing\AuditRecord.cs" />
     <Compile Include="Auditing\CloudAuditingService.cs" />

@@ -32,16 +32,16 @@ namespace NuGetGallery.Auditing
             _auditRecordSerializerSettings = settings;
         }
 
-        public virtual Task<Uri> SaveAuditRecord(AuditRecord record)
+        public virtual async Task<Uri> SaveAuditRecord(AuditRecord record)
         {
             // Build an audit entry
-            var entry = new AuditEntry(record, GetCurrentAuditEnvironment());
+            var entry = new AuditEntry(record, await GetActor());
 
             // Serialize to json
             string rendered = RenderAuditEntry(entry);
 
             // Save the record
-            return SaveAuditRecord(rendered, record.GetResourceType(), record.GetPath(), record.GetAction(), entry.Environment.TimestampUtc);
+            return await SaveAuditRecord(rendered, record.GetResourceType(), record.GetPath(), record.GetAction(), entry.Actor.TimestampUtc);
         }
 
         public virtual string RenderAuditEntry(AuditEntry entry)
@@ -60,9 +60,9 @@ namespace NuGetGallery.Auditing
         /// <returns>The URI identifying the audit record resource</returns>
         protected abstract Task<Uri> SaveAuditRecord(string auditData, string resourceType, string filePath, string action, DateTime timestamp);
 
-        protected virtual AuditEnvironment GetCurrentAuditEnvironment()
+        protected virtual Task<AuditActor> GetActor()
         {
-            return AuditEnvironment.GetCurrent();
+            return AuditActor.GetCurrentMachineActor();
         }
 
         private class NullAuditingService : AuditingService

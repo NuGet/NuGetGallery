@@ -12,16 +12,16 @@ namespace NuGetGallery.Auditing
     public class AuditEntry
     {
         public AuditRecord Record { get; set; }
-        public AuditEnvironment Environment { get; set; }
+        public AuditActor Actor { get; set; }
 
         public AuditEntry()
         {
         }
 
-        public AuditEntry(AuditRecord record, AuditEnvironment environment)
+        public AuditEntry(AuditRecord record, AuditActor actor)
         {
             Record = record;
-            Environment = environment;
+            Actor = actor;
         }
     }
 }
