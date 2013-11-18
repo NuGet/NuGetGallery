@@ -217,24 +217,6 @@ namespace NuGetGallery.Authentication
             return null;
         }
 
-        public virtual async Task<bool> ChangePassword(User user, string oldPassword, string newPassword)
-        {
-            var hasPassword = user.Credentials.Any(
-                c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
-            Credential _;
-            if (hasPassword && !ValidatePasswordCredential(user.Credentials, oldPassword, out _))
-            {
-                // Invalid old password!
-                return false;
-            }
-
-            // Replace/Set password credential
-            var cred = CredentialBuilder.CreatePbkdf2Password(newPassword);
-            await ReplaceCredentialInternal(user, cred);
-            Entities.SaveChanges();
-            return true;
-        }
-
         public virtual async Task<User> GeneratePasswordResetToken(string usernameOrEmail, int expirationInMinutes)
         {
             if (String.IsNullOrEmpty(usernameOrEmail))
@@ -245,7 +227,7 @@ namespace NuGetGallery.Authentication
             {
                 throw new ArgumentException(
                     "Token expiration should give the user at least a minute to change their password", "expirationInMinutes");
-            }    
+            }
             var user = FindByUserNameOrEmail(usernameOrEmail);
             if (user == null)
             {
@@ -286,6 +268,24 @@ namespace NuGetGallery.Authentication
             return;
         }
 
+        public virtual async Task<bool> ChangePassword(User user, string oldPassword, string newPassword)
+        {
+            var hasPassword = user.Credentials.Any(
+                c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
+            Credential _;
+            if (hasPassword && !ValidatePasswordCredential(user.Credentials, oldPassword, out _))
+            {
+                // Invalid old password!
+                return false;
+            }
+
+            // Replace/Set password credential
+            var cred = CredentialBuilder.CreatePbkdf2Password(newPassword);
+            await ReplaceCredentialInternal(user, cred);
+            Entities.SaveChanges();
+            return true;
+        }
+
         public virtual ActionResult Challenge(string providerName, string redirectUrl)
         {
             Authenticator provider;
@@ -302,22 +302,41 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task AddCredential(User user, Credential credential)
         {
-            await Auditing.SaveAuditRecord(new UserAuditRecord(user, credential, UserAuditAction.AddedCredential));
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.AddedCredential, credential));
             user.Credentials.Add(credential);
             Entities.SaveChanges();
         }
 
-        public async virtual Task<AuthenticateExternalLoginResult> AuthenticateExternalLogin(IOwinContext context)
+        public virtual CredentialViewModel DescribeCredential(Credential credential)
         {
-            var result = await ExtractExternalLoginCredential(context);
-
-            // Authenticate!
-            if (result.Credential != null)
+            var kind = GetCredentialKind(credential.Type);
+            Authenticator auther = null;
+            if (kind == CredentialKind.External)
             {
-                result.Authentication = Authenticate(result.Credential);
+                string providerName = credential.Type.Split('.')[1];
+                if (!Authenticators.TryGetValue(providerName, out auther))
+                {
+                    auther = null;
+                }
             }
 
-            return result;
+            return new CredentialViewModel()
+            {
+                Type = credential.Type,
+                TypeCaption = FormatCredentialType(credential.Type),
+                Identity = credential.Identity,
+                Value = kind == CredentialKind.Token ? credential.Value : String.Empty,
+                Kind = kind,
+                AuthUI = auther == null ? null : auther.GetUI()
+            };
+        }
+
+        public virtual async Task RemoveCredential(User user, Credential cred)
+        {
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.RemovedCredential, cred));
+            user.Credentials.Remove(cred);
+            Entities.Credentials.Remove(cred);
+            Entities.SaveChanges();
         }
 
         public async virtual Task<AuthenticateExternalLoginResult> ExtractExternalLoginCredential(IOwinContext context)
@@ -329,7 +348,18 @@ namespace NuGetGallery.Authentication
                 return new AuthenticateExternalLoginResult();
             }
             var idClaim = result.Identity.FindFirst(ClaimTypes.NameIdentifier);
+            if (idClaim == null)
+            {
+                Trace.Error("External Authentication is missing required claim: " + ClaimTypes.NameIdentifier);
+                return new AuthenticateExternalLoginResult();
+            }
+            
             var nameClaim = result.Identity.FindFirst(ClaimTypes.Name);
+            if (nameClaim == null)
+            {
+                Trace.Error("External Authentication is missing required claim: " + ClaimTypes.Name);
+                return new AuthenticateExternalLoginResult();
+            }
 
             Authenticator auther;
             if (!Authenticators.TryGetValue(idClaim.Issuer, out auther))
@@ -346,33 +376,17 @@ namespace NuGetGallery.Authentication
             };
         }
 
-        public virtual CredentialViewModel DescribeCredential(Credential credential)
+        public async virtual Task<AuthenticateExternalLoginResult> AuthenticateExternalLogin(IOwinContext context)
         {
-            var kind = GetCredentialKind(credential.Type);
-            Authenticator auther = null;
-            if(kind == CredentialKind.External) {
-                string providerName = credential.Type.Split('.')[1];
-                if(!Authenticators.TryGetValue(providerName, out auther)) {
-                    auther = null;
-                }
-            }
-            return new CredentialViewModel()
-            {
-                Type = credential.Type,
-                TypeCaption = FormatCredentialType(credential.Type),
-                Identity = credential.Identity,
-                Value = kind == CredentialKind.Token ? credential.Value : String.Empty,
-                Kind = kind,
-                AuthUI = auther == null ? null : auther.GetUI()
-            };
-        }
+            var result = await ExtractExternalLoginCredential(context);
 
-        public virtual async Task RemoveCredential(User user, Credential cred)
-        {
-            await Auditing.SaveAuditRecord(new UserAuditRecord(user, cred, UserAuditAction.RemovedCredential));
-            user.Credentials.Remove(cred);
-            Entities.Credentials.Remove(cred);
-            Entities.SaveChanges();
+            // Authenticate!
+            if (result.Credential != null)
+            {
+                result.Authentication = Authenticate(result.Credential);
+            }
+
+            return result;
         }
 
         public static ClaimsIdentity CreateIdentity(User user, string authenticationType, params Claim[] additionalClaims)
@@ -414,10 +428,16 @@ namespace NuGetGallery.Authentication
                 Entities.DeleteOnCommit(cred);
             }
 
+            if (toRemove.Any())
+            {
+                await Auditing.SaveAuditRecord(new UserAuditRecord(
+                    user, UserAuditAction.RemovedCredential, toRemove));
+            }
+
             user.Credentials.Add(credential);
 
             await Auditing.SaveAuditRecord(new UserAuditRecord(
-                user, credential, UserAuditAction.ReplacedCredential));
+                user, UserAuditAction.AddedCredential, credential));
         }
 
         private static CredentialKind GetCredentialKind(string type)
@@ -557,12 +577,13 @@ namespace NuGetGallery.Authentication
                 user.Credentials.Remove(cred);
                 Entities.DeleteOnCommit(cred);
             }
-
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.RemovedCredential, toRemove));
+                
             // Now add one if there are no credentials left
             if (creds.Count == 0)
             {
                 var newCred = CredentialBuilder.CreatePbkdf2Password(password);
-                await Auditing.SaveAuditRecord(new UserAuditRecord(user, newCred, UserAuditAction.MigratedCredential));
+                await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.AddedCredential, newCred));
                 user.Credentials.Add(newCred);
             }
 

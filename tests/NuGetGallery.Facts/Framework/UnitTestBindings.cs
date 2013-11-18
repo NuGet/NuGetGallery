@@ -31,7 +31,7 @@ namespace NuGetGallery.Framework
         public override void Load()
         {
             Bind<AuditingService>()
-                .ToConstant(AuditingService.None);
+                .ToConstant(new TestAuditingService());
 
             Bind<HttpContextBase>()
                 .ToMethod(_ =>

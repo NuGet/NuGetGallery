@@ -88,6 +88,7 @@
     <Compile Include="Auditing\CloudAuditingService.cs" />
     <Compile Include="Auditing\PackageAuditRecord.cs" />
     <Compile Include="Auditing\UserAuditRecord.cs" />
+    <Compile Include="CredentialTypes.cs" />
     <Compile Include="Entities\Credential.cs" />
     <Compile Include="Entities\CuratedFeed.cs" />
     <Compile Include="Entities\CuratedPackage.cs" />

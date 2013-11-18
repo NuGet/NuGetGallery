@@ -15,22 +15,24 @@ namespace NuGetGallery.Auditing
         public string UnconfirmedEmailAddress { get; set; }
         public string[] Roles { get; set; }
         public CredentialAuditRecord[] Credentials { get; set; }
-        public CredentialAuditRecord AffectedCredential { get; set; }
+        public CredentialAuditRecord[] AffectedCredential { get; set; }
         
         public UserAuditRecord(User user, UserAuditAction action)
-            : this(user, null, action) { }
-        public UserAuditRecord(User user, Credential affected, UserAuditAction action)
+            : this(user, action, Enumerable.Empty<Credential>()) { }
+        public UserAuditRecord(User user, UserAuditAction action, Credential affected)
+            : this(user, action, SingleEnumerable(affected)) { }
+        public UserAuditRecord(User user, UserAuditAction action, IEnumerable<Credential> affected)
             : base(action)
         {
             Username = user.Username;
             EmailAddress = user.EmailAddress;
             UnconfirmedEmailAddress = user.UnconfirmedEmailAddress;
             Roles = user.Roles.Select(r => r.Name).ToArray();
-            Credentials = user.Credentials.Select(c => new CredentialAuditRecord(c)).ToArray();
+            Credentials = user.Credentials.Select(c => new CredentialAuditRecord(c, removed: false)).ToArray();
 
             if (affected != null)
             {
-                AffectedCredential = new CredentialAuditRecord(affected);
+                AffectedCredential = affected.Select(c => new CredentialAuditRecord(c, action == UserAuditAction.RemovedCredential)).ToArray();
             }
 
             Action = action;
@@ -40,27 +42,37 @@ namespace NuGetGallery.Auditing
         {
             return Username.ToLowerInvariant();
         }
+
+        private static IEnumerable<Credential> SingleEnumerable(Credential affected)
+        {
+            yield return affected;
+        }
     }
 
     public class CredentialAuditRecord
     {
         public string Type { get; set; }
+        public string Value { get; set; }
         public string Identity { get; set; }
 
-        public CredentialAuditRecord(Credential credential)
+        public CredentialAuditRecord(Credential credential, bool removed)
         {
             Type = credential.Type;
             Identity = credential.Identity;
+
+            // Track the value for credentials that are definitely revokable (API Key, etc.) and have been removed
+            if (removed && !CredentialTypes.IsPassword(credential.Type))
+            {
+                Value = credential.Value;
+            }
         }
     }
 
     public enum UserAuditAction
     {
         Registered,
-        ReplacedCredential,
         AddedCredential,
         RemovedCredential,
-        MigratedCredential,
         RequestedPasswordReset,
     }
 }

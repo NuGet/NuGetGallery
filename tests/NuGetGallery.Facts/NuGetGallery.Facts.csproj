@@ -241,6 +241,7 @@
     <Compile Include="Filters\RequireSslAttributeFacts.cs" />
     <Compile Include="Framework\AssertEx.cs" />
     <Compile Include="Framework\Fakes.cs" />
+    <Compile Include="Framework\TestAuditingService.cs" />
     <Compile Include="Framework\TestContainer.cs" />
     <Compile Include="Framework\TestExtensionMethods.cs" />
     <Compile Include="Framework\UnitTestBindings.cs" />
