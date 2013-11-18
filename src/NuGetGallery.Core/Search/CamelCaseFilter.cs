@@ -1,5 +1,6 @@
 ﻿using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Tokenattributes;
+using System;
 using System.Collections.Generic;
 
 namespace NuGetGallery
@@ -9,10 +10,8 @@ namespace NuGetGallery
         ITermAttribute _termAttribute;
         IOffsetAttribute _offsetAttribute;
         IPositionIncrementAttribute _positionIncrementAttribute;
-        Queue<string> _queue;
-        int _startOffset;
-        int _endOffset;
-        int _positionIncrement;
+
+        Queue<Tuple<string, int, int, int>> _queue = new Queue<Tuple<string, int, int, int>>();
 
         public CamelCaseFilter(TokenStream stream)
             : base(stream)
@@ -20,20 +19,13 @@ namespace NuGetGallery
             _termAttribute = AddAttribute<ITermAttribute>();
             _offsetAttribute = AddAttribute<IOffsetAttribute>();
             _positionIncrementAttribute = AddAttribute<IPositionIncrementAttribute>();
-            _queue = new Queue<string>();
         }
 
         public override bool IncrementToken()
         {
             if (_queue.Count > 0)
             {
-                string next = _queue.Dequeue();
-                _termAttribute.SetTermBuffer(next);
-                _startOffset = _endOffset;
-                _endOffset = _startOffset + next.Length;
-                _offsetAttribute.SetOffset(_startOffset, _endOffset);
-                _positionIncrementAttribute.PositionIncrement = _positionIncrement;
-                _positionIncrement = 1;
+                SetAttributes(_queue.Dequeue());
                 return true;
             }
 
@@ -43,38 +35,40 @@ namespace NuGetGallery
             }
 
             string term = _termAttribute.Term;
-
-            _startOffset = _offsetAttribute.StartOffset;
-
-            _positionIncrement = _positionIncrementAttribute.PositionIncrement;
+            int start = _offsetAttribute.StartOffset;
+            int prevStart = start;
+            int positionIncrement = _positionIncrementAttribute.PositionIncrement;
+            string prev = string.Empty;
 
             foreach (string subTerm in TokenizingHelper.CamelCaseSplit(term))
             {
-                _queue.Enqueue(subTerm);
-            }
+                if (prev != string.Empty)
+                {
+                    string shingle = string.Format("{0}{1}", prev, subTerm);
+                    _queue.Enqueue(new Tuple<string, int, int, int>(shingle, prevStart, prevStart + shingle.Length, 0));
+                }
 
-            if (_queue.Count > 1)
-            {
-                _termAttribute.SetTermBuffer(term);
-                _offsetAttribute.SetOffset(_startOffset, _startOffset + term.Length);
-                _endOffset = _startOffset;
-                _positionIncrementAttribute.PositionIncrement = _positionIncrement;
-                _positionIncrement = 0;
-                return true;
+                _queue.Enqueue(new Tuple<string, int, int, int>(subTerm, start, start + subTerm.Length, positionIncrement));
+                positionIncrement = 1;
+                prevStart = start;
+                start += subTerm.Length;
+                prev = subTerm;
             }
 
             if (_queue.Count > 0)
             {
-                string next = _queue.Dequeue();
-                _termAttribute.SetTermBuffer(next);
-                _endOffset = _startOffset + next.Length;
-                _offsetAttribute.SetOffset(_startOffset, _endOffset);
-                _positionIncrementAttribute.PositionIncrement = _positionIncrement;
-                _positionIncrement = 1;
+                SetAttributes(_queue.Dequeue());
                 return true;
             }
 
             return false;
+        }
+
+        private void SetAttributes(Tuple<string, int, int, int> next)
+        {
+            _termAttribute.SetTermBuffer(next.Item1);
+            _offsetAttribute.SetOffset(next.Item2, next.Item3);
+            _positionIncrementAttribute.PositionIncrement = next.Item4;
         }
     }
 }
