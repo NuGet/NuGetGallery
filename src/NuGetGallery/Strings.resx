@@ -205,7 +205,7 @@
     <value>Unknown authentication provider: '{0}'</value>
   </data>
   <data name="ExternalAccountLinkExpired" xml:space="preserve">
-    <value>Your external account credential expired. Try logging in again.</value>
+    <value>Your external account credential expired or you did not allow us access to your account. Try logging in again.</value>
   </data>
   <data name="MicrosoftAccount_AccountNoun" xml:space="preserve">
     <value>Microsoft Account</value>

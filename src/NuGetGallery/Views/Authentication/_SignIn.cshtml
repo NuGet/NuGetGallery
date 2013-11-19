@@ -40,7 +40,7 @@
             Sign in with a NuGet.org Account
         </button>
 
-        @if (Model.External == null)
+        @if (Model.External == null && Model.Providers.Count > 0)
         {
             <h3 id="signin-providermessage">Or use an external account to sign in</h3>
             <ul id="signin-providerlist">
