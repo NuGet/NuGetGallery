@@ -30,6 +30,7 @@ website for the NuGet client. For information about the NuGet clients, visit htt
     ```
     Update-Database
     ```
+If this fails, you are likely to get more useful output by passing -Debug than -Verbose.
 5. Set up the website in IIS Express!
  1. We highly recommend using IIS Express. Use the [Web Platform Installer](microsoft.com/web) to install it if you don't have it already (it comes with recent versions of VS and WebMatrix though)
  2. In an ADMIN powershell prompt, run the .\build\Enable-LocalTestMe.ps1 file. It allows non-admins to host websites at: http://nuget.localtest.me, it configures an IIS Express site at that URL and creates a self-signed SSL certificate. For more information on localtest.me, check out [readme.localtest.me](readme.localtest.me)
