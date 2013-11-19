@@ -3,7 +3,7 @@
     ViewBag.Tab = "Contribute";
 }
 
-<h1 class="page-heading">My Account</h1>
+<h1 class="page-heading">My NuGet.org Account</h1>
 
 <section id="actions">
     <h1>Actions</h1>
@@ -11,7 +11,7 @@
         @if (!Model.IsConfirmed)
         {
             <li id="confirmAccount">
-                <h2><a href="@Url.UploadPackage()">Confirm Your Account</a></h2>
+                <h2><a href="@Url.UploadPackage()">Confirm Your NuGet.org Account</a></h2>
                 <p>
                     Uploading packages or contacting package owners will require that you <a href="@Url.ConfirmationRequired()">confirm your account</a>. Why not get that out of the way now?
                 </p>
