@@ -44,23 +44,14 @@
             </h2>
             <p>Edit package details or Remove packages that you have previously uploaded.</p>
         </li>
-        <li>
+        <li id="editProfile">
             <h2>
                 <a class="action-menu-link" href="@Url.Action(MVC.Users.Edit())">
-                    <i class="icon-edit action-menu-icon"></i>
-                    <span class="action-menu-text">Edit Profile</span>
+                    <i class="icon-user action-menu-icon"></i>
+                    Edit Profile and Credentials
                 </a>
             </h2>
-            <p>Edit your public profile.</p>
-        </li>
-        <li>
-            <h2>
-                <a class="action-menu-link" href="@Url.Action(MVC.Users.ManageCredentials())">
-                    <i class="icon-lock action-menu-icon"></i>
-                    <span class="action-menu-text">Manage Credentials</span>
-                </a>
-            </h2>
-            <p>Manage your logon and package push credentials.</p>
+            <p>Edit your public profile and logon credentials.</p>
         </li>
     </ul>
 </section>
@@ -86,8 +77,9 @@
 
 <section id="apiKey">
     <h1>API Key</h1>
+    
     <p>
-        View your API Key on the @Html.ActionLink("Manage Credentials page", MVC.Users.ManageCredentials()).
+        View your API Key on the @Html.ActionLink("Edit Profile page", MVC.Users.Edit()).
         @if (!Model.IsConfirmed) {
             @: NOTE: Before you can view your API Key you will need to <a href="@Url.ConfirmationRequired()">confirm your account.</a>
         }

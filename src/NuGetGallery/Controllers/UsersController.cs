@@ -84,15 +84,7 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Edit()
         {
-            var user = GetCurrentUser();
-            var model = new EditProfileViewModel
-                {
-                    Username = user.Username,
-                    EmailAddress = user.EmailAddress,
-                    EmailAllowed = user.EmailAllowed,
-                    PendingNewEmailAddress = user.UnconfirmedEmailAddress
-                };
-            return View(model);
+            return EditProfileView(new EditProfileViewModel());
         }
 
         [Authorize]
@@ -110,7 +102,7 @@ namespace NuGetGallery
             profile.Username = user.Username;
             profile.PendingNewEmailAddress = user.UnconfirmedEmailAddress;
             UserService.UpdateProfile(user, profile.EmailAllowed);
-            return View(profile);
+            return EditProfileView(profile);
         }
 
         public virtual ActionResult Thanks()
@@ -359,16 +351,10 @@ namespace NuGetGallery
             return RedirectToAction(MVC.Users.Edit());
         }
 
-        [Authorize]
-        public virtual ActionResult ManageCredentials()
-        {
-            return ManageCredentialsView(new ManageCredentialsViewModel());
-        }
-
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> ChangePassword(ManageCredentialsViewModel model)
+        public virtual async Task<ActionResult> ChangePassword(EditProfileViewModel model)
         {
             var user = GetCurrentUser();
 
@@ -385,18 +371,18 @@ namespace NuGetGallery
             {
                 if (!ModelState.IsValid)
                 {
-                    return ManageCredentialsView(model);
+                    return EditProfileView(model);
                 }
 
                 if (!(await AuthService.ChangePassword(user, model.OldPassword, model.NewPassword)))
                 {
                     ModelState.AddModelError("OldPassword", Strings.CurrentPasswordIncorrect);
-                    return ManageCredentialsView(model);
+                    return EditProfileView(model);
                 }
 
                 TempData["Message"] = Strings.PasswordChanged;
 
-                return RedirectToAction("ManageCredentials");
+                return RedirectToAction("Edit");
             }
         }
 
@@ -443,7 +429,7 @@ namespace NuGetGallery
             // Add/Replace the API Key credential, and save to the database
             TempData["Message"] = Strings.ApiKeyReset;
             await AuthService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
-            return RedirectToAction("ManageCredentials");
+            return RedirectToAction("Edit");
         }
 
         private async Task<ActionResult> RemoveCredential(User user, Credential cred, string message)
@@ -462,16 +448,23 @@ namespace NuGetGallery
                 
                 TempData["Message"] = message;
             }
-            return RedirectToAction("ManageCredentials");
+            return RedirectToAction("Edit");
         }
 
-        private ActionResult ManageCredentialsView(ManageCredentialsViewModel model)
+        private ActionResult EditProfileView(EditProfileViewModel model)
         {
+            // Load the user info
             var user = GetCurrentUser();
+            model.Username = user.Username;
+            model.EmailAddress = user.EmailAddress;
+            model.EmailAllowed = user.EmailAllowed;
+            model.PendingNewEmailAddress = user.UnconfirmedEmailAddress;
+
+            // Load Credential info
             var creds = user.Credentials.Select(c => AuthService.DescribeCredential(c)).ToList();
             model.UserConfirmed = user.Confirmed;
             model.Credentials = creds;
-            return View("ManageCredentials", model);
+            return View("Edit", model);
         }
 
         private static int CountLoginCredentials(User user)

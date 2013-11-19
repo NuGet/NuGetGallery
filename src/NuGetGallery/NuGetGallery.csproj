@@ -962,7 +962,6 @@
     <Compile Include="ViewModels\AccountViewModel.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />
     <Compile Include="ViewModels\LogOnViewModel.cs" />
-    <Compile Include="ViewModels\ManageCredentialsViewModel.cs" />
     <Compile Include="ViewModels\StatisticsMonthlyUsageItem.cs" />
     <Compile Include="ViewModels\StatisticsNuGetUsageItem.cs" />
     <Compile Include="ViewModels\StatisticsFact.cs" />
@@ -1247,7 +1246,6 @@
     <Content Include="Views\Users\Account.cshtml" />
     <Content Include="Views\Users\Packages.cshtml" />
     <Content Include="App_Code\ViewHelpers.cshtml" />
-    <Content Include="Views\Users\ManageCredentials.cshtml" />
     <Content Include="Views\Users\PasswordChanged.cshtml" />
     <Content Include="Views\Users\ForgotPassword.cshtml" />
     <Content Include="Views\Users\PasswordSent.cshtml" />

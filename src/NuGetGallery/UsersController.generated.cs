@@ -71,7 +71,6 @@ namespace NuGetGallery {
             public readonly string Confirm = "Confirm";
             public readonly string Profiles = "Profiles";
             public readonly string ChangeEmail = "ChangeEmail";
-            public readonly string ManageCredentials = "ManageCredentials";
             public readonly string PasswordChanged = "PasswordChanged";
         }
 
@@ -87,7 +86,6 @@ namespace NuGetGallery {
             public readonly string ConfirmationRequired = "~/Views/Users/ConfirmationRequired.cshtml";
             public readonly string Edit = "~/Views/Users/Edit.cshtml";
             public readonly string ForgotPassword = "~/Views/Users/ForgotPassword.cshtml";
-            public readonly string ManageCredentials = "~/Views/Users/ManageCredentials.cshtml";
             public readonly string Packages = "~/Views/Users/Packages.cshtml";
             public readonly string PasswordChanged = "~/Views/Users/PasswordChanged.cshtml";
             public readonly string PasswordSent = "~/Views/Users/PasswordSent.cshtml";
@@ -168,11 +166,6 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult ChangeEmail() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ChangeEmail);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult ManageCredentials() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ManageCredentials);
             return callInfo;
         }
 

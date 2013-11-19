@@ -85,14 +85,16 @@
     $.validator.unobtrusive.adapters.addSingleVal('notequal', 'disallowed');
 
     // Attach script plugins
-    $('.s-toggle[data-show][data-hide]').delegate('', 'click', function () {
+    $('.s-toggle[data-show][data-hide]').delegate('', 'click', function (evt) {
+        evt.preventDefault();
         var $hide = $($(this).data().hide);
         var $show = $($(this).data().show);
         $hide.fadeOut('fast', function () {
             $show.fadeIn('fast');
         });
     });
-    $('.s-expand[data-target]').delegate('', 'click', function () {
+    $('.s-expand[data-target]').delegate('', 'click', function (evt) {
+        evt.preventDefault();
         var $self = $(this);
         var data = $self.data();
         var $target = $(data.target);
@@ -104,7 +106,9 @@
             data.toggletext = oldText;
         });
     });
-    $('.s-confirm[data-confirm]').delegate('', 'click', function () {
-        return confirm($(this).data().confirm);
+    $('.s-confirm[data-confirm]').delegate('', 'click', function (evt) {
+        if (!confirm($(this).data().confirm)) {
+            evt.preventDefault();
+        }
     });
 })(window, jQuery);
