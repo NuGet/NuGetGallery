@@ -280,9 +280,10 @@ namespace NuGetGallery
             return result;
         }
 
-        private static HashSet<string> _fieldNames = new HashSet<string>(new string[] { 
+        private static HashSet<string> _fieldNames = new HashSet<string>(new string[] {
             "IdTerms",
             "TokenizedIdTerms",
+            "ShingledIdTerms",
             "VersionTerms",
             "TitleTerms",
             "TagsTerms",
@@ -332,6 +333,7 @@ namespace NuGetGallery
 
             diagnostics.Add("IdTerms", GetTerms(searcher, scoreDoc.Doc, "Id"));
             diagnostics.Add("TokenizedIdTerms", GetTerms(searcher, scoreDoc.Doc, "TokenizedId"));
+            diagnostics.Add("ShingledIdTerms", GetTerms(searcher, scoreDoc.Doc, "ShingledId"));
             diagnostics.Add("VersionTerms", GetTerms(searcher, scoreDoc.Doc, "Version"));
             diagnostics.Add("TitleTerms", GetTerms(searcher, scoreDoc.Doc, "Title"));
             diagnostics.Add("TagsTerms", GetTerms(searcher, scoreDoc.Doc, "Tags"));

@@ -178,6 +178,7 @@
 
             html += '<p><span class="term-name">Id:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.IdTerms) + '</span></p>';
             html += '<p><span class="term-name">TokenizedId:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.TokenizedIdTerms) + '</span></p>';
+            html += '<p><span class="term-name">ShingledId:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.ShingledIdTerms) + '</span></p>';
             html += '<p><span class="term-name">Version:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.VersionTerms) + '</span></p>';
             html += '<p><span class="term-name">Title:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.TitleTerms) + '</span></p>';
             html += '<p><span class="term-name">Description:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.DescriptionTerms) + '</span></p>';
@@ -371,6 +372,7 @@
             luceneQuery += ' ' + createFieldClause('Version', query);
             luceneQuery += ' ' + createFieldClause('TokenizedId', query);
             luceneQuery += ' ' + createFieldClauseAND('TokenizedId', query, 4);
+            luceneQuery += ' ' + createFieldClause('ShingledId', query);
             luceneQuery += ' ' + createFieldClause('Title', query);
             luceneQuery += ' ' + createFieldClauseAND('Title', query, 4);
             luceneQuery += ' ' + createFieldClause('Tags', query);
