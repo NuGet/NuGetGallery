@@ -280,4 +280,11 @@ The {2} Team</value>
   <data name="MessageService_CannotSendEmailForCredential" xml:space="preserve">
     <value>Cannot send added/removed email for credentials of type '{0}'</value>
   </data>
+  <data name="AlreadyLoggedIn" xml:space="preserve">
+    <value>You are already logged in!</value>
+  </data>
+  <data name="AuthenticationProviderDisabled" xml:space="preserve">
+    <value>The '{0}' authentication provider is disabled and cannot be used to authenticate
+</value>
+  </data>
 </root>

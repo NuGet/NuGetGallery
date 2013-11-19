@@ -61,6 +61,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You are already logged in!.
+        /// </summary>
+        public static string AlreadyLoggedIn {
+            get {
+                return ResourceManager.GetString("AlreadyLoggedIn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified API key is invalid or does not have permission to access the specified package..
         /// </summary>
         public static string ApiKeyNotAuthorized {
@@ -93,6 +102,16 @@ namespace NuGetGallery {
         public static string ApiKeyUserAccountIsUnconfirmed {
             get {
                 return ResourceManager.GetString("ApiKeyUserAccountIsUnconfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;{0}&apos; authentication provider is disabled and cannot be used to authenticate
+        ///.
+        /// </summary>
+        public static string AuthenticationProviderDisabled {
+            get {
+                return ResourceManager.GetString("AuthenticationProviderDisabled", resourceCulture);
             }
         }
         

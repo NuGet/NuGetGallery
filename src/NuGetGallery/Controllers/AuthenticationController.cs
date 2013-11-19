@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
+using NuGetGallery.Infrastructure;
+using System.Net.Mail;
 
 namespace NuGetGallery
 {
@@ -43,13 +45,10 @@ namespace NuGetGallery
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
 
-            // Collect Authentication Providers
             if (Request.IsAuthenticated)
             {
-                TempData["Message"] = "You are already logged in!";
-                return String.IsNullOrEmpty(returnUrl) ?
-                    RedirectToAction("Home", "Pages") :
-                    SafeRedirect(returnUrl);
+                TempData["Message"] = Strings.AlreadyLoggedIn;
+                return SafeRedirect(returnUrl);
             }
 
             return LogOnView();
@@ -65,8 +64,8 @@ namespace NuGetGallery
 
             if (Request.IsAuthenticated)
             {
-                ModelState.AddModelError(String.Empty, "You are already logged in!");
-                return LogOnView(model);
+                TempData["Message"] = Strings.AlreadyLoggedIn;
+                return SafeRedirect(returnUrl);
             }
 
             if (!ModelState.IsValid)
@@ -110,8 +109,8 @@ namespace NuGetGallery
 
             if (Request.IsAuthenticated)
             {
-                ModelState.AddModelError(String.Empty, "You are already logged in!");
-                return LogOnView(model);
+                TempData["Message"] = Strings.AlreadyLoggedIn;
+                return SafeRedirect(returnUrl);
             }
 
             if (linkingAccount)
@@ -130,7 +129,7 @@ namespace NuGetGallery
 
                 if (linkingAccount)
                 {
-                    var result = await AuthService.ExtractExternalLoginCredential(OwinContext);
+                    var result = await AuthService.ReadExternalLoginCredential(OwinContext);
                     if (result.ExternalIdentity == null)
                     {
                         return ExternalLinkExpired();
@@ -155,23 +154,16 @@ namespace NuGetGallery
                 return LogOnView(model);
             }
 
+            // Send a new account email
+            MessageService.SendNewAccountEmail(
+                new MailAddress(user.User.UnconfirmedEmailAddress, user.User.Username),
+                Url.ConfirmationUrl(
+                    MVC.Users.Confirm(), user.User.Username, user.User.EmailConfirmationToken, Request.Url.Scheme));
+
             // We're logging in!
             AuthService.CreateSession(OwinContext, user.User);
 
             return RedirectFromRegister(returnUrl);
-        }
-
-        private ActionResult RedirectFromRegister(string returnUrl)
-        {
-            if (RedirectHelper.SafeRedirectUrl(Url, returnUrl) != RedirectHelper.SafeRedirectUrl(Url, null))
-            {
-                // User was on their way to a page other than the home page. Redirect them with a thank you for registering message.
-                TempData["Message"] = "Your account is now registered!";
-                return new RedirectResult(RedirectHelper.SafeRedirectUrl(Url, returnUrl));
-            }
-
-            // User was not on their way anywhere in particular. Show them the thanks/welcome page.
-            return RedirectToAction(MVC.Users.Thanks());
         }
 
         public virtual ActionResult LogOff(string returnUrl)
@@ -187,11 +179,11 @@ namespace NuGetGallery
                 Url.Action("LinkExternalAccount", "Authentication", new { ReturnUrl = returnUrl }));
         }
 
-        public async virtual Task<ActionResult> LinkExternalAccount(string returnUrl, string provider)
+        public async virtual Task<ActionResult> LinkExternalAccount(string returnUrl)
         {
             // Extract the external login info
             var result = await AuthService.AuthenticateExternalLogin(OwinContext);
-            if (result.ExternalIdentity == null || result.Authenticator == null || result.Authenticator.GetUI() == null)
+            if (result.ExternalIdentity == null)
             {
                 // User got here without an external login cookie (or an expired one)
                 // Send them to the logon action
@@ -243,15 +235,22 @@ namespace NuGetGallery
             }
         }
 
-        [NonAction]
-        protected virtual ActionResult SafeRedirect(string returnUrl)
+        private ActionResult RedirectFromRegister(string returnUrl)
         {
-            return Redirect(RedirectHelper.SafeRedirectUrl(Url, returnUrl));
+            if (returnUrl != Url.Home())
+            {
+                // User was on their way to a page other than the home page. Redirect them with a thank you for registering message.
+                TempData["Message"] = "Your account is now registered!";
+                return SafeRedirect(returnUrl);
+            }
+
+            // User was not on their way anywhere in particular. Show them the thanks/welcome page.
+            return RedirectToAction(MVC.Users.Thanks());
         }
 
         private async Task<AuthenticatedUser> AssociateCredential(AuthenticatedUser user, string returnUrl)
         {
-            var result = await AuthService.ExtractExternalLoginCredential(OwinContext);
+            var result = await AuthService.ReadExternalLoginCredential(OwinContext);
             if (result.ExternalIdentity == null)
             {
                 // User got here without an external login cookie (or an expired one)
@@ -285,8 +284,7 @@ namespace NuGetGallery
             return LogOnView(new LogOnViewModel()
             {
                 SignIn = new SignInViewModel(),
-                Register = new RegisterViewModel(),
-                Providers = GetProviders()
+                Register = new RegisterViewModel()
             });
         }
 

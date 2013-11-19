@@ -31,5 +31,14 @@ namespace NuGetGallery.Authentication.Providers.Cookie
             app.UseCookieAuthentication(options);
             app.SetDefaultSignInAsAuthenticationType(AuthenticationTypes.LocalUser);
         }
+
+        protected internal override AuthenticatorConfiguration CreateConfigObject()
+        {
+            return new AuthenticatorConfiguration()
+            {
+                AuthenticationType = AuthenticationTypes.LocalUser,
+                Enabled = false
+            };
+        }
     }
 }

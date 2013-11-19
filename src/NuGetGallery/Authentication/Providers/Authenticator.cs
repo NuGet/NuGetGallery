@@ -16,17 +16,15 @@ namespace NuGetGallery.Authentication.Providers
         private static readonly string AuthPrefix = "Auth.";
     
         public AuthenticatorConfiguration BaseConfig { get; private set; }
-        
+
         public virtual string Name
         {
             get { return GetName(GetType()); }
         }
 
-        protected Authenticator() {
-            BaseConfig = new AuthenticatorConfiguration()
-            {
-                Enabled = false
-            };
+        protected Authenticator()
+        {
+            BaseConfig = CreateConfigObject();
         }
 
         public void Startup(ConfigurationService config, IAppBuilder app)
@@ -44,7 +42,7 @@ namespace NuGetGallery.Authentication.Providers
         // Configuration Logic
         public virtual void Configure(ConfigurationService config)
         {
-            BaseConfig = config.ResolveConfigObject(CreateConfigObject(), AuthPrefix + Name + ".");
+            BaseConfig = config.ResolveConfigObject(BaseConfig, AuthPrefix + Name + ".");
         }
 
         public static string GetName(Type authenticator)

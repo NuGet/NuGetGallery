@@ -267,7 +267,7 @@ namespace NuGetGallery
                 if (!String.IsNullOrEmpty(returnUrl))
                 {
                     TempData["Message"] = "You have successfully confirmed your email address!";
-                    return new RedirectResult(RedirectHelper.SafeRedirectUrl(Url, returnUrl));
+                    return SafeRedirect(returnUrl);
                 }
             }
 

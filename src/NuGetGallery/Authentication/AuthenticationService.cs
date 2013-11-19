@@ -296,6 +296,13 @@ namespace NuGetGallery.Authentication
                     Strings.UnknownAuthenticationProvider,
                     providerName));
             }
+            if (!provider.BaseConfig.Enabled)
+            {
+                throw new InvalidOperationException(String.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.AuthenticationProviderDisabled,
+                    providerName));
+            }
 
             return provider.Challenge(redirectUrl);
         }
@@ -339,7 +346,7 @@ namespace NuGetGallery.Authentication
             Entities.SaveChanges();
         }
 
-        public async virtual Task<AuthenticateExternalLoginResult> ExtractExternalLoginCredential(IOwinContext context)
+        public async virtual Task<AuthenticateExternalLoginResult> ReadExternalLoginCredential(IOwinContext context)
         {
             var result = await context.Authentication.AuthenticateAsync(AuthenticationTypes.External);
             if (result == null)
@@ -378,7 +385,7 @@ namespace NuGetGallery.Authentication
 
         public async virtual Task<AuthenticateExternalLoginResult> AuthenticateExternalLogin(IOwinContext context)
         {
-            var result = await ExtractExternalLoginCredential(context);
+            var result = await ReadExternalLoginCredential(context);
 
             // Authenticate!
             if (result.Credential != null)
@@ -590,13 +597,13 @@ namespace NuGetGallery.Authentication
             // Save changes, if any
             Entities.SaveChanges();
         }
+    }
 
-        public class AuthenticateExternalLoginResult
-        {
-            public AuthenticatedUser Authentication { get; set; }
-            public ClaimsIdentity ExternalIdentity { get; set; }
-            public Authenticator Authenticator { get; set; }
-            public Credential Credential { get; set; }
-        }
+    public class AuthenticateExternalLoginResult
+    {
+        public AuthenticatedUser Authentication { get; set; }
+        public ClaimsIdentity ExternalIdentity { get; set; }
+        public Authenticator Authenticator { get; set; }
+        public Credential Credential { get; set; }
     }
 }

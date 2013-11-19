@@ -21,6 +21,11 @@ namespace NuGetGallery
         public IList<AuthenticationProviderViewModel> Providers { get; set; }
 
         public LogOnViewModel() { }
+
+        public LogOnViewModel(SignInViewModel signIn)
+        {
+            SignIn = signIn;
+        }
     }
 
     public class AssociateExternalAccountViewModel
@@ -41,6 +46,13 @@ namespace NuGetGallery
         [DataType(DataType.Password)]
         [Hint("Passwords must be at least 7 characters long.")]
         public string Password { get; set; }
+
+        public SignInViewModel() { }
+        public SignInViewModel(string userNameOrEmail, string password)
+        {
+            UserNameOrEmail = userNameOrEmail;
+            Password = password;
+        }
     }
 
     public class RegisterViewModel

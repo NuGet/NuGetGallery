@@ -23,7 +23,12 @@
         } else {
             <h1>Do we know you?</h1>
             <p>
-                It looks like we haven't seen the @Model.External.ProviderAccountNoun '@Model.External.AccountName'
+                It looks like we haven't seen 
+                @if(String.IsNullOrEmpty(Model.External.AccountName)) {
+                    @: this @Model.External.ProviderAccountNoun
+                } else {
+                    @: the @Model.External.ProviderAccountNoun '@Model.External.AccountName'
+                }
                 before.
             </p>
         

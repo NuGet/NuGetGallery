@@ -86,5 +86,10 @@ namespace NuGetGallery
             }
             return null; // No user logged in, or credentials could not be resolved
         }
+
+        protected internal virtual ActionResult SafeRedirect(string returnUrl)
+        {
+            return new SafeRedirectResult(returnUrl, Url.Home());
+        }
     }
 }

@@ -631,7 +631,7 @@ namespace NuGetGallery
                 _entitiesContext.SaveChanges();
             }
 
-            return Redirect(RedirectHelper.SafeRedirectUrl(Url, returnUrl ?? Url.Package(id, version)));
+            return SafeRedirect(returnUrl ?? Url.Package(id, version));
         }
 
         [Authorize]

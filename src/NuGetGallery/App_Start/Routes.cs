@@ -126,7 +126,7 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 RouteName.ExternalAuthenticationCallback,
-                "users/account/authenticate/{provider}/return",
+                "users/account/authenticate/return",
                 new { controller = MVC.Authentication.Name, action = "LinkExternalAccount" });
 
             routes.MapRoute(

@@ -844,13 +844,28 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
+            public void GivenADisabledProviderName_ItThrowsInvalidOperationException()
+            {
+                // Arrange
+                var service = Get<AuthenticationService>();
+                var mock = new Mock<Authenticator>() { CallBase = true };
+                var expected = new ViewResult();
+                mock.Setup(a => a.Challenge("http://microsoft.com")).Returns(expected);
+                service.Authenticators.Add("test", mock.Object);
+
+                // Act/Assert
+                Assert.Throws<InvalidOperationException>(() => service.Challenge("test", "http://microsoft.com"));
+            }
+
+            [Fact]
             public void GivenAnKnownProviderName_ItPassesThroughToProvider()
             {
                 // Arrange
                 var service = Get<AuthenticationService>();
-                var mock = new Mock<Authenticator>();
+                var mock = new Mock<Authenticator>() { CallBase = true };
                 var expected = new ViewResult();
                 mock.Setup(a => a.Challenge("http://microsoft.com")).Returns(expected);
+                mock.Object.BaseConfig.Enabled = true;
                 service.Authenticators.Add("test", mock.Object);
 
                 // Act
@@ -1015,7 +1030,7 @@ namespace NuGetGallery.Authentication
                 authThunk.Attach(context);
                 
                 // Act
-                var result = await authService.ExtractExternalLoginCredential(context);
+                var result = await authService.ReadExternalLoginCredential(context);
 
                 // Assert
                 Assert.Null(result.ExternalIdentity);
@@ -1036,7 +1051,7 @@ namespace NuGetGallery.Authentication
                 authThunk.Attach(context);
 
                 // Act
-                var result = await authService.ExtractExternalLoginCredential(context);
+                var result = await authService.ReadExternalLoginCredential(context);
 
                 // Assert
                 Assert.Null(result.ExternalIdentity);
@@ -1057,7 +1072,7 @@ namespace NuGetGallery.Authentication
                 authThunk.Attach(context);
 
                 // Act
-                var result = await authService.ExtractExternalLoginCredential(context);
+                var result = await authService.ReadExternalLoginCredential(context);
 
                 // Assert
                 Assert.Null(result.ExternalIdentity);
@@ -1079,7 +1094,7 @@ namespace NuGetGallery.Authentication
                 authThunk.Attach(context);
 
                 // Act
-                var result = await authService.ExtractExternalLoginCredential(context);
+                var result = await authService.ReadExternalLoginCredential(context);
 
                 // Assert
                 Assert.Same(authThunk.ShimIdentity, result.ExternalIdentity);
@@ -1102,7 +1117,7 @@ namespace NuGetGallery.Authentication
                 authThunk.Attach(context);
 
                 // Act
-                var result = await authService.ExtractExternalLoginCredential(context);
+                var result = await authService.ReadExternalLoginCredential(context);
 
                 // Assert
                 Assert.Same(authThunk.ShimIdentity, result.ExternalIdentity);
@@ -1125,7 +1140,7 @@ namespace NuGetGallery.Authentication
                 authThunk.Attach(context);
 
                 // Act
-                var result = await authService.ExtractExternalLoginCredential(context);
+                var result = await authService.ReadExternalLoginCredential(context);
 
                 // Assert
                 Assert.NotNull(result.Credential);

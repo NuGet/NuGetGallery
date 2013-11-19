@@ -8,6 +8,11 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
 {
     public class ApiKeyAuthenticatorConfiguration : AuthenticatorConfiguration
     {
+        public ApiKeyAuthenticatorConfiguration()
+        {
+            AuthenticationType = AuthenticationTypes.ApiKey;
+        }
+
         [DefaultValue(Constants.ApiKeyHeaderName)]
         public string HeaderName { get; set; }
 
