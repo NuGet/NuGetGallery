@@ -302,6 +302,10 @@
 
         var createFieldClause = function (field, query) {
 
+            if (query[0] === '"' && query[query.length - 1] === '"') {
+                return field + ':' + query;
+            }
+
             var t = query.split(' ');
             var subterms = [];
             for (var i = 0; i < t.length; i += 1) {
@@ -330,6 +334,10 @@
 
         var createFieldClauseAND = function (field, query, boost) {
 
+            if (query[0] === '"' && query[query.length - 1] === '"') {
+                return '';
+            }
+
             var t = query.split(' ');
             var subterms = [];
             for (var i = 0; i < t.length; i += 1) {
@@ -339,19 +347,19 @@
                 }
             }
 
-            if (subterms.length === 0) {
+            if (subterms.length === 0 || subterms.length === 1) {
                 return '';
-            }
-
-            if (subterms.length === 1) {
-                return field + ':' + subterms[0];
             }
 
             var clause = '(' + field + ':' + subterms[0];
             for (var i = 1; i < subterms.length; i += 1) {
                 clause += ' AND ' + field + ':' + subterms[i];
             }
-            clause += ')^' + boost;
+            clause += ')';
+
+            if (boost !== 1) {
+                clause += '^' + boost;
+            }
 
             return clause;
         }
