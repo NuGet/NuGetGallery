@@ -339,7 +339,7 @@ namespace NuGetGallery
             float titleBoost = 3.0f;
             float idBoost = 2.0f;
 
-            if (package.Title != null)
+            if (package.Title == null)
             {
                 idBoost += titleBoost;
             }
