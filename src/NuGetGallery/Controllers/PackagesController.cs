@@ -323,6 +323,7 @@ namespace NuGetGallery
                 ReasonChoices = ReportOtherPackageReasons,
                 PackageId = id,
                 PackageVersion = package.Version,
+                CopySender = true,
             };
 
             if (Request.IsAuthenticated)
@@ -378,6 +379,7 @@ namespace NuGetGallery
                 ConfirmedUser = user.Confirmed,
                 PackageId = id,
                 PackageVersion = package.Version,
+                CopySender = true,
             };
 
             return View(model);
@@ -422,7 +424,8 @@ namespace NuGetGallery
                 Package = package,
                 Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
                 RequestingUser = user,
-                Url = Url
+                Url = Url,
+                CopySender = reportForm.CopySender
             };
             _messageService.ReportAbuse(request
                 );
@@ -463,7 +466,8 @@ namespace NuGetGallery
                     Package = package,
                     Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
                     RequestingUser = user,
-                    Url = Url
+                    Url = Url,
+                    CopySender = reportForm.CopySender
                 });
 
             TempData["Message"] = "Your support request has been sent to the gallery operators.";
@@ -485,7 +489,7 @@ namespace NuGetGallery
             {
                 PackageId = package.Id,
                 Owners = package.Owners.Where(u => u.EmailAllowed),
-                CopySender = true
+                CopySender = true,
             };
 
             return View(model);
