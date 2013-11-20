@@ -39,12 +39,21 @@ namespace NuGetGallery
 
         public static string Search(PackageSearcherManager searcherManager, string q, bool countOnly, string projectType, bool includePrerelease, string feed, string sortBy, int page, bool includeExplanation, bool ignoreFilter)
         {
-            if ((DateTime.UtcNow - searcherManager.WarmTimeStampUtc) > TimeSpan.FromMinutes(1))
-            {
-                searcherManager.MaybeReopen();
-            }
+            IndexSearcher searcher;
 
-            IndexSearcher searcher = searcherManager.Get();
+            try
+            {
+                if ((DateTime.UtcNow - searcherManager.WarmTimeStampUtc) > TimeSpan.FromMinutes(1))
+                {
+                    searcherManager.MaybeReopen();
+                }
+
+                searcher = searcherManager.Get();
+            }
+            catch (Exception e)
+            {
+                throw new CorruptIndexException("Exception on (re)opening", e); 
+            }
 
             try
             {
