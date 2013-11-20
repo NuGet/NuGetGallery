@@ -16,12 +16,21 @@ namespace NuGetGallery
         public string Message { get; set; }
         public bool AlreadyContactedOwners { get; set; }
         public UrlHelper Url { get; set; }
+        public bool CopySender { get; set; }
 
-        internal string FillIn(string subject, IAppConfiguration config)
+        internal string FillIn(string subject, IAppConfiguration config, bool userCopy = false)
         {
+            const string ownerListTemplate = @"
+**Owners:**
+{OwnerList}";
+            const string userTemplate = @"
+**User:** {Username} ({UserAddress})
+{UserUrl}";
+
             // note, format blocks {xxx} are matched by ordinal-case-sensitive comparison
             var ret = new StringBuilder(subject);
             Action<string, string> substitute = (target, value) => ret.Replace(target, Escape(value));
+            Action<string, string> substituteRaw = (target, value) => ret.Replace(target, value);
 
             substitute("{GalleryOwnerName}", config.GalleryOwner.DisplayName);
             substitute("{Id}", Package.PackageRegistration.Id);
@@ -29,12 +38,17 @@ namespace NuGetGallery
             substitute("{Reason}", Reason);
             if (RequestingUser != null)
             {
+                substituteRaw("{UserTemplate}", userTemplate);
                 substitute("{Username}", RequestingUser.Username);
                 substitute("{UserUrl}", Url.User(RequestingUser, scheme: "http"));
                 if (RequestingUser.EmailAddress != null)
                 {
                     substitute("{UserAddress}", RequestingUser.EmailAddress);
                 }
+            }
+            else
+            {
+                substitute("{UserTemplate}", "");
             }
             substitute("{Name}", FromAddress.DisplayName);
             substitute("{Address}", FromAddress.Address);
@@ -44,19 +58,27 @@ namespace NuGetGallery
             substitute("{Reason}", Reason);
             substitute("{Message}", Message);
 
-            var ownersText = new StringBuilder("");
-            foreach (var owner in Package.PackageRegistration.Owners)
+            if (userCopy)
             {
-                ownersText.AppendFormat(
-                    CultureInfo.InvariantCulture,
-                    "{0} - {1} - ({2})",
-                    owner.Username,
-                    Url.User(owner, scheme: "http"),
-                    owner.EmailAddress);
-                ownersText.AppendLine();
+                substitute("{OwnersTemplate}", "");
             }
+            else
+            {
+                substituteRaw("{OwnersTemplate}", ownerListTemplate);
+                var ownersText = new StringBuilder("");
+                foreach (var owner in Package.PackageRegistration.Owners)
+                {
+                    ownersText.AppendFormat(
+                        CultureInfo.InvariantCulture,
+                        "{0} - {1} - ({2})",
+                        owner.Username,
+                        Url.User(owner, scheme: "http"),
+                        owner.EmailAddress);
+                    ownersText.AppendLine();
+                }
 
-            substitute("{OwnerList}", ownersText.ToString());
+                substitute("{OwnerList}", ownersText.ToString());
+            }
 
             ret.Replace(@"\{\", "{");
             return ret.ToString();

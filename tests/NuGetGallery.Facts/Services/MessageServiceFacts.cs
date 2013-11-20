@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Net.Mail;
 using AnglicanGeek.MarkdownMailer;
 using Moq;
+using NuGetGallery.Areas.Admin.DynamicData;
 using Xunit;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
@@ -58,6 +59,46 @@ namespace NuGetGallery
                 Assert.Contains("1.42.0.1", message.Body);
                 Assert.Contains("Yes", message.Body);
             }
+
+            [Fact]
+            public void WillCopySenderIfAsked()
+            {
+                var from = new MailAddress("legit@example.com", "too");
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "smangit" },
+                    Version = "1.42.0.1",
+                };
+                var mailSender = new Mock<IMailSender>();
+                var config = new Mock<IAppConfiguration>();
+                config.Setup(x => x.GalleryOwner).Returns(TestGalleryOwner);
+                var messageService = new MessageService(mailSender.Object, config.Object);
+                var messages = new List<MailMessage>(2);
+                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { messages.Add(m); });
+
+                var reportPackageRequest = new ReportPackageRequest
+                {
+                    AlreadyContactedOwners = true,
+                    FromAddress = from,
+                    Message = "Abuse!",
+                    Package = package,
+                    Reason = "Reason!",
+                    RequestingUser = new User
+                    {
+                        Username = "Joe Schmoe",
+                        EmailAddress = "joe@example.com"
+                    },
+                    Url = TestUtility.MockUrlHelper(),
+                    CopySender = true,
+                };
+                messageService.ReportAbuse(reportPackageRequest);
+
+                Assert.Equal(2, messages.Count);
+                Assert.Equal(reportPackageRequest.RequestingUser.EmailAddress, messages[1].To[0].Address);
+                Assert.Equal(reportPackageRequest.RequestingUser.EmailAddress, messages[1].ReplyToList.Single().Address);
+                Assert.Contains("Owners", messages[0].Body);
+                Assert.DoesNotContain("Owners", messages[1].Body);
+            }
         }
 
         public class TheReportMyPackageMethod : TestContainer
@@ -92,6 +133,7 @@ namespace NuGetGallery
                         RequestingUser = owner,
                         Url = TestUtility.MockUrlHelper(),
                     });
+
                 var message = messageService.MockMailSender.LastSent;
 
                 Assert.Equal(TestGalleryOwner.Address, message.To[0].Address);
@@ -103,6 +145,46 @@ namespace NuGetGallery
                 Assert.Contains("too (legit@example.com)", message.Body);
                 Assert.Contains("smangit", message.Body);
                 Assert.Contains("1.42.0.1", message.Body);
+            }
+
+            [Fact]
+            public void WillCopySenderIfAsked()
+            {
+                var from = new MailAddress("legit@example.com", "too");
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "smangit" },
+                    Version = "1.42.0.1",
+                };
+                var mailSender = new Mock<IMailSender>();
+                var config = new Mock<IAppConfiguration>();
+                config.Setup(x => x.GalleryOwner).Returns(TestGalleryOwner);
+                var messageService = new MessageService(mailSender.Object, config.Object);
+                var messages = new List<MailMessage>(2);
+                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { messages.Add(m); });
+
+                var reportPackageRequest = new ReportPackageRequest
+                {
+                    AlreadyContactedOwners = true,
+                    FromAddress = from,
+                    Message = "Abuse!",
+                    Package = package,
+                    Reason = "Reason!",
+                    RequestingUser = new User
+                    {
+                        Username = "Joe Schmoe",
+                        EmailAddress = "joe@example.com"
+                    },
+                    Url = TestUtility.MockUrlHelper(),
+                    CopySender = true,
+                };
+                messageService.ReportMyPackage(reportPackageRequest);
+
+                Assert.Equal(2, messages.Count);
+                Assert.Equal(reportPackageRequest.RequestingUser.EmailAddress, messages[1].To[0].Address);
+                Assert.Equal(reportPackageRequest.RequestingUser.EmailAddress, messages[1].ReplyToList.Single().Address);
+                Assert.Contains("Owners", messages[0].Body);
+                Assert.DoesNotContain("Owners", messages[1].Body);
             }
         }
 
@@ -209,6 +291,30 @@ namespace NuGetGallery
                 var message = messageService.MockMailSender.LastSent;
 
                 Assert.Null(message);
+            }
+
+            [Fact]
+            public void WillNotCopySenderIfNoOwnersAllow()
+            {
+                var from = new MailAddress("smangit@example.com", "flossy");
+                var package = new PackageRegistration { Id = "smangit" };
+                package.Owners = new[]
+                    {
+                        new User { EmailAddress = "yung@example.com", EmailAllowed = false },
+                        new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
+                    };
+                var mailSender = new Mock<IMailSender>();
+                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Throws(new InvalidOperationException());
+                var config = new Mock<IAppConfiguration>();
+                config.Setup(x => x.GalleryOwner).Returns(TestGalleryOwner);
+                var messageService = new MessageService(mailSender.Object, config.Object);
+                var messages = new List<MailMessage>(1);
+                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => messages.Add(m.Clone()));
+
+                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", true);
+
+                mailSender.Verify(m => m.Send(It.IsAny<MailMessage>()), Times.Never());
+                Assert.Equal(0, messages.Count);
             }
         }
 

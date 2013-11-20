@@ -7,6 +7,7 @@ using System.Web;
 using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using NuGetGallery.Authentication;
+using Glimpse.AspNet.AlternateType;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
@@ -29,9 +30,8 @@ namespace NuGetGallery
         public void ReportAbuse(ReportPackageRequest request)
         {
             string subject = "[{GalleryOwnerName}] Support Request for '{Id}' version {Version} (Reason: {Reason})";
-            subject = request.FillIn(subject, Config);
-
-            const string bodyTemplateUnauthenticated = @"
+            subject = request.FillIn(subject, _config);
+            const string bodyTemplate = @"
 **Email:** {Name} ({Address})
 
 **Package:** {Id}
@@ -39,9 +39,8 @@ namespace NuGetGallery
 
 **Version:** {Version}
 {VersionUrl}
-
-**Owners:**
-{OwnerList}
+{OwnersTemplate}
+{UserTemplate}
 
 **Reason:**
 {Reason}
@@ -53,34 +52,6 @@ namespace NuGetGallery
 {Message}
 ";
 
-            const string bodyTemplateAuthenticated = @"
-**Email:** {Name} ({Address})
-
-**Package:** {Id}
-{PackageUrl}
-
-**Version:** {Version}
-{VersionUrl}
-
-**Owners:**
-{OwnerList}
-
-**User:** {Username} ({UserAddress})
-{UserUrl}
-
-**Reason:**
-{Reason}
-
-**Has the package owner been contacted?:**
-{AlreadyContactedOwners}
-
-**Message:**
-{Message}
-";
-
-            string bodyTemplate = request.RequestingUser != null ?
-                bodyTemplateAuthenticated :
-                bodyTemplateUnauthenticated;
 
             var body = new StringBuilder("");
             body.Append(request.FillIn(bodyTemplate, Config));
@@ -97,6 +68,23 @@ namespace NuGetGallery
                 mailMessage.To.Add(mailMessage.From);
                 SendMessage(mailMessage);
             }
+            if (request.CopySender)
+            {
+                body.Clear();
+                body.Append(request.FillIn(bodyTemplate, _config, true));
+                body.AppendFormat(CultureInfo.InvariantCulture, @"
+
+*Message sent from {0}*", _config.GalleryOwner.DisplayName);
+                using (var mailMessage = new MailMessage())
+                {
+                    mailMessage.Subject = subject;
+                    mailMessage.Body = body.ToString();
+                    mailMessage.From = _config.GalleryOwner;
+                    mailMessage.ReplyToList.Add(request.RequestingUser.EmailAddress);
+                    mailMessage.To.Add(request.RequestingUser.EmailAddress);
+                    SendMessage(mailMessage);
+                }
+            }
         }
 
         public void ReportMyPackage(ReportPackageRequest request)
@@ -112,12 +100,8 @@ namespace NuGetGallery
 
 **Version:** {Version}
 {VersionUrl}
-
-**Owners:**
-{OwnerList}
-
-**User:** {Username} ({UserAddress})
-{UserUrl}
+{OwnersTemplate}
+{UserTemplate}
 
 **Reason:**
 {Reason}
@@ -140,6 +124,23 @@ namespace NuGetGallery
                 mailMessage.ReplyToList.Add(request.FromAddress);
                 mailMessage.To.Add(Config.GalleryOwner);
                 SendMessage(mailMessage);
+            }
+            if (request.CopySender)
+            {
+                body.Clear();
+                body.Append(request.FillIn(bodyTemplate, _config, true));
+                body.AppendFormat(CultureInfo.InvariantCulture, @"
+
+*Message sent from {0}*", _config.GalleryOwner.DisplayName);
+                using (var mailMessage = new MailMessage())
+                {
+                    mailMessage.Subject = subject;
+                    mailMessage.Body = body.ToString();
+                    mailMessage.From = _config.GalleryOwner;
+                    mailMessage.ReplyToList.Add(request.RequestingUser.EmailAddress);
+                    mailMessage.To.Add(request.RequestingUser.EmailAddress);
+                    SendMessage(mailMessage);
+                }
             }
         }
 
