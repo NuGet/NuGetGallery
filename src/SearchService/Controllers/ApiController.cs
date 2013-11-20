@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Store;
+﻿using Lucene.Net.Index;
+using Lucene.Net.Store;
 using Lucene.Net.Store.Azure;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -80,17 +81,15 @@ namespace SearchService.Controllers
 
                 return MakeResponse(content);
             }
+            catch (CorruptIndexException e)
+            {
+                _searcherManager = null;
+                TraceException(e);
+                throw;
+            }
             catch (Exception e)
             {
-                Trace.TraceError(e.Message);
-                Trace.TraceError(e.StackTrace);
-
-                if (e.InnerException != null)
-                {
-                    Trace.TraceError(e.InnerException.Message);
-                    Trace.TraceError(e.InnerException.StackTrace);
-                }
-
+                TraceException(e);
                 throw;
             }
         }
@@ -124,17 +123,15 @@ namespace SearchService.Controllers
 
                 return MakeResponse(content);
             }
+            catch (CorruptIndexException e)
+            {
+                _searcherManager = null;
+                TraceException(e);
+                throw;
+            }
             catch (Exception e)
             {
-                Trace.TraceError(e.Message);
-                Trace.TraceError(e.StackTrace);
-
-                if (e.InnerException != null)
-                {
-                    Trace.TraceError(e.InnerException.Message);
-                    Trace.TraceError(e.InnerException.StackTrace);
-                }
-
+                TraceException(e);
                 throw;
             }
         }
@@ -154,17 +151,15 @@ namespace SearchService.Controllers
 
                 return MakeResponse(IndexAnalyzer.Analyze(_searcherManager));
             }
+            catch (CorruptIndexException e)
+            {
+                _searcherManager = null;
+                TraceException(e);
+                throw;
+            }
             catch (Exception e)
             {
-                Trace.TraceError(e.Message);
-                Trace.TraceError(e.StackTrace);
-
-                if (e.InnerException != null)
-                {
-                    Trace.TraceError(e.InnerException.Message);
-                    Trace.TraceError(e.InnerException.StackTrace);
-                }
-
+                TraceException(e);
                 throw;
             }
         }
@@ -184,17 +179,15 @@ namespace SearchService.Controllers
 
                 return MakeResponse(IndexAnalyzer.GetDistinctStoredFieldNames(_searcherManager));
             }
+            catch (CorruptIndexException e)
+            {
+                _searcherManager = null;
+                TraceException(e);
+                throw;
+            }
             catch (Exception e)
             {
-                Trace.TraceError(e.Message);
-                Trace.TraceError(e.StackTrace);
-
-                if (e.InnerException != null)
-                {
-                    Trace.TraceError(e.InnerException.Message);
-                    Trace.TraceError(e.InnerException.StackTrace);
-                }
-
+                TraceException(e);
                 throw;
             }
         }
@@ -294,6 +287,18 @@ namespace SearchService.Controllers
             bool useStorage = false;
             bool.TryParse(useStorageStr ?? "false", out useStorage);
             return useStorage;
+        }
+
+        private void TraceException(Exception e)
+        {
+            Trace.TraceError(e.GetType().Name);
+            Trace.TraceError(e.Message);
+            Trace.TraceError(e.StackTrace);
+
+            if (e.InnerException != null)
+            {
+                TraceException(e.InnerException);
+            }
         }
     }
 }
