@@ -7,6 +7,9 @@
 }
 
 @Styles.Render("~/Content/font-awesome.css")
+<!--[if IE 7]>
+@Styles.Render("~/Content/font-awesome-ie7.min.css")
+<![endif]-->
 
 @section BottomScripts {
     @Scripts.Render("~/Scripts/jquery-ui-1.10.3.js")

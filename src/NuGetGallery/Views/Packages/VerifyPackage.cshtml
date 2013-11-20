@@ -6,6 +6,9 @@
 }
 
 @Styles.Render("~/Content/font-awesome.css")
+<!--[if IE 7]>
+@Styles.Render("~/Content/font-awesome-ie7.min.css")
+<![endif]-->
 <h1 class="page-heading">Verify Details &amp; Submit</h1>
 
 @ViewHelpers.UploadSequence(2)
@@ -67,7 +70,7 @@
                 <p>@value</p>
             }
         </div>
-        <div id="@(formid +"Field")" style="display: none">
+        <div id="@(formid + "Field")" style="display: none">
             @Html.EditorFor(func)
             @Html.ValidationMessageFor(func)
         </div>
@@ -109,7 +112,7 @@
                     </div>
                     <div id="Edit_RequiresLicenseAcceptanceField" style="display: none; width: 100%">
                         <div class="form-field" style="display: inline">
-                            @Html.DropDownList("Edit.RequiresLicenseAcceptance", 
+                            @Html.DropDownList("Edit.RequiresLicenseAcceptance",
                                 new List<SelectListItem>
                                 {
                                     new SelectListItem { Text = "Yes", Value = "true" },
@@ -125,7 +128,7 @@
         <li>
             <h4>Listed in Search Results</h4>
                 <div class="form-field">
-                   @Html.DropDownList("Listed", 
+                   @Html.DropDownList("Listed",
                             new List<SelectListItem>
                             {
                                 new SelectListItem { Text = "Yes", Value = "true", Selected = true },
