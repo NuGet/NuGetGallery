@@ -69,8 +69,8 @@ namespace NuGetGallery.Operations.Tasks
             var blobClient = StorageAccount.CreateCloudBlobClient();
             var packagesContainer = Util.GetPackagesBlobContainer(blobClient);
 
-            var latestPackageFileName = Util.GetPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
-            var originalPackageFileName = Util.GetBackupOfOriginalPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
+            var latestPackageFileName = Util.GetPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.NormalizedVersion);
+            var originalPackageFileName = Util.GetBackupOfOriginalPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.NormalizedVersion);
 
             var originalPackageBackupBlob = packagesContainer.GetBlockBlobReference(originalPackageFileName);
             var latestPackageBlob = packagesContainer.GetBlockBlobReference(latestPackageFileName);
@@ -94,7 +94,7 @@ namespace NuGetGallery.Operations.Tasks
                 "Processing Edit Key={0}, PackageId={1}, Version={2}, User={3}",
                 edit.Key,
                 edit.Package.PackageRegistration.Id,
-                edit.Package.Version,
+                edit.Package.NormalizedVersion,
                 edit.User.Username);
 
             if (!WhatIf)
