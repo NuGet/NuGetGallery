@@ -271,7 +271,7 @@ namespace NuGetGallery
                        .Setup(r => r.GetAll())
                        .Returns(new[] { user }.AsQueryable());
 
-                service.UpdateProfile(user, false);
+                service.ChangeEmailSubscription(user, false);
 
                 Assert.Equal(false, user.EmailAllowed);
                 service.MockUserRepository
@@ -283,7 +283,7 @@ namespace NuGetGallery
             {
                 var service = new TestableUserService();
 
-                ContractAssert.ThrowsArgNull(() => service.UpdateProfile(null, emailAllowed: true), "user");
+                ContractAssert.ThrowsArgNull(() => service.ChangeEmailSubscription(null, emailAllowed: true), "user");
             }
         }
 

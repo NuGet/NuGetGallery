@@ -5,7 +5,7 @@ namespace NuGetGallery
 {
     public interface IUserService
     {
-        void UpdateProfile(User user, bool emailAllowed);
+        void ChangeEmailSubscription(User user, bool emailAllowed);
 
         User FindByEmailAddress(string emailAddress);
 

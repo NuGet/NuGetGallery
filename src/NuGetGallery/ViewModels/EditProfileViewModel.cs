@@ -6,15 +6,12 @@ namespace NuGetGallery
 {
     public class EditProfileViewModel
     {
-        public string Username { get; set; }
-        public bool UserConfirmed { get; set; }
-        
-        public string EmailAddress { get; set; }
-        public string PendingNewEmailAddress { get; set; }
-        public bool EmailAllowed { get; set; }
-
         public IList<CredentialViewModel> Credentials { get; set; }
+        public ChangePasswordViewModel ChangePassword { get; set; }
+    }
 
+    public class ChangePasswordViewModel
+    {
         [Required]
         [Display(Name = "Old Password")]
         public string OldPassword { get; set; }

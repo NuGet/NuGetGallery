@@ -26,7 +26,7 @@ namespace NuGetGallery
             CredentialRepository = credentialRepository;
         }
 
-        public void UpdateProfile(User user, bool emailAllowed)
+        public void ChangeEmailSubscription(User user, bool emailAllowed)
         {
             if (user == null)
             {

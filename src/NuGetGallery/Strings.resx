@@ -287,4 +287,7 @@ The {2} Team</value>
     <value>The '{0}' authentication provider is disabled and cannot be used to authenticate
 </value>
   </data>
+  <data name="EmailPreferencesUpdated" xml:space="preserve">
+    <value>Your email preferences have been updated</value>
+  </data>
 </root>

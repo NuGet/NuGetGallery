@@ -16,34 +16,21 @@
     {
         loginCredentials += credGroups[CredentialKind.External].Count;
     }
-}
 
-@*@helper AccordianBar(string id, string title, string subtitle, Func<object, HelperResult> actions, Func<object, HelperResult> accordian) {
-    <li class="managecreds-cred">
-        <div class="managecreds-cred-actions">
-            @actions(null)
-        </div>
-        <span class="managecreds-cred-caption">
-            @title
-        </span>
-        @if(!String.IsNullOrEmpty(subtitle)) {
-            <span class="managecreds-cred-id">@cred.Identity</span>
-        }
-    </li>
-}*@
+    var subscriptionAction = MVC.Users.ChangeEmailSubscription(!CurrentUser.EmailAllowed);
+    var currentEmailAddress = CurrentUser.UnconfirmedEmailAddress ?? CurrentUser.EmailAddress;
+}
 
 <h1 class="page-heading">Edit Profile</h1>
 
-@Html.ValidationSummary(true)
-
-@if (!String.IsNullOrEmpty(Model.PendingNewEmailAddress))
+@if (!String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
 {
     <p class="message">
-        You recently registered a new email address: <strong>@Model.PendingNewEmailAddress</strong><br />
+        You recently registered a new email address: <strong>@CurrentUser.UnconfirmedEmailAddress</strong><br />
 
-        @if (!String.IsNullOrEmpty(Model.EmailAddress))
+        @if (!String.IsNullOrEmpty(CurrentUser.EmailAddress))
         {
-            <text>We will continue sending notification emails to your old verified email address (@Model.EmailAddress)
+            <text>We will continue sending notification emails to your old verified email address (@CurrentUser.EmailAddress)
             until you <a href="@Url.ConfirmationRequired()">verify your new email address.</a></text>
         }
         else
@@ -54,48 +41,42 @@
         }
     </p>
 }
-
-@using (Html.BeginForm())
-{
-    string currentEmailAddress = Model.PendingNewEmailAddress ?? Model.EmailAddress;
     
-    @Html.AntiForgeryToken()
-
-    <fieldset class="form">
-        <legend>Edit Profile</legend>
-
-        <div class="form-field">
-            <label>Email Address</label>
-            <p>Your current email address is <u>@currentEmailAddress</u>
-                @Html.ActionLink("(change)", "ChangeEmail", "Users")<br />
-        </div>
+<div class="form-field">
+    <label>Email Address</label>
+    <p>Your current email address is <em>@currentEmailAddress</em>
+        @Html.ActionLink("(change)", "ChangeEmail", "Users")<br />
+</div>
         
-        <div class="form-field">
-            <label>Profile Picture</label>
-            @ViewHelpers.GravatarImage(currentEmailAddress, Model.Username, 32)
-            <p>
-                @if (!String.IsNullOrEmpty(Model.PendingNewEmailAddress))
-                {
-                    <text>This is a preview of how your profile picture will look once you have verified your
-                    current email address. </text>
-                }
-                We use your verified email address and <a href="http://www.gravatar.com" target="_blank">gravatar.com</a> 
-                to get your profile picture. <a href="http://gravatar.com" target="_blank">Go to gravatar.com</a> 
-                to change your profile picture.
-            </p>
-        </div>
+<div class="form-field">
+    <label>Profile Picture</label>
+    @ViewHelpers.GravatarImage(currentEmailAddress, CurrentUser.Username, 32)
+    <p>
+        @if (!String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
+        {
+            <text>This is a preview of how your profile picture will look once you have verified your
+            current email address. </text>
+        }
+        We use your verified email address and <a href="http://www.gravatar.com" target="_blank">gravatar.com</a> 
+        to get your profile picture. <a href="http://gravatar.com" target="_blank">Go to gravatar.com</a> 
+        to change your profile picture.
+    </p>
+</div>
 
+@using(Html.BeginForm(subscriptionAction)) {
+    <fieldset class="form">
+        <legend>Update Email Subscription</legend>
+        @Html.AntiForgeryToken()
         <div class="form-field">
             <label for="EmailAllowed" class="checkbox">
                 Receive Email Notifications 
             </label>
-            <input type="hidden" name="EmailAllowed" value="@(Model.EmailAllowed ? "false" : "true")" />
             <p>
-                You are <em>@(Model.EmailAllowed ? "" : "not")</em> subscribed to email notifications.
+                You are <em>@(CurrentUser.EmailAllowed ? "" : "not")</em> subscribed to email notifications.
             </p>
             <input type="submit" style="width: auto;" 
-                value="@(Model.EmailAllowed ? "Unsubscribe" : "Subscribe")" 
-                title="@(Model.EmailAllowed ? "Unsubscribe" : "Subscribe")" />
+                value="@(CurrentUser.EmailAllowed ? "Unsubscribe" : "Subscribe")" 
+                title="@(CurrentUser.EmailAllowed ? "Unsubscribe" : "Subscribe")" />
             <p>
                 <strong>Important:</strong> Subscribing allows other registered users of the site to contact you 
                 about packages that you own using the <em>Contact Owners</em> form, or to request that you become an owner 
@@ -173,17 +154,17 @@
                     <legend>Change Password Form</legend>
 
                     @Html.AntiForgeryToken()
-                    @Html.ValidationSummary(true)
+                    @Html.ValidationSummaryFor("ChangePassword")
                     <div class="form-field">
-                        @Html.LabelFor(m => m.OldPassword)
-                        @Html.PasswordFor(m => m.OldPassword)
-                        @Html.ValidationMessageFor(m => m.OldPassword)
+                        @Html.LabelFor(m => m.ChangePassword.OldPassword)
+                        @Html.PasswordFor(m => m.ChangePassword.OldPassword)
+                        @Html.ValidationMessageFor(m => m.ChangePassword.OldPassword)
                     </div>
 
                     <div class="form-field">
-                        @Html.LabelFor(m => m.NewPassword)
-                        @Html.PasswordFor(m => m.NewPassword)
-                        @Html.ValidationMessageFor(m => m.NewPassword)
+                        @Html.LabelFor(m => m.ChangePassword.NewPassword)
+                        @Html.PasswordFor(m => m.ChangePassword.NewPassword)
+                        @Html.ValidationMessageFor(m => m.ChangePassword.NewPassword)
                     </div>
 
                     <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
@@ -196,7 +177,7 @@
     <li class="managecreds-cred @(apiKey == null ? "managecreds-cred-disabled" : null)">
         <div class="managecreds-cred-actions">
             <a href="#" class="managecreds-moreinfo-button s-expand" data-target="#managecreds-cred-apikeyinfo" data-toggletext="Less Info">More Info</a>
-            @if (Model.UserConfirmed)
+            @if (CurrentUser.Confirmed)
             {
                 using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline" }))
                 {
@@ -210,7 +191,7 @@
         </div>
         <span class="managecreds-cred-caption">
             API Key:
-            @if (!Model.UserConfirmed)
+            @if (!CurrentUser.Confirmed)
             {
                 <text>You need to <a href="@Url.ConfirmationRequired()">confirm your account</a> before viewing your API Key</text>
             }
@@ -249,7 +230,7 @@
             }
         </span>
         <div id="managecreds-cred-apikeyinfo" class="s-hidden">
-            @if (!Model.UserConfirmed)
+            @if (!CurrentUser.Confirmed)
             {
                 <p>
                     Your API key provides you with a token that can identify you to the gallery. The

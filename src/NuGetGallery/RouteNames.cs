@@ -54,5 +54,7 @@
         public const string RemoveCredential = "RemoveCredential";
         public const string RemovePassword = "RemovePassword";
         public const string ConfirmAccount = "ConfirmAccount";
+        public const string SubscribeToEmails = "SubscribeToEmails";
+        public const string UnsubscribeFromEmails = "UnsubscribeFromEmails";
     }
 }

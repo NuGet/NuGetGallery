@@ -99,14 +99,14 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
                 GetMock<IUserService>()
-                          .Setup(u => u.UpdateProfile(user, false));
+                          .Setup(u => u.ChangeEmailSubscription(user, false));
                 var model = new EditProfileViewModel { EmailAddress = "test@example.com", EmailAllowed = false };
 
                 var result = controller.Edit(model);
 
                 var viewModel = ResultAssert.IsView<EditProfileViewModel>(result);
                 Assert.Same(model, viewModel);
-                GetMock<IUserService>().Verify(u => u.UpdateProfile(user, false));
+                GetMock<IUserService>().Verify(u => u.ChangeEmailSubscription(user, false));
             }
         }
 

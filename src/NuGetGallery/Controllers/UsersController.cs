@@ -90,7 +90,7 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult Edit(EditProfileViewModel profile)
+        public virtual ActionResult ChangeEmailSubscription(bool subscribe)
         {
             var user = GetCurrentUser();
             if (user == null)
@@ -98,11 +98,9 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            profile.EmailAddress = user.EmailAddress;
-            profile.Username = user.Username;
-            profile.PendingNewEmailAddress = user.UnconfirmedEmailAddress;
-            UserService.UpdateProfile(user, profile.EmailAllowed);
-            return EditProfileView(profile);
+            UserService.ChangeEmailSubscription(user, subscribe);
+            TempData["Message"] = Strings.EmailPreferencesUpdated;
+            return RedirectToAction("Edit");
         }
 
         public virtual ActionResult Thanks()
@@ -369,14 +367,14 @@ namespace NuGetGallery
             }
             else
             {
-                if (!ModelState.IsValid)
+                if (!ModelState.IsValidField("ChangePassword"))
                 {
                     return EditProfileView(model);
                 }
 
-                if (!(await AuthService.ChangePassword(user, model.OldPassword, model.NewPassword)))
+                if (!(await AuthService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword)))
                 {
-                    ModelState.AddModelError("OldPassword", Strings.CurrentPasswordIncorrect);
+                    ModelState.AddModelError("ChangePassword.OldPassword", Strings.CurrentPasswordIncorrect);
                     return EditProfileView(model);
                 }
 
@@ -451,18 +449,16 @@ namespace NuGetGallery
             return RedirectToAction("Edit");
         }
 
+        private ActionResult EditProfileView()
+        {
+            return EditProfileView(new EditProfileViewModel());
+        }
+
         private ActionResult EditProfileView(EditProfileViewModel model)
         {
-            // Load the user info
-            var user = GetCurrentUser();
-            model.Username = user.Username;
-            model.EmailAddress = user.EmailAddress;
-            model.EmailAllowed = user.EmailAllowed;
-            model.PendingNewEmailAddress = user.UnconfirmedEmailAddress;
-
             // Load Credential info
+            var user = GetCurrentUser();
             var creds = user.Credentials.Select(c => AuthService.DescribeCredential(c)).ToList();
-            model.UserConfirmed = user.Confirmed;
             model.Credentials = creds;
             return View("Edit", model);
         }

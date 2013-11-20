@@ -33,6 +33,11 @@ namespace NuGetGallery {
 
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult ChangeEmailSubscription() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.ChangeEmailSubscription);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult ResetPassword() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.ResetPassword);
         }
@@ -63,6 +68,7 @@ namespace NuGetGallery {
             public readonly string ConfirmationRequired = "ConfirmationRequired";
             public readonly string ConfirmationRequiredPost = "ConfirmationRequired";
             public readonly string Edit = "Edit";
+            public readonly string ChangeEmailSubscription = "ChangeEmailSubscription";
             public readonly string Thanks = "Thanks";
             public readonly string Packages = "Packages";
             public readonly string ForgotPassword = "ForgotPassword";
@@ -119,9 +125,9 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult Edit(NuGetGallery.EditProfileViewModel profile) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
-            callInfo.RouteValueDictionary.Add("profile", profile);
+        public override System.Web.Mvc.ActionResult ChangeEmailSubscription(bool subscribe) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ChangeEmailSubscription);
+            callInfo.RouteValueDictionary.Add("subscribe", subscribe);
             return callInfo;
         }
 

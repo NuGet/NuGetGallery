@@ -179,6 +179,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your email preferences have been updated.
+        /// </summary>
+        public static string EmailPreferencesUpdated {
+            get {
+                return ResourceManager.GetString("EmailPreferencesUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A {0} was added to your account and can now be used to log in. If you did not request this change, please reply to this email to contact support..
         /// </summary>
         public static string Emails_CredentialAdded_Body {

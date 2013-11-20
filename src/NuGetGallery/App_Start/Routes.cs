@@ -175,6 +175,16 @@ namespace NuGetGallery
                 MVC.Users.Confirm());
 
             routes.MapRoute(
+                RouteName.SubscribeToEmails,
+                "account/subscribe",
+                MVC.Users.ChangeEmailSubscription(true));
+
+            routes.MapRoute(
+                RouteName.UnsubscribeFromEmails,
+                "account/unsubscribe",
+                MVC.Users.ChangeEmailSubscription(false));
+
+            routes.MapRoute(
                 RouteName.Account,
                 "account/{action}",
                 MVC.Users.Account());
