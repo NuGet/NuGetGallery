@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
+using System.Net.Mail;
 using System.Reflection;
 using System.Security.Principal;
 using System.Text;
@@ -10,6 +11,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
+using NuGet;
 
 namespace NuGetGallery
 {
@@ -99,6 +101,25 @@ namespace NuGetGallery
         public static Stream CreateTestStream(string content)
         {
             return new MemoryStream(Encoding.UTF8.GetBytes(content));
+        }
+
+        public static MailMessage Clone(this MailMessage mailMessage)
+        {
+            var clonedMessage = new MailMessage
+            {
+                Sender = mailMessage.Sender,
+                From = mailMessage.From,
+                Subject = mailMessage.Subject,
+                Body = mailMessage.Body
+            };
+            clonedMessage.To.AddRange(mailMessage.To);
+            clonedMessage.CC.AddRange(mailMessage.CC);
+            clonedMessage.Bcc.AddRange(mailMessage.Bcc);
+            clonedMessage.ReplyToList.AddRange(mailMessage.ReplyToList);
+            clonedMessage.Attachments.AddRange(mailMessage.Attachments);
+            clonedMessage.AlternateViews.AddRange(mailMessage.AlternateViews);
+
+            return clonedMessage;
         }
     }
 }

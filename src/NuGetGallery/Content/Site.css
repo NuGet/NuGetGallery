@@ -1347,6 +1347,10 @@ fieldset.form legend { display: none; }
     margin-bottom: 5px;
 }
 
+.form-field label.for-checkbox {
+    display: inline-block;
+}
+
 #form-field-register-policies {
     margin-bottom: 0;
 }

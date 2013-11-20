@@ -6,6 +6,7 @@ using System.Text;
 using System.Web;
 using AnglicanGeek.MarkdownMailer;
 using Elmah;
+using Glimpse.AspNet.AlternateType;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
@@ -25,8 +26,7 @@ namespace NuGetGallery
         {
             string subject = "[{GalleryOwnerName}] Support Request for '{Id}' version {Version} (Reason: {Reason})";
             subject = request.FillIn(subject, _config);
-
-            const string bodyTemplateUnauthenticated = @"
+            const string bodyTemplate = @"
 **Email:** {Name} ({Address})
 
 **Package:** {Id}
@@ -34,9 +34,8 @@ namespace NuGetGallery
 
 **Version:** {Version}
 {VersionUrl}
-
-**Owners:**
-{OwnerList}
+{OwnersTemplate}
+{UserTemplate}
 
 **Reason:**
 {Reason}
@@ -48,34 +47,6 @@ namespace NuGetGallery
 {Message}
 ";
 
-            const string bodyTemplateAuthenticated = @"
-**Email:** {Name} ({Address})
-
-**Package:** {Id}
-{PackageUrl}
-
-**Version:** {Version}
-{VersionUrl}
-
-**Owners:**
-{OwnerList}
-
-**User:** {Username} ({UserAddress})
-{UserUrl}
-
-**Reason:**
-{Reason}
-
-**Has the package owner been contacted?:**
-{AlreadyContactedOwners}
-
-**Message:**
-{Message}
-";
-
-            string bodyTemplate = request.RequestingUser != null ?
-                bodyTemplateAuthenticated :
-                bodyTemplateUnauthenticated;
 
             var body = new StringBuilder("");
             body.Append(request.FillIn(bodyTemplate, _config));
@@ -92,6 +63,23 @@ namespace NuGetGallery
                 mailMessage.To.Add(mailMessage.From);
                 SendMessage(mailMessage);
             }
+            if (request.CopySender)
+            {
+                body.Clear();
+                body.Append(request.FillIn(bodyTemplate, _config, true));
+                body.AppendFormat(CultureInfo.InvariantCulture, @"
+
+*Message sent from {0}*", _config.GalleryOwner.DisplayName);
+                using (var mailMessage = new MailMessage())
+                {
+                    mailMessage.Subject = subject;
+                    mailMessage.Body = body.ToString();
+                    mailMessage.From = _config.GalleryOwner;
+                    mailMessage.ReplyToList.Add(request.RequestingUser.EmailAddress);
+                    mailMessage.To.Add(request.RequestingUser.EmailAddress);
+                    SendMessage(mailMessage);
+                }
+            }
         }
 
         public void ReportMyPackage(ReportPackageRequest request)
@@ -107,12 +95,8 @@ namespace NuGetGallery
 
 **Version:** {Version}
 {VersionUrl}
-
-**Owners:**
-{OwnerList}
-
-**User:** {Username} ({UserAddress})
-{UserUrl}
+{OwnersTemplate}
+{UserTemplate}
 
 **Reason:**
 {Reason}
@@ -136,9 +120,26 @@ namespace NuGetGallery
                 mailMessage.To.Add(_config.GalleryOwner);
                 SendMessage(mailMessage);
             }
+            if (request.CopySender)
+            {
+                body.Clear();
+                body.Append(request.FillIn(bodyTemplate, _config, true));
+                body.AppendFormat(CultureInfo.InvariantCulture, @"
+
+*Message sent from {0}*", _config.GalleryOwner.DisplayName);
+                using (var mailMessage = new MailMessage())
+                {
+                    mailMessage.Subject = subject;
+                    mailMessage.Body = body.ToString();
+                    mailMessage.From = _config.GalleryOwner;
+                    mailMessage.ReplyToList.Add(request.RequestingUser.EmailAddress);
+                    mailMessage.To.Add(request.RequestingUser.EmailAddress);
+                    SendMessage(mailMessage);
+                }
+            }
         }
 
-        public void SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl)
+        public void SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl, bool copySender)
         {
             string subject = "[{0}] Message for owners of the package '{1}'";
             string body = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '{2}'._
@@ -171,9 +172,10 @@ namespace NuGetGallery
                 mailMessage.ReplyToList.Add(fromAddress);
 
                 AddOwnersToMailMessage(packageRegistration, mailMessage);
+
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage);
+                    SendMessage(mailMessage, copySender);
                 }
             }
         }
@@ -333,11 +335,20 @@ The {3} Team";
             }
         }
 
-        private void SendMessage(MailMessage mailMessage)
+        private void SendMessage(MailMessage mailMessage, bool copySender = false)
         {
             try
             {
                 _mailSender.Send(mailMessage);
+                if (copySender)
+                {
+                    mailMessage.Subject = "[Sender Copy] " + mailMessage.Subject;
+                    mailMessage.Body = string.Format("You sent the following message via {0}: {1}{1}{2}",
+                        _config.GalleryOwner.DisplayName, Environment.NewLine, mailMessage.Body);
+                    mailMessage.To.Clear();
+                    mailMessage.To.Add(mailMessage.ReplyToList.First());
+                    _mailSender.Send(mailMessage);
+                }
             }
             catch (SmtpException ex)
             {

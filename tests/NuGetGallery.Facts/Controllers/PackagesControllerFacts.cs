@@ -447,8 +447,9 @@ namespace NuGetGallery
                         It.IsAny<MailAddress>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<string>(),
-                        It.IsAny<string>()))
-                    .Callback<MailAddress, PackageRegistration, string, string>((_, __, msg, ___) => sentMessage = msg);
+                        It.IsAny<string>(),
+                        false))
+                    .Callback<MailAddress, PackageRegistration, string, string, bool>((_, __, msg, ___, ____) => sentMessage = msg);
                 var package = new PackageRegistration { Id = "factory" };
 
                 var packageService = new Mock<IPackageService>();
@@ -477,7 +478,7 @@ namespace NuGetGallery
                         It.IsAny<MailAddress>(),
                         It.IsAny<PackageRegistration>(),
                         "I like the cut of your jib",
-                        It.IsAny<string>()));
+                        It.IsAny<string>(), false));
                 var package = new PackageRegistration { Id = "factory" };
 
                 var packageService = new Mock<IPackageService>();
