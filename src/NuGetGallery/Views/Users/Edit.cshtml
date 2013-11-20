@@ -18,6 +18,20 @@
     }
 }
 
+@*@helper AccordianBar(string id, string title, string subtitle, Func<object, HelperResult> actions, Func<object, HelperResult> accordian) {
+    <li class="managecreds-cred">
+        <div class="managecreds-cred-actions">
+            @actions(null)
+        </div>
+        <span class="managecreds-cred-caption">
+            @title
+        </span>
+        @if(!String.IsNullOrEmpty(subtitle)) {
+            <span class="managecreds-cred-id">@cred.Identity</span>
+        }
+    </li>
+}*@
+
 <h1 class="page-heading">Edit Profile</h1>
 
 @Html.ValidationSummary(true)
