@@ -79,10 +79,6 @@ namespace NuGetGallery
 
         public void UpdatePackage(Package package)
         {
-            string id = package.PackageRegistration.Id;
-            string version = package.Version;
-            int key = package.Key;
-
             var packageRegistrationKey = package.PackageRegistrationKey;
             var updateTerm = new Term("PackageRegistrationKey", packageRegistrationKey.ToString(CultureInfo.InvariantCulture));
 

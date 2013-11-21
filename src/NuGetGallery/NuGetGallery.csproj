@@ -1136,13 +1136,9 @@
     <Content Include="Content\fontawesome\font-awesome.min.css" />
     <Content Include="Content\font\fontawesome-webfont.svg" />
     <Content Include="Content\Images\errorPage.png" />
-    <Content Include="Content\Images\editProfile.png" />
-    <Content Include="Content\Images\managePackages.png" />
     <Content Include="Content\Logos\outercurve.png" />
-    <Content Include="Content\Images\uploadPackage.png" />
     <Content Include="Content\Images\icons\nuget_32_mono_b.png" />
     <Content Include="Content\Images\icons\nuget_32_mono_w.png" />
-    <Content Include="Content\Images\outercurve.png" />
     <Content Include="Content\Images\YourPackage.png" />
     <Content Include="Content\Layout.css" />
     <Content Include="Content\PageStylings.css" />
@@ -1153,21 +1149,13 @@
     </Content>
     <Content Include="Content\Logos\herowithlogo.png" />
     <Content Include="Content\Images\inputBackground.png" />
-    <Content Include="Content\Images\invalidBG.png" />
-    <Content Include="Content\Images\mine.png" />
-    <Content Include="Content\Images\navbackground.png" />
-    <Content Include="Content\Images\newAccountGraphic.png" />
     <Content Include="Content\Logos\nugetlogo.png" />
     <Content Include="Content\Logos\nugetLogoFooter.png" />
-    <Content Include="Content\Images\hero.png" />
-    <Content Include="Content\Images\inputBackground.png" />
-    <Content Include="Content\Images\nugetlogo.png" />
     <Content Include="Content\Images\packageDefaultIcon-50x50.png" />
     <Content Include="Content\Images\packageDefaultIcon.png" />
     <Content Include="Content\Images\packageOwnerActionIcons.png" />
     <Content Include="Content\Images\required.png" />
     <Content Include="Content\Images\searchButton.png" />
-    <Content Include="Content\Images\sendMessageGraphic.png" />
     <Content Include="Content\SyntaxHighlighter\shCore.css" />
     <Content Include="Content\SyntaxHighlighter\shCoreDefault.css" />
     <Content Include="Content\SyntaxHighlighter\shCoreDjango.css" />
@@ -1329,7 +1317,6 @@
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
     <Content Include="Views\CuratedPackages\CreateCuratedPackageForm.cshtml" />
     <Content Include="Views\Users\ConfirmationRequired.cshtml" />
-    <Content Include="Views\Users\ChangeEmail.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="T4MVC.tt.settings.t4" />
     <Content Include="Views\Authentication\_SignIn.cshtml" />
@@ -1390,7 +1377,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Errors\ReadOnlyMode.cshtml" />
     <Content Include="Views\Errors\ReadOnlyMode.cshtml" />
     <Content Include="Areas\Admin\DynamicData\Site.master" />
     <Content Include="Areas\Admin\DynamicData\web.config">
