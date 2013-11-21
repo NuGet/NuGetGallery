@@ -5,7 +5,6 @@ using System.Linq;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
-using NuGetGallery.ViewModels;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Text.RegularExpressions;

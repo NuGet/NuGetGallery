@@ -5,7 +5,7 @@ using System.Web.Mvc;
 
 namespace NuGetGallery
 {
-    public partial class PagesController : Controller
+    public partial class PagesController : AppController
     {
         public IContentService ContentService { get; protected set; }
 

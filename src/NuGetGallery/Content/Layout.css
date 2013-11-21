@@ -172,6 +172,7 @@ nav.main ul a:hover {
     cursor: pointer;
     height: 27px;
     margin-left: 0;
+    box-shadow: none;
     
     text-indent: -9999px;
     vertical-align: bottom;

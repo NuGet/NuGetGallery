@@ -917,7 +917,7 @@
     </Compile>
     <Compile Include="Migrations\201310281909048_PackageStatistics.cs" />
     <Compile Include="Migrations\201310281909048_PackageStatistics.Designer.cs">
-        <DependentUpon>201310281909048_PackageStatistics.cs</DependentUpon>
+      <DependentUpon>201310281909048_PackageStatistics.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\201310301757446_RemoveOldCredentialColumns.cs" />
     <Compile Include="Migrations\201310301757446_RemoveOldCredentialColumns.Designer.cs">
@@ -1329,10 +1329,6 @@
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
     <Content Include="Views\CuratedPackages\CreateCuratedPackageForm.cshtml" />
     <Content Include="Views\Users\ConfirmationRequired.cshtml" />
-    <Content Include="Views\Authentication\_SignInForm.cshtml" />
-    <Content Include="Views\Authentication\_RegisterForm.cshtml" />
-    <Content Include="Views\Authentication\Register.cshtml" />
-    <Content Include="Views\Authentication\SignIn.cshtml" />
     <Content Include="Views\Users\ChangeEmail.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="T4MVC.tt.settings.t4" />
@@ -1379,7 +1375,7 @@
       <DependentUpon>201309172217450_CredentialsTable.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201310281909048_PackageStatistics.resx">
-        <DependentUpon>201310281909048_PackageStatistics.cs</DependentUpon>
+      <DependentUpon>201310281909048_PackageStatistics.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201310301757446_RemoveOldCredentialColumns.resx">
       <DependentUpon>201310301757446_RemoveOldCredentialColumns.cs</DependentUpon>

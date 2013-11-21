@@ -1,53 +1,6 @@
 ﻿/* This CSS file is a mixed bag of 'one-off' styles that help make some page or other look the way it does, 
    but shouldn't affect the overall site appearance */
 
-/* Sign-In / Register */
-
-div #SignIn {
-    float: left;
-    display: block;
-    margin-bottom: 50px;
-    width: 45%;
-}
-
-div #MiddleSeparator {
-    border-right: solid;
-    border-right-width: 1px;
-    float: left;
-    width: 4%;
-    margin-top: 100px;
-    height: 200px;
-}
-
-div #Register {
-    float: left;
-    margin-left: 5%;
-    margin-bottom: 50px;
-    width: 45%;
-}
-
-#form-field-register-policies {
-    margin-bottom: 0;
-}
-
-#form-field-register-policies label
-{
-    width: 300px;
-    display: inline-block;
-    vertical-align: middle;
-}
-
-#form-field-register-policies input
-{
-    display: inline;
-    vertical-align: middle;
-}
-
-#form-field-register-policies span.field-validation-error
-{
-    top: 0px;
-}
-
 /* Account/Actions */
 
 #actions h1 { font-size: 2em; }
@@ -415,4 +368,111 @@ form .async-upload-progress-advance
 #report-abuse-message
 {
     top: 4.6em;
+}
+
+/* Account Page */
+#account-accordian {
+    clear: both;
+}
+
+#account-apikeysample {
+    background-color: #202020;
+    border: 2px solid #c0c0c0;
+    color: #c0c0c0;
+    display: block;
+    font: 1.2em 'andale mono', 'lucida console', monospace;
+    line-height: 1.5em;
+    margin: 15px 0 0;
+    overflow: auto;
+    padding: 15px;
+}
+
+/* Sign-In / Register */
+#logon-separator {
+    text-align: center;
+    font-size: 2em;
+    clear: both;
+}
+
+#logon-external-info {
+    float: left;
+    width: 50%;
+}
+
+#signIn {
+    display: inline-block;
+    vertical-align: top;
+    width: 45%;
+    height: 100%;
+    margin-left: 5%;
+}
+
+    #signIn.signIn-solo {
+        margin: 0;
+        width: 100%;
+    }
+
+#signIn-solo-form {
+    width: 45%;
+}
+
+#signIn-lostpassword {
+    margin-top: 1em;
+}
+
+.externalaccount-form {
+    width: 45%;
+}
+
+#register {
+    /* Register form, as a "side-car", i.e. sharing space with the sign-in form */
+    height: 100%;
+    display: inline-block;
+    vertical-align: top;
+    width: 45%;
+    margin-right: 3%;
+}
+
+#register-form {
+    margin-bottom: 1em;
+}
+
+#register-policies {
+    background-color: #eff7fa;
+    border: solid 1px;
+    color: #52a4ca;
+    font-size: 1.3em;
+    padding: 10px;
+}
+
+#signin-providermessage {
+    margin-top: 1em;
+}
+
+ul#signin-providerlist {
+    padding: 0;
+    margin-top: 1em;
+    margin-left: 55%;
+}
+
+li.signin-authprovider {
+    font-size: 14pt;
+    list-style-type: none;
+    padding-bottom: 5px;
+    display: inline-block;
+}
+
+.btn.signin-external-link {
+    padding-right: 1.5em;
+}
+
+#signin-link {
+    text-align: left;
+}
+
+.signin-authprovider-icon {
+    font-size: 22pt;
+    margin: 0;
+    margin-left: 5px;
+    margin-right: 8px;
 }

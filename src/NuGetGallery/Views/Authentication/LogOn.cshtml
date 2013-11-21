@@ -55,15 +55,40 @@
     }
     else
     {
+        if (Model.Providers.Count > 0)
+        {
+            <div id="logon-external">
+                <h1>Sign in with a Microsoft account</h1>
+                <p id="logon-external-info">
+                    We recommend using a Microsoft account to log in to NuGet.org.
+                    If you already have a NuGet.org account, click the button to the right to associate it
+                    with your Microsoft account. If not, click the button anyway and we'll create a new NuGet.org 
+                    account for you!
+                </p>
+                <ul id="signin-providerlist">
+                    @foreach (var provider in Model.Providers)
+                    {
+                        <li class="signin-authprovider">
+                            <a class="btn btn-big signin-external-link" href="@Url.Action("Authenticate", new { provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey] })">
+                                <i class="@provider.UI.IconCssClass signin-authprovider-icon"></i>
+                                @provider.UI.SignInMessage
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+            <p id="logon-separator">&mdash; or &mdash;</p>
+        }
+        <h2>Sign in or register with a username and password</h2>
         <div id="register">
-            <h1>Register</h1>
+            <h3>Register</h3>
             @Html.Partial("_Register", Model)
         </div>
 
         <div class="verticalSeparator"></div>
         
         <div id="signIn">
-            <h1>Sign In</h1>
+            <h3>Sign in</h3>
             @Html.Partial("_SignIn", Model)
         </div>
     }

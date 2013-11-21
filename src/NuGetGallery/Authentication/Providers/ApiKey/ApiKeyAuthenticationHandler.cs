@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
@@ -45,8 +46,12 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 }
                 else
                 {
-                    // No API Key present
+                    // Keep the 401, but add the authentication information
                     WriteStatus(Strings.ApiKeyRequired, 401);
+                    Response.Headers.Append("WWW-Authenticate", String.Format(
+                        CultureInfo.InvariantCulture,
+                        "ApiKey realm=\"{0}\"",
+                        Request.Uri.Host));
                 }
             }
             else

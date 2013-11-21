@@ -196,7 +196,7 @@
     <value>User is not authorized</value>
   </data>
   <data name="MicrosoftAccount_SignInMessage" xml:space="preserve">
-    <value>Sign in with a Microsoft Account</value>
+    <value>Sign in with a Microsoft account</value>
   </data>
   <data name="MissingRequiredConfigurationValue" xml:space="preserve">
     <value>Missing required configuration value: '{0}'</value>
@@ -208,7 +208,7 @@
     <value>Your external account credential expired or you did not allow us access to your account. Try logging in again.</value>
   </data>
   <data name="MicrosoftAccount_AccountNoun" xml:space="preserve">
-    <value>Microsoft Account</value>
+    <value>Microsoft account</value>
   </data>
   <data name="CredentialType_ApiKey" xml:space="preserve">
     <value>API Key</value>
@@ -217,7 +217,7 @@
     <value>Password</value>
   </data>
   <data name="MicrosoftAccount_Caption" xml:space="preserve">
-    <value>Microsoft Account</value>
+    <value>Microsoft account</value>
   </data>
   <data name="ApiKeyReset" xml:space="preserve">
     <value>Your API Key has been reset, check the new value below.</value>

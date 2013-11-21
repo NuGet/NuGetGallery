@@ -35,25 +35,9 @@
         <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
 
 
-        <button class="btn btn-big signin-authprovider-link" type="submit" title="Sign in with a NuGet.org Account">
+        <button id="signin-link" class="btn btn-big" type="submit" title="Sign in with a NuGet.org Account">
             <i class="signin-authprovider-icon nucon-nuget-w"></i>
-            Sign in with a NuGet.org Account
+            Sign in with a NuGet.org account
         </button>
-
-        @if (Model.External == null && Model.Providers.Count > 0)
-        {
-            <h3 id="signin-providermessage">Or use an external account to sign in</h3>
-            <ul id="signin-providerlist">
-                @foreach (var provider in Model.Providers)
-                {
-                    <li class="signin-authprovider">
-                        <a class="btn btn-big signin-authprovider-link" href="@Url.Action("Authenticate", new { provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey] })">
-                            <i class="@provider.UI.IconCssClass signin-authprovider-icon"></i>
-                            @provider.UI.SignInMessage
-                        </a>
-                    </li>
-                }
-            </ul>
-        }
     </fieldset>
 }

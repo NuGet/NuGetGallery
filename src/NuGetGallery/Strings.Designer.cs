@@ -330,7 +330,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Microsoft Account.
+        ///   Looks up a localized string similar to Microsoft account.
         /// </summary>
         public static string MicrosoftAccount_AccountNoun {
             get {
@@ -339,7 +339,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Microsoft Account.
+        ///   Looks up a localized string similar to Microsoft account.
         /// </summary>
         public static string MicrosoftAccount_Caption {
             get {
@@ -348,7 +348,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sign in with a Microsoft Account.
+        ///   Looks up a localized string similar to Sign in with a Microsoft account.
         /// </summary>
         public static string MicrosoftAccount_SignInMessage {
             get {

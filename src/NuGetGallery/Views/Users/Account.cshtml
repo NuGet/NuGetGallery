@@ -236,7 +236,12 @@
     **************************@
     @AccordianBar(
         groupName: "editprofile",
-        title: @<text>Profile Picture</text>,
+        title: @<text>
+            Profile Picture
+            @if(!String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress)) {
+                @:(preview)
+            }
+        </text>,
         subtitle: @<text>@ViewHelpers.GravatarImage(currentEmailAddress, CurrentUser.Username, 32)</text>,
         actions: @<text>@item.ExpandLink("More Info", "Less Info")</text>,
         content: @<text>
@@ -250,8 +255,37 @@
             to get your profile picture.
             <a href="http://gravatar.com" target="_blank">Go to gravatar.com</a>
             to change your profile picture.
-        </text>)
+        </text>    )
 
+    @**************************
+        Curated Feeds
+    **************************@
+    @if (Model.CuratedFeeds.Any())
+    {
+        foreach (var curatedFeed in Model.CuratedFeeds)
+        {
+            @AccordianBar(
+                    groupName: "editprofile",
+                    title: "Curated Feed",
+                    subtitle: curatedFeed,
+                    actions: @<text>
+                        <a class="btn btn-inline" href="@Url.RouteUrl(RouteName.CuratedFeed, new { name = curatedFeed })">
+                            Manage
+                        </a>
+                    </text>)
+        }
+    }
+</ul>
+<h2>Credentials</h2>
+@if (hasPassword && credGroups.ContainsKey(CredentialKind.External) && credGroups[CredentialKind.External].Any())
+{
+    <p class="message">
+        Because you have a third-party account registered you can remove your password below and use
+        that account to sign in to NuGet.org. No more passwords to forget!
+    </p>
+}
+    
+<ul class="accordian">
     @**************************
         External Credentials
     **************************@
@@ -289,7 +323,7 @@
     **************************@
     @AccordianBar(
         groupName: "editprofile",
-        title: (hasPassword ? "Password" : "Password Login Disabled"),
+        title: (hasPassword ? "Password Login" : "Password Login Disabled"),
         enabled: hasPassword,
         formModelStatePrefix: "ChangePassword",
         actions: @<text>
@@ -369,7 +403,7 @@
                 <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
                         width="110"
                         height="14"
-                        id="clippy"
+                        class="s-reqflash"
                         aria-hidden="true"
                         role="presentation">
                     <param name="movie" value="@Url.Content("~/Content/clippy.swf")">
@@ -379,17 +413,17 @@
                     <param name="FlashVars" value="text=@apiKey.Value">
                     <param name="bgcolor" value="#eff7fa">
                     <embed src="@Url.Content("~/Content/clippy.swf")"
-                            width="110"
-                            height="14"
-                            aria-hidden="true"
-                            role="presentation"
-                            name="clippy"
-                            quality="high"
-                            allowscriptaccess="always"
-                            type="application/x-shockwave-flash"
-                            pluginspage="http://www.macromedia.com/go/getflashplayer"
-                            flashvars="text=@apiKey.Value"
-                            bgcolor="#eff7fa" />
+                           width="110"
+                           height="14"
+                           aria-hidden="true"
+                           role="presentation"
+                           name="clippy"
+                           quality="high"
+                           allowscriptaccess="always"
+                           type="application/x-shockwave-flash"
+                           pluginspage="http://www.macromedia.com/go/getflashplayer"
+                           flashvars="text=@apiKey.Value"
+                           bgcolor="#eff7fa" />
                 </object>
             }
         </text>,
@@ -443,7 +477,7 @@
                             <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
                                     width="110"
                                     height="14"
-                                    id="clippy"
+                                    class="s-reqflash"
                                     aria-hidden="true"
                                     role="presentation">
                                 <param name="movie" value="@Url.Content("~/Content/clippy.swf")">
@@ -471,23 +505,4 @@
                 </p>
             }
         </text>)
-
-    @**************************
-        Curated Feeds
-    **************************@
-    @if (Model.CuratedFeeds.Any())
-    {
-        foreach (var curatedFeed in Model.CuratedFeeds)
-        {
-            @AccordianBar(
-                groupName: "editprofile",
-                title: "Curated Feed",
-                subtitle: curatedFeed,
-                actions: @<text>
-                    <a class="btn btn-inline" href="@Url.RouteUrl(RouteName.CuratedFeed, new { name = curatedFeed })">
-                        Manage
-                    </a>
-                </text>)
-        }
-    }
 </ul>

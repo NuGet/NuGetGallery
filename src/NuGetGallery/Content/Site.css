@@ -230,12 +230,7 @@ nav, section {
     color: #ff9600;
 }
 
-/* Package Tags (on various pages) */
-
-#pageSearchBox #searchBoxInput { width: 265px; }
-
-
-    /* Logo */
+/* Logo */
 
 #logo {
     float: left;
@@ -904,16 +899,43 @@ fieldset.form {
         margin-bottom: 5px;
     }
 
-        .form-field input[data-val-required],
-        .form-field textarea[data-val-required] {
-            border-left: solid 5px #52a4ca;
+        .form-field label.checkbox {
+            display: inline;
         }
 
-        .form-field input[data-edited=true],
-        .form-field textarea[data-edited=true] {
-            border-left: solid 5px #2ef12e;
-            padding-left: 6px;
-        }
+    .form-field textarea,
+    .form-field input[type="email"],
+    .form-field input[type="text"],
+    .form-field input[type="file"],
+    .form-field input[type="url"],
+    .form-field input[type="password"] {
+        background: #fff url("../content/images/inputBackground.png") repeat-x;
+        border: solid 1px #ccc;
+        color: #7f8c7d;
+        font-size: 1.25em;
+        padding: 5px 0 5px 10px;
+        vertical-align: middle;
+        width: 400px;
+        /* This won't work in IE7, but it will only produce a minor layout quirk */
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+
+    .form-field.form-field-full input {
+        width: 100%;
+    }
+
+    .form-field input[data-val-required],
+    .form-field textarea[data-val-required] {
+        border-left: solid 5px #52a4ca;
+    }
+
+    .form-field input[data-edited=true],
+    .form-field textarea[data-edited=true] {
+        border-left: solid 5px #2ef12e;
+        padding-left: 6px;
+    }
 
 .form-field input[type="checkbox"] { border-left: none; }
 
@@ -925,8 +947,6 @@ fieldset.form {
     padding: 2px;
     margin: 0px 0px 10px 0;
 }
-
-
         .form-field select[data-edited=true] {
             border-left: solid 4px #2ef12e;
             padding-left: 0px;
@@ -1106,12 +1126,13 @@ button, input[type="submit"], .btn {
     margin-left: -3px !important;
 }
 
-/* Last Updated Timestamp (in various places)*/
-.last-updated
-{
 .clear-fix {
     clear: both;
 }
+
+/* Last Updated Timestamp (in various places)*/
+.last-updated
+{
     margin-top: 1em;
     clear: both;
     color: grey;
@@ -1164,29 +1185,6 @@ button, input[type="submit"], .btn {
     padding: 0.25em;
 }
 
-
-/* Sign In/Register */
-#signIn {
-    display: inline-block;
-    vertical-align: top;
-    width: 45%;
-    height: 100%;
-    margin-left: 5%;
-}
-
-    #signIn.signIn-solo {
-        margin: 0;
-        width: 100%;
-    }
-
-#signIn-solo-form {
-    width: 45%;
-}
-
-#signIn-lostpassword {
-    margin-top: 1em;
-}
-
 .verticalSeparator {
     display: inline-block;
     vertical-align: middle;
@@ -1196,61 +1194,6 @@ button, input[type="submit"], .btn {
     margin: 0;
     margin-top: 5%;
     margin-bottom: 5%;
-}
-
-.externalaccount-form {
-    width: 45%;
-}
-
-#register {
-    /* Register form, as a "side-car", i.e. sharing space with the sign-in form */
-    height: 100%;
-    display: inline-block;
-    vertical-align: top;
-    width: 45%;
-    margin-right: 3%;
-}
-
-#register-form {
-    margin-bottom: 1em;
-}
-
-#register-policies {
-    background-color: #eff7fa;
-    border: solid 1px;
-    color: #52a4ca;
-    font-size: 1.3em;
-    padding: 10px;
-}
-
-#signin-providermessage {
-    margin-top: 1em;
-}
-
-ul#signin-providerlist {
-    padding: 0;
-    margin-top: 1em;
-}
-
-li.signin-authprovider {
-    font-size: 14pt;
-    list-style-type: none;
-    padding-bottom: 5px;
-}
-
-.btn.signin-authprovider-link {
-    text-align: left;
-}
-
-a.signin-authprovider-link:hover {
-    text-decoration: none;
-}
-
-.signin-authprovider-icon {
-    font-size: 22pt;
-    margin: 0;
-    margin-left: 5px;
-    margin-right: 8px;
 }
 
 ul.actionlist {
@@ -1349,22 +1292,6 @@ ul.accordian {
             ul.accordian li.accordian-item.accordian-item-disabled .accordian-item-title, li.accordian-item-disabled .accordian-item-subtitle {
                 font-style: italic;
             }
-
-#account-accordian {
-    clear: both;
-}
-
-#account-apikeysample {
-    background-color: #202020;
-    border: 2px solid #c0c0c0;
-    color: #c0c0c0;
-    display: block;
-    font: 1.2em 'andale mono', 'lucida console', monospace;
-    line-height: 1.5em;
-    margin: 15px 0 0;
-    overflow: auto;
-    padding: 15px;
-}
 
 /* Script-related Classes */
 .s-hidden {
