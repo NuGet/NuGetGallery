@@ -175,10 +175,10 @@
             There is a newer prerelease version of this package available. See the version list below for details.
         </p>
     }
-    <hgroup class="page-heading">
+    <div class="package-page-heading">
         <h1>@Model.Title</h1>
         <h2>@Model.Version</h2>
-    </hgroup>
+    </div>
     @foreach (var line in Model.Description.ToStringSafe().Split('\n'))
     {
         <p>@line</p>

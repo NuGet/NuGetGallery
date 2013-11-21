@@ -19,6 +19,13 @@ namespace NuGetGallery
             return redirect;
         }
 
+        public static SafeRedirectResult IsSafeRedirectTo(ActionResult result, string expectedUrl)
+        {
+            var redirect = Assert.IsType<SafeRedirectResult>(result);
+            Assert.Equal(expectedUrl, redirect.Url);
+            return redirect;
+        }
+
         public static RedirectToRouteResult IsRedirectToRoute(ActionResult result, object expectedRouteData)
         {
             return IsRedirectToRoute(result, expectedRouteData, permanent: false);
@@ -111,6 +118,14 @@ namespace NuGetGallery
         public static EmptyResult IsEmpty(ActionResult result)
         {
             return Assert.IsType<EmptyResult>(result);
+        }
+
+        public static ChallengeResult IsChallengeResult(ActionResult result, string provider, string redirectUrl)
+        {
+            var challenge = Assert.IsType<ChallengeResult>(result);
+            Assert.Equal(redirectUrl, challenge.RedirectUri);
+            Assert.Equal(provider, challenge.LoginProvider);
+            return challenge;
         }
     }
 }

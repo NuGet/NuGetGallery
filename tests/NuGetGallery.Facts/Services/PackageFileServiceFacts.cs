@@ -44,7 +44,7 @@ namespace NuGetGallery
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 fileStorageSvc.Setup(x => x.DeleteFileAsync(Constants.PackagesFolderName, It.IsAny<string>()))
-                    .ReturnsAsync()
+                    .Completes()
                     .Verifiable();
 
                 await service.DeletePackageFileAsync("theId", "theVersion");
@@ -58,7 +58,7 @@ namespace NuGetGallery
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 fileStorageSvc.Setup(x => x.DeleteFileAsync(It.IsAny<string>(), BuildFileName("theId", "theVersion")))
-                    .ReturnsAsync()
+                    .Completes()
                     .Verifiable();
 
                 await service.DeletePackageFileAsync("theId", "theVersion");
@@ -123,7 +123,7 @@ namespace NuGetGallery
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), Constants.PackagesFolderName, It.IsAny<string>()))
-                    .ReturnsNull()
+                    .CompletesWithNull()
                     .Verifiable();
 
                 await service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), CreatePackage());
@@ -137,7 +137,7 @@ namespace NuGetGallery
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", "theNormalizedVersion")))
-                    .ReturnsNull()
+                    .CompletesWithNull()
                     .Verifiable();
 
                 await service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), CreatePackage());
@@ -153,7 +153,7 @@ namespace NuGetGallery
                 var packageRegistraion = new PackageRegistration { Id = "theId" };
                 var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01" };
                 fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", "1.1.1")))
-                    .ReturnsNull()
+                    .CompletesWithNull()
                     .Verifiable();
 
                 await service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), package);
@@ -167,7 +167,7 @@ namespace NuGetGallery
                 ActionResult fakeResult = new RedirectResult("http://aUrl");
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), It.IsAny<string>()))
-                    .ReturnsAsync(fakeResult);
+                    .CompletesWith(fakeResult);
                 
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
 
@@ -245,7 +245,7 @@ namespace NuGetGallery
                 var packageRegistraion = new PackageRegistration { Id = "theId" };
                 var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01" };
                 fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildFileName("theId", "1.1.1"), It.IsAny<Stream>()))
-                    .ReturnsAsync()
+                    .Completes()
                     .Verifiable();
 
                 await service.SavePackageFileAsync(package, CreatePackageFileStream());
@@ -259,7 +259,7 @@ namespace NuGetGallery
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 fileStorageSvc.Setup(x => x.SaveFileAsync(Constants.PackagesFolderName, It.IsAny<string>(), It.IsAny<Stream>()))
-                    .ReturnsAsync()
+                    .Completes()
                     .Verifiable();
 
                 await service.SavePackageFileAsync(CreatePackage(), CreatePackageFileStream());
@@ -273,7 +273,7 @@ namespace NuGetGallery
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildFileName("theId", "theNormalizedVersion"), It.IsAny<Stream>()))
-                    .ReturnsAsync()
+                    .Completes()
                     .Verifiable();
 
                 await service.SavePackageFileAsync(CreatePackage(), CreatePackageFileStream());
@@ -288,7 +288,7 @@ namespace NuGetGallery
                 var fakeStream = new MemoryStream();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), fakeStream))
-                    .ReturnsAsync()
+                    .Completes()
                     .Verifiable();
 
                 await service.SavePackageFileAsync(CreatePackage(), fakeStream);

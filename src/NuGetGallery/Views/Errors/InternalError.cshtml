@@ -1,0 +1,41 @@
+﻿@{
+    Page.Title = "Internal Server Error";
+    Response.StatusCode = 500;
+}
+
+<h2>
+    Sorry, an error occurred while processing your request.
+</h2>
+
+<div class="error-page">
+    <h1>Error: Oh no, we broke something!</h1>
+    <p>You might be here because:</p>
+    <ul>
+        <li>There is an error on our server and the server is &quot;given her all she's got, captain.&quot; </li>
+        <li>The system is down, the system is down, the system is down.</li>
+        <li>Our name is smalls.</li>
+    </ul>
+
+    <p>
+        We have logged the error and we will look into it, and make sure it doesn’t happen again. However if you keep 
+        seeing this page please file a bug in <a href="https://github.com/NuGet/NuGetGallery/issues">the 
+        @(Config.Current.Brand) issue tracker</a>.
+    </p>
+
+    <h2 class="search">Search For Something Else</h2>
+    <form action="~/packages" onsubmit="return submitQuery()">
+        <input name="q" id="searchBoxInput" value="" placeholder="Search Gallery" />
+        <input id="searchBoxSubmit" type="submit" value=" " />
+    </form>
+</div>
+
+@section BottomScripts {
+<script type="text/javascript">
+    function submitQuery() {
+        window.location = "@Href("~/packages")?q="
+            + encodeURIComponent($("#searchBoxInput").val());
+        return false;
+    }
+</script>
+
+}

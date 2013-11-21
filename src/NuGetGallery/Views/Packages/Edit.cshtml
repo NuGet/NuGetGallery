@@ -7,6 +7,9 @@
 }
 
 @Styles.Render("~/Content/font-awesome.css")
+<!--[if IE 7]>
+@Styles.Render("~/Content/font-awesome-ie7.min.css")
+<![endif]-->
 
 @section BottomScripts {
     @Scripts.Render("~/Scripts/jquery-ui-1.10.3.js")
@@ -229,7 +232,7 @@
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true)
 
-        <ul id="packageDetails" style="border-bottom: 1px solid gray; margin-bottom: 1em;">
+        <ul style="border-bottom: 1px solid gray; margin-bottom: 1em;">
         @if (Model.Edit != null)
         {
             <li>@EditableField(EditPackageVersionRequest.TitleStr, m => m.Edit.VersionTitle)</li>

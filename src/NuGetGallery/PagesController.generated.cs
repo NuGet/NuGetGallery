@@ -31,6 +31,11 @@ namespace NuGetGallery {
             return RedirectToRoute(callInfo.RouteValueDictionary);
         }
 
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult Page() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.Page);
+        }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public PagesController Actions { get { return MVC.Pages; } }
@@ -44,6 +49,7 @@ namespace NuGetGallery {
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
+            public readonly string Page = "Page";
             public readonly string Contact = "Contact";
         }
 
@@ -63,6 +69,12 @@ namespace NuGetGallery {
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
     public class T4MVC_PagesController: NuGetGallery.PagesController {
         public T4MVC_PagesController() : base(Dummy.Instance) { }
+
+        public override System.Web.Mvc.ActionResult Page(string pageName) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Page);
+            callInfo.RouteValueDictionary.Add("pageName", pageName);
+            return callInfo;
+        }
 
         public override System.Web.Mvc.ActionResult Contact() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Contact);

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
     public interface IUserService
     {
-        void UpdateProfile(User user, bool emailAllowed);
+        void ChangeEmailSubscription(User user, bool emailAllowed);
 
         User FindByEmailAddress(string emailAddress);
 
@@ -15,8 +16,8 @@ namespace NuGetGallery
 
         User FindByUsername(string username);
 
-        bool ConfirmEmailAddress(User user, string token);
+        Task<bool> ConfirmEmailAddress(User user, string token);
 
-        void ChangeEmailAddress(User user, string newEmailAddress);
+        Task ChangeEmailAddress(User user, string newEmailAddress);
     }
 }

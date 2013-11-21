@@ -50,6 +50,11 @@ namespace NuGetGallery.Configuration
         string FileStorageDirectory { get; set; }
 
         /// <summary>
+        /// Gets the site brand name i.e. 'NuGet Gallery' by default. Cobranding feature.
+        /// </summary>
+        string Brand { get; set; }
+
+        /// <summary>
         /// Gets the gallery owner name and email address
         /// </summary>
         MailAddress GalleryOwner { get; set; }
