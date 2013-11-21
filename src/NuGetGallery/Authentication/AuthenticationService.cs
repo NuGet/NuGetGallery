@@ -10,6 +10,10 @@ using Microsoft.Owin;
 using System.Security.Claims;
 using NuGetGallery.Configuration;
 using Microsoft.Owin.Security;
+using NuGetGallery.Authentication.Providers;
+using System.Web.Mvc;
+using System.Threading.Tasks;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery.Authentication
 {
@@ -17,18 +21,34 @@ namespace NuGetGallery.Authentication
     {
         public IEntitiesContext Entities { get; private set; }
         public IAppConfiguration Config { get; private set; }
+        public IDictionary<string, Authenticator> Authenticators { get; private set; }
+        public AuditingService Auditing { get; private set; }
+
         private IDiagnosticsSource Trace { get; set; }
 
-        protected AuthenticationService() { }
+        private readonly Dictionary<string, Func<string, string>> _credentialFormatters;
 
-        public AuthenticationService(IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics)
+        protected AuthenticationService()
+            : this(null, null, null, AuditingService.None, Enumerable.Empty<Authenticator>())
         {
-            Entities = entities;
-            Config = config;
-            Trace = diagnostics.SafeGetSource("AuthenticationService");
         }
 
-        public virtual AuthenticatedUser Authenticate(string userNameOrEmail, string password)
+        public AuthenticationService(IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics, AuditingService auditing, IEnumerable<Authenticator> providers)
+        {
+            _credentialFormatters = new Dictionary<string, Func<string, string>>(StringComparer.OrdinalIgnoreCase) {
+                { "password", _ => Strings.CredentialType_Password },
+                { "apikey", _ => Strings.CredentialType_ApiKey },
+                { "external", FormatExternalCredentialType }
+            };
+
+            Entities = entities;
+            Config = config;
+            Auditing = auditing;
+            Trace = diagnostics.SafeGetSource("AuthenticationService");
+            Authenticators = providers.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
+        }
+
+        public virtual async Task<AuthenticatedUser> Authenticate(string userNameOrEmail, string password)
         {
             using (Trace.Activity("Authenticate:" + userNameOrEmail))
             {
@@ -55,7 +75,7 @@ namespace NuGetGallery.Authentication
                     .ToList();
                 if (passwordCredentials.Count > 1 || !passwordCredentials.Any(c => String.Equals(c.Type, CredentialTypes.Password.Pbkdf2, StringComparison.OrdinalIgnoreCase)))
                 {
-                    MigrateCredentials(user, passwordCredentials, password);
+                    await MigrateCredentials(user, passwordCredentials, password);
                 }
 
                 // Return the result
@@ -87,16 +107,17 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public virtual void CreateSession(IOwinContext owinContext, User user, string authenticationType)
+        public virtual void CreateSession(IOwinContext owinContext, User user)
         {
             // Create a claims identity for the session
-            ClaimsIdentity identity = CreateIdentity(user, authenticationType);
+            ClaimsIdentity identity = CreateIdentity(user, AuthenticationTypes.LocalUser);
 
-            // Issue the session token
+            // Issue the session token and clean up the external token if present
             owinContext.Authentication.SignIn(identity);
+            owinContext.Authentication.SignOut(AuthenticationTypes.External);
         }
 
-        public virtual AuthenticatedUser Register(string username, string password, string emailAddress)
+        public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential)
         {
             var existingUser = Entities.Users
                 .FirstOrDefault(u => u.Username == username || u.EmailAddress == emailAddress);
@@ -112,37 +133,42 @@ namespace NuGetGallery.Authentication
                 }
             }
 
-            var hashedPassword = CryptographyService.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
-
             var apiKey = Guid.NewGuid();
             var newUser = new User(username)
             {
-                ApiKey = apiKey,
                 EmailAllowed = true,
                 UnconfirmedEmailAddress = emailAddress,
                 EmailConfirmationToken = CryptographyService.GenerateToken(),
-                HashedPassword = hashedPassword,
-                PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
                 CreatedUtc = DateTime.UtcNow
             };
 
             // Add a credential for the password and the API Key
-            var passCred = new Credential(CredentialTypes.Password.Pbkdf2, newUser.HashedPassword);
             newUser.Credentials.Add(CredentialBuilder.CreateV1ApiKey(apiKey));
-            newUser.Credentials.Add(passCred);
+            newUser.Credentials.Add(credential);
 
             if (!Config.ConfirmEmailAddresses)
             {
                 newUser.ConfirmEmailAddress();
             }
 
+            // Write an audit record
+            await Auditing.SaveAuditRecord(new UserAuditRecord(newUser, UserAuditAction.Registered));
+
             Entities.Users.Add(newUser);
             Entities.SaveChanges();
 
-            return new AuthenticatedUser(newUser, passCred);
+            return new AuthenticatedUser(newUser, credential);
         }
 
-        public virtual void ReplaceCredential(string username, Credential credential)
+        [Obsolete("Use Register(string, string, Credential) now")]
+        public virtual Task<AuthenticatedUser> Register(string username, string password, string emailAddress)
+        {
+            var hashedPassword = CryptographyService.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
+            var passCred = new Credential(CredentialTypes.Password.Pbkdf2, hashedPassword);
+            return Register(username, emailAddress, passCred);
+        }
+
+        public virtual Task ReplaceCredential(string username, Credential credential)
         {
             var user = Entities
                 .Users
@@ -152,16 +178,16 @@ namespace NuGetGallery.Authentication
             {
                 throw new InvalidOperationException(Strings.UserNotFound);
             }
-            ReplaceCredential(user, credential);
+            return ReplaceCredential(user, credential);
         }
 
-        public virtual void ReplaceCredential(User user, Credential credential)
+        public virtual async Task ReplaceCredential(User user, Credential credential)
         {
-            ReplaceCredentialInternal(user, credential);
+            await ReplaceCredentialInternal(user, credential);
             Entities.SaveChanges();
         }
 
-        public virtual bool ResetPasswordWithToken(string username, string token, string newPassword)
+        public virtual async Task<Credential> ResetPasswordWithToken(string username, string token, string newPassword)
         {
             if (String.IsNullOrEmpty(newPassword))
             {
@@ -180,33 +206,18 @@ namespace NuGetGallery.Authentication
                     throw new InvalidOperationException(Strings.UserIsNotYetConfirmed);
                 }
 
-                ReplaceCredentialInternal(user, CredentialBuilder.CreatePbkdf2Password(newPassword));
+                var cred = CredentialBuilder.CreatePbkdf2Password(newPassword);
+                await ReplaceCredentialInternal(user, cred);
                 user.PasswordResetToken = null;
                 user.PasswordResetTokenExpirationDate = null;
                 Entities.SaveChanges();
-                return true;
+                return cred;
             }
 
-            return false;
+            return null;
         }
 
-        public virtual bool ChangePassword(string username, string oldPassword, string newPassword)
-        {
-            // Review: If the old password is hashed using something other than PBKDF2, we end up making an extra db call that changes the old hash password.
-            // This operation is rare enough that I'm not inclined to change it.
-            var authUser = Authenticate(username, oldPassword);
-            if (authUser == null)
-            {
-                return false;
-            }
-
-            var cred = CredentialBuilder.CreatePbkdf2Password(newPassword);
-            ReplaceCredentialInternal(authUser.User, cred);
-            Entities.SaveChanges();
-            return true;
-        }
-
-        public virtual User GeneratePasswordResetToken(string usernameOrEmail, int expirationInMinutes)
+        public virtual async Task<User> GeneratePasswordResetToken(string usernameOrEmail, int expirationInMinutes)
         {
             if (String.IsNullOrEmpty(usernameOrEmail))
             {
@@ -217,11 +228,25 @@ namespace NuGetGallery.Authentication
                 throw new ArgumentException(
                     "Token expiration should give the user at least a minute to change their password", "expirationInMinutes");
             }
-
             var user = FindByUserNameOrEmail(usernameOrEmail);
             if (user == null)
             {
                 return null;
+            }
+            await GeneratePasswordResetToken(user, expirationInMinutes);
+            return user;
+        }
+
+        public virtual async Task GeneratePasswordResetToken(User user, int expirationInMinutes)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+            if (expirationInMinutes < 1)
+            {
+                throw new ArgumentException(
+                    "Token expiration should give the user at least a minute to change their password", "expirationInMinutes");
             }
 
             if (!user.Confirmed)
@@ -231,14 +256,144 @@ namespace NuGetGallery.Authentication
 
             if (!String.IsNullOrEmpty(user.PasswordResetToken) && !user.PasswordResetTokenExpirationDate.IsInThePast())
             {
-                return user;
+                return;
             }
 
             user.PasswordResetToken = CryptographyService.GenerateToken();
             user.PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMinutes(expirationInMinutes);
 
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.RequestedPasswordReset));
+
             Entities.SaveChanges();
-            return user;
+            return;
+        }
+
+        public virtual async Task<bool> ChangePassword(User user, string oldPassword, string newPassword)
+        {
+            var hasPassword = user.Credentials.Any(
+                c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
+            Credential _;
+            if (hasPassword && !ValidatePasswordCredential(user.Credentials, oldPassword, out _))
+            {
+                // Invalid old password!
+                return false;
+            }
+
+            // Replace/Set password credential
+            var cred = CredentialBuilder.CreatePbkdf2Password(newPassword);
+            await ReplaceCredentialInternal(user, cred);
+            Entities.SaveChanges();
+            return true;
+        }
+
+        public virtual ActionResult Challenge(string providerName, string redirectUrl)
+        {
+            Authenticator provider;
+            if (!Authenticators.TryGetValue(providerName, out provider))
+            {
+                throw new InvalidOperationException(String.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.UnknownAuthenticationProvider,
+                    providerName));
+            }
+            if (!provider.BaseConfig.Enabled)
+            {
+                throw new InvalidOperationException(String.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.AuthenticationProviderDisabled,
+                    providerName));
+            }
+
+            return provider.Challenge(redirectUrl);
+        }
+
+        public virtual async Task AddCredential(User user, Credential credential)
+        {
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.AddedCredential, credential));
+            user.Credentials.Add(credential);
+            Entities.SaveChanges();
+        }
+
+        public virtual CredentialViewModel DescribeCredential(Credential credential)
+        {
+            var kind = GetCredentialKind(credential.Type);
+            Authenticator auther = null;
+            if (kind == CredentialKind.External)
+            {
+                string providerName = credential.Type.Split('.')[1];
+                if (!Authenticators.TryGetValue(providerName, out auther))
+                {
+                    auther = null;
+                }
+            }
+
+            return new CredentialViewModel()
+            {
+                Type = credential.Type,
+                TypeCaption = FormatCredentialType(credential.Type),
+                Identity = credential.Identity,
+                Value = kind == CredentialKind.Token ? credential.Value : String.Empty,
+                Kind = kind,
+                AuthUI = auther == null ? null : auther.GetUI()
+            };
+        }
+
+        public virtual async Task RemoveCredential(User user, Credential cred)
+        {
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.RemovedCredential, cred));
+            user.Credentials.Remove(cred);
+            Entities.Credentials.Remove(cred);
+            Entities.SaveChanges();
+        }
+
+        public async virtual Task<AuthenticateExternalLoginResult> ReadExternalLoginCredential(IOwinContext context)
+        {
+            var result = await context.Authentication.AuthenticateAsync(AuthenticationTypes.External);
+            if (result == null)
+            {
+                Trace.Information("No external login found.");
+                return new AuthenticateExternalLoginResult();
+            }
+            var idClaim = result.Identity.FindFirst(ClaimTypes.NameIdentifier);
+            if (idClaim == null)
+            {
+                Trace.Error("External Authentication is missing required claim: " + ClaimTypes.NameIdentifier);
+                return new AuthenticateExternalLoginResult();
+            }
+            
+            var nameClaim = result.Identity.FindFirst(ClaimTypes.Name);
+            if (nameClaim == null)
+            {
+                Trace.Error("External Authentication is missing required claim: " + ClaimTypes.Name);
+                return new AuthenticateExternalLoginResult();
+            }
+
+            Authenticator auther;
+            if (!Authenticators.TryGetValue(idClaim.Issuer, out auther))
+            {
+                auther = null;
+            }
+
+            return new AuthenticateExternalLoginResult()
+            {
+                Authentication = null,
+                ExternalIdentity = result.Identity,
+                Authenticator = auther,
+                Credential = CredentialBuilder.CreateExternalCredential(idClaim.Issuer, idClaim.Value, nameClaim.Value)
+            };
+        }
+
+        public async virtual Task<AuthenticateExternalLoginResult> AuthenticateExternalLogin(IOwinContext context)
+        {
+            var result = await ReadExternalLoginCredential(context);
+
+            // Authenticate!
+            if (result.Credential != null)
+            {
+                result.Authentication = Authenticate(result.Credential);
+            }
+
+            return result;
         }
 
         public static ClaimsIdentity CreateIdentity(User user, string authenticationType, params Claim[] additionalClaims)
@@ -264,23 +419,74 @@ namespace NuGetGallery.Authentication
             return identity;
         }
 
-        private void ReplaceCredentialInternal(User user, Credential credential)
+        private async Task ReplaceCredentialInternal(User user, Credential credential)
         {
             // Find the credentials we're replacing, if any
-            var creds = user.Credentials
+            var toRemove = user.Credentials
                 .Where(cred =>
                     // If we're replacing a password credential, remove ALL password credentials
                     (credential.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase) &&
                      cred.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase)) ||
                     cred.Type == credential.Type)
                 .ToList();
-            foreach (var cred in creds)
+            foreach (var cred in toRemove)
             {
                 user.Credentials.Remove(cred);
                 Entities.DeleteOnCommit(cred);
             }
 
+            if (toRemove.Any())
+            {
+                await Auditing.SaveAuditRecord(new UserAuditRecord(
+                    user, UserAuditAction.RemovedCredential, toRemove));
+            }
+
             user.Credentials.Add(credential);
+
+            await Auditing.SaveAuditRecord(new UserAuditRecord(
+                user, UserAuditAction.AddedCredential, credential));
+        }
+
+        private static CredentialKind GetCredentialKind(string type)
+        {
+            if (type.StartsWith("apikey", StringComparison.OrdinalIgnoreCase))
+            {
+                return CredentialKind.Token;
+            }
+            else if (type.StartsWith("password", StringComparison.OrdinalIgnoreCase))
+            {
+                return CredentialKind.Password;
+            }
+            return CredentialKind.External;
+        }
+
+        private string FormatCredentialType(string credentialType)
+        {
+            string[] splitted = credentialType.Split('.');
+            if (splitted.Length < 2)
+            {
+                return credentialType;
+            }
+            string prefix = splitted[0];
+            string subtype = credentialType.Substring(splitted[0].Length + 1);
+
+            Func<string, string> formatter;
+            if (!_credentialFormatters.TryGetValue(prefix, out formatter))
+            {
+                return credentialType;
+            }
+            return formatter(subtype);
+        }
+
+        private string FormatExternalCredentialType(string externalType)
+        {
+            Authenticator auther;
+            if (!Authenticators.TryGetValue(externalType, out auther))
+            {
+                return externalType;
+            }
+            var ui = auther.GetUI();
+            return ui == null ? auther.Name : ui.Caption;
         }
 
         private Credential FindMatchingCredential(Credential credential)
@@ -362,7 +568,7 @@ namespace NuGetGallery.Authentication
             return validator(password, cred);
         }
 
-        private void MigrateCredentials(User user, List<Credential> creds, string password)
+        private async Task MigrateCredentials(User user, List<Credential> creds, string password)
         {
             var toRemove = creds.Where(c =>
                 !String.Equals(
@@ -378,15 +584,26 @@ namespace NuGetGallery.Authentication
                 user.Credentials.Remove(cred);
                 Entities.DeleteOnCommit(cred);
             }
-
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.RemovedCredential, toRemove));
+                
             // Now add one if there are no credentials left
             if (creds.Count == 0)
             {
-                user.Credentials.Add(CredentialBuilder.CreatePbkdf2Password(password));
+                var newCred = CredentialBuilder.CreatePbkdf2Password(password);
+                await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.AddedCredential, newCred));
+                user.Credentials.Add(newCred);
             }
 
             // Save changes, if any
             Entities.SaveChanges();
         }
+    }
+
+    public class AuthenticateExternalLoginResult
+    {
+        public AuthenticatedUser Authentication { get; set; }
+        public ClaimsIdentity ExternalIdentity { get; set; }
+        public Authenticator Authenticator { get; set; }
+        public Credential Credential { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
@@ -61,6 +62,7 @@ namespace NuGetGallery.Framework
         {
             return new User(userName)
             {
+                UnconfirmedEmailAddress = "un@confirmed.com",
                 Credentials = new List<Credential>(credentials)
             };
         }
@@ -118,7 +120,7 @@ namespace NuGetGallery.Framework
         public static Mock<OwinMiddleware> CreateOwinMiddleware()
         {
             var middleware = new Mock<OwinMiddleware>(new object[] { null });
-            middleware.Setup(m => m.Invoke(It.IsAny<OwinContext>())).ReturnsAsync();
+            middleware.Setup(m => m.Invoke(It.IsAny<OwinContext>())).Completes();
             return middleware;
         }
     }

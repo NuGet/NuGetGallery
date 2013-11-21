@@ -170,20 +170,24 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Data.Services.Client.5.5.0\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Owin">
-      <HintPath>..\..\packages\Microsoft.Owin.2.0.0-rc1\lib\net45\Microsoft.Owin.dll</HintPath>
+    <Reference Include="Microsoft.Owin, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.Owin.2.0.0\lib\net45\Microsoft.Owin.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Owin.Diagnostics">
-      <HintPath>..\..\packages\Microsoft.Owin.Diagnostics.2.0.0-rc1\lib\net40\Microsoft.Owin.Diagnostics.dll</HintPath>
+    <Reference Include="Microsoft.Owin.Host.SystemWeb, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.Owin.Host.SystemWeb.2.0.0\lib\net45\Microsoft.Owin.Host.SystemWeb.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Owin.Host.SystemWeb">
-      <HintPath>..\..\packages\Microsoft.Owin.Host.SystemWeb.2.0.0-rc1\lib\net45\Microsoft.Owin.Host.SystemWeb.dll</HintPath>
+    <Reference Include="Microsoft.Owin.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.Owin.Security.2.0.0\lib\net45\Microsoft.Owin.Security.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Owin.Security">
-      <HintPath>..\..\packages\Microsoft.Owin.Security.2.0.0-rc1\lib\net45\Microsoft.Owin.Security.dll</HintPath>
+    <Reference Include="Microsoft.Owin.Security.Cookies, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.Owin.Security.Cookies.2.0.0\lib\net45\Microsoft.Owin.Security.Cookies.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Owin.Security.Cookies">
-      <HintPath>..\..\packages\Microsoft.Owin.Security.Cookies.2.0.0-rc1\lib\net45\Microsoft.Owin.Security.Cookies.dll</HintPath>
+    <Reference Include="Microsoft.Owin.Security.MicrosoftAccount">
+      <HintPath>..\..\packages\Microsoft.Owin.Security.MicrosoftAccount.2.0.0\lib\net45\Microsoft.Owin.Security.MicrosoftAccount.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Web.DistributedCache, Version=101.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\WindowsAzure.Caching.1.7.0.0\lib\net35-full\Microsoft.Web.DistributedCache.dll</HintPath>
@@ -261,6 +265,7 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data.Entity" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.ServiceModel.Activation" />
@@ -354,15 +359,24 @@
     <Compile Include="Areas\Admin\Models\LuceneInfoModel.cs" />
     <Compile Include="Areas\Admin\Controllers\ConfigController.cs" />
     <Compile Include="Areas\Admin\ViewModels\ConfigViewModel.cs" />
-    <Compile Include="Authentication\ApiKeyAuthenticationExtensions.cs" />
-    <Compile Include="Authentication\ApiKeyAuthenticationHandler.cs" />
-    <Compile Include="Authentication\ApiKeyAuthenticationMiddleware.cs" />
-    <Compile Include="Authentication\ApiKeyAuthenticationOptions.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationExtensions.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandler.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationMiddleware.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationOptions.cs" />
     <Compile Include="Authentication\AuthenticatedUser.cs" />
     <Compile Include="Authentication\AuthenticationService.cs" />
     <Compile Include="Authentication\AuthenticationTypes.cs" />
+    <Compile Include="Authentication\AuthNinjectModule.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
     <Compile Include="Authentication\ForceSslWhenAuthenticatedMiddleware.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticator.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticatorConfiguration.cs" />
+    <Compile Include="Authentication\Providers\Authenticator.cs" />
+    <Compile Include="Authentication\Providers\AuthenticatorConfiguration.cs" />
+    <Compile Include="Authentication\Providers\AuthenticatorUI.cs" />
+    <Compile Include="Authentication\Providers\LocalUser\LocalUserAuthenticator.cs" />
+    <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticator.cs" />
+    <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticatorConfiguration.cs" />
     <Compile Include="Configuration\ConfigurationService.cs" />
     <Compile Include="Configuration\FeatureConfiguration.cs" />
     <Compile Include="Configuration\LuceneIndexLocation.cs" />
@@ -665,13 +679,13 @@
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Filters\RequiresAccountConfirmationAttribute.cs" />
+    <Compile Include="Helpers\AccordianHelper.cs" />
     <Compile Include="Helpers\HttpContextBaseExtensions.cs" />
     <Compile Include="Helpers\EnumHelper.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\HtmlExtensions.cs" />
     <Compile Include="Helpers\PackageHelper.cs" />
     <Compile Include="Helpers\QuietLog.cs" />
-    <Compile Include="Helpers\RedirectHelper.cs" />
     <Compile Include="Helpers\StringHelper.cs" />
     <Compile Include="Helpers\StatisticsHelper.cs" />
     <Compile Include="Helpers\TreeView.cs" />
@@ -679,12 +693,14 @@
     <Compile Include="Infrastructure\AntiForgeryErrorFilter.cs" />
     <Compile Include="Infrastructure\ApplicationVersionHelper.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
+    <Compile Include="Infrastructure\ChallengeResult.cs" />
     <Compile Include="Infrastructure\CredentialBuilder.cs" />
     <Compile Include="Infrastructure\MandatoryAttribute.cs" />
     <Compile Include="Infrastructure\NotEqualAttribute.cs" />
     <Compile Include="Infrastructure\PackageIndexEntity.cs" />
     <Compile Include="Infrastructure\PrincipalExtensions.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
+    <Compile Include="Infrastructure\SafeRedirectResult.cs" />
     <Compile Include="Infrastructure\StatisticsReport.cs" />
     <Compile Include="Infrastructure\SubtextAttribute.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
@@ -901,7 +917,15 @@
     </Compile>
     <Compile Include="Migrations\201310281909048_PackageStatistics.cs" />
     <Compile Include="Migrations\201310281909048_PackageStatistics.Designer.cs">
-      <DependentUpon>201310281909048_PackageStatistics.cs</DependentUpon>
+        <DependentUpon>201310281909048_PackageStatistics.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201310301757446_RemoveOldCredentialColumns.cs" />
+    <Compile Include="Migrations\201310301757446_RemoveOldCredentialColumns.Designer.cs">
+      <DependentUpon>201310301757446_RemoveOldCredentialColumns.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201310301947399_AddCredentialDescriptionColumn.cs" />
+    <Compile Include="Migrations\201310301947399_AddCredentialDescriptionColumn.Designer.cs">
+      <DependentUpon>201310301947399_AddCredentialDescriptionColumn.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -919,12 +943,10 @@
     </Compile>
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
-    <Compile Include="RequestModels\ChangeEmailRequestModel.cs" />
     <Compile Include="RequestModels\EditPackageRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
-    <Compile Include="RequestModels\SignInOrRegisterRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
@@ -979,8 +1001,8 @@
     <Compile Include="UsersController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
-    <Compile Include="ViewModels\AccountViewModel.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />
+    <Compile Include="ViewModels\LogOnViewModel.cs" />
     <Compile Include="ViewModels\StatisticsMonthlyUsageItem.cs" />
     <Compile Include="ViewModels\StatisticsNuGetUsageItem.cs" />
     <Compile Include="ViewModels\StatisticsFact.cs" />
@@ -989,7 +1011,7 @@
     <Compile Include="ViewModels\StatisticsPackagesReport.cs" />
     <Compile Include="ViewModels\CuratedFeedViewModel.cs" />
     <Compile Include="ViewModels\DependencySetsViewModel.cs" />
-    <Compile Include="ViewModels\EditProfileViewModel.cs" />
+    <Compile Include="ViewModels\AccountViewModel.cs" />
     <Compile Include="ViewModels\ConfirmationViewModel.cs" />
     <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
     <Compile Include="ViewModels\StatisticsPackagesItemViewModel.cs" />
@@ -1005,7 +1027,6 @@
     <Compile Include="Services\Extensions.cs" />
     <Compile Include="Services\IMessageService.cs" />
     <Compile Include="Services\MessageService.cs" />
-    <Compile Include="ViewModels\PasswordChangeViewModel.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
     <Compile Include="ViewModels\PasswordResetViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageOwnersViewModel.cs" />
@@ -1035,8 +1056,6 @@
     </Compile>
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RequestModels\SignInRequest.cs" />
-    <Compile Include="RequestModels\RegisterRequest.cs" />
     <Compile Include="RequestModels\SubmitPackageRequest.cs" />
     <Compile Include="RouteNames.cs" />
     <Compile Include="UrlExtensions.cs" />
@@ -1112,24 +1131,22 @@
     <Content Include="Areas\Admin\DynamicData\Site.css" />
     <Content Include="Public\clientaccesspolicy.xml" />
     <Content Include="Content\clippy.swf" />
-    <Content Include="Content\font-awesome-ie7.min.css" />
-    <Content Include="Content\font-awesome.css" />
-    <Content Include="Content\font-awesome.min.css" />
+    <Content Include="Content\fontawesome\font-awesome-ie7.min.css" />
+    <Content Include="Content\fontawesome\font-awesome.css" />
+    <Content Include="Content\fontawesome\font-awesome.min.css" />
     <Content Include="Content\font\fontawesome-webfont.svg" />
-    <Content Include="Content\Images\changePassword.png" />
-    <Content Include="Content\Images\copy.png" />
     <Content Include="Content\Images\errorPage.png" />
     <Content Include="Content\Images\editProfile.png" />
     <Content Include="Content\Images\managePackages.png" />
     <Content Include="Content\Logos\outercurve.png" />
     <Content Include="Content\Images\uploadPackage.png" />
+    <Content Include="Content\Images\icons\nuget_32_mono_b.png" />
+    <Content Include="Content\Images\icons\nuget_32_mono_w.png" />
+    <Content Include="Content\Images\outercurve.png" />
     <Content Include="Content\Images\YourPackage.png" />
     <Content Include="Content\Layout.css" />
     <Content Include="Content\PageStylings.css" />
     <Content Include="Content\Site.css" />
-    <Content Include="Content\Images\download.png" />
-    <Content Include="Content\Images\editIcon.png" />
-    <Content Include="Content\Images\greenArrow.png" />
     <Content Include="Content\Images\headerbackground.png" />
     <Content Include="Content\Logos\hero.png">
       <BrowseToURL>hero.png</BrowseToURL>
@@ -1142,19 +1159,14 @@
     <Content Include="Content\Images\newAccountGraphic.png" />
     <Content Include="Content\Logos\nugetlogo.png" />
     <Content Include="Content\Logos\nugetLogoFooter.png" />
+    <Content Include="Content\Images\hero.png" />
+    <Content Include="Content\Images\inputBackground.png" />
+    <Content Include="Content\Images\nugetlogo.png" />
     <Content Include="Content\Images\packageDefaultIcon-50x50.png" />
     <Content Include="Content\Images\packageDefaultIcon.png" />
     <Content Include="Content\Images\packageOwnerActionIcons.png" />
-    <Content Include="Content\Images\packagesDefaultIcon.png" />
-    <Content Include="Content\Images\recommended.png" />
-    <Content Include="Content\Images\recommendedSmall.png" />
     <Content Include="Content\Images\required.png" />
     <Content Include="Content\Images\searchButton.png" />
-    <Content Include="Content\Images\trash.png" />
-    <Content Include="Content\Images\userGraphic.png" />
-    <Content Include="Content\Images\userIcon.png" />
-    <Content Include="Content\Images\userIconWhite.png" />
-    <Content Include="Content\Images\xmark.png" />
     <Content Include="Content\Images\sendMessageGraphic.png" />
     <Content Include="Content\SyntaxHighlighter\shCore.css" />
     <Content Include="Content\SyntaxHighlighter\shCoreDefault.css" />
@@ -1299,15 +1311,13 @@
     <Content Include="Views\Shared\EditorTemplates\Object.cshtml" />
     <Content Include="Views\Shared\Layout.cshtml" />
     <Content Include="Views\Shared\UserDisplay.cshtml" />
-    <Content Include="Views\Users\Account.cshtml" />
     <Content Include="Views\Users\Packages.cshtml" />
     <Content Include="App_Code\ViewHelpers.cshtml" />
-    <Content Include="Views\Users\ChangePassword.cshtml" />
     <Content Include="Views\Users\PasswordChanged.cshtml" />
     <Content Include="Views\Users\ForgotPassword.cshtml" />
     <Content Include="Views\Users\PasswordSent.cshtml" />
     <Content Include="Views\Users\ResetPassword.cshtml" />
-    <Content Include="Views\Users\Edit.cshtml" />
+    <Content Include="Views\Users\Account.cshtml" />
     <Content Include="Views\Packages\Download.cshtml" />
     <Content Include="Views\Packages\ConfirmOwner.cshtml" />
     <Content Include="Views\Errors\NotFound.cshtml" />
@@ -1326,6 +1336,8 @@
     <Content Include="Views\Users\ChangeEmail.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="T4MVC.tt.settings.t4" />
+    <Content Include="Views\Authentication\_SignIn.cshtml" />
+    <Content Include="Views\Authentication\_Register.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config">
@@ -1367,7 +1379,13 @@
       <DependentUpon>201309172217450_CredentialsTable.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201310281909048_PackageStatistics.resx">
-      <DependentUpon>201310281909048_PackageStatistics.cs</DependentUpon>
+        <DependentUpon>201310281909048_PackageStatistics.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201310301757446_RemoveOldCredentialColumns.resx">
+      <DependentUpon>201310301757446_RemoveOldCredentialColumns.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201310301947399_AddCredentialDescriptionColumn.resx">
+      <DependentUpon>201310301947399_AddCredentialDescriptionColumn.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

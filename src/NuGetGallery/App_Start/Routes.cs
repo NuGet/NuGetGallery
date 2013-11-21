@@ -130,6 +130,16 @@ namespace NuGetGallery
                     "Users/Account/ChallengeEmail")).To(confirmationRequiredRoute);
 
             routes.MapRoute(
+                RouteName.ExternalAuthenticationCallback,
+                "users/account/authenticate/return",
+                new { controller = MVC.Authentication.Name, action = "LinkExternalAccount" });
+
+            routes.MapRoute(
+                RouteName.ExternalAuthentication,
+                "users/account/authenticate/{provider}",
+                new { controller = MVC.Authentication.Name, action = MVC.Authentication.ActionNames.Authenticate });
+
+            routes.MapRoute(
                 RouteName.Authentication,
                 "users/account/{action}",
                 new { controller = MVC.Authentication.Name });
@@ -142,12 +152,42 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.LegacyRegister,
                 "account/register",
-                new { controller = MVC.Authentication.Name, action = MVC.Authentication.ActionNames.Register });
+                new { controller = MVC.Authentication.Name, action = "Register" });
+
+            routes.MapRoute(
+                RouteName.RemovePassword,
+                "account/RemoveCredential/password",
+                new { controller = MVC.Users.Name, action = "RemovePassword" });
+
+            routes.MapRoute(
+                RouteName.RemoveCredential,
+                "account/RemoveCredential/{credentialType}",
+                new { controller = MVC.Users.Name, action = "RemoveCredential" });
 
             routes.MapRoute(
                 RouteName.PasswordReset,
-                "account/{action}/{username}/{token}",
-                MVC.Users.ResetPassword());
+                "account/forgotpassword/{username}/{token}",
+                MVC.Users.ResetPassword(forgot: true));
+
+            routes.MapRoute(
+                RouteName.PasswordSet,
+                "account/setpassword/{username}/{token}",
+                MVC.Users.ResetPassword(forgot: false));
+
+            routes.MapRoute(
+                RouteName.ConfirmAccount,
+                "account/confirm/{username}/{token}",
+                new { controller = MVC.Users.Name, action = "Confirm" });
+
+            routes.MapRoute(
+                RouteName.SubscribeToEmails,
+                "account/subscribe",
+                MVC.Users.ChangeEmailSubscription(true));
+
+            routes.MapRoute(
+                RouteName.UnsubscribeFromEmails,
+                "account/unsubscribe",
+                MVC.Users.ChangeEmailSubscription(false));
 
             routes.MapRoute(
                 RouteName.Account,

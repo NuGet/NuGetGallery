@@ -1,4 +1,5 @@
-﻿namespace NuGetGallery
+﻿using System.Collections.Generic;
+namespace NuGetGallery
 {
     public static class Constants
     {
@@ -35,7 +36,7 @@
         public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";
         public const string UrlValidationErrorMessage = "This doesn't appear to be a valid HTTP/HTTPS URL";
 
-        public static readonly string ApiKeyHeaderName = "X-NuGet-ApiKey";
+        internal const string ApiKeyHeaderName = "X-NuGet-ApiKey";
         public static readonly string ReturnUrlParameterName = "ReturnUrl";
         public static readonly string CurrentUserOwinEnvironmentKey = "nuget.user";
 
@@ -46,16 +47,5 @@
             public static readonly string TermsOfUse = "Terms-Of-Use";
             public static readonly string PrivacyPolicy = "Privacy-Policy";
         }
-    }
-
-    public static class CredentialTypes
-    {
-        public static class Password
-        {
-            public static readonly string Prefix = "password.";
-            public static readonly string Pbkdf2 = Prefix + "pbkdf2";
-            public static readonly string Sha1 = Prefix + "sha1";
-        }
-        public static readonly string ApiKeyV1 = "apikey.v1";
     }
 }

@@ -142,6 +142,7 @@ namespace NuGetGallery
                     "Site.css",
                     "Layout.css",
                     "PageStylings.css",
+                    "fontawesome/font-awesome.css"
                 })
             {
                 stylesBundle = stylesBundle.Include("~/Content/" + filename);
