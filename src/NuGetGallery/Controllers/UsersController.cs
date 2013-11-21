@@ -35,19 +35,6 @@ namespace NuGetGallery
             AuthService = authService;
         }
 
-        [Authorize]
-        public virtual ActionResult Account()
-        {
-            var user = GetCurrentUser();
-            var curatedFeeds = CuratedFeedService.GetFeedsForManager(user.Key);
-            return View(
-                new AccountViewModel
-                    {
-                        IsConfirmed = user.Confirmed,
-                        CuratedFeeds = curatedFeeds.Select(cf => cf.Name)
-                    });
-        }
-
         [HttpGet]
         [Authorize]
         public virtual ActionResult ConfirmationRequired()
@@ -68,7 +55,7 @@ namespace NuGetGallery
         {
             User user = GetCurrentUser();
             var confirmationUrl = Url.ConfirmationUrl(
-                MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
+                "Confirm", "Users", user.Username, user.EmailConfirmationToken);
 
             MessageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
 
@@ -82,9 +69,9 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        public virtual ActionResult Edit()
+        public virtual ActionResult Account()
         {
-            return EditProfileView(new EditProfileViewModel());
+            return AccountView(new AccountViewModel());
         }
 
         [Authorize]
@@ -100,7 +87,7 @@ namespace NuGetGallery
 
             UserService.ChangeEmailSubscription(user, subscribe);
             TempData["Message"] = Strings.EmailPreferencesUpdated;
-            return RedirectToAction("Edit");
+            return RedirectToAction("Account");
         }
 
         public virtual ActionResult Thanks()
@@ -210,7 +197,7 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        public virtual ActionResult Confirm(string username, string token)
+        public virtual async Task<ActionResult> Confirm(string username, string token)
         {
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
@@ -236,7 +223,7 @@ namespace NuGetGallery
 
             try
             {
-                if (!UserService.ConfirmEmailAddress(user, token))
+                if (!(await UserService.ConfirmEmailAddress(user, token)))
                 {
                     model.SuccessfulConfirmation = false;
                 }
@@ -288,71 +275,68 @@ namespace NuGetGallery
             return View(model);
         }
 
-        [Authorize]
-        public virtual ActionResult ChangeEmail()
-        {
-            User user = UserService.FindByUsername(User.Identity.Name);
-            var model = new ChangeEmailRequestModel
-            {
-                NewEmail = String.IsNullOrEmpty(user.UnconfirmedEmailAddress) ?
-                    user.EmailAddress : user.UnconfirmedEmailAddress
-            };
-            return View(model);
-        }
-
         [HttpPost]
         [Authorize]
-        public virtual async Task<ActionResult> ChangeEmail(ChangeEmailRequestModel model)
+        public virtual async Task<ActionResult> ChangeEmail(AccountViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValidField("ChangeEmail.NewEmail"))
             {
-                return View(model);
+                return AccountView(model);
             }
 
-            var authUser = await AuthService.Authenticate(User.Identity.Name, model.Password);
-            if (authUser == null)
+            var user = GetCurrentUser();
+            if (user.HasPassword())
             {
-                ModelState.AddModelError("Password", Strings.CurrentPasswordIncorrect);
-                return View(model);
-            }
+                if (!ModelState.IsValidField("ChangeEmail.Password"))
+                {
+                    return AccountView(model);
+                }
 
-            if (String.Equals(model.NewEmail, authUser.User.LastSavedEmailAddress, StringComparison.OrdinalIgnoreCase))
+                var authUser = await AuthService.Authenticate(User.Identity.Name, model.ChangeEmail.Password);
+                if (authUser == null)
+                {
+                    ModelState.AddModelError("ChangeEmail.Password", Strings.CurrentPasswordIncorrect);
+                    return AccountView(model);
+                }
+            }
+            // No password? We can't do any additional verification...
+
+            if (String.Equals(model.ChangeEmail.NewEmail, user.LastSavedEmailAddress, StringComparison.OrdinalIgnoreCase))
             {
                 // email address unchanged - accept
-                return RedirectToAction(MVC.Users.Edit());
+                return RedirectToAction(MVC.Users.Account());
             }
 
             try
             {
-                UserService.ChangeEmailAddress(authUser.User, model.NewEmail);
+                await UserService.ChangeEmailAddress(user, model.ChangeEmail.NewEmail);
             }
             catch (EntityException e)
             {
                 ModelState.AddModelError("NewEmail", e.Message);
-                return View(model);
+                return AccountView(model);
             }
 
-            if (authUser.User.Confirmed)
+            if (user.Confirmed)
             {
                 var confirmationUrl = Url.ConfirmationUrl(
-                    MVC.Users.Confirm(), authUser.User.Username, authUser.User.EmailConfirmationToken, protocol: Request.Url.Scheme);
-                MessageService.SendEmailChangeConfirmationNotice(new MailAddress(authUser.User.UnconfirmedEmailAddress, authUser.User.Username), confirmationUrl);
+                    "Confirm", "Users", user.Username, user.EmailConfirmationToken);
+                MessageService.SendEmailChangeConfirmationNotice(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
 
-                TempData["Message"] =
-                    "Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one.";
+                TempData["Message"] = Strings.EmailUpdated_ConfirmationRequired;
             }
             else
             {
-                TempData["Message"] = "Your new email address was saved!";
+                TempData["Message"] = Strings.EmailUpdated;
             }
 
-            return RedirectToAction(MVC.Users.Edit());
+            return RedirectToAction(MVC.Users.Account());
         }
 
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> ChangePassword(EditProfileViewModel model)
+        public virtual async Task<ActionResult> ChangePassword(AccountViewModel model)
         {
             var user = GetCurrentUser();
 
@@ -369,18 +353,18 @@ namespace NuGetGallery
             {
                 if (!ModelState.IsValidField("ChangePassword"))
                 {
-                    return EditProfileView(model);
+                    return AccountView(model);
                 }
 
                 if (!(await AuthService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword)))
                 {
                     ModelState.AddModelError("ChangePassword.OldPassword", Strings.CurrentPasswordIncorrect);
-                    return EditProfileView(model);
+                    return AccountView(model);
                 }
 
                 TempData["Message"] = Strings.PasswordChanged;
 
-                return RedirectToAction("Edit");
+                return RedirectToAction("Account");
             }
         }
 
@@ -427,7 +411,7 @@ namespace NuGetGallery
             // Add/Replace the API Key credential, and save to the database
             TempData["Message"] = Strings.ApiKeyReset;
             await AuthService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
-            return RedirectToAction("Edit");
+            return RedirectToAction("Account");
         }
 
         private async Task<ActionResult> RemoveCredential(User user, Credential cred, string message)
@@ -446,21 +430,24 @@ namespace NuGetGallery
                 
                 TempData["Message"] = message;
             }
-            return RedirectToAction("Edit");
+            return RedirectToAction("Account");
         }
 
         private ActionResult EditProfileView()
         {
-            return EditProfileView(new EditProfileViewModel());
+            return AccountView(new AccountViewModel());
         }
 
-        private ActionResult EditProfileView(EditProfileViewModel model)
+        private ActionResult AccountView(AccountViewModel model)
         {
             // Load Credential info
             var user = GetCurrentUser();
+            var curatedFeeds = CuratedFeedService.GetFeedsForManager(user.Key);
             var creds = user.Credentials.Select(c => AuthService.DescribeCredential(c)).ToList();
+
             model.Credentials = creds;
-            return View("Edit", model);
+            model.CuratedFeeds = curatedFeeds.Select(f => f.Name);
+            return View("Account", model);
         }
 
         private static int CountLoginCredentials(User user)
@@ -473,7 +460,11 @@ namespace NuGetGallery
         private ActionResult SendPasswordResetEmail(User user, bool forgotPassword)
         {
             var resetPasswordUrl = Url.ConfirmationUrl(
-                        MVC.Users.ResetPassword(forgotPassword), user.Username, user.PasswordResetToken, protocol: Request.Url.Scheme);
+                "ResetPassword",
+                "Users",
+                user.Username, 
+                user.PasswordResetToken, 
+                new { forgot = forgotPassword });
             MessageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
 
             TempData["Email"] = user.EmailAddress;

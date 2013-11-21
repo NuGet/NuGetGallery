@@ -290,4 +290,10 @@ The {2} Team</value>
   <data name="EmailPreferencesUpdated" xml:space="preserve">
     <value>Your email preferences have been updated</value>
   </data>
+  <data name="EmailUpdated" xml:space="preserve">
+    <value>Your new email address was saved!</value>
+  </data>
+  <data name="EmailUpdated_ConfirmationRequired" xml:space="preserve">
+    <value>Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one.</value>
+  </data>
 </root>

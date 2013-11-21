@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Moq;
-using NuGetGallery.Configuration;
 using Xunit;
 using Xunit.Extensions;
+using NuGetGallery.Configuration;
+using NuGetGallery.Framework;
+using NuGetGallery.Auditing;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -65,18 +68,18 @@ namespace NuGetGallery
         public class TheConfirmEmailAddressMethod
         {
             [Fact]
-            public void WithTokenThatDoesNotMatchUserReturnsFalse()
+            public async Task WithTokenThatDoesNotMatchUserReturnsFalse()
             {
                 var user = new User { Username = "username", EmailConfirmationToken = "token" };
                 var service = new TestableUserService();
 
-                var confirmed = service.ConfirmEmailAddress(user, "not-token");
+                var confirmed = await service.ConfirmEmailAddress(user, "not-token");
 
                 Assert.False(confirmed);
             }
 
             [Fact]
-            public void ThrowsForDuplicateConfirmedEmailAddresses()
+            public async Task ThrowsForDuplicateConfirmedEmailAddresses()
             {
                 var user = new User { Username = "User1", Key = 1, EmailAddress = "old@example.org", UnconfirmedEmailAddress = "new@example.org", EmailConfirmationToken = "token" };
                 var conflictingUser = new User { Username = "User2", Key = 2, EmailAddress = "new@example.org" };
@@ -85,12 +88,12 @@ namespace NuGetGallery
                     Users = new[] { user, conflictingUser }
                 };
 
-                var ex = Assert.Throws<EntityException>(() => service.ConfirmEmailAddress(user, "token"));
+                var ex = await AssertEx.Throws<EntityException>(() => service.ConfirmEmailAddress(user, "token"));
                 Assert.Equal(String.Format(Strings.EmailAddressBeingUsed, "new@example.org"), ex.Message);
             }
 
             [Fact]
-            public void WithTokenThatDoesMatchUserConfirmsUserAndReturnsTrue()
+            public async Task WithTokenThatDoesMatchUserConfirmsUserAndReturnsTrue()
             {
                 var user = new User
                 {
@@ -100,7 +103,7 @@ namespace NuGetGallery
                 };
                 var service = new TestableUserService();
 
-                var confirmed = service.ConfirmEmailAddress(user, "secret");
+                var confirmed = await service.ConfirmEmailAddress(user, "secret");
 
                 Assert.True(confirmed);
                 Assert.True(user.Confirmed);
@@ -110,7 +113,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void ForUserWithConfirmedEmailWithTokenThatDoesMatchUserConfirmsUserAndReturnsTrue()
+            public async Task ForUserWithConfirmedEmailWithTokenThatDoesMatchUserConfirmsUserAndReturnsTrue()
             {
                 var user = new User
                 {
@@ -121,7 +124,7 @@ namespace NuGetGallery
                 };
                 var service = new TestableUserService();
 
-                var confirmed = service.ConfirmEmailAddress(user, "secret");
+                var confirmed = await service.ConfirmEmailAddress(user, "secret");
 
                 Assert.True(confirmed);
                 Assert.True(user.Confirmed);
@@ -131,19 +134,38 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WithNullUserThrowsArgumentNullException()
+            public async Task WithNullUserThrowsArgumentNullException()
             {
                 var service = new TestableUserService();
 
-                Assert.Throws<ArgumentNullException>(() => service.ConfirmEmailAddress(null, "token"));
+                await AssertEx.Throws<ArgumentNullException>(() => service.ConfirmEmailAddress(null, "token"));
             }
 
             [Fact]
-            public void WithEmptyTokenThrowsArgumentNullException()
+            public async Task WithEmptyTokenThrowsArgumentNullException()
             {
                 var service = new TestableUserService();
 
-                Assert.Throws<ArgumentNullException>(() => service.ConfirmEmailAddress(new User(), ""));
+                await AssertEx.Throws<ArgumentNullException>(() => service.ConfirmEmailAddress(new User(), ""));
+            }
+
+            [Fact]
+            public async Task WritesAuditRecord()
+            {
+                var user = new User
+                {
+                    Username = "username",
+                    EmailConfirmationToken = "secret",
+                    EmailAddress = "existing@example.com",
+                    UnconfirmedEmailAddress = "new@example.com"
+                };
+                var service = new TestableUserService();
+
+                var confirmed = await service.ConfirmEmailAddress(user, "secret");
+
+                Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                    ar.Action == UserAuditAction.ConfirmEmail &&
+                    ar.AffectedEmailAddress == "new@example.com"));
             }
         }
 
@@ -167,7 +189,7 @@ namespace NuGetGallery
         public class TheChangeEmailMethod
         {
             [Fact]
-            public void SetsUnconfirmedEmailWhenEmailIsChanged()
+            public async Task SetsUnconfirmedEmailWhenEmailIsChanged()
             {
                 var user = new User { Username = "Bob", EmailAddress = "old@example.org" };
                 var service = new TestableUserServiceWithDBFaking
@@ -175,7 +197,7 @@ namespace NuGetGallery
                     Users = new[] { user }
                 };
 
-                service.ChangeEmailAddress(user, "new@example.org");
+                await service.ChangeEmailAddress(user, "new@example.org");
 
                 Assert.Equal("old@example.org", user.EmailAddress);
                 Assert.Equal("new@example.org", user.UnconfirmedEmailAddress);
@@ -189,7 +211,7 @@ namespace NuGetGallery
             /// 3. hit confirm and you confirmed an email address you don't own
             /// </summary>
             [Fact]
-            public void ModifiesConfirmationTokenWhenEmailAddressChanged()
+            public async Task ModifiesConfirmationTokenWhenEmailAddressChanged()
             {
                 var user = new User { EmailAddress = "old@example.com", EmailConfirmationToken = "pending-token" };
                 var service = new TestableUserServiceWithDBFaking
@@ -197,7 +219,7 @@ namespace NuGetGallery
                     Users = new User[] { user },
                 };
 
-                service.ChangeEmailAddress(user, "new@example.com");
+                await service.ChangeEmailAddress(user, "new@example.com");
                 Assert.NotNull(user.EmailConfirmationToken);
                 Assert.NotEmpty(user.EmailConfirmationToken);
                 Assert.NotEqual("pending-token", user.EmailConfirmationToken);
@@ -208,7 +230,7 @@ namespace NuGetGallery
             /// It would be annoying if you start seeing pending email changes as a result of NOT changing your email address.
             /// </summary>
             [Fact]
-            public void DoesNotModifyAnythingWhenConfirmedEmailAddressNotChanged()
+            public async Task DoesNotModifyAnythingWhenConfirmedEmailAddressNotChanged()
             {
                 var user = new User { EmailAddress = "old@example.com", UnconfirmedEmailAddress = null, EmailConfirmationToken = null };
                 var service = new TestableUserServiceWithDBFaking
@@ -216,7 +238,7 @@ namespace NuGetGallery
                     Users = new User[] { user },
                 };
 
-                service.ChangeEmailAddress(user, "old@example.com");
+                await service.ChangeEmailAddress(user, "old@example.com");
                 Assert.True(user.Confirmed);
                 Assert.Equal("old@example.com", user.EmailAddress);
                 Assert.Null(user.UnconfirmedEmailAddress);
@@ -229,7 +251,7 @@ namespace NuGetGallery
             [Theory]
             [InlineData("something@else.com")]
             [InlineData(null)]
-            public void DoesNotModifyConfirmationTokenWhenUnconfirmedEmailAddressNotChanged(string confirmedEmailAddress)
+            public async Task DoesNotModifyConfirmationTokenWhenUnconfirmedEmailAddressNotChanged(string confirmedEmailAddress)
             {
                 var user = new User { 
                     EmailAddress = confirmedEmailAddress,
@@ -240,12 +262,12 @@ namespace NuGetGallery
                     Users = new User[] { user },
                 };
 
-                service.ChangeEmailAddress(user, "old@example.com");
+                await service.ChangeEmailAddress(user, "old@example.com");
                 Assert.Equal("pending-token", user.EmailConfirmationToken);
             }
 
             [Fact]
-            public void DoesNotLetYouUseSomeoneElsesConfirmedEmailAddress()
+            public async Task DoesNotLetYouUseSomeoneElsesConfirmedEmailAddress()
             {
                 var user = new User { EmailAddress = "old@example.com", Key = 1 };
                 var conflictingUser = new User { EmailAddress = "new@example.com", Key = 2 };
@@ -254,9 +276,29 @@ namespace NuGetGallery
                     Users = new User[] { user, conflictingUser },
                 };
 
-                var e = Assert.Throws<EntityException>(() => service.ChangeEmailAddress(user, "new@example.com"));
+                var e = await AssertEx.Throws<EntityException>(() => service.ChangeEmailAddress(user, "new@example.com"));
                 Assert.Equal(string.Format(Strings.EmailAddressBeingUsed, "new@example.com"), e.Message);
                 Assert.Equal("old@example.com", user.EmailAddress);
+            }
+
+            [Fact]
+            public async Task WritesAuditRecord()
+            {
+                // Arrange
+                var user = new User { Username = "Bob", EmailAddress = "old@example.org" };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user }
+                };
+
+                // Act
+                await service.ChangeEmailAddress(user, "new@example.org");
+
+                // Assert
+                Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                    ar.Action == UserAuditAction.ChangeEmail &&
+                    ar.AffectedEmailAddress == "new@example.org" &&
+                    ar.EmailAddress == "old@example.org"));
             }
         }
 
@@ -298,6 +340,7 @@ namespace NuGetGallery
                 Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
                 UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
                 CredentialRepository = (MockCredentialRepository = new Mock<IEntityRepository<Credential>>()).Object;
+                Auditing = new TestAuditingService();
 
                 // Set ConfirmEmailAddress to a default of true
                 MockConfig.Setup(c => c.ConfirmEmailAddresses).Returns(true);
@@ -322,6 +365,7 @@ namespace NuGetGallery
             {
                 Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
                 UserRepository = new EntityRepository<User>(FakeEntitiesContext = new FakeEntitiesContext());
+                Auditing = new TestAuditingService();
             }
         }
     }

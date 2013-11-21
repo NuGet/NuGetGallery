@@ -16,6 +16,7 @@ namespace NuGetGallery.Auditing
         public string[] Roles { get; set; }
         public CredentialAuditRecord[] Credentials { get; set; }
         public CredentialAuditRecord[] AffectedCredential { get; set; }
+        public string AffectedEmailAddress { get; set; }
         
         public UserAuditRecord(User user, UserAuditAction action)
             : this(user, action, Enumerable.Empty<Credential>()) { }
@@ -37,7 +38,12 @@ namespace NuGetGallery.Auditing
 
             Action = action;
         }
-
+        
+        public UserAuditRecord(User user, UserAuditAction action, string affectedEmailAddress)
+            : this(user, action, Enumerable.Empty<Credential>()) {
+            AffectedEmailAddress = affectedEmailAddress;
+        }
+        
         public override string GetPath()
         {
             return Username.ToLowerInvariant();
@@ -74,5 +80,7 @@ namespace NuGetGallery.Auditing
         AddedCredential,
         RemovedCredential,
         RequestedPasswordReset,
+        ChangeEmail,
+        ConfirmEmail,
     }
 }

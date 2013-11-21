@@ -276,6 +276,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your new email address was saved!.
+        /// </summary>
+        public static string EmailUpdated {
+            get {
+                return ResourceManager.GetString("EmailUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one..
+        /// </summary>
+        public static string EmailUpdated_ConfirmationRequired {
+            get {
+                return ResourceManager.GetString("EmailUpdated_ConfirmationRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Your external account credential expired or you did not allow us access to your account. Try logging in again..
         /// </summary>
         public static string ExternalAccountLinkExpired {

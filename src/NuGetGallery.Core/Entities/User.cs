@@ -89,5 +89,11 @@ namespace NuGetGallery
             UnconfirmedEmailAddress = newEmailAddress;
             EmailConfirmationToken = generateToken();
         }
+
+        public bool HasPassword()
+        {
+            return Credentials.Any(c =>
+                c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
+        }
     }
 }

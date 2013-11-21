@@ -72,7 +72,11 @@ namespace NuGetGallery
             var ownerRequest = _packageService.CreatePackageOwnerRequest(package, currentUser, user);
 
             var confirmationUrl = Url.ConfirmationUrl(
-                MVC.Packages.ConfirmOwner().AddRouteValue("id", package.Id), user.Username, ownerRequest.ConfirmationCode, Request.Url.Scheme);
+                "ConfirmOwner", 
+                "Packages",
+                user.Username,
+                ownerRequest.ConfirmationCode,
+                new { id = package.Id });
             _messageService.SendPackageOwnerRequest(currentUser, user, package, confirmationUrl);
 
             return new { success = true, name = user.Username, pending = true };

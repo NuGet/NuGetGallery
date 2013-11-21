@@ -4,6 +4,8 @@ using System.Data.Entity;
 using System.Linq;
 using Crypto = NuGetGallery.CryptographyService;
 using NuGetGallery.Configuration;
+using NuGetGallery.Auditing;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -12,18 +14,21 @@ namespace NuGetGallery
         public IAppConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
         public IEntityRepository<Credential> CredentialRepository { get; protected set; }
+        public AuditingService Auditing { get; protected set; }
 
         protected UserService() { }
 
         public UserService(
             IAppConfiguration config,
             IEntityRepository<User> userRepository,
-            IEntityRepository<Credential> credentialRepository)
+            IEntityRepository<Credential> credentialRepository,
+            AuditingService auditing)
             : this()
         {
             Config = config;
             UserRepository = userRepository;
             CredentialRepository = credentialRepository;
+            Auditing = auditing;
         }
 
         public void ChangeEmailSubscription(User user, bool emailAllowed)
@@ -79,7 +84,7 @@ namespace NuGetGallery
                 .SingleOrDefault(u => u.Username == username);
         }
 
-        public void ChangeEmailAddress(User user, string newEmailAddress)
+        public async Task ChangeEmailAddress(User user, string newEmailAddress)
         {
             var existingUsers = FindAllByEmailAddress(newEmailAddress);
             if (existingUsers.AnySafe(u => u.Key != user.Key))
@@ -87,11 +92,13 @@ namespace NuGetGallery
                 throw new EntityException(Strings.EmailAddressBeingUsed, newEmailAddress);
             }
 
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.ChangeEmail, newEmailAddress));
+
             user.UpdateEmailAddress(newEmailAddress, Crypto.GenerateToken);
             UserRepository.CommitChanges();
         }
 
-        public bool ConfirmEmailAddress(User user, string token)
+        public async Task<bool> ConfirmEmailAddress(User user, string token)
         {
             if (user == null)
             {
@@ -113,6 +120,8 @@ namespace NuGetGallery
             {
                 throw new EntityException(Strings.EmailAddressBeingUsed, user.UnconfirmedEmailAddress);
             }
+
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.ConfirmEmail, user.UnconfirmedEmailAddress));
 
             user.ConfirmEmailAddress();
 

@@ -172,7 +172,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.ConfirmAccount,
                 "account/confirm/{username}/{token}",
-                MVC.Users.Confirm());
+                new { controller = MVC.Users.Name, action = "Confirm" });
 
             routes.MapRoute(
                 RouteName.SubscribeToEmails,

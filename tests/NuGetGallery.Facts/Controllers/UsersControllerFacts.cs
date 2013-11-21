@@ -43,10 +43,34 @@ namespace NuGetGallery
                     .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
 
                 // act
-                var model = ResultAssert.IsView<AccountViewModel>(controller.Account());
+                var model = ResultAssert.IsView<AccountViewModel>(controller.Account(), viewName: "Account");
 
                 // verify
                 Assert.Equal("theCuratedFeed", model.CuratedFeeds.First());
+            }
+
+            [Fact]
+            public void LoadsDescriptionsOfCredentialsInToViewModel()
+            {
+                // Arrange
+                var user = Fakes.CreateUser(
+                    "test",
+                    CredentialBuilder.CreatePbkdf2Password("hunter2"),
+                    CredentialBuilder.CreateV1ApiKey(Guid.NewGuid()),
+                    CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"));
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = controller.Account();
+
+                // Assert
+                var model = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var descs = model.Credentials.ToDictionary(c => c.Kind); // Should only be one of each kind
+                Assert.Equal(3, descs.Count);
+                Assert.Equal(Strings.CredentialType_Password, descs[CredentialKind.Password].TypeCaption);
+                Assert.Equal(Strings.CredentialType_ApiKey, descs[CredentialKind.Token].TypeCaption);
+                Assert.Equal(Strings.MicrosoftAccount_Caption, descs[CredentialKind.External].TypeCaption);
             }
         }
 
@@ -85,7 +109,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheEditAction : TestContainer
+        public class TheChangeEmailSubscriptionAction : TestContainer
         {
             [Fact]
             public void UpdatesEmailAllowedSetting()
@@ -99,13 +123,11 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
                 GetMock<IUserService>()
-                          .Setup(u => u.ChangeEmailSubscription(user, false));
-                var model = new EditProfileViewModel { EmailAddress = "test@example.com", EmailAllowed = false };
+                    .Setup(u => u.ChangeEmailSubscription(user, false));
+                
+                var result = controller.ChangeEmailSubscription(false);
 
-                var result = controller.Edit(model);
-
-                var viewModel = ResultAssert.IsView<EditProfileViewModel>(result);
-                Assert.Same(model, viewModel);
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 GetMock<IUserService>().Verify(u => u.ChangeEmailSubscription(user, false));
             }
         }
@@ -274,7 +296,7 @@ namespace NuGetGallery
         public class TheConfirmAction : TestContainer
         {
             [Fact]
-            public void ConfirmsTheUser()
+            public async Task ConfirmsTheUser()
             {
                 var user = new User
                 {
@@ -286,13 +308,19 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var result = controller.Confirm("aUsername", "aToken");
+                // Have to set this up first because it needs to return a task.
+                GetMock<IUserService>()
+                    .Setup(u => u.ConfirmEmailAddress(user, "aToken"))
+                    .CompletesWith(true);
 
-                GetMock<IUserService>().Verify(u => u.ConfirmEmailAddress(user, "aToken"));
+                var result = await controller.Confirm("aUsername", "aToken");
+
+                GetMock<IUserService>()
+                    .Verify(u => u.ConfirmEmailAddress(user, "aToken"));
             }
 
             [Fact]
-            public void ShowsAnErrorForWrongUsername()
+            public async Task ShowsAnErrorForWrongUsername()
             {
                 var user = new User
                 {
@@ -304,15 +332,15 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var result = controller.Confirm("wrongUsername", "aToken");
-                var model = (ConfirmationViewModel)((ViewResult)result).Model;
+                var result = await controller.Confirm("wrongUsername", "aToken");
 
+                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
                 Assert.False(model.SuccessfulConfirmation);
                 Assert.True(model.WrongUsername);
             }
 
             [Fact]
-            public void ShowsAnErrorForWrongToken()
+            public async Task ShowsAnErrorForWrongToken()
             {
                 var user = new User
                 {
@@ -323,18 +351,18 @@ namespace NuGetGallery
 
                 GetMock<IUserService>()
                     .Setup(u => u.ConfirmEmailAddress(user, It.IsAny<string>()))
-                    .Returns(false);
+                    .CompletesWith(false);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var result = controller.Confirm("aUsername", "wrongToken");
-                var model = (ConfirmationViewModel)((ViewResult)result).Model;
+                var result = await controller.Confirm("aUsername", "wrongToken");
 
+                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
                 Assert.False(model.SuccessfulConfirmation);
             }
 
             [Fact]
-            public void ShowsAnErrorForConflictingEmailAddress()
+            public async Task ShowsAnErrorForConflictingEmailAddress()
             {
                 var user = new User
                 {
@@ -349,15 +377,15 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var result = controller.Confirm("aUsername", "aToken");
-                var model = (ConfirmationViewModel)((ViewResult)result).Model;
+                var result = await controller.Confirm("aUsername", "aToken");
 
+                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
                 Assert.False(model.SuccessfulConfirmation);
                 Assert.True(model.DuplicateEmailAddress);
             }
 
             [Fact]
-            public void SendsAccountChangedNoticeWhenConfirmingChangedEmail()
+            public async Task SendsAccountChangedNoticeWhenConfirmingChangedEmail()
             {
                 var user = new User
                 {
@@ -369,13 +397,13 @@ namespace NuGetGallery
 
                 GetMock<IUserService>()
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
-                          .Returns(true);
+                          .CompletesWith(true);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var result = controller.Confirm("username", "the-token");
-                var model = (ConfirmationViewModel)((ViewResult)result).Model;
+                var result = await controller.Confirm("username", "the-token");
 
+                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
                 Assert.True(model.SuccessfulConfirmation);
                 Assert.False(model.ConfirmingNewAccount);
                 GetMock<IMessageService>()
@@ -383,7 +411,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void DoesntSendAccountChangedEmailsWhenNoOldConfirmedAddress()
+            public async Task DoesntSendAccountChangedEmailsWhenNoOldConfirmedAddress()
             {
                 var user = new User
                 {
@@ -395,15 +423,15 @@ namespace NuGetGallery
 
                 GetMock<IUserService>()
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
-                          .Returns(true);
+                          .CompletesWith(true);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
                 // act:
-                var result = controller.Confirm("username", "the-token");
-                var model = (ConfirmationViewModel)((ViewResult)result).Model;
-
+                var result = await controller.Confirm("username", "the-token");
+                
                 // verify:
+                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
                 Assert.True(model.SuccessfulConfirmation);
                 Assert.True(model.ConfirmingNewAccount);
                 GetMock<IMessageService>()
@@ -413,7 +441,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void DoesntSendAccountChangedEmailsIfConfirmationTokenDoesntMatch()
+            public async Task DoesntSendAccountChangedEmailsIfConfirmationTokenDoesntMatch()
             {
                 var user = new User
                 {
@@ -425,14 +453,15 @@ namespace NuGetGallery
 
                 GetMock<IUserService>()
                     .Setup(u => u.ConfirmEmailAddress(user, "faketoken"))
-                    .Returns(false);
+                    .CompletesWith(false);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
                 // act:
-                var model = (controller.Confirm("username", "faketoken") as ViewResult).Model as ConfirmationViewModel;
-
+                var result = await controller.Confirm("username", "faketoken");
+                
                 // verify:
+                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
                 Assert.False(model.SuccessfulConfirmation);
                 Assert.False(model.ConfirmingNewAccount);
                 GetMock<IMessageService>()
@@ -453,7 +482,7 @@ namespace NuGetGallery
                 
                 var result = await controller.GenerateApiKey();
 
-                ResultAssert.IsRedirectToRoute(result, new { action = "ManageCredentials" });
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
             }
 
             [Fact]
@@ -495,8 +524,15 @@ namespace NuGetGallery
                     .Throws(new EntityException("msg"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
-                
-                var result = await controller.ChangeEmail(new ChangeEmailRequestModel { NewEmail = "new@example.com" });
+
+                var result = await controller.ChangeEmail(
+                    new AccountViewModel()
+                    {
+                        ChangeEmail = new ChangeEmailViewModel
+                        {
+                            NewEmail = "new@example.com"
+                        }
+                    });
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal("msg", controller.ModelState["NewEmail"].Errors[0].ErrorMessage);
             }
@@ -516,11 +552,19 @@ namespace NuGetGallery
                     .CompletesWith(new AuthenticatedUser(user, new Credential()));
                 GetMock<IUserService>()
                     .Setup(u => u.ChangeEmailAddress(user, "new@example.com"))
-                    .Callback(() => user.UpdateEmailAddress("new@example.com", () => "token"));
+                    .Callback(() => user.UpdateEmailAddress("new@example.com", () => "token"))
+                    .Completes();
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
-                
-                var model = new ChangeEmailRequestModel { NewEmail = "new@example.com", Password = "password" };
+
+                var model = new AccountViewModel()
+                {
+                    ChangeEmail = new ChangeEmailViewModel
+                    {
+                        NewEmail = "new@example.com",
+                        Password = "password"
+                    }
+                };
 
                 var result = await controller.ChangeEmail(model);
 
@@ -546,7 +590,14 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var model = new ChangeEmailRequestModel { NewEmail = "old@example.com", Password = "password" };
+                var model = new AccountViewModel()
+                {
+                    ChangeEmail = new ChangeEmailViewModel
+                    {
+                        NewEmail = "old@example.com",
+                        Password = "password"
+                    }
+                };
 
                 await controller.ChangeEmail(model);
 
@@ -570,11 +621,19 @@ namespace NuGetGallery
                     .CompletesWith(new AuthenticatedUser(user, new Credential()));
                 GetMock<IUserService>()
                     .Setup(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()))
-                    .Callback(() => user.UpdateEmailAddress("new@example.com", () => "new-token"));
+                    .Callback(() => user.UpdateEmailAddress("new@example.com", () => "new-token"))
+                    .Completes();
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var model = new ChangeEmailRequestModel { NewEmail = "new@example.com", Password = "password" };
+                var model = new AccountViewModel()
+                {
+                    ChangeEmail = new ChangeEmailViewModel
+                    {
+                        NewEmail = "new@example.com",
+                        Password = "password"
+                    }
+                };
 
                 await controller.ChangeEmail(model);
 
@@ -586,33 +645,6 @@ namespace NuGetGallery
             }
         }
 
-        public class TheManageCredentialsAction : TestContainer
-        {
-            [Fact]
-            public void LoadsDescriptionsOfCredentialsInToViewModel()
-            {
-                // Arrange
-                var user = Fakes.CreateUser(
-                    "test",
-                    CredentialBuilder.CreatePbkdf2Password("hunter2"),
-                    CredentialBuilder.CreateV1ApiKey(Guid.NewGuid()),
-                    CredentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"));
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                // Act
-                var result = controller.ManageCredentials();
-
-                // Assert
-                var model = ResultAssert.IsView<ManageCredentialsViewModel>(result, viewName: "ManageCredentials");
-                var descs = model.Credentials.ToDictionary(c => c.Kind); // Should only be one of each kind
-                Assert.Equal(3, descs.Count);
-                Assert.Equal(Strings.CredentialType_Password, descs[CredentialKind.Password].TypeCaption);
-                Assert.Equal(Strings.CredentialType_ApiKey, descs[CredentialKind.Token].TypeCaption);
-                Assert.Equal(Strings.MicrosoftAccount_Caption, descs[CredentialKind.External].TypeCaption);
-            }
-        }
-
         public class TheChangePasswordAction : TestContainer
         {
             [Fact]
@@ -620,8 +652,8 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = GetController<UsersController>();
-                controller.ModelState.AddModelError("test", "test");
-                var inputModel = new ManageCredentialsViewModel();
+                controller.ModelState.AddModelError("ChangePassword.blarg", "test");
+                var inputModel = new AccountViewModel();
                 controller.SetCurrentUser(new User()
                 {
                     Credentials = new List<Credential>() {
@@ -633,7 +665,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<ManageCredentialsViewModel>(result, viewName: "ManageCredentials");
+                var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
                 Assert.Same(inputModel, outputModel);
             }
 
@@ -651,21 +683,24 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var inputModel = new ManageCredentialsViewModel()
+                var inputModel = new AccountViewModel()
                 {
-                    OldPassword = "old",
-                    NewPassword = "new",
+                    ChangePassword = new ChangePasswordViewModel()
+                    {
+                        OldPassword = "old",
+                        NewPassword = "new",
+                    }
                 };
 
                 // Act
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<ManageCredentialsViewModel>(result, viewName: "ManageCredentials");
+                var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
                 Assert.Same(inputModel, outputModel);
 
                 var errorMessages = controller
-                    .ModelState["OldPassword"]
+                    .ModelState["ChangePassword.OldPassword"]
                     .Errors
                     .Select(e => e.ErrorMessage)
                     .ToArray();
@@ -684,20 +719,20 @@ namespace NuGetGallery
                     .CompletesWith(true);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
-                var inputModel = new ManageCredentialsViewModel()
+                var inputModel = new AccountViewModel()
                 {
-                    OldPassword = "old",
-                    NewPassword = "new",
+                    ChangePassword = new ChangePasswordViewModel()
+                    {
+                        OldPassword = "old",
+                        NewPassword = "new",
+                    }
                 };
 
                 // Act
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new
-                {
-                    action = "ManageCredentials"
-                });
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(Strings.PasswordChanged, controller.TempData["Message"]);
             }
 
@@ -723,7 +758,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                await controller.ChangePassword(new ManageCredentialsViewModel());
+                await controller.ChangePassword(new AccountViewModel());
 
                 // Assert
                 Assert.Equal("https://nuget.local/account/setpassword/test/t0k3n", actualConfirmUrl);
@@ -746,7 +781,7 @@ namespace NuGetGallery
                 var result = await controller.RemovePassword();
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "ManageCredentials" });
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(Strings.CannotRemoveOnlyLoginCredential, controller.TempData["Message"]);
                 Assert.Equal(1, user.Credentials.Count);
             }
@@ -764,7 +799,7 @@ namespace NuGetGallery
                 var result = await controller.RemovePassword();
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "ManageCredentials" });
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(1, user.Credentials.Count);
             }
 
@@ -792,7 +827,7 @@ namespace NuGetGallery
                 var result = await controller.RemovePassword();
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "ManageCredentials" });
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 GetMock<AuthenticationService>().VerifyAll();
                 GetMock<IMessageService>().VerifyAll();
             }
@@ -813,7 +848,7 @@ namespace NuGetGallery
                 var result = await controller.RemoveCredential(cred.Type);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "ManageCredentials" });
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(Strings.CannotRemoveOnlyLoginCredential, controller.TempData["Message"]);
                 Assert.Equal(1, user.Credentials.Count);
             }
@@ -831,7 +866,7 @@ namespace NuGetGallery
                 var result = await controller.RemoveCredential(CredentialTypes.ExternalPrefix + "MicrosoftAccount");
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "ManageCredentials" });
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 Assert.Equal(1, user.Credentials.Count);
             }
 
@@ -859,7 +894,7 @@ namespace NuGetGallery
                 var result = await controller.RemoveCredential(cred.Type);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "ManageCredentials" });
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 GetMock<AuthenticationService>().VerifyAll();
                 GetMock<IMessageService>().VerifyAll();
             }

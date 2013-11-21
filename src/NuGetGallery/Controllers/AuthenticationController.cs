@@ -158,7 +158,10 @@ namespace NuGetGallery
             MessageService.SendNewAccountEmail(
                 new MailAddress(user.User.UnconfirmedEmailAddress, user.User.Username),
                 Url.ConfirmationUrl(
-                    MVC.Users.Confirm(), user.User.Username, user.User.EmailConfirmationToken, Request.Url.Scheme));
+                    "Confirm", 
+                    "Users", 
+                    user.User.Username, 
+                    user.User.EmailConfirmationToken));
 
             // We're logging in!
             AuthService.CreateSession(OwinContext, user.User);
