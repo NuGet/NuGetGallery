@@ -1045,6 +1045,7 @@ a.btn {
     color: white;
     text-decoration: none;
     padding: 1px 6px;
+    margin: 0px 6px;
     display: block;
     /* This won't work in IE7, but it will only produce a minor layout quirk */
     -moz-box-sizing: border-box;
