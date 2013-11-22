@@ -3,7 +3,7 @@
 namespace NuGetGallery.Areas.Admin.Controllers
 {
     [Authorize(Roles="Admins")]
-    public class AdminControllerBase : Controller
+    public class AdminControllerBase : AppController
     {
     }
 }

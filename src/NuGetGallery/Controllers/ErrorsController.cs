@@ -2,7 +2,7 @@
 
 namespace NuGetGallery
 {
-    public partial class ErrorsController : Controller
+    public partial class ErrorsController : AppController
     {
         public virtual ActionResult NotFound()
         {
