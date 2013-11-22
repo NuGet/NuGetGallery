@@ -15,6 +15,16 @@ namespace NuGetGallery
                 new { controller = MVC.Pages.Name, action = "Home" }); // T4MVC doesn't work with Async Action
 
             routes.MapRoute(
+                RouteName.Error500,
+                "errors/500",
+                MVC.Errors.InternalError());
+
+            routes.MapRoute(
+                RouteName.Error404,
+                "errors/404",
+                MVC.Errors.NotFound());
+
+            routes.MapRoute(
                 RouteName.StatisticsHome,
                 "stats",
                 new { controller = MVC.Statistics.Name, action = "Index" });
