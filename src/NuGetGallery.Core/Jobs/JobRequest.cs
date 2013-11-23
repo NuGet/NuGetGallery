@@ -13,6 +13,7 @@ namespace NuGetGallery.Jobs
 
         public string Name { get; private set; }
         public string Source { get; private set; }
+        public Guid Continuing { get; private set; }
         public Dictionary<string, string> Parameters { get; private set; }
         public CloudQueueMessage Message { get; private set; }
         public DateTimeOffset? ExpiresAt { get { return Message == null ? null : Message.ExpirationTime; } }
@@ -21,16 +22,27 @@ namespace NuGetGallery.Jobs
         public string Id { get; private set; }
 
         public JobRequest(string name, string source, Dictionary<string, string> parameters)
-            : this(name, source, parameters, null)
+            : this(name, source, parameters, Guid.Empty, null)
+        {
+        }
+
+        public JobRequest(string name, string source, Dictionary<string, string> parameters, Guid continuing)
+            : this(name, source, parameters, continuing, null)
         {
         }
 
         public JobRequest(string name, string source, Dictionary<string, string> parameters, CloudQueueMessage message)
+            : this(name, source, parameters, Guid.Empty, message)
+        {
+        }
+        
+        public JobRequest(string name, string source, Dictionary<string, string> parameters, Guid continuing, CloudQueueMessage message)
         {
             Name = name;
             Source = source;
             Parameters = parameters;
             Message = message;
+            Continuing = continuing;
 
             if (message == null)
             {
@@ -59,6 +71,7 @@ namespace NuGetGallery.Jobs
             return Parse(json, message: null);
         }
 
+        // We do manual parsing so we can be as leniant as possible with extra data.
         public static JobRequest Parse(JObject json, CloudQueueMessage message)
         {
             var nameProp = json.Property("name");
@@ -97,7 +110,21 @@ namespace NuGetGallery.Jobs
                 }
             }
 
-            return new JobRequest(name, source ?? UnknownSource, parameters, message);
+            var continuingProp = json.Property("continuing");
+            Guid continuing = Guid.Empty;
+            if (continuingProp != null)
+            {
+                if (continuingProp.Value.Type != JTokenType.String)
+                {
+                    throw new InvalidJobRequestException("'continuing' must be a JSON string");
+                }
+                else if (!Guid.TryParse(continuingProp.Value.Value<string>(), out continuing))
+                {
+                    throw new InvalidJobRequestException("'continuing' must be a valid Guid");
+                }
+            }
+
+            return new JobRequest(name, source ?? UnknownSource, parameters, message, continuing);
         }
     }
 }

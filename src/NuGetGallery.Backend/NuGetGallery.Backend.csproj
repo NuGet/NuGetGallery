@@ -90,6 +90,7 @@
     <Compile Include="BackendConfiguration.cs" />
     <Compile Include="Helpers\DapperExtensions.cs" />
     <Compile Include="Helpers\DateTimeOffsetExtensions.cs" />
+    <Compile Include="Infrastructure\AsyncJob.cs" />
     <Compile Include="Infrastructure\JobInvocationContext.cs" />
     <Compile Include="Jobs\HelloJob.cs" />
     <Compile Include="Models\Database.cs" />
