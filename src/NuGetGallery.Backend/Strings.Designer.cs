@@ -79,6 +79,15 @@ namespace NuGetGallery.Backend {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Attempted to invoke continuation of non-async job: {0}..
+        /// </summary>
+        internal static string JobDispatcher_AsyncContinuationOfNonAsyncJob {
+            get {
+                return ResourceManager.GetString("JobDispatcher_AsyncContinuationOfNonAsyncJob", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unknown job: {0}.
         /// </summary>
         internal static string UnknownJobException_Message {

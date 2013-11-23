@@ -88,14 +88,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BackendConfiguration.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="Helpers\DapperExtensions.cs" />
     <Compile Include="Helpers\DateTimeOffsetExtensions.cs" />
-    <Compile Include="Infrastructure\AsyncJob.cs" />
+    <Compile Include="Helpers\EventSourceInstanceManager.cs" />
+    <Compile Include="Infrastructure\Job.cs" />
     <Compile Include="Infrastructure\JobInvocationContext.cs" />
     <Compile Include="Jobs\HelloJob.cs" />
     <Compile Include="Models\Database.cs" />
     <Compile Include="Helpers\SqlConnectionStringBuilderExtensions.cs" />
-    <Compile Include="Infrastructure\Job.cs" />
+    <Compile Include="Infrastructure\JobBase.cs" />
     <Compile Include="Infrastructure\JobDispatcher.cs" />
     <Compile Include="Infrastructure\JobRunner.cs" />
     <Compile Include="InvalidJobRequestException.cs" />

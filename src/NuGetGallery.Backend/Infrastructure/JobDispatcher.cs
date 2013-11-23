@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,14 +11,14 @@ namespace NuGetGallery.Backend
 {
     public class JobDispatcher
     {
-        private Dictionary<string, Job> _jobMap;
-        private List<Job> _jobs;
+        private Dictionary<string, JobBase> _jobMap;
+        private List<JobBase> _jobs;
         private BackendMonitoringHub _monitor;
         
-        public IReadOnlyList<Job> Jobs { get { return _jobs.AsReadOnly(); } }
+        public IReadOnlyList<JobBase> Jobs { get { return _jobs.AsReadOnly(); } }
         public BackendConfiguration Config { get; private set; }
 
-        public JobDispatcher(BackendConfiguration config, IEnumerable<Job> jobs, BackendMonitoringHub monitor)
+        public JobDispatcher(BackendConfiguration config, IEnumerable<JobBase> jobs, BackendMonitoringHub monitor)
         {
             _jobs = jobs.ToList();
             _jobMap = _jobs.ToDictionary(j => j.Name);
@@ -31,9 +32,9 @@ namespace NuGetGallery.Backend
             }
         }
 
-        public virtual async Task<JobResponse> Dispatch(JobInvocation invocation, InvocationEventSource log, InvocationMonitoringContext monitoring)
+        public virtual async Task<JobResponse> Dispatch(JobInvocation invocation, InvocationMonitoringContext monitoring)
         {
-            Job job;
+            JobBase job;
             if (!_jobMap.TryGetValue(invocation.Request.Name, out job))
             {
                 throw new UnknownJobException(invocation.Request.Name);
@@ -44,12 +45,29 @@ namespace NuGetGallery.Backend
                 await monitoring.SetJob(job);
             }
 
-            log.Invoking(job);
+            InvocationEventSource.Log.Invoking(job);
             JobResult result = null;
-            var context = new JobInvocationContext(invocation, Config, _monitor, log);
+            var context = new JobInvocationContext(invocation, Config, _monitor);
+
             try
             {
-                result = await job.Invoke(context);
+                if (invocation.IsContinuation)
+                {
+                    IAsyncJob asyncJob = job as IAsyncJob;
+                    if (asyncJob == null)
+                    {
+                        // Just going to be caught below, but that's what we want :).
+                        throw new InvalidOperationException(String.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.JobDispatcher_AsyncContinuationOfNonAsyncJob,
+                            job.Name));
+                    }
+                    result = await asyncJob.InvokeContinuation(context);
+                }
+                else
+                {
+                    result = await job.Invoke(context);
+                }
             }
             catch (Exception ex)
             {

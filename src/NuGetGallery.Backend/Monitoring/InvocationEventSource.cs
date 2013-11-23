@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 using NuGetGallery.Jobs;
@@ -11,12 +12,9 @@ namespace NuGetGallery.Backend.Monitoring
     [EventSource(Name = "NuGet-Worker-Invocation")]
     public class InvocationEventSource : EventSource
     {
-        private Guid _invocationId;
+        public static readonly InvocationEventSource Log = new InvocationEventSource();
 
-        public InvocationEventSource(Guid invocationId)
-        {
-            _invocationId = invocationId;
-        }
+        private InvocationEventSource() { }
 
         public static class Tasks {
             public const EventTask Invocation = (EventTask)1;
@@ -31,7 +29,7 @@ namespace NuGetGallery.Backend.Monitoring
         private void Started(Guid invocationId) { WriteEvent(1, invocationId); }
 
         [NonEvent]
-        public void Started() { Started(_invocationId); }
+        public void Started() { Started(JobInvocationContext.GetCurrentInvocationId()); }
 
         [Event(
             eventId: 2,
@@ -42,25 +40,25 @@ namespace NuGetGallery.Backend.Monitoring
         private void Ended(Guid invocationId) { WriteEvent(2, invocationId); }
 
         [NonEvent]
-        public void Ended() { Ended(_invocationId); }
+        public void Ended() { Ended(JobInvocationContext.GetCurrentInvocationId()); }
 
         [Event(
             eventId: 3,
             Level = EventLevel.Critical,
             Message = "Request expired while job was executing. Invocation: {0}. Job: {1}. Message ID: {2}. Inserted: {3}. Expired: {4}")]
-        private void RequestExpired(Guid invocationId, string jobName, string messageId, string inserted, string expired) { WriteEvent(3, jobName, messageId, inserted, expired); }
+        private void RequestExpired(Guid invocationId, string jobName, string messageId, string inserted, string expired) { WriteEvent(3, invocationId, jobName, messageId, inserted, expired); }
 
         [NonEvent]
-        public void RequestExpired(JobRequest request) { RequestExpired(_invocationId, request.Name, request.Message.Id, request.InsertionTime.ToString("O"), request.ExpiresAt.HasValue ? request.ExpiresAt.Value.ToString("O") : ""); }
+        public void RequestExpired(JobRequest request) { RequestExpired(JobInvocationContext.GetCurrentInvocationId(), request.Name, request.Message.Id, request.InsertionTime.ToString("O"), request.ExpiresAt.HasValue ? request.ExpiresAt.Value.ToString("O") : ""); }
 
         [Event(
             eventId: 4,
             Level = EventLevel.Critical,
             Message = "Error Dispatching Invocation {0}: {1}")]
-        private void DispatchError(Guid invocationId, string exception) { WriteEvent(4, exception); }
+        private void DispatchError(Guid invocationId, string exception) { WriteEvent(4, invocationId, exception); }
 
         [NonEvent]
-        public void DispatchError(Exception ex) { DispatchError(_invocationId, ex.ToString()); }
+        public void DispatchError(Exception ex) { DispatchError(JobInvocationContext.GetCurrentInvocationId(), ex.ToString()); }
 
         [Event(
             eventId: 5,
@@ -69,7 +67,7 @@ namespace NuGetGallery.Backend.Monitoring
         private void Invoking(Guid invocationId, string jobName, string jobRuntime) { WriteEvent(5, invocationId, jobName, jobRuntime); }
 
         [NonEvent]
-        public void Invoking(Job job) { Invoking(_invocationId, job.Name, job.GetType().AssemblyQualifiedName); }
+        public void Invoking(JobBase job) { Invoking(JobInvocationContext.GetCurrentInvocationId(), job.Name, job.GetType().AssemblyQualifiedName); }
 
         [Event(
             eventId: 6,
@@ -78,7 +76,7 @@ namespace NuGetGallery.Backend.Monitoring
         private void BindingError(Guid invocationId, string exception) { WriteEvent(6, invocationId, exception); }
 
         [NonEvent]
-        public void BindingError(Exception ex) { BindingError(_invocationId, ex.ToString()); }
+        public void BindingError(Exception ex) { BindingError(JobInvocationContext.GetCurrentInvocationId(), ex.ToString()); }
 
         [Event(
             eventId: 7,
@@ -87,7 +85,7 @@ namespace NuGetGallery.Backend.Monitoring
         private void Succeeded(Guid invocationId, string completedAt) { WriteEvent(7, invocationId, completedAt); }
 
         [NonEvent]
-        public void Succeeded(JobResponse response) { Succeeded(_invocationId, response.CompletedAt.ToString("O")); }
+        public void Succeeded(JobResponse response) { Succeeded(JobInvocationContext.GetCurrentInvocationId(), response.CompletedAt.ToString("O")); }
 
         [Event(
             eventId: 8,
@@ -96,6 +94,46 @@ namespace NuGetGallery.Backend.Monitoring
         private void Faulted(Guid invocationId, string completedAt, string exception) { WriteEvent(8, invocationId, completedAt, exception); }
 
         [NonEvent]
-        public void Faulted(JobResponse response) { Faulted(_invocationId, response.CompletedAt.ToString("O"), response.Result.Exception.ToString()); }
+        public void Faulted(JobResponse response) { Faulted(JobInvocationContext.GetCurrentInvocationId(), response.CompletedAt.ToString("O"), response.Result.Exception.ToString()); }
+
+        [Event(
+            eventId: 9,
+            Level = EventLevel.Critical,
+            Message = "Invocation {0} entered unrecognized status {2} at {1}")]
+        private void UnknownStatus(Guid invocationId, string completedAt, string status) { WriteEvent(9, invocationId, completedAt, status); }
+
+        [NonEvent]
+        public void UnknownStatus(JobResponse response) { UnknownStatus(JobInvocationContext.GetCurrentInvocationId(), response.CompletedAt.ToString("O"), response.Result.Status.ToString()); }
+
+        [Event(
+            eventId: 10,
+            Level = EventLevel.Informational,
+            Opcode = EventOpcode.Suspend,
+            Task = Tasks.Invocation,
+            Message = "Invocation {0} was suspended for {2} to wait for an async completion at {1}")]
+        private void AwaitingContinuation(Guid invocationId, string suspendedAt, string waitingFor) { WriteEvent(10, invocationId, suspendedAt, waitingFor); }
+
+        [NonEvent]
+        public void AwaitingContinuation(JobResponse response) { AwaitingContinuation(JobInvocationContext.GetCurrentInvocationId(), response.CompletedAt.ToString("O"), response.Result.Continuation.WaitPeriod.ToString()); }
+
+        [Event(
+            eventId: 11,
+            Level = EventLevel.Warning,
+            Message = "No event source found for {1} job. (Invocation {0})")]
+        private void NoEventSource(Guid invocationId, string jobName) { WriteEvent(11, invocationId, jobName); }
+
+        [NonEvent]
+        public void NoEventSource(string jobName) { NoEventSource(JobInvocationContext.GetCurrentInvocationId(), jobName); }
+
+        [Event(
+            eventId: 12,
+            Task = Tasks.Invocation,
+            Opcode = EventOpcode.Resume,
+            Level = EventLevel.Informational,
+            Message = "Invocation {0} resumed.")]
+        private void Resumed(Guid invocationId) { WriteEvent(12, invocationId); }
+
+        [NonEvent]
+        public void Resumed() { Resumed(JobInvocationContext.GetCurrentInvocationId()); }
     }
 }

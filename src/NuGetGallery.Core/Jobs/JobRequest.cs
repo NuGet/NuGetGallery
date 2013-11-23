@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.WindowsAzure.Storage.Queue;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace NuGetGallery.Jobs
@@ -71,7 +72,7 @@ namespace NuGetGallery.Jobs
             return Parse(json, message: null);
         }
 
-        // We do manual parsing so we can be as leniant as possible with extra data.
+        // Manual serialization to ensure we're very flexible. Also so I can be obsessive about private setters :) - anurse
         public static JobRequest Parse(JObject json, CloudQueueMessage message)
         {
             var nameProp = json.Property("name");
@@ -124,7 +125,21 @@ namespace NuGetGallery.Jobs
                 }
             }
 
-            return new JobRequest(name, source ?? UnknownSource, parameters, message, continuing);
+            return new JobRequest(name, source ?? UnknownSource, parameters, continuing, message);
+        }
+
+        public string Render()
+        {
+            var rendered = new JObject(
+                new JProperty("name", Name),
+                new JProperty("source", Source),
+                new JProperty("parameters", new JObject(
+                    Parameters.Select(pair => new JProperty(pair.Key, pair.Value)))));
+            if (Continuing != Guid.Empty)
+            {
+                rendered.Add(new JProperty("continuing", Continuing.ToString("N").ToLowerInvariant()));
+            }
+            return rendered.ToString(Formatting.None);
         }
     }
 }

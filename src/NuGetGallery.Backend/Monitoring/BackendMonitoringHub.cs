@@ -26,7 +26,7 @@ namespace NuGetGallery.Backend.Monitoring
         internal const string BackendMonitoringContainerName = "backend-monitoring";
         internal const string BackendTraceTableName = "BackendTrace";
 
-        private Dictionary<Job, ObservableEventListener> _eventStreams = new Dictionary<Job, ObservableEventListener>();
+        private Dictionary<JobBase, ObservableEventListener> _eventStreams = new Dictionary<JobBase, ObservableEventListener>();
         
         private MonitoringTable<WorkerInstanceStatusEntry> _instanceStatusTable;
         private MonitoringTable<WorkerInstanceHistoryEntry> _instanceHistoryTable;
@@ -60,7 +60,7 @@ namespace NuGetGallery.Backend.Monitoring
         /// Registers a job with the monitoring hub
         /// </summary>
         /// <param name="job">The job to register</param>
-        public virtual void RegisterJob(Job job)
+        public virtual void RegisterJob(JobBase job)
         {
             // Log an entry for the job in the status table
             _jobStatusTable.InsertOrIgnoreDuplicate(new JobStatusEntry(job.Name, DateTimeOffset.UtcNow));
@@ -74,6 +74,7 @@ namespace NuGetGallery.Backend.Monitoring
                 StorageConnectionString,
                 tableAddress: GetTableFullName(BackendTraceTableName));
             listener.EnableEvents(WorkerEventSource.Log, EventLevel.Informational);
+            listener.EnableEvents(InvocationEventSource.Log, EventLevel.Informational);
             listener.EnableEvents(SemanticLoggingEventSource.Log, EventLevel.Informational);
 
             // Log Instance Status
@@ -84,15 +85,15 @@ namespace NuGetGallery.Backend.Monitoring
         /// Handles monitoring tasks performed when a job request is dispatched. Call Complete(JobResult)
         /// on the IComplete returned by this method when the job finishes execution.
         /// </summary>
-        public InvocationMonitoringContext BeginInvocation(JobInvocation invocation, InvocationEventSource log)
+        public async Task<InvocationMonitoringContext> BeginInvocation(JobInvocation invocation)
         {
             // Create a monitoring context
-            var context = new InvocationMonitoringContext(invocation, log, this);
-            context.Begin();
+            var context = new InvocationMonitoringContext(invocation, this);
+            await context.Begin();
             return context;
         }
 
-        internal Task ReportStartJob(JobInvocation invocation, Job job, DateTimeOffset startTime)
+        internal Task ReportStartJob(JobInvocation invocation, JobBase job, DateTimeOffset startTime)
         {
             return Task.WhenAll(
                 // Add History Rows
@@ -107,7 +108,7 @@ namespace NuGetGallery.Backend.Monitoring
                 _invocationsTable.Upsert(new InvocationsEntry(invocation)));
         }
 
-        internal Task ReportEndJob(JobInvocation invocation, JobResult result, Job job, string logUrl, DateTimeOffset startTime, DateTimeOffset completionTime)
+        internal Task ReportEndJob(JobInvocation invocation, JobResult result, JobBase job, string logUrl, DateTimeOffset startTime, DateTimeOffset completionTime)
         {
             return Task.WhenAll(
                 // Add History Rows

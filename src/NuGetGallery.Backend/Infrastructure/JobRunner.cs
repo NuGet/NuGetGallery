@@ -30,7 +30,7 @@ namespace NuGetGallery.Backend
             _queue = JobRequestQueue.WithDefaultName(config.PrimaryStorage);
             
             // Register jobs
-            foreach (Job job in dispatcher.Jobs)
+            foreach (JobBase job in dispatcher.Jobs)
             {
                 monitoring.RegisterJob(job);
             }
@@ -71,29 +71,49 @@ namespace NuGetGallery.Backend
         private async Task Dispatch(JobRequest request)
         {
             // Construct an invocation. From here on, we're in the context of this invocation.
-            var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
-            var log = new InvocationEventSource(invocation.Id);
+            var isContinuation = request.Continuing != Guid.Empty;
+            var invocation = new JobInvocation(
+                isContinuation ? request.Continuing : Guid.NewGuid(),
+                request, 
+                DateTimeOffset.UtcNow,
+                isContinuation);
+            JobInvocationContext.SetCurrentInvocationId(invocation.Id);
             
-            var context = _monitoring.BeginInvocation(invocation, log);
-            log.Started();
+            var context = await _monitoring.BeginInvocation(invocation);
+            if (isContinuation)
+            {
+                InvocationEventSource.Log.Resumed();
+            }
+            else
+            {
+                InvocationEventSource.Log.Started();
+            }
 
             JobResponse response = null;
             try
             {
-                response = await _dispatcher.Dispatch(invocation, log, context);
+                response = await _dispatcher.Dispatch(invocation, context);
 
-                if (response.Result.Status != JobStatus.Faulted)
+                // TODO: If response.Continuation != null, enqueue continuation
+                switch (response.Result.Status)
                 {
-                    log.Succeeded(response);
-                }
-                else
-                {
-                    log.Faulted(response);
+                    case JobStatus.Completed:
+                        InvocationEventSource.Log.Succeeded(response);
+                        break;
+                    case JobStatus.Faulted:
+                        InvocationEventSource.Log.Faulted(response);
+                        break;
+                    case JobStatus.AwaitingContinuation:
+                        InvocationEventSource.Log.AwaitingContinuation(response);
+                        break;
+                    default:
+                        InvocationEventSource.Log.UnknownStatus(response);
+                        break;
                 }
 
                 if (request.ExpiresAt.HasValue && DateTimeOffset.UtcNow > request.ExpiresAt.Value)
                 {
-                    log.RequestExpired(request);
+                    InvocationEventSource.Log.RequestExpired(request);
                 }
 
                 // If dispatch throws, we don't delete the message
@@ -103,11 +123,31 @@ namespace NuGetGallery.Backend
             }
             catch (Exception ex)
             {
-                log.DispatchError(ex);
+                InvocationEventSource.Log.DispatchError(ex);
             }
 
-            log.Ended();
+            if (response.Result.Status != JobStatus.AwaitingContinuation)
+            {
+                InvocationEventSource.Log.Ended();
+            }
             await context.End(response == null ? null : response.Result);
+
+            // Queue the continuation if necessary
+            if (response.Result.Status == JobStatus.AwaitingContinuation)
+            {
+                Debug.Assert(response.Result.Continuation != null);
+                await EnqueueContinuation(response);
+            }
+        }
+
+        private Task EnqueueContinuation(JobResponse response)
+        {
+            var req = new JobRequest(
+                response.Invocation.Request.Name,
+                Constants.Source_AsyncContinuation,
+                response.Result.Continuation.Parameters,
+                response.Invocation.Id);
+            return _queue.Enqueue(req, response.Result.Continuation.WaitPeriod);
         }
     }
 }

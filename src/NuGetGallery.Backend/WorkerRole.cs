@@ -68,9 +68,9 @@ namespace NuGetGallery.Backend
             var jobs = typeof(WorkerRole)
                 .Assembly
                 .GetExportedTypes()
-                .Where(t => !t.IsAbstract && typeof(Job).IsAssignableFrom(t))
+                .Where(t => !t.IsAbstract && typeof(JobBase).IsAssignableFrom(t))
                 .Select(t => Activator.CreateInstance(t))
-                .Cast<Job>();
+                .Cast<JobBase>();
             return new JobDispatcher(config, jobs, monitor);
         }
 

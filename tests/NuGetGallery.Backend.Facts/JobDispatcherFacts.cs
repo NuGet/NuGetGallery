@@ -17,7 +17,7 @@ namespace NuGetGallery.Backend
             public async Task GivenNoJobWithName_ItThrowsUnknownJobException()
             {
                 // Arrange
-                var dispatcher = new JobDispatcher(BackendConfiguration.Create(), Enumerable.Empty<Job>());
+                var dispatcher = new JobDispatcher(BackendConfiguration.Create(), Enumerable.Empty<JobBase>());
                 var request = new JobRequest("flarg", "test", new Dictionary<string, string>());
                 var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
 
@@ -30,7 +30,7 @@ namespace NuGetGallery.Backend
             public async Task GivenJobWithName_ItCreatesAnInvocationAndInvokesJob()
             {
                 // Arrange
-                var job = new Mock<Job>();
+                var job = new Mock<JobBase>();
                 job.Setup(j => j.Name).Returns("Test");
                 
                 var dispatcher = new JobDispatcher(BackendConfiguration.Create(), new[] { job.Object });
@@ -53,7 +53,7 @@ namespace NuGetGallery.Backend
             public async Task GivenJobWithName_ItReturnsResponseContainingInvocationAndResult()
             {
                 // Arrange
-                var job = new Mock<Job>();
+                var job = new Mock<JobBase>();
                 job.Setup(j => j.Name).Returns("Test");
                 
                 var ex = new Exception();

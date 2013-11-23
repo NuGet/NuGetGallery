@@ -27,16 +27,11 @@ namespace NuGetGallery.Backend
                 Assert.Equal("ATestJerb", new ATestJerb().Name);
             }
 
-            public class ATestJerb : Job
+            public class ATestJerb : Job<TestJobEventSource>
             {
                 protected internal override Task Execute()
                 {
                     return Task.FromResult<object>(null);
-                }
-
-                public override EventSource GetEventSource()
-                {
-                    return TestJobEventSource.Log;
                 }
             }
         }
@@ -158,7 +153,7 @@ namespace NuGetGallery.Backend
             }
         }
 
-        public class TestJob : Job
+        public class TestJob : Job<TestJobEventSource>
         {
             public string TestParameter { get; set; }
 
@@ -190,9 +185,7 @@ namespace NuGetGallery.Backend
 
         public class TestJobEventSource : EventSource
         {
-            public static readonly TestJobEventSource Log = new TestJobEventSource();
-
-            private TestJobEventSource()  { }
+            public TestJobEventSource() { }
         }
     }
 }

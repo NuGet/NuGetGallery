@@ -123,6 +123,9 @@
   <data name="BackendConfiguration_UnknownStorageAccount" xml:space="preserve">
     <value>Unknown Storage Account: {0}</value>
   </data>
+  <data name="JobDispatcher_AsyncContinuationOfNonAsyncJob" xml:space="preserve">
+    <value>Attempted to invoke continuation of non-async job: {0}.</value>
+  </data>
   <data name="UnknownJobException_Message" xml:space="preserve">
     <value>Unknown job: {0}</value>
   </data>

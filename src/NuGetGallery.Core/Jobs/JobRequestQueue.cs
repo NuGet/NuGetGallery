@@ -45,14 +45,23 @@ namespace NuGetGallery.Jobs
             }
             else
             {
+                JobDequeueResult result = null;
                 try
                 {
-                    return new JobDequeueResult(JobRequest.Parse(message.AsString, message));
+                    result = new JobDequeueResult(JobRequest.Parse(message.AsString, message));
                 }
                 catch(Exception ex)
                 {
-                    return new JobDequeueResult(ex, message.AsString);
+                    result = new JobDequeueResult(ex, message.AsString);
                 }
+                
+                if (result.ParseException != null)
+                {
+                    // Have to delete the message to prevent it from reappearing
+                    await _queue.DeleteMessageAsync(message);
+                }
+
+                return result;
             }
         }
 
@@ -62,6 +71,23 @@ namespace NuGetGallery.Jobs
             {
                 await _queue.SafeExecute(q => q.DeleteMessageAsync(request.Message));
             }
+        }
+
+        public Task Enqueue(JobRequest req)
+        {
+            return EnqueueCore(req, visibilityTimeout: null);
+        }
+
+        public Task Enqueue(JobRequest req, TimeSpan visibilityTimeout)
+        {
+            return EnqueueCore(req, visibilityTimeout);
+        }
+
+        private Task EnqueueCore(JobRequest req, TimeSpan? visibilityTimeout)
+        {
+            var messageBody = req.Render();
+            var message = new CloudQueueMessage(messageBody);
+            return _queue.AddMessageAsync(message, null, visibilityTimeout, new QueueRequestOptions(), new OperationContext());
         }
     }
 }

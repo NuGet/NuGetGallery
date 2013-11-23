@@ -74,6 +74,23 @@ namespace NuGetGallery.Monitoring.Tables
             });
         }
 
+        public Task<CloudBlockBlob> DownloadBlob(string containerName, string path, string destinationFileName)
+        {
+            CloudBlobContainer container;
+            if (!_containerMap.TryGetValue(containerName, out container))
+            {
+                _containerMap[containerName] =
+                    container =
+                        Blobs.GetContainerReference(containerName);
+            }
+            return container.SafeExecute(async ct =>
+            {
+                var blob = ct.GetBlockBlobReference(path);
+                await blob.DownloadToFileAsync(destinationFileName, FileMode.CreateNew);
+                return blob;
+            });
+        }
+
         public virtual Task Start()
         {
             // Starts monitoring tasks.

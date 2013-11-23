@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reactive.Linq;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.IO;
@@ -13,8 +14,8 @@ namespace NuGetGallery.Backend.Monitoring
 {
     public class InvocationMonitoringContext
     {
-        private InvocationEventSource _workerLog;
-        private ObservableEventListener _eventStream;
+        private ObservableEventListener _listener;
+        private IObservable<EventEntry> _eventStream;
 
         private string _jsonLog;
         private string _textLog;
@@ -24,33 +25,46 @@ namespace NuGetGallery.Backend.Monitoring
         
         public JobInvocation Invocation { get; private set; }
         public BackendMonitoringHub Monitoring { get; private set; }
-        public Job Job { get; private set; }
+        public JobBase Job { get; private set; }
 
-        public InvocationMonitoringContext(JobInvocation invocation, InvocationEventSource log, BackendMonitoringHub monitoring)
+        public InvocationMonitoringContext(JobInvocation invocation, BackendMonitoringHub monitoring)
         {
             Invocation = invocation;
             Monitoring = monitoring;
-            _workerLog = log;
         }
 
-        public void Begin()
+        public async Task Begin()
         {
             // Mark start time
             _startTime = DateTimeOffset.UtcNow;
             
             // Set up an event stream
-            _eventStream = new ObservableEventListener();
-            _eventStream.EnableEvents(_workerLog, EventLevel.Informational);
+            _listener = new ObservableEventListener();
+            _eventStream = from events in _listener
+                           where JobInvocationContext.GetCurrentInvocationId() == Invocation.Id
+                           select events;
+            _listener.EnableEvents(InvocationEventSource.Log, EventLevel.Informational);
 
-            // Capture the events into a flat file
+            // Calculate paths
             var root = Path.Combine(Monitoring.TempDirectory, "Invocations");
+            if (!Directory.Exists(root))
+            {
+                Directory.CreateDirectory(root);
+            }
+
             _jsonLog = Path.Combine(root, Invocation.Id.ToString("N") + ".json");
             _textLog = Path.Combine(root, Invocation.Id.ToString("N") + ".txt");
+            
+            // Fetch the current logs if this is a continuation, we'll append to them during the invocation
+            if (Invocation.IsContinuation)
+            {
+                await Task.WhenAll(
+                    Monitoring.DownloadBlob(BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_jsonLog), _jsonLog),
+                    Monitoring.DownloadBlob(BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_textLog), _textLog));
+            }
 
-            // Json Log
+            // Capture the events into a JSON file and a plain text file
             _jsonSubscription = _eventStream.LogToFlatFile(_jsonLog, new JsonEventTextFormatter(EventTextFormatting.Indented, dateTimeFormat: "O"));
-
-            // Plain text log
             _textSubscription = _eventStream.LogToFlatFile(_textLog, new EventTextFormatter(dateTimeFormat: "O"));
         }
 
@@ -61,8 +75,10 @@ namespace NuGetGallery.Backend.Monitoring
             _textSubscription.Dispose();
 
             // Upload the file to blob storage
-            var jsonBlob = await Monitoring.UploadBlob(_jsonLog, BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_jsonLog));
-            await Monitoring.UploadBlob(_textLog, BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_textLog));
+            var jsonBlob = (await Task.WhenAll(
+                Monitoring.UploadBlob(_jsonLog, BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_jsonLog)),
+                Monitoring.UploadBlob(_textLog, BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_textLog))))
+                .First();
 
             // Delete the temp files
             File.Delete(_jsonLog);
@@ -72,14 +88,22 @@ namespace NuGetGallery.Backend.Monitoring
             await Monitoring.ReportEndJob(Invocation, result, Job, jsonBlob.Uri.AbsoluteUri, _startTime, DateTimeOffset.UtcNow);
         }
 
-        public async Task SetJob(Job job)
+        public async Task SetJob(JobBase job)
         {
             Job = job;
 
             // Record start of job
             await Monitoring.ReportStartJob(Invocation, Job, _startTime);
 
-            _eventStream.EnableEvents(Job.GetEventSource(), EventLevel.Informational);
+            var eventSource = Job.GetEventSource();
+            if (eventSource == null)
+            {
+                InvocationEventSource.Log.NoEventSource(job.Name);
+            }
+            else
+            {
+                _listener.EnableEvents(eventSource, EventLevel.Informational);
+            }
         }
     }
 }

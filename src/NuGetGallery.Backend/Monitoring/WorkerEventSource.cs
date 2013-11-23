@@ -56,7 +56,7 @@ namespace NuGetGallery.Backend.Monitoring
         private void JobDiscovered(string jobName, string runtime) { WriteEvent(4, jobName, runtime); }
 
         [NonEvent]
-        public void JobDiscovered(Job instance) { JobDiscovered(instance.Name, instance.GetType().AssemblyQualifiedName); }
+        public void JobDiscovered(JobBase instance) { JobDiscovered(instance.Name, instance.GetType().AssemblyQualifiedName); }
 
         [Event(
             eventId: 5,
