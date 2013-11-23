@@ -21,8 +21,12 @@ namespace NuGetGallery.Backend
 
         public override void Run()
         {
-            // Start the runner on it's own "thread" and just sleep until cancelled
+            // Start the runner.
+            // Right now, we only run a single runner thread because I haven't quite worked out
+            // how to capture the ETL events for a particular Invocation while it jumps between Task threads.
             _runner.Run(_cancelSource.Token).Wait();
+
+            WorkerEventSource.Log.Stopped();
         }
 
         public override void OnStop()
@@ -43,10 +47,10 @@ namespace NuGetGallery.Backend
                 ServicePointManager.DefaultConnectionLimit = 12;
 
                 var config = BackendConfiguration.CreateAzure();
-                var monitoring = ConfigureMonitoring(config);
-                var dispatcher = DiscoverJobs(config, monitoring);
+                var monitor = ConfigureMonitoring(config);
+                var dispatcher = DiscoverJobs(config, monitor);
 
-                _runner = new JobRunner(dispatcher, config, monitoring);
+                _runner = new JobRunner(dispatcher, config, monitor);
 
                 WorkerEventSource.Log.StartupComplete();
                 return base.OnStart();
@@ -54,12 +58,12 @@ namespace NuGetGallery.Backend
             catch (Exception ex)
             {
                 // Exceptions that escape to this level are fatal
-                WorkerEventSource.Log.StartupFatal(ex);
+                WorkerEventSource.Log.StartupError(ex);
                 return false;
             }
         }
 
-        private JobDispatcher DiscoverJobs(BackendConfiguration config, BackendMonitoringHub monitoring)
+        private JobDispatcher DiscoverJobs(BackendConfiguration config, BackendMonitoringHub monitor)
         {
             var jobs = typeof(WorkerRole)
                 .Assembly
@@ -67,7 +71,7 @@ namespace NuGetGallery.Backend
                 .Where(t => !t.IsAbstract && typeof(Job).IsAssignableFrom(t))
                 .Select(t => Activator.CreateInstance(t))
                 .Cast<Job>();
-            return new JobDispatcher(config, jobs, monitoring);
+            return new JobDispatcher(config, jobs, monitor);
         }
 
         private BackendMonitoringHub ConfigureMonitoring(BackendConfiguration config)

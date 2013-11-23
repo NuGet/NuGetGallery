@@ -39,10 +39,17 @@ namespace NuGetGallery.Backend
         {
             // Bind invocation information
             Context = context;
-            BindProperties(Invocation.Request.Parameters);
+            try
+            {
+                BindProperties(Invocation.Request.Parameters);
+            }
+            catch (Exception ex)
+            {
+                context.Log.BindingError(ex);
+                return JobResult.Faulted(ex);
+            }
 
             // Invoke the job
-            WorkerEventSource.Log.JobStarted(Invocation.Request.Name, Invocation.Id);
             JobResult result;
             try
             {
@@ -52,15 +59,6 @@ namespace NuGetGallery.Backend
             catch (Exception ex)
             {
                 result = JobResult.Faulted(ex);
-            }
-
-            if (result.Status != JobStatus.Faulted)
-            {
-                WorkerEventSource.Log.JobCompleted(Invocation.Request.Name, Invocation.Id);
-            }
-            else
-            {
-                WorkerEventSource.Log.JobFaulted(Invocation.Request.Name, result.Exception, Invocation.Id);
             }
 
             // Return the result
@@ -142,6 +140,19 @@ namespace NuGetGallery.Backend
                 }
                 return new SqlConnectionStringBuilder(strVal);
             }
+        }
+    }
+
+    public abstract class Job<TEventSource> : Job
+        where TEventSource : EventSource, new()
+    {
+        private TEventSource _log = new TEventSource();
+
+        public TEventSource Log { get { return _log; } }
+
+        public override EventSource GetEventSource()
+        {
+            return Log;
         }
     }
 }

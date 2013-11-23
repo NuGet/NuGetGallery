@@ -30,8 +30,8 @@ namespace NuGetGallery.Monitoring.Tables
         public WorkerInstanceHistoryEntry(string instanceName, DateTimeOffset timestamp, Guid invocationId, string jobName, JobResult result, DateTimeOffset completedAt)
             : this(instanceName, timestamp, invocationId, jobName)
         {
-            Status = result.Status;
-            Exception = result.Exception == null ? null : result.Exception.ToString();
+            Status = result == null ? JobStatus.Unspecified : result.Status;
+            Exception = result == null ? null : (result.Exception == null ? null : result.Exception.ToString());
             CompletedAt = completedAt;
         }
 

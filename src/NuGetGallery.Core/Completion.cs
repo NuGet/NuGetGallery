@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery.Backend.Monitoring
 {
-    public interface IAsyncDeferred<T>
+    public interface ICompletion<T>
     {
         Task Complete(T result);
     }
 
-    public class AsyncDeferred<T> : IAsyncDeferred<T>
+    public class Completion<T> : ICompletion<T>
     {
         private Func<T, Task> _action;
 
-        public AsyncDeferred(Func<T, Task> action)
+        public Completion(Func<T, Task> action)
         {
             _action = action;
         }

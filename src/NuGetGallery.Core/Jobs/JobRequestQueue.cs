@@ -31,7 +31,7 @@ namespace NuGetGallery.Jobs
             return new JobRequestQueue(client.GetQueueReference(DefaultQueueName));
         }
 
-        public async Task<JobRequest> Dequeue(TimeSpan invisibleFor, CancellationToken token)
+        public async Task<JobDequeueResult> Dequeue(TimeSpan invisibleFor, CancellationToken token)
         {
             var message = await _queue.SafeExecute(q => q.GetMessageAsync(
                 invisibleFor,
@@ -45,7 +45,14 @@ namespace NuGetGallery.Jobs
             }
             else
             {
-                return JobRequest.Parse(message.AsString, message);
+                try
+                {
+                    return new JobDequeueResult(JobRequest.Parse(message.AsString, message));
+                }
+                catch(Exception ex)
+                {
+                    return new JobDequeueResult(ex, message.AsString);
+                }
             }
         }
 

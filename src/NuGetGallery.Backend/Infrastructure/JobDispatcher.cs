@@ -13,17 +13,16 @@ namespace NuGetGallery.Backend
         private Dictionary<string, Job> _jobMap;
         private List<Job> _jobs;
         private BackendMonitoringHub _monitor;
-
+        
         public IReadOnlyList<Job> Jobs { get { return _jobs.AsReadOnly(); } }
         public BackendConfiguration Config { get; private set; }
 
-        public JobDispatcher(BackendConfiguration config, IEnumerable<Job> jobs) : this(config, jobs, null) { }
         public JobDispatcher(BackendConfiguration config, IEnumerable<Job> jobs, BackendMonitoringHub monitor)
         {
             _jobs = jobs.ToList();
             _jobMap = _jobs.ToDictionary(j => j.Name);
             _monitor = monitor;
-
+        
             Config = config;
 
             foreach (var job in _jobs)
@@ -32,7 +31,7 @@ namespace NuGetGallery.Backend
             }
         }
 
-        public virtual async Task<JobResponse> Dispatch(JobInvocation invocation)
+        public virtual async Task<JobResponse> Dispatch(JobInvocation invocation, InvocationEventSource log, InvocationMonitoringContext monitoring)
         {
             Job job;
             if (!_jobMap.TryGetValue(invocation.Request.Name, out job))
@@ -40,15 +39,14 @@ namespace NuGetGallery.Backend
                 throw new UnknownJobException(invocation.Request.Name);
             }
 
-            IAsyncDeferred<JobResult> monitorCompletion = null;
-            if (_monitor != null)
+            if (monitoring != null)
             {
-                monitorCompletion = await _monitor.InvokingJob(invocation, job);
+                await monitoring.SetJob(job);
             }
 
-            WorkerEventSource.Log.DispatchingRequest(invocation);
+            log.Invoking(job);
             JobResult result = null;
-            var context = new JobInvocationContext(invocation, Config, _monitor);
+            var context = new JobInvocationContext(invocation, Config, _monitor, log);
             try
             {
                 result = await job.Invoke(context);
@@ -56,11 +54,6 @@ namespace NuGetGallery.Backend
             catch (Exception ex)
             {
                 result = JobResult.Faulted(ex);
-            }
-            
-            if (monitorCompletion != null)
-            {
-                await monitorCompletion.Complete(result);
             }
 
             return new JobResponse(invocation, result, DateTimeOffset.UtcNow);

@@ -11,7 +11,7 @@ using System.Globalization;
 
 namespace NuGetGallery.Backend.Jobs
 {
-    public class CreateOnlineDatabaseBackupJob : Job
+    public class CreateOnlineDatabaseBackupJob : Job<CreateOnlineDatabaseBackupEventSource>
     {
         /// <summary>
         /// The target server, in the form of a known SQL Server (primary, warehouse, etc.)
@@ -46,11 +46,6 @@ namespace NuGetGallery.Backend.Jobs
         /// </summary>
         public bool Force { get; set; }
 
-        public override EventSource GetEventSource()
-        {
-            return JobEventSource.Log;
-        }
-
         protected internal override async Task Execute()
         {
             // Resolve the connection if not specified explicitly
@@ -60,7 +55,7 @@ namespace NuGetGallery.Backend.Jobs
                     .GetSqlServer(TargetServer)
                     .ChangeDatabase(TargetDatabaseName);
             }
-            JobEventSource.Log.PreparingToBackup(
+            Log.PreparingToBackup(
                 TargetDatabaseConnection.InitialCatalog, 
                 TargetDatabaseConnection.DataSource);
             // Connect to the master database
@@ -69,7 +64,7 @@ namespace NuGetGallery.Backend.Jobs
                 if (!Force && MaxAge != null)
                 {
                     // Get databases
-                    JobEventSource.Log.GettingDatabaseList(TargetDatabaseConnection.DataSource);
+                    Log.GettingDatabaseList(TargetDatabaseConnection.DataSource);
                     var databases = await GetDatabases(connection);
 
                     // Gather backups with matching prefix and order descending
@@ -88,7 +83,7 @@ namespace NuGetGallery.Backend.Jobs
                     if (mostRecent != null && mostRecent.Timestamp.IsYoungerThan(MaxAge.Value))
                     {
                         // Skip the backup
-                        JobEventSource.Log.BackupWithinMaxAge(mostRecent, MaxAge.Value);
+                        Log.BackupWithinMaxAge(mostRecent, MaxAge.Value);
                         return;
                     }
                 }
@@ -98,19 +93,13 @@ namespace NuGetGallery.Backend.Jobs
 
                 // Start a copy
                 //  (have to build the SQL string manually because you can't parameterize CREATE DATABASE)
-                JobEventSource.Log.StartingCopy(TargetDatabaseConnection.InitialCatalog, backupName);
+                Log.StartingCopy(TargetDatabaseConnection.InitialCatalog, backupName);
                 await connection.ExecuteAsync(String.Format(
                     CultureInfo.InvariantCulture,
                     "CREATE DATABASE {0} AS COPY OF {1}",
                     backupName,
                     TargetDatabaseConnection.InitialCatalog));
-                JobEventSource.Log.StartedCopy(TargetDatabaseConnection.InitialCatalog, backupName);
-
-                // Return a result to queue an async completion check in 5 minutes.
-                return JobResult.AsyncCompletion(new
-                {
-                    DatabaseName = backupName
-                }, TimeSpan.FromMinutes(5));
+                Log.StartedCopy(TargetDatabaseConnection.InitialCatalog, backupName);
             }
         }
 
@@ -121,49 +110,42 @@ namespace NuGetGallery.Backend.Jobs
                 FROM sys.databases
             ");
         }
+    }
 
-        [EventSource(Name="NuGet-Jobs-CreateOnlineDatabaseBackup")]
-        public class JobEventSource : EventSource
-        {
-            public static readonly JobEventSource Log = new JobEventSource();
+    [EventSource(Name = "NuGet-Jobs-CreateOnlineDatabaseBackup")]
+    public class CreateOnlineDatabaseBackupEventSource : EventSource
+    {
+        [Event(
+            eventId: 1,
+            Level = EventLevel.Informational,
+            Message = "Skipping backup. {0} is within maximum age of {1}.")]
+        private void BackupWithinMaxAge(string name, string age) { WriteEvent(1, name, age); }
 
-            private JobEventSource() { }
+        [NonEvent]
+        public void BackupWithinMaxAge(DatabaseBackup mostRecent, TimeSpan timeSpan) { BackupWithinMaxAge(mostRecent.Db.name, timeSpan.ToString()); }
 
-#pragma warning disable 0618
-            [Event(
-                eventId: 1,
-                Level = EventLevel.Informational,
-                Message = "Skipping backup. {0} is within maximum age of {1}.")]
-            [Obsolete("This method supports ETL infrastructure. Use other overloads instead")]
-            public void BackupWithinMaxAge(string name, string age) { WriteEvent(1, name, age); }
+        [Event(
+            eventId: 2,
+            Level = EventLevel.Informational,
+            Message = "Getting list of databases on {0}")]
+        public void GettingDatabaseList(string server) { WriteEvent(2, server); }
 
-            [NonEvent]
-            public void BackupWithinMaxAge(DatabaseBackup mostRecent, TimeSpan timeSpan) { BackupWithinMaxAge(mostRecent.Db.name, timeSpan.ToString()); }
+        [Event(
+            eventId: 3,
+            Level = EventLevel.Informational,
+            Message = "Preparing to backup {1} on server {0}")]
+        public void PreparingToBackup(string server, string database) { WriteEvent(3, server, database); }
 
-            [Event(
-                eventId: 2,
-                Level = EventLevel.Informational,
-                Message = "Getting list of databases on {0}")]
-            public void GettingDatabaseList(string server) { WriteEvent(2, server); }
+        [Event(
+            eventId: 4,
+            Level = EventLevel.Informational,
+            Message = "Starting copy of {0} to {1}")]
+        public void StartingCopy(string source, string destination) { WriteEvent(4, source, destination); }
 
-            [Event(
-                eventId: 3,
-                Level = EventLevel.Informational,
-                Message = "Preparing to backup {1} on server {0}")]
-            public void PreparingToBackup(string server, string database) { WriteEvent(3, server, database); }
-
-            [Event(
-                eventId: 4,
-                Level = EventLevel.Informational,
-                Message = "Starting copy of {0} to {1}")]
-            public void StartingCopy(string source, string destination) { WriteEvent(4, source, destination); }
-
-            [Event(
-                eventId: 5,
-                Level = EventLevel.Informational,
-                Message = "Started copy of {0} to {1}")]
-            public void StartedCopy(string source, string destination) { WriteEvent(5, source, destination); }
-#pragma warning restore 0618
-        }
+        [Event(
+            eventId: 5,
+            Level = EventLevel.Informational,
+            Message = "Started copy of {0} to {1}")]
+        public void StartedCopy(string source, string destination) { WriteEvent(5, source, destination); }
     }
 }

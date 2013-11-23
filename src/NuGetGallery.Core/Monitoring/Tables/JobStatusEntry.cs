@@ -37,8 +37,8 @@ namespace NuGetGallery.Monitoring.Tables
         public JobStatusEntry(string jobName, DateTimeOffset timestamp, Guid lastInvocationId, JobResult lastInvocationResult, string lastInstanceName, DateTimeOffset lastInvocationCompletedAt)
             : this(jobName, timestamp, lastInvocationId, lastInstanceName)
         {
-            LastInvocationStatus = lastInvocationResult.Status;
-            LastInvocationException = lastInvocationResult.Exception == null ? null : lastInvocationResult.Exception.ToString();
+            LastInvocationStatus = lastInvocationResult == null ? JobStatus.Unspecified : lastInvocationResult.Status;
+            LastInvocationException = lastInvocationResult == null ? null : (lastInvocationResult.Exception == null ? null : lastInvocationResult.Exception.ToString());
             LastInvocationCompletedAt = lastInvocationCompletedAt;
         }
 

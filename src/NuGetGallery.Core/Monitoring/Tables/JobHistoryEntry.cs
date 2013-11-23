@@ -29,9 +29,9 @@ namespace NuGetGallery.Monitoring.Tables
         public JobHistoryEntry(string jobName, DateTimeOffset timestamp, Guid invocationId, string instanceName, JobResult result, DateTimeOffset completedAt)
             : this(jobName, timestamp, invocationId, instanceName)
         {
-            Status = result.Status;
+            Status = result == null ? JobStatus.Unspecified : result.Status;
             CompletedAt = completedAt;
-            Exception = result.Exception == null ? null : result.Exception.ToString();
+            Exception = result == null ? null : (result.Exception == null ? null : result.Exception.ToString());
         }
 
         public Guid InvocationId { get; set; }

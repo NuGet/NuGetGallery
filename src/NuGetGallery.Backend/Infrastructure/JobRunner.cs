@@ -38,54 +38,76 @@ namespace NuGetGallery.Backend
 
         public async Task Run(CancellationToken cancelToken)
         {
-            WorkerEventSource.Log.WorkerDispatching();
-            while (!cancelToken.IsCancellationRequested)
+            WorkerEventSource.Log.DispatchLoopStarted();
+            try
             {
-                var response = await DispatchOne(cancelToken);
-                if (response != null)
+                while (!cancelToken.IsCancellationRequested)
                 {
-                    WorkerEventSource.Log.JobExecuted(response);
+                    JobDequeueResult dequeued = await _queue.Dequeue(DefaultInvisibilityPeriod, cancelToken);
+                    if (dequeued == null)
+                    {
+                        WorkerEventSource.Log.DispatchLoopWaiting(_config.QueuePollInterval);
+                        await Task.Delay(_config.QueuePollInterval);
+                        WorkerEventSource.Log.DispatchLoopResumed();
+                    }
+                    else if (!dequeued.Success)
+                    {
+                        WorkerEventSource.Log.InvalidQueueMessage(dequeued.MessageBody, dequeued.ParseException);
+                    }
+                    else
+                    {
+                        Debug.Assert(dequeued.Request.Message != null); // Since we dequeued, there'd better be a CloudQueueMessage.
+                        await Dispatch(dequeued.Request);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                WorkerEventSource.Log.DispatchLoopError(ex);
+            }
+            WorkerEventSource.Log.DispatchLoopEnded();
+        }
+
+        private async Task Dispatch(JobRequest request)
+        {
+            // Construct an invocation. From here on, we're in the context of this invocation.
+            var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
+            var log = new InvocationEventSource(invocation.Id);
+            
+            var context = _monitoring.BeginInvocation(invocation, log);
+            log.Started();
+
+            JobResponse response = null;
+            try
+            {
+                response = await _dispatcher.Dispatch(invocation, log, context);
+
+                if (response.Result.Status != JobStatus.Faulted)
+                {
+                    log.Succeeded(response);
                 }
                 else
                 {
-                    WorkerEventSource.Log.QueueEmpty(_config.QueuePollInterval);
-                    await Task.Delay(_config.QueuePollInterval);
+                    log.Faulted(response);
                 }
-            }
-        }
-
-        private async Task<JobResponse> DispatchOne(CancellationToken cancelToken)
-        {
-            var request = await _queue.Dequeue(DefaultInvisibilityPeriod, cancelToken);
-            if (request == null)
-            {
-                return null;
-            }
-            Debug.Assert(request.Message != null); // Since we dequeued, there'd better be a CloudQueueMessage.
-            WorkerEventSource.Log.RequestReceived(request.Id, request.InsertionTime);
-
-            var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
-            try
-            {
-                JobResponse response = await _dispatcher.Dispatch(invocation);
 
                 if (request.ExpiresAt.HasValue && DateTimeOffset.UtcNow > request.ExpiresAt.Value)
                 {
-                    WorkerEventSource.Log.JobRequestExpired(request, request.Id, DateTimeOffset.UtcNow - request.ExpiresAt.Value);
+                    log.RequestExpired(request);
                 }
 
                 // If dispatch throws, we don't delete the message
                 // NOTE: If the JOB throws, the dispatcher should catch it and return the error in the response
                 // Thus the request is considered "handled"
                 await _queue.Acknowledge(request);
-
-                return response;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                WorkerEventSource.Log.DispatchError(invocation, ex);
-                return null;
+                log.DispatchError(ex);
             }
+
+            log.Ended();
+            await context.End(response == null ? null : response.Result);
         }
     }
 }

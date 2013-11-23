@@ -12,12 +12,14 @@ namespace NuGetGallery.Backend
         public JobInvocation Invocation { get; private set; }
         public BackendConfiguration Config { get; private set; }
         public BackendMonitoringHub Monitor { get; private set; }
+        public InvocationEventSource Log { get; private set; }
 
-        public JobInvocationContext(JobInvocation invocation, BackendConfiguration config, BackendMonitoringHub monitor)
+        public JobInvocationContext(JobInvocation invocation, BackendConfiguration config, BackendMonitoringHub monitor, InvocationEventSource log)
         {
             Invocation = invocation;
             Config = config;
             Monitor = monitor;
+            Log = log;
         }
     }
 }

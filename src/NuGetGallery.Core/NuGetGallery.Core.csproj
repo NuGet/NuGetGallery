@@ -92,7 +92,9 @@
     <Compile Include="Auditing\UserAuditRecord.cs" />
     <Compile Include="CredentialTypes.cs" />
     <Compile Include="AsyncDisposable.cs" />
+    <Compile Include="Completion.cs" />
     <Compile Include="Jobs\InvalidJobRequestException.cs" />
+    <Compile Include="Jobs\JobDequeueResult.cs" />
     <Compile Include="Jobs\JobInvocation.cs" />
     <Compile Include="Jobs\JobRequest.cs" />
     <Compile Include="Jobs\JobRequestQueue.cs" />

@@ -30,9 +30,11 @@ namespace NuGetGallery.Monitoring.Tables
             RequestPayload = invocation.Request.Message == null ? null : invocation.Request.Message.AsString;
         }
 
-        public InvocationsEntry(JobInvocation invocation, JobResult result, string logUrl) : this(invocation)
+        public InvocationsEntry(JobInvocation invocation, JobResult result, string logUrl, DateTimeOffset completedAt) : this(invocation)
         {
             LogUrl = logUrl;
+            CompletedAt = completedAt;
+            Status = result == null ? JobStatus.Unspecified : result.Status;
         }
 
         public Guid InvocationId { get; set; }
