@@ -42,6 +42,32 @@ namespace NuGetGallery.Backend
         protected internal abstract Task Execute();
     }
 
+    public abstract class RepeatingJob<TEventSource> : JobBase<TEventSource> 
+        where TEventSource: EventSource
+    {
+        /// <summary>
+        /// The amount of time to wait before invoking again, when the job goes idle
+        /// </summary>
+        public abstract TimeSpan WaitPeriod { get; }
+
+        protected internal override async Task<JobResult> Invoke()
+        {
+            // Invoke the job. When it returns, it means there's no more data to process
+            // So go to sleep until the wait period elapses
+            try
+            {
+                await Execute();
+                return JobResult.Completed(WaitPeriod);
+            }
+            catch (Exception ex)
+            {
+                return JobResult.Faulted(ex, WaitPeriod);
+            }
+        }
+
+        protected internal abstract Task Execute();
+    }
+
     public interface IAsyncJob
     {
         Task<JobResult> InvokeContinuation(JobInvocationContext context);
@@ -63,11 +89,11 @@ namespace NuGetGallery.Backend
                 return Task.FromResult(result);
             }
 
-            return InvokeCore(() => Continue());
+            return InvokeCore(() => Resume());
         }
 
         protected internal abstract Task<JobContinuation> Execute();
-        protected internal abstract Task<JobContinuation> Continue();
+        protected internal abstract Task<JobContinuation> Resume();
 
         protected virtual Task<JobContinuation> Continue(TimeSpan waitPeriod, Dictionary<string, string> parameters)
         {

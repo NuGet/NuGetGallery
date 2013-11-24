@@ -87,7 +87,7 @@ namespace NuGetGallery.Jobs
         {
             var messageBody = req.Render();
             var message = new CloudQueueMessage(messageBody);
-            return _queue.AddMessageAsync(message, null, visibilityTimeout, new QueueRequestOptions(), new OperationContext());
+            return _queue.SafeExecute(q => q.AddMessageAsync(message, null, visibilityTimeout, new QueueRequestOptions(), new OperationContext()));
         }
     }
 }

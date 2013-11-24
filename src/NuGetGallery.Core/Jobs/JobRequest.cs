@@ -10,7 +10,7 @@ namespace NuGetGallery.Jobs
 {
     public class JobRequest
     {
-        public static readonly string UnknownSource = "<unknown>";
+        public static readonly string UnknownSource = "Unknown";
 
         public string Name { get; private set; }
         public string Source { get; private set; }

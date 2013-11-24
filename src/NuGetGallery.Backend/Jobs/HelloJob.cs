@@ -23,7 +23,7 @@ namespace NuGetGallery.Backend.Jobs
             });
         }
 
-        protected internal override Task<JobContinuation> Continue()
+        protected internal override Task<JobContinuation> Resume()
         {
             Log.Continuing(Message);
             Log.Finished();

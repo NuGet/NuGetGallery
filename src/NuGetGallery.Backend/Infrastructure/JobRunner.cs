@@ -139,6 +139,11 @@ namespace NuGetGallery.Backend
                 Debug.Assert(response.Result.Continuation != null);
                 await EnqueueContinuation(response);
             }
+            else if (response.Result.RescheduleIn != null)
+            {
+                // Rescheule it to run again
+                await EnqueueRepeat(response);
+            }
         }
 
         private Task EnqueueContinuation(JobResponse response)
@@ -149,6 +154,15 @@ namespace NuGetGallery.Backend
                 response.Result.Continuation.Parameters,
                 response.Invocation.Id);
             return _queue.Enqueue(req, response.Result.Continuation.WaitPeriod);
+        }
+
+        private Task EnqueueRepeat(JobResponse response)
+        {
+            var req = new JobRequest(
+                response.Invocation.Request.Name,
+                Constants.Source_RepeatingJob,
+                response.Invocation.Request.Parameters);
+            return _queue.Enqueue(req, response.Result.RescheduleIn.Value);
         }
     }
 }

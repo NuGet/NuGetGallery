@@ -10,16 +10,29 @@ namespace NuGetGallery.Jobs
         public JobStatus Status { get; private set; }
         public Exception Exception { get; private set; }
         public JobContinuation Continuation { get; private set; }
+        public TimeSpan? RescheduleIn { get; private set; }
 
         private JobResult(JobStatus status)
         {
             Status = status;
         }
 
+        private JobResult(JobStatus status, TimeSpan rescheduleIn)
+            : this(status)
+        {
+            RescheduleIn = rescheduleIn;
+        }
+
         private JobResult(JobStatus status, Exception exception)
             : this(status)
         {
             Exception = exception;
+        }
+
+        private JobResult(JobStatus status, Exception exception, TimeSpan rescheduleIn)
+            : this(status, exception)
+        {
+            RescheduleIn = rescheduleIn;
         }
 
         private JobResult(JobStatus status, JobContinuation continuation)
@@ -33,6 +46,11 @@ namespace NuGetGallery.Jobs
             return new JobResult(JobStatus.Completed);
         }
 
+        public static JobResult Completed(TimeSpan rescheduleIn)
+        {
+            return new JobResult(JobStatus.Completed, rescheduleIn);
+        }
+
         public static JobResult Continuing(JobContinuation continuation)
         {
             return new JobResult(JobStatus.AwaitingContinuation, continuation);
@@ -41,6 +59,11 @@ namespace NuGetGallery.Jobs
         public static JobResult Faulted(Exception ex)
         {
             return new JobResult(JobStatus.Faulted, ex);
+        }
+
+        public static JobResult Faulted(Exception ex, TimeSpan rescheduleIn)
+        {
+            return new JobResult(JobStatus.Faulted, ex, rescheduleIn);
         }
 
         public override bool Equals(object obj)
