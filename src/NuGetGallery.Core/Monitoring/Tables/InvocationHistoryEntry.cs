@@ -8,47 +8,40 @@ using NuGetGallery.Jobs;
 
 namespace NuGetGallery.Monitoring.Tables
 {
-    // Partitioning Strategy:
-    //  Partition based on partial GUID
-    public class InvocationsEntry : TableEntity
+    public class InvocationHistoryEntry : ReverseChronologicalTableEntry
     {
-        [Obsolete("Don't call this constructor directly, it is only for deserialization", error: true)]
-        public InvocationsEntry() { }
+        public Guid InvocationId { get { return Guid.Parse(PartitionKey); } }
 
-        public InvocationsEntry(string instanceName, Guid invocationId)
+        [Obsolete("Don't call this constructor directly, it is only for deserialization", error: true)]
+        public InvocationHistoryEntry() { }
+
+        public InvocationHistoryEntry(string instanceName, Guid invocationId, DateTimeOffset timestamp)
+            : base(invocationId.ToString("N").ToLowerInvariant(), timestamp)
         {
-            PartitionKey = invocationId.ToString("N").Substring(0, 8);
-            RowKey = invocationId.ToString("N").Substring(8);
-            InvocationId = invocationId;
             InstanceName = instanceName;
             Status = JobStatus.Executing;
         }
 
-        public InvocationsEntry(string instanceName, JobInvocation invocation)
-            : this(instanceName, invocation.Id)
+        public InvocationHistoryEntry(string instanceName, JobInvocation invocation, DateTimeOffset timestamp)
+            : this(instanceName, invocation.Id, timestamp)
         {
-            ReceivedAt = invocation.RecievedAt;
             JobName = invocation.Request.Name;
             Source = invocation.Request.Source;
             RequestPayload = invocation.Request.Message == null ? null : invocation.Request.Message.AsString;
         }
 
-        public InvocationsEntry(string instanceName, JobInvocation invocation, JobResult result, string logUrl, DateTimeOffset completedAt)
-            : this(instanceName, invocation)
+        public InvocationHistoryEntry(string instanceName, JobInvocation invocation, JobResult result, string logUrl, DateTimeOffset timestamp)
+            : this(instanceName, invocation, timestamp)
         {
             LogUrl = logUrl;
-            CompletedAt = completedAt;
             Status = result == null ? JobStatus.Unspecified : result.Status;
         }
 
         public string InstanceName { get; set; }
-        public Guid InvocationId { get; set; }
-        public DateTimeOffset ReceivedAt { get; set; }
         public string JobName { get; set; }
         public string Source { get; set; }
         public string RequestPayload { get; set; }
         public string LogUrl { get; set; }
-        public DateTimeOffset? CompletedAt { get; set; }
 
         [Obsolete("Use the Status property to read/write this value")]
         public string StatusName { get; set; }

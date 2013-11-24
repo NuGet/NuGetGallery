@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace NuGetGallery.Backend.Helpers
 {
     internal static class EventSourceInstanceManager
     {
-        private static Dictionary<Type, EventSource> _instances = new Dictionary<Type, EventSource>();
+        private static ConcurrentDictionary<Type, EventSource> _instances = new ConcurrentDictionary<Type, EventSource>();
 
         public static TEventSource Get<TEventSource>()
             where TEventSource : EventSource
@@ -20,17 +21,17 @@ namespace NuGetGallery.Backend.Helpers
 
         public static EventSource Get(Type eventSourceType)
         {
-            EventSource eventSource;
-            if (!_instances.TryGetValue(eventSourceType, out eventSource))
+            return _instances.GetOrAdd(eventSourceType, type =>
             {
-                var field = eventSourceType.GetField("Log", BindingFlags.Public | BindingFlags.Static);
-                if (field != null && eventSourceType.IsAssignableFrom(field.FieldType))
+                var field = type.GetField("Log", BindingFlags.Public | BindingFlags.Static);
+                EventSource eventSource;
+                if (field != null && type.IsAssignableFrom(field.FieldType))
                 {
                     eventSource = (EventSource)field.GetValue(null);
                 }
                 else
                 {
-                    var ctor = eventSourceType.GetConstructor(Type.EmptyTypes);
+                    var ctor = type.GetConstructor(Type.EmptyTypes);
                     if (ctor != null)
                     {
                         eventSource = (EventSource)ctor.Invoke(new object[0]);
@@ -40,9 +41,8 @@ namespace NuGetGallery.Backend.Helpers
                         eventSource = null;
                     }
                 }
-                _instances[eventSourceType] = eventSource;
-            }
-            return eventSource;
+                return eventSource;
+            });
         }
     }
 }

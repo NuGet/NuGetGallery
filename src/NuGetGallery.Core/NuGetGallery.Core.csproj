@@ -126,6 +126,7 @@
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\User.cs" />
+    <Compile Include="Monitoring\Tables\InvocationHistoryEntry.cs" />
     <Compile Include="Monitoring\Tables\InvocationsEntry.cs" />
     <Compile Include="Monitoring\Tables\JobHistoryEntry.cs" />
     <Compile Include="Monitoring\Tables\ReverseChronologicalTableEntry.cs" />

@@ -26,8 +26,10 @@ namespace NuGetGallery.Backend
             // Run as many job executors as there are processors
             var runnerTasks = Enumerable
                 .Range(0, Environment.ProcessorCount)
-                .Select(index => ExecuteJobs(index, _cancelSource.Token));
-
+                .Select(index => ExecuteJobs(index, _cancelSource.Token))
+                .ToArray();
+            
+            Task.WaitAll(runnerTasks);
 
             WorkerEventSource.Log.Stopped();
         }
@@ -67,6 +69,7 @@ namespace NuGetGallery.Backend
         {
             var instanceName = RoleEnvironment.CurrentRoleInstance.Id + "_T" + index.ToString();
             var threadName = "Thread" + index.ToString();
+            RunnerId.Set(index);
 
             var monitor = ConfigureMonitoring(instanceName, threadName, _config);
             var dispatcher = new JobDispatcher(_config, _jobs, monitor);

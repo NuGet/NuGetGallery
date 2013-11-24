@@ -33,9 +33,10 @@ namespace NuGetGallery.Backend.Monitoring
         private MonitoringTable<JobStatusEntry> _jobStatusTable;
         private MonitoringTable<JobHistoryEntry> _jobHistoryTable;
         private MonitoringTable<InvocationsEntry> _invocationsTable;
+        private MonitoringTable<InvocationHistoryEntry> _invocationHistoryTable;
 
         private SinkSubscription<WindowsAzureTableSink> _globalSinkSubscription;
-
+        
         public string LogsDirectory { get; private set; }
         public string TempDirectory { get; private set; }
         public string InstanceName { get; private set; }
@@ -56,6 +57,7 @@ namespace NuGetGallery.Backend.Monitoring
             _jobStatusTable = Table<JobStatusEntry>();
             _jobHistoryTable = Table<JobHistoryEntry>();
             _invocationsTable = Table<InvocationsEntry>();
+            _invocationHistoryTable = Table<InvocationHistoryEntry>();
         }
 
         /// <summary>
@@ -72,8 +74,8 @@ namespace NuGetGallery.Backend.Monitoring
         {
             // Set up worker logging
             var listener = new ObservableEventListener();
-            var capturedId = JobRunner.GetRunnerId();
-            var stream = listener.Where(_ => JobRunner.GetRunnerId() == capturedId);
+            var capturedId = RunnerId.Get();
+            var stream = listener.Where(_ => RunnerId.Get() == capturedId);
             listener.EnableEvents(WorkerEventSource.Log, EventLevel.Informational);
             listener.EnableEvents(InvocationEventSource.Log, EventLevel.Informational);
             listener.EnableEvents(SemanticLoggingEventSource.Log, EventLevel.Informational);
@@ -118,7 +120,8 @@ namespace NuGetGallery.Backend.Monitoring
                 _instanceStatusTable.Upsert(new WorkerInstanceStatusEntry(InstanceName, startTime, BackendInstanceStatus.Executing, invocation.Id, job.Name)),
 
                 // Add invocation row
-                _invocationsTable.Upsert(new InvocationsEntry(invocation)));
+                _invocationsTable.Upsert(new InvocationsEntry(InstanceName, invocation)),
+                _invocationHistoryTable.Upsert(new InvocationHistoryEntry(InstanceName, invocation, startTime)));
         }
 
         internal Task ReportEndJob(JobInvocation invocation, JobResult result, JobDescription job, string logUrl, DateTimeOffset startTime, DateTimeOffset completionTime)
@@ -133,7 +136,8 @@ namespace NuGetGallery.Backend.Monitoring
                 _instanceStatusTable.Upsert(new WorkerInstanceStatusEntry(InstanceName, startTime, BackendInstanceStatus.Idle, invocation.Id, job.Name, result, completionTime)),
 
                 // Update invocation row
-                _invocationsTable.Upsert(new InvocationsEntry(invocation, result, logUrl, completionTime)));
+                _invocationsTable.Upsert(new InvocationsEntry(InstanceName, invocation, result, logUrl, completionTime)),
+                _invocationHistoryTable.Upsert(new InvocationHistoryEntry(InstanceName, invocation, result, logUrl, completionTime)));
         }
     }
 }
