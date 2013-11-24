@@ -16,24 +16,10 @@ namespace NuGetGallery.Backend
 {
     public abstract class JobBase
     {
-        private static readonly Regex NameExtractor = new Regex(@"^(?<shortname>.*)Job$");
-
-        public virtual string Name { get; private set; }
         public JobInvocationContext Context { get; protected set; }
 
         public JobInvocation Invocation { get { return Context.Invocation; } }
         public BackendConfiguration Config { get { return Context.Config; } }
-        
-        protected JobBase()
-        {
-            Name = InferName();
-        }
-
-        protected JobBase(string name)
-            : this()
-        {
-            Name = name;
-        }
 
         public virtual async Task<JobResult> Invoke(JobInvocationContext context)
         {
@@ -113,17 +99,6 @@ namespace NuGetGallery.Backend
                 return converter.ConvertFromString(value);
             }
             return prop.Converter.ConvertFromString(value);
-        }
-
-        private string InferName()
-        {
-            var name = GetType().Name;
-            var match = NameExtractor.Match(name);
-            if (match.Success)
-            {
-                return match.Groups["shortname"].Value;
-            }
-            return name;
         }
 
         private class SqlConnectionStringBuilderConverter : TypeConverter

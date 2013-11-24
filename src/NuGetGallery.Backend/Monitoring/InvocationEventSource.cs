@@ -67,7 +67,7 @@ namespace NuGetGallery.Backend.Monitoring
         private void Invoking(Guid invocationId, string jobName, string jobRuntime) { WriteEvent(5, invocationId, jobName, jobRuntime); }
 
         [NonEvent]
-        public void Invoking(JobBase job) { Invoking(JobInvocationContext.GetCurrentInvocationId(), job.Name, job.GetType().AssemblyQualifiedName); }
+        public void Invoking(JobDescription job) { Invoking(JobInvocationContext.GetCurrentInvocationId(), job.Name, job.Runtime); }
 
         [Event(
             eventId: 6,

@@ -93,6 +93,8 @@
     <Compile Include="Helpers\DateTimeOffsetExtensions.cs" />
     <Compile Include="Helpers\EventSourceInstanceManager.cs" />
     <Compile Include="Infrastructure\Job.cs" />
+    <Compile Include="Infrastructure\JobAttribute.cs" />
+    <Compile Include="Infrastructure\JobDescription.cs" />
     <Compile Include="Infrastructure\JobInvocationContext.cs" />
     <Compile Include="Jobs\HelloJob.cs" />
     <Compile Include="Models\Database.cs" />

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure;
@@ -16,15 +17,17 @@ namespace NuGetGallery.Backend
 {
     public class WorkerRole : RoleEntryPoint
     {
-        private JobRunner _runner;
+        private BackendConfiguration _config;
+        private IEnumerable<JobDescription> _jobs;
         private CancellationTokenSource _cancelSource = new CancellationTokenSource();
 
         public override void Run()
         {
-            // Start the runner.
-            // Right now, we only run a single runner thread because I haven't quite worked out
-            // how to capture the ETL events for a particular Invocation while it jumps between Task threads.
-            _runner.Run(_cancelSource.Token).Wait();
+            // Run as many job executors as there are processors
+            var runnerTasks = Enumerable
+                .Range(0, Environment.ProcessorCount)
+                .Select(index => ExecuteJobs(index, _cancelSource.Token));
+
 
             WorkerEventSource.Log.Stopped();
         }
@@ -46,11 +49,8 @@ namespace NuGetGallery.Backend
                 // Set the maximum number of concurrent connections 
                 ServicePointManager.DefaultConnectionLimit = 12;
 
-                var config = BackendConfiguration.CreateAzure();
-                var monitor = ConfigureMonitoring(config);
-                var dispatcher = DiscoverJobs(config, monitor);
-
-                _runner = new JobRunner(dispatcher, config, monitor);
+                _config = BackendConfiguration.CreateAzure();
+                DiscoverJobs();
 
                 WorkerEventSource.Log.StartupComplete();
                 return base.OnStart();
@@ -63,27 +63,43 @@ namespace NuGetGallery.Backend
             }
         }
 
-        private JobDispatcher DiscoverJobs(BackendConfiguration config, BackendMonitoringHub monitor)
+        public async Task ExecuteJobs(int index, CancellationToken cancelToken)
         {
-            var jobs = typeof(WorkerRole)
+            var instanceName = RoleEnvironment.CurrentRoleInstance.Id + "_T" + index.ToString();
+            var threadName = "Thread" + index.ToString();
+
+            var monitor = ConfigureMonitoring(instanceName, threadName, _config);
+            var dispatcher = new JobDispatcher(_config, _jobs, monitor);
+            var runner = new JobRunner(dispatcher, _config, monitor);
+            
+            await runner.Run(cancelToken);
+        }
+
+        private void DiscoverJobs()
+        {
+            _jobs = typeof(WorkerRole)
                 .Assembly
                 .GetExportedTypes()
                 .Where(t => !t.IsAbstract && typeof(JobBase).IsAssignableFrom(t))
-                .Select(t => Activator.CreateInstance(t))
-                .Cast<JobBase>();
-            return new JobDispatcher(config, jobs, monitor);
+                .Select(t => JobDescription.Create(t))
+                .Where(d => d != null);
+
+            foreach (var job in _jobs)
+            {
+                WorkerEventSource.Log.JobDiscovered(job);
+            }
         }
 
-        private BackendMonitoringHub ConfigureMonitoring(BackendConfiguration config)
+        private BackendMonitoringHub ConfigureMonitoring(string instanceName, string threadName, BackendConfiguration config)
         {
             var connectionString = config.Get("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString");
-            var logDirectory = RoleEnvironment.GetLocalResource("Logs").RootPath;
-            var tempDirectory = Path.Combine(Path.GetTempPath(), "NuGetWorkerTemp");
+            var logDirectory = Path.Combine(RoleEnvironment.GetLocalResource("Logs").RootPath, threadName);
+            var tempDirectory = Path.Combine(Path.GetTempPath(), "NuGetWorkerTemp", threadName);
             var monitoring = new BackendMonitoringHub(
                 connectionString, 
                 logDirectory,
                 tempDirectory,
-                RoleEnvironment.CurrentRoleInstance.Id);
+                instanceName);
             monitoring.Start();
             return monitoring;
         }

@@ -11,41 +11,37 @@ namespace NuGetGallery.Backend
 {
     public class JobDispatcher
     {
-        private Dictionary<string, JobBase> _jobMap;
-        private List<JobBase> _jobs;
+        private Dictionary<string, JobDescription> _jobMap;
+        private List<JobDescription> _jobs;
         private BackendMonitoringHub _monitor;
-        
-        public IReadOnlyList<JobBase> Jobs { get { return _jobs.AsReadOnly(); } }
+
+        public IReadOnlyList<JobDescription> Jobs { get { return _jobs.AsReadOnly(); } }
         public BackendConfiguration Config { get; private set; }
 
-        public JobDispatcher(BackendConfiguration config, IEnumerable<JobBase> jobs, BackendMonitoringHub monitor)
+        public JobDispatcher(BackendConfiguration config, IEnumerable<JobDescription> jobs, BackendMonitoringHub monitor)
         {
             _jobs = jobs.ToList();
             _jobMap = _jobs.ToDictionary(j => j.Name);
             _monitor = monitor;
         
             Config = config;
-
-            foreach (var job in _jobs)
-            {
-                WorkerEventSource.Log.JobDiscovered(job);
-            }
         }
 
         public virtual async Task<JobResponse> Dispatch(JobInvocation invocation, InvocationMonitoringContext monitoring)
         {
-            JobBase job;
-            if (!_jobMap.TryGetValue(invocation.Request.Name, out job))
+            JobDescription jobDesc;
+            if (!_jobMap.TryGetValue(invocation.Request.Name, out jobDesc))
             {
                 throw new UnknownJobException(invocation.Request.Name);
             }
+            JobBase job = jobDesc.CreateInstance();
 
             if (monitoring != null)
             {
-                await monitoring.SetJob(job);
+                await monitoring.SetJob(jobDesc, job);
             }
 
-            InvocationEventSource.Log.Invoking(job);
+            InvocationEventSource.Log.Invoking(jobDesc);
             JobResult result = null;
             var context = new JobInvocationContext(invocation, Config, _monitor);
 
@@ -60,7 +56,7 @@ namespace NuGetGallery.Backend
                         throw new InvalidOperationException(String.Format(
                             CultureInfo.CurrentCulture,
                             Strings.JobDispatcher_AsyncContinuationOfNonAsyncJob,
-                            job.Name));
+                            jobDesc.Name));
                     }
                     result = await asyncJob.InvokeContinuation(context);
                 }

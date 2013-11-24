@@ -26,6 +26,7 @@ namespace NuGetGallery.Backend.Monitoring
         public JobInvocation Invocation { get; private set; }
         public BackendMonitoringHub Monitoring { get; private set; }
         public JobBase Job { get; private set; }
+        public JobDescription JobDescription { get; private set; }
 
         public InvocationMonitoringContext(JobInvocation invocation, BackendMonitoringHub monitoring)
         {
@@ -85,20 +86,21 @@ namespace NuGetGallery.Backend.Monitoring
             File.Delete(_textLog);
 
             // Record end of job
-            await Monitoring.ReportEndJob(Invocation, result, Job, jsonBlob.Uri.AbsoluteUri, _startTime, DateTimeOffset.UtcNow);
+            await Monitoring.ReportEndJob(Invocation, result, JobDescription, jsonBlob.Uri.AbsoluteUri, _startTime, DateTimeOffset.UtcNow);
         }
 
-        public async Task SetJob(JobBase job)
+        public async Task SetJob(JobDescription jobDesc, JobBase job)
         {
             Job = job;
+            JobDescription = jobDesc;
 
             // Record start of job
-            await Monitoring.ReportStartJob(Invocation, Job, _startTime);
+            await Monitoring.ReportStartJob(Invocation, JobDescription, _startTime);
 
             var eventSource = Job.GetEventSource();
             if (eventSource == null)
             {
-                InvocationEventSource.Log.NoEventSource(job.Name);
+                InvocationEventSource.Log.NoEventSource(jobDesc.Name);
             }
             else
             {

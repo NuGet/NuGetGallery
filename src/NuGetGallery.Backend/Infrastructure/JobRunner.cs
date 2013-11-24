@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,9 @@ namespace NuGetGallery.Backend
 {
     public class JobRunner
     {
+        private static int _nextId = 0;
+        private const string RunnerIdDataName = "_NuGet_Backend_Runner_Id";
+        
         public static readonly TimeSpan DefaultInvisibilityPeriod = TimeSpan.FromSeconds(30);
 
         private JobDispatcher _dispatcher;
@@ -30,10 +34,18 @@ namespace NuGetGallery.Backend
             _queue = JobRequestQueue.WithDefaultName(config.PrimaryStorage);
             
             // Register jobs
-            foreach (JobBase job in dispatcher.Jobs)
+            foreach (var job in dispatcher.Jobs)
             {
                 monitoring.RegisterJob(job);
             }
+
+            var id = Interlocked.Increment(ref _nextId);
+            SetRunnerId(id);
+        }
+
+        public static int GetRunnerId()
+        {
+            return (int)CallContext.LogicalGetData(RunnerIdDataName);
         }
 
         public async Task Run(CancellationToken cancelToken)
@@ -66,6 +78,11 @@ namespace NuGetGallery.Backend
                 WorkerEventSource.Log.DispatchLoopError(ex);
             }
             WorkerEventSource.Log.DispatchLoopEnded();
+        }
+
+        private static void SetRunnerId(int id)
+        {
+            CallContext.LogicalSetData(RunnerIdDataName, id);
         }
 
         private async Task Dispatch(JobRequest request)

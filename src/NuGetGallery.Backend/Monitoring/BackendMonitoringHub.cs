@@ -21,7 +21,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery.Backend.Monitoring
 {
-    public class BackendMonitoringHub : MonitoringHub
+    public class BackendMonitoringHub : MonitoringHub, IDisposable
     {
         internal const string BackendMonitoringContainerName = "backend-monitoring";
         internal const string BackendTraceTableName = "BackendTrace";
@@ -33,6 +33,8 @@ namespace NuGetGallery.Backend.Monitoring
         private MonitoringTable<JobStatusEntry> _jobStatusTable;
         private MonitoringTable<JobHistoryEntry> _jobHistoryTable;
         private MonitoringTable<InvocationsEntry> _invocationsTable;
+
+        private SinkSubscription<WindowsAzureTableSink> _globalSinkSubscription;
 
         public string LogsDirectory { get; private set; }
         public string TempDirectory { get; private set; }
@@ -60,7 +62,7 @@ namespace NuGetGallery.Backend.Monitoring
         /// Registers a job with the monitoring hub
         /// </summary>
         /// <param name="job">The job to register</param>
-        public virtual void RegisterJob(JobBase job)
+        public virtual void RegisterJob(JobDescription job)
         {
             // Log an entry for the job in the status table
             _jobStatusTable.InsertOrIgnoreDuplicate(new JobStatusEntry(job.Name, DateTimeOffset.UtcNow));
@@ -69,13 +71,16 @@ namespace NuGetGallery.Backend.Monitoring
         public override async Task Start()
         {
             // Set up worker logging
-            var listener = WindowsAzureTableLog.CreateListener(
-                InstanceName,
-                StorageConnectionString,
-                tableAddress: GetTableFullName(BackendTraceTableName));
+            var listener = new ObservableEventListener();
+            var capturedId = JobRunner.GetRunnerId();
+            var stream = listener.Where(_ => JobRunner.GetRunnerId() == capturedId);
             listener.EnableEvents(WorkerEventSource.Log, EventLevel.Informational);
             listener.EnableEvents(InvocationEventSource.Log, EventLevel.Informational);
             listener.EnableEvents(SemanticLoggingEventSource.Log, EventLevel.Informational);
+            _globalSinkSubscription = stream.LogToWindowsAzureTable(
+                InstanceName,
+                StorageConnectionString,
+                tableAddress: GetTableFullName(BackendTraceTableName));
 
             // Log Instance Status
             await _instanceStatusTable.Upsert(new WorkerInstanceStatusEntry(InstanceName, DateTimeOffset.UtcNow, BackendInstanceStatus.Started));
@@ -93,7 +98,15 @@ namespace NuGetGallery.Backend.Monitoring
             return context;
         }
 
-        internal Task ReportStartJob(JobInvocation invocation, JobBase job, DateTimeOffset startTime)
+        public void Dispose()
+        {
+            if (_globalSinkSubscription != null)
+            {
+                _globalSinkSubscription.Dispose();
+            }
+        }
+
+        internal Task ReportStartJob(JobInvocation invocation, JobDescription job, DateTimeOffset startTime)
         {
             return Task.WhenAll(
                 // Add History Rows
@@ -108,7 +121,7 @@ namespace NuGetGallery.Backend.Monitoring
                 _invocationsTable.Upsert(new InvocationsEntry(invocation)));
         }
 
-        internal Task ReportEndJob(JobInvocation invocation, JobResult result, JobBase job, string logUrl, DateTimeOffset startTime, DateTimeOffset completionTime)
+        internal Task ReportEndJob(JobInvocation invocation, JobResult result, JobDescription job, string logUrl, DateTimeOffset startTime, DateTimeOffset completionTime)
         {
             return Task.WhenAll(
                 // Add History Rows
