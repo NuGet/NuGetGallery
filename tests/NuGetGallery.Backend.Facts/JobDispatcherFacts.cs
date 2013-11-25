@@ -17,12 +17,12 @@ namespace NuGetGallery.Backend
             public async Task GivenNoJobWithName_ItThrowsUnknownJobException()
             {
                 // Arrange
-                var dispatcher = new JobDispatcher(BackendConfiguration.Create(), Enumerable.Empty<JobBase>());
+                var dispatcher = new JobDispatcher(BackendConfiguration.Create(), Enumerable.Empty<JobDescription>(), monitor: null);
                 var request = new JobRequest("flarg", "test", new Dictionary<string, string>());
                 var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
 
                 // Act/Assert
-                var ex = await AssertEx.Throws<UnknownJobException>(() => dispatcher.Dispatch(invocation));
+                var ex = await AssertEx.Throws<UnknownJobException>(() => dispatcher.Dispatch(invocation, null));
                 Assert.Equal("flarg", ex.JobName);
             }
 
@@ -30,19 +30,19 @@ namespace NuGetGallery.Backend
             public async Task GivenJobWithName_ItCreatesAnInvocationAndInvokesJob()
             {
                 // Arrange
-                var job = new Mock<JobBase>();
-                job.Setup(j => j.Name).Returns("Test");
-                
-                var dispatcher = new JobDispatcher(BackendConfiguration.Create(), new[] { job.Object });
+                var jobImpl = new Mock<JobBase>();
+                var job = new JobDescription("test", "blarg", () => jobImpl.Object);
+
+                var dispatcher = new JobDispatcher(BackendConfiguration.Create(), new[] { job }, monitor: null);
                 var request = new JobRequest("Test", "test", new Dictionary<string, string>());
                 var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
 
-                job.Setup(j => j.Invoke(It.IsAny<JobInvocationContext>()))
+                jobImpl.Setup(j => j.Invoke(It.IsAny<JobInvocationContext>()))
                    .Returns(Task.FromResult(JobResult.Completed()));
 
 
                 // Act
-                var response = await dispatcher.Dispatch(invocation);
+                var response = await dispatcher.Dispatch(invocation, null);
 
                 // Assert
                 Assert.Same(invocation, response.Invocation);
@@ -53,19 +53,19 @@ namespace NuGetGallery.Backend
             public async Task GivenJobWithName_ItReturnsResponseContainingInvocationAndResult()
             {
                 // Arrange
-                var job = new Mock<JobBase>();
-                job.Setup(j => j.Name).Returns("Test");
+                var jobImpl = new Mock<JobBase>();
+                var job = new JobDescription("test", "blarg", () => jobImpl.Object);
                 
                 var ex = new Exception();
-                var dispatcher = new JobDispatcher(BackendConfiguration.Create(), new[] { job.Object });
+                var dispatcher = new JobDispatcher(BackendConfiguration.Create(), new[] { job }, monitor: null);
                 var request = new JobRequest("Test", "test", new Dictionary<string, string>());
                 var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
 
-                job.Setup(j => j.Invoke(It.IsAny<JobInvocationContext>()))
-                   .Returns(Task.FromResult(JobResult.Faulted(ex)));
+                jobImpl.Setup(j => j.Invoke(It.IsAny<JobInvocationContext>()))
+                   .Returns(Task.FromResult(JobResult.Completed()));
 
                 // Act
-                var response = await dispatcher.Dispatch(invocation);
+                var response = await dispatcher.Dispatch(invocation, null);
 
                 // Assert
                 Assert.Same(invocation, response.Invocation);

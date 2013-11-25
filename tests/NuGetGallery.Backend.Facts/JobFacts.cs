@@ -13,29 +13,6 @@ namespace NuGetGallery.Backend
 {
     public class JobFacts
     {
-        public class TheNameProperty
-        {
-            [Fact]
-            public void GivenAJobWithClassNameEndingJob_ItReturnsThePartBeforeTheWordJob()
-            {
-                Assert.Equal("Test", new TestJob().Name);
-            }
-
-            [Fact]
-            public void GivenAJobWithClassNameNotEndingJob_ItReturnsTheWholeTypeName()
-            {
-                Assert.Equal("ATestJerb", new ATestJerb().Name);
-            }
-
-            public class ATestJerb : Job<TestJobEventSource>
-            {
-                protected internal override Task Execute()
-                {
-                    return Task.FromResult<object>(null);
-                }
-            }
-        }
-
         public class TheExecuteMethod
         {
             [Fact]
@@ -164,11 +141,6 @@ namespace NuGetGallery.Backend
             {
                 return Task.FromResult<object>(null);
             }
-
-            public override EventSource GetEventSource()
-            {
-                return TestJobEventSource.Log;
-            }
         }
 
         public class TestUriConverter : TypeConverter
@@ -185,7 +157,8 @@ namespace NuGetGallery.Backend
 
         public class TestJobEventSource : EventSource
         {
-            public TestJobEventSource() { }
+            public static readonly TestJobEventSource Log = new TestJobEventSource();
+            private TestJobEventSource() { }
         }
     }
 }
