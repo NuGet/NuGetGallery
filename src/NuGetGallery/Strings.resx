@@ -151,7 +151,7 @@
     <value>The requested resource can only be accessed via SSL.</value>
   </data>
   <data name="FailedToReadUploadFile" xml:space="preserve">
-    <value>Failed to read the package file.</value>
+    <value>Failed to read the package file. Ensure it is a valid NuGet package with a valid manifest.</value>
   </data>
   <data name="UploadFileIsRequired" xml:space="preserve">
     <value>A package file is required.</value>

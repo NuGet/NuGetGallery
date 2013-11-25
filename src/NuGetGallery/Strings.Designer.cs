@@ -303,7 +303,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to read the package file..
+        ///   Looks up a localized string similar to Failed to read the package file. Ensure it is a valid NuGet package with a valid manifest..
         /// </summary>
         public static string FailedToReadUploadFile {
             get {

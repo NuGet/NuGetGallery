@@ -199,6 +199,16 @@ namespace NuGetGallery
                     _cacheService.RemoveProgress(currentUser.Username);
                 }
 
+                var errors = ManifestValidator.Validate(nuGetPackage).ToArray();
+                if (errors.Length > 0)
+                {
+                    foreach (var error in errors)
+                    {
+                        ModelState.AddModelError(String.Empty, error.ErrorMessage);
+                    }
+                    return View();
+                }
+
                 var packageRegistration = _packageService.FindPackageRegistrationById(nuGetPackage.Metadata.Id);
                 if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
                 {
