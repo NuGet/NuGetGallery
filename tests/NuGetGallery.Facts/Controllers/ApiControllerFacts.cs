@@ -31,6 +31,7 @@ namespace NuGetGallery
         public Mock<IContentService> MockContentService { get; private set; }
         public Mock<IStatisticsService> MockStatisticsService { get; private set; }
         public Mock<IIndexingService> MockIndexingService { get; private set; }
+        public Mock<IAutomaticallyCuratePackageCommand> MockAutoCuratePackage { get; private set; }
         
         private INupkg PackageFromInputStream { get; set; }
 
@@ -44,6 +45,7 @@ namespace NuGetGallery
             ContentService = (MockContentService = new Mock<IContentService>()).Object;
             StatisticsService = (MockStatisticsService = new Mock<IStatisticsService>()).Object;
             IndexingService = (MockIndexingService = new Mock<IIndexingService>()).Object;
+            AutoCuratePackage = (MockAutoCuratePackage = new Mock<IAutomaticallyCuratePackageCommand>()).Object;
             
             MockPackageFileService = new Mock<IPackageFileService>(MockBehavior.Strict);
             MockPackageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>())).Returns(Task.FromResult(0));
@@ -141,7 +143,26 @@ namespace NuGetGallery
 
                 controller.CreatePackagePut();
 
-                controller.MockPackageService.Verify(x => x.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), true));
+                controller.MockPackageService.Verify(x => x.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), false));
+                controller.MockEntitiesContext.VerifyCommitted();
+            }
+
+            [Fact]
+            public void WillCurateThePackage()
+            {
+                var nuGetPackage = new Mock<INupkg>();
+                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
+                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController();
+                var apiKey = Guid.NewGuid();
+                controller.SetCurrentUser(user);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                controller.CreatePackagePut();
+
+                controller.MockAutoCuratePackage.Verify(x => x.Execute(It.IsAny<Package>(), nuGetPackage.Object, false));
+                controller.MockEntitiesContext.VerifyCommitted();
             }
 
             [Fact]
@@ -158,7 +179,8 @@ namespace NuGetGallery
 
                 controller.CreatePackagePut();
 
-                controller.MockPackageService.Verify(x => x.CreatePackage(It.IsAny<INupkg>(), user, true));
+                controller.MockPackageService.Verify(x => x.CreatePackage(It.IsAny<INupkg>(), user, false));
+                controller.MockEntitiesContext.VerifyCommitted();
             }
 
             [Fact]
@@ -171,7 +193,7 @@ namespace NuGetGallery
                 var user = new User() { EmailAddress = "confirmed@email.com" }; 
                 var controller = new TestableApiController();
                 var apiKey = Guid.NewGuid();
-                controller.MockPackageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), true))
+                controller.MockPackageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), false))
                           .Returns(new Package { IsLatestStable = true });
                 controller.MockNuGetExeDownloaderService.Setup(s => s.UpdateExecutableAsync(nuGetPackage.Object)).Verifiable();
                 controller.SetCurrentUser(user);
@@ -194,7 +216,7 @@ namespace NuGetGallery
                 var user = new User() { EmailAddress = "confirmed@email.com" }; 
                 var controller = new TestableApiController();
                 var apiKey = Guid.NewGuid();
-                controller.MockPackageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), true))
+                controller.MockPackageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), false))
                           .Returns(new Package { IsLatest = true, IsLatestStable = false });
                 controller.MockNuGetExeDownloaderService.Setup(s => s.UpdateExecutableAsync(nuGetPackage.Object)).Verifiable();
                 controller.SetCurrentUser(user);
@@ -205,6 +227,7 @@ namespace NuGetGallery
 
                 // Assert
                 controller.MockNuGetExeDownloaderService.Verify(s => s.UpdateExecutableAsync(It.IsAny<INupkg>()), Times.Never());
+                controller.MockEntitiesContext.VerifyCommitted();
             }
         }
 

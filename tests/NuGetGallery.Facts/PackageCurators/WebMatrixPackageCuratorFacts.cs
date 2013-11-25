@@ -77,6 +77,7 @@ namespace NuGetGallery.PackageCurators
                 var stubFeed = new CuratedFeed();
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 var stubNuGetPackage = CreateStubNuGetPackage();
+                stubGalleryPackage.Tags = "aspnetwebpages";
 
                 bool result = WebMatrixPackageCurator.ShouldCuratePackage(
                     stubFeed,
@@ -91,9 +92,9 @@ namespace NuGetGallery.PackageCurators
             {
                 var curator = new TestableWebMatrixPackageCurator();
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                stubGalleryPackage.Tags = "aTag aspnetwebpages aThirdTag";
                 var stubNuGetPackage = CreateStubNuGetPackage();
-
+                stubGalleryPackage.Tags = "aTag aspnetwebpages aThirdTag";
+                
                 curator.Curate(stubGalleryPackage, stubNuGetPackage.Object, commitChanges: true);
 
                 stubNuGetPackage.Verify(stub => stub.GetFiles(), Times.Never());
@@ -206,6 +207,42 @@ namespace NuGetGallery.PackageCurators
             }
 
             [Fact]
+            public void WillNotIncludeThePackageWhenMinClientVersionIsTooHigh()
+            {
+                var stubFeed = new CuratedFeed();
+                var stubGalleryPackage = CreateStubGalleryPackage();
+                var stubNuGetPackage = CreateStubNuGetPackage();
+                stubNuGetPackage.Setup(n => n.Metadata.MinClientVersion).Returns(new Version(3, 0));
+                
+                bool result = WebMatrixPackageCurator.ShouldCuratePackage(
+                    stubFeed,
+                    stubGalleryPackage,
+                    stubNuGetPackage.Object);
+
+                Assert.False(result);
+            }
+
+            [Fact]
+            public void WillNotIncludeThePackageWhenPackageDoesNotSupportNet40()
+            {
+                var stubFeed = new CuratedFeed();
+                var stubGalleryPackage = CreateStubGalleryPackage();
+                var stubNuGetPackage = CreateStubNuGetPackage();
+                stubGalleryPackage.Tags = "aspnetwebpages";
+                stubGalleryPackage.SupportedFrameworks.Add(new PackageFramework()
+                {
+                    TargetFramework = "net45"
+                });
+
+                bool result = WebMatrixPackageCurator.ShouldCuratePackage(
+                    stubFeed,
+                    stubGalleryPackage,
+                    stubNuGetPackage.Object);
+
+                Assert.False(result);
+            }
+
+            [Fact]
             public void WillIncludeThePackageUsingTheCuratedFeedKey()
             {
                 var curator = new TestableWebMatrixPackageCurator();
@@ -219,7 +256,7 @@ namespace NuGetGallery.PackageCurators
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
                         It.IsAny<bool>(),
-                        It.IsAny<string>(),
+                        null,
                         It.IsAny<bool>()));
             }
 
@@ -238,7 +275,7 @@ namespace NuGetGallery.PackageCurators
                         stubGalleryPackage.PackageRegistration,
                         It.IsAny<bool>(),
                         It.IsAny<bool>(),
-                        It.IsAny<string>(),
+                        null,
                         It.IsAny<bool>()));
             }
 
@@ -255,7 +292,7 @@ namespace NuGetGallery.PackageCurators
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
                         true,
-                        It.IsAny<string>(),
+                        null,
                         It.IsAny<bool>()));
             }
 
@@ -275,6 +312,7 @@ namespace NuGetGallery.PackageCurators
             {
                 var stubNuGetPackage = new Mock<INupkg>();
                 stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(new string[] { });
+                stubNuGetPackage.Setup(stub => stub.Metadata.Id).Returns("test");
                 return stubNuGetPackage;
             }
 
