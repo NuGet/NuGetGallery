@@ -292,21 +292,27 @@
             {
                 if (packageVersion.Listed || Model.IsOwner(User))
                 {
-                    <tr class="versionTableRow @if (packageVersion.LatestVersion)
+                    <tr class="versionTableRow @if (packageVersion.LatestStableVersion)
                                                {
                                                    <text>recommended </text>
                                                }">
-                        <td class="version" @if (packageVersion.LatestVersion)
+                        <td class="version" @if (packageVersion.LatestStableVersion)
                                             {
-                                                <text>title="Latest Version"</text>
+                                                <text>title="Latest Stable Version"</text>
                                             }>
                             @if (!packageVersion.IsCurrent(Model))
                             {
-                                <a href="@Url.Package(packageVersion)">@packageVersion.Title @packageVersion.Version</a>
+                                <a href="@Url.Package(packageVersion)">
+                                    @packageVersion.Title 
+                                    @packageVersion.Version
+                                    @if(packageVersion.LatestStableVersion) {
+                                        @:(latest)
+                                    }
+                                </a>
                             }
                             else
                             {
-                                <span>@packageVersion.Title @packageVersion.Version</span>
+                                <span>@packageVersion.Title @packageVersion.Version (this version)</span>
                             }
                         </td>
                         <td>@packageVersion.DownloadCount
