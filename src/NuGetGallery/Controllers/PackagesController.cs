@@ -209,6 +209,18 @@ namespace NuGetGallery
                     return View();
                 }
 
+                // Check min client version
+                if (nuGetPackage.Metadata.MinClientVersion > typeof(Manifest).Assembly.GetName().Version)
+                {
+                    ModelState.AddModelError(
+                        String.Empty, 
+                        String.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.UploadPackage_MinClientVersionOutOfRange,
+                            nuGetPackage.Metadata.MinClientVersion));
+                    return View();
+                }
+
                 var packageRegistration = _packageService.FindPackageRegistrationById(nuGetPackage.Metadata.Id);
                 if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
                 {

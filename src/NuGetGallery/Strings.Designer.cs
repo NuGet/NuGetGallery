@@ -528,6 +528,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This package requires version &apos;{0}&apos; of NuGet, which this gallery does not currently support. Please contact us if you have questions..
+        /// </summary>
+        public static string UploadPackage_MinClientVersionOutOfRange {
+            get {
+                return ResourceManager.GetString("UploadPackage_MinClientVersionOutOfRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You cannot reset your password until you confirm your account..
         /// </summary>
         public static string UserIsNotYetConfirmed {
