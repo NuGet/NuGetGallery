@@ -110,6 +110,10 @@ function Set-Environment {
             }
             _RefreshGitColors
         }
+
+        $env:NUGET_ENVIRONMENT_NAME = $CurrentEnvironment.Name
+        $env:NUGET_SUBSCRIPTION_ID = $CurrentEnvironment.Subscription.Id
+        $env:NUGET_SUBSCRIPTION_NAME = $CurrentEnvironment.Subscription.Name
     }
 
 }
