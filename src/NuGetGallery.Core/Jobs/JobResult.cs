@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
 namespace NuGetGallery.Jobs
 {
-    public class JobResult : IEquatable<JobResult>
+    public class JobResult
     {
         public JobStatus Status { get; private set; }
         public Exception Exception { get; private set; }
@@ -64,22 +65,6 @@ namespace NuGetGallery.Jobs
         public static JobResult Faulted(Exception ex, TimeSpan rescheduleIn)
         {
             return new JobResult(JobStatus.Faulted, ex, rescheduleIn);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as JobResult);
-        }
-
-        public bool Equals(JobResult other)
-        {
-            return other != null && other.Status == Status && Equals(Exception, other.Exception);
-        }
-
-        public override int GetHashCode()
-        {
-            // Exception's nullity basically defines the status
-            return Exception == null ? 0 : Exception.GetHashCode();
         }
     }
 

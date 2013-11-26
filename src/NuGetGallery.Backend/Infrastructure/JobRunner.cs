@@ -80,7 +80,7 @@ namespace NuGetGallery.Backend
                 isContinuation);
             JobInvocationContext.SetCurrentInvocationId(invocation.Id);
             
-            var context = await _monitoring.BeginInvocation(invocation);
+            var monitoringContext = await _monitoring.BeginInvocation(invocation);
             if (isContinuation)
             {
                 InvocationEventSource.Log.Resumed();
@@ -89,11 +89,14 @@ namespace NuGetGallery.Backend
             {
                 InvocationEventSource.Log.Started();
             }
-
+            
+            // Create the invocation context
+            var context = new JobInvocationContext(invocation, _config, monitoringContext, _queue);
+            
             JobResponse response = null;
             try
             {
-                response = await _dispatcher.Dispatch(invocation, context);
+                response = await _dispatcher.Dispatch(context);
 
                 // TODO: If response.Continuation != null, enqueue continuation
                 switch (response.Result.Status)
@@ -131,7 +134,7 @@ namespace NuGetGallery.Backend
             {
                 InvocationEventSource.Log.Ended();
             }
-            await context.End(response == null ? null : response.Result);
+            await monitoringContext.End(response == null ? null : response.Result);
 
             // Queue the continuation if necessary
             if (response.Result.Status == JobStatus.AwaitingContinuation)

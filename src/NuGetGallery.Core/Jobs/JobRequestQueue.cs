@@ -31,6 +31,10 @@ namespace NuGetGallery.Jobs
             return new JobRequestQueue(client.GetQueueReference(DefaultQueueName));
         }
 
+        /// <summary>
+        /// Dequeues the next request, if one is present
+        /// </summary>
+        /// <param name="invisibleFor">The period of time during which the message is invisble to other clients. The job must be <see cref="Acknowledge"/>d before this time or it will be dispatched again</param>
         public async Task<JobDequeueResult> Dequeue(TimeSpan invisibleFor, CancellationToken token)
         {
             var message = await _queue.SafeExecute(q => q.GetMessageAsync(
@@ -65,11 +69,29 @@ namespace NuGetGallery.Jobs
             }
         }
 
+        /// <summary>
+        /// Acknowledges that the request has completed successfully, removing the message from the queue.
+        /// </summary>
+        /// <param name="request">The request to acknowledge</param>
         public async Task Acknowledge(JobRequest request)
         {
             if (request.Message != null)
             {
                 await _queue.SafeExecute(q => q.DeleteMessageAsync(request.Message));
+            }
+        }
+
+        /// <summary>
+        /// Extends the visibility timeout of the request. That is, the time during which the 
+        /// queue message is hidden from other clients
+        /// </summary>
+        /// <param name="request">The request to extend</param>
+        /// <param name="duration">The duration from the time of invocation to hide the message</param>
+        public async Task Extend(JobRequest request, TimeSpan duration)
+        {
+            if (request.Message != null)
+            {
+                await _queue.SafeExecute(q => q.UpdateMessageAsync(request.Message, duration, MessageUpdateFields.Visibility));
             }
         }
 

@@ -21,33 +21,32 @@ namespace NuGetGallery.Backend
         public JobDispatcher(BackendConfiguration config, IEnumerable<JobDescription> jobs, BackendMonitoringHub monitor)
         {
             _jobs = jobs.ToList();
-            _jobMap = _jobs.ToDictionary(j => j.Name);
+            _jobMap = _jobs.ToDictionary(j => j.Name, StringComparer.OrdinalIgnoreCase);
             _monitor = monitor;
         
             Config = config;
         }
 
-        public virtual async Task<JobResponse> Dispatch(JobInvocation invocation, InvocationMonitoringContext monitoring)
+        public virtual async Task<JobResponse> Dispatch(JobInvocationContext context)
         {
             JobDescription jobDesc;
-            if (!_jobMap.TryGetValue(invocation.Request.Name, out jobDesc))
+            if (!_jobMap.TryGetValue(context.Invocation.Request.Name, out jobDesc))
             {
-                throw new UnknownJobException(invocation.Request.Name);
+                throw new UnknownJobException(context.Invocation.Request.Name);
             }
             JobBase job = jobDesc.CreateInstance();
 
-            if (monitoring != null)
+            if (context.Monitoring != null)
             {
-                await monitoring.SetJob(jobDesc, job);
+                await context.Monitoring.SetJob(jobDesc, job);
             }
 
             InvocationEventSource.Log.Invoking(jobDesc);
             JobResult result = null;
-            var context = new JobInvocationContext(invocation, Config, _monitor);
 
             try
             {
-                if (invocation.IsContinuation)
+                if (context.Invocation.IsContinuation)
                 {
                     IAsyncJob asyncJob = job as IAsyncJob;
                     if (asyncJob == null)
@@ -70,7 +69,7 @@ namespace NuGetGallery.Backend
                 result = JobResult.Faulted(ex);
             }
 
-            return new JobResponse(invocation, result, DateTimeOffset.UtcNow);
+            return new JobResponse(context.Invocation, result, DateTimeOffset.UtcNow);
         }
     }
 }

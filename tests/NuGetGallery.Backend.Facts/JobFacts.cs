@@ -27,7 +27,7 @@ namespace NuGetGallery.Backend
                         "Test",
                         new Dictionary<string, string>()), 
                     DateTimeOffset.UtcNow);
-                var context = new JobInvocationContext(invocation, BackendConfiguration.Create(), monitor: null);
+                var context = new JobInvocationContext(invocation, BackendConfiguration.Create(), monitoring: null, queue: null);
 
                 // Act
                 await job.Invoke(context);
@@ -52,7 +52,7 @@ namespace NuGetGallery.Backend
                             {"NotMapped", "bar"}
                         }),
                     DateTimeOffset.UtcNow);
-                var context = new JobInvocationContext(invocation, BackendConfiguration.Create(), monitor: null);
+                var context = new JobInvocationContext(invocation, BackendConfiguration.Create(), monitoring: null, queue: null);
 
                 // Act
                 await job.Invoke(context);
@@ -76,7 +76,7 @@ namespace NuGetGallery.Backend
                             {"ConvertValue", "frob"},
                         }),
                     DateTimeOffset.UtcNow);
-                var context = new JobInvocationContext(invocation, BackendConfiguration.Create(), monitor: null);
+                var context = new JobInvocationContext(invocation, BackendConfiguration.Create(), monitoring: null, queue: null);
 
                 // Act
                 await job.Invoke(context);
@@ -97,7 +97,7 @@ namespace NuGetGallery.Backend
                         "Test",
                         new Dictionary<string, string>()),
                     DateTimeOffset.UtcNow);
-                var context = new JobInvocationContext(invocation, BackendConfiguration.Create(), monitor: null);
+                var context = new JobInvocationContext(invocation, BackendConfiguration.Create(), monitoring: null, queue: null);
 
                 // Act
                 var result = await job.Object.Invoke(context);
@@ -120,7 +120,7 @@ namespace NuGetGallery.Backend
                     DateTimeOffset.UtcNow);
                 var ex = new NotImplementedException("Broked!");
                 job.Setup(j => j.Execute()).Throws(ex);
-                var context = new JobInvocationContext(invocation, BackendConfiguration.Create(), monitor: null);
+                var context = new JobInvocationContext(invocation, BackendConfiguration.Create(), monitoring: null, queue: null);
 
                 // Act
                 var result = await job.Object.Invoke(context);

@@ -22,14 +22,14 @@ namespace NuGetGallery.Backend.Monitoring
         private DateTimeOffset _startTime;
         
         public JobInvocation Invocation { get; private set; }
-        public BackendMonitoringHub Monitoring { get; private set; }
+        public BackendMonitoringHub Hub { get; private set; }
         public JobBase Job { get; private set; }
         public JobDescription JobDescription { get; private set; }
 
-        public InvocationMonitoringContext(JobInvocation invocation, BackendMonitoringHub monitoring)
+        public InvocationMonitoringContext(JobInvocation invocation, BackendMonitoringHub hub)
         {
             Invocation = invocation;
-            Monitoring = monitoring;
+            Hub = hub;
         }
 
         public async Task Begin()
@@ -45,7 +45,7 @@ namespace NuGetGallery.Backend.Monitoring
             _listener.EnableEvents(InvocationEventSource.Log, EventLevel.Informational);
 
             // Calculate paths
-            var root = Path.Combine(Monitoring.TempDirectory, "Invocations");
+            var root = Path.Combine(Hub.TempDirectory, "Invocations");
             if (!Directory.Exists(root))
             {
                 Directory.CreateDirectory(root);
@@ -60,7 +60,7 @@ namespace NuGetGallery.Backend.Monitoring
             // Fetch the current logs if this is a continuation, we'll append to them during the invocation
             if (Invocation.IsContinuation)
             {
-                await Monitoring.DownloadBlob(BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_jsonLog), _jsonLog);
+                await Hub.DownloadBlob(BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_jsonLog), _jsonLog);
             }
 
             // Capture the events into a JSON file and a plain text file
@@ -73,13 +73,13 @@ namespace NuGetGallery.Backend.Monitoring
             _jsonSubscription.Dispose();
 
             // Upload the file to blob storage
-            var jsonBlob = await Monitoring.UploadBlob(_jsonLog, BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_jsonLog));
+            var jsonBlob = await Hub.UploadBlob(_jsonLog, BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_jsonLog));
 
             // Delete the temp files
             File.Delete(_jsonLog);
 
             // Record end of job
-            await Monitoring.ReportEndJob(Invocation, result, JobDescription, jsonBlob.Uri.AbsoluteUri, _startTime, DateTimeOffset.UtcNow);
+            await Hub.ReportEndJob(Invocation, result, JobDescription, jsonBlob.Uri.AbsoluteUri, _startTime, DateTimeOffset.UtcNow);
         }
 
         public async Task SetJob(JobDescription jobDesc, JobBase job)
@@ -88,7 +88,7 @@ namespace NuGetGallery.Backend.Monitoring
             JobDescription = jobDesc;
 
             // Record start of job
-            await Monitoring.ReportStartJob(Invocation, JobDescription, _startTime);
+            await Hub.ReportStartJob(Invocation, JobDescription, _startTime);
 
             var eventSource = Job.GetEventSource();
             if (eventSource == null)

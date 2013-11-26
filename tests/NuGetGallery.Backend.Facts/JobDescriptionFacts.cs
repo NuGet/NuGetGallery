@@ -14,7 +14,7 @@ namespace NuGetGallery.Backend
             [Fact]
             public void GivenAJobWithClassNameEndingJob_ItReturnsThePartBeforeTheWordJob()
             {
-                Assert.Equal("Test", JobDescription.Create(typeof(ATestJob)).Name);
+                Assert.Equal("ATest", JobDescription.Create(typeof(ATestJob)).Name);
             }
 
             [Fact]

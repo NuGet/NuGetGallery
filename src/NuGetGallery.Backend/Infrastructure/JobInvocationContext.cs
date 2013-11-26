@@ -14,7 +14,8 @@ namespace NuGetGallery.Backend
 
         public JobInvocation Invocation { get; private set; }
         public BackendConfiguration Config { get; private set; }
-        public BackendMonitoringHub Monitor { get; private set; }
+        public InvocationMonitoringContext Monitoring { get; private set; }
+        public JobRequestQueue Queue { get; private set; }
         
         public static Guid GetCurrentInvocationId()
         {
@@ -27,11 +28,12 @@ namespace NuGetGallery.Backend
             CallContext.LogicalSetData(InvocationIdDataName, id);
         }
 
-        public JobInvocationContext(JobInvocation invocation, BackendConfiguration config, BackendMonitoringHub monitor)
+        public JobInvocationContext(JobInvocation invocation, BackendConfiguration config, InvocationMonitoringContext monitoring, JobRequestQueue queue)
         {
             Invocation = invocation;
             Config = config;
-            Monitor = monitor;
+            Monitoring = monitoring;
+            Queue = queue;
         }
     }
 }

@@ -46,6 +46,16 @@ namespace NuGetGallery.Backend
         public abstract EventSource GetEventSource();
         protected internal abstract Task<JobResult> Invoke();
 
+        protected virtual Task Enqueue(JobRequest request)
+        {
+            return Context.Queue.Enqueue(request);
+        }
+
+        protected virtual Task Extend(TimeSpan duration)
+        {
+            return Context.Queue.Extend(Invocation.Request, duration);
+        }
+
         protected virtual JobResult BindContext(JobInvocationContext context)
         {
             // Bind invocation information

@@ -20,9 +20,10 @@ namespace NuGetGallery.Backend
                 var dispatcher = new JobDispatcher(BackendConfiguration.Create(), Enumerable.Empty<JobDescription>(), monitor: null);
                 var request = new JobRequest("flarg", "test", new Dictionary<string, string>());
                 var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
+                var context = new JobInvocationContext(invocation, config: null, monitoring: null, queue: null);
 
                 // Act/Assert
-                var ex = await AssertEx.Throws<UnknownJobException>(() => dispatcher.Dispatch(invocation, null));
+                var ex = await AssertEx.Throws<UnknownJobException>(() => dispatcher.Dispatch(context));
                 Assert.Equal("flarg", ex.JobName);
             }
 
@@ -36,13 +37,14 @@ namespace NuGetGallery.Backend
                 var dispatcher = new JobDispatcher(BackendConfiguration.Create(), new[] { job }, monitor: null);
                 var request = new JobRequest("Test", "test", new Dictionary<string, string>());
                 var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
+                var context = new JobInvocationContext(invocation, config: null, monitoring: null, queue: null);
 
                 jobImpl.Setup(j => j.Invoke(It.IsAny<JobInvocationContext>()))
                    .Returns(Task.FromResult(JobResult.Completed()));
 
 
                 // Act
-                var response = await dispatcher.Dispatch(invocation, null);
+                var response = await dispatcher.Dispatch(context);
 
                 // Assert
                 Assert.Same(invocation, response.Invocation);
@@ -60,16 +62,18 @@ namespace NuGetGallery.Backend
                 var dispatcher = new JobDispatcher(BackendConfiguration.Create(), new[] { job }, monitor: null);
                 var request = new JobRequest("Test", "test", new Dictionary<string, string>());
                 var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
+                var context = new JobInvocationContext(invocation, config: null, monitoring: null, queue: null);
 
                 jobImpl.Setup(j => j.Invoke(It.IsAny<JobInvocationContext>()))
                    .Returns(Task.FromResult(JobResult.Completed()));
 
                 // Act
-                var response = await dispatcher.Dispatch(invocation, null);
+                var response = await dispatcher.Dispatch(context);
 
                 // Assert
                 Assert.Same(invocation, response.Invocation);
-                Assert.Equal(JobResult.Faulted(ex), response.Result);
+                Assert.Equal(JobStatus.Completed, response.Result.Status);
+                Assert.Null(response.Result.Exception);
             }
         }
     }

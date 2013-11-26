@@ -22,11 +22,11 @@ namespace NuGetGallery.Backend.Data.Model
         }
 
         [Theory]
-        [InlineData("Backup_2013Nov12_2043Z", "Backup", "2013-11-12T2043")]
-        [InlineData("Backup_2013nOv12_2043Z", "Backup", "2013-11-12T2043")]
-        [InlineData("Backup_1924Dec12_0042z", "Backup", "1924-12-12T0042")]
-        [InlineData("Burkurp_1924deC12_0042Z", "Burkurp", "1924-12-12T0042")]
-        [InlineData("WarehouseBackup_1924Dec12_0042Z", "WarehouseBackup_", "1924-12-12T0042")]
+        [InlineData("Backup_2013Nov12_2043Z", "Backup", "2013-11-12T20:43:00")]
+        [InlineData("Backup_2013nOv12_2043Z", "Backup", "2013-11-12T20:43:00")]
+        [InlineData("Backup_1924Dec12_0042z", "Backup", "1924-12-12T00:42:00")]
+        [InlineData("Burkurp_1924deC12_0042Z", "Burkurp", "1924-12-12T00:42:00")]
+        [InlineData("WarehouseBackup_1924Dec12_0042Z", "WarehouseBackup", "1924-12-12T00:42:00")]
         public void ParsesMatchingNameCorrectly(string name, string prefix, string expectedTimestamp)
         {
             var parsed = DatabaseBackup.Create(new Database() { name = name });
