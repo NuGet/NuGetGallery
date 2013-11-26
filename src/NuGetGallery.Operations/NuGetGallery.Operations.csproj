@@ -279,6 +279,7 @@
     <Compile Include="Tasks\RestorePackagesTask.cs" />
     <Compile Include="Tasks\RunMigrationsTask.cs" />
     <Compile Include="Tasks\SanitizeDatabaseTask.cs" />
+    <Compile Include="Tasks\Scheduling\CreateSchedulerServiceTask.cs" />
     <Compile Include="Tasks\TaskBases.cs" />
     <Compile Include="Tasks\SynchronizePackageBackupsTask.cs" />
     <Compile Include="Tasks\ListMigrationsTask.cs" />
@@ -390,9 +391,7 @@
       <Name>NuGetGallery</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Tasks\Scheduling\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
 </Project>
