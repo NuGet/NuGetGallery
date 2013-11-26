@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 
@@ -6,7 +7,7 @@ namespace NuGetGallery
 {
     public class SearchServiceClient
     {
-        public static HashSet<int> GetRangeFromIndex(int minPackageKey, int maxPackageKey, string host)
+        public static IDictionary<int, int> GetRangeFromIndex(int minPackageKey, int maxPackageKey, string host)
         {
             string url = string.Format("http://{0}/range?min={1}&max={2}", host, minPackageKey, maxPackageKey);
 
@@ -15,17 +16,27 @@ namespace NuGetGallery
             HttpClient client = new HttpClient();
             HttpResponseMessage response = client.SendAsync(request).Result;
 
-            string content = response.Content.ReadAsStringAsync().Result;
-
-            HashSet<int> result = new HashSet<int>();
-
-            JArray array = JArray.Parse(content);
-            foreach (int key in array)
+            if (response.IsSuccessStatusCode)
             {
-                result.Add(key);
+                string content = response.Content.ReadAsStringAsync().Result;
+                IDictionary<int, int> result = new Dictionary<int, int>();
+                JObject obj = JObject.Parse(content);
+                foreach (KeyValuePair<string, JToken> property in obj)
+                {
+                    result.Add(int.Parse(property.Key), property.Value.Value<int>());
+                }
+                return result;
             }
-
-            return result;
+            else
+            {
+                string content = string.Empty;
+                try
+                {
+                    content = response.Content.ReadAsStringAsync().Result;
+                }
+                catch (Exception) { }
+                throw new Exception(string.Format("HTTP status = {0} content = {1}", response.StatusCode, content));
+            }
         }
 
         public static JObject Search(
@@ -55,11 +66,22 @@ namespace NuGetGallery
             HttpClient client = new HttpClient();
             HttpResponseMessage response = client.SendAsync(request).Result;
 
-            string content = response.Content.ReadAsStringAsync().Result;
-
-            JObject obj = JObject.Parse(content);
-
-            return obj;
+            if (response.IsSuccessStatusCode)
+            {
+                string content = response.Content.ReadAsStringAsync().Result;
+                JObject obj = JObject.Parse(content);
+                return obj;
+            }
+            else
+            {
+                string content = string.Empty;
+                try
+                {
+                    content = response.Content.ReadAsStringAsync().Result;
+                }
+                catch (Exception) { }
+                throw new Exception(string.Format("HTTP status = {0} content = {1}", response.StatusCode, content));
+            }
         }
     }
 }

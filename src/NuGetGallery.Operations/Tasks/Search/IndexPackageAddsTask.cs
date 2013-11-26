@@ -35,7 +35,7 @@ namespace NuGetGallery.Operations.Tasks.Search
             }
 
             PackageRanking packageRanking = new WarehousePackageRanking(StorageAccount);
-            PackageIndexing.IncrementallyUpdateIndex(ConnectionString.ToString(), directory, packageRanking);
+            PackageIndexing.BuildIndex(ConnectionString.ToString(), directory, packageRanking);
 
             DateTime after = DateTime.Now;
             Console.WriteLine("duration = {0} seconds", (after - before).TotalSeconds);

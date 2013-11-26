@@ -57,10 +57,16 @@ namespace SearchService.Controllers
 
                 string feed = Request.QueryString["feed"] ?? "none";
 
-                int page;
-                if (!int.TryParse(Request.QueryString["page"], out page))
+                int skip;
+                if (!int.TryParse(Request.QueryString["skip"], out skip))
                 {
-                    page = 1;
+                    skip = 0;
+                }
+
+                int take;
+                if (!int.TryParse(Request.QueryString["take"], out take))
+                {
+                    take = 20;
                 }
 
                 bool includeExplanation;
@@ -75,9 +81,9 @@ namespace SearchService.Controllers
                     ignoreFilter = false;
                 }
 
-                Trace.TraceInformation("Searcher.Search(..., {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8})", q, countOnly, projectType, includePrerelease, feed, sortBy, page, includeExplanation, ignoreFilter);
+                Trace.TraceInformation("Searcher.Search(..., {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})", q, countOnly, projectType, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
 
-                string content = Searcher.Search(_searcherManager, q, countOnly, projectType, includePrerelease, feed, sortBy, page, includeExplanation, ignoreFilter);
+                string content = Searcher.Search(_searcherManager, q, countOnly, projectType, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
 
                 return MakeResponse(content);
             }

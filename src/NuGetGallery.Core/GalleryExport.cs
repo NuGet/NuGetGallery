@@ -210,5 +210,104 @@ namespace NuGetGallery
                 return new Tuple<int, int, HashSet<int>>(minPackageId, maxPackageId, packageIds);
             }
         }
+
+        private static int GetRangeFromGallery(string connectionString, int chunkSize, ref int startKey, IDictionary<int, int> gallery)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string cmdText = @"
+                    SELECT TOP(@ChunkSize) Packages.[Key], CHECKSUM(Listed, IsLatestStable, IsLatest, LastEdited)
+                    FROM Packages
+                    WHERE Packages.[Key] > @MinKey
+                    ORDER BY Packages.[Key]
+                ";
+
+                SqlCommand command = new SqlCommand(cmdText, connection);
+                command.Parameters.AddWithValue("ChunkSize", chunkSize);
+                command.Parameters.AddWithValue("MinKey", startKey);
+
+                SqlDataReader reader = command.ExecuteReader();
+
+                int count = 0;
+                while (reader.Read())
+                {
+                    int key = reader.GetInt32(0);
+                    int checksum = reader.GetInt32(1);
+                    gallery.Add(key, checksum);
+                    count++;
+                    startKey = key;
+                }
+
+                return count;
+            }
+        }
+
+        public static IDictionary<int, int> FetchGalleryChecksums(string connectionString, int startKey = 0)
+        {
+            const int ChunkSize = 64000;
+            IDictionary<int, int> checksums = new Dictionary<int, int>();
+            int rangeStartKey = startKey;
+            int added = 0;
+            do
+            {
+                added = GetRangeFromGallery(connectionString, ChunkSize, ref rangeStartKey, checksums);
+            }
+            while (added > 0);
+            return checksums;
+        }
+
+        public static List<Package> GetPackages(string sqlConnectionString, List<int> packageKeys)
+        {
+            EntitiesContext context = new EntitiesContext(sqlConnectionString, readOnly: true);
+            IEntityRepository<Package> packageRepository = new EntityRepository<Package>(context);
+
+            IQueryable<Package> set = packageRepository.GetAll();
+
+            set = set.Where(p => packageKeys.Contains(p.Key));
+
+            set = set.OrderBy(p => p.Key);
+
+            set = set
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .Include(p => p.SupportedFrameworks)
+                .Include(p => p.Dependencies);
+
+            return ExecuteQuery(set);
+        }
+
+        public static Tuple<int, int> FindMinMaxKey(IDictionary<int, int> d)
+        {
+            int minKey = 0;
+            int maxKey = 0;
+
+            bool firstIteration = true;
+
+            foreach (KeyValuePair<int, int> item in d)
+            {
+                if (firstIteration)
+                {
+                    firstIteration = false;
+
+                    minKey = item.Key;
+                    maxKey = item.Key;
+                }
+                else
+                {
+                    if (item.Key < minKey)
+                    {
+                        minKey = item.Key;
+                    }
+                    if (item.Key > maxKey)
+                    {
+                        maxKey = item.Key;
+                    }
+                }
+            }
+
+            return new Tuple<int, int>(minKey, maxKey);
+        }
     }
 }
