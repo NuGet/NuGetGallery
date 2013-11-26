@@ -111,9 +111,9 @@
             alert("An error occurred!");
         });
 
-        var displayPackage = function (data, i, page) {
+        var displayPackage = function (data, i, skip) {
 
-            var number = ((page - 1) * 20) + (i + 1);
+            var number = (skip * 20) + (i + 1);
 
             var html = '';
 
@@ -192,6 +192,7 @@
             html += '<p><span class="term-name">EditedDate:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.EditedDate) + '</span></p>';
             html += '<p><span class="term-name">CuratedFeed:</span> <div class="term-value">' + displayArray(data[i].diagnostics.CuratedFeed) + '</div></p>';
             html += '<p><span class="term-name">Key:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.Key) + '</span></p>';
+            html += '<p><span class="term-name">Checksum:</span> <span class="term-value">' + JSON.stringify(data[i].diagnostics.Checksum) + '</span></p>';
             html += '<p><span class="term-name">ProjectGuidRankings:</span> <div class="term-value">' + displayArray(data[i].diagnostics.ProjectGuidRankings) + '</div></p>';
 
             html += '<pre style="color:blue">' + data[i].diagnostics.Explanation + '</pre>';
@@ -224,7 +225,7 @@
             });
         }
 
-        var createNavigationFunction = function (query, total, page) {
+        var createNavigationFunction = function (query, total, skip) {
             return function () {
                 var navQuery = {
                     q: query.q,
@@ -232,7 +233,8 @@
                     prerelease: query.prerelease,
                     feed: query.feed,
                     sortBy: query.sortBy,
-                    page: page,
+                    skip: skip,
+                    take: 20,
                     explanation: query.explanation,
                     ignoreFilter: query.ignoreFilter
                 };
@@ -242,15 +244,15 @@
             };
         }
 
-        var displayNavigationButtons = function (total, page) {
+        var displayNavigationButtons = function (total, skip) {
 
             var html = '';
 
             html += '<div id="navigation-buttons">';
-            if (page > 1) {
+            if (skip > 0) {
                 html += '<button id="prev">Prev</button>'
             }
-            if ((total - (page * 20)) > 0) {
+            if ((total - ((skip + 1) * 20)) > 0) {
                 html += '<button id="next">Next</button>'
             }
             html += '</div>';
@@ -284,18 +286,18 @@
             html += '<p>Total: ' + total + '</p>';
 
             for (var i = 0; i < data.length; i += 1) {
-                html += displayPackage(data, i, query.page);
+                html += displayPackage(data, i, query.skip);
                 if (query.explanation) {
                     html += displayExplanation(data, i);
                 }
             }
 
-            html += displayNavigationButtons(total, query.page);
+            html += displayNavigationButtons(total, query.skip);
 
             $('#results-div').html(html);
 
-            $('#prev').click(createNavigationFunction(query, total, query.page - 1));
-            $('#next').click(createNavigationFunction(query, total, query.page + 1));
+            $('#prev').click(createNavigationFunction(query, total, query.skip - 1));
+            $('#next').click(createNavigationFunction(query, total, query.skip + 1));
 
             $('.result-json').click(showJson(data));
         }
@@ -410,7 +412,8 @@
                 prerelease: prerelease,
                 feed: feed,
                 sortBy: sortBy,
-                page: 1,
+                skip: 0,
+                take: 20,
                 explanation: explanation,
                 ignoreFilter: ignoreFilter
             };

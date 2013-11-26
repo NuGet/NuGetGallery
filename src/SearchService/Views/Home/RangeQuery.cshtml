@@ -21,10 +21,14 @@
 
     var updateResultsDiv = function (keys) {
         var html = '';
-        html += '<b>Found ' + keys.length + ' Keys in range</b>';
-        html += '<p>';
-        html += JSON.stringify(keys);
-        html += '</p>';
+        html += '<b>Found ' + Object.keys(keys).length + ' Keys in range</b>';
+
+        for (var property in keys) {
+            html += '<div>';
+            html += property + ' = ' + keys[property];
+            html += '</div>';
+        }
+
         $('#results-div').html(html);
     }
 

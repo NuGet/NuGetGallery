@@ -7,9 +7,10 @@ namespace NuGetGallery
     public class KeyCollector : Collector
     {
         private int[] _keys;
-        private JArray _result;
+        private int[] _checksums;
+        private JObject _result;
 
-        public KeyCollector(JArray result)
+        public KeyCollector(JObject result)
         {
             _result = result;
         }
@@ -21,12 +22,13 @@ namespace NuGetGallery
 
         public override void Collect(int docID)
         {
-            _result.Add(_keys[docID]);
+            _result.Add(_keys[docID].ToString(), _checksums[docID]);
         }
 
         public override void SetNextReader(Lucene.Net.Index.IndexReader reader, int docBase)
         {
             _keys = FieldCache_Fields.DEFAULT.GetInts(reader, "Key");
+            _checksums = FieldCache_Fields.DEFAULT.GetInts(reader, "Checksum");
         }
 
         public override void SetScorer(Scorer scorer)

@@ -15,10 +15,9 @@ namespace NuGetGallery
 
         public static string KeyRangeQuery(PackageSearcherManager searcherManager, int minKey, int maxKey)
         {
-            if ((DateTime.UtcNow - searcherManager.WarmTimeStampUtc) > TimeSpan.FromMinutes(1))
-            {
-                searcherManager.MaybeReopen();
-            }
+            //  for range queries we always want the IndexReader to be absolutely up to date
+
+            searcherManager.MaybeReopen();
 
             IndexSearcher searcher = searcherManager.Get();
 
@@ -26,7 +25,7 @@ namespace NuGetGallery
             {
                 NumericRangeQuery<int> numericRangeQuery = NumericRangeQuery.NewIntRange("Key", minKey, maxKey, true, true);
 
-                JArray keys = new JArray();
+                JObject keys = new JObject();
                 searcher.Search(numericRangeQuery, new KeyCollector(keys));
 
                 return keys.ToString();
@@ -37,7 +36,7 @@ namespace NuGetGallery
             }
         }
 
-        public static string Search(PackageSearcherManager searcherManager, string q, bool countOnly, string projectType, bool includePrerelease, string feed, string sortBy, int page, bool includeExplanation, bool ignoreFilter)
+        public static string Search(PackageSearcherManager searcherManager, string q, bool countOnly, string projectType, bool includePrerelease, string feed, string sortBy, int skip, int take, bool includeExplanation, bool ignoreFilter)
         {
             IndexSearcher searcher;
 
@@ -67,7 +66,7 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        return ListDocuments(searcher, projectType, includePrerelease, feed, sortBy, page, includeExplanation, ignoreFilter);
+                        return ListDocuments(searcher, projectType, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
                     }
                 }
                 else
@@ -80,7 +79,7 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        return ListDocumentsForQuery(searcher, q, projectType, includePrerelease, feed, sortBy, page, includeExplanation, ignoreFilter);
+                        return ListDocumentsForQuery(searcher, q, projectType, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
                     }
                 }
             }
@@ -95,9 +94,9 @@ namespace NuGetGallery
             return DocumentCountImpl(searcher, new MatchAllDocsQuery(), includePrerelease, feed, ignoreFilter);
         }
 
-        private static string ListDocuments(IndexSearcher searcher, string projectType, bool includePrerelease, string feed, string sortBy, int page, bool includeExplanation, bool ignoreFilter)
+        private static string ListDocuments(IndexSearcher searcher, string projectType, bool includePrerelease, string feed, string sortBy, int skip, int take, bool includeExplanation, bool ignoreFilter)
         {
-            return ListDocumentsImpl(searcher, new MatchAllDocsQuery(), projectType, includePrerelease, feed, sortBy, page, includeExplanation, ignoreFilter);
+            return ListDocumentsImpl(searcher, new MatchAllDocsQuery(), projectType, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
         }
 
         private static string DocumentCountForQuery(IndexSearcher searcher, string q, bool includePrerelease, string feed, bool ignoreFilter)
@@ -105,9 +104,9 @@ namespace NuGetGallery
             return DocumentCountImpl(searcher, CreateBasicQuery(q), includePrerelease, feed, ignoreFilter);
         }
 
-        private static string ListDocumentsForQuery(IndexSearcher searcher, string q, string projectType, bool includePrerelease, string feed, string sortBy, int page, bool includeExplanation, bool ignoreFilter)
+        private static string ListDocumentsForQuery(IndexSearcher searcher, string q, string projectType, bool includePrerelease, string feed, string sortBy, int skip, int take, bool includeExplanation, bool ignoreFilter)
         {
-            return ListDocumentsImpl(searcher, CreateBasicQuery(q), projectType, includePrerelease, feed, sortBy, page, includeExplanation, ignoreFilter);
+            return ListDocumentsImpl(searcher, CreateBasicQuery(q), projectType, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
         }
 
         private static string DocumentCountImpl(IndexSearcher searcher, Query query, bool includePrerelease, string feed, bool ignoreFilter)
@@ -118,19 +117,19 @@ namespace NuGetGallery
             return MakeCountResult(topDocs.TotalHits);
         }
 
-        private static string ListDocumentsImpl(IndexSearcher searcher, Query query, string projectType, bool includePrerelease, string feed, string sortBy, int page, bool includeExplanation, bool ignoreFilter)
+        private static string ListDocumentsImpl(IndexSearcher searcher, Query query, string projectType, bool includePrerelease, string feed, string sortBy, int skip, int take, bool includeExplanation, bool ignoreFilter)
         {
             Filter filter = ignoreFilter ? null : GetFilter(includePrerelease, feed);
 
             string rank = (string.IsNullOrEmpty(projectType)) ? "Rank" : projectType;
             Query boostedQuery = new RankingBoostingQuery(query, rank);
 
-            int nDocs = GetDocsCount(page);
+            int nDocs = GetDocsCount(skip, take);
             Sort sort = GetSort(sortBy, rank);
 
             TopDocs topDocs = (sort == null) ? searcher.Search(boostedQuery, filter, nDocs) : searcher.Search(boostedQuery, filter, nDocs, sort);
 
-            return MakeResults(searcher, topDocs, page, includeExplanation, boostedQuery);
+            return MakeResults(searcher, topDocs, skip, take, includeExplanation, boostedQuery);
         }
 
         private static Filter GetFilter(bool includePrerelease, string feed)
@@ -182,7 +181,7 @@ namespace NuGetGallery
             return (new JObject { { "totalHits", totalHits } }).ToString();
         }
 
-        private static string MakeResults(IndexSearcher searcher, TopDocs topDocs, int page, bool includeExplanation, Query query)
+        private static string MakeResults(IndexSearcher searcher, TopDocs topDocs, int skip, int take, bool includeExplanation, Query query)
         {
             //  note the use of a StringBuilder because we have the response data already formatted as JSON in the fields in the index
 
@@ -192,7 +191,7 @@ namespace NuGetGallery
 
             bool hasResult = false;
 
-            for (int i = (page - 1) * 20; i < topDocs.ScoreDocs.Length; i++)
+            for (int i = skip * take; i < topDocs.ScoreDocs.Length; i++)
             {
                 ScoreDoc scoreDoc = topDocs.ScoreDocs[i];
 
@@ -355,6 +354,7 @@ namespace NuGetGallery
 
             diagnostics.Add("CuratedFeed", GetMultiValue(searcher, scoreDoc.Doc, "CuratedFeed"));
             diagnostics.Add("Key", GetInt(searcher, scoreDoc.Doc, "Key"));
+            diagnostics.Add("Checksum", GetInt(searcher, scoreDoc.Doc, "Checksum"));
             diagnostics.Add("ProjectGuidRankings", GetProjectGuidRankings(searcher, scoreDoc.Doc));
 
             JObject obj = JObject.Parse(data);
@@ -372,9 +372,9 @@ namespace NuGetGallery
             return query;
         }
 
-        private static int GetDocsCount(int page)
+        private static int GetDocsCount(int skip, int take)
         {
-            return page * 20;
+            return (skip + 1) * take;
         }
 
         private static Sort GetSort(string sortBy, string rank)

@@ -25,7 +25,10 @@ namespace NuGetGallery
             CreateNewEmptyIndex(directory);
         }
 
-        public static void IncrementallyUpdateIndex(string sqlConnectionString, Lucene.Net.Store.Directory directory, PackageRanking packageRanking)
+        //  this function will incrementally build an index from the gallery using a high water mark stored in the commit metadata
+        //  this function is useful for building a fresh index as in that case it is more efficient than diff-ing approach
+
+        public static void BuildIndex(string sqlConnectionString, Lucene.Net.Store.Directory directory, PackageRanking packageRanking)
         {
             TraceWriter.WriteLine("get overall ranking from warehouse");
             IDictionary<string, int> overallRanking = packageRanking.GetOverallRanking();
@@ -33,13 +36,18 @@ namespace NuGetGallery
             TraceWriter.WriteLine("get project ranking from warehouse");
             IDictionary<string, IDictionary<string, int>> projectRankings = packageRanking.GetProjectRankings();
 
+            IndexDocumentContext context = new IndexDocumentContext(overallRanking, projectRankings);
+
             while (true)
             {
-                TraceWriter.WriteLine("get curated feeds by PackageRegistration");
-                IDictionary<int, IEnumerable<string>> feeds = GalleryExport.GetFeedsByPackageRegistration(sqlConnectionString);
-
                 DateTime indexTime = DateTime.UtcNow;
                 int highestPackageKey = GetHighestPackageKey(directory);
+
+                TraceWriter.WriteLine("get the checksums from the gallery");
+                IDictionary<int, int> checksums = GalleryExport.FetchGalleryChecksums(sqlConnectionString, highestPackageKey);
+
+                TraceWriter.WriteLine("get curated feeds by PackageRegistration");
+                IDictionary<int, IEnumerable<string>> feeds = GalleryExport.GetFeedsByPackageRegistration(sqlConnectionString);
 
                 TraceWriter.WriteLine("indexTime = {0} mostRecentPublished = {1}", indexTime, highestPackageKey);
 
@@ -51,131 +59,30 @@ namespace NuGetGallery
                     break;
                 }
 
-                TraceWriter.WriteLine("associate the feeds with gallery");
-                List<Tuple<Package, IEnumerable<string>>> packagesWithFeeds = AssociatedFeedsWithPackages(packages, feeds);
+                TraceWriter.WriteLine("associate the feeds and checksum data with each packages");
+                List<IndexDocumentData> indexDocumentData = MakeIndexDocumentData(packages, feeds, checksums);
 
-                AddPackagesToIndex(packagesWithFeeds, directory, overallRanking, projectRankings);
+                AddPackagesToIndex(indexDocumentData, directory, context);
             }
 
             TraceWriter.WriteLine("all done");
         }
 
-        public static void ApplyPackageEdits(string sqlConnectionString, Lucene.Net.Store.Directory directory, PackageRanking packageRanking)
+        private static void AddPackagesToIndex(List<IndexDocumentData> indexDocumentData, Lucene.Net.Store.Directory directory, IndexDocumentContext context)
         {
-            TraceWriter.WriteLine("get overall ranking from warehouse");
-            IDictionary<string, int> overallRanking = packageRanking.GetOverallRanking();
+            TraceWriter.WriteLine("About to add {0} packages", indexDocumentData.Count);
 
-            TraceWriter.WriteLine("get project ranking from warehouse");
-            IDictionary<string, IDictionary<string, int>> projectRankings = packageRanking.GetProjectRankings();
-
-            while (true)
+            for (int index = 0; index < indexDocumentData.Count; index += MaxDocumentsPerCommit)
             {
-                TraceWriter.WriteLine("get curated feeds by PackageRegistration");
-                IDictionary<int, IEnumerable<string>> feeds = GalleryExport.GetFeedsByPackageRegistration(sqlConnectionString);
+                int count = Math.Min(MaxDocumentsPerCommit, indexDocumentData.Count - index);
 
-                int highestPackageKey = GetHighestPackageKey(directory);
-                DateTime lastEditsIndexTime = GetLastEditsIndexTime(directory);
+                List<IndexDocumentData> rangeToIndex = indexDocumentData.GetRange(index, count);
 
-                TraceWriter.WriteLine("get edited packages from gallery since {0} where the Package.Key less than {1}", lastEditsIndexTime, highestPackageKey);
-                List<Package> packages = GalleryExport.GetEditedPackagesSince(sqlConnectionString, highestPackageKey, lastEditsIndexTime);
-
-                if (packages.Count == 0)
-                {
-                    break;
-                }
-
-                foreach (Package package in packages)
-                {
-                    TraceWriter.WriteLine(package.Key);
-                }
-
-                TraceWriter.WriteLine("associate the feeds with gallery");
-                List<Tuple<Package, IEnumerable<string>>> packagesWithFeeds = AssociatedFeedsWithPackages(packages, feeds);
-
-                UpdatePackagesInIndex(packagesWithFeeds, directory, overallRanking, projectRankings, highestPackageKey, DateTime.UtcNow);
-            }
-
-            TraceWriter.WriteLine("all done");
-        }
-
-        private static List<Tuple<Package, IEnumerable<string>>> AssociatedFeedsWithPackages(IList<Package> packages, IDictionary<int, IEnumerable<string>> feeds)
-        {
-            Func<int, IEnumerable<string>> GetFeeds = packageRegistrationKey =>
-            {
-                IEnumerable<string> ret = null;
-                feeds.TryGetValue(packageRegistrationKey, out ret);
-                return ret;
-            };
-
-            List<Tuple<Package, IEnumerable<string>>> packagesAndFeeds = packages
-                .Select(p => new Tuple<Package, IEnumerable<string>>(p, GetFeeds(p.PackageRegistrationKey)))
-                .ToList();
-
-            return packagesAndFeeds;
-        }
-
-        private static void AddPackagesToIndex(List<Tuple<Package, IEnumerable<string>>> packages, Lucene.Net.Store.Directory directory, IDictionary<string, int> overallRanking, IDictionary<string, IDictionary<string, int>> projectRankings)
-        {
-            TraceWriter.WriteLine("About to add {0} packages", packages.Count);
-
-            for (int index = 0; index < packages.Count; index += MaxDocumentsPerCommit)
-            {
-                int count = Math.Min(MaxDocumentsPerCommit, packages.Count - index);
-
-                List<Tuple<Package, IEnumerable<string>>> rangeToIndex = packages.GetRange(index, count);
-
-                AddToIndex(directory, rangeToIndex, overallRanking, projectRankings);
+                AddToIndex(directory, rangeToIndex, context);
             }
         }
 
-        private static void UpdatePackagesInIndex(List<Tuple<Package, IEnumerable<string>>> packages, Lucene.Net.Store.Directory directory, IDictionary<string, int> overallRanking, IDictionary<string, IDictionary<string, int>> projectRankings, int highestPackageKey, DateTime indexTime)
-        {
-            TraceWriter.WriteLine("About to update {0} packages", packages.Count);
-
-            for (int index = 0; index < packages.Count; index += MaxDocumentsPerCommit)
-            {
-                int count = Math.Min(MaxDocumentsPerCommit, packages.Count - index);
-
-                List<Tuple<Package, IEnumerable<string>>> rangeToIndex = packages.GetRange(index, count);
-
-                UpdateInIndex(directory, rangeToIndex, overallRanking, projectRankings, highestPackageKey, indexTime);
-            }
-        }
-
-        private static int GetDocumentRank(IDictionary<string, int> rank, string packageId)
-        {
-            if (rank != null)
-            {
-                int val;
-                if (rank.TryGetValue(packageId, out val))
-                {
-                    return val;
-                }
-            }
-            return 100000;
-        }
-
-        private static IDictionary<string, int> PivotProjectTypeRanking(IDictionary<string, IDictionary<string, int>> rankings, string packageId)
-        {
-            IDictionary<string, int> result = new Dictionary<string, int>();
-
-            if (rankings == null)
-            {
-                return result;
-            }
-
-            foreach (KeyValuePair<string, IDictionary<string, int>> ranking in rankings)
-            {
-                int rank;
-                if (ranking.Value.TryGetValue(packageId, out rank))
-                {
-                    result.Add(ranking.Key, rank);
-                }
-            }
-            return result;
-        }
-
-        private static void AddToIndex(Lucene.Net.Store.Directory directory, IList<Tuple<Package, IEnumerable<string>>> packagesToIndex, IDictionary<string, int> overallRanking, IDictionary<string, IDictionary<string, int>> projectRankings)
+        private static void AddToIndex(Lucene.Net.Store.Directory directory, List<IndexDocumentData> rangeToIndex, IndexDocumentContext context)
         {
             TraceWriter.WriteLine("begin AddToIndex");
 
@@ -183,14 +90,11 @@ namespace NuGetGallery
             {
                 int highestPackageKey = -1;
 
-                foreach (Tuple<Package, IEnumerable<string>> packageToIndex in packagesToIndex)
+                foreach (IndexDocumentData documentData in rangeToIndex)
                 {
-                    int currentPackageKey = packageToIndex.Item1.Key;
-                    
-                    int rank = GetDocumentRank(overallRanking, packageToIndex.Item1.PackageRegistration.Id);
-                    IDictionary<string, int> projectTypeRankings = PivotProjectTypeRanking(projectRankings, packageToIndex.Item1.PackageRegistration.Id);
+                    int currentPackageKey = documentData.Package.Key;
 
-                    Document newDocument = PackageIndexing.CreateLuceneDocument(packageToIndex.Item1, packageToIndex.Item2, rank, projectTypeRankings);
+                    Document newDocument = PackageIndexing.CreateLuceneDocument(documentData, context);
 
                     indexWriter.AddDocument(newDocument);
 
@@ -202,7 +106,7 @@ namespace NuGetGallery
                     highestPackageKey = currentPackageKey;
                 }
 
-                TraceWriter.WriteLine("about to commit {0} packages", packagesToIndex.Count);
+                TraceWriter.WriteLine("about to commit {0} packages", rangeToIndex.Count);
 
                 IDictionary<string, string> commitUserData = indexWriter.GetReader().CommitUserData;
 
@@ -214,50 +118,12 @@ namespace NuGetGallery
                     lastEditsIndexTime = DateTime.MinValue.ToString();
                 }
 
-                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(lastEditsIndexTime, highestPackageKey, packagesToIndex.Count, "publish"));
+                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(lastEditsIndexTime, highestPackageKey, rangeToIndex.Count, "add"));
 
                 TraceWriter.WriteLine("commit done");
             }
 
             TraceWriter.WriteLine("end AddToIndex");
-        }
-
-        private static void UpdateInIndex(Lucene.Net.Store.Directory directory, IList<Tuple<Package, IEnumerable<string>>> packagesToUpdate, IDictionary<string, int> overallRanking, IDictionary<string, IDictionary<string, int>> projectRankings, int highestPackageKey, DateTime indexTime)
-        {
-            TraceWriter.WriteLine("begin UpdateInIndex");
-
-            using (IndexWriter indexWriter = CreateIndexWriter(directory, false))
-            {
-                PackageQueryParser queryParser = new PackageQueryParser(Lucene.Net.Util.Version.LUCENE_30, "Id", new PackageAnalyzer());
-
-                foreach (Tuple<Package, IEnumerable<string>> packageToUpdate in packagesToUpdate)
-                {
-                    int rank = GetDocumentRank(overallRanking, packageToUpdate.Item1.PackageRegistration.Id);
-                    IDictionary<string, int> projectTypeRankings = PivotProjectTypeRanking(projectRankings, packageToUpdate.Item1.PackageRegistration.Id);
-
-                    Document newDocument = PackageIndexing.CreateLuceneDocument(packageToUpdate.Item1, packageToUpdate.Item2, rank, projectTypeRankings);
-
-                    string id = packageToUpdate.Item1.PackageRegistration.Id;
-                    string version = packageToUpdate.Item1.Version;
-
-                    //  using the QueryParser will cause the custom Analyzers to be used in creating the query
-                    Query query = queryParser.Parse(string.Format("+Id:{0} +Version:{1}", id, version));
-
-                    TraceWriter.WriteLine("about to delete with query {0}", query.ToString());
-
-                    indexWriter.DeleteDocuments(query);
-
-                    indexWriter.AddDocument(newDocument);
-                }
-
-                TraceWriter.WriteLine("about to commit {0} packages", packagesToUpdate.Count);
-
-                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(indexTime, highestPackageKey, packagesToUpdate.Count, "update"));
-
-                TraceWriter.WriteLine("commit done");
-            }
-
-            TraceWriter.WriteLine("end UpdateInIndex");
         }
 
         public static void CreateNewEmptyIndex(Lucene.Net.Store.Directory directory)
@@ -275,6 +141,10 @@ namespace NuGetGallery
             indexWriter.MaxMergeDocs = MaxMergeDocs;
 
             indexWriter.SetSimilarity(new CustomSimilarity());
+
+            //StreamWriter streamWriter = new StreamWriter(Console.OpenStandardOutput());
+            //indexWriter.SetInfoStream(streamWriter);
+            //streamWriter.Flush();
 
             // this should theoretically work but appears to cause empty commit commitMetadata to not be saved
             //((LogMergePolicy)indexWriter.MergePolicy).SetUseCompoundFile(false);
@@ -330,8 +200,32 @@ namespace NuGetGallery
             return 0;
         }
 
-        private static Document CreateLuceneDocument(Package package, IEnumerable<string> feeds, int rank, IDictionary<string, int> projectTypeRankings)
+        private static void Add(Document doc, string name, string value, Field.Store store, Field.Index index, Field.TermVector termVector, float boost = 1.0f)
         {
+            if (value == null)
+            {
+                return;
+            }
+
+            Field newField = new Field(name, value, store, index, termVector);
+            newField.Boost = boost;
+            doc.Add(newField);
+        }
+
+        private static void Add(Document doc, string name, int value, Field.Store store, Field.Index index, Field.TermVector termVector, float boost = 1.0f)
+        {
+            Add(doc, name, value.ToString(CultureInfo.InvariantCulture), store, index, termVector, boost);
+        }
+
+        // ----------------------------------------------------------------------------------------------------------------------------------------
+
+        static Document CreateLuceneDocument(IndexDocumentData documentData, IndexDocumentContext context)
+        {
+            int rank = context.GetDocumentRank(documentData.Package.PackageRegistration.Id);
+            IDictionary<string, int> projectTypeRankings = context.PivotProjectTypeRanking(documentData.Package.PackageRegistration.Id);
+
+            Package package = documentData.Package;
+
             Document doc = new Document();
 
             //  Query Fields
@@ -373,10 +267,11 @@ namespace NuGetGallery
 
             Add(doc, "IsLatest", package.IsLatest ? 1 : 0, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
             Add(doc, "IsLatestStable", package.IsLatestStable ? 1 : 0, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            Add(doc, "Listed", package.Listed ? 1 : 0, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
 
-            if (feeds != null)
+            if (documentData.Feeds != null)
             {
-                foreach (string feed in feeds)
+                foreach (string feed in documentData.Feeds)
                 {
                     //  Store this to aid with debugging
                     Add(doc, "CuratedFeed", feed, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
@@ -397,9 +292,11 @@ namespace NuGetGallery
                 doc.Add(new NumericField(projectTypeRanking.Key, Field.Store.YES, true).SetIntValue(projectTypeRanking.Value));
             }
 
-            //  Add Package Key so we can quickly retrieve ranges of packages
+            //  Add Package Key so we can quickly retrieve ranges of packages (in order to support the synchronization with the gallery)
 
             doc.Add(new NumericField("Key", Field.Store.YES, true).SetIntValue(package.Key));
+
+            doc.Add(new NumericField("Checksum", Field.Store.YES, true).SetIntValue(documentData.Checksum));
 
             //  Data we want to store in index - these cannot be queried
 
@@ -411,42 +308,186 @@ namespace NuGetGallery
             return doc;
         }
 
-        private static void Add(Document doc, string name, string value, Field.Store store, Field.Index index, Field.TermVector termVector, float boost = 1.0f)
+        public static void UpdateIndex(bool whatIf, List<int> adds, List<int> updates, List<int> deletes, Func<int, IndexDocumentData> fetch, IndexDocumentContext context, Lucene.Net.Store.Directory directory)
         {
-            if (value == null)
+            if (whatIf)
             {
-                return;
+                TraceWriter.WriteLine("WhatIf mode");
+
+                Apply(adds, WhatIf_ApplyAdds, fetch, context, directory);
+                Apply(updates, WhatIf_ApplyUpdates, fetch, context, directory);
+                Apply(deletes, WhatIf_ApplyDeletes, fetch, context, directory);
             }
-
-            Field newField = new Field(name, value, store, index, termVector);
-            newField.Boost = boost;
-            doc.Add(newField);
+            else
+            {
+                Apply(adds, ApplyAdds, fetch, context, directory);
+                Apply(updates, ApplyUpdates, fetch, context, directory);
+                Apply(deletes, ApplyDeletes, fetch, context, directory);
+            }
         }
 
-        private static void Add(Document doc, string name, int value, Field.Store store, Field.Index index, Field.TermVector termVector, float boost = 1.0f)
+        private static void Apply(List<int> packageKeys, Action<List<int>, Func<int, IndexDocumentData>, IndexDocumentContext, Lucene.Net.Store.Directory> action, Func<int, IndexDocumentData> fetch, IndexDocumentContext context, Lucene.Net.Store.Directory directory)
         {
-            Add(doc, name, value.ToString(CultureInfo.InvariantCulture), store, index, termVector, boost);
+            for (int index = 0; index < packageKeys.Count; index += MaxDocumentsPerCommit)
+            {
+                int count = Math.Min(MaxDocumentsPerCommit, packageKeys.Count - index);
+                List<int> range = packageKeys.GetRange(index, count);
+                action(range, fetch, context, directory);
+            }
         }
 
-        public static void DeletePackageFromIndex(IList<int> packagesToDelete, Lucene.Net.Store.Directory directory)
+        private static void WhatIf_ApplyAdds(List<int> packageKeys, Func<int, IndexDocumentData> fetch, IndexDocumentContext context, Lucene.Net.Store.Directory directory)
         {
+            TraceWriter.WriteLine("[WhatIf] adding...");
+            foreach (int packageKey in packageKeys)
+            {
+                IndexDocumentData documentData = fetch(packageKey);
+                TraceWriter.WriteLine("{0} {1} {2}", packageKey, documentData.Package.PackageRegistration.Id, documentData.Package.Version);
+            }
+        }
+
+        private static void WhatIf_ApplyUpdates(List<int> packageKeys, Func<int, IndexDocumentData> fetch, IndexDocumentContext context, Lucene.Net.Store.Directory directory)
+        {
+            TraceWriter.WriteLine("[WhatIf] updating...");
+            foreach (int packageKey in packageKeys)
+            {
+                IndexDocumentData documentData = fetch(packageKey);
+                TraceWriter.WriteLine("{0} {1} {2}", packageKey, documentData.Package.PackageRegistration.Id, documentData.Package.Version);
+            }
+        }
+
+        private static void WhatIf_ApplyDeletes(List<int> packageKeys, Func<int, IndexDocumentData> fetch, IndexDocumentContext context, Lucene.Net.Store.Directory directory)
+        {
+            TraceWriter.WriteLine("[WhatIf] deleting...");
+            foreach (int packageKey in packageKeys)
+            {
+                TraceWriter.WriteLine("{0}", packageKey);
+            }
+        }
+        
+        private static void ApplyAdds(List<int> packageKeys, Func<int, IndexDocumentData> fetch, IndexDocumentContext context, Lucene.Net.Store.Directory directory)
+        {
+            TraceWriter.WriteLine("ApplyAdds");
+
+            using (IndexWriter indexWriter = CreateIndexWriter(directory, false))
+            {
+                int highestPackageKey = -1;
+                foreach (int packageKey in packageKeys)
+                {
+                    IndexDocumentData documentData = fetch(packageKey);
+                    int currentPackageKey = documentData.Package.Key;
+                    Document newDocument = PackageIndexing.CreateLuceneDocument(documentData, context);
+                    indexWriter.AddDocument(newDocument);
+                    if (currentPackageKey <= highestPackageKey)
+                    {
+                        throw new Exception("(currentPackageKey <= highestPackageKey) the data must not be ordered correctly");
+                    }
+                    highestPackageKey = currentPackageKey;
+                }
+
+                IDictionary<string, string> commitUserData = indexWriter.GetReader().CommitUserData;
+                string lastEditsIndexTime = commitUserData["last-edits-index-time"];
+                if (lastEditsIndexTime == null)
+                {
+                    //  this should never happen but if it did Lucene would throw 
+                    lastEditsIndexTime = DateTime.MinValue.ToString();
+                }
+
+                TraceWriter.WriteLine("Commit {0} adds", packageKeys.Count);
+                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(lastEditsIndexTime, highestPackageKey, packageKeys.Count, "add"));
+            }
+        }
+
+        private static void ApplyUpdates(List<int> packageKeys, Func<int, IndexDocumentData> fetch, IndexDocumentContext context, Lucene.Net.Store.Directory directory)
+        {
+            TraceWriter.WriteLine("ApplyUpdates");
+
             PackageQueryParser queryParser = new PackageQueryParser(Lucene.Net.Util.Version.LUCENE_30, "Id", new PackageAnalyzer());
 
             using (IndexWriter indexWriter = CreateIndexWriter(directory, false))
             {
                 IDictionary<string, string> commitUserData = indexWriter.GetReader().CommitUserData;
 
-                foreach (int packageKey in packagesToDelete)
+                foreach (int packageKey in packageKeys)
+                {
+                    IndexDocumentData documentData = fetch(packageKey);
+
+                    Query query = NumericRangeQuery.NewIntRange("Key", packageKey, packageKey, true, true);
+                    indexWriter.DeleteDocuments(query);
+
+                    Document newDocument = PackageIndexing.CreateLuceneDocument(documentData, context);
+                    indexWriter.AddDocument(newDocument);
+                }
+
+                commitUserData["count"] = packageKeys.Count.ToString();
+                commitUserData["commit-description"] = "update";
+
+                TraceWriter.WriteLine("Commit {0} updates (delete and re-add)", packageKeys.Count);
+                indexWriter.Commit(commitUserData);
+            }
+        }
+
+        private static void ApplyDeletes(List<int> packageKeys, Func<int, IndexDocumentData> fetch, IndexDocumentContext context, Lucene.Net.Store.Directory directory)
+        {
+            TraceWriter.WriteLine("ApplyDeletes");
+
+            PackageQueryParser queryParser = new PackageQueryParser(Lucene.Net.Util.Version.LUCENE_30, "Id", new PackageAnalyzer());
+
+            using (IndexWriter indexWriter = CreateIndexWriter(directory, false))
+            {
+                IDictionary<string, string> commitUserData = indexWriter.GetReader().CommitUserData;
+
+                foreach (int packageKey in packageKeys)
                 {
                     Query query = NumericRangeQuery.NewIntRange("Key", packageKey, packageKey, true, true);
                     indexWriter.DeleteDocuments(query);
                 }
 
-                commitUserData["count"] = packagesToDelete.Count.ToString();
+                commitUserData["count"] = packageKeys.Count.ToString();
                 commitUserData["commit-description"] = "delete";
 
+                TraceWriter.WriteLine("Commit {0} deletes", packageKeys.Count);
                 indexWriter.Commit(commitUserData);
             }
+        }
+
+        //  helper functions
+
+        public static IDictionary<int, IndexDocumentData> LoadDocumentData(string connectionString, List<int> adds, List<int> updates, List<int> deletes, IDictionary<int, IEnumerable<string>> feeds, IDictionary<int, int> checksums)
+        {
+            IDictionary<int, IndexDocumentData> packages = new Dictionary<int, IndexDocumentData>();
+
+            List<Package> addsPackages = GalleryExport.GetPackages(connectionString, adds);
+            List<IndexDocumentData> addsIndexDocumentData = MakeIndexDocumentData(addsPackages, feeds, checksums);
+            foreach (IndexDocumentData indexDocumentData in addsIndexDocumentData)
+            {
+                packages.Add(indexDocumentData.Package.Key, indexDocumentData);
+            }
+
+            List<Package> updatesPackages = GalleryExport.GetPackages(connectionString, updates);
+            List<IndexDocumentData> updatesIndexDocumentData = MakeIndexDocumentData(updatesPackages, feeds, checksums);
+            foreach (IndexDocumentData indexDocumentData in updatesIndexDocumentData)
+            {
+                packages.Add(indexDocumentData.Package.Key, indexDocumentData);
+            }
+
+            return packages;
+        }
+
+        private static List<IndexDocumentData> MakeIndexDocumentData(IList<Package> packages, IDictionary<int, IEnumerable<string>> feeds, IDictionary<int, int> checksums)
+        {
+            Func<int, IEnumerable<string>> GetFeeds = packageRegistrationKey =>
+            {
+                IEnumerable<string> ret = null;
+                feeds.TryGetValue(packageRegistrationKey, out ret);
+                return ret;
+            };
+
+            List<IndexDocumentData> result = packages
+                .Select(p => new IndexDocumentData { Package = p, Checksum = checksums[p.Key], Feeds = GetFeeds(p.PackageRegistrationKey) })
+                .ToList();
+
+            return result;
         }
     }
 }

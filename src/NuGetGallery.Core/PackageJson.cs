@@ -29,6 +29,7 @@ namespace NuGetGallery
 
             obj.Add("IsLatest", package.IsLatest);
             obj.Add("IsLatestStable", package.IsLatestStable);
+            obj.Add("Listed", package.Listed);
             
             obj.Add("Created", package.Created);
             obj.Add("Published", package.Published);
@@ -126,6 +127,7 @@ namespace NuGetGallery
             
             package.IsLatest = obj["IsLatest"].ToObject<bool>();
             package.IsLatestStable = obj["IsLatestStable"].ToObject<bool>();
+            package.Listed = obj["Listed"].ToObject<bool>();
 
             package.Created = obj["Created"].ToObject<DateTime>();
             package.Published = obj["Published"].ToObject<DateTime>();

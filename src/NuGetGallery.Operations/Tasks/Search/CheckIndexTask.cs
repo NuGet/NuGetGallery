@@ -36,7 +36,9 @@ namespace NuGetGallery.Operations.Tasks.Search
                     break;
                 }
 
-                HashSet<int> indexPackageKeys = SearchServiceClient.GetRangeFromIndex(minPackageKey, maxPackageKey, Host);
+                IDictionary<int, int> d = SearchServiceClient.GetRangeFromIndex(minPackageKey, maxPackageKey, Host);
+
+                HashSet<int> indexPackageKeys = new HashSet<int>(d.Keys);
 
                 highWaterMark = maxPackageKey;
 

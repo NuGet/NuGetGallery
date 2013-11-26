@@ -275,7 +275,6 @@
     <Compile Include="Tasks\SanitizeDatabaseTask.cs" />
     <Compile Include="Tasks\Search\CheckIndexTask.cs" />
     <Compile Include="Tasks\Search\IndexPackageAddsTask.cs" />
-    <Compile Include="Tasks\Search\IndexPackageDeletesTask.cs" />
     <Compile Include="Tasks\Search\IndexPackageUpdatesTask.cs" />
     <Compile Include="Tasks\Search\IndexTask.cs" />
     <Compile Include="Tasks\TaskBases.cs" />
