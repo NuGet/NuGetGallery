@@ -280,7 +280,9 @@
     <Compile Include="Tasks\RunMigrationsTask.cs" />
     <Compile Include="Tasks\SanitizeDatabaseTask.cs" />
     <Compile Include="Tasks\Subscription\CreateCloudServiceTask.cs" />
+    <Compile Include="Tasks\Subscription\CreateJobCollectionTask.cs" />
     <Compile Include="Tasks\Subscription\ListCloudServicesTask.cs" />
+    <Compile Include="Tasks\Subscription\ListJobCollectionsTask.cs" />
     <Compile Include="Tasks\TaskBases.cs" />
     <Compile Include="Tasks\SynchronizePackageBackupsTask.cs" />
     <Compile Include="Tasks\ListMigrationsTask.cs" />

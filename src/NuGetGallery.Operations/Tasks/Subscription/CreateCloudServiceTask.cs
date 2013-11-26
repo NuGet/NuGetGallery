@@ -10,7 +10,7 @@ using NuGetGallery.Operations.Common;
 
 namespace NuGetGallery.Operations.Tasks.Subscription
 {
-    [Command("createcloudservices", "Creates a new Cloud Service in the Subscription", AltName = "ccs", MinArgs = 1, MaxArgs = 2)]
+    [Command("createcloudservice", "Creates a new Cloud Service in the Subscription", AltName = "ccs", MinArgs = 1, MaxArgs = 1)]
     public class CreateCloudServiceTask : SubscriptionTask
     {
         [Option("A description of the cloud service", AltName="d")]
