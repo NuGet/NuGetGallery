@@ -48,7 +48,7 @@ namespace NuGetGallery.Backend
 
                 // Assert
                 Assert.Same(invocation, response.Invocation);
-                Assert.Equal(JobResult.Completed(), response.Result);
+                Assert.Equal(JobStatus.Completed, response.Result.Status);
             }
 
             [Fact]

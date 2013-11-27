@@ -97,7 +97,7 @@
     <Compile Include="Infrastructure\JobDescription.cs" />
     <Compile Include="Infrastructure\JobInvocationContext.cs" />
     <Compile Include="Jobs\HeartBeatJob.cs" />
-    <Compile Include="Jobs\HelloJob.cs" />
+    <Compile Include="Jobs\PingJob.cs" />
     <Compile Include="Models\Database.cs" />
     <Compile Include="Helpers\SqlConnectionStringBuilderExtensions.cs" />
     <Compile Include="Infrastructure\JobBase.cs" />

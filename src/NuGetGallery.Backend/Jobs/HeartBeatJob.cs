@@ -7,11 +7,14 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery.Backend.Jobs
 {
+    /// <summary>
+    /// Job used to confirm that the worker remains active
+    /// </summary>
     public class HeartBeatJob : RepeatingJob<HeartBeatEventSource>
     {
         public override TimeSpan WaitPeriod
         {
-            get { return TimeSpan.FromSeconds(10); }
+            get { return TimeSpan.FromMinutes(5); }
         }
 
         protected internal override Task Execute()
@@ -27,6 +30,9 @@ namespace NuGetGallery.Backend.Jobs
         public static HeartBeatEventSource Log = new HeartBeatEventSource();
         private HeartBeatEventSource() { }
 
+        [Event(
+            eventId: 1,
+            Message = "Thump! Worker is still active!")]
         public void Thump() { WriteEvent(1); }
     }
 }

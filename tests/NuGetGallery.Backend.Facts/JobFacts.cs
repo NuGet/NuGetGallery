@@ -103,7 +103,7 @@ namespace NuGetGallery.Backend
                 var result = await job.Object.Invoke(context);
 
                 // Assert
-                Assert.Equal(JobResult.Completed(), result);
+                Assert.Equal(JobStatus.Completed, result.Status);
             }
 
             [Fact]
@@ -126,7 +126,8 @@ namespace NuGetGallery.Backend
                 var result = await job.Object.Invoke(context);
 
                 // Assert
-                Assert.Equal(JobResult.Faulted(ex), result);
+                Assert.Equal(JobStatus.Faulted, result.Status);
+                Assert.Equal(ex, result.Exception);
             }
         }
 

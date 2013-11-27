@@ -39,6 +39,7 @@ namespace NuGetGallery.Monitoring.Tables
             LogUrl = logUrl;
             CompletedAt = completedAt;
             Status = result == null ? JobStatus.Unspecified : result.Status;
+            Exception = result == null ? String.Empty : (result.Exception == null ? String.Empty : result.Exception.ToString());
         }
 
         public string InstanceName { get; set; }
@@ -48,6 +49,7 @@ namespace NuGetGallery.Monitoring.Tables
         public string Source { get; set; }
         public string RequestPayload { get; set; }
         public string LogUrl { get; set; }
+        public string Exception { get; set; }
         public DateTimeOffset? CompletedAt { get; set; }
 
         [Obsolete("Use the Status property to read/write this value")]
