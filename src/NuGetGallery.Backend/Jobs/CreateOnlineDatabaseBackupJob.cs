@@ -61,8 +61,8 @@ namespace NuGetGallery.Backend.Jobs
             // Resolve the connection if not specified explicitly
             var cstr = GetConnectionString();
             Log.PreparingToBackup(
-                cstr.InitialCatalog,
-                cstr.DataSource);
+                cstr.DataSource,
+                cstr.InitialCatalog);
             // Connect to the master database
             using (var connection = await cstr.ConnectToMaster())
             {
@@ -142,7 +142,6 @@ namespace NuGetGallery.Backend.Jobs
                     case DatabaseState.COPYING:
                         Log.CopyContinuing(cstr.InitialCatalog, BackupName);
                         return await ContinueCheckingBackup();
-                        break;
                     default:
                         Log.CopyStateUnexpected(cstr.InitialCatalog, BackupName, db.state);
                         throw new Exception("Database entered unexpected state: " + db.state.ToString());
@@ -184,7 +183,8 @@ namespace NuGetGallery.Backend.Jobs
             return (await connection.QueryAsync<Database>(@"
                 SELECT name, database_id, create_date, state
                 FROM sys.databases
-            ")).FirstOrDefault();
+                WHERE name = @name
+            ", new { name })).FirstOrDefault();
         }
 
         protected internal virtual Task<IEnumerable<Database>> GetDatabases(SqlConnection connection)

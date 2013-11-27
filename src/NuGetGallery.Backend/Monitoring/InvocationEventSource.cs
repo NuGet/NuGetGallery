@@ -85,7 +85,7 @@ namespace NuGetGallery.Backend.Monitoring
         private void Succeeded(Guid invocationId, string completedAt) { WriteEvent(7, invocationId, completedAt); }
 
         [NonEvent]
-        public void Succeeded(JobResponse response) { Succeeded(JobInvocationContext.GetCurrentInvocationId(), response.CompletedAt.ToString("O")); }
+        public void Succeeded(JobResponse response) { Succeeded(JobInvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O")); }
 
         [Event(
             eventId: 8,
@@ -94,7 +94,7 @@ namespace NuGetGallery.Backend.Monitoring
         private void Faulted(Guid invocationId, string completedAt, string exception) { WriteEvent(8, invocationId, completedAt, exception); }
 
         [NonEvent]
-        public void Faulted(JobResponse response) { Faulted(JobInvocationContext.GetCurrentInvocationId(), response.CompletedAt.ToString("O"), response.Result.Exception.ToString()); }
+        public void Faulted(JobResponse response) { Faulted(JobInvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O"), response.Result.Exception.ToString()); }
 
         [Event(
             eventId: 9,
@@ -103,7 +103,7 @@ namespace NuGetGallery.Backend.Monitoring
         private void UnknownStatus(Guid invocationId, string completedAt, string status) { WriteEvent(9, invocationId, completedAt, status); }
 
         [NonEvent]
-        public void UnknownStatus(JobResponse response) { UnknownStatus(JobInvocationContext.GetCurrentInvocationId(), response.CompletedAt.ToString("O"), response.Result.Status.ToString()); }
+        public void UnknownStatus(JobResponse response) { UnknownStatus(JobInvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O"), response.Result.Status.ToString()); }
 
         [Event(
             eventId: 10,
@@ -114,7 +114,7 @@ namespace NuGetGallery.Backend.Monitoring
         private void AwaitingContinuation(Guid invocationId, string suspendedAt, string waitingFor) { WriteEvent(10, invocationId, suspendedAt, waitingFor); }
 
         [NonEvent]
-        public void AwaitingContinuation(JobResponse response) { AwaitingContinuation(JobInvocationContext.GetCurrentInvocationId(), response.CompletedAt.ToString("O"), response.Result.Continuation.WaitPeriod.ToString()); }
+        public void AwaitingContinuation(JobResponse response) { AwaitingContinuation(JobInvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O"), response.Result.Continuation.WaitPeriod.ToString()); }
 
         [Event(
             eventId: 11,

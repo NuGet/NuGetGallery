@@ -13,7 +13,7 @@ using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System.IO;
 
-namespace NuGetGallery.Monitoring.Tables
+namespace NuGetGallery.Monitoring
 {
     public class MonitoringHub
     {
@@ -23,7 +23,6 @@ namespace NuGetGallery.Monitoring.Tables
         protected CloudBlobClient Blobs { get; private set; }
         protected CloudQueueClient Queues { get; private set; }
 
-        private Dictionary<Type, string> _tableNameMap = new Dictionary<Type, string>();
         private Dictionary<string, CloudBlobContainer> _containerMap = new Dictionary<string, CloudBlobContainer>();
         
         public CloudStorageAccount DiagnosticsStorage { get; private set; }
@@ -47,14 +46,7 @@ namespace NuGetGallery.Monitoring.Tables
 
         public MonitoringTable<TEntity> Table<TEntity>() where TEntity : ITableEntity
         {
-            string tableName;
-            if (!_tableNameMap.TryGetValue(typeof(TEntity), out tableName))
-            {
-                tableName = GetTableName(typeof(TEntity));
-                _tableNameMap[typeof(TEntity)] = tableName;
-            }
-            var table = Tables.GetTableReference(tableName);
-            return new MonitoringTable<TEntity>(table);
+            return new MonitoringTable<TEntity>(Tables);
         }
 
         public Task<CloudBlockBlob> UploadBlob(string sourceFileName, string containerName, string path)
@@ -95,24 +87,6 @@ namespace NuGetGallery.Monitoring.Tables
         {
             // Starts monitoring tasks.
             return Task.FromResult<object>(null);
-        }
-
-        private string GetTableName(Type typ)
-        {
-            string name = typ.Name;
-            TableAttribute attr = typ.GetCustomAttribute<TableAttribute>();
-            if (attr != null)
-            {
-                name = attr.Name;
-            }
-            else
-            {
-                if (name.EndsWith("Entry"))
-                {
-                    name = name.Substring(0, name.Length - 5);
-                }
-            }
-            return GetTableFullName(name);
         }
     }
 }

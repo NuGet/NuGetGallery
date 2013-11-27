@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.WindowsAzure.Storage.Table;
 
-namespace NuGetGallery.Monitoring.Tables
+namespace NuGetGallery.Storage
 {
     public abstract class ReverseChronologicalTableEntry : TableEntity
     {
@@ -19,6 +19,11 @@ namespace NuGetGallery.Monitoring.Tables
             // Specifically the number of ticks from the timestamp until the end of time (as defined
             // by DateTimeOffset.MaxValue ;)), padded to 19 digits with zeros.
             RowKey = (DateTimeOffset.MaxValue.UtcTicks - timestamp.UtcTicks).ToString("d19");
+        }
+
+        public static string GenerateReverseChronologicalKey(DateTimeOffset timestamp)
+        {
+            return (DateTimeOffset.MaxValue.UtcTicks - timestamp.UtcTicks).ToString("d19");
         }
     }
 }

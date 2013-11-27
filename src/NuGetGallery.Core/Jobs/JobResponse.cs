@@ -9,13 +9,13 @@ namespace NuGetGallery.Jobs
     {
         public JobInvocation Invocation { get; private set; }
         public JobResult Result { get; private set; }
-        public DateTimeOffset CompletedAt { get; private set; }
+        public DateTimeOffset EndedAt { get; private set; }
 
         public JobResponse(JobInvocation invocation, JobResult result, DateTimeOffset completedAt)
         {
             Invocation = invocation;
             Result = result;
-            CompletedAt = completedAt;
+            EndedAt = completedAt;
         }
     }
 }
