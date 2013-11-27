@@ -9,6 +9,14 @@
       <Setting name="Sql.Primary" value="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetGallery;Integrated Security=SSPI" />
       <Setting name="Sql.Warehouse" value="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetWarehouse;Integrated Security=SSPI" />
       <Setting name="Queue.PollInterval" value="00:00:01" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="" />
     </ConfigurationSettings>
+    <Certificates>
+      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="1010101010101010101010101010101010101010" thumbprintAlgorithm="sha1" />
+    </Certificates>
   </Role>
 </ServiceConfiguration>
