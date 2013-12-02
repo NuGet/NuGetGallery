@@ -59,9 +59,19 @@ namespace NuGetGallery.Storage
 
         public abstract IEnumerable<TablePivot> GetPivots();
 
+        protected virtual TablePivot PivotOn(Func<string> partition)
+        {
+            return PivotOn(String.Empty, partition, row: () => String.Empty);
+        }
+
+        protected virtual TablePivot PivotOn(Func<string> partition, Func<string> row)
+        {
+            return new TablePivot(String.Empty, () => GetEntity(partition(), row()));
+        }
+
         protected virtual TablePivot PivotOn(string name, Func<string> partition)
         {
-            return PivotOn(name, partition, row: _ => String.Empty);
+            return PivotOn(name, partition, row: () => String.Empty);
         }
 
         protected virtual TablePivot PivotOn(string name, Func<string> partition, Func<string> row)

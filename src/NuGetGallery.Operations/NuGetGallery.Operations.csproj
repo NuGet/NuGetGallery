@@ -388,10 +388,6 @@
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
       <Name>NuGetGallery.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NuGetGallery\NuGetGallery.csproj">
-      <Project>{1dacf781-5cd0-4123-8bac-cd385d864be5}</Project>
-      <Name>NuGetGallery</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

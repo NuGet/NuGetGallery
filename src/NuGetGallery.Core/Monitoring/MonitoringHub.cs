@@ -12,12 +12,13 @@ using System.Linq.Expressions;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System.IO;
+using NuGetGallery.Storage;
 
 namespace NuGetGallery.Monitoring
 {
     public class MonitoringHub
     {
-        public static readonly string TableNamePrefix = "NGM";
+        public static readonly string TableNamePrefix = "NG";
 
         protected CloudTableClient Tables { get; private set; }
         protected CloudBlobClient Blobs { get; private set; }
@@ -44,9 +45,14 @@ namespace NuGetGallery.Monitoring
             return TableNamePrefix + tableName;
         }
 
-        public MonitoringTable<TEntity> Table<TEntity>() where TEntity : ITableEntity
+        public PivotedTable<TEntity> PivotedTable<TEntity>() where TEntity : IPivotedTableEntity
         {
-            return new MonitoringTable<TEntity>(Tables);
+            return new PivotedTable<TEntity>(Tables, TableNamePrefix);
+        }
+
+        public AzureTable<TEntity> Table<TEntity>() where TEntity : ITableEntity
+        {
+            return new AzureTable<TEntity>(Tables, TableNamePrefix);
         }
 
         public Task<CloudBlockBlob> UploadBlob(string sourceFileName, string containerName, string path)

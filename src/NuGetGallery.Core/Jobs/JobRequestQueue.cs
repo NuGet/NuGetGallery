@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Queue.Protocol;
+using NuGetGallery;
 
-namespace NuGetGallery.Jobs
+namespace NuGet.Services.Jobs
 {
     public class JobRequestQueue
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGetGallery.Jobs
+namespace NuGet.Services.Jobs
 {
     public class JobDequeueResult
     {

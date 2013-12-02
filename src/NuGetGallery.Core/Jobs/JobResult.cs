@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace NuGetGallery.Jobs
+namespace NuGet.Services.Jobs
 {
     public class JobResult
     {
@@ -54,7 +54,7 @@ namespace NuGetGallery.Jobs
 
         public static JobResult Continuing(JobContinuation continuation)
         {
-            return new JobResult(JobStatus.AwaitingContinuation, continuation);
+            return new JobResult(JobStatus.Suspended, continuation);
         }
 
         public static JobResult Faulted(Exception ex)
@@ -71,9 +71,12 @@ namespace NuGetGallery.Jobs
     public enum JobStatus
     {
         Unspecified = 0,
+        Queuing,
+        Queued,
         Executing,
         Completed,
         Faulted,
-        AwaitingContinuation
+        Suspended,
+        Crashed
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace NuGetGallery.Jobs
+namespace NuGet.Services.Jobs
 {
     public class JobRequest
     {

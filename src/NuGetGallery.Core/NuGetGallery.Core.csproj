@@ -123,10 +123,12 @@
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\User.cs" />
-    <Compile Include="Monitoring\InvocationStatus.cs" />
+    <Compile Include="Monitoring\InvocationsEntry.cs" />
+    <Compile Include="Storage\AzureTable.cs" />
+    <Compile Include="Storage\IWriteOnlyTable.cs" />
     <Compile Include="Storage\IPivotedTableEntity.cs" />
     <Compile Include="Storage\ReverseChronologicalTableEntry.cs" />
-    <Compile Include="Storage\AzureTable.cs" />
+    <Compile Include="Storage\PivotedTable.cs" />
     <Compile Include="Monitoring\MonitoringHub.cs" />
     <Compile Include="Packaging\INupkg.cs" />
     <Compile Include="Packaging\Nupkg.cs" />

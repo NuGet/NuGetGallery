@@ -1,60 +1,61 @@
 ﻿using System;
+using System.Reflection;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using Microsoft.WindowsAzure.Storage.Table.Protocol;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.WindowsAzure.Storage;
 
-namespace NuGetGallery.Monitoring
+namespace NuGetGallery.Storage
 {
-    public class MonitoringTable<TEntity> where TEntity : ITableEntity
+    public class AzureTable<TEntity> : IWriteOnlyTable<TEntity>
+        where TEntity : ITableEntity
     {
-        private CloudTableClient _client;
         private CloudTable _table;
-        private string _name;
-        private string _namePrefix;
 
-        public virtual string TableName
+        public AzureTable(CloudTable table)
         {
-            get { return _name ?? (_name = InferTableName(typeof(TEntity))); }
+            _table = table;
         }
 
-        public virtual CloudTable Table
+        public AzureTable(CloudTableClient client, string namePrefix)
         {
-            get { return _table ?? (_table = _client.GetTableReference(TableName)); }
+            _table = client.GetTableReference(
+                namePrefix + AzureTableHelper.InferTableName(typeof(TEntity)));
         }
 
-        protected MonitoringTable(CloudTableClient client)
-        {
-            _client = client;
-        }
-
-        public MonitoringTable(CloudTableClient client, string namePrefix)
-            : this(client)
-        {
-            _namePrefix = namePrefix;
-        }
-
-        /// <summary>
-        /// Inserts the specified value or replaces an existing value if one exists with the same keys
-        /// </summary>
         public Task Upsert(TEntity entity)
         {
-            return _table.SafeExecute(t => t.ExecuteAsync(TableOperation.InsertOrReplace(entity)));
+            return AzureTableHelper.Upsert(_table, entity);
         }
 
-        /// <summary>
-        /// Inserts the specified value and silently fails, ignoring the new value, if there is already an entry with the same keys
-        /// </summary>
-        public async Task InsertOrIgnoreDuplicate(TEntity entity)
+        public Task InsertOrIgnore(TEntity entity)
+        {
+            return AzureTableHelper.InsertOrIgnore(_table, entity);   
+        }
+
+        public Task Merge(TEntity entity)
+        {
+            return AzureTableHelper.Merge(_table, entity);
+        }
+    }
+
+    internal static class AzureTableHelper
+    {
+        public static Task Upsert(CloudTable table, ITableEntity entity)
+        {
+            return table.SafeExecute(t => t.ExecuteAsync(TableOperation.InsertOrReplace(entity)));
+        }
+
+        public static async Task InsertOrIgnore(CloudTable table, ITableEntity entity)
         {
             try
             {
-                await _table.SafeExecute(t => t.ExecuteAsync(TableOperation.Insert(entity)));
+                await table.SafeExecute(t => t.ExecuteAsync(TableOperation.Insert(entity)));
             }
             catch (StorageException ex)
             {
@@ -66,8 +67,13 @@ namespace NuGetGallery.Monitoring
             }
         }
 
+        public static Task Merge(CloudTable table, ITableEntity entity)
+        {
+            return table.SafeExecute(t => t.ExecuteAsync(TableOperation.InsertOrMerge(entity)));
+        }
+
         private static ConcurrentDictionary<Type, string> _tableNameMap = new ConcurrentDictionary<Type, string>();
-        private static string InferTableName(Type entityType)
+        public static string InferTableName(Type entityType)
         {
             return _tableNameMap.GetOrAdd(entityType, t =>
             {
@@ -84,7 +90,7 @@ namespace NuGetGallery.Monitoring
                         name = name.Substring(0, name.Length - 5);
                     }
                 }
-                return (_namePrefix ?? String.Empty) + name;
+                return name;
             });
         }
     }
