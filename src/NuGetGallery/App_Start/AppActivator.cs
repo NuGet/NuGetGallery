@@ -114,6 +114,8 @@ namespace NuGetGallery
 
         private static void BundlingPostStart()
         {
+            BundleTable.EnableOptimizations = true;
+
             var jQueryBundle = new ScriptBundle("~/Scripts/jquery")
                 .Include("~/Scripts/jquery-{version}.js");
             BundleTable.Bundles.Add(jQueryBundle);
@@ -141,15 +143,21 @@ namespace NuGetGallery
             foreach (string filename in new[] {
                     "Site.css",
                     "Layout.css",
-                    "PageStylings.css",
-                    "fontawesome/font-awesome.css"
+                    "PageStylings.css"
                 })
             {
-                stylesBundle = stylesBundle.Include("~/Content/" + filename);
-                stylesBundle = stylesBundle.Include("~/Branding/Content/" + filename);
+                stylesBundle
+                    .Include("~/Content/" + filename)
+                    .Include("~/Branding/Content/" + filename);
             }
 
             BundleTable.Bundles.Add(stylesBundle);
+
+            // Needs a) a separate bundle because of relative pathing in the @font-face directive
+            // b) To be a bundle for auto-selection of ".min.css"
+            var fontAwesomeBundle = new StyleBundle("~/Content/font-awesome/css");
+            fontAwesomeBundle.Include("~/Content/font-awesome/font-awesome.css");
+            BundleTable.Bundles.Add(fontAwesomeBundle);
         }
 
         private static void ElmahPreStart()
