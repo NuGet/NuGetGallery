@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
-    public static class NuGetQueryParser
+    public static class LuceneQueryCreator
     {
         public static string Parse(string nugetQuery)
         {
