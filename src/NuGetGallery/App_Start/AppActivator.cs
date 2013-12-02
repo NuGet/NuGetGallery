@@ -114,6 +114,8 @@ namespace NuGetGallery
 
         private static void BundlingPostStart()
         {
+            BundleTable.EnableOptimizations = true;
+
             var jQueryBundle = new ScriptBundle("~/Scripts/jquery")
                 .Include("~/Scripts/jquery-{version}.js");
             BundleTable.Bundles.Add(jQueryBundle);
