@@ -1,0 +1,42 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage.Blob;
+
+namespace NuGetGallery.Storage
+{
+    public class BlobStorageHub
+    {
+        public CloudBlobClient Client { get; private set; }
+
+        public BlobStorageHub(CloudBlobClient client)
+        {
+            Client = client;
+        }
+
+        public Task<CloudBlockBlob> UploadBlob(string sourceFileName, string containerName, string path)
+        {
+            CloudBlobContainer container = Client.GetContainerReference(containerName);
+            return container.SafeExecute(async ct =>
+            {
+                var blob = ct.GetBlockBlobReference(path);
+                await blob.UploadFromFileAsync(sourceFileName, FileMode.Open);
+                return blob;
+            });
+        }
+
+        public Task<CloudBlockBlob> DownloadBlob(string containerName, string path, string destinationFileName)
+        {
+            CloudBlobContainer container = Client.GetContainerReference(containerName);
+            return container.SafeExecute(async ct =>
+            {
+                var blob = ct.GetBlockBlobReference(path);
+                await blob.DownloadToFileAsync(destinationFileName, FileMode.CreateNew);
+                return blob;
+            });
+        }
+    }
+}

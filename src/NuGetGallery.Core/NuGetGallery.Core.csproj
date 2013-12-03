@@ -91,11 +91,10 @@
     <Compile Include="CredentialTypes.cs" />
     <Compile Include="Completion.cs" />
     <Compile Include="Jobs\InvalidJobRequestException.cs" />
+    <Compile Include="Jobs\InvocationRequest.cs" />
     <Compile Include="Jobs\JobContinuation.cs" />
     <Compile Include="Jobs\JobDequeueResult.cs" />
-    <Compile Include="Jobs\JobInvocation.cs" />
-    <Compile Include="Jobs\JobRequest.cs" />
-    <Compile Include="Jobs\JobRequestQueue.cs" />
+    <Compile Include="Jobs\InvocationQueue.cs" />
     <Compile Include="Jobs\JobResponse.cs" />
     <Compile Include="Jobs\JobResult.cs" />
     <Compile Include="Entities\Credential.cs" />
@@ -123,12 +122,11 @@
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\User.cs" />
-    <Compile Include="Monitoring\InvocationsEntry.cs" />
+    <Compile Include="Jobs\Invocation.cs" />
     <Compile Include="Storage\AzureTable.cs" />
-    <Compile Include="Storage\IWriteOnlyTable.cs" />
-    <Compile Include="Storage\IPivotedTableEntity.cs" />
+    <Compile Include="Storage\BlobStorageHub.cs" />
+    <Compile Include="Storage\QueueStorageHub.cs" />
     <Compile Include="Storage\ReverseChronologicalTableEntry.cs" />
-    <Compile Include="Storage\PivotedTable.cs" />
     <Compile Include="Monitoring\MonitoringHub.cs" />
     <Compile Include="Packaging\INupkg.cs" />
     <Compile Include="Packaging\Nupkg.cs" />
@@ -136,6 +134,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SemanticVersionExtensions.cs" />
     <Compile Include="Storage\StorageHelpers.cs" />
+    <Compile Include="Storage\StorageAccountHub.cs" />
+    <Compile Include="Storage\StorageHub.cs" />
+    <Compile Include="Storage\TableStorageHub.cs" />
     <Compile Include="Strings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

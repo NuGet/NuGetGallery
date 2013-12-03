@@ -48,7 +48,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void RequestExpired(Guid invocationId, string jobName, string messageId, string inserted, string expired) { WriteEvent(3, invocationId, jobName, messageId, inserted, expired); }
 
         [NonEvent]
-        public void RequestExpired(JobRequest request) { RequestExpired(JobInvocationContext.GetCurrentInvocationId(), request.Name, request.Message.Id, request.InsertionTime.ToString("O"), request.ExpiresAt.HasValue ? request.ExpiresAt.Value.ToString("O") : ""); }
+        public void RequestExpired(JobRequest request) { RequestExpired(JobInvocationContext.GetCurrentInvocationId(), request.Job, request.Message.Id, request.InsertionTime.ToString("O"), request.ExpiresAt.HasValue ? request.ExpiresAt.Value.ToString("O") : ""); }
 
         [Event(
             eventId: 4,

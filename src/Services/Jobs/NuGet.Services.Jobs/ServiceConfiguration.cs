@@ -7,35 +7,38 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
+using NuGetGallery.Storage;
 
 namespace NuGet.Services.Jobs
 {
     public delegate bool TryParse<T>(string input, out T val);
 
-    public class BackendConfiguration
+    public class ServiceConfiguration
     {
         private Func<string, string> _configThunk;
         
         public string InstanceId { get; private set; }
 
-        public CloudStorageAccount PrimaryStorage { get { return GetStorageAccount("Storage.Primary"); } }
-        public CloudStorageAccount BackupStorage { get { return GetStorageAccount("Storage.Backup"); } }
-        public CloudStorageAccount DiagnosticsStorage { get { return GetStorageAccount("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString"); } }
-
         public SqlConnectionStringBuilder PrimaryDatabase { get { return GetSqlConnection("Sql.Primary"); } }
         public SqlConnectionStringBuilder WarehouseDatabase { get { return GetSqlConnection("Sql.Warehouse"); } }
 
+        public StorageHub Storage { get; private set; }
+
         public TimeSpan QueuePollInterval { get { return Get<TimeSpan>("Queue.PollInterval", TimeSpan.TryParse, TimeSpan.FromSeconds(1)); } }
 
-        private BackendConfiguration()
+        private ServiceConfiguration()
             : this(Environment.MachineName, NullThunk)
         {
         }
 
-        private BackendConfiguration(string instanceId, Func<string, string> configThunk)
+        private ServiceConfiguration(string instanceId, Func<string, string> configThunk)
         {
             InstanceId = instanceId;
             _configThunk = configThunk;
+
+            Storage = new StorageHub(
+                primary: GetStorageAccount("Storage.Primary"),
+                backup: GetStorageAccount("Storage.Backup"));
         }
 
         public string Get(string key)
@@ -84,21 +87,21 @@ namespace NuGet.Services.Jobs
             return Get(key, v => new SqlConnectionStringBuilder(v));
         }
 
-        public static BackendConfiguration Create()
+        public static ServiceConfiguration Create()
         {
             return Create(new Dictionary<string, string>());
         }
 
-        public static BackendConfiguration Create(IDictionary<string, string> config)
+        public static ServiceConfiguration Create(IDictionary<string, string> config)
         {
-            return new BackendConfiguration(
-                Environment.MachineName, 
+            return new ServiceConfiguration(
+                Environment.MachineName,
                 key => config.ContainsKey(key) ? config[key] : null);
         }
 
-        public static BackendConfiguration CreateAzure()
+        public static ServiceConfiguration CreateAzure()
         {
-            return new BackendConfiguration(
+            return new ServiceConfiguration(
                 RoleEnvironment.CurrentRoleInstance.Id,
                 key => RoleEnvironment.GetConfigurationSettingValue(key));
         }

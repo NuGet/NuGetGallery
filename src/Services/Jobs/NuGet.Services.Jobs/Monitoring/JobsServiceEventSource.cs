@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Jobs.Monitoring
 {
-    [EventSource(Name = "NuGet-Worker")]
-    public class WorkerEventSource : EventSource
+    [EventSource(Name = "NuGet-Services-Jobs")]
+    public class JobsServiceEventSource : EventSource
     {
-        public static readonly WorkerEventSource Log = new WorkerEventSource();
+        public static readonly JobsServiceEventSource Log = new JobsServiceEventSource();
 
-        private WorkerEventSource() { }
+        private JobsServiceEventSource() { }
 
         public static class Tasks
         {

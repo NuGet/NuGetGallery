@@ -17,7 +17,7 @@ namespace NuGet.Services.Jobs
 {
     public class WorkerRole : RoleEntryPoint
     {
-        private BackendConfiguration _config;
+        private ServiceConfiguration _config;
         private IEnumerable<JobDescription> _jobs;
         private CancellationTokenSource _cancelSource = new CancellationTokenSource();
 
@@ -31,12 +31,12 @@ namespace NuGet.Services.Jobs
             
             Task.WaitAll(runnerTasks);
 
-            WorkerEventSource.Log.Stopped();
+            JobsServiceEventSource.Log.Stopped();
         }
 
         public override void OnStop()
         {
-            WorkerEventSource.Log.Stopping();
+            JobsServiceEventSource.Log.Stopping();
 
             _cancelSource.Cancel();
             base.OnStop();
@@ -44,23 +44,23 @@ namespace NuGet.Services.Jobs
 
         public override bool OnStart()
         {
-            WorkerEventSource.Log.Starting();
+            JobsServiceEventSource.Log.Starting();
 
             try
             {
                 // Set the maximum number of concurrent connections 
                 ServicePointManager.DefaultConnectionLimit = 12;
 
-                _config = BackendConfiguration.CreateAzure();
+                _config = ServiceConfiguration.CreateAzure();
                 DiscoverJobs();
 
-                WorkerEventSource.Log.StartupComplete();
+                JobsServiceEventSource.Log.StartupComplete();
                 return base.OnStart();
             }
             catch (Exception ex)
             {
                 // Exceptions that escape to this level are fatal
-                WorkerEventSource.Log.StartupError(ex);
+                JobsServiceEventSource.Log.StartupError(ex);
                 return false;
             }
         }
@@ -89,11 +89,11 @@ namespace NuGet.Services.Jobs
 
             foreach (var job in _jobs)
             {
-                WorkerEventSource.Log.JobDiscovered(job);
+                JobsServiceEventSource.Log.JobDiscovered(job);
             }
         }
 
-        private BackendMonitoringHub ConfigureMonitoring(string instanceName, string threadName, BackendConfiguration config)
+        private BackendMonitoringHub ConfigureMonitoring(string instanceName, string threadName, ServiceConfiguration config)
         {
             var connectionString = config.Get("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString");
             var logDirectory = Path.Combine(RoleEnvironment.GetLocalResource("Logs").RootPath, threadName);

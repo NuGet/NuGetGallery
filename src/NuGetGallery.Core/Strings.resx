@@ -123,6 +123,9 @@
   <data name="CommandExecutor_UnhandledCommand" xml:space="preserve">
     <value>No handler for the {0} command is registered.</value>
   </data>
+  <data name="InvocationsQueue_InvalidInvocationId" xml:space="preserve">
+    <value>Invalid Invocation ID in message: '{0}'</value>
+  </data>
   <data name="MonitoringHub_UnknownTableType" xml:space="preserve">
     <value>Table type {0} is not known. Only entities implementing IMonitoringTable are supported</value>
   </data>

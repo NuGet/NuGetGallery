@@ -18,7 +18,7 @@ namespace NuGet.Services.Jobs
         public JobInvocationContext Context { get; protected set; }
 
         public JobInvocation Invocation { get { return Context.Invocation; } }
-        public BackendConfiguration Config { get { return Context.Config; } }
+        public ServiceConfiguration Config { get { return Context.Config; } }
 
         public virtual async Task<JobResult> Invoke(JobInvocationContext context)
         {

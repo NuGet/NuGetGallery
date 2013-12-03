@@ -87,7 +87,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BackendConfiguration.cs" />
+    <Compile Include="ServiceConfiguration.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Helpers\DapperExtensions.cs" />
     <Compile Include="Helpers\DateTimeOffsetExtensions.cs" />
@@ -117,7 +117,7 @@
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
     <Compile Include="Monitoring\BackendMonitoringHub.cs" />
-    <Compile Include="Monitoring\WorkerEventSource.cs" />
+    <Compile Include="Monitoring\JobsServiceEventSource.cs" />
     <Compile Include="KnownServers.cs" />
     <Compile Include="UnknownJobException.cs" />
     <Compile Include="WorkerRole.cs" />

@@ -18,10 +18,10 @@ namespace NuGet.Services.Jobs
 
         private JobDispatcher _dispatcher;
         private JobRequestQueue _queue;
-        private BackendConfiguration _config;
+        private ServiceConfiguration _config;
         private BackendMonitoringHub _monitoring;
 
-        public JobRunner(JobDispatcher dispatcher, BackendConfiguration config, BackendMonitoringHub monitoring)
+        public JobRunner(JobDispatcher dispatcher, ServiceConfiguration config, BackendMonitoringHub monitoring)
         {
             _dispatcher = dispatcher;
             _config = config;
@@ -38,7 +38,7 @@ namespace NuGet.Services.Jobs
 
         public async Task Run(CancellationToken cancelToken)
         {
-            WorkerEventSource.Log.DispatchLoopStarted();
+            JobsServiceEventSource.Log.DispatchLoopStarted();
             try
             {
                 while (!cancelToken.IsCancellationRequested)
@@ -46,13 +46,13 @@ namespace NuGet.Services.Jobs
                     JobDequeueResult dequeued = await _queue.Dequeue(DefaultInvisibilityPeriod, cancelToken);
                     if (dequeued == null)
                     {
-                        WorkerEventSource.Log.DispatchLoopWaiting(_config.QueuePollInterval);
+                        JobsServiceEventSource.Log.DispatchLoopWaiting(_config.QueuePollInterval);
                         await Task.Delay(_config.QueuePollInterval);
-                        WorkerEventSource.Log.DispatchLoopResumed();
+                        JobsServiceEventSource.Log.DispatchLoopResumed();
                     }
                     else if (!dequeued.Success)
                     {
-                        WorkerEventSource.Log.InvalidQueueMessage(dequeued.MessageBody, dequeued.ParseException);
+                        JobsServiceEventSource.Log.InvalidQueueMessage(dequeued.MessageBody, dequeued.ParseException);
                     }
                     else
                     {
@@ -63,9 +63,9 @@ namespace NuGet.Services.Jobs
             }
             catch (Exception ex)
             {
-                WorkerEventSource.Log.DispatchLoopError(ex);
+                JobsServiceEventSource.Log.DispatchLoopError(ex);
             }
-            WorkerEventSource.Log.DispatchLoopEnded();
+            JobsServiceEventSource.Log.DispatchLoopEnded();
         }
 
         private async Task Dispatch(JobRequest request)
@@ -151,7 +151,7 @@ namespace NuGet.Services.Jobs
         private Task EnqueueContinuation(JobResponse response)
         {
             var req = new JobRequest(
-                response.Invocation.Request.Name,
+                response.Invocation.Request.Job,
                 Constants.Source_AsyncContinuation,
                 response.Result.Continuation.Parameters,
                 response.Invocation.Id);
@@ -161,7 +161,7 @@ namespace NuGet.Services.Jobs
         private Task EnqueueRepeat(JobResponse response)
         {
             var req = new JobRequest(
-                response.Invocation.Request.Name,
+                response.Invocation.Request.Job,
                 Constants.Source_RepeatingJob,
                 response.Invocation.Request.Parameters);
             return _queue.Enqueue(req, response.Result.RescheduleIn.Value);

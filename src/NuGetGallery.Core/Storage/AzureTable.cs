@@ -12,7 +12,7 @@ using Microsoft.WindowsAzure.Storage;
 
 namespace NuGetGallery.Storage
 {
-    public class AzureTable<TEntity> : IWriteOnlyTable<TEntity>
+    public class AzureTable<TEntity>
         where TEntity : ITableEntity
     {
         private CloudTable _table;
@@ -28,34 +28,16 @@ namespace NuGetGallery.Storage
                 namePrefix + AzureTableHelper.InferTableName(typeof(TEntity)));
         }
 
-        public Task Upsert(TEntity entity)
+        public Task InsertOrReplace(TEntity entity)
         {
-            return AzureTableHelper.Upsert(_table, entity);
+            return _table.SafeExecute(t => t.ExecuteAsync(TableOperation.InsertOrReplace(entity)));
         }
 
-        public Task InsertOrIgnore(TEntity entity)
-        {
-            return AzureTableHelper.InsertOrIgnore(_table, entity);   
-        }
-
-        public Task Merge(TEntity entity)
-        {
-            return AzureTableHelper.Merge(_table, entity);
-        }
-    }
-
-    internal static class AzureTableHelper
-    {
-        public static Task Upsert(CloudTable table, ITableEntity entity)
-        {
-            return table.SafeExecute(t => t.ExecuteAsync(TableOperation.InsertOrReplace(entity)));
-        }
-
-        public static async Task InsertOrIgnore(CloudTable table, ITableEntity entity)
+        public async Task InsertOrIgnore(TEntity entity)
         {
             try
             {
-                await table.SafeExecute(t => t.ExecuteAsync(TableOperation.Insert(entity)));
+                await _table.SafeExecute(t => t.ExecuteAsync(TableOperation.Insert(entity)));
             }
             catch (StorageException ex)
             {
@@ -67,11 +49,32 @@ namespace NuGetGallery.Storage
             }
         }
 
-        public static Task Merge(CloudTable table, ITableEntity entity)
+        public Task Merge(TEntity entity)
         {
-            return table.SafeExecute(t => t.ExecuteAsync(TableOperation.InsertOrMerge(entity)));
+            return _table.SafeExecute(t => t.ExecuteAsync(TableOperation.InsertOrMerge(entity)));
         }
 
+        public async Task<TEntity> Get(string partitionKey, string rowKey)
+        {
+            TEntity entity;
+            try
+            {
+                entity = await _table.ExecuteAsync(TableOperation.Retrieve<TEntity>(partitionKey, rowKey));
+            }
+            catch (StorageException ex)
+            {
+                if (ex.RequestInformation != null &&
+                    ex.RequestInformation.ExtendedErrorInformation != null &&
+                    (ex.RequestInformation.ExtendedErrorInformation.ErrorCode == TableErrorCodeStrings.TableNotFound ||
+                     ex.RequestInformation.ExtendedErrorInformation.ErrorCode == TableErrorCodeStrings.EntityNotFound))
+                {
+                    return default(TEntity);
+                }
+                throw;
+            }
+            return entity;
+        }
+        
         private static ConcurrentDictionary<Type, string> _tableNameMap = new ConcurrentDictionary<Type, string>();
         public static string InferTableName(Type entityType)
         {

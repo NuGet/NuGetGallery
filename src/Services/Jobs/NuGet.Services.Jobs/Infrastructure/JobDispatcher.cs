@@ -15,9 +15,9 @@ namespace NuGet.Services.Jobs
         private BackendMonitoringHub _monitor;
 
         public IReadOnlyList<JobDescription> Jobs { get { return _jobs.AsReadOnly(); } }
-        public BackendConfiguration Config { get; private set; }
+        public ServiceConfiguration Config { get; private set; }
 
-        public JobDispatcher(BackendConfiguration config, IEnumerable<JobDescription> jobs, BackendMonitoringHub monitor)
+        public JobDispatcher(ServiceConfiguration config, IEnumerable<JobDescription> jobs, BackendMonitoringHub monitor)
         {
             _jobs = jobs.ToList();
             _jobMap = _jobs.ToDictionary(j => j.Name, StringComparer.OrdinalIgnoreCase);
@@ -29,9 +29,9 @@ namespace NuGet.Services.Jobs
         public virtual async Task<JobResponse> Dispatch(JobInvocationContext context)
         {
             JobDescription jobDesc;
-            if (!_jobMap.TryGetValue(context.Invocation.Request.Name, out jobDesc))
+            if (!_jobMap.TryGetValue(context.Invocation.Request.Job, out jobDesc))
             {
-                throw new UnknownJobException(context.Invocation.Request.Name);
+                throw new UnknownJobException(context.Invocation.Request.Job);
             }
             JobBase job = jobDesc.CreateInstance();
 

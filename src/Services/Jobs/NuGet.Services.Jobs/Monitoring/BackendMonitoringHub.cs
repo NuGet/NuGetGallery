@@ -70,7 +70,7 @@ namespace NuGet.Services.Jobs.Monitoring
             var listener = new ObservableEventListener();
             var capturedId = RunnerId.Get();
             var stream = listener.Where(_ => RunnerId.Get() == capturedId);
-            listener.EnableEvents(WorkerEventSource.Log, EventLevel.Informational);
+            listener.EnableEvents(JobsServiceEventSource.Log, EventLevel.Informational);
             listener.EnableEvents(InvocationEventSource.Log, EventLevel.Informational);
             listener.EnableEvents(SemanticLoggingEventSource.Log, EventLevel.Informational);
             _globalSinkSubscription = stream.LogToWindowsAzureTable(
@@ -79,7 +79,7 @@ namespace NuGet.Services.Jobs.Monitoring
                 tableAddress: GetTableFullName(BackendTraceTableName));
 
             // Log Instance Status
-            await _instancesTable.Upsert(InstancesEntry.ForCurrentMachine(InstanceName));
+            await _instancesTable.InsertOrReplace(InstancesEntry.ForCurrentMachine(InstanceName));
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace NuGet.Services.Jobs.Monitoring
 
         internal Task ReportStartJob(JobInvocation invocation, JobDescription job)
         {
-            return _invocationsTable.Upsert(new InvocationsEntry(
+            return _invocationsTable.InsertOrReplace(new InvocationsEntry(
                 InstanceName, 
                 invocation, 
                 JobStatus.Executing));
@@ -112,7 +112,7 @@ namespace NuGet.Services.Jobs.Monitoring
 
         internal Task ReportEndJob(JobInvocation invocation, JobResponse response, string logUrl)
         {
-            return _invocationsTable.Upsert(new InvocationsEntry(
+            return _invocationsTable.InsertOrReplace(new InvocationsEntry(
                 InstanceName,
                 invocation,
                 response,

@@ -16,7 +16,7 @@ namespace NuGet.Services.Jobs
             public async Task GivenNoJobWithName_ItThrowsUnknownJobException()
             {
                 // Arrange
-                var dispatcher = new JobDispatcher(BackendConfiguration.Create(), Enumerable.Empty<JobDescription>(), monitor: null);
+                var dispatcher = new JobDispatcher(ServiceConfiguration.Create(), Enumerable.Empty<JobDescription>(), monitor: null);
                 var request = new JobRequest("flarg", "test", new Dictionary<string, string>());
                 var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
                 var context = new JobInvocationContext(invocation, config: null, monitoring: null, queue: null);
@@ -33,7 +33,7 @@ namespace NuGet.Services.Jobs
                 var jobImpl = new Mock<JobBase>();
                 var job = new JobDescription("test", "blarg", () => jobImpl.Object);
 
-                var dispatcher = new JobDispatcher(BackendConfiguration.Create(), new[] { job }, monitor: null);
+                var dispatcher = new JobDispatcher(ServiceConfiguration.Create(), new[] { job }, monitor: null);
                 var request = new JobRequest("Test", "test", new Dictionary<string, string>());
                 var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
                 var context = new JobInvocationContext(invocation, config: null, monitoring: null, queue: null);
@@ -58,7 +58,7 @@ namespace NuGet.Services.Jobs
                 var job = new JobDescription("test", "blarg", () => jobImpl.Object);
                 
                 var ex = new Exception();
-                var dispatcher = new JobDispatcher(BackendConfiguration.Create(), new[] { job }, monitor: null);
+                var dispatcher = new JobDispatcher(ServiceConfiguration.Create(), new[] { job }, monitor: null);
                 var request = new JobRequest("Test", "test", new Dictionary<string, string>());
                 var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
                 var context = new JobInvocationContext(invocation, config: null, monitoring: null, queue: null);

@@ -15,7 +15,6 @@ namespace NuGet.Services.Jobs
     public enum KnownStorageAccount
     {
         Primary,
-        Backup,
-        Diagnostics
+        Backup
     }
 }

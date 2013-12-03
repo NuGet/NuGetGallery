@@ -12,7 +12,7 @@ namespace NuGet.Services.Jobs
         private const string InvocationIdDataName = "_NuGet_Services_Jobs_Invocation_Id";
 
         public JobInvocation Invocation { get; private set; }
-        public BackendConfiguration Config { get; private set; }
+        public ServiceConfiguration Config { get; private set; }
         public InvocationMonitoringContext Monitoring { get; private set; }
         public JobRequestQueue Queue { get; private set; }
         
@@ -27,7 +27,7 @@ namespace NuGet.Services.Jobs
             CallContext.LogicalSetData(InvocationIdDataName, id);
         }
 
-        public JobInvocationContext(JobInvocation invocation, BackendConfiguration config, InvocationMonitoringContext monitoring, JobRequestQueue queue)
+        public JobInvocationContext(JobInvocation invocation, ServiceConfiguration config, InvocationMonitoringContext monitoring, JobRequestQueue queue)
         {
             Invocation = invocation;
             Config = config;
