@@ -73,7 +73,8 @@
 
                 <div style="width:100px;display:inline-block;">
                     <input id="explanation" type="checkbox">Explanation
-                    <input id="ignore-filter" type="checkbox">No Filter
+                    <input id="ignore-filter" type="checkbox">No Filter&nbsp;&nbsp;
+                    <input id="send-query" type="checkbox">Send Query
                 </div>
 
                 <div style="with:160px;display:inline-block;vertical-align:top">
@@ -236,7 +237,8 @@
                     skip: skip,
                     take: 20,
                     explanation: query.explanation,
-                    ignoreFilter: query.ignoreFilter
+                    ignoreFilter: query.ignoreFilter,
+                    luceneQuery: query.luceneQuery
                 };
                 $.get('search', navQuery, function (data, status) {
                     updateResultsDiv(navQuery, total, data.data);
@@ -417,6 +419,12 @@
                 explanation: explanation,
                 ignoreFilter: ignoreFilter
             };
+
+            var sendQuery = $('#send-query').is(':checked');
+            if (sendQuery) {
+                query.luceneQuery = false;
+                query.q = $('#query').val();
+            }
 
             $('#results-div').html('<em>fetching results</em>');
 
