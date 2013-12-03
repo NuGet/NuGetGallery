@@ -28,7 +28,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void Started(Guid invocationId) { WriteEvent(1, invocationId); }
 
         [NonEvent]
-        public void Started() { Started(JobInvocationContext.GetCurrentInvocationId()); }
+        public void Started() { Started(InvocationContext.GetCurrentInvocationId()); }
 
         [Event(
             eventId: 2,
@@ -39,7 +39,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void Ended(Guid invocationId) { WriteEvent(2, invocationId); }
 
         [NonEvent]
-        public void Ended() { Ended(JobInvocationContext.GetCurrentInvocationId()); }
+        public void Ended() { Ended(InvocationContext.GetCurrentInvocationId()); }
 
         [Event(
             eventId: 3,
@@ -48,7 +48,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void RequestExpired(Guid invocationId, string jobName, string messageId, string inserted, string expired) { WriteEvent(3, invocationId, jobName, messageId, inserted, expired); }
 
         [NonEvent]
-        public void RequestExpired(JobRequest request) { RequestExpired(JobInvocationContext.GetCurrentInvocationId(), request.Job, request.Message.Id, request.InsertionTime.ToString("O"), request.ExpiresAt.HasValue ? request.ExpiresAt.Value.ToString("O") : ""); }
+        public void RequestExpired(JobRequest request) { RequestExpired(InvocationContext.GetCurrentInvocationId(), request.Job, request.Message.Id, request.InsertionTime.ToString("O"), request.ExpiresAt.HasValue ? request.ExpiresAt.Value.ToString("O") : ""); }
 
         [Event(
             eventId: 4,
@@ -57,7 +57,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void DispatchError(Guid invocationId, string exception) { WriteEvent(4, invocationId, exception); }
 
         [NonEvent]
-        public void DispatchError(Exception ex) { DispatchError(JobInvocationContext.GetCurrentInvocationId(), ex.ToString()); }
+        public void DispatchError(Exception ex) { DispatchError(InvocationContext.GetCurrentInvocationId(), ex.ToString()); }
 
         [Event(
             eventId: 5,
@@ -66,7 +66,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void Invoking(Guid invocationId, string jobName, string jobRuntime) { WriteEvent(5, invocationId, jobName, jobRuntime); }
 
         [NonEvent]
-        public void Invoking(JobDescription job) { Invoking(JobInvocationContext.GetCurrentInvocationId(), job.Name, job.Runtime); }
+        public void Invoking(JobDescription job) { Invoking(InvocationContext.GetCurrentInvocationId(), job.Name, job.Runtime); }
 
         [Event(
             eventId: 6,
@@ -75,7 +75,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void BindingError(Guid invocationId, string exception) { WriteEvent(6, invocationId, exception); }
 
         [NonEvent]
-        public void BindingError(Exception ex) { BindingError(JobInvocationContext.GetCurrentInvocationId(), ex.ToString()); }
+        public void BindingError(Exception ex) { BindingError(InvocationContext.GetCurrentInvocationId(), ex.ToString()); }
 
         [Event(
             eventId: 7,
@@ -84,7 +84,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void Succeeded(Guid invocationId, string completedAt) { WriteEvent(7, invocationId, completedAt); }
 
         [NonEvent]
-        public void Succeeded(JobResponse response) { Succeeded(JobInvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O")); }
+        public void Succeeded(JobResponse response) { Succeeded(InvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O")); }
 
         [Event(
             eventId: 8,
@@ -93,7 +93,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void Faulted(Guid invocationId, string completedAt, string exception) { WriteEvent(8, invocationId, completedAt, exception); }
 
         [NonEvent]
-        public void Faulted(JobResponse response) { Faulted(JobInvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O"), response.Result.Exception.ToString()); }
+        public void Faulted(JobResponse response) { Faulted(InvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O"), response.Result.Exception.ToString()); }
 
         [Event(
             eventId: 9,
@@ -102,7 +102,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void UnknownStatus(Guid invocationId, string completedAt, string status) { WriteEvent(9, invocationId, completedAt, status); }
 
         [NonEvent]
-        public void UnknownStatus(JobResponse response) { UnknownStatus(JobInvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O"), response.Result.Status.ToString()); }
+        public void UnknownStatus(JobResponse response) { UnknownStatus(InvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O"), response.Result.Status.ToString()); }
 
         [Event(
             eventId: 10,
@@ -110,10 +110,10 @@ namespace NuGet.Services.Jobs.Monitoring
             Opcode = EventOpcode.Suspend,
             Task = Tasks.Invocation,
             Message = "Invocation {0} was suspended for {2} to wait for an async completion at {1}")]
-        private void AwaitingContinuation(Guid invocationId, string suspendedAt, string waitingFor) { WriteEvent(10, invocationId, suspendedAt, waitingFor); }
+        private void Suspended(Guid invocationId, string suspendedAt, string waitingFor) { WriteEvent(10, invocationId, suspendedAt, waitingFor); }
 
         [NonEvent]
-        public void AwaitingContinuation(JobResponse response) { AwaitingContinuation(JobInvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O"), response.Result.Continuation.WaitPeriod.ToString()); }
+        public void Suspended(JobResponse response) { Suspended(InvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O"), response.Result.Continuation.WaitPeriod.ToString()); }
 
         [Event(
             eventId: 11,
@@ -122,7 +122,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void NoEventSource(Guid invocationId, string jobName) { WriteEvent(11, invocationId, jobName); }
 
         [NonEvent]
-        public void NoEventSource(string jobName) { NoEventSource(JobInvocationContext.GetCurrentInvocationId(), jobName); }
+        public void NoEventSource(string jobName) { NoEventSource(InvocationContext.GetCurrentInvocationId(), jobName); }
 
         [Event(
             eventId: 12,
@@ -133,6 +133,6 @@ namespace NuGet.Services.Jobs.Monitoring
         private void Resumed(Guid invocationId) { WriteEvent(12, invocationId); }
 
         [NonEvent]
-        public void Resumed() { Resumed(JobInvocationContext.GetCurrentInvocationId()); }
+        public void Resumed() { Resumed(InvocationContext.GetCurrentInvocationId()); }
     }
 }

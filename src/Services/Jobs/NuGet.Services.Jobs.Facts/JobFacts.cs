@@ -26,7 +26,7 @@ namespace NuGet.Services.Jobs
                         "Test",
                         new Dictionary<string, string>()), 
                     DateTimeOffset.UtcNow);
-                var context = new JobInvocationContext(invocation, ServiceConfiguration.Create(), monitoring: null, queue: null);
+                var context = new InvocationContext(invocation, ServiceConfiguration.Create(), monitoring: null, queue: null);
 
                 // Act
                 await job.Invoke(context);
@@ -51,7 +51,7 @@ namespace NuGet.Services.Jobs
                             {"NotMapped", "bar"}
                         }),
                     DateTimeOffset.UtcNow);
-                var context = new JobInvocationContext(invocation, ServiceConfiguration.Create(), monitoring: null, queue: null);
+                var context = new InvocationContext(invocation, ServiceConfiguration.Create(), monitoring: null, queue: null);
 
                 // Act
                 await job.Invoke(context);
@@ -75,7 +75,7 @@ namespace NuGet.Services.Jobs
                             {"ConvertValue", "frob"},
                         }),
                     DateTimeOffset.UtcNow);
-                var context = new JobInvocationContext(invocation, ServiceConfiguration.Create(), monitoring: null, queue: null);
+                var context = new InvocationContext(invocation, ServiceConfiguration.Create(), monitoring: null, queue: null);
 
                 // Act
                 await job.Invoke(context);
@@ -96,13 +96,13 @@ namespace NuGet.Services.Jobs
                         "Test",
                         new Dictionary<string, string>()),
                     DateTimeOffset.UtcNow);
-                var context = new JobInvocationContext(invocation, ServiceConfiguration.Create(), monitoring: null, queue: null);
+                var context = new InvocationContext(invocation, ServiceConfiguration.Create(), monitoring: null, queue: null);
 
                 // Act
                 var result = await job.Object.Invoke(context);
 
                 // Assert
-                Assert.Equal(JobStatus.Completed, result.Status);
+                Assert.Equal(InvocationStatus.Completed, result.Status);
             }
 
             [Fact]
@@ -119,13 +119,13 @@ namespace NuGet.Services.Jobs
                     DateTimeOffset.UtcNow);
                 var ex = new NotImplementedException("Broked!");
                 job.Setup(j => j.Execute()).Throws(ex);
-                var context = new JobInvocationContext(invocation, ServiceConfiguration.Create(), monitoring: null, queue: null);
+                var context = new InvocationContext(invocation, ServiceConfiguration.Create(), monitoring: null, queue: null);
 
                 // Act
                 var result = await job.Object.Invoke(context);
 
                 // Assert
-                Assert.Equal(JobStatus.Faulted, result.Status);
+                Assert.Equal(InvocationStatus.Faulted, result.Status);
                 Assert.Equal(ex, result.Exception);
             }
         }

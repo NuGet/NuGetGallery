@@ -26,7 +26,7 @@ namespace NuGet.Services.Jobs
             Config = config;
         }
 
-        public virtual async Task<JobResponse> Dispatch(JobInvocationContext context)
+        public virtual async Task<InvocationResult> Dispatch(InvocationContext context)
         {
             JobDescription jobDesc;
             if (!_jobMap.TryGetValue(context.Invocation.Request.Job, out jobDesc))
@@ -35,17 +35,17 @@ namespace NuGet.Services.Jobs
             }
             JobBase job = jobDesc.CreateInstance();
 
-            if (context.Monitoring != null)
+            if (context.LogCapture != null)
             {
-                await context.Monitoring.SetJob(jobDesc, job);
+                await context.LogCapture.SetJob(jobDesc, job);
             }
 
             InvocationEventSource.Log.Invoking(jobDesc);
-            JobResult result = null;
+            InvocationResult result = null;
 
             try
             {
-                if (context.Invocation.IsContinuation)
+                if (context.Invocation)
                 {
                     IAsyncJob asyncJob = job as IAsyncJob;
                     if (asyncJob == null)
@@ -65,10 +65,10 @@ namespace NuGet.Services.Jobs
             }
             catch (Exception ex)
             {
-                result = JobResult.Faulted(ex);
+                result = InvocationResult.Faulted(ex);
             }
 
-            return new JobResponse(context.Invocation, result, DateTimeOffset.UtcNow);
+            return result;
         }
     }
 }

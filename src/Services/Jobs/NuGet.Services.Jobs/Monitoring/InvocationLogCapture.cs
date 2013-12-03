@@ -8,34 +8,34 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Formatters;
+using NuGetGallery.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGet.Services.Jobs.Monitoring
 {
-    public class InvocationMonitoringContext
+    public class InvocationLogCapture
     {
         private ObservableEventListener _listener;
         private IObservable<EventEntry> _eventStream;
 
-        private string _jsonLog;
-        private IDisposable _jsonSubscription;
-        
-        public JobInvocation Invocation { get; private set; }
-        public BackendMonitoringHub Hub { get; private set; }
-        public JobBase Job { get; private set; }
-        public JobDescription JobDescription { get; private set; }
+        private string _tempFile;
+        private IDisposable _eventSubscription;
 
-        public InvocationMonitoringContext(JobInvocation invocation, BackendMonitoringHub hub)
+        public Invocation Invocation { get; private set; }
+        public BlobStorageHub Blobs { get; private set; }
+
+        public InvocationLogCapture(Invocation invocation, BlobStorageHub blobs)
         {
             Invocation = invocation;
-            Hub = hub;
+            Blobs = blobs;
         }
 
-        public async Task Begin()
+        public async Task Start()
         {
             // Set up an event stream
             _listener = new ObservableEventListener();
             _eventStream = from events in _listener
-                           where JobInvocationContext.GetCurrentInvocationId() == Invocation.Id
+                           where InvocationContext.GetCurrentInvocationId() == Invocation.Id
                            select events;
             _listener.EnableEvents(InvocationEventSource.Log, EventLevel.Informational);
 
@@ -46,45 +46,38 @@ namespace NuGet.Services.Jobs.Monitoring
                 Directory.CreateDirectory(root);
             }
 
-            _jsonLog = Path.Combine(root, Invocation.Id.ToString("N") + ".json");
-            if (File.Exists(_jsonLog))
+            _tempFile = Path.Combine(root, Invocation.Id.ToString("N") + ".json");
+            if (File.Exists(_tempFile))
             {
-                File.Delete(_jsonLog);
+                File.Delete(_tempFile);
             }
             
             // Fetch the current logs if this is a continuation, we'll append to them during the invocation
-            if (Invocation.IsContinuation)
+            if (Invocation.Continuation)
             {
-                await Hub.DownloadBlob(BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_jsonLog), _jsonLog);
+                await Blobs.DownloadBlob(BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_tempFile), _tempFile);
             }
 
             // Capture the events into a JSON file and a plain text file
-            _jsonSubscription = _eventStream.LogToFlatFile(_jsonLog, new JsonEventTextFormatter(EventTextFormatting.Indented, dateTimeFormat: "O"));
+            _eventSubscription = _eventStream.LogToFlatFile(_tempFile, new JsonEventTextFormatter(EventTextFormatting.Indented, dateTimeFormat: "O"));
         }
 
-        public async Task End(JobInvocation invocation, JobResponse response)
+        public async Task<CloudBlockBlob> End()
         {
             // Disconnect the listener
-            _jsonSubscription.Dispose();
+            _eventSubscription.Dispose();
 
             // Upload the file to blob storage
-            var jsonBlob = await Hub.UploadBlob(_jsonLog, BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_jsonLog));
+            var logBlob = await Blobs.UploadBlob(_tempFile, BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_tempFile));
 
             // Delete the temp files
-            File.Delete(_jsonLog);
+            File.Delete(_tempFile);
 
-            // Record end of job
-            await Hub.ReportEndJob(invocation, response, jsonBlob.Uri.AbsoluteUri);
+            return logBlob;
         }
 
         public async Task SetJob(JobDescription jobDesc, JobBase job)
         {
-            Job = job;
-            JobDescription = jobDesc;
-
-            // Record start of job
-            await Hub.ReportStartJob(Invocation, JobDescription);
-
             var eventSource = Job.GetEventSource();
             if (eventSource == null)
             {

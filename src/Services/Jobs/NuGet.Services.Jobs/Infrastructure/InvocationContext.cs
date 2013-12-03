@@ -7,14 +7,14 @@ using NuGet.Services.Jobs.Monitoring;
 
 namespace NuGet.Services.Jobs
 {
-    public class JobInvocationContext
+    public class InvocationContext
     {
         private const string InvocationIdDataName = "_NuGet_Services_Jobs_Invocation_Id";
 
-        public JobInvocation Invocation { get; private set; }
+        public Invocation Invocation { get; private set; }
         public ServiceConfiguration Config { get; private set; }
-        public InvocationMonitoringContext Monitoring { get; private set; }
-        public JobRequestQueue Queue { get; private set; }
+        public InvocationLogCapture LogCapture { get; private set; }
+        public InvocationQueue Queue { get; private set; }
         
         public static Guid GetCurrentInvocationId()
         {
@@ -27,12 +27,12 @@ namespace NuGet.Services.Jobs
             CallContext.LogicalSetData(InvocationIdDataName, id);
         }
 
-        public JobInvocationContext(JobInvocation invocation, ServiceConfiguration config, InvocationMonitoringContext monitoring, JobRequestQueue queue)
+        public InvocationContext(Invocation invocation, InvocationQueue queue, ServiceConfiguration config, InvocationLogCapture logCapture)
         {
             Invocation = invocation;
             Config = config;
-            Monitoring = monitoring;
             Queue = queue;
+            LogCapture = logCapture;
         }
     }
 }

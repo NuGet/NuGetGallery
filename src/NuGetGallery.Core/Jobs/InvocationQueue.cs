@@ -68,6 +68,7 @@ namespace NuGet.Services.Jobs
                 var invocation = await _table.Get(
                     Invocation.GetPartitionKey(invocationId),
                     Invocation.GetRowKey(invocationId));
+                await _table.Merge(invocation);
                 return new InvocationRequest(invocation, message);
             }
         }
@@ -108,13 +109,18 @@ namespace NuGet.Services.Jobs
             return EnqueueCore(req, visibilityTimeout);
         }
 
+        public Task Update(Invocation invocation)
+        {
+            return _table.Merge(invocation);
+        }
+
         private async Task EnqueueCore(Invocation invocation, TimeSpan? visibilityTimeout)
         {
             // Render the payload
             var message = new CloudQueueMessage(invocation.Id.ToString());
 
             // Create an invocation entry and write it to the table
-            invocation.Status = JobStatus.Queuing;
+            invocation.Status = InvocationStatus.Queuing;
             await _table.InsertOrReplace(invocation);
 
             // Enqueue the message
@@ -126,7 +132,7 @@ namespace NuGet.Services.Jobs
                 operationContext: new OperationContext() { ClientRequestID = req.Id.ToString("N").ToLowerInvariant() }));
 
             // Update the invocation entry
-            invocation.Status = JobStatus.Queued;
+            invocation.Status = InvocationStatus.Queued;
             await _table.InsertOrReplace(invocation);
         }
     }

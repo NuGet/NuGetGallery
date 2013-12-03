@@ -122,10 +122,10 @@ namespace NuGet.Services.Jobs.Monitoring
         [Event(
             eventId: 12,
             Level = EventLevel.Error,
-            Message = "Invalid Queue Message Received: {0}. Exception: {1}")]
-        private void InvalidQueueMessage(string message, string exception) { WriteEvent(12, message, exception); }
+            Message = "Error retrieving queue message: {0}")]
+        private void ErrorRetrievingInvocation(string exception) { WriteEvent(12, exception); }
 
         [NonEvent]
-        public void InvalidQueueMessage(string message, Exception ex) { InvalidQueueMessage(message, ex.ToString()); }
+        public void ErrorRetrievingInvocation(Exception ex) { ErrorRetrievingInvocation(ex.ToString()); }
     }
 }

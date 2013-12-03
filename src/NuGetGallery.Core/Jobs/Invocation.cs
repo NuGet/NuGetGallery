@@ -21,10 +21,10 @@ namespace NuGet.Services.Jobs
         public string Job { get; private set; }
         public string Source { get; private set; }
         public string Payload { get; private set; }
-        public JobStatus Status { get; set; }
+        public InvocationStatus Status { get; set; }
         public int DequeueCount { get; set; }
         public string LastInstanceName { get; set; }
-        public Exception Exception { get; set; }
+        public string Exception { get; set; }
         public string LogUrl { get; set; }
         public bool Continuation { get; set; }
 
@@ -32,7 +32,6 @@ namespace NuGet.Services.Jobs
         public DateTimeOffset? LastDequeuedAt { get; set; }
         public DateTimeOffset? LastSuspendedAt { get; set; }
         public DateTimeOffset? CompletedAt { get; set; }
-        public DateTimeOffset? NextVisibleAt { get; set; }
         public DateTimeOffset? EstimatedContinueAt { get; set; }
         public DateTimeOffset? EstimatedReinvokeAt { get; set; }
 
@@ -42,7 +41,7 @@ namespace NuGet.Services.Jobs
             Job = job;
             Source = source;
             Payload = payload;
-            Status = JobStatus.Unspecified;
+            Status = InvocationStatus.Unspecified;
         }
 
         public static string GetPartitionKey(Guid id)

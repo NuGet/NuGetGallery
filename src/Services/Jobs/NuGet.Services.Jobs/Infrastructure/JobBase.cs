@@ -15,14 +15,14 @@ namespace NuGet.Services.Jobs
 {
     public abstract class JobBase
     {
-        public JobInvocationContext Context { get; protected set; }
+        public InvocationContext Context { get; protected set; }
 
         public JobInvocation Invocation { get { return Context.Invocation; } }
         public ServiceConfiguration Config { get { return Context.Config; } }
 
-        public virtual async Task<JobResult> Invoke(JobInvocationContext context)
+        public virtual async Task<InvocationResult> Invoke(InvocationContext context)
         {
-            JobResult result = BindContext(context);
+            InvocationResult result = BindContext(context);
             if (result != null)
             {
                 return result;
@@ -35,7 +35,7 @@ namespace NuGet.Services.Jobs
             }
             catch (Exception ex)
             {
-                result = JobResult.Faulted(ex);
+                result = InvocationResult.Faulted(ex);
             }
 
             // Return the result
@@ -43,7 +43,7 @@ namespace NuGet.Services.Jobs
         }
 
         public abstract EventSource GetEventSource();
-        protected internal abstract Task<JobResult> Invoke();
+        protected internal abstract Task<InvocationResult> Invoke();
 
         protected virtual Task Enqueue(JobRequest request)
         {
@@ -55,7 +55,7 @@ namespace NuGet.Services.Jobs
             return Context.Queue.Extend(Invocation.Request, duration);
         }
 
-        protected virtual JobResult BindContext(JobInvocationContext context)
+        protected virtual InvocationResult BindContext(InvocationContext context)
         {
             // Bind invocation information
             Context = context;
@@ -66,7 +66,7 @@ namespace NuGet.Services.Jobs
             catch (Exception ex)
             {
                 InvocationEventSource.Log.BindingError(ex);
-                return JobResult.Faulted(ex);
+                return InvocationResult.Faulted(ex);
             }
             return null;
         }

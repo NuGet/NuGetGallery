@@ -23,8 +23,8 @@ namespace NuGet.Services.Jobs.Monitoring
 {
     public class BackendMonitoringHub : MonitoringHub, IDisposable
     {
-        internal const string BackendMonitoringContainerName = "backend-monitoring";
-        internal const string BackendTraceTableName = "BackendTrace";
+        internal const string BackendMonitoringContainerName = "ng-jobs-invocationlogs";
+        internal const string BackendTraceTableName = "JobsServiceTrace";
 
         private Dictionary<JobBase, ObservableEventListener> _eventStreams = new Dictionary<JobBase, ObservableEventListener>();
         
@@ -86,11 +86,11 @@ namespace NuGet.Services.Jobs.Monitoring
         /// Handles monitoring tasks performed when a job request is dispatched. Call Complete(JobResult)
         /// on the IComplete returned by this method when the job finishes execution.
         /// </summary>
-        public async Task<InvocationMonitoringContext> BeginInvocation(JobInvocation invocation)
+        public async Task<InvocationLogCapture> BeginInvocation(Invocation invocation)
         {
             // Create a monitoring context
-            var context = new InvocationMonitoringContext(invocation, this);
-            await context.Begin();
+            var context = new InvocationLogCapture(invocation, this);
+            await context.Start();
             return context;
         }
 
@@ -100,23 +100,6 @@ namespace NuGet.Services.Jobs.Monitoring
             {
                 _globalSinkSubscription.Dispose();
             }
-        }
-
-        internal Task ReportStartJob(JobInvocation invocation, JobDescription job)
-        {
-            return _invocationsTable.InsertOrReplace(new InvocationsEntry(
-                InstanceName, 
-                invocation, 
-                JobStatus.Executing));
-        }
-
-        internal Task ReportEndJob(JobInvocation invocation, JobResponse response, string logUrl)
-        {
-            return _invocationsTable.InsertOrReplace(new InvocationsEntry(
-                InstanceName,
-                invocation,
-                response,
-                logUrl));
         }
     }
 }

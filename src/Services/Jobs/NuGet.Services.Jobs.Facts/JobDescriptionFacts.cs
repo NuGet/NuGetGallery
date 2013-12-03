@@ -37,7 +37,7 @@ namespace NuGet.Services.Jobs
                     throw new NotImplementedException();
                 }
 
-                protected internal override Task<JobResult> Invoke()
+                protected internal override Task<InvocationResult> Invoke()
                 {
                     throw new NotImplementedException();
                 }
@@ -50,7 +50,7 @@ namespace NuGet.Services.Jobs
                     throw new NotImplementedException();
                 }
 
-                protected internal override Task<JobResult> Invoke()
+                protected internal override Task<InvocationResult> Invoke()
                 {
                     throw new NotImplementedException();
                 }
@@ -63,7 +63,7 @@ namespace NuGet.Services.Jobs
                     throw new NotImplementedException();
                 }
 
-                protected internal override Task<JobResult> Invoke()
+                protected internal override Task<InvocationResult> Invoke()
                 {
                     throw new NotImplementedException();
                 }

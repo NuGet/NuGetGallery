@@ -25,16 +25,16 @@ namespace NuGet.Services.Jobs
     public abstract class Job<TEventSource> : JobBase<TEventSource>
         where TEventSource : EventSource
     {
-        protected internal override async Task<JobResult> Invoke()
+        protected internal override async Task<InvocationResult> Invoke()
         {
             try
             {
                 await Execute();
-                return JobResult.Completed();
+                return InvocationResult.Completed();
             }
             catch (Exception ex)
             {
-                return JobResult.Faulted(ex);
+                return InvocationResult.Faulted(ex);
             }
         }
 
@@ -49,18 +49,18 @@ namespace NuGet.Services.Jobs
         /// </summary>
         public abstract TimeSpan WaitPeriod { get; }
 
-        protected internal override async Task<JobResult> Invoke()
+        protected internal override async Task<InvocationResult> Invoke()
         {
             // Invoke the job. When it returns, it means there's no more data to process
             // So go to sleep until the wait period elapses
             try
             {
                 await Execute();
-                return JobResult.Completed(WaitPeriod);
+                return InvocationResult.Completed(WaitPeriod);
             }
             catch (Exception ex)
             {
-                return JobResult.Faulted(ex, WaitPeriod);
+                return InvocationResult.Faulted(ex, WaitPeriod);
             }
         }
 
@@ -69,20 +69,20 @@ namespace NuGet.Services.Jobs
 
     public interface IAsyncJob
     {
-        Task<JobResult> InvokeContinuation(JobInvocationContext context);
+        Task<InvocationResult> InvokeContinuation(InvocationContext context);
     }
 
     public abstract class AsyncJob<TEventSource> : JobBase<TEventSource>, IAsyncJob
         where TEventSource : EventSource
     {
-        protected internal override Task<JobResult> Invoke()
+        protected internal override Task<InvocationResult> Invoke()
         {
             return InvokeCore(() => Execute());
         }
 
-        public Task<JobResult> InvokeContinuation(JobInvocationContext context)
+        public Task<InvocationResult> InvokeContinuation(InvocationContext context)
         {
-            JobResult result = BindContext(context);
+            InvocationResult result = BindContext(context);
             if (result != null)
             {
                 return Task.FromResult(result);
@@ -107,7 +107,7 @@ namespace NuGet.Services.Jobs
             return Task.FromResult<JobContinuation>(null);
         }
 
-        private async Task<JobResult> InvokeCore(Func<Task<JobContinuation>> invoker)
+        private async Task<InvocationResult> InvokeCore(Func<Task<JobContinuation>> invoker)
         {
 
             try
@@ -115,16 +115,16 @@ namespace NuGet.Services.Jobs
                 var continuation = await invoker();
                 if (continuation != null)
                 {
-                    return JobResult.Continuing(continuation);
+                    return InvocationResult.Continuing(continuation);
                 }
                 else
                 {
-                    return JobResult.Completed();
+                    return InvocationResult.Completed();
                 }
             }
             catch (Exception ex)
             {
-                return JobResult.Faulted(ex);
+                return InvocationResult.Faulted(ex);
             }
         }
     }

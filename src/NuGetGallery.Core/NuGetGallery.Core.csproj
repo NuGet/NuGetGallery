@@ -92,11 +92,10 @@
     <Compile Include="Completion.cs" />
     <Compile Include="Jobs\InvalidJobRequestException.cs" />
     <Compile Include="Jobs\InvocationRequest.cs" />
+    <Compile Include="Jobs\InvocationStatus.cs" />
     <Compile Include="Jobs\JobContinuation.cs" />
-    <Compile Include="Jobs\JobDequeueResult.cs" />
     <Compile Include="Jobs\InvocationQueue.cs" />
-    <Compile Include="Jobs\JobResponse.cs" />
-    <Compile Include="Jobs\JobResult.cs" />
+    <Compile Include="Jobs\InvocationResult.cs" />
     <Compile Include="Entities\Credential.cs" />
     <Compile Include="Entities\CuratedFeed.cs" />
     <Compile Include="Entities\CuratedPackage.cs" />

@@ -95,7 +95,7 @@
     <Compile Include="Infrastructure\Job.cs" />
     <Compile Include="Infrastructure\JobAttribute.cs" />
     <Compile Include="Infrastructure\JobDescription.cs" />
-    <Compile Include="Infrastructure\JobInvocationContext.cs" />
+    <Compile Include="Infrastructure\InvocationContext.cs" />
     <Compile Include="Jobs\HeartBeatJob.cs" />
     <Compile Include="Jobs\PingJob.cs" />
     <Compile Include="Models\Database.cs" />
@@ -107,7 +107,7 @@
     <Compile Include="Jobs\CreateOnlineDatabaseBackupJob.cs" />
     <Compile Include="Monitoring\InstancesEntry.cs" />
     <Compile Include="Monitoring\InvocationEventSource.cs" />
-    <Compile Include="Monitoring\InvocationMonitoringContext.cs" />
+    <Compile Include="Monitoring\InvocationLogCapture.cs" />
     <Compile Include="Monitoring\JobsEntry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RunnerId.cs" />
