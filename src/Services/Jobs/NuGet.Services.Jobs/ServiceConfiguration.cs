@@ -122,16 +122,14 @@ namespace NuGet.Services.Jobs
             }
         }
 
-        public CloudStorageAccount GetStorageAccount(KnownStorageAccount account)
+        public StorageAccountHub GetStorageAccount(KnownStorageAccount account)
         {
             switch (account)
             {
                 case KnownStorageAccount.Primary:
-                    return PrimaryStorage;
+                    return Storage.Primary;
                 case KnownStorageAccount.Backup:
-                    return BackupStorage;
-                case KnownStorageAccount.Diagnostics:
-                    return DiagnosticsStorage;
+                    return Storage.Backup;
                 default:
                     throw new InvalidOperationException(String.Format(
                         CultureInfo.CurrentCulture,

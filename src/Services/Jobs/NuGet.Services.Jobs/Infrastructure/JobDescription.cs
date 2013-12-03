@@ -7,17 +7,22 @@ using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.Linq.Expressions;
 using System.ComponentModel;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace NuGet.Services.Jobs
 {
-    public class JobDescription
+    public class JobDescription : TableEntity
     {
         private Func<JobBase> _constructor;
 
-        public string Name { get; private set; }
-        public string Description { get; private set; }
-        public string Runtime { get; private set; }
-        public Type EventProvider { get; private set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Runtime { get; set; }
+        public Type EventProvider { get; set; }
+        public bool? Enabled { get; set; }
+
+        [Obsolete("For serialization only")]
+        public JobDescription() { }
 
         public JobDescription(string name, string runtime, Func<JobBase> constructor)
             : this(name, null, runtime, null, constructor) { }

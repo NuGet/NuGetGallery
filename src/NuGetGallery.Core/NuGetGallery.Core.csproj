@@ -91,6 +91,7 @@
     <Compile Include="CredentialTypes.cs" />
     <Compile Include="Completion.cs" />
     <Compile Include="Jobs\InvalidJobRequestException.cs" />
+    <Compile Include="Jobs\InvocationPayloadSerializer.cs" />
     <Compile Include="Jobs\InvocationRequest.cs" />
     <Compile Include="Jobs\InvocationStatus.cs" />
     <Compile Include="Jobs\JobContinuation.cs" />

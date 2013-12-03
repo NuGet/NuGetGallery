@@ -19,11 +19,14 @@ namespace NuGetGallery.Storage
         public StorageAccountHub(CloudStorageAccount account)
         {
             Account = account;
-            ConnectionString = account.ToString(exportSecrets: true);
 
-            Tables = new TableStorageHub(account.CreateCloudTableClient());
-            Blobs = new BlobStorageHub(account.CreateCloudBlobClient());
-            Queues = new QueueStorageHub(account.CreateCloudQueueClient());
+            if (account != null)
+            {
+                ConnectionString = account.ToString(exportSecrets: true);
+                Tables = new TableStorageHub(account.CreateCloudTableClient());
+                Blobs = new BlobStorageHub(account.CreateCloudBlobClient());
+                Queues = new QueueStorageHub(account.CreateCloudQueueClient());
+            }
         }
     }
 }

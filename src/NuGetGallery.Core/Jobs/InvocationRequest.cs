@@ -12,6 +12,8 @@ namespace NuGet.Services.Jobs
         public Invocation Invocation { get; private set; }
         public CloudQueueMessage Message { get; private set; }
 
+        public InvocationRequest(Invocation invocation) : this(invocation, message: null) { }
+
         public InvocationRequest(Invocation invocation, CloudQueueMessage message)
         {
             Invocation = invocation;

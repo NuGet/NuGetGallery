@@ -11,11 +11,21 @@ namespace NuGet.Services.Jobs
     {
         private const string InvocationIdDataName = "_NuGet_Services_Jobs_Invocation_Id";
 
-        public Invocation Invocation { get; private set; }
+        public InvocationRequest Request { get; private set; }
         public ServiceConfiguration Config { get; private set; }
         public InvocationLogCapture LogCapture { get; private set; }
         public InvocationQueue Queue { get; private set; }
-        
+
+        public Invocation Invocation { get { return Request.Invocation; } }
+
+        public InvocationContext(InvocationRequest request, InvocationQueue queue, ServiceConfiguration config, InvocationLogCapture logCapture)
+        {
+            Request = request;
+            Config = config;
+            Queue = queue;
+            LogCapture = logCapture;
+        }
+
         public static Guid GetCurrentInvocationId()
         {
             var obj = CallContext.LogicalGetData(InvocationIdDataName);
@@ -25,14 +35,6 @@ namespace NuGet.Services.Jobs
         public static void SetCurrentInvocationId(Guid id)
         {
             CallContext.LogicalSetData(InvocationIdDataName, id);
-        }
-
-        public InvocationContext(Invocation invocation, InvocationQueue queue, ServiceConfiguration config, InvocationLogCapture logCapture)
-        {
-            Invocation = invocation;
-            Config = config;
-            Queue = queue;
-            LogCapture = logCapture;
         }
     }
 }

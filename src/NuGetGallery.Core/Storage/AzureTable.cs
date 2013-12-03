@@ -25,7 +25,7 @@ namespace NuGetGallery.Storage
         public AzureTable(CloudTableClient client, string namePrefix)
         {
             _table = client.GetTableReference(
-                namePrefix + AzureTableHelper.InferTableName(typeof(TEntity)));
+                namePrefix + InferTableName(typeof(TEntity)));
         }
 
         public Task InsertOrReplace(TEntity entity)
@@ -59,7 +59,12 @@ namespace NuGetGallery.Storage
             TEntity entity;
             try
             {
-                entity = await _table.ExecuteAsync(TableOperation.Retrieve<TEntity>(partitionKey, rowKey));
+                var result = await _table.ExecuteAsync(TableOperation.Retrieve<TEntity>(partitionKey, rowKey));
+                if (result.HttpStatusCode != 200)
+                {
+                    return default(TEntity);
+                }
+                entity = (TEntity)result.Result;
             }
             catch (StorageException ex)
             {

@@ -10,6 +10,8 @@ namespace NuGetGallery.Storage
 {
     public class BlobStorageHub
     {
+        private const string ContainerNamePrefix = "ng-";
+
         public CloudBlobClient Client { get; private set; }
 
         public BlobStorageHub(CloudBlobClient client)
@@ -19,7 +21,7 @@ namespace NuGetGallery.Storage
 
         public Task<CloudBlockBlob> UploadBlob(string sourceFileName, string containerName, string path)
         {
-            CloudBlobContainer container = Client.GetContainerReference(containerName);
+            CloudBlobContainer container = Client.GetContainerReference(GetFullContainerName(containerName));
             return container.SafeExecute(async ct =>
             {
                 var blob = ct.GetBlockBlobReference(path);
@@ -30,13 +32,18 @@ namespace NuGetGallery.Storage
 
         public Task<CloudBlockBlob> DownloadBlob(string containerName, string path, string destinationFileName)
         {
-            CloudBlobContainer container = Client.GetContainerReference(containerName);
+            CloudBlobContainer container = Client.GetContainerReference(GetFullContainerName(containerName));
             return container.SafeExecute(async ct =>
             {
                 var blob = ct.GetBlockBlobReference(path);
                 await blob.DownloadToFileAsync(destinationFileName, FileMode.CreateNew);
                 return blob;
             });
+        }
+
+        public virtual string GetFullContainerName(string name)
+        {
+            return ContainerNamePrefix + name;
         }
     }
 }

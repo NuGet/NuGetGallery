@@ -43,16 +43,16 @@ namespace NuGet.Services.Jobs
             {
                 while (!cancelToken.IsCancellationRequested)
                 {
-                    Invocation invocation;
+                    InvocationRequest request = null;
                     try
                     {
-                        invocation = await _queue.Dequeue(DefaultInvisibilityPeriod, cancelToken);
+                        request = await _queue.Dequeue(DefaultInvisibilityPeriod, cancelToken);
                     }
                     catch (Exception ex)
                     {
                         JobsServiceEventSource.Log.ErrorRetrievingInvocation(ex);
                     }
-                    if (invocation == null)
+                    if (request == null)
                     {
                         JobsServiceEventSource.Log.DispatchLoopWaiting(_config.QueuePollInterval);
                         await Task.Delay(_config.QueuePollInterval);
@@ -60,7 +60,7 @@ namespace NuGet.Services.Jobs
                     }
                     else
                     {
-                        await Dispatch(invocation);
+                        await Dispatch(request);
                     }
                 }
             }
@@ -71,11 +71,11 @@ namespace NuGet.Services.Jobs
             JobsServiceEventSource.Log.DispatchLoopEnded();
         }
 
-        private async Task Dispatch(Invocation invocation)
+        private async Task Dispatch(InvocationRequest request)
         {
-            InvocationContext.SetCurrentInvocationId(invocation.Id);
+            InvocationContext.SetCurrentInvocationId(request.Invocation.Id);
             
-            if (isContinuation)
+            if (request.Invocation.Continuation)
             {
                 InvocationEventSource.Log.Resumed();
             }
@@ -85,13 +85,13 @@ namespace NuGet.Services.Jobs
             }
             
             // Record that we are executing the job
-            invocation.LastDequeuedAt = DateTimeOffset.UtcNow;
-            invocation.Status = InvocationStatus.Executing;
-            await _queue.Update(invocation);
+            request.Invocation.LastDequeuedAt = DateTimeOffset.UtcNow;
+            request.Invocation.Status = InvocationStatus.Executing;
+            await _queue.Update(request.Invocation);
 
-            // Create the invocation context and start capturing the logs
-            var context = new InvocationContext(invocation, _queue, _config);
-            var capture = new InvocationLogCapture(invocation, _config.Storage.Primary.Blobs);
+            // Create the request.Invocation context and start capturing the logs
+            var capture = new InvocationLogCapture(request.Invocation, _monitoring);
+            var context = new InvocationContext(request, _queue, _config, capture);
             await capture.Start();
 
             InvocationResult result = null;
@@ -116,9 +116,9 @@ namespace NuGet.Services.Jobs
                         break;
                 }
 
-                if (request.ExpiresAt.HasValue && DateTimeOffset.UtcNow > request.ExpiresAt.Value)
+                if (request.Message.NextVisibleTime.HasValue && request.Message.NextVisibleTime.Value < DateTimeOffset.UtcNow)
                 {
-                    InvocationEventSource.Log.RequestExpired(request);
+                    InvocationEventSource.Log.InvocationTookTooLong(request);
                 }
 
                 // If dispatch throws, we don't delete the message
@@ -133,67 +133,70 @@ namespace NuGet.Services.Jobs
 
             // Stop capturing and set the log url
             var logBlob = await capture.End();
-            invocation.Status = result.Status;
+            request.Invocation.Status = result.Status;
             if (logBlob != null)
             {
-                invocation.LogUrl = logBlob.Uri.AbsoluteUri;
+                request.Invocation.LogUrl = logBlob.Uri.AbsoluteUri;
             }
 
             // If we are in a termination state, report that
             if (result.Status == InvocationStatus.Completed || 
                 result.Status == InvocationStatus.Faulted)
             {
-                invocation.CompletedAt = DateTimeOffset.UtcNow;
+                request.Invocation.CompletedAt = DateTimeOffset.UtcNow;
                 InvocationEventSource.Log.Ended();
             }
 
             // If we faulted, report the error
             if (result.Status == InvocationStatus.Faulted)
             {
-                invocation.Exception = result.Exception.ToString();
+                request.Invocation.Exception = result.Exception.ToString();
             }
 
-            // Update the status of the invocation
-            await _queue.Update(invocation);
+            // Update the status of the request.Invocation
+            await _queue.Update(request.Invocation);
             
             // If we're suspended, queue a continuation
             if (result.Status == InvocationStatus.Suspended)
             {
-                invocation.LastSuspendedAt = DateTimeOffset.UtcNow;
-                invocation.EstimatedContinueAt = DateTimeOffset.UtcNow + result.Continuation.WaitPeriod;
                 Debug.Assert(result.Continuation != null);
-                await EnqueueContinuation(result);
+                await EnqueueContinuation(request.Invocation, result);
             }
             
             // If we've completed and there's a repeat, queue the repeat
             if (result.Status == InvocationStatus.Completed && result.RescheduleIn != null)
             {
-                invocation.EstimatedReinvokeAt = DateTimeOffset.UtcNow + result.RescheduleIn.Value;
                 // Rescheule it to run again
-                await EnqueueRepeat(result);
+                await EnqueueRepeat(request.Invocation, result);
             }
         }
 
         private Task EnqueueContinuation(Invocation continuation, InvocationResult result)
         {
-            continuation.Source = Constants.Source_AsyncContinuation,
-            
-            
-            var req = new JobRequest(
-                response.Invocation.Request.Job,
+            var invocation = new Invocation(
+                continuation.Id,
+                continuation.Job,
                 Constants.Source_AsyncContinuation,
-                response.Result.Continuation.Parameters,
-                response.Invocation.Id);
-            return _queue.Enqueue(req, response.Result.Continuation.WaitPeriod);
+                continuation.Payload)
+                {
+                    Continuation = true,
+                    LastSuspendedAt = DateTimeOffset.UtcNow,
+                    EstimatedContinueAt = DateTimeOffset.UtcNow + result.Continuation.WaitPeriod
+                };
+            return _queue.Enqueue(continuation, result.Continuation.WaitPeriod);
         }
 
-        private Task EnqueueRepeat(Invocation repeat)
+        private Task EnqueueRepeat(Invocation repeat, InvocationResult result)
         {
-            var req = new JobRequest(
-                response.Invocation.Request.Job,
+            var invocation = new Invocation(
+                Guid.NewGuid(),
+                repeat.Job,
                 Constants.Source_RepeatingJob,
-                response.Invocation.Request.Parameters);
-            return _queue.Enqueue(req, response.Result.RescheduleIn.Value);
+                repeat.Payload)
+                {
+                    EstimatedNextVisibleTime = DateTimeOffset.UtcNow + result.RescheduleIn.Value
+                };
+            return _queue.Enqueue(invocation, result.RescheduleIn.Value);
         }
     }
 }

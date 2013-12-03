@@ -95,11 +95,10 @@ namespace NuGet.Services.Jobs
 
         private BackendMonitoringHub ConfigureMonitoring(string instanceName, string threadName, ServiceConfiguration config)
         {
-            var connectionString = config.Get("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString");
             var logDirectory = Path.Combine(RoleEnvironment.GetLocalResource("Logs").RootPath, threadName);
             var tempDirectory = Path.Combine(Path.GetTempPath(), "NuGetWorkerTemp", threadName);
             var monitoring = new BackendMonitoringHub(
-                connectionString, 
+                config.Storage.Primary, 
                 logDirectory,
                 tempDirectory,
                 instanceName);

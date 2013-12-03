@@ -29,9 +29,9 @@ namespace NuGet.Services.Jobs
         public virtual async Task<InvocationResult> Dispatch(InvocationContext context)
         {
             JobDescription jobDesc;
-            if (!_jobMap.TryGetValue(context.Invocation.Request.Job, out jobDesc))
+            if (!_jobMap.TryGetValue(context.Invocation.Job, out jobDesc))
             {
-                throw new UnknownJobException(context.Invocation.Request.Job);
+                throw new UnknownJobException(context.Invocation.Job);
             }
             JobBase job = jobDesc.CreateInstance();
 
@@ -45,7 +45,7 @@ namespace NuGet.Services.Jobs
 
             try
             {
-                if (context.Invocation)
+                if (context.Invocation.Continuation)
                 {
                     IAsyncJob asyncJob = job as IAsyncJob;
                     if (asyncJob == null)

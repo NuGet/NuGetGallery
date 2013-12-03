@@ -44,11 +44,17 @@ namespace NuGet.Services.Jobs.Monitoring
         [Event(
             eventId: 3,
             Level = EventLevel.Critical,
-            Message = "Request expired while job was executing. Invocation: {0}. Job: {1}. Message ID: {2}. Inserted: {3}. Expired: {4}")]
-        private void RequestExpired(Guid invocationId, string jobName, string messageId, string inserted, string expired) { WriteEvent(3, invocationId, jobName, messageId, inserted, expired); }
+            Message = "Invocation took too long. Adjust the visibility timeout for the job. Invocation: {0}. Job: {1}. Queued At: {3}. Expired At: {4}")]
+        private void InvocationTookTooLong(Guid invocationId, string jobName, string messageId, string inserted, string expired) { WriteEvent(3, invocationId, jobName, messageId, inserted, expired); }
 
         [NonEvent]
-        public void RequestExpired(JobRequest request) { RequestExpired(InvocationContext.GetCurrentInvocationId(), request.Job, request.Message.Id, request.InsertionTime.ToString("O"), request.ExpiresAt.HasValue ? request.ExpiresAt.Value.ToString("O") : ""); }
+        public void InvocationTookTooLong(InvocationRequest request)
+        {
+            if (request.Message != null) // Request is not guaranteed to have a message
+            {
+                InvocationTookTooLong(InvocationContext.GetCurrentInvocationId(), request.Invocation.Job, request.Message.Id, request.Message.InsertionTime.HasValue ? request.Message.InsertionTime.Value.ToString("O") : String.Empty, request.Message.NextVisibleTime.HasValue ? request.Message.NextVisibleTime.Value.ToString("O") : String.Empty);
+            }
+        }
 
         [Event(
             eventId: 4,
@@ -84,7 +90,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void Succeeded(Guid invocationId, string completedAt) { WriteEvent(7, invocationId, completedAt); }
 
         [NonEvent]
-        public void Succeeded(JobResponse response) { Succeeded(InvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O")); }
+        public void Succeeded(InvocationResult result) { Succeeded(InvocationContext.GetCurrentInvocationId(), DateTimeOffset.UtcNow.ToString("O")); }
 
         [Event(
             eventId: 8,
@@ -93,7 +99,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void Faulted(Guid invocationId, string completedAt, string exception) { WriteEvent(8, invocationId, completedAt, exception); }
 
         [NonEvent]
-        public void Faulted(JobResponse response) { Faulted(InvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O"), response.Result.Exception.ToString()); }
+        public void Faulted(InvocationResult result) { Faulted(InvocationContext.GetCurrentInvocationId(), DateTimeOffset.UtcNow.ToString("O"), result.Exception.ToString()); }
 
         [Event(
             eventId: 9,
@@ -102,7 +108,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void UnknownStatus(Guid invocationId, string completedAt, string status) { WriteEvent(9, invocationId, completedAt, status); }
 
         [NonEvent]
-        public void UnknownStatus(JobResponse response) { UnknownStatus(InvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O"), response.Result.Status.ToString()); }
+        public void UnknownStatus(InvocationResult result) { UnknownStatus(InvocationContext.GetCurrentInvocationId(), DateTimeOffset.UtcNow.ToString("O"), result.Status.ToString()); }
 
         [Event(
             eventId: 10,
@@ -113,7 +119,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void Suspended(Guid invocationId, string suspendedAt, string waitingFor) { WriteEvent(10, invocationId, suspendedAt, waitingFor); }
 
         [NonEvent]
-        public void Suspended(JobResponse response) { Suspended(InvocationContext.GetCurrentInvocationId(), response.EndedAt.ToString("O"), response.Result.Continuation.WaitPeriod.ToString()); }
+        public void Suspended(InvocationResult result) { Suspended(InvocationContext.GetCurrentInvocationId(), DateTimeOffset.UtcNow.ToString("O"), result.Continuation.WaitPeriod.ToString()); }
 
         [Event(
             eventId: 11,

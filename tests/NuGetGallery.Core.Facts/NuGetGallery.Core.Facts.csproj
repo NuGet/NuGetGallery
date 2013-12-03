@@ -80,6 +80,7 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Entities\PackageFacts.cs" />
+    <Compile Include="Jobs\InvocationPayloadSerializerFacts.cs" />
     <Compile Include="Packaging\NupkgFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Packaging\NupkgRewriterFacts.cs" />

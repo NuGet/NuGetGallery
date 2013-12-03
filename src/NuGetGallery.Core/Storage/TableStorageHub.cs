@@ -17,12 +17,12 @@ namespace NuGetGallery.Storage
             Client = client;
         }
 
-        public AzureTable<TEntity> Table<TEntity>() where TEntity : ITableEntity
+        public virtual AzureTable<TEntity> Table<TEntity>() where TEntity : ITableEntity
         {
             return new AzureTable<TEntity>(Client, TableNamePrefix);
         }
 
-        public static string GetTableFullName(string tableName)
+        public virtual string GetTableFullName(string tableName)
         {
             return TableNamePrefix + tableName;
         }

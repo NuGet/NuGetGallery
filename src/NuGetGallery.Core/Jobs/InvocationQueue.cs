@@ -99,24 +99,24 @@ namespace NuGet.Services.Jobs
             }
         }
 
-        public Task Enqueue(Invocation invocation)
-        {
-            return EnqueueCore(req, visibilityTimeout: null);
-        }
-
-        public Task Enqueue(Invocation invocation, TimeSpan visibilityTimeout)
-        {
-            return EnqueueCore(req, visibilityTimeout);
-        }
-
         public Task Update(Invocation invocation)
         {
             return _table.Merge(invocation);
         }
 
+        public Task Enqueue(Invocation invocation)
+        {
+            return EnqueueCore(invocation, visibilityTimeout: null);
+        }
+
+        public Task Enqueue(Invocation invocation, TimeSpan visibilityTimeout)
+        {
+            return EnqueueCore(invocation, visibilityTimeout);
+        }
+
         private async Task EnqueueCore(Invocation invocation, TimeSpan? visibilityTimeout)
         {
-            // Render the payload
+            // Create a queue message for this invocation
             var message = new CloudQueueMessage(invocation.Id.ToString());
 
             // Create an invocation entry and write it to the table
@@ -127,12 +127,14 @@ namespace NuGet.Services.Jobs
             await _queue.SafeExecute(q => q.AddMessageAsync(
                 message,
                 timeToLive: null,
-                visibilityTimeout: visibilityTimeout,
+                initialVisibilityDelay: visibilityTimeout,
                 options: new QueueRequestOptions(),
-                operationContext: new OperationContext() { ClientRequestID = req.Id.ToString("N").ToLowerInvariant() }));
+                operationContext: new OperationContext() { ClientRequestID = invocation.Id.ToString("N").ToLowerInvariant() }));
 
             // Update the invocation entry
+            invocation.QueuedAt = DateTimeOffset.UtcNow;
             invocation.Status = InvocationStatus.Queued;
+            invocation.EstimatedNextVisibleTime = DateTimeOffset.UtcNow + visibilityTimeout;
             await _table.InsertOrReplace(invocation);
         }
     }

@@ -17,7 +17,8 @@ namespace NuGet.Services.Jobs
     {
         public InvocationContext Context { get; protected set; }
 
-        public JobInvocation Invocation { get { return Context.Invocation; } }
+        public Invocation Invocation { get { return Context.Invocation; } }
+        public InvocationRequest Request { get { return Context.Request; } }
         public ServiceConfiguration Config { get { return Context.Config; } }
 
         public virtual async Task<InvocationResult> Invoke(InvocationContext context)
@@ -45,14 +46,14 @@ namespace NuGet.Services.Jobs
         public abstract EventSource GetEventSource();
         protected internal abstract Task<InvocationResult> Invoke();
 
-        protected virtual Task Enqueue(JobRequest request)
+        protected virtual Task Enqueue(Invocation request)
         {
             return Context.Queue.Enqueue(request);
         }
 
         protected virtual Task Extend(TimeSpan duration)
         {
-            return Context.Queue.Extend(Invocation.Request, duration);
+            return Context.Queue.Extend(Request, duration);
         }
 
         protected virtual InvocationResult BindContext(InvocationContext context)
@@ -61,7 +62,7 @@ namespace NuGet.Services.Jobs
             Context = context;
             try
             {
-                BindProperties(Invocation.Request.Parameters);
+                BindProperties(Invocation.Payload);
             }
             catch (Exception ex)
             {

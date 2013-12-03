@@ -17,9 +17,8 @@ namespace NuGet.Services.Jobs
             {
                 // Arrange
                 var dispatcher = new JobDispatcher(ServiceConfiguration.Create(), Enumerable.Empty<JobDescription>(), monitor: null);
-                var request = new JobRequest("flarg", "test", new Dictionary<string, string>());
-                var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
-                var context = new InvocationContext(invocation, config: null, monitoring: null, queue: null);
+                var invocation = new Invocation(Guid.NewGuid(), "flarg", "test", new Dictionary<string, string>());
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: null, logCapture: null);
 
                 // Act/Assert
                 var ex = await AssertEx.Throws<UnknownJobException>(() => dispatcher.Dispatch(context));
@@ -34,20 +33,18 @@ namespace NuGet.Services.Jobs
                 var job = new JobDescription("test", "blarg", () => jobImpl.Object);
 
                 var dispatcher = new JobDispatcher(ServiceConfiguration.Create(), new[] { job }, monitor: null);
-                var request = new JobRequest("Test", "test", new Dictionary<string, string>());
-                var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
-                var context = new InvocationContext(invocation, config: null, monitoring: null, queue: null);
+                var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>());
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: null, logCapture: null);
 
                 jobImpl.Setup(j => j.Invoke(It.IsAny<InvocationContext>()))
                    .Returns(Task.FromResult(InvocationResult.Completed()));
 
 
                 // Act
-                var response = await dispatcher.Dispatch(context);
+                var result = await dispatcher.Dispatch(context);
 
                 // Assert
-                Assert.Same(invocation, response.Invocation);
-                Assert.Equal(InvocationStatus.Completed, response.Result.Status);
+                Assert.Equal(InvocationStatus.Completed, result.Status);
             }
 
             [Fact]
@@ -59,20 +56,18 @@ namespace NuGet.Services.Jobs
                 
                 var ex = new Exception();
                 var dispatcher = new JobDispatcher(ServiceConfiguration.Create(), new[] { job }, monitor: null);
-                var request = new JobRequest("Test", "test", new Dictionary<string, string>());
-                var invocation = new JobInvocation(Guid.NewGuid(), request, DateTimeOffset.UtcNow);
-                var context = new InvocationContext(invocation, config: null, monitoring: null, queue: null);
+                var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>());
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: null, logCapture: null);
 
                 jobImpl.Setup(j => j.Invoke(It.IsAny<InvocationContext>()))
                    .Returns(Task.FromResult(InvocationResult.Completed()));
 
                 // Act
-                var response = await dispatcher.Dispatch(context);
+                var result = await dispatcher.Dispatch(context);
 
                 // Assert
-                Assert.Same(invocation, response.Invocation);
-                Assert.Equal(InvocationStatus.Completed, response.Result.Status);
-                Assert.Null(response.Result.Exception);
+                Assert.Equal(InvocationStatus.Completed, result.Status);
+                Assert.Null(result.Exception);
             }
         }
     }

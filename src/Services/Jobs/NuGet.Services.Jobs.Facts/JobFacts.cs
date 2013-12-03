@@ -19,14 +19,12 @@ namespace NuGet.Services.Jobs
             {
                 // Arrange
                 var job = new TestJob();
-                var invocation = new JobInvocation(
+                var invocation = new Invocation(
                     Guid.NewGuid(), 
-                    new JobRequest(
-                        "Test",
-                        "Test",
-                        new Dictionary<string, string>()), 
-                    DateTimeOffset.UtcNow);
-                var context = new InvocationContext(invocation, ServiceConfiguration.Create(), monitoring: null, queue: null);
+                    "Test",
+                    "Test",
+                    new Dictionary<string, string>());
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: ServiceConfiguration.Create(), logCapture: null);
 
                 // Act
                 await job.Invoke(context);
@@ -40,18 +38,16 @@ namespace NuGet.Services.Jobs
             {
                 // Arrange
                 var job = new TestJob();
-                var invocation = new JobInvocation(
-                    Guid.NewGuid(),
-                    new JobRequest(
-                        "Test",
-                        "Test",
-                        new Dictionary<string, string>()
-                        {
-                            {"TestParameter", "frob"},
-                            {"NotMapped", "bar"}
-                        }),
-                    DateTimeOffset.UtcNow);
-                var context = new InvocationContext(invocation, ServiceConfiguration.Create(), monitoring: null, queue: null);
+                var invocation = new Invocation(
+                    Guid.NewGuid(), 
+                    "Test",
+                    "Test",
+                    new Dictionary<string, string>()
+                    {
+                        {"TestParameter", "frob"},
+                        {"NotMapped", "bar"}
+                    });
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: ServiceConfiguration.Create(), logCapture: null);
 
                 // Act
                 await job.Invoke(context);
@@ -65,17 +61,15 @@ namespace NuGet.Services.Jobs
             {
                 // Arrange
                 var job = new TestJob();
-                var invocation = new JobInvocation(
+                var invocation = new Invocation(
                     Guid.NewGuid(),
-                    new JobRequest(
-                        "Test",
-                        "Test",
-                        new Dictionary<string, string>()
-                        {
-                            {"ConvertValue", "frob"},
-                        }),
-                    DateTimeOffset.UtcNow);
-                var context = new InvocationContext(invocation, ServiceConfiguration.Create(), monitoring: null, queue: null);
+                    "Test",
+                    "Test",
+                    new Dictionary<string, string>()
+                    {
+                        {"ConvertValue", "frob"},
+                    });
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: ServiceConfiguration.Create(), logCapture: null);
 
                 // Act
                 await job.Invoke(context);
@@ -89,14 +83,12 @@ namespace NuGet.Services.Jobs
             {
                 // Arrange
                 var job = new Mock<TestJob>() { CallBase = true };
-                var invocation = new JobInvocation(
+                var invocation = new Invocation(
                     Guid.NewGuid(),
-                    new JobRequest(
-                        "Jerb",
-                        "Test",
-                        new Dictionary<string, string>()),
-                    DateTimeOffset.UtcNow);
-                var context = new InvocationContext(invocation, ServiceConfiguration.Create(), monitoring: null, queue: null);
+                    "Jerb",
+                    "Test",
+                    new Dictionary<string, string>());
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: ServiceConfiguration.Create(), logCapture: null);
 
                 // Act
                 var result = await job.Object.Invoke(context);
@@ -110,16 +102,14 @@ namespace NuGet.Services.Jobs
             {
                 // Arrange
                 var job = new Mock<TestJob>() { CallBase = true };
-                var invocation = new JobInvocation(
+                var invocation = new Invocation(
                     Guid.NewGuid(),
-                    new JobRequest(
-                        "Jerb",
-                        "Test",
-                        new Dictionary<string, string>()),
-                    DateTimeOffset.UtcNow);
+                    "Jerb",
+                    "Test",
+                    new Dictionary<string, string>());
                 var ex = new NotImplementedException("Broked!");
                 job.Setup(j => j.Execute()).Throws(ex);
-                var context = new InvocationContext(invocation, ServiceConfiguration.Create(), monitoring: null, queue: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: ServiceConfiguration.Create(), logCapture: null);
 
                 // Act
                 var result = await job.Object.Invoke(context);

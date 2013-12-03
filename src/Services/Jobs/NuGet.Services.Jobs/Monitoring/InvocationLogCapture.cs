@@ -22,12 +22,12 @@ namespace NuGet.Services.Jobs.Monitoring
         private IDisposable _eventSubscription;
 
         public Invocation Invocation { get; private set; }
-        public BlobStorageHub Blobs { get; private set; }
+        public BackendMonitoringHub MonitoringHub { get; private set; }
 
-        public InvocationLogCapture(Invocation invocation, BlobStorageHub blobs)
+        public InvocationLogCapture(Invocation invocation, BackendMonitoringHub monitoringHub)
         {
             Invocation = invocation;
-            Blobs = blobs;
+            MonitoringHub = monitoringHub;
         }
 
         public async Task Start()
@@ -40,7 +40,7 @@ namespace NuGet.Services.Jobs.Monitoring
             _listener.EnableEvents(InvocationEventSource.Log, EventLevel.Informational);
 
             // Calculate paths
-            var root = Path.Combine(Hub.TempDirectory, "Invocations");
+            var root = Path.Combine(MonitoringHub.TempDirectory, "Invocations");
             if (!Directory.Exists(root))
             {
                 Directory.CreateDirectory(root);
@@ -55,7 +55,7 @@ namespace NuGet.Services.Jobs.Monitoring
             // Fetch the current logs if this is a continuation, we'll append to them during the invocation
             if (Invocation.Continuation)
             {
-                await Blobs.DownloadBlob(BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_tempFile), _tempFile);
+                await MonitoringHub.Storage.Blobs.DownloadBlob(BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_tempFile), _tempFile);
             }
 
             // Capture the events into a JSON file and a plain text file
@@ -68,7 +68,7 @@ namespace NuGet.Services.Jobs.Monitoring
             _eventSubscription.Dispose();
 
             // Upload the file to blob storage
-            var logBlob = await Blobs.UploadBlob(_tempFile, BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_tempFile));
+            var logBlob = await MonitoringHub.Storage.Blobs.UploadBlob(_tempFile, BackendMonitoringHub.BackendMonitoringContainerName, "invocations/" + Path.GetFileName(_tempFile));
 
             // Delete the temp files
             File.Delete(_tempFile);
@@ -78,7 +78,7 @@ namespace NuGet.Services.Jobs.Monitoring
 
         public async Task SetJob(JobDescription jobDesc, JobBase job)
         {
-            var eventSource = Job.GetEventSource();
+            var eventSource = job.GetEventSource();
             if (eventSource == null)
             {
                 InvocationEventSource.Log.NoEventSource(jobDesc.Name);

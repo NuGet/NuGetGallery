@@ -15,12 +15,12 @@ namespace NuGet.Services.Jobs
     /// status record of an invocation
     /// </summary>
     [Table("Invocations")]
-    public class Invocation
+    public class Invocation : TableEntity
     {
         public Guid Id { get; private set; }
         public string Job { get; private set; }
         public string Source { get; private set; }
-        public string Payload { get; private set; }
+        public Dictionary<string, string> Payload { get; private set; }
         public InvocationStatus Status { get; set; }
         public int DequeueCount { get; set; }
         public string LastInstanceName { get; set; }
@@ -33,9 +33,9 @@ namespace NuGet.Services.Jobs
         public DateTimeOffset? LastSuspendedAt { get; set; }
         public DateTimeOffset? CompletedAt { get; set; }
         public DateTimeOffset? EstimatedContinueAt { get; set; }
-        public DateTimeOffset? EstimatedReinvokeAt { get; set; }
+        public DateTimeOffset? EstimatedNextVisibleTime { get; set; }
 
-        public Invocation(Guid id, string job, string source, string payload)
+        public Invocation(Guid id, string job, string source, Dictionary<string, string> payload)
         {
             Id = id;
             Job = job;

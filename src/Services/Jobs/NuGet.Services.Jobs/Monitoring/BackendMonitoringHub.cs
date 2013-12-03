@@ -23,12 +23,11 @@ namespace NuGet.Services.Jobs.Monitoring
 {
     public class BackendMonitoringHub : MonitoringHub, IDisposable
     {
-        internal const string BackendMonitoringContainerName = "ng-jobs-invocationlogs";
+        internal const string BackendMonitoringContainerName = "jobs-invocationlogs";
         internal const string BackendTraceTableName = "JobsServiceTrace";
 
         private Dictionary<JobBase, ObservableEventListener> _eventStreams = new Dictionary<JobBase, ObservableEventListener>();
         
-        private PivotedTable<InvocationsEntry> _invocationsTable;
         private AzureTable<JobsEntry> _jobsTable;
         private AzureTable<InstancesEntry> _instancesTable;
         
@@ -39,19 +38,18 @@ namespace NuGet.Services.Jobs.Monitoring
         public string InstanceName { get; private set; }
 
         public BackendMonitoringHub(
-            string storageConnectionString, 
+            StorageAccountHub storage,
             string logsDirectory, 
             string tempDirectory,
             string instanceName)
-            : base(storageConnectionString)
+            : base(storage)
         {
             LogsDirectory = logsDirectory;
             TempDirectory = tempDirectory;
             InstanceName = instanceName;
 
-            _invocationsTable = PivotedTable<InvocationsEntry>();
-            _jobsTable = Table<JobsEntry>();
-            _instancesTable = Table<InstancesEntry>();
+            _jobsTable = Storage.Tables.Table<JobsEntry>();
+            _instancesTable = Storage.Tables.Table<InstancesEntry>();
         }
 
         /// <summary>
@@ -75,23 +73,11 @@ namespace NuGet.Services.Jobs.Monitoring
             listener.EnableEvents(SemanticLoggingEventSource.Log, EventLevel.Informational);
             _globalSinkSubscription = stream.LogToWindowsAzureTable(
                 InstanceName,
-                StorageConnectionString,
-                tableAddress: GetTableFullName(BackendTraceTableName));
+                Storage.ConnectionString,
+                tableAddress: Storage.Tables.GetTableFullName(BackendTraceTableName));
 
             // Log Instance Status
             await _instancesTable.InsertOrReplace(InstancesEntry.ForCurrentMachine(InstanceName));
-        }
-
-        /// <summary>
-        /// Handles monitoring tasks performed when a job request is dispatched. Call Complete(JobResult)
-        /// on the IComplete returned by this method when the job finishes execution.
-        /// </summary>
-        public async Task<InvocationLogCapture> BeginInvocation(Invocation invocation)
-        {
-            // Create a monitoring context
-            var context = new InvocationLogCapture(invocation, this);
-            await context.Start();
-            return context;
         }
 
         public void Dispose()
