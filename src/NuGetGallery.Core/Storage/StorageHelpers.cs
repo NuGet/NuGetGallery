@@ -38,7 +38,22 @@ namespace NuGetGallery
                 queue,
                 act,
                 QueueErrorCodeStrings.QueueNotFound,
-                q => q.CreateIfNotExistsAsync());
+                async q =>
+                {
+                    try
+                    {
+                        await q.CreateIfNotExistsAsync();
+                    }
+                    catch (StorageException ex)
+                    {
+                        if ((ex.InnerException is NullReferenceException) && ex.StackTrace.Contains("ProcessExpectedStatusCodeNoException"))
+                        {
+                            // Work around a bug in storage API
+                            return;
+                        }
+                        throw;
+                    }
+                });
         }
 
         /// <summary>
@@ -53,7 +68,7 @@ namespace NuGetGallery
                 return null;
             });
         }
-        
+
         /// <summary>
         /// Executes the specified action, and if it throws an error because the container does not exist, creates
         /// the container and re-executes the action

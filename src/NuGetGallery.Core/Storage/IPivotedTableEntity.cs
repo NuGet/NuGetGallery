@@ -87,11 +87,14 @@ namespace NuGetGallery.Storage
             foreach (var prop in GetCandidateProperties())
             {
                 var value = prop.GetValue(this);
-                foreach (var serializer in _serializers)
+                if (value != null)
                 {
-                    if (serializer(prop.Name, value, entity))
+                    foreach (var serializer in _serializers)
                     {
-                        break;
+                        if (serializer(prop.Name, value, entity))
+                        {
+                            break;
+                        }
                     }
                 }
             }
