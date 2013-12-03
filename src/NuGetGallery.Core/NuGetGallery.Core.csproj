@@ -187,7 +187,6 @@
     <Compile Include="Search\LuceneQueryCreator.cs" />
     <Compile Include="Search\IndexDocumentContext.cs" />
     <Compile Include="Search\IndexDocumentData.cs" />
-    <Compile Include="Search\NuGetQueryParser.cs" />
     <Compile Include="Search\ShingledIdentifierAnalyzer.cs" />
     <Compile Include="Search\CustomSimilarity.cs" />
     <Compile Include="Search\IdentifierKeywordAnalyzer.cs" />

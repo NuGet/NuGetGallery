@@ -41,6 +41,12 @@ namespace SearchService.Controllers
 
                 string projectType = Request.QueryString["projectType"];
 
+                bool luceneQuery;
+                if (!bool.TryParse(Request.QueryString["luceneQuery"], out luceneQuery))
+                {
+                    luceneQuery = true;
+                }
+
                 bool includePrerelease;
                 if (!bool.TryParse(Request.QueryString["prerelease"], out includePrerelease))
                 {
@@ -81,7 +87,12 @@ namespace SearchService.Controllers
                     ignoreFilter = false;
                 }
 
-                Trace.TraceInformation("Searcher.Search(..., {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})", q, countOnly, projectType, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
+                Trace.TraceInformation("Searcher.Search(..., {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10})", q, countOnly, projectType, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter, luceneQuery);
+
+                if (!luceneQuery)
+                {
+                    q = LuceneQueryCreator.Parse(q);
+                }
 
                 string content = Searcher.Search(_searcherManager, q, countOnly, projectType, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
 
