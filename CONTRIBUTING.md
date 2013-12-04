@@ -6,9 +6,9 @@ We welcome contributions to the NuGet Gallery! However, we do have a few suggest
 1. Make sure there is an issue in the [Issue Tracker](https://github.com/NuGet/NuGetGallery/issues) for the feature or bug you want to fix. If not, create one! 
   * **Pull Requests without an associated issue will not be accepted!**
 1. Create a fork in GitHub
-1. Create a branch off of the **dev-start** branch. Name it something which easily links it back to the issue. For example: "Bug-1234".
+1. Create a branch off of the **iter-start** branch. Name it something which easily links it back to the issue. For example: "Bug-1234".
 1. Make your changes
-1. Send a Pull Request from your branch to the **dev** branch. **NOTE:** This is not the same branch you created your topic branch from!
+1. Send a Pull Request from your branch to the **master** branch. **NOTE:** This is not the same branch you created your topic branch from!
 
 If you mess up the branching or get confused, that's OK, we'd rather have your contribution than have you waste a lot of time figuring out our branches. However, using the right branches will help us immensely and will make it much easier for us to quickly accept your contribution!
 

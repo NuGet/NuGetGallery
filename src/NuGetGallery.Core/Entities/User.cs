@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -17,19 +18,11 @@ namespace NuGetGallery
             Username = username;
         }
 
-        public Guid ApiKey { get; set; }
-
         [StringLength(256)]
         public string EmailAddress { get; set; }
 
         [StringLength(256)]
         public string UnconfirmedEmailAddress { get; set; }
-
-        [StringLength(256)]
-        public string HashedPassword { get; set; }
-
-        // Would declare max length of this too, but EF is buggy, see http://entityframework.codeplex.com/workitem/452
-        public string PasswordHashAlgorithm { get; set; }
 
         public virtual ICollection<EmailMessage> Messages { get; set; }
 
@@ -95,6 +88,12 @@ namespace NuGetGallery
 
             UnconfirmedEmailAddress = newEmailAddress;
             EmailConfirmationToken = generateToken();
+        }
+
+        public bool HasPassword()
+        {
+            return Credentials.Any(c =>
+                c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

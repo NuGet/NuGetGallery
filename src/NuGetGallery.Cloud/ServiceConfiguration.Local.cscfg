@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ServiceConfiguration serviceName="NuGetGallery.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*" schemaVersion="2013-03.2.0">
+<ServiceConfiguration serviceName="NuGetGallery.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*" schemaVersion="2013-10.2.2">
   <Role name="NuGetGallery">
     <Instances count="1" />
     <ConfigurationSettings>
@@ -22,17 +22,16 @@
       <Setting name="Gallery.GoogleAnalyticsPropertyId" value="" />
       <Setting name="Gallery.AzureCdnHost" value="" />
       <Setting name="Gallery.SiteRoot" value="nuget.localtest.me" />
-      
-      <!-- **************** -->
-      <!-- FEATURE SETTINGS -->
-      <!-- **************** -->
-      <Setting name="Feature.FriendlyLicenses" value="true" />
+      <Setting name="Auth.MicrosoftAccount.Enabled" value="false" />
+      <Setting name="Auth.MicrosoftAccount.ClientId" value="" />
+      <Setting name="Auth.MicrosoftAccount.ClientSecret" value="" />
 
       <!-- *************** -->
       <!-- STABLE SETTINGS -->
       <!-- *************** -->
       <!-- Depending on your policy, these likely do not need to vary -->
       <!-- SmtpUri is expected to be of the format: smtps://username:password@host:port. Note that if username contains an "@", you need to URI Encode it! -->
+      <Setting name="Gallery.Brand" value="NuGet Gallery" />
       <Setting name="Gallery.SmtpUri" value="" />
       <Setting name="Gallery.HasWorker" value="true" />
       <Setting name="Gallery.RequireSSL" value="true" />

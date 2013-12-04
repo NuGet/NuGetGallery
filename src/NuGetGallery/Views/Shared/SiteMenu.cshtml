@@ -1,0 +1,23 @@
+﻿@using System.Collections.Specialized
+<ul id="menu" class="expanding-search">
+    @{
+        var classes = new StringDictionary();
+        if (ViewData.ContainsKey("Tab"))
+        {
+            classes[ViewBag.Tab] = "current";
+        }
+    }
+    <li class="@classes["Home"]"><a href="@Url.Home()">Home</a></li>
+    <li class="@classes["Packages"]"><a href="@Url.PackageList()">Packages</a></li>
+    <li class="@classes["Upload"]"><a href="@Url.UploadPackage()" class="upload">Upload Package</a></li>
+    @if (StatisticsHelper.IsStatisticsPageAvailable)
+    {
+        <li class="@classes["Statistics"]"><a href="@Url.Statistics()">Statistics</a></li>
+    }
+    @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
+    {
+        <li class="@classes["Admin"]"><a href="@Url.Action("Index", "Home", new { area="Admin" })">Admin</a></li>
+    }
+    <li><a href="http://docs.nuget.org">Documentation</a></li>
+    <li><a href="http://blog.nuget.org">Blog</a></li>
+</ul>

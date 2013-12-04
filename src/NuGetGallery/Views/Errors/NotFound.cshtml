@@ -1,0 +1,49 @@
+﻿@{
+    Page.Title = "Page Not Found";
+    var errorPath = Request.QueryString["aspxerrorpath"];
+
+    if (String.IsNullOrEmpty(errorPath))
+    {
+        errorPath = Request.RawUrl;
+    }
+
+    errorPath = Path.GetFileNameWithoutExtension(errorPath);
+    Response.StatusCode = 404;
+}
+
+<div class="error-page">
+    <h1>404 : Page Not Found</h1>
+    <p>You might be here because:</p>
+    <ul>
+        <li>The page you are looking for does not exist anymore.</li>
+        <li>We moved the page that you are looking for, sorry!</li>
+        <li>You know how to hack URLs and you're trying to find something.</li>
+        <li>We just plain suck and messed something up.</li>
+    </ul>
+
+    <h2 class="search">Try Searching</h2>
+    <div id="pageSearchBox">
+        <form action="~/packages" onsubmit="return submitQuery()">
+            <input name="q" id="searchBoxInput" placeholder="Search Gallery" />
+            <input id="searchBoxSubmit" type="submit" value=" " />
+        </form>
+    </div>
+
+    <h2>Still Nothing?</h2>
+    <ul>
+        <li>File a bug in <a href="https://github.com/NuGet/NuGetGallery/issues">the issue tracker</a> so we can fix it.</li>
+    </ul>
+</div>
+
+@section BottomScripts {
+<script type="text/javascript">
+    function submitQuery() {
+        window.location = "@Href("~/packages")?q="
+            + encodeURIComponent($("#searchBoxInput").val());
+        return false;
+    }
+    $(function () {
+        $("#searchBoxInput").val("@errorPath");
+    });
+</script>
+}

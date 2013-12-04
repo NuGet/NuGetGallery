@@ -11,17 +11,18 @@ namespace NuGetGallery.FunctionalTests
     {
         #region FormFields
         internal const string ConfirmPasswordFormField = "ConfirmPassword";
-        internal const string EmailAddressFormField = "EmailAddress";
-        internal const string PasswordFormField = "Password";
+        internal const string EmailAddressFormField = "Register.EmailAddress";
+        internal const string RegisterPasswordFormField = "Register.Password";
+        internal const string PasswordFormField = "SignIn.Password";
         internal const string ConfirmPasswordField = "ConfirmPassword";
-        internal const string UserNameFormField = "Username";
-        internal const string UserNameOrEmailFormField = "UserNameOrEmail";
+        internal const string UserNameFormField = "Register.Username";
+        internal const string UserNameOrEmailFormField = "SignIn.UserNameOrEmail";
         internal const string AcceptTermsField = "AcceptTerms";
         #endregion FormFields
 
         #region PredefinedText
         internal const string HomePageText = "What is NuGet?";
-        internal const string RegisterNewUserPendingConfirmationText = @"<a href=""/account/ConfirmationRequired"">Confirm your account</a> so that you can upload packages or contact package owners.";
+        internal const string RegisterNewUserPendingConfirmationText = "Your account is now registered!";
         internal const string UserAlreadyExistsText = "User already exists";
         internal const string ReadOnlyModeRegisterNewUserText = "503 : Please try again later! (Read-only)";
         internal const string SearchTerm = "elmah";

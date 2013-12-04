@@ -1,10 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ServiceDefinition name="NuGetGallery.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2013-03.2.0">
+<ServiceDefinition name="NuGetGallery.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2013-10.2.2">
   <LoadBalancerProbes>
     <LoadBalancerProbe name="HTTP" path="/" protocol="http" port="80" />
   </LoadBalancerProbes>
   <WebRole name="NuGetGallery" vmsize="Medium">
     <ConfigurationSettings>
+      <Setting name="Gallery.Brand" />
       <Setting name="Gallery.Environment" />
       <Setting name="Gallery.RequireSSL" />
       <Setting name="Gallery.AzureStorageConnectionString" />
@@ -19,7 +20,9 @@
       <Setting name="Gallery.LuceneIndexLocation" />
       <Setting name="Gallery.GoogleAnalyticsPropertyId" />
       <Setting name="Gallery.HasWorker" />
-      <Setting name="Feature.FriendlyLicenses" />
+      <Setting name="Auth.MicrosoftAccount.Enabled" />
+      <Setting name="Auth.MicrosoftAccount.ClientId" />
+      <Setting name="Auth.MicrosoftAccount.ClientSecret" />
     </ConfigurationSettings>
     <Sites>
       <Site name="Web">

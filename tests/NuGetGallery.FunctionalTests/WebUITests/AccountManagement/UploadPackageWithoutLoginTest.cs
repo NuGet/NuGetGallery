@@ -22,8 +22,8 @@ namespace NuGetGallery.FunctionalTests
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {            
             WebTestRequest uploadPackageRequest = new WebTestRequest(UrlHelper.UploadPageUrl);
-            uploadPackageRequest.ExpectedResponseUrl = UrlHelper.LogonPageUrlOnPackageUpload;          
-            ValidateHtmlTagInnerText logOnFormValidationRule = AssertAndValidationHelper.GetValidationRuleForHtmlTagInnerText(HtmlTextWriterTag.Label.ToString(), HtmlTextWriterAttribute.For.ToString(), Constants.UserNameOrEmailFormField, "Username or Email");               
+            uploadPackageRequest.ExpectedResponseUrl = UrlHelper.LogonPageUrlOnPackageUpload;
+            ValidateHtmlTagInnerText logOnFormValidationRule = AssertAndValidationHelper.GetValidationRuleForHtmlTagInnerText(HtmlTextWriterTag.Label.ToString(), HtmlTextWriterAttribute.For.ToString(), "SignIn_UserNameOrEmail", "Username or Email");               
             uploadPackageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(logOnFormValidationRule.Validate);          
             yield return uploadPackageRequest;
             uploadPackageRequest = null;

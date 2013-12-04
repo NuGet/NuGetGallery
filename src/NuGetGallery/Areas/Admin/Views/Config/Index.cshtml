@@ -49,3 +49,24 @@
         }
     </tbody>
 </table>
+
+<h2>Authentication Configuration</h2>
+@foreach(var provider in Model.AuthProviders) {
+    <h3>@provider.Name Provider</h3>
+    <table class="sexy-table" style="display: block; overflow: auto">
+    <thead>
+        <tr>
+            <th>Config Name</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var configPair in provider.Config) {
+            <tr>
+                <td>@configPair.Key</td> 
+                <td>@(String.IsNullOrEmpty(configPair.Value) ? "<Default>" : configPair.Value)</td>
+            </tr>
+        }
+    </tbody>
+</table>
+}

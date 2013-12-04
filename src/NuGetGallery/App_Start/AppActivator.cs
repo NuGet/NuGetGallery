@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.Entity;
 using System.Diagnostics;
+using System.IO;
 using System.Security.Claims;
 using System.Web.Helpers;
 using System.Web.Mvc;
@@ -37,6 +38,9 @@ namespace NuGetGallery
         {
             AntiForgeryConfig.UniqueClaimTypeIdentifier = ClaimTypes.NameIdentifier;
 
+            ViewEngines.Engines.Clear();
+            ViewEngines.Engines.Add(CreateViewEngine());
+
             NinjectPreStart();
             ElmahPreStart();
             GlimpsePreStart();
@@ -68,6 +72,34 @@ namespace NuGetGallery
         {
             BackgroundJobsStop();
             NinjectStop();
+        }
+
+        private static RazorViewEngine CreateViewEngine()
+        {
+            var ret = new RazorViewEngine();
+
+            ret.AreaMasterLocationFormats = 
+                ret.AreaViewLocationFormats =
+                ret.AreaPartialViewLocationFormats =
+                new string[]
+            {
+                "~/Areas/{2}/Views/{1}/{0}.cshtml",
+                "~/Branding/Views/Shared/{0}.cshtml",
+                "~/Areas/{2}/Views/Shared/{0}.cshtml",
+            };
+
+            ret.MasterLocationFormats = 
+                ret.ViewLocationFormats  =
+                ret.PartialViewLocationFormats =
+                new string[]
+            {
+                "~/Branding/Views/{1}/{0}.cshtml",
+                "~/Views/{1}/{0}.cshtml",
+                "~/Branding/Views/Shared/{0}.cshtml",
+                "~/Views/Shared/{0}.cshtml",
+            };
+
+            return ret;
         }
 
         private static void GlimpsePreStart()
@@ -105,10 +137,25 @@ namespace NuGetGallery
                 .Include("~/Scripts/modernizr-{version}.js");
             BundleTable.Bundles.Add(modernizrBundle);
 
-            var stylesBundle = new StyleBundle("~/Content/css")
-                .Include("~/Content/site.css");
+            Bundle stylesBundle = new StyleBundle("~/Content/css");
+            foreach (string filename in new[] {
+                    "Site.css",
+                    "Layout.css",
+                    "PageStylings.css"
+                })
+            {
+                stylesBundle
+                    .Include("~/Content/" + filename)
+                    .Include("~/Branding/Content/" + filename);
+            }
+
             BundleTable.Bundles.Add(stylesBundle);
 
+            // Needs a) a separate bundle because of relative pathing in the @font-face directive
+            // b) To be a bundle for auto-selection of ".min.css"
+            var fontAwesomeBundle = new StyleBundle("~/Content/font-awesome/css");
+            fontAwesomeBundle.Include("~/Content/font-awesome/font-awesome.css");
+            BundleTable.Bundles.Add(fontAwesomeBundle);
         }
 
         private static void ElmahPreStart()

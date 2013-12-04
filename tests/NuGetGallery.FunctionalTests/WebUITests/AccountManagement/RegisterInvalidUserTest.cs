@@ -31,6 +31,7 @@
             registerPagePostRequest.ExpectedResponseUrl = UrlHelper.RegistrationPendingPageUrl;
             FormPostHttpBody registerNewUserFormPost = new FormPostHttpBody();
             registerNewUserFormPost.FormPostParameters.Add("__RequestVerificationToken", this.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
+            registerNewUserFormPost.FormPostParameters.Add("LinkingAccount", "false"); 
             registerNewUserFormPost.FormPostParameters.Add(Constants.EmailAddressFormField, DateTime.Now.Ticks.ToString() + "@live.com");
             registerNewUserFormPost.FormPostParameters.Add(Constants.UserNameFormField, EnvironmentSettings.TestAccountName);  // This account already exists; we expect this to fail.
             registerNewUserFormPost.FormPostParameters.Add(Constants.PasswordFormField, "xxxxxxx");
@@ -46,6 +47,7 @@
             registerPagePostRequest.ExpectedResponseUrl = UrlHelper.RegistrationPendingPageUrl;
             registerNewUserFormPost = new FormPostHttpBody();
             registerNewUserFormPost.FormPostParameters.Add("__RequestVerificationToken", this.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
+            registerNewUserFormPost.FormPostParameters.Add("LinkingAccount", "false"); 
             registerNewUserFormPost.FormPostParameters.Add(Constants.EmailAddressFormField, DateTime.Now.Ticks.ToString() + "@live.com");
             registerNewUserFormPost.FormPostParameters.Add(Constants.UserNameFormField, Convert.ToChar(4).ToString());  // This is an invalid username; we expect this to fail, too.
             registerNewUserFormPost.FormPostParameters.Add(Constants.PasswordFormField, "xxxxxxx");

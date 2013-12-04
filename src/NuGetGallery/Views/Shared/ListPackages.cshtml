@@ -1,0 +1,82 @@
+﻿@model PackageListViewModel
+@{
+    ViewBag.Title = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "Packages" : "Packages matching " + Model.SearchTerm;
+    ViewBag.Tab = "Packages";
+}
+
+<div class="search">
+    @if (!String.IsNullOrEmpty(Model.SearchTerm))
+    {
+        <h1>Search for <i>@Model.SearchTerm</i> returned @Model.TotalCount @if (Model.TotalCount == 1)
+                                                                      {
+                                                                          <text>package</text>
+                                                                      }
+                                                                      else
+                                                                      {
+                                                                          <text>packages</text>
+                                                                      }</h1>
+    }
+    else
+    {
+        <h1>@if (Model.TotalCount == 1)
+            {
+                <text>There is @Model.TotalCount package</text>
+            }
+            else
+            {
+                <text>There are @Model.TotalCount packages</text>
+            }</h1>
+    }
+    @if (@Model.LastResultIndex > 0)
+    {
+        <h2>Displaying results @Model.FirstResultIndex - @Model.LastResultIndex.</h2>
+    }
+</div>
+
+<form method="get" action="">
+    <fieldset class="form search">
+        <legend>Sort Order</legend>
+        <input type="hidden" name="q" value="@Model.SearchTerm" />
+
+        <div class="form-field">
+            <select name="prerelease" id="prerelease">
+                @ViewHelpers.Option("", "Stable Only", Model.IncludePrerelease)
+                @ViewHelpers.Option("true", "Include Prerelease", Model.IncludePrerelease)
+            </select>
+            
+            <label for="sortOrder">Sort By</label>
+            <select name="sortOrder" id="sortOrder">
+                @if (!Model.SearchTerm.IsEmpty())
+                {
+                    @ViewHelpers.Option(Constants.RelevanceSortOrder, "Relevance", Model.SortOrder)
+                }
+                @ViewHelpers.Option(Constants.PopularitySortOrder, "Popularity", Model.SortOrder)
+                @ViewHelpers.Option(Constants.AlphabeticSortOrder, "A-Z", Model.SortOrder)
+                @ViewHelpers.Option(Constants.RecentSortOrder, "Recent", Model.SortOrder)
+            </select>
+        </div>
+    </fieldset>
+</form>
+
+<ul id="searchResults">
+    @foreach (var package in Model.Items)
+    {
+        <li>
+            @Html.Partial("_ListPackage", package)
+        </li>
+    }
+</ul>
+
+
+@ViewHelpers.PreviousNextPager(Model.Pager)
+
+@section BottomScripts {
+    <script>
+        $(function() {
+            $("#sortOrder,#prerelease").change(function() {
+                this.form.submit();
+            });
+        });
+    </script>
+}
+

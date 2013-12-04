@@ -15,6 +15,8 @@ using Ninject.MockingKernel;
 using Ninject.MockingKernel.Moq;
 using Ninject.Modules;
 using Ninject.Planning.Bindings;
+using NuGetGallery.Auditing;
+using NuGetGallery.Authentication;
 
 namespace NuGetGallery.Framework
 {
@@ -22,12 +24,15 @@ namespace NuGetGallery.Framework
     {
         internal static IKernel CreateContainer(bool autoMock)
         {
-            var kernel = autoMock ? new TestKernel(new UnitTestBindings()) : new StandardKernel(new UnitTestBindings());
+            var kernel = autoMock ? new TestKernel(new UnitTestBindings(), new AuthNinjectModule()) : new StandardKernel(new UnitTestBindings());
             return kernel;
         }
 
         public override void Load()
         {
+            Bind<AuditingService>()
+                .ToConstant(new TestAuditingService());
+
             Bind<HttpContextBase>()
                 .ToMethod(_ =>
                 {

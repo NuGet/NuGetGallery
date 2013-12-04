@@ -48,6 +48,7 @@ namespace NuGetGallery.Areas.Admin.Controllers {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
             public readonly string Index = "Index";
+            public readonly string Throw = "Throw";
         }
 
 
@@ -66,6 +67,11 @@ namespace NuGetGallery.Areas.Admin.Controllers {
 
         public override System.Web.Mvc.ActionResult Index() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Index);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Throw() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Throw);
             return callInfo;
         }
 
