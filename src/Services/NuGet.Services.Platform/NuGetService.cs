@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Sinks;
 using NuGetGallery.Storage;
+using NuGetGallery;
 
 namespace NuGet.Services
 {
@@ -32,9 +33,14 @@ namespace NuGet.Services
 
         public string TempDirectory { get; protected set; }
 
-        protected NuGetService(string serviceName)
+        protected NuGetService(string serviceName, NuGetServiceHost host)
         {
             Name = serviceName;
+            Host = host;
+            Host.AttachService(this);
+
+            _instancesTable = Host.Configuration.Storage.Primary.Tables.Table<ServiceInstance>();
+            ServiceInstanceName = Host.Name + "_" + Name + "_" + ServiceInstanceId.Get().ToString();
 
             TempDirectory = Path.Combine(Path.GetTempPath(), "NuGetServices", serviceName);
 
@@ -43,31 +49,29 @@ namespace NuGet.Services
 
         public virtual async Task<bool> Start()
         {
+            ServicePlatformEventSource.Log.Starting(Name, ServiceInstanceName);
             if (Host == null)
             {
                 throw new InvalidOperationException(Strings.NuGetService_HostNotSet);
             }
+            Host.ShutdownToken.Register(OnShutdown);
 
             await StartTracing();
 
-            return await OnStart();
+            var ret = await OnStart();
+            ServicePlatformEventSource.Log.Started(Name, ServiceInstanceName);
+            return ret;
         }
 
         public virtual async Task Run()
         {
+            ServicePlatformEventSource.Log.Running(Name, ServiceInstanceName);
             if (Host == null)
             {
                 throw new InvalidOperationException(Strings.NuGetService_HostNotSet);
             }
             await OnRun();
-        }
-
-        public virtual void Initialize(NuGetServiceHost host)
-        {
-            Host = host;
-
-            _instancesTable = Host.Configuration.Storage.Primary.Tables.Table<ServiceInstance>();
-            ServiceInstanceName = Host.HostInstanceName + "_" + Name + "_" + ServiceInstanceId.Get().ToString();
+            ServicePlatformEventSource.Log.Stopped(Name, ServiceInstanceName);
         }
 
         public void Dispose()
@@ -85,6 +89,7 @@ namespace NuGet.Services
         }
 
         protected virtual Task<bool> OnStart() { return Task.FromResult(true); }
+        protected virtual void OnShutdown() { }
         protected abstract Task OnRun();
 
         protected virtual IEnumerable<EventSource> GetTraceEventSources()
@@ -103,6 +108,7 @@ namespace NuGet.Services
                 listener.EnableEvents(source, EventLevel.Informational);
             }
             listener.EnableEvents(SemanticLoggingEventSource.Log, EventLevel.Informational);
+            listener.EnableEvents(ServicePlatformEventSource.Log, EventLevel.Informational);
             _globalSinkSubscription = stream.LogToWindowsAzureTable(
                 ServiceInstanceName,
                 Storage.Primary.ConnectionString,
@@ -110,11 +116,13 @@ namespace NuGet.Services
 
             // Log Instance Status
             _serviceInstance = new ServiceInstance(
-                Name,
+                Host.Name,
                 ServiceInstanceName,
+                Name,
                 Environment.MachineName,
                 DateTimeOffset.UtcNow,
-                DateTimeOffset.UtcNow);
+                DateTimeOffset.UtcNow,
+                AssemblyInformation.ForAssembly(GetType().Assembly));
             await _instancesTable.InsertOrReplace(_serviceInstance);
         }
 

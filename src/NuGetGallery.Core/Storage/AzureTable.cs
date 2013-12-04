@@ -13,7 +13,7 @@ using Microsoft.WindowsAzure.Storage;
 namespace NuGetGallery.Storage
 {
     public class AzureTable<TEntity>
-        where TEntity : ITableEntity
+        where TEntity : ITableEntity, new()
     {
         private CloudTable _table;
 
@@ -56,15 +56,27 @@ namespace NuGetGallery.Storage
 
         public async Task<TEntity> Get(string partitionKey, string rowKey)
         {
-            TEntity entity;
-            try
+            return await SafeExecuteWithoutCreate(async table =>
             {
-                var result = await _table.ExecuteAsync(TableOperation.Retrieve<TEntity>(partitionKey, rowKey));
+                var result = await table.ExecuteAsync(TableOperation.Retrieve<TEntity>(partitionKey, rowKey));
                 if (result.HttpStatusCode != 200)
                 {
                     return default(TEntity);
                 }
-                entity = (TEntity)result.Result;
+                return (TEntity)result.Result;
+            });
+        }
+
+        public IEnumerable<TEntity> Get(string partitionKey)
+        {
+            var query = _table.CreateQuery<TEntity>()
+                .Where(t => t.PartitionKey == partitionKey);
+            var enumerator = query.GetEnumerator();
+
+            // There may be an exception grabbing the first one due to the table being missing
+            try
+            {
+                enumerator.MoveNext();
             }
             catch (StorageException ex)
             {
@@ -73,13 +85,17 @@ namespace NuGetGallery.Storage
                     (ex.RequestInformation.ExtendedErrorInformation.ErrorCode == TableErrorCodeStrings.TableNotFound ||
                      ex.RequestInformation.ExtendedErrorInformation.ErrorCode == TableErrorCodeStrings.EntityNotFound))
                 {
-                    return default(TEntity);
+                    yield break; // Just return nothing, the table doesn't exist yet.
                 }
                 throw;
             }
-            return entity;
+
+            do
+            {
+                yield return enumerator.Current;
+            } while (enumerator.MoveNext());
         }
-        
+
         private static ConcurrentDictionary<Type, string> _tableNameMap = new ConcurrentDictionary<Type, string>();
         public static string InferTableName(Type entityType)
         {
@@ -100,6 +116,27 @@ namespace NuGetGallery.Storage
                 }
                 return name;
             });
+        }
+
+        private async Task<TResult> SafeExecuteWithoutCreate<TResult>(Func<CloudTable, Task<TResult>> action)
+        {
+            TResult result;
+            try
+            {
+                result = await action(_table);
+            }
+            catch (StorageException ex)
+            {
+                if (ex.RequestInformation != null &&
+                    ex.RequestInformation.ExtendedErrorInformation != null &&
+                    (ex.RequestInformation.ExtendedErrorInformation.ErrorCode == TableErrorCodeStrings.TableNotFound ||
+                     ex.RequestInformation.ExtendedErrorInformation.ErrorCode == TableErrorCodeStrings.EntityNotFound))
+                {
+                    return default(TResult);
+                }
+                throw;
+            }
+            return result;
         }
     }
 }

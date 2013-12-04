@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using Microsoft.WindowsAzure.Storage.Table;
+using NuGetGallery;
 using NuGetGallery.Storage;
 
 namespace NuGet.Services
@@ -15,18 +16,29 @@ namespace NuGet.Services
         public string Name { get { return RowKey; } set { RowKey = value; } }
 
         [IgnoreProperty]
-        public string Service { get { return PartitionKey; } set { PartitionKey = value; } }
+        public string Host { get { return PartitionKey; } set { PartitionKey = value; } }
 
+        public string Service { get; set; }
+        public string BuildCommit { get; set; }
+        public string BuildBranch { get; set; }
+        public DateTimeOffset BuildDate { get; set; }
+        public Uri SourceCodeRepository { get; set; }
         public string MachineName { get; set; }
         public DateTimeOffset StartedAt { get; set; }
         public DateTimeOffset LastHeartbeat { get; set; }
 
-        public ServiceInstance(string service, string name, string machineName, DateTimeOffset startedAt, DateTimeOffset lastHeartbeat)
-            : base(service, name, lastHeartbeat)
+        public ServiceInstance(string host, string name, string service, string machineName, DateTimeOffset startedAt, DateTimeOffset lastHeartbeat, AssemblyInformation info)
+            : base(host, name, lastHeartbeat)
         {
+            Service = service;
             MachineName = machineName;
             StartedAt = startedAt;
             LastHeartbeat = lastHeartbeat;
+
+            BuildCommit = info.BuildCommit;
+            BuildBranch = info.BuildBranch;
+            BuildDate = info.BuildDate;
+            SourceCodeRepository = info.SourceCodeRepository;
         }
     }
 }

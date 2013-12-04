@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace NuGetGallery.Storage
@@ -17,7 +18,7 @@ namespace NuGetGallery.Storage
             Client = client;
         }
 
-        public virtual AzureTable<TEntity> Table<TEntity>() where TEntity : ITableEntity
+        public virtual AzureTable<TEntity> Table<TEntity>() where TEntity : ITableEntity, new()
         {
             return new AzureTable<TEntity>(Client, TableNamePrefix);
         }

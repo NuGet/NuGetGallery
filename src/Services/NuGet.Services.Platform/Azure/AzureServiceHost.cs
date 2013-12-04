@@ -10,7 +10,7 @@ namespace NuGet.Services.Azure
     {
         private ServiceConfiguration _config = ServiceConfiguration.CreateAzure();
         
-        public override string HostInstanceName
+        public override string Name
         {
             get { return RoleEnvironment.CurrentRoleInstance.Id; }
         }

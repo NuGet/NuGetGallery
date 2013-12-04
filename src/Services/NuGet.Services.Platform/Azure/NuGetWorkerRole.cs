@@ -10,16 +10,11 @@ namespace NuGet.Services.Azure
 {
     public abstract class NuGetWorkerRole : RoleEntryPoint
     {
-        private Func<NuGetService> _serviceFactory;
-        private int _instanceCount;
         private AzureServiceHost _host;
-
         private NuGetService[] _instances;
 
-        protected NuGetWorkerRole(Func<NuGetService> serviceFactory, int instanceCount)
+        protected NuGetWorkerRole()
         {
-            _serviceFactory = serviceFactory;
-            _instanceCount = instanceCount;
             _host = new AzureServiceHost();
         }
 
@@ -40,27 +35,12 @@ namespace NuGet.Services.Azure
             ServicePointManager.DefaultConnectionLimit = 12;
 
             // Start as many services as processors
-            _instances = Enumerable
-                .Range(0, _instanceCount)
-                .Select(_ => StartService())
-                .ToArray();
+            _instances = CreateServices(_host).ToArray();
 
             // Start them all and wait for them all to finish starting successfully
             return Task.WhenAll(_instances.Select(i => i.Start())).Result.All(b => b);
         }
 
-        private NuGetService StartService()
-        {
-            var service = _serviceFactory();
-            service.Initialize(_host);
-            return service;
-        }
-    }
-
-    public abstract class NuGetWorkerRole<T> : NuGetWorkerRole
-        where T : NuGetService, new()
-    {
-        public NuGetWorkerRole() : this(Environment.ProcessorCount) { }
-        public NuGetWorkerRole(int instanceCount) : base(() => new T(), instanceCount) { }
+        protected abstract IEnumerable<NuGetService> CreateServices(NuGetServiceHost host);
     }
 }

@@ -25,8 +25,8 @@ namespace NuGet.Services.Jobs
             set { _id = value; RefreshKeys(); }
         }
 
-        public string Job { get; private set; }
-        public string Source { get; private set; }
+        public string Job { get; set; }
+        public string Source { get; set; }
 
         [PropertySerializer(typeof(JsonDictionarySerializer))]
         public Dictionary<string, string> Payload { get; private set; }
@@ -54,6 +54,9 @@ namespace NuGet.Services.Jobs
         {
             get { return GetRowKey(Id); }
         }
+
+        [Obsolete("For serialization only")]
+        public Invocation() { }
 
         public Invocation(Guid id, string job, string source, Dictionary<string, string> payload)
             : base(GetPartitionKey(id), GetRowKey(id), DateTimeOffset.UtcNow)

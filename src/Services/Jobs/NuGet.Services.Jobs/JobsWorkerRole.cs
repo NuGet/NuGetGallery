@@ -16,7 +16,18 @@ using NuGet.Services.Jobs.Monitoring;
 
 namespace NuGet.Services.Jobs
 {
-    public class JobsWorkerRole : NuGetWorkerRole<JobsService>
+    public class JobsWorkerRole : NuGetWorkerRole
     {
+        protected override IEnumerable<NuGetService> CreateServices(NuGetServiceHost host)
+        {
+            for (int i = 0; i < Environment.ProcessorCount; i++)
+            {
+                // One worker per proc
+                yield return new JobsService(host);
+            }
+
+            // One HTTP worker
+            yield return new JobStatusHttpService(host);
+        }
     }
 }

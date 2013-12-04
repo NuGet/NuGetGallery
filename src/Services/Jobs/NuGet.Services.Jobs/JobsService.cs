@@ -32,20 +32,17 @@ namespace NuGet.Services.Jobs
 
         public IEnumerable<JobDescription> Jobs { get; private set; }
         
-        public JobsService()
-            : base(MyServiceName)
+        public JobsService(NuGetServiceHost host)
+            : base(MyServiceName, host)
         {
         }
 
         protected override Task<bool> OnStart()
         {
-            JobsServiceEventSource.Log.Starting();
-
             try
             {
                 DiscoverJobs();
 
-                JobsServiceEventSource.Log.StartupComplete();
                 return base.OnStart();
             }
             catch (Exception ex)
