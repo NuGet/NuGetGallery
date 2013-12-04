@@ -79,22 +79,18 @@ function Set-Environment {
     }
 
     RunInSubscription $CurrentEnvironment.Subscription.Name {
-        
-        Write-Host "Downloading Configuration for Frontend..."
-        $frontend = $null;
-        if($CurrentEnvironment.Type -eq "website") {
-            $frontend = Get-AzureWebsite -Name $CurrentEnvironment.Frontend
-        } elseif($CurrentEnvironment.Type -eq "webrole") {
-            $frontend = Get-AzureDeployment -ServiceName $CurrentEnvironment.Frontend -Slot "production"
+        $backendName = $null;
+        if($CurrentEnvironment.Version -eq 3) {
+            $backendName = ($CurrentEnvironment.Services | where { $_.Kind -eq "Backend" } | select -first 1).ID
         } else {
-            Write-Warning "Unknown Service Type: $($CurrentEnvironment.Type)"
+            $backendName = $CurrentEnvironment.Backend
         }
-        
+
+
         Write-Host "Downloading Configuration for Backend..."
-        $backend = Get-AzureDeployment -ServiceName $CurrentEnvironment.Backend -Slot "production"
+        $backend = Get-AzureDeployment -ServiceName $backendName -Slot "production"
 
         $Global:CurrentDeployment = @{
-            "Frontend" = $frontend;
             "Backend" = $backend;
         }
 
