@@ -6,7 +6,18 @@ namespace NuGetGallery
     {
         public override float LengthNorm(string fieldName, int numTerms)
         {
-            return (fieldName == "TokenizedId" || fieldName == "ShingledId" || fieldName == "Owners") ? 1 : base.LengthNorm(fieldName, numTerms);
+            if (fieldName == "TokenizedId" || fieldName == "ShingledId" || fieldName == "Owners")
+            {
+                return 1;
+            }
+            else if (fieldName == "Tags" && numTerms <= 9)
+            {
+                return 1;
+            }
+            else
+            {
+                return base.LengthNorm(fieldName, numTerms);
+            }
         }
     }
 }
