@@ -117,13 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="JobDescription_CannotBeConstructed" xml:space="preserve">
-    <value>Cannot construct job from this job description, it was loaded from a table</value>
+  <data name="NuGetService_HostNotSet" xml:space="preserve">
+    <value>Host must be set using SetHost before invoking this method.</value>
   </data>
-  <data name="JobDispatcher_AsyncContinuationOfNonAsyncJob" xml:space="preserve">
-    <value>Attempted to invoke continuation of non-async job: {0}.</value>
+  <data name="ServiceConfiguration_UnknownSqlServer" xml:space="preserve">
+    <value>Unknown Sql Server: {0}</value>
   </data>
-  <data name="UnknownJobException_Message" xml:space="preserve">
-    <value>Unknown job: {0}</value>
+  <data name="ServiceConfiguration_UnknownStorageAccount" xml:space="preserve">
+    <value>Unknown Storage Account: {0}</value>
   </data>
 </root>

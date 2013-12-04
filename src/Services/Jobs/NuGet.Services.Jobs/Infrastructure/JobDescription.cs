@@ -8,17 +8,21 @@ using System.Text.RegularExpressions;
 using System.Linq.Expressions;
 using System.ComponentModel;
 using Microsoft.WindowsAzure.Storage.Table;
+using NuGetGallery.Storage;
+using System.Diagnostics.Tracing;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NuGet.Services.Jobs
 {
-    public class JobDescription : TableEntity
+    [Table("Jobs")]
+    public class JobDescription : AzureTableEntity
     {
         private Func<JobBase> _constructor;
 
         public string Name { get; set; }
         public string Description { get; set; }
         public string Runtime { get; set; }
-        public Type EventProvider { get; set; }
+        public Guid? EventProviderId { get; set; }
         public bool? Enabled { get; set; }
 
         [Obsolete("For serialization only")]
@@ -27,17 +31,21 @@ namespace NuGet.Services.Jobs
         public JobDescription(string name, string runtime, Func<JobBase> constructor)
             : this(name, null, runtime, null, constructor) { }
 
-        public JobDescription(string name, string description, string runtime, Type eventProvider, Func<JobBase> constructor)
+        public JobDescription(string name, string description, string runtime, Guid? eventProviderId, Func<JobBase> constructor)
         {
             Name = name;
             Description = description;
             Runtime = runtime;
-            EventProvider = eventProvider;
+            EventProviderId = eventProviderId;
             _constructor = constructor;
         }
 
         public JobBase CreateInstance()
         {
+            if (_constructor == null)
+            {
+                throw new InvalidOperationException(Strings.JobDescription_CannotBeConstructed);
+            }
             return _constructor();
         }
 
@@ -57,7 +65,7 @@ namespace NuGet.Services.Jobs
                 name: attr.Name, 
                 description: descAttr == null ? null : descAttr.Description,
                 runtime: jobType.AssemblyQualifiedName, 
-                eventProvider: attr.EventProvider, 
+                eventProviderId: attr.EventProvider == null ? (Guid?)null : (Guid?)EventSource.GetGuid(attr.EventProvider), 
                 constructor: constructor);
         }
     }

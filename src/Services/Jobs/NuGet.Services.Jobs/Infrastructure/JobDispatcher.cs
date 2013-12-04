@@ -12,16 +12,14 @@ namespace NuGet.Services.Jobs
     {
         private Dictionary<string, JobDescription> _jobMap;
         private List<JobDescription> _jobs;
-        private BackendMonitoringHub _monitor;
 
         public IReadOnlyList<JobDescription> Jobs { get { return _jobs.AsReadOnly(); } }
         public ServiceConfiguration Config { get; private set; }
 
-        public JobDispatcher(ServiceConfiguration config, IEnumerable<JobDescription> jobs, BackendMonitoringHub monitor)
+        public JobDispatcher(ServiceConfiguration config, IEnumerable<JobDescription> jobs)
         {
             _jobs = jobs.ToList();
             _jobMap = _jobs.ToDictionary(j => j.Name, StringComparer.OrdinalIgnoreCase);
-            _monitor = monitor;
         
             Config = config;
         }
@@ -37,7 +35,7 @@ namespace NuGet.Services.Jobs
 
             if (context.LogCapture != null)
             {
-                await context.LogCapture.SetJob(jobDesc, job);
+                context.LogCapture.SetJob(jobDesc, job);
             }
 
             InvocationEventSource.Log.Invoking(jobDesc);

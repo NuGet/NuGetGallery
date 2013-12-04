@@ -124,7 +124,11 @@
     <Compile Include="Entities\User.cs" />
     <Compile Include="Jobs\Invocation.cs" />
     <Compile Include="Storage\AzureTable.cs" />
+    <Compile Include="Storage\AzureTableEntity.cs" />
     <Compile Include="Storage\BlobStorageHub.cs" />
+    <Compile Include="Storage\DefaultTablePropertySerializer.cs" />
+    <Compile Include="Storage\JsonDictionarySerializer.cs" />
+    <Compile Include="Storage\PropertySerializerAttribute.cs" />
     <Compile Include="Storage\QueueStorageHub.cs" />
     <Compile Include="Storage\ReverseChronologicalTableEntry.cs" />
     <Compile Include="Monitoring\MonitoringHub.cs" />
@@ -136,6 +140,8 @@
     <Compile Include="Storage\StorageHelpers.cs" />
     <Compile Include="Storage\StorageAccountHub.cs" />
     <Compile Include="Storage\StorageHub.cs" />
+    <Compile Include="Storage\TableProperty.cs" />
+    <Compile Include="Storage\TablePropertySerializer.cs" />
     <Compile Include="Storage\TableStorageHub.cs" />
     <Compile Include="Strings.Designer.cs">
       <AutoGen>True</AutoGen>

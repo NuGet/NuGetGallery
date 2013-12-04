@@ -84,6 +84,10 @@
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
       <Name>NuGetGallery.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\NuGet.Services.Platform\NuGet.Services.Platform.csproj">
+      <Project>{ef86883e-a1b4-4052-9222-51a01c6c41cd}</Project>
+      <Name>NuGet.Services.Platform</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.Jobs\NuGet.Services.Jobs.csproj">
       <Project>{7f92c174-5310-4090-a6a3-3cc7c67c19d6}</Project>
       <Name>NuGet.Services.Jobs</Name>

@@ -15,12 +15,22 @@ namespace NuGet.Services.Jobs
     /// status record of an invocation
     /// </summary>
     [Table("Invocations")]
-    public class Invocation : TableEntity
+    public class Invocation : AzureTableEntity
     {
-        public Guid Id { get; private set; }
+        private Guid _id;
+
+        public Guid Id
+        {
+            get { return _id; }
+            set { _id = value; RefreshKeys(); }
+        }
+
         public string Job { get; private set; }
         public string Source { get; private set; }
+
+        [PropertySerializer(typeof(JsonDictionarySerializer))]
         public Dictionary<string, string> Payload { get; private set; }
+
         public InvocationStatus Status { get; set; }
         public int DequeueCount { get; set; }
         public string LastInstanceName { get; set; }
@@ -35,7 +45,18 @@ namespace NuGet.Services.Jobs
         public DateTimeOffset? EstimatedContinueAt { get; set; }
         public DateTimeOffset? EstimatedNextVisibleTime { get; set; }
 
+        public override string PartitionKey
+        {
+            get { return GetPartitionKey(Id); }
+        }
+
+        public override string RowKey
+        {
+            get { return GetRowKey(Id); }
+        }
+
         public Invocation(Guid id, string job, string source, Dictionary<string, string> payload)
+            : base(GetPartitionKey(id), GetRowKey(id), DateTimeOffset.UtcNow)
         {
             Id = id;
             Job = job;
@@ -52,6 +73,12 @@ namespace NuGet.Services.Jobs
         public static string GetRowKey(Guid id)
         {
             return id.ToString("N").Substring(2); // First segment of the GUID
+        }
+
+        protected override void RefreshKeys()
+        {
+            PartitionKey = GetPartitionKey(Id);
+            RowKey = GetRowKey(Id);
         }
     }
 }

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NuGet.Services.Jobs {
+namespace NuGet.Services {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace NuGet.Services.Jobs {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NuGet.Services.Jobs.Strings", typeof(Strings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NuGet.Services.Strings", typeof(Strings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,29 +61,29 @@ namespace NuGet.Services.Jobs {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot construct job from this job description, it was loaded from a table.
+        ///   Looks up a localized string similar to Host must be set using SetHost before invoking this method..
         /// </summary>
-        internal static string JobDescription_CannotBeConstructed {
+        internal static string NuGetService_HostNotSet {
             get {
-                return ResourceManager.GetString("JobDescription_CannotBeConstructed", resourceCulture);
+                return ResourceManager.GetString("NuGetService_HostNotSet", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Attempted to invoke continuation of non-async job: {0}..
+        ///   Looks up a localized string similar to Unknown Sql Server: {0}.
         /// </summary>
-        internal static string JobDispatcher_AsyncContinuationOfNonAsyncJob {
+        internal static string ServiceConfiguration_UnknownSqlServer {
             get {
-                return ResourceManager.GetString("JobDispatcher_AsyncContinuationOfNonAsyncJob", resourceCulture);
+                return ResourceManager.GetString("ServiceConfiguration_UnknownSqlServer", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unknown job: {0}.
+        ///   Looks up a localized string similar to Unknown Storage Account: {0}.
         /// </summary>
-        internal static string UnknownJobException_Message {
+        internal static string ServiceConfiguration_UnknownStorageAccount {
             get {
-                return ResourceManager.GetString("UnknownJobException_Message", resourceCulture);
+                return ResourceManager.GetString("ServiceConfiguration_UnknownStorageAccount", resourceCulture);
             }
         }
     }

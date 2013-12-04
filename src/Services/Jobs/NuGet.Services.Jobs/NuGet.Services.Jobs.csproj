@@ -66,6 +66,7 @@
       <HintPath>..\..\..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Services.Client" />
     <Reference Include="System.Reactive.Core">
@@ -87,7 +88,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ServiceConfiguration.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Helpers\DapperExtensions.cs" />
     <Compile Include="Helpers\DateTimeOffsetExtensions.cs" />
@@ -105,22 +105,18 @@
     <Compile Include="Infrastructure\JobRunner.cs" />
     <Compile Include="InvalidJobRequestException.cs" />
     <Compile Include="Jobs\CreateOnlineDatabaseBackupJob.cs" />
-    <Compile Include="Monitoring\InstancesEntry.cs" />
     <Compile Include="Monitoring\InvocationEventSource.cs" />
     <Compile Include="Monitoring\InvocationLogCapture.cs" />
-    <Compile Include="Monitoring\JobsEntry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RunnerId.cs" />
     <Compile Include="Strings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
-    <Compile Include="Monitoring\BackendMonitoringHub.cs" />
+    <Compile Include="JobsService.cs" />
     <Compile Include="Monitoring\JobsServiceEventSource.cs" />
-    <Compile Include="KnownServers.cs" />
     <Compile Include="UnknownJobException.cs" />
-    <Compile Include="WorkerRole.cs" />
+    <Compile Include="JobsWorkerRole.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">
@@ -141,6 +137,10 @@
     <ProjectReference Include="..\..\..\NuGetGallery.Core\NuGetGallery.Core.csproj">
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
       <Name>NuGetGallery.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\NuGet.Services.Platform\NuGet.Services.Platform.csproj">
+      <Project>{ef86883e-a1b4-4052-9222-51a01c6c41cd}</Project>
+      <Name>NuGet.Services.Platform</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

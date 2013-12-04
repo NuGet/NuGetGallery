@@ -9,7 +9,7 @@ using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 using NuGetGallery.Storage;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services
 {
     public delegate bool TryParse<T>(string input, out T val);
 
@@ -17,8 +17,6 @@ namespace NuGet.Services.Jobs
     {
         private Func<string, string> _configThunk;
         
-        public string InstanceId { get; private set; }
-
         public SqlConnectionStringBuilder PrimaryDatabase { get { return GetSqlConnection("Sql.Primary"); } }
         public SqlConnectionStringBuilder WarehouseDatabase { get { return GetSqlConnection("Sql.Warehouse"); } }
 
@@ -27,13 +25,12 @@ namespace NuGet.Services.Jobs
         public TimeSpan QueuePollInterval { get { return Get<TimeSpan>("Queue.PollInterval", TimeSpan.TryParse, TimeSpan.FromSeconds(1)); } }
 
         private ServiceConfiguration()
-            : this(Environment.MachineName, NullThunk)
+            : this(NullThunk)
         {
         }
 
-        private ServiceConfiguration(string instanceId, Func<string, string> configThunk)
+        private ServiceConfiguration(Func<string, string> configThunk)
         {
-            InstanceId = instanceId;
             _configThunk = configThunk;
 
             Storage = new StorageHub(
@@ -95,14 +92,12 @@ namespace NuGet.Services.Jobs
         public static ServiceConfiguration Create(IDictionary<string, string> config)
         {
             return new ServiceConfiguration(
-                Environment.MachineName,
                 key => config.ContainsKey(key) ? config[key] : null);
         }
 
         public static ServiceConfiguration CreateAzure()
         {
             return new ServiceConfiguration(
-                RoleEnvironment.CurrentRoleInstance.Id,
                 key => RoleEnvironment.GetConfigurationSettingValue(key));
         }
 
@@ -117,7 +112,7 @@ namespace NuGet.Services.Jobs
                 default:
                     throw new InvalidOperationException(String.Format(
                         CultureInfo.CurrentCulture,
-                        Strings.BackendConfiguration_UnknownSqlServer,
+                        Strings.ServiceConfiguration_UnknownSqlServer,
                         server.ToString()));
             }
         }
@@ -133,7 +128,7 @@ namespace NuGet.Services.Jobs
                 default:
                     throw new InvalidOperationException(String.Format(
                         CultureInfo.CurrentCulture,
-                        Strings.BackendConfiguration_UnknownStorageAccount,
+                        Strings.ServiceConfiguration_UnknownStorageAccount,
                         account.ToString()));
             }
         }

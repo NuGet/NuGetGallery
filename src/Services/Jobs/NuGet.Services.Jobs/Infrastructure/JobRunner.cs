@@ -19,21 +19,19 @@ namespace NuGet.Services.Jobs
         private JobDispatcher _dispatcher;
         private InvocationQueue _queue;
         private ServiceConfiguration _config;
-        private BackendMonitoringHub _monitoring;
 
-        public JobRunner(JobDispatcher dispatcher, ServiceConfiguration config, BackendMonitoringHub monitoring)
+        public JobsService Service { get; private set; }
+
+        public event EventHandler Heartbeat;
+
+        public JobRunner(JobDispatcher dispatcher, ServiceConfiguration config, JobsService service)
         {
             _dispatcher = dispatcher;
             _config = config;
-            _monitoring = monitoring;
 
-            _queue = new InvocationQueue(config.InstanceId, config.Storage);
-            
-            // Register jobs
-            foreach (var job in dispatcher.Jobs)
-            {
-                monitoring.RegisterJob(job);
-            }
+            Service = service;
+
+            _queue = new InvocationQueue(service.ServiceInstanceName, config.Storage);
         }
 
         public async Task Run(CancellationToken cancelToken)
@@ -62,6 +60,7 @@ namespace NuGet.Services.Jobs
                     {
                         await Dispatch(request);
                     }
+                    OnHeartbeat(EventArgs.Empty);
                 }
             }
             catch (Exception ex)
@@ -69,6 +68,15 @@ namespace NuGet.Services.Jobs
                 JobsServiceEventSource.Log.DispatchLoopError(ex);
             }
             JobsServiceEventSource.Log.DispatchLoopEnded();
+        }
+
+        protected virtual void OnHeartbeat(EventArgs args)
+        {
+            var handler = Heartbeat;
+            if (handler != null)
+            {
+                handler(this, args);
+            }
         }
 
         private async Task Dispatch(InvocationRequest request)
@@ -90,7 +98,7 @@ namespace NuGet.Services.Jobs
             await _queue.Update(request.Invocation);
 
             // Create the request.Invocation context and start capturing the logs
-            var capture = new InvocationLogCapture(request.Invocation, _monitoring);
+            var capture = new InvocationLogCapture(request.Invocation, Service);
             var context = new InvocationContext(request, _queue, _config, capture);
             await capture.Start();
 

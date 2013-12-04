@@ -15,6 +15,8 @@ Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGet.Services.Jobs.Cloud",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Jobs.Facts", "src\Services\Jobs\NuGet.Services.Jobs.Facts\NuGet.Services.Jobs.Facts.csproj", "{4405C24C-7F57-4826-831F-D5D7E139F02E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Platform", "src\Services\NuGet.Services.Platform\NuGet.Services.Platform.csproj", "{EF86883E-A1B4-4052-9222-51A01C6C41CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{4405C24C-7F57-4826-831F-D5D7E139F02E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4405C24C-7F57-4826-831F-D5D7E139F02E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4405C24C-7F57-4826-831F-D5D7E139F02E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF86883E-A1B4-4052-9222-51A01C6C41CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF86883E-A1B4-4052-9222-51A01C6C41CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF86883E-A1B4-4052-9222-51A01C6C41CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF86883E-A1B4-4052-9222-51A01C6C41CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
