@@ -53,7 +53,7 @@ namespace NuGetGallery
         [Display(Name = "Reason")]
         public ReportPackageReason? Reason { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Please enter a message.")]
         [AllowHtml]
         [StringLength(4000)]
         [Display(Name = "Abuse Report")]
