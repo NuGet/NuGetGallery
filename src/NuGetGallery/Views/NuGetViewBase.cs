@@ -39,7 +39,7 @@ namespace NuGetGallery.Views
                 var ctrl = self.ViewContext.Controller as AppController;
                 if (ctrl == null)
                 {
-                    return null;
+                    throw new InvalidOperationException("NuGetViewBase should only be used on views for actions on AppControllers");
                 }
                 return ctrl.NuGetContext;
             };
