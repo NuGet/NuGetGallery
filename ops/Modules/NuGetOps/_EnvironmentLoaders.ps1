@@ -56,6 +56,7 @@ function Get-V3Environments($NuGetOpsDefinition) {
                         Type = $_.type;
                         Name = $_.name;
                         ID = $_.InnerText;
+                        Environment = $env;
                     } -InputObject $svc
                     $svc
                 };
