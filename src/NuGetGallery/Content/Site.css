@@ -530,6 +530,9 @@ section.package {
         font-size: 1.25em;
     }
 
+    section.package ul,
+    section.package li { display: inline; }
+
 section.package h1 {
     font-size: 1.75em;
     display: inline-block;
