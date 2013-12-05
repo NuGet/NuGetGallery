@@ -78,7 +78,7 @@
                 $form.validate().element($('#Reason'));
             }
 
-            if (val === 'HasABug') {
+            if (val === 'HasABugOrFailedToInstall') {
                 $form.find("input, textarea, select").not('#form-field-reason *').attr('disabled', 'disabled');
             } else {
                 $form.find("input, textarea, select").not('#form-field-reason').removeAttr('disabled');
