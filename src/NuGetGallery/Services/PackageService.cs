@@ -671,5 +671,24 @@ namespace NuGetGallery
             }
             _packageRepository.CommitChanges();
         }
+
+        public void SetLicenseReportVisibilityForPackageRegistration(PackageRegistration packageRegistration, bool visible, bool commitChanges = true)
+        {
+            foreach (Package package in packageRegistration.Packages)
+            {
+                if (package == null)
+                {
+                    throw new ArgumentNullException("package");
+                }
+                package.HideLicenseReport = !visible;
+               
+            }
+            //do a single commit to the repository.
+            if (commitChanges)
+            {
+                _packageRepository.CommitChanges();
+            }
+            _packageRepository.CommitChanges();
+        }
     }
 }

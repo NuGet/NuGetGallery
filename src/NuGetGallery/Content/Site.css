@@ -449,6 +449,13 @@ p.authors { font-size: 1.25em; }
     font-size: 0.9em;
 }
 
+#enableDisableLicenseReportForAllVersionsButton {
+    margin: 0 auto;
+    margin-top: 1.5em;
+    display: block;
+    font-size: 0.9em;
+}
+
 .fadedLicenseName {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
