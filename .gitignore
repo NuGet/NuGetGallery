@@ -1,4 +1,4 @@
-.nuget/nuget.exe
+nuget.exe
 
 *.results.xml
 _AzurePackage
