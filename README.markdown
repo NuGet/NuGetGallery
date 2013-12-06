@@ -35,6 +35,7 @@ website for the NuGet client. For information about the NuGet clients, visit htt
     ```
     Update-Database
     ```
+ 6. Ensure the 'NuGetGallery' project (under the Frontend folder) is set to the Startup Project
   
 
 That's it! You should now be able to press Ctrl-F5 to run the site!
