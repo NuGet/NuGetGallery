@@ -75,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Features\SearchTest.cs" />
+    <Compile Include="LoadTests\PackageDownloadTest.cs" />
     <Compile Include="WebUITests\AccountManagement\RegisterNewUserTest.cs" />
     <Compile Include="..\..\src\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
@@ -125,6 +126,7 @@
     <None Include="App.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="LoadTests\E2E.loadtest" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />

@@ -29,7 +29,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
             {
                 string packageId = Constants.TestPackageId; //try to down load a pre-defined test package.   
                 string version = "1.0.0";
-                Task<string> downloadTask = DownloadPackage(packageId, version);                
+                Task<string> downloadTask = ODataHelper.DownloadPackageFromFeed(packageId, version);                
                 string filename = downloadTask.Result;
                 //check if the file exists.
                 Assert.IsTrue(File.Exists(filename), " Package download from V2 feed didnt work");
@@ -54,7 +54,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
             {
                 string packageId = Constants.TestPackageId; //the package name shall be fixed as it really doesnt matter which package we are trying to install.
                 string version = "1.0.0";
-                Task<string> downloadTask = DownloadPackage(packageId, version,"Restore");
+                Task<string> downloadTask = ODataHelper.DownloadPackageFromFeed(packageId, version,"Restore");
                 string filename = downloadTask.Result;
                 //check if the file exists.
                 Assert.IsTrue(File.Exists(filename), " Package restore from V2 feed didnt work");
