@@ -5,42 +5,46 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using NuGet.Services.Composition;
 
 namespace NuGet.Services.Azure
 {
     public abstract class NuGetWorkerRole : RoleEntryPoint
     {
         private AzureServiceHost _host;
-        private NuGetService[] _instances;
-
+        private Task _runTask;
+        
         protected NuGetWorkerRole()
         {
-            _host = new AzureServiceHost();
+            _host = new AzureServiceHost(this);
         }
 
         public override void Run()
         {
-            // Run all the workers
-            Task.WaitAll(_instances.Select(i => i.Run()).ToArray());
+            _runTask = _host.Run();
+            _runTask.Wait();
         }
 
         public override void OnStop()
         {
             _host.Shutdown();
+
+            // As per http://msdn.microsoft.com/en-us/library/microsoft.windowsazure.serviceruntime.roleentrypoint.onstop.aspx
+            // We need to block the thread that's running OnStop until the shutdown completes.
+            _runTask.Wait();
         }
 
         public override bool OnStart()
         {
-            // Set the maximum number of concurrent connections 
-            ServicePointManager.DefaultConnectionLimit = 12;
+            // Initialize the host
+            _host.Initialize(registrar =>
+            {
+                RegisterServices(registrar);
+            });
 
-            // Start as many services as processors
-            _instances = CreateServices(_host).ToArray();
-
-            // Start them all and wait for them all to finish starting successfully
-            return Task.WhenAll(_instances.Select(i => i.Start())).Result.All(b => b);
+            return _host.StartAndWait();
         }
 
-        protected abstract IEnumerable<NuGetService> CreateServices(ServiceHost host);
+        protected abstract void RegisterServices(IServiceRegistrar registrar);
     }
 }

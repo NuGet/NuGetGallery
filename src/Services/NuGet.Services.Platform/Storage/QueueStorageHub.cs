@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.WindowsAzure.Storage.Queue;
 
-namespace NuGetGallery.Storage
+namespace NuGet.Services.Storage
 {
     public class QueueStorageHub
     {

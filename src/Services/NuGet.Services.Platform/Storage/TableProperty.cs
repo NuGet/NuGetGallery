@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGetGallery.Storage
+namespace NuGet.Services.Storage
 {
     public class TableProperty
     {

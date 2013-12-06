@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 
-namespace NuGetGallery.Storage
+namespace NuGet.Services.Storage
 {
     public class StorageAccountHub
     {

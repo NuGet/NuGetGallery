@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 
-namespace NuGetGallery.Storage
+namespace NuGet.Services.Storage
 {
     /// <summary>
     /// A better base class for azure table entities

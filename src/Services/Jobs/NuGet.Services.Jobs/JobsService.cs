@@ -16,10 +16,10 @@ using Microsoft.WindowsAzure.Storage.Table;
 using System.Reactive.Subjects;
 using System.Reactive.Disposables;
 using Microsoft.WindowsAzure.Storage.Blob;
-using NuGetGallery.Monitoring;
-using NuGetGallery.Storage;
 using NuGet.Services.Jobs.Monitoring;
 using System.Net;
+using NuGet.Services.Storage;
+using NuGet.Services.Jobs.Configuration;
 
 namespace NuGet.Services.Jobs
 {
@@ -55,8 +55,9 @@ namespace NuGet.Services.Jobs
 
         protected override Task OnRun()
         {
-            var dispatcher = new JobDispatcher(Configuration, Jobs);
-            var runner = new JobRunner(dispatcher, Configuration, this);
+            var queueConfig = Configuration.GetSection<QueueConfiguration>();
+            var dispatcher = new JobDispatcher(Jobs);
+            var runner = new JobRunner(dispatcher, this, queueConfig.PollInterval);
 
             // Throttle heartbeats from the runner to every five minutes
             var interval = Configuration.Get<TimeSpan>("Service.HeartbeatInterval", TimeSpan.TryParse, TimeSpan.FromMinutes(5));

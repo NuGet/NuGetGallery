@@ -9,8 +9,8 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Queue.Protocol;
 using Microsoft.WindowsAzure.Storage.Table;
+using NuGet.Services.Storage;
 using NuGetGallery;
-using NuGetGallery.Storage;
 
 namespace NuGet.Services.Jobs
 {

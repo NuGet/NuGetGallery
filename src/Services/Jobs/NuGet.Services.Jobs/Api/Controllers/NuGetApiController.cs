@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web.Http;
-using NuGetGallery.Storage;
+using NuGet.Services.Storage;
 
 namespace NuGet.Services.Jobs.Api.Controllers
 {

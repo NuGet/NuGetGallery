@@ -12,7 +12,6 @@
       <Setting name="Sql.Primary" />
       <Setting name="Sql.Warehouse" />
       <Setting name="Queue.PollInterval" />
-      <Setting name="Service.HeartbeatInterval" />
     </ConfigurationSettings>
     <LocalResources>
       <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="2048" />

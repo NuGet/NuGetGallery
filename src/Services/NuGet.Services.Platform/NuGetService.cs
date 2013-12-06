@@ -11,8 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Sinks;
-using NuGetGallery.Storage;
+using NuGet.Services.Storage;
 using NuGetGallery;
+using NuGet.Services.Configuration;
 
 namespace NuGet.Services
 {
@@ -27,9 +28,10 @@ namespace NuGet.Services
 
         public string Name { get; private set; }
         public ServiceHost Host { get; private set; }
-        public ServiceConfiguration Configuration { get { return Host.Configuration; } }
-        public StorageHub Storage { get { return Configuration.Storage; } }
         public string ServiceInstanceName { get; private set; }
+
+        public StorageHub Storage { get; set; }
+        public ConfigurationHub Configuration { get; set; }
 
         public string TempDirectory { get; protected set; }
 
@@ -37,9 +39,8 @@ namespace NuGet.Services
         {
             Name = serviceName;
             Host = host;
-            Host.AttachService(this);
 
-            _instancesTable = Host.Configuration.Storage.Primary.Tables.Table<ServiceInstance>();
+            _instancesTable = Storage.Primary.Tables.Table<ServiceInstance>();
             ServiceInstanceName = Host.Name + "_" + Name + "_" + ServiceInstanceId.Get().ToString();
 
             TempDirectory = Path.Combine(Path.GetTempPath(), "NuGetServices", serviceName);

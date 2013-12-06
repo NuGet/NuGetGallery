@@ -112,6 +112,7 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Api\Controllers\NuGetApiController.cs" />
+    <Compile Include="Configuration\QueueConfiguration.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Helpers\DapperExtensions.cs" />
     <Compile Include="Helpers\DateTimeOffsetExtensions.cs" />
@@ -120,6 +121,14 @@
     <Compile Include="Infrastructure\JobAttribute.cs" />
     <Compile Include="Infrastructure\JobDescription.cs" />
     <Compile Include="Infrastructure\InvocationContext.cs" />
+    <Compile Include="Invocation.cs" />
+    <Compile Include="InvocationPayloadSerializer.cs" />
+    <Compile Include="InvocationQueue.cs" />
+    <Compile Include="InvocationRequest.cs" />
+    <Compile Include="InvocationResult.cs" />
+    <Compile Include="InvocationStatus.cs" />
+    <Compile Include="JobContinuation.cs" />
+    <Compile Include="JobsManagementService.cs" />
     <Compile Include="Jobs\HeartBeatJob.cs" />
     <Compile Include="Jobs\PingJob.cs" />
     <Compile Include="Models\Database.cs" />

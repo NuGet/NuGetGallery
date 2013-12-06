@@ -20,16 +20,15 @@ namespace NuGet.Services.Jobs
 {
     public class JobsWorkerRole : NuGetWorkerRole
     {
-        protected override IEnumerable<NuGetService> CreateServices(ServiceHost host)
+        protected override void RegisterServices(IServiceRegistrar registrar)
         {
             for (int i = 0; i < Environment.ProcessorCount; i++)
             {
-                // One worker per proc
-                yield return new JobsService(host);
+                // This should register multiple copies of the service
+                registrar.RegisterService<JobsService>();
             }
 
-            // One HTTP worker
-            yield return new NuGetApiService("JobsStatus", host);
+            registrar.RegisterService<JobsManagementService>();
         }
     }
 }

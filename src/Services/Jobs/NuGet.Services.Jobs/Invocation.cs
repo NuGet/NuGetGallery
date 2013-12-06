@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Table;
-using NuGetGallery.Storage;
+using NuGet.Services.Storage;
 
 namespace NuGet.Services.Jobs
 {

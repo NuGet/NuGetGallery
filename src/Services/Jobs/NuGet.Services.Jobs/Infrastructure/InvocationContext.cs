@@ -12,16 +12,14 @@ namespace NuGet.Services.Jobs
         private const string InvocationIdDataName = "_NuGet_Services_Jobs_Invocation_Id";
 
         public InvocationRequest Request { get; private set; }
-        public ServiceConfiguration Config { get; private set; }
         public InvocationLogCapture LogCapture { get; private set; }
         public InvocationQueue Queue { get; private set; }
 
         public Invocation Invocation { get { return Request.Invocation; } }
 
-        public InvocationContext(InvocationRequest request, InvocationQueue queue, ServiceConfiguration config, InvocationLogCapture logCapture)
+        public InvocationContext(InvocationRequest request, InvocationQueue queue, InvocationLogCapture logCapture)
         {
             Request = request;
-            Config = config;
             Queue = queue;
             LogCapture = logCapture;
         }

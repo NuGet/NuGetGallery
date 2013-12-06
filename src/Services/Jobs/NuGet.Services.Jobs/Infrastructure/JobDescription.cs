@@ -8,9 +8,9 @@ using System.Text.RegularExpressions;
 using System.Linq.Expressions;
 using System.ComponentModel;
 using Microsoft.WindowsAzure.Storage.Table;
-using NuGetGallery.Storage;
 using System.Diagnostics.Tracing;
 using System.ComponentModel.DataAnnotations.Schema;
+using NuGet.Services.Storage;
 
 namespace NuGet.Services.Jobs
 {
@@ -49,7 +49,7 @@ namespace NuGet.Services.Jobs
             return _constructor();
         }
 
-        public static JobDescription Create(Type jobType)
+        public static JobDescription Create(Type jobType, Func<JobBase, JobBase> additionalConstructionLogic = null)
         {
             var attr = JobAttribute.Get(jobType);
             var descAttr = jobType.GetCustomAttribute<DescriptionAttribute>();
@@ -60,13 +60,19 @@ namespace NuGet.Services.Jobs
                 // Cannot construct job
                 return null;
             }
-            var constructor = Expression.Lambda<Func<JobBase>>(Expression.New(ctor)).Compile();
+            var constructor = Expression.Lambda<Func<JobBase>>(Expression.New(ctor)).Compile();;
+            var constructionDelegate = () => {
+                var obj = constructor();
+                return additionalConstructionLogic != null ?
+                    additionalConstructionLogic(obj) :
+                    obj;
+            }
             return new JobDescription(
                 name: attr.Name, 
                 description: descAttr == null ? null : descAttr.Description,
                 runtime: jobType.AssemblyQualifiedName, 
                 eventProviderId: attr.EventProvider == null ? (Guid?)null : (Guid?)EventSource.GetGuid(attr.EventProvider), 
-                constructor: constructor);
+                constructor: constructionDelegate);
         }
     }
 }

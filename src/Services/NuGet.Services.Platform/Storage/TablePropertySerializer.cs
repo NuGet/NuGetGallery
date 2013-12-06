@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 
-namespace NuGetGallery.Storage
+namespace NuGet.Services.Storage
 {
     public abstract class TablePropertySerializer
     {

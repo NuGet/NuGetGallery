@@ -6,7 +6,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 
-namespace NuGetGallery.Storage
+namespace NuGet.Services.Storage
 {
     public class JsonDictionarySerializer : TablePropertySerializer
     {

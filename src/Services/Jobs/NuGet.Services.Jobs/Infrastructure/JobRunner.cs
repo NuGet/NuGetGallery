@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Jobs.Monitoring;
+using NuGet.Services.Storage;
 
 namespace NuGet.Services.Jobs
 {
@@ -18,20 +19,20 @@ namespace NuGet.Services.Jobs
 
         private JobDispatcher _dispatcher;
         private InvocationQueue _queue;
-        private ServiceConfiguration _config;
-
+        private TimeSpan _pollInterval;
+        
         public JobsService Service { get; private set; }
 
         public event EventHandler Heartbeat;
 
-        public JobRunner(JobDispatcher dispatcher, ServiceConfiguration config, JobsService service)
+        public JobRunner(JobDispatcher dispatcher, JobsService service, TimeSpan pollInterval, StorageHub storage)
         {
             _dispatcher = dispatcher;
-            _config = config;
-
+            _pollInterval = pollInterval;
+            
             Service = service;
 
-            _queue = new InvocationQueue(service.ServiceInstanceName, config.Storage);
+            _queue = new InvocationQueue(service.ServiceInstanceName, storage);
         }
 
         public async Task Run(CancellationToken cancelToken)
@@ -52,8 +53,8 @@ namespace NuGet.Services.Jobs
                     }
                     if (request == null)
                     {
-                        JobsServiceEventSource.Log.DispatchLoopWaiting(_config.QueuePollInterval);
-                        await Task.Delay(_config.QueuePollInterval);
+                        JobsServiceEventSource.Log.DispatchLoopWaiting(_pollInterval);
+                        await Task.Delay(_pollInterval);
                         JobsServiceEventSource.Log.DispatchLoopResumed();
                     }
                     else if (request.Invocation.Status == InvocationStatus.Cancelled)
@@ -104,7 +105,7 @@ namespace NuGet.Services.Jobs
 
             // Create the request.Invocation context and start capturing the logs
             var capture = new InvocationLogCapture(request.Invocation, Service);
-            var context = new InvocationContext(request, _queue, _config, capture);
+            var context = new InvocationContext(request, _queue, capture);
             await capture.Start();
 
             InvocationResult result = null;

@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Formatters;
-using NuGetGallery.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGet.Services.Jobs.Monitoring

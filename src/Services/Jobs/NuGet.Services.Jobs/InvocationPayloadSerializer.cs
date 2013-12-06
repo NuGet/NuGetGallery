@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace NuGetGallery.Jobs
+namespace NuGet.Services.Jobs
 {
     public static class InvocationPayloadSerializer
     {

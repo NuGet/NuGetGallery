@@ -14,14 +14,11 @@ namespace NuGet.Services.Jobs
         private List<JobDescription> _jobs;
 
         public IReadOnlyList<JobDescription> Jobs { get { return _jobs.AsReadOnly(); } }
-        public ServiceConfiguration Config { get; private set; }
-
-        public JobDispatcher(ServiceConfiguration config, IEnumerable<JobDescription> jobs)
+        
+        public JobDispatcher(IEnumerable<JobDescription> jobs)
         {
             _jobs = jobs.ToList();
             _jobMap = _jobs.ToDictionary(j => j.Name, StringComparer.OrdinalIgnoreCase);
-        
-            Config = config;
         }
 
         public virtual async Task<InvocationResult> Dispatch(InvocationContext context)

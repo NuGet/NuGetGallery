@@ -126,4 +126,7 @@
   <data name="ServiceConfiguration_UnknownStorageAccount" xml:space="preserve">
     <value>Unknown Storage Account: {0}</value>
   </data>
+  <data name="ServiceHost_DoesNotSupportEndpoints" xml:space="preserve">
+    <value>This host does not support IP endpoints</value>
+  </data>
 </root>

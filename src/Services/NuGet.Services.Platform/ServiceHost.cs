@@ -1,71 +1,105 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Autofac;
 using NuGet.Services.Composition;
-using NuGetGallery.Storage;
+using NuGet.Services.Configuration;
+using NuGet.Services.Storage;
 
 namespace NuGet.Services
 {
     public abstract class ServiceHost
     {
         private CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
-        private List<NuGetService> _services = new List<NuGetService>();
         private IContainer _container;
+        private AutofacComponentContainer _containerWrapper;
 
         public abstract string Name { get; }
-        public abstract ServiceConfiguration Configuration { get; }
         public CancellationToken ShutdownToken { get { return _shutdownTokenSource.Token; } }
 
-        public IReadOnlyList<NuGetService> Services { get { return _services.AsReadOnly(); } }
+        public IReadOnlyList<NuGetService> Services { get; private set; }
 
+        public IComponentContainer Container { get { return _containerWrapper; } }
+
+        /// <summary>
+        /// Starts all services in the host and blocks until they have completed starting.
+        /// </summary>
+        public bool StartAndWait()
+        {
+            return Start().Result;
+        }
+
+        /// <summary>
+        /// Starts all services, returning a task that will complete when they have completed starting
+        /// </summary>
+        public async Task<bool> Start()
+        {
+            return (await Task.WhenAll(s => s.Start())).All(b => b);
+        }
+
+        /// <summary>
+        /// Runs all services, returning a task that will complete when they stop
+        /// </summary>
+        public Task Run()
+        {
+            return Task.WhenAll(Services.Select(s => s.Run()));
+        }
+
+        /// <summary>
+        /// Requests that all services shut down. Calling this will cause the task returned by Run to complete (eventually)
+        /// </summary>
         public void Shutdown()
         {
-            ServicePlatformEventSource.Log.Finished(Name);
             ServicePlatformEventSource.Log.Stopping(Name);
             _shutdownTokenSource.Cancel();
         }
 
         public virtual IPEndPoint GetEndpoint(string name)
         {
-            // The following is a super cheap way of leaving a note I can't ignore :)
-            Change NuGetService to be the following:
-            // a) A factory that creates ServiceInstances (which do the start/stop thing)
-            // b) Something that registers services in the container?
-            return null;
+            throw new NotSupportedException(Strings.ServiceHost_DoesNotSupportEndpoints);
         }
 
-        public virtual void AttachService(NuGetService service)
+        public virtual string GetConfigurationSetting(string fullName)
         {
-            _services.Add(service);
-
-            // Add the service to the container
-            ContainerBuilder builder = new ContainerBuilder();
-            builder.RegisterInstance<NuGetService>(service);
-            builder.Update(_container);
+            return ConfigurationManager.AppSettings[fullName];
         }
 
-        protected virtual IServiceContainer CreateContainer()
+        public virtual void Initialize(Action<IServiceRegistrar> registrations)
         {
             ContainerBuilder builder = new ContainerBuilder();
 
-            // Add core services
-            builder.RegisterInstance<ServiceHost>(this);
-            builder.RegisterInstance<ServiceConfiguration>(Configuration);
-            builder.RegisterInstance<StorageHub>(Configuration.Storage);
+            // Add modules
+            foreach (var module in Enumerable.Concat(GetCoreModules(), GetModules()))
+            {
+                builder.RegisterModule(module);
+            }
 
-            // Let subclasses add their own services
-            AddServices(builder);
-
+            // Register services
+            registrations(new AutofacServiceRegistrar(builder));
+            
             _container = builder.Build();
-            return _container;
+            _containerWrapper = new AutofacComponentContainer(_container);
+
+            // Now get the services
+            Services = _container.Resolve<IReadOnlyList<NuGetService>>();
         }
 
-        protected virtual void AddServices(ContainerBuilder builder)
+        /// <summary>
+        /// Should only be overridden if you know what you're doing!
+        /// </summary>
+        protected virtual IEnumerable<Module> GetCoreModules()
         {
+            yield return new NuGetCoreModule(this);
+        }
+
+        protected virtual IEnumerable<Module> GetModules()
+        {
+            yield break;
         }
     }
 }

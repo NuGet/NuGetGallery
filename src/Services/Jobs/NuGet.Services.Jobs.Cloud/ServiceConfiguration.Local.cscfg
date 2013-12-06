@@ -9,7 +9,6 @@
       <Setting name="Sql.Primary" value="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetGallery;Integrated Security=SSPI" />
       <Setting name="Sql.Warehouse" value="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetWarehouse;Integrated Security=SSPI" />
       <Setting name="Queue.PollInterval" value="00:00:01" />
-      <Setting name="Service.HeartbeatInterval" value="00:05:00" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="" />

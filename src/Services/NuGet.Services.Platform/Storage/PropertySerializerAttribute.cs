@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGetGallery.Storage
+namespace NuGet.Services.Storage
 {
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public sealed class PropertySerializerAttribute : Attribute

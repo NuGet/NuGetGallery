@@ -6,9 +6,14 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Composition
 {
-    public static class ServiceContainerExtensions
+    public interface IComponentContainer : IServiceProvider
     {
-        public static T GetService<T>(this IServiceContainer self)
+        void InjectProperties(object instance);
+    }
+
+    public static class ComponentContainerExtensions
+    {
+        public static T GetService<T>(this IComponentContainer self)
         {
             return (T)self.GetService(typeof(T));
         }

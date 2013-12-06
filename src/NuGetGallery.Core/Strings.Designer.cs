@@ -77,23 +77,5 @@ namespace NuGetGallery {
                 return ResourceManager.GetString("CommandExecutor_UnhandledCommand", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid Invocation ID in message: &apos;{0}&apos;.
-        /// </summary>
-        internal static string InvocationsQueue_InvalidInvocationId {
-            get {
-                return ResourceManager.GetString("InvocationsQueue_InvalidInvocationId", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Table type {0} is not known. Only entities implementing IMonitoringTable are supported.
-        /// </summary>
-        internal static string MonitoringHub_UnknownTableType {
-            get {
-                return ResourceManager.GetString("MonitoringHub_UnknownTableType", resourceCulture);
-            }
-        }
     }
 }

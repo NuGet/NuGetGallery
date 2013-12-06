@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.WindowsAzure.Storage.Table;
 using NuGetGallery;
-using NuGetGallery.Storage;
+using NuGet.Services.Storage;
 
 namespace NuGet.Services
 {

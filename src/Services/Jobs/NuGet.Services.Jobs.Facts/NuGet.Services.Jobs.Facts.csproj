@@ -80,10 +80,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\src\NuGetGallery.Core\NuGetGallery.Core.csproj">
-      <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
-      <Name>NuGetGallery.Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\NuGet.Services.Platform\NuGet.Services.Platform.csproj">
       <Project>{ef86883e-a1b4-4052-9222-51a01c6c41cd}</Project>
       <Name>NuGet.Services.Platform</Name>

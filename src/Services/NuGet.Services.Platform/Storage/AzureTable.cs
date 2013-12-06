@@ -10,7 +10,7 @@ using Microsoft.WindowsAzure.Storage.Table.Protocol;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.WindowsAzure.Storage;
 
-namespace NuGetGallery.Storage
+namespace NuGet.Services.Storage
 {
     public class AzureTable<TEntity>
         where TEntity : ITableEntity, new()

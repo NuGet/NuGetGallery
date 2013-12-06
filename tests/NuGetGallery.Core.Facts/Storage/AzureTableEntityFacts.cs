@@ -289,7 +289,7 @@ namespace NuGetGallery.Storage
 
             public SubObject TypeSerializer { get; set; }
 
-            [PropertySerializer(typeof(MultiCaseSerializer))]
+            [PropertySerializerAttribute(typeof(MultiCaseSerializer))]
             public string PropertySerializer { get; set; }
 
             public override bool Equals(object obj)

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.WindowsAzure.Storage.Table;
 
-namespace NuGetGallery.Storage
+namespace NuGet.Services.Storage
 {
     public abstract class ReverseChronologicalTableEntry : TableEntity
     {

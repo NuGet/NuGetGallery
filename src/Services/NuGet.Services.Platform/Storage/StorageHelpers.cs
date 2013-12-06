@@ -4,16 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Blob.Protocol;
-using Microsoft.WindowsAzure.Storage.Queue;
-using Microsoft.WindowsAzure.Storage.Queue.Protocol;
-using Microsoft.WindowsAzure.Storage.Table;
-using Microsoft.WindowsAzure.Storage.Table.Protocol;
 
-namespace NuGetGallery
+namespace Microsoft.WindowsAzure.Storage.Queue
 {
-    public static class StorageHelpers
+    using NuGet.Services.Storage;
+
+    public static class QueueHelpers
     {
         /// <summary>
         /// Executes the specified action, and if it throws an error because the queue does not exist, creates
@@ -34,10 +30,10 @@ namespace NuGetGallery
         /// </summary>
         public static Task<T> SafeExecute<T>(this CloudQueue queue, Func<CloudQueue, Task<T>> act)
         {
-            return CreateIfNotExistsAndRun(
+            return StorageHelpers.SafeExecuteCore(
                 queue,
                 act,
-                QueueErrorCodeStrings.QueueNotFound,
+                Protocol.QueueErrorCodeStrings.QueueNotFound,
                 async q =>
                 {
                     try
@@ -55,7 +51,15 @@ namespace NuGetGallery
                     }
                 });
         }
+    }
+}
 
+namespace Microsoft.WindowsAzure.Storage.Blob
+{
+    using NuGet.Services.Storage;
+
+    public static class BlobHelpers
+    {
         /// <summary>
         /// Executes the specified action, and if it throws an error because the container does not exist, creates
         /// the container and re-executes the action
@@ -75,13 +79,21 @@ namespace NuGetGallery
         /// </summary>
         public static Task<T> SafeExecute<T>(this CloudBlobContainer container, Func<CloudBlobContainer, Task<T>> act)
         {
-            return CreateIfNotExistsAndRun(
+            return StorageHelpers.SafeExecuteCore(
                 container,
                 act,
-                BlobErrorCodeStrings.ContainerNotFound,
+                Protocol.BlobErrorCodeStrings.ContainerNotFound,
                 c => c.CreateIfNotExistsAsync());
         }
+    }
+}
 
+namespace Microsoft.WindowsAzure.Storage.Table
+{
+    using NuGet.Services.Storage;
+
+    public static class TableHelpers
+    {
         /// <summary>
         /// Executes the specified action, and if it throws an error because the table does not exist, creates
         /// the table and re-executes the action
@@ -101,14 +113,20 @@ namespace NuGetGallery
         /// </summary>
         public static Task<T> SafeExecute<T>(this CloudTable table, Func<CloudTable, Task<T>> act)
         {
-            return CreateIfNotExistsAndRun(
+            return StorageHelpers.SafeExecuteCore(
                 table,
                 act,
-                TableErrorCodeStrings.TableNotFound,
+                Protocol.TableErrorCodeStrings.TableNotFound,
                 t => t.CreateIfNotExistsAsync());
         }
+    }
+}
 
-        private static async Task<TResult> CreateIfNotExistsAndRun<TTarget, TResult>(TTarget target, Func<TTarget, Task<TResult>> act, string notFoundErrorCode, Func<TTarget, Task> createAction)
+namespace NuGet.Services.Storage
+{
+    public static class StorageHelpers
+    {
+        internal static async Task<TResult> SafeExecuteCore<TTarget, TResult>(TTarget target, Func<TTarget, Task<TResult>> act, string notFoundErrorCode, Func<TTarget, Task> createAction)
         {
             TResult result = default(TResult);
             bool retry = false;

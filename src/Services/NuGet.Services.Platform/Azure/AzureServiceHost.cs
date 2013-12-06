@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using Autofac;
 using Microsoft.WindowsAzure.ServiceRuntime;
@@ -9,7 +10,6 @@ namespace NuGet.Services.Azure
 {
     public class AzureServiceHost : ServiceHost
     {
-        private ServiceConfiguration _config = ServiceConfiguration.CreateAzure();
         private NuGetWorkerRole _worker;
         
         public override string Name
@@ -17,23 +17,24 @@ namespace NuGet.Services.Azure
             get { return RoleEnvironment.CurrentRoleInstance.Id; }
         }
 
-        public override ServiceConfiguration Configuration
-        {
-            get { return _config; }
-        }
-
         public AzureServiceHost(NuGetWorkerRole worker)
         {
+            // Set the maximum number of concurrent connections 
+            ServicePointManager.DefaultConnectionLimit = 12;
+
             _worker = worker;
         }
 
-        protected override void AddServices(ContainerBuilder builder)
+        public override string GetConfigurationSetting(string fullName)
         {
-            base.AddServices(builder);
-
-            builder.RegisterInstance(_worker);
-            
-            RoleEnvironment.
+            try
+            {
+                return RoleEnvironment.GetConfigurationSettingValue(fullName);
+            }
+            catch
+            {
+                return base.GetConfigurationSetting(fullName);
+            }
         }
     }
 }

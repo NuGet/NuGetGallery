@@ -61,6 +61,15 @@ namespace NuGet.Services.Jobs {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid Invocation ID in message: &apos;{0}&apos;.
+        /// </summary>
+        internal static string InvocationsQueue_InvalidInvocationId {
+            get {
+                return ResourceManager.GetString("InvocationsQueue_InvalidInvocationId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot construct job from this job description, it was loaded from a table.
         /// </summary>
         internal static string JobDescription_CannotBeConstructed {

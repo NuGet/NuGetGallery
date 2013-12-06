@@ -86,5 +86,14 @@ namespace NuGet.Services {
                 return ResourceManager.GetString("ServiceConfiguration_UnknownStorageAccount", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This host does not support IP endpoints.
+        /// </summary>
+        internal static string ServiceHost_DoesNotSupportEndpoints {
+            get {
+                return ResourceManager.GetString("ServiceHost_DoesNotSupportEndpoints", resourceCulture);
+            }
+        }
     }
 }

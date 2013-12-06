@@ -7,11 +7,11 @@ using Autofac;
 
 namespace NuGet.Services.Composition
 {
-    internal class AutofacServiceProvider : IServiceContainer
+    internal class AutofacComponentContainer : IComponentContainer
     {
         public IContainer Container { get; private set; }
 
-        public AutofacServiceProvider(IContainer container)
+        public AutofacComponentContainer(IContainer container)
         {
             Container = container;
         }
@@ -19,6 +19,11 @@ namespace NuGet.Services.Composition
         public object GetService(Type serviceType)
         {
             return Container.Resolve(serviceType);
+        }
+
+        public void InjectProperties(object instance)
+        {
+            Container.InjectProperties(instance);
         }
     }
 }
