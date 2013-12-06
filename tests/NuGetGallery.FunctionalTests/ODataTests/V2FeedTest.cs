@@ -68,6 +68,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
                 Assert.Fail(e.Message);
             }
         }       
+    
         }
     }
-}
+
