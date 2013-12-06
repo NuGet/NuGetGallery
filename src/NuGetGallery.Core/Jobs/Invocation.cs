@@ -34,7 +34,7 @@ namespace NuGet.Services.Jobs
         public InvocationStatus Status { get; set; }
         public int DequeueCount { get; set; }
         public string LastInstanceName { get; set; }
-        public string Exception { get; set; }
+        public string StatusMessage { get; set; }
         public string LogUrl { get; set; }
         public bool Continuation { get; set; }
 

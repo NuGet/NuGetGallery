@@ -103,5 +103,14 @@ namespace NuGet.Services.Jobs.Monitoring
 
         [NonEvent]
         public void ErrorRetrievingInvocation(Exception ex) { ErrorRetrievingInvocation(ex.ToString()); }
+
+        [Event(
+            eventId: 13,
+            Level = EventLevel.Informational,
+            Message = "Invocation {0} of job {1} was cancelled at {2}. Reason: {3}")]
+        private void Cancelled(Guid id, string job, string timestamp, string reason) { WriteEvent(13, id, job, timestamp, reason); }
+
+        [NonEvent]
+        public void Cancelled(Invocation invocation) { Cancelled(invocation.Id, invocation.Job, invocation.Timestamp.ToString("O"), invocation.StatusMessage); }
     }
 }

@@ -56,6 +56,11 @@ namespace NuGet.Services.Jobs
                         await Task.Delay(_config.QueuePollInterval);
                         JobsServiceEventSource.Log.DispatchLoopResumed();
                     }
+                    else if (request.Invocation.Status == InvocationStatus.Cancelled)
+                    {
+                        // Job was cancelled by the user, so just continue.
+                        JobsServiceEventSource.Log.Cancelled(request.Invocation);
+                    }
                     else
                     {
                         await Dispatch(request);
@@ -158,7 +163,7 @@ namespace NuGet.Services.Jobs
             // If we faulted, report the error
             if (result.Status == InvocationStatus.Faulted)
             {
-                request.Invocation.Exception = result.Exception.ToString();
+                request.Invocation.StatusMessage = result.Exception.ToString();
             }
 
             // Update the status of the request.Invocation
