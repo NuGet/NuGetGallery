@@ -67,66 +67,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
             {
                 Assert.Fail(e.Message);
             }
-        }
-
-        #region PrivateMethods
-        private Task<string> DownloadPackage(string packageId, string version,string operation="Install")
-        {
-            HttpClient client = new HttpClient();
-            string requestUri = UrlHelper.V2FeedRootUrl + @"Package/" + packageId + @"/" + version;
-
-            CancellationTokenSource cts = new CancellationTokenSource();
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            request.Headers.Add("user-agent", "TestAgent");
-            request.Headers.Add("NuGet-Operation", operation);           
-            Task<HttpResponseMessage> responseTask = client.SendAsync(request);
-            TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
-            responseTask.ContinueWith((rt) =>
-            {
-                HttpResponseMessage responseMessage = rt.Result;
-                if (responseMessage.StatusCode == HttpStatusCode.OK)
-                {
-                    try
-                    {
-                        string filename;
-                        ContentDispositionHeaderValue contentDisposition = responseMessage.Content.Headers.ContentDisposition;
-                        if (contentDisposition != null)
-                        {
-                            filename = contentDisposition.FileName;
-                        }
-                        else
-                        {
-                            filename = packageId; // if file name not present set the package Id for the file name.
-                        }
-                        FileStream fileStream = File.Create(filename);
-                        Task contentTask = responseMessage.Content.CopyToAsync(fileStream);
-                        contentTask.ContinueWith((ct) =>
-                        {
-                            try
-                            {
-                                fileStream.Close();
-                                tcs.SetResult(filename);
-                            }
-                            catch (Exception e)
-                            {
-                                tcs.SetException(e);
-                            }
-                        });
-                    }
-                    catch (Exception e)
-                    {
-                        tcs.SetException(e);
-                    }
-                }
-                else
-                {
-                    string msg = string.Format("Http StatusCode: {0}", responseMessage.StatusCode);
-                    tcs.SetException(new ApplicationException(msg));
-                }
-            });
-
-            return tcs.Task;
-            #endregion PrivateMethods
+        }       
         }
     }
 }
