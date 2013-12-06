@@ -33,6 +33,7 @@ namespace NuGet.Services.Jobs
             try
             {
                 result = await Invoke();
+                result = InvocationResult.Completed();
             }
             catch (Exception ex)
             {

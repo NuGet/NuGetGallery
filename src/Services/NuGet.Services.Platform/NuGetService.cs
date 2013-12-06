@@ -26,14 +26,14 @@ namespace NuGet.Services
         private ServiceInstance _serviceInstance;
 
         public string Name { get; private set; }
-        public NuGetServiceHost Host { get; private set; }
+        public ServiceHost Host { get; private set; }
         public ServiceConfiguration Configuration { get { return Host.Configuration; } }
         public StorageHub Storage { get { return Configuration.Storage; } }
         public string ServiceInstanceName { get; private set; }
 
         public string TempDirectory { get; protected set; }
 
-        protected NuGetService(string serviceName, NuGetServiceHost host)
+        protected NuGetService(string serviceName, ServiceHost host)
         {
             Name = serviceName;
             Host = host;

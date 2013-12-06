@@ -27,6 +27,9 @@ namespace NuGet.Services
         public DateTimeOffset StartedAt { get; set; }
         public DateTimeOffset LastHeartbeat { get; set; }
 
+        [Obsolete("For serialization only")]
+        public ServiceInstance() { }
+
         public ServiceInstance(string host, string name, string service, string machineName, DateTimeOffset startedAt, DateTimeOffset lastHeartbeat, AssemblyInformation info)
             : base(host, name, lastHeartbeat)
         {

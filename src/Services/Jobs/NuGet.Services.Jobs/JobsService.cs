@@ -32,7 +32,7 @@ namespace NuGet.Services.Jobs
 
         public IEnumerable<JobDescription> Jobs { get; private set; }
         
-        public JobsService(NuGetServiceHost host)
+        public JobsService(ServiceHost host)
             : base(MyServiceName, host)
         {
         }

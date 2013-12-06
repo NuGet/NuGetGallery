@@ -71,9 +71,9 @@
   <ItemGroup>
     <Compile Include="Common\AssertEx.cs" />
     <Compile Include="Models\DatabaseBackupMetadataFacts.cs" />
-    <Compile Include="JobDescriptionFacts.cs" />
-    <Compile Include="JobDispatcherFacts.cs" />
-    <Compile Include="JobFacts.cs" />
+    <Compile Include="Infrastructure\JobDescriptionFacts.cs" />
+    <Compile Include="Infrastructure\JobDispatcherFacts.cs" />
+    <Compile Include="Infrastructure\JobFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

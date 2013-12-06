@@ -15,7 +15,7 @@ namespace NuGet.Services.Http
         private IDisposable _httpServerLifetime;
         private TaskCompletionSource<object> _shutdownSource = new TaskCompletionSource<object>();
 
-        protected NuGetHttpService(string serviceName, NuGetServiceHost host) : base(serviceName, host) { }
+        protected NuGetHttpService(string serviceName, ServiceHost host) : base(serviceName, host) { }
 
         protected override Task<bool> OnStart()
         {

@@ -112,7 +112,6 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Api\Controllers\NuGetApiController.cs" />
-    <Compile Include="Api\Controllers\ServiceController.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Helpers\DapperExtensions.cs" />
     <Compile Include="Helpers\DateTimeOffsetExtensions.cs" />
@@ -121,7 +120,6 @@
     <Compile Include="Infrastructure\JobAttribute.cs" />
     <Compile Include="Infrastructure\JobDescription.cs" />
     <Compile Include="Infrastructure\InvocationContext.cs" />
-    <Compile Include="JobStatusHttpService.cs" />
     <Compile Include="Jobs\HeartBeatJob.cs" />
     <Compile Include="Jobs\PingJob.cs" />
     <Compile Include="Models\Database.cs" />

@@ -41,6 +41,6 @@ namespace NuGet.Services.Azure
             return Task.WhenAll(_instances.Select(i => i.Start())).Result.All(b => b);
         }
 
-        protected abstract IEnumerable<NuGetService> CreateServices(NuGetServiceHost host);
+        protected abstract IEnumerable<NuGetService> CreateServices(ServiceHost host);
     }
 }
