@@ -989,6 +989,7 @@
     <Compile Include="Services\AggregateStatsService.cs" />
     <Compile Include="Services\ReportPackageRequest.cs" />
     <Compile Include="Services\SearchFilter.cs" />
+    <Compile Include="Services\StatisticsReportNotFoundException.cs" />
     <Compile Include="Services\StatisticsReportResult.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UploadFileService.cs" />
