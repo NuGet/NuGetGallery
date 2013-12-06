@@ -29,6 +29,9 @@ namespace NuGetGallery
         [StringLength(maximumLength: 256)]
         public string Value { get; set; }
 
+        [StringLength(maximumLength: 256)]
+        public string Identity { get; set; }
+
         public virtual User User { get; set; }
     }
 }

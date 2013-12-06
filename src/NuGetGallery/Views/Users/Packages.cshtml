@@ -59,12 +59,18 @@ else
                     <td class="actions">
                         @if (unlisted)
                         {
-                            <a href="@Url.DeletePackage(package)" title="List Package" class="editPackageLink"><img src="@Content.Images.editIcon_png" alt="List Package" /></a>
+                            <a href="@Url.DeletePackage(package)" title="List Package" class="table-action-link">
+                                <i class="icon-share"></i>
+                            </a>
                         }
                         else
                         {
-                            <a href="@Url.EditPackage(package.Id, package.Version)" title="Edit" class="editPackageLink"><img src="@Content.Images.editIcon_png" alt="Edit" /></a>
-                            <a href="@Url.DeletePackage(package)" title="Delete" class="deletePackageLink"><img src="@Content.Images.trash_png" alt="Delete" /></a>
+                            <a href="@Url.EditPackage(package.Id, package.Version)" title="Edit" class="table-action-link">
+                                <i class="icon-edit"></i>
+                            </a>
+                            <a href="@Url.DeletePackage(package)" title="Delete" class="table-action-link">
+                                <i class="icon-trash"></i>
+                            </a>
                         }
                     </td>
                     <td>

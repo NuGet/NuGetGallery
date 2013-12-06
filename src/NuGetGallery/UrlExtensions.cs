@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Web.Mvc;
+using System.Web.Routing;
 
 namespace NuGetGallery
 {
@@ -154,11 +155,6 @@ namespace NuGetGallery
             return url.Action(originalResult);
         }
 
-        public static string Privacy(this UrlHelper url)
-        {
-            return url.Action("Privacy", MVC.Pages.Name);
-        }
-
         public static string Register(this UrlHelper url)
         {
             return url.Action(MVC.Authentication.LogOn());
@@ -167,11 +163,6 @@ namespace NuGetGallery
         public static string Search(this UrlHelper url, string searchTerm)
         {
             return url.RouteUrl(RouteName.ListPackages, new { q = searchTerm });
-        }
-
-        public static string Terms(this UrlHelper url)
-        {
-            return url.Action("Terms", MVC.Pages.Name);
         }
 
         public static string UploadPackage(this UrlHelper url)
@@ -205,9 +196,22 @@ namespace NuGetGallery
             return url.Action(MVC.Packages.ManagePackageOwners(package.Id, package.Version));
         }
 
-        public static string ConfirmationUrl(this UrlHelper url, ActionResult actionResult, string username, string token, string protocol)
+        public static string ConfirmationUrl(this UrlHelper url, string action, string controller, string username, string token)
         {
-            return url.Action(actionResult.AddRouteValue("username", username).AddRouteValue("token", token), protocol: protocol);
+            return ConfirmationUrl(url, action, controller, username, token, null);
+        }
+
+        public static string ConfirmationUrl(this UrlHelper url, string action, string controller, string username, string token, object routeValues)
+        {
+            var rvd = routeValues == null ? new RouteValueDictionary() : new RouteValueDictionary(routeValues);
+            rvd["username"] = username;
+            rvd["token"] = token;
+            return url.Action(
+                action, 
+                controller, 
+                rvd,
+                url.RequestContext.HttpContext.Request.Url.Scheme,
+                url.RequestContext.HttpContext.Request.Url.Host);
         }
 
         public static string VerifyPackage(this UrlHelper url)

@@ -29,6 +29,7 @@ public static class MVC {
     public static NuGetGallery.AuthenticationController Authentication = new NuGetGallery.T4MVC_AuthenticationController();
     public static NuGetGallery.CuratedFeedsController CuratedFeeds = new NuGetGallery.T4MVC_CuratedFeedsController();
     public static NuGetGallery.CuratedPackagesController CuratedPackages = new NuGetGallery.T4MVC_CuratedPackagesController();
+    public static NuGetGallery.ErrorsController Errors = new NuGetGallery.T4MVC_ErrorsController();
     public static NuGetGallery.JsonApiController JsonApi = new NuGetGallery.T4MVC_JsonApiController();
     public static NuGetGallery.PackagesController Packages = new NuGetGallery.T4MVC_PackagesController();
     public static NuGetGallery.PagesController Pages = new NuGetGallery.T4MVC_PagesController();
@@ -405,17 +406,12 @@ namespace Links {
             public static readonly string errorPage_png = Url("errorPage.png");
             public static readonly string greenArrow_png = Url("greenArrow.png");
             public static readonly string headerbackground_png = Url("headerbackground.png");
-            public static readonly string hero_png = Url("hero.png");
-            public static readonly string herowithlogo_png = Url("herowithlogo.png");
             public static readonly string inputBackground_png = Url("inputBackground.png");
             public static readonly string invalidBG_png = Url("invalidBG.png");
             public static readonly string managePackages_png = Url("managePackages.png");
             public static readonly string mine_png = Url("mine.png");
             public static readonly string navbackground_png = Url("navbackground.png");
             public static readonly string newAccountGraphic_png = Url("newAccountGraphic.png");
-            public static readonly string nugetlogo_png = Url("nugetlogo.png");
-            public static readonly string nugetLogoFooter_png = Url("nugetLogoFooter.png");
-            public static readonly string outercurve_png = Url("outercurve.png");
             public static readonly string packageDefaultIcon_50x50_png = Url("packageDefaultIcon-50x50.png");
             public static readonly string packageDefaultIcon_png = Url("packageDefaultIcon.png");
             public static readonly string packageOwnerActionIcons_png = Url("packageOwnerActionIcons.png");
@@ -426,29 +422,6 @@ namespace Links {
             public static readonly string searchButton_png = Url("searchButton.png");
             public static readonly string sendMessageGraphic_png = Url("sendMessageGraphic.png");
             public static readonly string trash_png = Url("trash.png");
-            [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-            public static class treeview {
-                private const string URLPATH = "~/Content/Images/treeview";
-                public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
-                public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
-                public static readonly string ajax_loader_gif = Url("ajax-loader.gif");
-                public static readonly string file_gif = Url("file.gif");
-                public static readonly string folder_closed_gif = Url("folder-closed.gif");
-                public static readonly string folder_gif = Url("folder.gif");
-                public static readonly string minus_gif = Url("minus.gif");
-                public static readonly string plus_gif = Url("plus.gif");
-                public static readonly string treeview_black_line_gif = Url("treeview-black-line.gif");
-                public static readonly string treeview_black_gif = Url("treeview-black.gif");
-                public static readonly string treeview_default_line_gif = Url("treeview-default-line.gif");
-                public static readonly string treeview_default_gif = Url("treeview-default.gif");
-                public static readonly string treeview_famfamfam_line_gif = Url("treeview-famfamfam-line.gif");
-                public static readonly string treeview_famfamfam_gif = Url("treeview-famfamfam.gif");
-                public static readonly string treeview_gray_line_gif = Url("treeview-gray-line.gif");
-                public static readonly string treeview_gray_gif = Url("treeview-gray.gif");
-                public static readonly string treeview_red_line_gif = Url("treeview-red-line.gif");
-                public static readonly string treeview_red_gif = Url("treeview-red.gif");
-            }
-        
             public static readonly string uploadPackage_png = Url("uploadPackage.png");
             public static readonly string userGraphic_png = Url("userGraphic.png");
             public static readonly string userIcon_png = Url("userIcon.png");
@@ -457,6 +430,20 @@ namespace Links {
             public static readonly string YourPackage_png = Url("YourPackage.png");
         }
     
+        public static readonly string Layout_css = Url("Layout.css");
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public static class Logos {
+            private const string URLPATH = "~/Content/Logos";
+            public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+            public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+            public static readonly string hero_png = Url("hero.png");
+            public static readonly string herowithlogo_png = Url("herowithlogo.png");
+            public static readonly string nugetlogo_png = Url("nugetlogo.png");
+            public static readonly string nugetLogoFooter_png = Url("nugetLogoFooter.png");
+            public static readonly string outercurve_png = Url("outercurve.png");
+        }
+    
+        public static readonly string PageStylings_css = Url("PageStylings.css");
         public static readonly string Site_css = Url("Site.css");
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public static class SyntaxHighlighter {

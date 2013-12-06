@@ -9,7 +9,7 @@ using System.Web.UI;
 
 namespace NuGetGallery
 {
-    public partial class StatisticsController : Controller
+    public partial class StatisticsController : AppController
     {
         private readonly IStatisticsService _statisticsService;
         private readonly IAggregateStatsService _aggregateStatsService;

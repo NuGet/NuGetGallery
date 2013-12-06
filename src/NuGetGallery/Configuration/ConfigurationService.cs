@@ -5,9 +5,12 @@ using System.ComponentModel.DataAnnotations;
 using System.Configuration;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Configuration;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using NuGetGallery.Authentication;
+using NuGetGallery.Authentication.Providers;
 using PoliteCaptcha;
 
 namespace NuGetGallery.Configuration
@@ -16,6 +19,7 @@ namespace NuGetGallery.Configuration
     {
         private const string SettingPrefix = "Gallery.";
         private const string FeaturePrefix = "Feature.";
+        private const string AuthPrefix = "Auth.";
 
         private IAppConfiguration _current;
 
@@ -62,10 +66,10 @@ namespace NuGetGallery.Configuration
             return ResolveConfigObject(new AppConfiguration(), SettingPrefix);
         }
 
-        private T ResolveConfigObject<T>(T instance, string prefix)
+        public virtual T ResolveConfigObject<T>(T instance, string prefix)
         {
             // Iterate over the properties
-            foreach (var property in TypeDescriptor.GetProperties(instance).Cast<PropertyDescriptor>().Where(p => !p.IsReadOnly))
+            foreach (var property in GetConfigProperties<T>(instance))
             {
                 // Try to get a config setting value
                 string baseName = String.IsNullOrEmpty(property.DisplayName) ? property.Name : property.DisplayName;
@@ -90,7 +94,7 @@ namespace NuGetGallery.Configuration
                     }
                 }
 
-                if (value != null)
+                if (!String.IsNullOrEmpty(value))
                 {
                     if (property.PropertyType.IsAssignableFrom(typeof(string)))
                     {
@@ -108,6 +112,11 @@ namespace NuGetGallery.Configuration
                 }
             }
             return instance;
+        }
+
+        internal static IEnumerable<PropertyDescriptor> GetConfigProperties<T>(T instance)
+        {
+            return TypeDescriptor.GetProperties(instance).Cast<PropertyDescriptor>().Where(p => !p.IsReadOnly);
         }
 
         public virtual string ReadSetting(string settingName)

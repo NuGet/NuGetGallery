@@ -1,0 +1,284 @@
+﻿/* This CSS file contains elements specific to the SHARED LAYOUT [Layout.cshtml, TwoColumnLayout.cshtml etc] 
+   that are used across the whole site */
+
+/* Service Alert */
+
+#service-alert
+{
+    display: none;
+}
+
+/* Service Alert/Banners */
+
+.banner-warning {
+    padding: 0.25em;
+    font-size: 14pt;
+    text-align: center;
+    background: yellow;
+    background-image: -moz-linear-gradient(top, #ffff00, #e5e600);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffff00), to(#e5e600));
+    background-image: -webkit-linear-gradient(top, #ffff00, #e5e600);
+    background-image: -o-linear-gradient(top, #ffff00, #e5e600);
+    background-image: linear-gradient(to bottom, #ffff00, #e5e600);
+}
+
+.banner-urgent {
+    padding: 0.25em;
+    font-size: 14pt;
+    text-align: center;
+    color: white;
+    background: red;
+    background-image: -moz-linear-gradient(top, #ff0000, #e60000);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ff0000), to(#e60000));
+    background-image: -webkit-linear-gradient(top, #ff0000, #e60000);
+    background-image: -o-linear-gradient(top, #ff0000, #e60000);
+    background-image: linear-gradient(to bottom, #ff0000, #e60000);
+}
+
+.banner-urgent a
+{
+    color: white;
+    text-decoration: underline;
+}
+
+/* Header */
+
+header.main { height: 95px; }
+
+/* Site Logo */
+
+#logo {
+    float: left;
+    padding: 20px 20px 0 0;
+}
+
+#logo a {
+    background: url(../Content/Logos/nugetlogo.png) no-repeat;
+    display: block;
+    height: 75px;
+    margin: 0;
+    padding: 0;
+    text-indent: -9999px;
+    width: 345px;
+}
+
+/* Top Menu (Navigation) */
+
+nav.main {
+    clear: both;
+    height: 42px;
+    margin-bottom: 1px;
+    margin-top: 10px;
+}
+
+nav.main ul {
+    margin: 0px;
+    padding: 0px;
+}
+
+nav.main ul li {
+    display: block;
+    float: left;
+    height: 42px;
+}
+
+nav.main ul li.current a {
+    background-color: #e4f1f7;
+    border: 1px solid #ebf2f5;
+    border-bottom: none;
+    border-top: 1px solid #fff;
+    color: #195670;
+    height: 46px;
+    line-height: 44px;
+    position: relative;
+    text-decoration: none;
+    top: -4px;
+}
+
+nav.main ul a {
+    -moz-border-radius: 4px 4px 0 0;
+    -webkit-border-radius: 4px 4px 0 0;
+    /*CSS3 properties*/
+    border-radius: 4px 4px 0 0;
+    color: #fff;
+    display: block;
+    font-size: 1.2em;
+    height: 42px;
+    line-height: 44px;
+            
+    margin: 0 5px;
+    padding: 0 10px;
+    text-decoration: none;
+}
+
+nav.main ul a:hover {
+    background-color: #3c3d44;
+    text-decoration: none;
+}
+
+/* User Display (Sign-In Info) */
+
+.user-display {
+    color: #fff;
+    font-weight: 600;
+    float: right;
+    margin-top: 80px;
+    padding-right: 7px;
+}
+
+.user-display a {
+    color: #fff;
+    font-weight: 600;
+}
+
+.user-display a:hover { text-decoration: underline; }
+
+/* Header Search Box */
+
+#searchBox {
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    background-color: #fff;
+    border: 0px;
+    /*CSS3 properties*/
+    border-radius: 4px;
+    float: right;
+    height: 32px;
+    margin-top: 7px;
+            
+    padding-left: 5px;
+    padding-right: 4px;
+    vertical-align: top;
+}
+
+#searchBoxInput {
+    border: 0px;
+    color: #333;
+    font-size: 20px;
+    height: 30px;
+    line-height: 30px;
+    outline: none;
+    padding: 0;
+    width: 160px;
+}
+
+#searchBoxSubmit {
+    -moz-border-radius: 0 4px 4px 0;
+    -webkit-border-radius: 0 4px 4px 0;
+    background-color: #fff;
+    background-image: url("../Content/Images/searchbutton.png");
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    height: 27px;
+    margin-left: 0;
+    box-shadow: none;
+    
+    text-indent: -9999px;
+    vertical-align: bottom;
+    width: 27px;
+}
+
+/* Body */
+
+#body {
+    padding-bottom: 14px;
+    padding-top: 20px;
+}
+
+/* Footer */
+
+.clear-fix { clear: both; }
+
+#layout-footer {
+    background: #e4f1f7;
+    border-top: 1px solid #d3e7fe;
+    clear: both;
+    color: #3e483c;
+    padding-bottom: 1em;
+    padding-top: 0px;
+    position: relative;
+}
+
+footer#footer {
+    margin: 0 auto;
+    text-align: center;
+    display: table;
+}
+
+footer#footer a { color: #3e483c; }
+
+footer#footer a:hover {
+    text-decoration: underline;
+}
+
+footer#footer p {
+    margin: 0;
+    padding: 0;
+}
+
+footer#footer p#releaseTag { margin: 10px 0 0 0; }
+
+footer#footer ul.recommended {
+    list-style: none;
+    margin: 0 auto;
+    padding: 0;
+}
+
+footer#footer ul.recommended li {
+    float: left;
+    margin-left: 0;
+    padding: 10px;
+    text-align: left;
+    width: 170px;
+}
+
+footer#footer ul.recommended li a {
+    display: block;
+    font-size: 1.3em;
+}
+
+footer#footer ul.recommended li p { font-size: .9em; }
+
+footer#footer div.license {
+    clear: both;
+    font-size: .7em;
+}
+
+/* Error Layout (with background image)*/
+
+.error-show-code {
+    background-image: url("../Content/Images/errorPage.png");
+    background-repeat: no-repeat;
+    height: 125px;
+    left: 0;
+    position: fixed;
+    top: 0;
+    text-indent: -9999px;
+    width: 220px;
+}
+
+/* Outer Content Wrapper (background image) */
+
+#outer-wrapper {
+    background: url('../Content/Images/headerbackground.png') repeat-x top left #fff;
+}
+
+#content-wrapper {
+    margin: 0 auto;
+    min-width: 960px;
+    width: 960px;
+}
+
+/* Columns (For Two-Column Layout) */
+
+#sideColumn {
+    float: left;
+    width: 25%;
+}
+
+#mainColumn {
+    float: right;
+    margin-bottom: 20px;
+    width: 75%;
+}

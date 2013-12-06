@@ -29,6 +29,7 @@
         public const string DeletePackageApi = "DeletePackageApi";
         public const string UserAction = "UserAction";
         public const string PasswordReset = "PasswordReset";
+        public const string PasswordSet = "PasswordSet";
         public const string NewSubmission = "NewSubmission";
         public const string VerifyPackage = "VerifyPackage";
         public const string VerifyPackageKey = "VerifyPackageKey";
@@ -49,5 +50,15 @@
         public const string PackageEnableLicenseReport = "EnableLicenseReport";
         public const string PackageDisableLicenseReport = "DisableLicenseReport";
         public const string OwinRoute = "OwinRoute";
+        public const string Pages = "Pages";
+        public const string ExternalAuthentication = "ExternalAuthentication";
+        public const string ExternalAuthenticationCallback = "ExternalAuthenticationCallback";
+        public const string RemoveCredential = "RemoveCredential";
+        public const string RemovePassword = "RemovePassword";
+        public const string ConfirmAccount = "ConfirmAccount";
+        public const string SubscribeToEmails = "SubscribeToEmails";
+        public const string UnsubscribeFromEmails = "UnsubscribeFromEmails";
+        public const string Error500 = "Error500";
+        public const string Error404 = "Error404";
     }
 }

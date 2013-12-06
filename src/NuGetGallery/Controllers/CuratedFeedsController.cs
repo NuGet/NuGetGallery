@@ -99,7 +99,7 @@ namespace NuGetGallery
 
             ViewBag.SearchTerm = q;
 
-            return View("~/Views/Packages/ListPackages.cshtml", viewModel);
+            return View("ListPackages",  viewModel);
         }
     }
 }

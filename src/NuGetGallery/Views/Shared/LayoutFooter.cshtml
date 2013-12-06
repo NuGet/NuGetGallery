@@ -1,0 +1,34 @@
+﻿<ul class="recommended">
+    <li>
+        <a href="@Href("~/policies/Contact")">Contact Us</a>
+        <p>Got questions about NuGet or the NuGet Gallery?</p>
+    </li>
+    <li>
+        <a href="http://docs.nuget.org/docs/start-here/overview">Overview</a>
+        <p>NuGet is a Visual Studio extension that makes it easy to add, remove, and update libraries and...</p>
+    </li>
+    <li>
+        <a href="http://docs.nuget.org/docs/start-here/installing-nuget">Install</a>
+        <p>NuGet can be installed and updated using the Visual Studio Extension Manager. To check if your copy...</p>
+    </li>
+    <li>
+        <a href="http://docs.nuget.org/docs/start-here/videos">Videos</a>
+        <p>Watch screencasts and presentations about anything and everything NuGet.</p>
+    </li>
+    <li>
+        <a href="http://docs.nuget.org/docs/start-here/nuget-faq">FAQ</a>
+        <p>Read the Frequently Asked Questions about NuGet and see if your question made the list.</p>
+    </li>
+</ul>
+<div class="license">
+    <a href="http://outercurve.org"><img src="@Href("~/Content/Logos/outercurve.png")" alt="Outercurve Foundation" /></a>
+    <p>
+        &copy; @DateTime.UtcNow.Year Outercurve Foundation -
+        <a href="~/policies/Terms">Terms of Use</a> -
+        <a href="~/policies/Privacy">Privacy Policy</a>
+    </p>
+    <p>
+        Uses <a href="http://fontawesome.io">Font Awesome</a> by Dave Gandy
+    </p>
+    @ViewHelpers.ReleaseTag()
+</div>
