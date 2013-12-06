@@ -85,6 +85,7 @@
     <Message Text="**************" Importance="high" />
     <MSBuild Projects="..\src\NuGetGallery.Cloud\NuGetGallery.Cloud.ccproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=AnyCPU;VMSize=$(Frontend_VMSize);TargetProfile=Local" BuildInParallel="false" />
     <MSBuild Projects="..\src\NuGetGallery.Backend.Cloud\NuGetGallery.Backend.Cloud.ccproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=AnyCPU;VMSize=$(Backend_VMSize);TargetProfile=Local" BuildInParallel="false" />
+    <MSBuild Projects="..\src\NuGetGallery\NuGetGallery.csproj" Targets="Package" Properties="Configuration=$(Configuration);Platform=AnyCPU;" BuildInParallel="false" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="Clean;RestorePackages;PatchAssemblyVersion;CoreBuild" />

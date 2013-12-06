@@ -116,6 +116,7 @@ namespace NuGetGallery.FunctionalTests
             FormPostHttpBody logonRequestFormPostBody = new FormPostHttpBody();
             logonRequestFormPostBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
             logonRequestFormPostBody.FormPostParameters.Add("ReturnUrl", "/");
+            logonRequestFormPostBody.FormPostParameters.Add("LinkingAccount", "false");
             logonRequestFormPostBody.FormPostParameters.Add(Constants.UserNameOrEmailFormField, EnvironmentSettings.TestAccountName);
             logonRequestFormPostBody.FormPostParameters.Add(Constants.PasswordFormField, EnvironmentSettings.TestAccountPassword);
             logonPostRequest.Body = logonRequestFormPostBody;
