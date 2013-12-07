@@ -88,7 +88,7 @@ namespace NuGetGallery
                         string s = query.Substring(start, i - start);
                         if (!string.IsNullOrWhiteSpace(s))
                         {
-                            result.Add(s);
+                            result.Add(Quote(s));
                         }
                         start = i + 1;
                     }
@@ -98,10 +98,19 @@ namespace NuGetGallery
             string t = query.Substring(start, query.Length - start);
             if (!string.IsNullOrWhiteSpace(t))
             {
-                result.Add(t);
+                result.Add(Quote(t));
             }
 
             return result;
+        }
+
+        private static string Quote(string term)
+        {
+            if (term.StartsWith("\"") && term.EndsWith("\""))
+            {
+                return term;
+            }
+            return string.Format("\"{0}\"", term);
         }
     }
 }
