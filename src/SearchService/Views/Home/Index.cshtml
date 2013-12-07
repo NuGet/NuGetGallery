@@ -74,10 +74,10 @@
                 <div style="width:100px;display:inline-block;">
                     <input id="explanation" type="checkbox">Explanation
                     <input id="ignore-filter" type="checkbox">No Filter&nbsp;&nbsp;
-                    <input id="send-query" type="checkbox">Send Query
+                    <input id="send-query" type="checkbox" checked>Send Raw
                 </div>
 
-                <div style="with:160px;display:inline-block;vertical-align:top">
+                <div style="width:160px;display:inline-block;vertical-align:top">
                     <a href="segments">Segments</a>
                     <a href="rangeQuery">Range Query</a>
                     <a href="storedFields">Stored Fields</a>
@@ -324,12 +324,12 @@
             }
 
             if (subterms.length === 1) {
-                return field + ':' + subterms[0];
+                return field + ':' + '"' + subterms[0] + '"';
             }
 
-            var clause = '(' + field + ':' + subterms[0];
+            var clause = '(' + field + ':' + '"' + subterms[0] + '"';
             for (var i = 1; i < subterms.length; i += 1) {
-                clause += ' OR ' + field + ':' + subterms[i];
+                clause += ' OR ' + field + ':' + '"' + subterms[i] + '"';
             }
             clause += ')';
 
@@ -355,9 +355,9 @@
                 return '';
             }
 
-            var clause = '(' + field + ':' + subterms[0];
+            var clause = '(' + field + ':' + '"' + subterms[0] + '"';
             for (var i = 1; i < subterms.length; i += 1) {
-                clause += ' AND ' + field + ':' + subterms[i];
+                clause += ' AND ' + field + ':' + '"' + subterms[i] + '"';
             }
             clause += ')';
 
@@ -511,9 +511,14 @@
         $(document).ready(function () {
 
             $('#query').keyup(function () {
-                var q = $('#query').val();
-                q = createLuceneQuery(q);
-                $('#lucene-query').val(q);
+                if ($('#send-query').is(':checked') === false) {
+                    var q = $('#query').val();
+                    q = createLuceneQuery(q);
+                    $('#lucene-query').val(q);
+                }
+                else {
+                    $('#lucene-query').val('');
+                }
             });
 
             $('#go').click(go);
