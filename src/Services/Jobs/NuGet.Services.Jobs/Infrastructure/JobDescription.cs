@@ -11,6 +11,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using System.Diagnostics.Tracing;
 using System.ComponentModel.DataAnnotations.Schema;
 using NuGet.Services.Storage;
+using NuGet.Services.Composition;
 
 namespace NuGet.Services.Jobs
 {
@@ -49,30 +50,17 @@ namespace NuGet.Services.Jobs
             return _constructor();
         }
 
-        public static JobDescription Create(Type jobType, Func<JobBase, JobBase> additionalConstructionLogic = null)
+        public static JobDescription Create(Type jobType, IComponentContainer container)
         {
             var attr = JobAttribute.Get(jobType);
             var descAttr = jobType.GetCustomAttribute<DescriptionAttribute>();
             
-            var ctor = jobType.GetConstructor(Type.EmptyTypes);
-            if (ctor == null)
-            {
-                // Cannot construct job
-                return null;
-            }
-            var constructor = Expression.Lambda<Func<JobBase>>(Expression.New(ctor)).Compile();;
-            var constructionDelegate = () => {
-                var obj = constructor();
-                return additionalConstructionLogic != null ?
-                    additionalConstructionLogic(obj) :
-                    obj;
-            }
             return new JobDescription(
                 name: attr.Name, 
                 description: descAttr == null ? null : descAttr.Description,
                 runtime: jobType.AssemblyQualifiedName, 
                 eventProviderId: attr.EventProvider == null ? (Guid?)null : (Guid?)EventSource.GetGuid(attr.EventProvider), 
-                constructor: constructionDelegate);
+                constructor: () => (JobBase)container.GetService(jobType));
         }
     }
 }

@@ -31,10 +31,12 @@ namespace NuGet.Services.Jobs
         private AzureTable<JobDescription> _jobsTable;
 
         public IEnumerable<JobDescription> Jobs { get; private set; }
+        public StorageHub Storage { get; private set; }
         
-        public JobsService(ServiceHost host)
+        public JobsService(ServiceHost host, StorageHub storage)
             : base(MyServiceName, host)
         {
+            Storage = storage;
         }
 
         protected override Task<bool> OnStart()
@@ -57,13 +59,7 @@ namespace NuGet.Services.Jobs
         {
             var queueConfig = Configuration.GetSection<QueueConfiguration>();
             var dispatcher = new JobDispatcher(Jobs);
-            var runner = new JobRunner(dispatcher, this, queueConfig.PollInterval);
-
-            // Throttle heartbeats from the runner to every five minutes
-            var interval = Configuration.Get<TimeSpan>("Service.HeartbeatInterval", TimeSpan.TryParse, TimeSpan.FromMinutes(5));
-            Observable.FromEventPattern(runner, "Heartbeat")
-                .Window(interval)
-                .Subscribe(_ => Heartbeat());
+            var runner = new JobRunner(dispatcher, this, queueConfig.PollInterval, Storage);
 
             return runner.Run(Host.ShutdownToken);
         }
@@ -89,13 +85,18 @@ namespace NuGet.Services.Jobs
                 .Assembly
                 .GetExportedTypes()
                 .Where(t => !t.IsAbstract && typeof(JobBase).IsAssignableFrom(t))
-                .Select(t => JobDescription.Create(t))
+                .Select(t => JobDescription.Create(t, Host.Container))
                 .Where(d => d != null);
 
             foreach (var job in Jobs)
             {
                 RegisterJob(job);
             }
+        }
+
+        private JobBase InjectProperties(JobBase arg)
+        {
+            throw new NotImplementedException();
         }
     }
 }

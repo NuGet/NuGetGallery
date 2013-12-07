@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGetGallery
+namespace NuGet.Services
 {
     public class AssemblyInformation
     {

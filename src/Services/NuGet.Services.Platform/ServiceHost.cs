@@ -39,7 +39,7 @@ namespace NuGet.Services
         /// </summary>
         public async Task<bool> Start()
         {
-            return (await Task.WhenAll(s => s.Start())).All(b => b);
+            return (await Task.WhenAll(Services.Select(s => s.Start()))).All(b => b);
         }
 
         /// <summary>

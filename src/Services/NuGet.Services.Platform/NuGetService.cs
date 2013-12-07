@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Sinks;
 using NuGet.Services.Storage;
-using NuGetGallery;
 using NuGet.Services.Configuration;
 
 namespace NuGet.Services

@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using Microsoft.WindowsAzure.Storage.Table;
-using NuGetGallery;
 using NuGet.Services.Storage;
 
 namespace NuGet.Services

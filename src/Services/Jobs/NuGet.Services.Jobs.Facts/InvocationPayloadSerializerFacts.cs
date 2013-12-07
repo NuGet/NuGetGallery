@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Extensions;
 
-namespace NuGetGallery.Jobs
+namespace NuGet.Services.Jobs
 {
     public class InvocationPayloadSerializerFacts
     {

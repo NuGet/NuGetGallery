@@ -81,7 +81,6 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="AssemblyInformation.cs" />
     <Compile Include="Auditing\AuditEntry.cs" />
     <Compile Include="Auditing\AuditActor.cs" />
     <Compile Include="Auditing\AuditingService.cs" />

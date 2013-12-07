@@ -16,9 +16,9 @@ namespace NuGet.Services.Jobs
             public async Task GivenNoJobWithName_ItThrowsUnknownJobException()
             {
                 // Arrange
-                var dispatcher = new JobDispatcher(ServiceConfiguration.Create(), Enumerable.Empty<JobDescription>());
+                var dispatcher = new JobDispatcher(Enumerable.Empty<JobDescription>());
                 var invocation = new Invocation(Guid.NewGuid(), "flarg", "test", new Dictionary<string, string>());
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: null, logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
 
                 // Act/Assert
                 var ex = await AssertEx.Throws<UnknownJobException>(() => dispatcher.Dispatch(context));
@@ -32,9 +32,9 @@ namespace NuGet.Services.Jobs
                 var jobImpl = new Mock<JobBase>();
                 var job = new JobDescription("test", "blarg", () => jobImpl.Object);
 
-                var dispatcher = new JobDispatcher(ServiceConfiguration.Create(), new[] { job });
+                var dispatcher = new JobDispatcher(new[] { job });
                 var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>());
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: null, logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
 
                 jobImpl.Setup(j => j.Invoke(It.IsAny<InvocationContext>()))
                    .Returns(Task.FromResult(InvocationResult.Completed()));
@@ -55,9 +55,9 @@ namespace NuGet.Services.Jobs
                 var job = new JobDescription("test", "blarg", () => jobImpl.Object);
                 
                 var ex = new Exception();
-                var dispatcher = new JobDispatcher(ServiceConfiguration.Create(), new[] { job });
+                var dispatcher = new JobDispatcher(new[] { job });
                 var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>());
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: null, logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
 
                 jobImpl.Setup(j => j.Invoke(It.IsAny<InvocationContext>()))
                    .Returns(Task.FromResult(InvocationResult.Completed()));

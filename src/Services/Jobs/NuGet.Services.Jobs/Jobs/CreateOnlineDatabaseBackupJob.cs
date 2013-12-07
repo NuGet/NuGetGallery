@@ -8,12 +8,15 @@ using System.Threading.Tasks;
 using Dapper;
 using NuGet.Services.Jobs.Models;
 using System.Globalization;
+using NuGet.Services.Configuration;
 
 namespace NuGet.Services.Jobs
 {
     public class CreateOnlineDatabaseBackupJob : AsyncJob<CreateOnlineDatabaseBackupEventSource>
     {
         public static readonly string DefaultBackupPrefix = "Backup_";
+
+        private readonly ConfigurationHub _config;
 
         /// <summary>
         /// The target server, in the form of a known SQL Server (primary, warehouse, etc.)
@@ -52,6 +55,11 @@ namespace NuGet.Services.Jobs
         /// Forces a new backup to be created
         /// </summary>
         public bool Force { get; set; }
+
+        public CreateOnlineDatabaseBackupJob(ConfigurationHub config)
+        {
+            _config = config;
+        }
 
         protected internal override async Task<JobContinuation> Execute()
         {
@@ -170,8 +178,8 @@ namespace NuGet.Services.Jobs
             var connection = TargetDatabaseConnection;
             if (connection == null)
             {
-                connection = Config
-                    .GetSqlServer(TargetServer)
+                connection = _config.Sql
+                    .GetConnectionString(TargetServer)
                     .ChangeDatabase(TargetDatabaseName);
             }
             return connection;

@@ -8,7 +8,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using Xunit;
 
-namespace NuGetGallery.Storage
+namespace NuGet.Services.Storage
 {
     public class AzureTableEntityFacts
     {

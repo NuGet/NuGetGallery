@@ -24,7 +24,7 @@ namespace NuGet.Services.Jobs
                     "Test",
                     "Test",
                     new Dictionary<string, string>());
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: ServiceConfiguration.Create(), logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
 
                 // Act
                 await job.Invoke(context);
@@ -47,7 +47,7 @@ namespace NuGet.Services.Jobs
                         {"TestParameter", "frob"},
                         {"NotMapped", "bar"}
                     });
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: ServiceConfiguration.Create(), logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
 
                 // Act
                 await job.Invoke(context);
@@ -69,7 +69,7 @@ namespace NuGet.Services.Jobs
                     {
                         {"ConvertValue", "frob"},
                     });
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: ServiceConfiguration.Create(), logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
 
                 // Act
                 await job.Invoke(context);
@@ -88,7 +88,7 @@ namespace NuGet.Services.Jobs
                     "Jerb",
                     "Test",
                     new Dictionary<string, string>());
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: ServiceConfiguration.Create(), logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
 
                 // Act
                 var result = await job.Object.Invoke(context);
@@ -109,7 +109,7 @@ namespace NuGet.Services.Jobs
                     new Dictionary<string, string>());
                 var ex = new NotImplementedException("Broked!");
                 job.Setup(j => j.Execute()).Throws(ex);
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, config: ServiceConfiguration.Create(), logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
 
                 // Act
                 var result = await job.Object.Invoke(context);

@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Jobs.Facts",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Platform", "src\Services\NuGet.Services.Platform\NuGet.Services.Platform.csproj", "{EF86883E-A1B4-4052-9222-51A01C6C41CD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Platform.Facts", "src\Services\NuGet.Services.Platform.Facts\NuGet.Services.Platform.Facts.csproj", "{304B7FDA-3111-4670-9E77-4E5F20C89A8C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{EF86883E-A1B4-4052-9222-51A01C6C41CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EF86883E-A1B4-4052-9222-51A01C6C41CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EF86883E-A1B4-4052-9222-51A01C6C41CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{304B7FDA-3111-4670-9E77-4E5F20C89A8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{304B7FDA-3111-4670-9E77-4E5F20C89A8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{304B7FDA-3111-4670-9E77-4E5F20C89A8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{304B7FDA-3111-4670-9E77-4E5F20C89A8C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

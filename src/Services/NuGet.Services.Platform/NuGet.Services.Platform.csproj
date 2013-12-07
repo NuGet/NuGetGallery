@@ -110,6 +110,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInformation.cs" />
     <Compile Include="Azure\AzureServiceHost.cs" />
     <Compile Include="Azure\NuGetWorkerRole.cs" />
     <Compile Include="Composition\AutofacServiceRegistrar.cs" />
