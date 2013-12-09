@@ -290,23 +290,25 @@
         <tbody>
             @foreach (var packageVersion in Model.PackageVersions)
             {
+                var rowClass = packageVersion.LatestStableVersion ? "recommended" : null;
+                var cellTitle = packageVersion.LatestStableVersion ? "Latest Stable Version" : null;
                 if (packageVersion.Listed || Model.IsOwner(User))
                 {
-                    <tr class="versionTableRow @if (packageVersion.LatestVersion)
-                                               {
-                                                   <text>recommended </text>
-                                               }">
-                        <td class="version" @if (packageVersion.LatestVersion)
-                                            {
-                                                <text>title="Latest Version"</text>
-                                            }>
+                    <tr class="versionTableRow @rowClass">
+                        <td class="version" title="@cellTitle">
                             @if (!packageVersion.IsCurrent(Model))
                             {
-                                <a href="@Url.Package(packageVersion)">@packageVersion.Title @packageVersion.Version</a>
+                                <a href="@Url.Package(packageVersion)">
+                                    @packageVersion.Title 
+                                    @packageVersion.Version
+                                    @if(packageVersion.LatestStableVersion) {
+                                        @:(latest stable)
+                                    }
+                                </a>
                             }
                             else
                             {
-                                <span>@packageVersion.Title @packageVersion.Version</span>
+                                <span>@packageVersion.Title @packageVersion.Version (this version)</span>
                             }
                         </td>
                         <td>@packageVersion.DownloadCount

@@ -10,7 +10,19 @@ namespace NuGetGallery.FunctionalTests.ODataTests
     [TestClass]
     public partial class V2FeedTest : GalleryTestBase
     {
-       
+
+        [TestMethod]
+        public void Top30PackagesFeedTest()
+        {
+            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/Search()?$filter=IsAbsoluteLatestVersion&$orderby=DownloadCount%20desc,Id&$skip=0&$top=30&searchTerm=''&targetFramework='net45'&includePrerelease=true");
+            // Get the response.          
+            WebResponse response = request.GetResponse();
+            StreamReader sr = new StreamReader(response.GetResponseStream());
+            string responseText = sr.ReadToEnd();
+            //Just check for the presence of predefined package which is expected in Top 30.
+            Assert.IsTrue(responseText.Contains("jQuery"));          
+        }
+
         [TestMethod]
         public void FindPackagesByIdTest()
         {

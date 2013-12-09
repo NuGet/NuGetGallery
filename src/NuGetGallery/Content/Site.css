@@ -9,17 +9,6 @@ Main Accent: #39922C
 Links: #0071BC
 *************************************************************/
 
-/* Fonts
-***************************************************************/
-
-@font-face {
-    font-family: 'FontAwesome';
-    src: url('font/fontawesome-webfont.eot?v=3.0.2');
-    src: url('font/fontawesome-webfont.eot?#iefix&v=3.0.2') format('embedded-opentype'), url('font/fontawesome-webfont.woff?v=3.0.2') format('woff'), url('font/fontawesome-webfont.ttf?v=3.0.2') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-}
-
 /* Resets
 ***************************************************************/
 
@@ -541,6 +530,9 @@ section.package {
         font-size: 1.25em;
     }
 
+    section.package ul,
+    section.package li { display: inline; }
+
 section.package h1 {
     font-size: 1.75em;
     display: inline-block;
@@ -662,7 +654,9 @@ ul.pager li.next { padding-left: 10px; }
             background-color: #f4f5f6;
         }
 
-.sexy-table tbody tr.recommended { font-weight: 800; word-break: break-all; }
+.sexy-table tbody tr.recommended { 
+    font-weight: 800;
+}
 
     .sexy-table tbody td {
         padding: 5px 25px 5px 0;

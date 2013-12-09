@@ -77,5 +77,77 @@ namespace NuGetGallery {
                 return ResourceManager.GetString("CommandExecutor_UnhandledCommand", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains an ID that is too long. Package IDs can be no longer than 100 characters..
+        /// </summary>
+        internal static string Manifest_IdTooLong {
+            get {
+                return ResourceManager.GetString("Manifest_IdTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains an invalid Dependency: &apos;{0} {1}&apos;.
+        /// </summary>
+        internal static string Manifest_InvalidDependency {
+            get {
+                return ResourceManager.GetString("Manifest_InvalidDependency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains an invalid ID: &apos;{0}&apos;.
+        /// </summary>
+        internal static string Manifest_InvalidId {
+            get {
+                return ResourceManager.GetString("Manifest_InvalidId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains an invalid Minimum Client Version: &apos;{0}&apos;.
+        /// </summary>
+        internal static string Manifest_InvalidMinClientVersion {
+            get {
+                return ResourceManager.GetString("Manifest_InvalidMinClientVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains an invalid Target Framework: &apos;{0}&apos;.
+        /// </summary>
+        internal static string Manifest_InvalidTargetFramework {
+            get {
+                return ResourceManager.GetString("Manifest_InvalidTargetFramework", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains an invalid URL.
+        /// </summary>
+        internal static string Manifest_InvalidUrl {
+            get {
+                return ResourceManager.GetString("Manifest_InvalidUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains an invalid Version: &apos;{0}&apos;.
+        /// </summary>
+        internal static string Manifest_InvalidVersion {
+            get {
+                return ResourceManager.GetString("Manifest_InvalidVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package manifest is missing the Id field.
+        /// </summary>
+        internal static string Manifest_MissingId {
+            get {
+                return ResourceManager.GetString("Manifest_MissingId", resourceCulture);
+            }
+        }
     }
 }
