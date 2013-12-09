@@ -290,23 +290,19 @@
         <tbody>
             @foreach (var packageVersion in Model.PackageVersions)
             {
+                var rowClass = packageVersion.LatestStableVersion ? "recommended" : null;
+                var cellTitle = packageVersion.LatestStableVersion ? "Latest Stable Version" : null;
                 if (packageVersion.Listed || Model.IsOwner(User))
                 {
-                    <tr class="versionTableRow @if (packageVersion.LatestStableVersion)
-                                               {
-                                                   <text>recommended </text>
-                                               }">
-                        <td class="version" @if (packageVersion.LatestStableVersion)
-                                            {
-                                                <text>title="Latest Stable Version"</text>
-                                            }>
+                    <tr class="versionTableRow @rowClass">
+                        <td class="version" title="@cellTitle">
                             @if (!packageVersion.IsCurrent(Model))
                             {
                                 <a href="@Url.Package(packageVersion)">
                                     @packageVersion.Title 
                                     @packageVersion.Version
                                     @if(packageVersion.LatestStableVersion) {
-                                        @:(latest)
+                                        @:(latest stable)
                                     }
                                 </a>
                             }
