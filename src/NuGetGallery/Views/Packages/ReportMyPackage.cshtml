@@ -37,6 +37,7 @@
             @Html.TextAreaFor(m => m.Message, 10, 50, null)
             @Html.ValidationMessageFor(m => m.Message, null, new { id = "report-abuse-message" })
         </div>
+        <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
         @Html.SpamPreventionFields()
         <input type="submit" value="Report" title="Report your problem with '@Model.PackageId'" />
     </fieldset>
