@@ -28,6 +28,7 @@ namespace NuGetGallery
         public IStatisticsService StatisticsService { get; set; }
         public IContentService ContentService { get; set; }
         public IIndexingService IndexingService { get; set; }
+        public IAutomaticallyCuratePackageCommand AutoCuratePackage { get; set; }
         
         protected ApiController() { }
 
@@ -38,7 +39,8 @@ namespace NuGetGallery
             IUserService userService,
             INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
-            IIndexingService indexingService)
+            IIndexingService indexingService,
+            IAutomaticallyCuratePackageCommand autoCuratePackage)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -48,6 +50,7 @@ namespace NuGetGallery
             ContentService = contentService;
             StatisticsService = null;
             IndexingService = indexingService;
+            AutoCuratePackage = autoCuratePackage;
         }
 
         public ApiController(
@@ -58,8 +61,9 @@ namespace NuGetGallery
             INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
             IIndexingService indexingService,
+            IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatisticsService statisticsService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, autoCuratePackage)
         {
             StatisticsService = statisticsService;
         }
@@ -247,7 +251,10 @@ namespace NuGetGallery
                     }
                 }
 
-                var package = PackageService.CreatePackage(packageToPush, user, commitChanges: true);
+                var package = PackageService.CreatePackage(packageToPush, user, commitChanges: false);
+                AutoCuratePackage.Execute(package, packageToPush, commitChanges: false);
+                EntitiesContext.SaveChanges();
+
                 using (Stream uploadStream = packageToPush.GetStream())
                 {
                     await PackageFileService.SavePackageFileAsync(package, uploadStream);
