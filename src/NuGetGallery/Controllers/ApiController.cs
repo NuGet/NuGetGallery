@@ -212,6 +212,14 @@ namespace NuGetGallery
 
             using (var packageToPush = ReadPackageFromRequest())
             {
+                if (packageToPush.Metadata.MinClientVersion > typeof(Manifest).Assembly.GetName().Version)
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, String.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.UploadPackage_MinClientVersionOutOfRange,
+                        packageToPush.Metadata.MinClientVersion));
+                }
+
                 // Ensure that the user can push packages for this partialId.
                 var packageRegistration = PackageService.FindPackageRegistrationById(packageToPush.Metadata.Id);
                 if (packageRegistration != null)
