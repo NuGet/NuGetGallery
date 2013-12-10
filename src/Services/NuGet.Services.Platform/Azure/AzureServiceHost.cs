@@ -36,5 +36,10 @@ namespace NuGet.Services.Azure
                 return base.GetConfigurationSetting(fullName);
             }
         }
+
+        protected override IEnumerable<Module> GetModules()
+        {
+            yield return _worker.GetServiceModule();
+        }
     }
 }

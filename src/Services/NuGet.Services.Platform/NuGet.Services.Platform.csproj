@@ -111,9 +111,6 @@
     <Compile Include="AssemblyInformation.cs" />
     <Compile Include="Azure\AzureServiceHost.cs" />
     <Compile Include="Azure\NuGetWorkerRole.cs" />
-    <Compile Include="Composition\AutofacServiceRegistrar.cs" />
-    <Compile Include="Composition\AutofacComponentContainer.cs" />
-    <Compile Include="Composition\IComponentContainer.cs" />
     <Compile Include="Configuration\ICustomConfigurationSection.cs" />
     <Compile Include="IServiceRegistrar.cs" />
     <Compile Include="Configuration\ConfigurationErrorsException.cs" />

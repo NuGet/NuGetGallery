@@ -4,8 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Autofac;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using NuGet.Services.Composition;
 
 namespace NuGet.Services.Azure
 {
@@ -37,14 +37,11 @@ namespace NuGet.Services.Azure
         public override bool OnStart()
         {
             // Initialize the host
-            _host.Initialize(registrar =>
-            {
-                RegisterServices(registrar);
-            });
+            _host.Initialize();
 
             return _host.StartAndWait();
         }
 
-        protected abstract void RegisterServices(IServiceRegistrar registrar);
+        protected internal abstract Module GetServiceModule();
     }
 }

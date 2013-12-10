@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
-using NuGet.Services.Composition;
 using NuGet.Services.Configuration;
 using NuGet.Services.Storage;
 
@@ -17,14 +16,13 @@ namespace NuGet.Services
     {
         private CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
         private IContainer _container;
-        private AutofacComponentContainer _containerWrapper;
-
+        
         public abstract string Name { get; }
         public CancellationToken ShutdownToken { get { return _shutdownTokenSource.Token; } }
 
         public IReadOnlyList<NuGetService> Services { get; private set; }
 
-        public IComponentContainer Container { get { return _containerWrapper; } }
+        public IContainer Container { get { return _container; } }
 
         /// <summary>
         /// Starts all services in the host and blocks until they have completed starting.
@@ -69,7 +67,7 @@ namespace NuGet.Services
             return ConfigurationManager.AppSettings[fullName];
         }
 
-        public virtual void Initialize(Action<IServiceRegistrar> registrations)
+        public virtual void Initialize()
         {
             ContainerBuilder builder = new ContainerBuilder();
 
@@ -79,11 +77,7 @@ namespace NuGet.Services
                 builder.RegisterModule(module);
             }
 
-            // Register services
-            registrations(new AutofacServiceRegistrar(builder));
-            
             _container = builder.Build();
-            _containerWrapper = new AutofacComponentContainer(_container);
 
             // Now get the services
             Services = _container.Resolve<IReadOnlyList<NuGetService>>();

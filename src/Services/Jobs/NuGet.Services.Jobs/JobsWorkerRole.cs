@@ -20,6 +20,11 @@ namespace NuGet.Services.Jobs
 {
     public class JobsWorkerRole : NuGetWorkerRole
     {
+        protected override Module GetServiceModule()
+        {
+            return new 
+        }
+
         protected override void RegisterServices(IServiceRegistrar registrar)
         {
             for (int i = 0; i < Environment.ProcessorCount; i++)
