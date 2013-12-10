@@ -233,7 +233,7 @@ namespace NuGetGallery.Operations
             string version)
         {
             return dbExecutor.Query<Package>(
-                "SELECT p.[Key], pr.Id, p.Version, p.Hash FROM Packages p JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey WHERE pr.Id = @id AND p.Version = @version",
+                "SELECT p.[Key], pr.Id, p.Version, p.NormalizedVersion, p.Hash FROM Packages p JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey WHERE pr.Id = @id AND p.Version = @version",
                 new { id, version }).SingleOrDefault();
         }
 
