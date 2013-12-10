@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Autofac">
+      <HintPath>..\..\..\..\packages\Autofac.3.1.5\lib\net40\Autofac.dll</HintPath>
+    </Reference>
     <Reference Include="Dapper">
       <HintPath>..\..\..\..\packages\Dapper.1.13\lib\net45\Dapper.dll</HintPath>
     </Reference>
@@ -117,6 +120,7 @@
     <Compile Include="Helpers\EventSourceInstanceManager.cs" />
     <Compile Include="Infrastructure\Job.cs" />
     <Compile Include="Infrastructure\JobAttribute.cs" />
+    <Compile Include="Infrastructure\JobCollection.cs" />
     <Compile Include="Infrastructure\JobDescription.cs" />
     <Compile Include="Infrastructure\InvocationContext.cs" />
     <Compile Include="Invocation.cs" />

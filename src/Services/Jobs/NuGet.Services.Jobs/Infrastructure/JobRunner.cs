@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
@@ -8,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Configuration;
+using NuGet.Services.Jobs.Configuration;
 using NuGet.Services.Jobs.Monitoring;
 using NuGet.Services.Storage;
 
@@ -20,18 +23,17 @@ namespace NuGet.Services.Jobs
         private JobDispatcher _dispatcher;
         private InvocationQueue _queue;
         private TimeSpan _pollInterval;
-        
-        public JobsService Service { get; private set; }
+        private string _tempDirectory;
+
+        public StorageHub Storage { get; private set; }
 
         public event EventHandler Heartbeat;
 
-        public JobRunner(JobDispatcher dispatcher, JobsService service, TimeSpan pollInterval, StorageHub storage)
+        public JobRunner(JobDispatcher dispatcher, ConfigurationHub config, StorageHub storage)
         {
             _dispatcher = dispatcher;
-            _pollInterval = pollInterval;
             
-            Service = service;
-
+            _pollInterval = config.GetSection<QueueConfiguration>().PollInterval;
             _queue = new InvocationQueue(service.ServiceInstanceName, storage);
         }
 
@@ -104,7 +106,7 @@ namespace NuGet.Services.Jobs
             await _queue.Update(request.Invocation);
 
             // Create the request.Invocation context and start capturing the logs
-            var capture = new InvocationLogCapture(request.Invocation, Service);
+            var capture = new InvocationLogCapture(request.Invocation, Storage, Path.Combine(Path.GetTempPath(), "InvocationLogs"));
             var context = new InvocationContext(request, _queue, capture);
             await capture.Start();
 

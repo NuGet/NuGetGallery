@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -16,11 +17,12 @@ namespace NuGet.Services
     {
         private CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
         private IContainer _container;
+        private IReadOnlyList<Type> _serviceTypes;
         
         public abstract string Name { get; }
         public CancellationToken ShutdownToken { get { return _shutdownTokenSource.Token; } }
 
-        public IReadOnlyList<NuGetService> Services { get; private set; }
+        public IReadOnlyList<NuGetService> Instances { get; private set; }
 
         public IContainer Container { get { return _container; } }
 
@@ -37,7 +39,9 @@ namespace NuGet.Services
         /// </summary>
         public async Task<bool> Start()
         {
-            return (await Task.WhenAll(Services.Select(s => s.Start()))).All(b => b);
+            var instances = await Task.WhenAll(_serviceTypes.Select(StartService));
+            Instances = instances.Where(s => s != null);
+            return instances.All(s => s != null);
         }
 
         /// <summary>
@@ -72,28 +76,36 @@ namespace NuGet.Services
             ContainerBuilder builder = new ContainerBuilder();
 
             // Add modules
-            foreach (var module in Enumerable.Concat(GetCoreModules(), GetModules()))
-            {
-                builder.RegisterModule(module);
-            }
-
+            builder.RegisterModule(new NuGetCoreModule(this));
+            
             _container = builder.Build();
 
             // Now get the services
-            Services = _container.Resolve<IReadOnlyList<NuGetService>>();
+            _serviceTypes = GetServices().ToList().AsReadOnly();
+
+            var invalidService = _serviceTypes.FirstOrDefault(t => !typeof(NuGetService).IsAssignableFrom);
+            if (invalidService != null)
+            {
+                throw new InvalidCastException(String.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.ServiceHost_NotAValidServiceType,
+                    invalidService.FullName));
+            }
         }
 
-        /// <summary>
-        /// Should only be overridden if you know what you're doing!
-        /// </summary>
-        protected virtual IEnumerable<Module> GetCoreModules()
+        private Task<NuGetService> StartService(Type service)
         {
-            yield return new NuGetCoreModule(this);
+            // Create a lifetime scope
+            var scope = _container.BeginLifetimeScope();
+            var service = (NuGetService)scope.Resolve(service);
+            var builder = new ContainerBuilder();
+            builder.RegisterInstance(service).As<NuGetService>();
+            service.RegisterComponents(builder);
+            builder.Update(scope.ComponentRegistry);
+
+            return service.Start(scope);
         }
 
-        protected virtual IEnumerable<Module> GetModules()
-        {
-            yield break;
-        }
+        protected abstract IEnumerable<Type> GetServices();
     }
 }

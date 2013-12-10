@@ -37,9 +37,9 @@ namespace NuGet.Services.Azure
             }
         }
 
-        protected override IEnumerable<Module> GetModules()
+        protected override IEnumerable<Type> GetServices()
         {
-            yield return _worker.GetServiceModule();
+            return _worker.GetServices();
         }
     }
 }

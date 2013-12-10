@@ -95,5 +95,14 @@ namespace NuGet.Services {
                 return ResourceManager.GetString("ServiceHost_DoesNotSupportEndpoints", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid NuGetService, it must inherit from NuGet.Services.NuGetService.
+        /// </summary>
+        internal static string ServiceHost_NotAValidServiceType {
+            get {
+                return ResourceManager.GetString("ServiceHost_NotAValidServiceType", resourceCulture);
+            }
+        }
     }
 }

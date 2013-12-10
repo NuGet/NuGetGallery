@@ -129,4 +129,7 @@
   <data name="ServiceHost_DoesNotSupportEndpoints" xml:space="preserve">
     <value>This host does not support IP endpoints</value>
   </data>
+  <data name="ServiceHost_NotAValidServiceType" xml:space="preserve">
+    <value>'{0}' is not a valid NuGetService, it must inherit from NuGet.Services.NuGetService</value>
+  </data>
 </root>

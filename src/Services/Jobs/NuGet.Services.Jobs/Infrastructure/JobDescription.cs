@@ -11,56 +11,49 @@ using Microsoft.WindowsAzure.Storage.Table;
 using System.Diagnostics.Tracing;
 using System.ComponentModel.DataAnnotations.Schema;
 using NuGet.Services.Storage;
-using NuGet.Services.Composition;
+using Autofac.Builder;
 
 namespace NuGet.Services.Jobs
 {
     [Table("Jobs")]
     public class JobDescription : AzureTableEntity
     {
-        private Func<JobBase> _constructor;
-
         public string Name { get; set; }
         public string Description { get; set; }
         public string Runtime { get; set; }
         public Guid? EventProviderId { get; set; }
         public bool? Enabled { get; set; }
 
+        [IgnoreProperty]
+        public Type Type { get; private set; }
+
         [Obsolete("For serialization only")]
         public JobDescription() { }
 
-        public JobDescription(string name, string runtime, Func<JobBase> constructor)
-            : this(name, null, runtime, null, constructor) { }
+        public JobDescription(string name, string runtime)
+            : this(name, null, runtime, null) { }
 
-        public JobDescription(string name, string description, string runtime, Guid? eventProviderId, Func<JobBase> constructor)
+        public JobDescription(string name, string description, string runtime, Guid? eventProviderId)
         {
             Name = name;
             Description = description;
             Runtime = runtime;
             EventProviderId = eventProviderId;
-            _constructor = constructor;
         }
 
-        public JobBase CreateInstance()
-        {
-            if (_constructor == null)
-            {
-                throw new InvalidOperationException(Strings.JobDescription_CannotBeConstructed);
-            }
-            return _constructor();
-        }
-
-        public static JobDescription Create(Type jobType, IComponentContainer container)
+        public static JobDescription Create(Type jobType)
         {
             var attr = JobAttribute.Get(jobType);
             var descAttr = jobType.GetCustomAttribute<DescriptionAttribute>();
-            
+
             return new JobDescription(
-                name: attr.Name, 
+                name: attr.Name,
                 description: descAttr == null ? null : descAttr.Description,
-                runtime: jobType.AssemblyQualifiedName, 
-                eventProviderId: attr.EventProvider == null ? (Guid?)null : (Guid?)EventSource.GetGuid(attr.EventProvider), 
-                constructor: () => (JobBase)container.GetService(jobType));
+                runtime: jobType.AssemblyQualifiedName,
+                eventProviderId: attr.EventProvider == null ? (Guid?)null : (Guid?)EventSource.GetGuid(attr.EventProvider))
+                {
+                    Type = jobType
+                };
         }
     }
 }

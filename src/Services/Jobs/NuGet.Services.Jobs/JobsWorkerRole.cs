@@ -8,6 +8,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
+using Autofac;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
@@ -20,20 +21,15 @@ namespace NuGet.Services.Jobs
 {
     public class JobsWorkerRole : NuGetWorkerRole
     {
-        protected override Module GetServiceModule()
-        {
-            return new 
-        }
-
-        protected override void RegisterServices(IServiceRegistrar registrar)
+        protected override IEnumerable<Type> GetServices()
         {
             for (int i = 0; i < Environment.ProcessorCount; i++)
             {
                 // This should register multiple copies of the service
-                registrar.RegisterService<JobsService>();
+                yield return typeof(JobsService);
             }
 
-            registrar.RegisterService<JobsManagementService>();
+            yield return typeof(JobsManagementService);
         }
     }
 }

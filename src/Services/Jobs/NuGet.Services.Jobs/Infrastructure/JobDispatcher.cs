@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Autofac.Features.OwnedInstances;
 using NuGet.Services.Jobs.Monitoring;
 
 namespace NuGet.Services.Jobs
@@ -12,13 +13,14 @@ namespace NuGet.Services.Jobs
     {
         private Dictionary<string, JobDescription> _jobMap;
         private List<JobDescription> _jobs;
+        private JobsService _service;
 
         public IReadOnlyList<JobDescription> Jobs { get { return _jobs.AsReadOnly(); } }
         
-        public JobDispatcher(IEnumerable<JobDescription> jobs)
+        public JobDispatcher(JobsService service)
         {
-            _jobs = jobs.ToList();
-            _jobMap = _jobs.ToDictionary(j => j.Name, StringComparer.OrdinalIgnoreCase);
+            _jobs = service.Jobs.ToList();
+            _jobMap = service.Jobs.ToDictionary(j => j.Name, StringComparer.OrdinalIgnoreCase);
         }
 
         public virtual async Task<InvocationResult> Dispatch(InvocationContext context)
@@ -28,7 +30,7 @@ namespace NuGet.Services.Jobs
             {
                 throw new UnknownJobException(context.Invocation.Job);
             }
-            JobBase job = jobDesc.CreateInstance();
+            JobBase job = _service.Container.GetService<JobBase>(jobDesc.Type);
 
             if (context.LogCapture != null)
             {

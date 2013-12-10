@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Formatters;
 using Microsoft.WindowsAzure.Storage.Blob;
+using NuGet.Services.Storage;
 
 namespace NuGet.Services.Jobs.Monitoring
 {
@@ -17,16 +18,19 @@ namespace NuGet.Services.Jobs.Monitoring
         private ObservableEventListener _listener;
         private IObservable<EventEntry> _eventStream;
 
+        private readonly string _tempDirectory;
         private string _tempFile;
         private IDisposable _eventSubscription;
 
         public Invocation Invocation { get; private set; }
-        public JobsService Service { get; private set; }
-
-        public InvocationLogCapture(Invocation invocation, JobsService service)
+        public StorageHub Storage { get; private set; }
+        
+        public InvocationLogCapture(Invocation invocation, StorageHub storage, string tempDirectory)
         {
             Invocation = invocation;
-            Service = service;
+            Storage = storage;
+
+            _tempDirectory = tempDirectory;
         }
 
         public async Task Start()
@@ -39,13 +43,12 @@ namespace NuGet.Services.Jobs.Monitoring
             _listener.EnableEvents(InvocationEventSource.Log, EventLevel.Informational);
 
             // Calculate paths
-            var root = Path.Combine(Service.TempDirectory, "Invocations");
-            if (!Directory.Exists(root))
+            if (!Directory.Exists(_tempDirectory))
             {
-                Directory.CreateDirectory(root);
+                Directory.CreateDirectory(_tempDirectory);
             }
 
-            _tempFile = Path.Combine(root, Invocation.Id.ToString("N") + ".json");
+            _tempFile = Path.Combine(_tempDirectory, Invocation.Id.ToString("N") + ".json");
             if (File.Exists(_tempFile))
             {
                 File.Delete(_tempFile);
@@ -54,7 +57,7 @@ namespace NuGet.Services.Jobs.Monitoring
             // Fetch the current logs if this is a continuation, we'll append to them during the invocation
             if (Invocation.Continuation)
             {
-                await Service.Storage.Primary.Blobs.DownloadBlob(JobsService.InvocationLogsContainerBaseName, "invocations/" + Path.GetFileName(_tempFile), _tempFile);
+                await Storage.Primary.Blobs.DownloadBlob(JobsService.InvocationLogsContainerBaseName, "invocations/" + Path.GetFileName(_tempFile), _tempFile);
             }
 
             // Capture the events into a JSON file and a plain text file
@@ -67,7 +70,7 @@ namespace NuGet.Services.Jobs.Monitoring
             _eventSubscription.Dispose();
 
             // Upload the file to blob storage
-            var logBlob = await Service.Storage.Primary.Blobs.UploadBlob(_tempFile, JobsService.InvocationLogsContainerBaseName, "invocations/" + Path.GetFileName(_tempFile));
+            var logBlob = await Storage.Primary.Blobs.UploadBlob(_tempFile, JobsService.InvocationLogsContainerBaseName, "invocations/" + Path.GetFileName(_tempFile));
 
             // Delete the temp files
             File.Delete(_tempFile);

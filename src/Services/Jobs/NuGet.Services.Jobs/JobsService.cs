@@ -20,6 +20,8 @@ using NuGet.Services.Jobs.Monitoring;
 using System.Net;
 using NuGet.Services.Storage;
 using NuGet.Services.Jobs.Configuration;
+using Autofac.Core;
+using Autofac;
 
 namespace NuGet.Services.Jobs
 {
@@ -58,23 +60,9 @@ namespace NuGet.Services.Jobs
         protected override Task OnRun()
         {
             var queueConfig = Configuration.GetSection<QueueConfiguration>();
-            var dispatcher = new JobDispatcher(Jobs);
-            var runner = new JobRunner(dispatcher, this, queueConfig.PollInterval, Storage);
+            var runner = Container.GetService<JobRunner>();
 
             return runner.Run(Host.ShutdownToken);
-        }
-
-        /// <summary>
-        /// Registers a job with the monitoring hub
-        /// </summary>
-        /// <param name="job">The job to register</param>
-        public virtual void RegisterJob(JobDescription job)
-        {
-            // Record the discovery in the trace
-            JobsServiceEventSource.Log.JobDiscovered(job);
-
-            // Log an entry for the job in the status table
-            _jobsTable.Merge(job);
         }
 
         private void DiscoverJobs()
@@ -82,21 +70,34 @@ namespace NuGet.Services.Jobs
             _jobsTable = Storage.Primary.Tables.Table<JobDescription>();
 
             Jobs = typeof(JobsWorkerRole)
-                .Assembly
-                .GetExportedTypes()
-                .Where(t => !t.IsAbstract && typeof(JobBase).IsAssignableFrom(t))
-                .Select(t => JobDescription.Create(t, Host.Container))
-                .Where(d => d != null);
+                   .Assembly
+                   .GetExportedTypes()
+                   .Where(t => !t.IsAbstract && typeof(JobBase).IsAssignableFrom(t))
+                   .Select(t => JobDescription.Create(t))
+                   .Where(d => d != null);
 
             foreach (var job in Jobs)
             {
-                RegisterJob(job);
+                // Record the discovery in the trace
+                JobsServiceEventSource.Log.JobDiscovered(job);
+
+                // Log an entry for the job in the status table
+                _jobsTable.Merge(job);
             }
         }
 
-        private JobBase InjectProperties(JobBase arg)
+        protected override IEnumerable<IModule> GetComponentModules()
         {
-            throw new NotImplementedException();
+            yield return new JobsServiceComponentModule();
+        }
+
+        private class JobsServiceComponentModule : Module
+        {
+            protected override void Load(ContainerBuilder builder)
+            {
+                builder.RegisterType<JobDispatcher>();
+                builder.RegisterType<JobRunner>();
+            }
         }
     }
 }

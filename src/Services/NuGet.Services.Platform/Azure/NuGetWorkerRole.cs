@@ -42,6 +42,6 @@ namespace NuGet.Services.Azure
             return _host.StartAndWait();
         }
 
-        protected internal abstract Module GetServiceModule();
+        protected internal abstract IEnumerable<Type> GetServices();
     }
 }

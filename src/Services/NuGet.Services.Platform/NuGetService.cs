@@ -13,6 +13,8 @@ using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Sinks;
 using NuGet.Services.Storage;
 using NuGet.Services.Configuration;
+using Autofac;
+using Autofac.Core;
 
 namespace NuGet.Services
 {
@@ -32,6 +34,8 @@ namespace NuGet.Services
         public StorageHub Storage { get; set; }
         public ConfigurationHub Configuration { get; set; }
 
+        public IServiceProvider Container { get; protected set; }
+
         public string TempDirectory { get; protected set; }
 
         protected NuGetService(string serviceName, ServiceHost host)
@@ -47,8 +51,10 @@ namespace NuGet.Services
             ServiceInstanceId.Set(Interlocked.Increment(ref _nextId) - 1);
         }
 
-        public virtual async Task<bool> Start()
+        public virtual async Task<bool> Start(ILifetimeScope scope)
         {
+            Container = new AutofacServiceProvider(scope);
+
             ServicePlatformEventSource.Log.Starting(Name, ServiceInstanceName);
             if (Host == null)
             {
@@ -80,6 +86,12 @@ namespace NuGet.Services
             {
                 _globalSinkSubscription.Dispose();
             }
+
+            var dispContainer = Container as IDisposable;
+            if (dispContainer != null)
+            {
+                dispContainer.Dispose();
+            }
         }
 
         public virtual Task Heartbeat()
@@ -97,9 +109,24 @@ namespace NuGet.Services
             return Enumerable.Empty<EventSource>();
         }
 
+        protected virtual IEnumerable<IModule> GetComponentModules()
+        {
+            return Enumerable.Empty<IModule>();
+        }
+
+        public virtual void RegisterComponents(ContainerBuilder builder)
+        {
+            builder.RegisterInstance(this).As(GetType());
+
+            foreach (var module in GetComponentModules())
+            {
+                builder.RegisterModule(module);
+            }
+        }
+
         private async Task StartTracing()
         {
- 	        // Set up worker logging
+            // Set up worker logging
             var listener = new ObservableEventListener();
             var capturedId = ServiceInstanceId.Get();
             var stream = listener.Where(_ => ServiceInstanceId.Get() == capturedId);
