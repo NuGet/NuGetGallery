@@ -20,6 +20,9 @@ namespace NuGetGallery.Operations.Tasks
     {
         static int[] SleepTimes = { 50, 750, 1500, 2500, 3750, 5250, 7000, 9000 };
 
+        [Option("Set this option to ignore the tried count and process ALL edits", AltName = "a")]
+        public bool IncludePreviouslyFailedEdits { get; set; }
+
         public override void ExecuteCommand()
         {
             // Work to do:
@@ -30,9 +33,11 @@ namespace NuGetGallery.Operations.Tasks
             
             // We group edits together by their package key and process them together - this is a read-only operation
             var entitiesContext = new EntitiesContext(connectionString, readOnly: true);
-            var editsPerPackage = entitiesContext.Set<PackageEdit>()
-                .Where(pe => pe.TriedCount < 3)
-                .GroupBy(pe => pe.PackageKey);
+            IQueryable<PackageEdit> allEdits = entitiesContext.Set<PackageEdit>();
+            if(!IncludePreviouslyFailedEdits) {
+                allEdits = allEdits.Where(pe => pe.TriedCount < 3);
+            }
+            var editsPerPackage = allEdits.GroupBy(pe => pe.PackageKey);
 
             // Now that we have our list of packages with pending edits, we'll process the pending edits for each
             // Note that we're not doing editing in parallel because
@@ -51,8 +56,17 @@ namespace NuGetGallery.Operations.Tasks
 
             // Get the list of edits for this package
             // Do edit with a 'most recent edit to this package wins - other edits are deleted' strategy.
-            var editsForThisPackage = entitiesContext.Set<PackageEdit>()
-                .Where(pe => pe.PackageKey == packageKey && pe.TriedCount < 3)
+            IQueryable<PackageEdit> editSet = entitiesContext.Set<PackageEdit>();
+            if (IncludePreviouslyFailedEdits)
+            {
+                editSet = editSet.Where(pe => pe.PackageKey == packageKey);
+            }
+            else
+            {
+                editSet = editSet.Where(pe => pe.PackageKey == packageKey && pe.TriedCount < 3);
+            }
+
+            var editsForThisPackage = editSet
                 .Include(pe => pe.Package)
                 .Include(pe => pe.Package.PackageRegistration)
                 .Include(pe => pe.User)
@@ -69,8 +83,8 @@ namespace NuGetGallery.Operations.Tasks
             var blobClient = StorageAccount.CreateCloudBlobClient();
             var packagesContainer = Util.GetPackagesBlobContainer(blobClient);
 
-            var latestPackageFileName = Util.GetPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
-            var originalPackageFileName = Util.GetBackupOfOriginalPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
+            var latestPackageFileName = Util.GetPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.NormalizedVersion);
+            var originalPackageFileName = Util.GetBackupOfOriginalPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.NormalizedVersion);
 
             var originalPackageBackupBlob = packagesContainer.GetBlockBlobReference(originalPackageFileName);
             var latestPackageBlob = packagesContainer.GetBlockBlobReference(latestPackageFileName);
@@ -94,7 +108,7 @@ namespace NuGetGallery.Operations.Tasks
                 "Processing Edit Key={0}, PackageId={1}, Version={2}, User={3}",
                 edit.Key,
                 edit.Package.PackageRegistration.Id,
-                edit.Package.Version,
+                edit.Package.NormalizedVersion,
                 edit.User.Username);
 
             if (!WhatIf)

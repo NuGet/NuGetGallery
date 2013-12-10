@@ -302,6 +302,12 @@ namespace NuGetGallery
 
                 return report;
             }
+            catch (StatisticsReportNotFoundException)
+            {
+                //do no logging and just return null. Since this exception will thrown for all packages which doesn't have downloads in last 6 weeks, we don't 
+                //want to flood the elmah logs.
+                return null;
+            }
             catch (NullReferenceException e)
             {
                 QuietLog.LogHandledException(e);
@@ -313,7 +319,7 @@ namespace NuGetGallery
                 return null;
             }
             catch (StorageException e)
-            {
+            {                
                 QuietLog.LogHandledException(e);
                 return null;
             }
@@ -390,7 +396,12 @@ namespace NuGetGallery
         private static IList<StatisticsFact> CreateFacts(JObject data)
         {
             IList<StatisticsFact> facts = new List<StatisticsFact>();
-
+            JToken itemsToken = null;
+            //check if the "Items" exist before trying to access them.
+            if (!data.TryGetValue("Items", out itemsToken))
+            {
+                throw new StatisticsReportNotFoundException();
+            }
             foreach (JObject perVersion in data["Items"])
             {
                 string version = (string)perVersion["Version"];
@@ -413,7 +424,7 @@ namespace NuGetGallery
                     facts.Add(new StatisticsFact(CreateDimensions(version, clientName, clientVersion, operation), downloads));
                 }
             }
-
+            
             return facts;
         }
 

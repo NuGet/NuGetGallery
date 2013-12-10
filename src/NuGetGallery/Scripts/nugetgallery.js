@@ -78,6 +78,8 @@
         checkServiceStatus();
 
         attachSearchBoxBehavior($('#searchBoxInput.expanding-search'), $('#menu.expanding-search'));
+
+        attachPlugins();
     });
 
 	// Add validator that ensures provided value is NOT equal to a specified value.
@@ -88,4 +90,37 @@
     // Add unobtrusive adapters for mandatory checkboxes and notequal values
     $.validator.unobtrusive.adapters.addBool("mandatory", "required");
     $.validator.unobtrusive.adapters.addSingleVal('notequal', 'disallowed');
+
+    // Attach script plugins
+    function attachPlugins() {
+        $('.s-toggle[data-show][data-hide]').delegate('', 'click', function (evt) {
+            evt.preventDefault();
+            var $hide = $($(this).data().hide);
+            var $show = $($(this).data().show);
+            $hide.fadeOut('fast', function () {
+                $show.fadeIn('fast');
+            });
+        });
+        $('.s-expand[data-target]').delegate('', 'click', function (evt) {
+            evt.preventDefault();
+            var $self = $(this);
+            var data = $self.data();
+            var $target = $(data.target);
+            var toggletext = data.toggletext || $self.text();
+
+            $target.slideToggle('fast', function () {
+                var oldText = $self.text();
+                $self.text(toggletext);
+                data.toggletext = oldText;
+            });
+        });
+        $('.s-confirm[data-confirm]').delegate('', 'click', function (evt) {
+            if (!confirm($(this).data().confirm)) {
+                evt.preventDefault();
+            }
+        });
+        if(!navigator.mimeTypes["application/x-shockwave-flash"]) {
+            $('.s-reqflash').remove();
+        }
+    }
 })(window, jQuery);

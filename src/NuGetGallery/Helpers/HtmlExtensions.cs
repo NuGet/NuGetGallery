@@ -35,5 +35,27 @@ namespace NuGetGallery.Helpers
         {
             return self.Raw(HttpUtility.HtmlEncode(text).Replace("\n", "<br />").Replace("  ", "&nbsp; "));
         }
+
+        public static IHtmlString ValidationSummaryFor(this HtmlHelper html, string key)
+        {
+            var toRemove = html.ViewData.ModelState.Keys
+                .Where(k => !String.Equals(k, key, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            ModelStateDictionary copy = new ModelStateDictionary(html.ViewData.ModelState);
+            foreach (var k in toRemove)
+            {
+                html.ViewData.ModelState.Remove(k);
+            }
+            var str = html.ValidationSummary();
+
+            // Restore the old model state
+            foreach (var k in toRemove)
+            {
+                html.ViewData.ModelState[k] = copy[k];
+            }
+
+            return str;
+        }
     }
 }

@@ -3,14 +3,17 @@
 }
 
 <h1 class="page-heading">
-    Thank you for registering!
+    Thank you for registering, @CurrentUser.Username!
 </h1>
 
-<h2><a href="@Url.Action("Account", "Users")">View Profile</a></h2>
-
-<h2>Now that you have an account you might like to...</h2>
+<h2>Now that you have a NuGet.org account you might like to...</h2>
 
 <ul>
+    <li>
+        <p>
+            <a href="@Url.Action("Account", "Users")">View your profile</a> to update your email address or get your API key.
+        </p>
+    </li>
     <li>
         <p>
             <a href="@Url.ConfirmationRequired()">Confirm your account</a> so that you can upload packages or contact package owners.

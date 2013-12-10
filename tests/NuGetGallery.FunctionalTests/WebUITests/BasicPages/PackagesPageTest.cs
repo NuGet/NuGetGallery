@@ -26,7 +26,7 @@ namespace NuGetGallery.FunctionalTests
             WebTestRequest packagePageRequest = new WebTestRequest(UrlHelper.BaseUrl + @"/Packages/" + packageId);      
           
             //Rule to check if the title contains the package id and the latest stable version of the package.
-            ValidateHtmlTagInnerText packageTitleValidationRule = AssertAndValidationHelper.GetValidationRuleForHtmlTagInnerText(HtmlTextWriterTag.Title.ToString(), string.Empty, string.Empty, "NuGet Gallery | "+packageId+" "+ ClientSDKHelper.GetLatestStableVersion(packageId));              
+            ValidationRuleFindText packageTitleValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(packageId + " " + ClientSDKHelper.GetLatestStableVersion(packageId));              
             packagePageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(packageTitleValidationRule.Validate);
             //rule to check that the download count is present in the response.
             ValidationRuleFindText downloadCountValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(ClientSDKHelper.GetFormattedDownLoadStatistics(packageId));                

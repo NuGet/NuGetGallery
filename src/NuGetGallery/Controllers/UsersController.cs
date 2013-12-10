@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
@@ -18,15 +19,13 @@ namespace NuGetGallery
         public IAppConfiguration Config { get; protected set; }
         public AuthenticationService AuthService { get; protected set; }
 
-        protected UsersController() { }
-
         public UsersController(
             ICuratedFeedService feedsQuery,
             IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
             IAppConfiguration config,
-            AuthenticationService authService) : this()
+            AuthenticationService authService)
         {
             CuratedFeedService = feedsQuery;
             UserService = userService;
@@ -34,25 +33,6 @@ namespace NuGetGallery
             MessageService = messageService;
             Config = config;
             AuthService = authService;
-        }
-
-        [Authorize]
-        public virtual ActionResult Account()
-        {
-            var user = GetCurrentUser();
-            var curatedFeeds = CuratedFeedService.GetFeedsForManager(user.Key);
-            var apiCredential = user
-                .Credentials
-                .FirstOrDefault(c => c.Type == CredentialTypes.ApiKeyV1);
-            return View(
-                new AccountViewModel
-                    {
-                        ApiKey = apiCredential == null ? 
-                            user.ApiKey.ToString() :
-                            apiCredential.Value,
-                        IsConfirmed = user.Confirmed,
-                        CuratedFeeds = curatedFeeds.Select(cf => cf.Name)
-                    });
         }
 
         [HttpGet]
@@ -75,7 +55,7 @@ namespace NuGetGallery
         {
             User user = GetCurrentUser();
             var confirmationUrl = Url.ConfirmationUrl(
-                MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
+                "Confirm", "Users", user.Username, user.EmailConfirmationToken);
 
             MessageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
 
@@ -89,23 +69,15 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        public virtual ActionResult Edit()
+        public virtual ActionResult Account()
         {
-            var user = GetCurrentUser();
-            var model = new EditProfileViewModel
-                {
-                    Username = user.Username,
-                    EmailAddress = user.EmailAddress,
-                    EmailAllowed = user.EmailAllowed,
-                    PendingNewEmailAddress = user.UnconfirmedEmailAddress
-                };
-            return View(model);
+            return AccountView(new AccountViewModel());
         }
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult Edit(EditProfileViewModel profile)
+        public virtual ActionResult ChangeEmailSubscription(bool subscribe)
         {
             var user = GetCurrentUser();
             if (user == null)
@@ -113,11 +85,9 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            profile.EmailAddress = user.EmailAddress;
-            profile.Username = user.Username;
-            profile.PendingNewEmailAddress = user.UnconfirmedEmailAddress;
-            UserService.UpdateProfile(user, profile.EmailAllowed);
-            return View(profile);
+            UserService.ChangeEmailSubscription(user, subscribe);
+            TempData["Message"] = Strings.EmailPreferencesUpdated;
+            return RedirectToAction("Account");
         }
 
         public virtual ActionResult Thanks()
@@ -146,25 +116,6 @@ namespace NuGetGallery
             return View(model);
         }
 
-        [Authorize]
-        [ValidateAntiForgeryToken]
-        [HttpPost]
-        public virtual ActionResult GenerateApiKey()
-        {
-            // Get the user
-            var user = GetCurrentUser();
-
-            // Generate an API Key
-            var apiKey = Guid.NewGuid();
-
-            // Set the existing API Key field
-            user.ApiKey = apiKey;
-
-            // Add/Replace the API Key credential, and save to the database
-            AuthService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
-            return RedirectToAction(MVC.Users.Account());
-        }
-
         public virtual ActionResult ForgotPassword()
         {
             // We don't want Login to have us as a return URL
@@ -176,7 +127,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult ForgotPassword(ForgotPasswordViewModel model)
+        public virtual async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
@@ -184,15 +135,10 @@ namespace NuGetGallery
             
             if (ModelState.IsValid)
             {
-                var user = AuthService.GeneratePasswordResetToken(model.Email, Constants.DefaultPasswordResetTokenExpirationHours * 60);
+                var user = await AuthService.GeneratePasswordResetToken(model.Email, Constants.DefaultPasswordResetTokenExpirationHours * 60);
                 if (user != null)
                 {
-                    var resetPasswordUrl = Url.ConfirmationUrl(
-                        MVC.Users.ResetPassword(), user.Username, user.PasswordResetToken, protocol: Request.Url.Scheme);
-                    MessageService.SendPasswordResetInstructions(user, resetPasswordUrl);
-
-                    TempData["Email"] = user.EmailAddress;
-                    return RedirectToAction(MVC.Users.PasswordSent());
+                    return SendPasswordResetEmail(user, forgotPassword: true);
                 }
 
                 ModelState.AddModelError("Email", "Could not find anyone with that email.");
@@ -212,36 +158,46 @@ namespace NuGetGallery
             return View();
         }
 
-        public virtual ActionResult ResetPassword()
+        public virtual ActionResult ResetPassword(bool forgot)
         {
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
             
             ViewBag.ResetTokenValid = true;
+            ViewBag.ForgotPassword = forgot;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult ResetPassword(string username, string token, PasswordResetViewModel model)
+        public virtual async Task<ActionResult> ResetPassword(string username, string token, PasswordResetViewModel model, bool forgot)
         {
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
             
-            ViewBag.ResetTokenValid = AuthService.ResetPasswordWithToken(username, token, model.NewPassword);
+            var cred = await AuthService.ResetPasswordWithToken(username, token, model.NewPassword);
+            ViewBag.ResetTokenValid = cred != null;
+            ViewBag.ForgotPassword = forgot;
 
             if (!ViewBag.ResetTokenValid)
             {
                 ModelState.AddModelError("", "The Password Reset Token is not valid or expired.");
                 return View(model);
             }
+
+            if (cred != null && !forgot)
+            {
+                // Setting a password, so notify the user
+                MessageService.SendCredentialAddedNotice(cred.User, cred);
+            }
+
             return RedirectToAction(MVC.Users.PasswordChanged());
         }
 
         [Authorize]
-        public virtual ActionResult Confirm(string username, string token)
+        public virtual async Task<ActionResult> Confirm(string username, string token)
         {
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
@@ -267,7 +223,7 @@ namespace NuGetGallery
 
             try
             {
-                if (!UserService.ConfirmEmailAddress(user, token))
+                if (!(await UserService.ConfirmEmailAddress(user, token)))
                 {
                     model.SuccessfulConfirmation = false;
                 }
@@ -288,7 +244,7 @@ namespace NuGetGallery
                 if (!String.IsNullOrEmpty(returnUrl))
                 {
                     TempData["Message"] = "You have successfully confirmed your email address!";
-                    return new RedirectResult(RedirectHelper.SafeRedirectUrl(Url, returnUrl));
+                    return SafeRedirect(returnUrl);
                 }
             }
 
@@ -319,98 +275,200 @@ namespace NuGetGallery
             return View(model);
         }
 
-        [Authorize]
-        public virtual ActionResult ChangeEmail()
-        {
-            User user = UserService.FindByUsername(User.Identity.Name);
-            var model = new ChangeEmailRequestModel
-            {
-                NewEmail = String.IsNullOrEmpty(user.UnconfirmedEmailAddress) ?
-                    user.EmailAddress : user.UnconfirmedEmailAddress
-            };
-            return View(model);
-        }
-
         [HttpPost]
         [Authorize]
-        public virtual ActionResult ChangeEmail(ChangeEmailRequestModel model)
+        public virtual async Task<ActionResult> ChangeEmail(AccountViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValidField("ChangeEmail.NewEmail"))
             {
-                return View(model);
+                return AccountView(model);
             }
 
-            var authUser = AuthService.Authenticate(User.Identity.Name, model.Password);
-            if (authUser == null)
+            var user = GetCurrentUser();
+            if (user.HasPassword())
             {
-                ModelState.AddModelError("Password", Strings.CurrentPasswordIncorrect);
-                return View(model);
-            }
+                if (!ModelState.IsValidField("ChangeEmail.Password"))
+                {
+                    return AccountView(model);
+                }
 
-            if (String.Equals(model.NewEmail, authUser.User.LastSavedEmailAddress, StringComparison.OrdinalIgnoreCase))
+                var authUser = await AuthService.Authenticate(User.Identity.Name, model.ChangeEmail.Password);
+                if (authUser == null)
+                {
+                    ModelState.AddModelError("ChangeEmail.Password", Strings.CurrentPasswordIncorrect);
+                    return AccountView(model);
+                }
+            }
+            // No password? We can't do any additional verification...
+
+            if (String.Equals(model.ChangeEmail.NewEmail, user.LastSavedEmailAddress, StringComparison.OrdinalIgnoreCase))
             {
                 // email address unchanged - accept
-                return RedirectToAction(MVC.Users.Edit());
+                return RedirectToAction(MVC.Users.Account());
             }
 
             try
             {
-                UserService.ChangeEmailAddress(authUser.User, model.NewEmail);
+                await UserService.ChangeEmailAddress(user, model.ChangeEmail.NewEmail);
             }
             catch (EntityException e)
             {
                 ModelState.AddModelError("NewEmail", e.Message);
-                return View(model);
+                return AccountView(model);
             }
 
-            if (authUser.User.Confirmed)
+            if (user.Confirmed)
             {
                 var confirmationUrl = Url.ConfirmationUrl(
-                    MVC.Users.Confirm(), authUser.User.Username, authUser.User.EmailConfirmationToken, protocol: Request.Url.Scheme);
-                MessageService.SendEmailChangeConfirmationNotice(new MailAddress(authUser.User.UnconfirmedEmailAddress, authUser.User.Username), confirmationUrl);
+                    "Confirm", "Users", user.Username, user.EmailConfirmationToken);
+                MessageService.SendEmailChangeConfirmationNotice(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
 
-                TempData["Message"] =
-                    "Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one.";
+                TempData["Message"] = Strings.EmailUpdated_ConfirmationRequired;
             }
             else
             {
-                TempData["Message"] = "Your new email address was saved!";
+                TempData["Message"] = Strings.EmailUpdated;
             }
 
-            return RedirectToAction(MVC.Users.Edit());
-        }
-
-        [Authorize]
-        public virtual ActionResult ChangePassword()
-        {
-            return View();
+            return RedirectToAction(MVC.Users.Account());
         }
 
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult ChangePassword(PasswordChangeViewModel model)
+        public virtual async Task<ActionResult> ChangePassword(AccountViewModel model)
         {
-            if (!ModelState.IsValid)
+            var user = GetCurrentUser();
+
+            var oldPassword = user.Credentials.FirstOrDefault(
+                c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
+
+            if (oldPassword == null)
             {
-                return View(model);
+                // User is requesting a password set email
+                await AuthService.GeneratePasswordResetToken(user, Constants.DefaultPasswordResetTokenExpirationHours * 60);
+                return SendPasswordResetEmail(user, forgotPassword: false);
             }
-
-            if (!AuthService.ChangePassword(User.Identity.Name, model.OldPassword, model.NewPassword))
+            else
             {
-                ModelState.AddModelError(
-                    "OldPassword",
-                    Strings.CurrentPasswordIncorrect);
+                if (!ModelState.IsValidField("ChangePassword"))
+                {
+                    return AccountView(model);
+                }
 
-                return View(model);
+                if (!(await AuthService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword)))
+                {
+                    ModelState.AddModelError("ChangePassword.OldPassword", Strings.CurrentPasswordIncorrect);
+                    return AccountView(model);
+                }
+
+                TempData["Message"] = Strings.PasswordChanged;
+
+                return RedirectToAction("Account");
             }
+        }
 
-            return RedirectToAction(MVC.Users.PasswordChanged());
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public virtual Task<ActionResult> RemovePassword()
+        {
+            var user = GetCurrentUser();
+            var passwordCred = user.Credentials.SingleOrDefault(
+                c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
+
+            return RemoveCredential(user, passwordCred, Strings.PasswordRemoved);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public virtual Task<ActionResult> RemoveCredential(string credentialType)
+        {
+            var user = GetCurrentUser();
+            var cred = user.Credentials.SingleOrDefault(
+                c => String.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase));
+            
+            return RemoveCredential(user, cred, Strings.CredentialRemoved);
         }
 
         public virtual ActionResult PasswordChanged()
         {
             return View();
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> GenerateApiKey()
+        {
+            // Get the user
+            var user = GetCurrentUser();
+
+            // Generate an API Key
+            var apiKey = Guid.NewGuid();
+
+            // Add/Replace the API Key credential, and save to the database
+            TempData["Message"] = Strings.ApiKeyReset;
+            await AuthService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
+            return RedirectToAction("Account");
+        }
+
+        private async Task<ActionResult> RemoveCredential(User user, Credential cred, string message)
+        {
+            // Count login credentials
+            if (CountLoginCredentials(user) <= 1)
+            {
+                TempData["Message"] = Strings.CannotRemoveOnlyLoginCredential;
+            }
+            else if (cred != null)
+            {
+                await AuthService.RemoveCredential(user, cred);
+                
+                // Notify the user of the change
+                MessageService.SendCredentialRemovedNotice(user, cred);
+                
+                TempData["Message"] = message;
+            }
+            return RedirectToAction("Account");
+        }
+
+        private ActionResult EditProfileView()
+        {
+            return AccountView(new AccountViewModel());
+        }
+
+        private ActionResult AccountView(AccountViewModel model)
+        {
+            // Load Credential info
+            var user = GetCurrentUser();
+            var curatedFeeds = CuratedFeedService.GetFeedsForManager(user.Key);
+            var creds = user.Credentials.Select(c => AuthService.DescribeCredential(c)).ToList();
+
+            model.Credentials = creds;
+            model.CuratedFeeds = curatedFeeds.Select(f => f.Name);
+            return View("Account", model);
+        }
+
+        private static int CountLoginCredentials(User user)
+        {
+            return user.Credentials.Count(c =>
+                c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase) ||
+                c.Type.StartsWith(CredentialTypes.ExternalPrefix, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private ActionResult SendPasswordResetEmail(User user, bool forgotPassword)
+        {
+            var resetPasswordUrl = Url.ConfirmationUrl(
+                "ResetPassword",
+                "Users",
+                user.Username, 
+                user.PasswordResetToken, 
+                new { forgot = forgotPassword });
+            MessageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
+
+            TempData["Email"] = user.EmailAddress;
+            return RedirectToAction(MVC.Users.PasswordSent());
         }
     }
 }

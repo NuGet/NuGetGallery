@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
-using System.Web.UI;
-using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
 {
-    public partial class PagesController : Controller
+    public partial class PagesController : AppController
     {
         public IContentService ContentService { get; protected set; }
 
@@ -18,6 +15,18 @@ namespace NuGetGallery
             ContentService = contentService;
         }
 
+        // This will let you add 'static' cshtml pages to the site under View/Pages or Branding/Views/Pages
+        public virtual ActionResult Page(string pageName)
+        {
+            // Prevent traversal attacks and serving non-pages by disallowing ., /, %, and more!
+            if (pageName == null || pageName.Any(c => !Char.IsLetterOrDigit(c)))
+            {
+                return HttpNotFound();
+            }
+
+            return View(pageName);
+        }
+
         public virtual ActionResult Contact()
         {
             return View();
@@ -25,24 +34,13 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Home()
         {
-            HtmlString announcement = null;
-            HtmlString about = null;
             if (ContentService != null)
             {
-                announcement = await ContentService.GetContentItemAsync(
-                    Constants.ContentNames.FrontPageAnnouncement,
-                    TimeSpan.FromMinutes(1));
-
-                about = await ContentService.GetContentItemAsync(
-                    Constants.ContentNames.FrontPageAbout,
+                ViewBag.Content = await ContentService.GetContentItemAsync(
+                    Constants.ContentNames.Home,
                     TimeSpan.FromMinutes(1));
             }
-
-            return View(new HomeViewModel()
-            {
-                Announcement = announcement,
-                About = about
-            });
+            return View();
         }
 
         public virtual async Task<ActionResult> Terms()

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Ninject.Planning.Bindings;
+using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
@@ -27,16 +28,32 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         }
     }
 
+    public class AuthConfigViewModel
+    {
+        public string Name { get; private set; }
+
+        public IDictionary<string, string> Config { get; private set; }
+
+        public AuthConfigViewModel(Authenticator provider)
+        {
+            Name = provider.Name;
+            Config = provider.BaseConfig.GetConfigValues();
+        }
+    }
+
     public class ConfigViewModel
     {
         public IDictionary<string, Tuple<Type, object>> AppSettings { get; private set; }
 
         public IList<FeatureConfigViewModel> Features { get; private set; }
 
-        public ConfigViewModel(IDictionary<string, Tuple<Type, object>> appSettings, IList<FeatureConfigViewModel> features)
+        public IList<AuthConfigViewModel> AuthProviders { get; private set; }
+
+        public ConfigViewModel(IDictionary<string, Tuple<Type, object>> appSettings, IList<FeatureConfigViewModel> features, IEnumerable<Authenticator> authProviders)
         {
             AppSettings = appSettings;
             Features = features;
+            AuthProviders = authProviders.Select(p => new AuthConfigViewModel(p)).ToList();
         }
     }
 }

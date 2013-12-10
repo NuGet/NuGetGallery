@@ -12,8 +12,8 @@ namespace NuGetGallery
         [Description("Other")]
         Other,
 
-        [Description("The package has a bug")]
-        HasABug,
+        [Description("The package has a bug/failed to install")]
+        HasABugOrFailedToInstall,
 
         [Description("The package contains malicious code")]
         ContainsMaliciousCode,
@@ -31,10 +31,7 @@ namespace NuGetGallery
         PublishedWithWrongVersion,
 
         [Description("The package was not intended to be published publically on nuget.org")]
-        ReleasedInPublicByAccident,
-
-        [Description("The package failed to install")]
-        FailedToInstall,
+        ReleasedInPublicByAccident,       
     }
 
     public class ReportAbuseViewModel
@@ -47,13 +44,12 @@ namespace NuGetGallery
         [Display(Name = "Contacted Owner")]
         public bool AlreadyContactedOwner { get; set; }
 
-        [NotEqual(ReportPackageReason.HasABug, ErrorMessage = "Unfortunately we cannot provide support for bugs in NuGet Packages. You should contact the owner(s) for assistance.")]
-        [NotEqual(ReportPackageReason.FailedToInstall, ErrorMessage = "Unfortunately we cannot provide support for bugs in NuGet Packages. You should contact the owner(s) for assistance.")]
+        [NotEqual(ReportPackageReason.HasABugOrFailedToInstall, ErrorMessage = "Unfortunately we cannot provide support for bugs in NuGet Packages. Please contact owner(s) for assistance.")]       
         [Required(ErrorMessage = "You must select a reason for reporting the package")]
         [Display(Name = "Reason")]
         public ReportPackageReason? Reason { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Please enter a message.")]
         [AllowHtml]
         [StringLength(4000)]
         [Display(Name = "Abuse Report")]
@@ -63,7 +59,7 @@ namespace NuGetGallery
         [StringLength(4000)]
         [Display(Name = "Your Email Address")]
         //[DataType(DataType.EmailAddress)] - does not work with client side validation
-        [RegularExpression(RegisterRequest.EmailValidationRegex,
+        [RegularExpression(RegisterViewModel.EmailValidationRegex,
             ErrorMessage = "This doesn't appear to be a valid email address.")]
         public string Email { get; set; }
 

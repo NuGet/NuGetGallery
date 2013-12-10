@@ -77,6 +77,15 @@ namespace NuGetGallery.FunctionalTests
         }
 
         /// <summary>
+        /// Returns the GET WebRequest for logon.
+        /// </summary>
+        /// <returns></returns>
+        public static WebTestRequest GetEditGetRequestForPackage(string packageId, string version)
+        {
+            return GetHttpRequestForUrl(String.Format(UrlHelper.EditPageUrl, packageId, version));
+        }
+
+        /// <summary>
         /// Returns the GET WebRequest for Log Off.
         /// </summary>
         /// <returns></returns>
@@ -107,10 +116,33 @@ namespace NuGetGallery.FunctionalTests
             FormPostHttpBody logonRequestFormPostBody = new FormPostHttpBody();
             logonRequestFormPostBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
             logonRequestFormPostBody.FormPostParameters.Add("ReturnUrl", "/");
+            logonRequestFormPostBody.FormPostParameters.Add("LinkingAccount", "false");
             logonRequestFormPostBody.FormPostParameters.Add(Constants.UserNameOrEmailFormField, EnvironmentSettings.TestAccountName);
             logonRequestFormPostBody.FormPostParameters.Add(Constants.PasswordFormField, EnvironmentSettings.TestAccountPassword);
             logonPostRequest.Body = logonRequestFormPostBody;
             return logonPostRequest;
+        }
+
+        public static WebTestRequest GetEditPackagePostRequest(WebTest test, string packageId, string version, string title = null, string description = null, string summary = null, string iconUrl = null, string projectUrl = null, string authors = null, string copyright = null, string tags = null, string releaseNotes = null)
+        {
+            WebTestRequest editPackagePostRequest = new WebTestRequest(String.Format(UrlHelper.EditPageUrl, packageId, version));
+            editPackagePostRequest.Method = "POST";
+            editPackagePostRequest.ExpectedResponseUrl = UrlHelper.GetPackagePageUrl(packageId, version);
+            Assert.Fail("ExpectedResponseUrl is " + editPackagePostRequest.ExpectedResponseUrl);
+            FormPostHttpBody logonRequestFormPostBody = new FormPostHttpBody();
+            logonRequestFormPostBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.VersionTitle", title);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.Description", description);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.Summary", summary);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.IconUrl", iconUrl);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.ProjectUrl", projectUrl);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.Authors", authors);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.Copyright", copyright);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.Tags", tags);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.ReleaseNotes", releaseNotes);
+
+            editPackagePostRequest.Body = logonRequestFormPostBody;
+            return editPackagePostRequest;
         }
 
         /// <summary>
@@ -139,7 +171,7 @@ namespace NuGetGallery.FunctionalTests
         {
             WebTestRequest verifyUploadPostRequest = new WebTestRequest(UrlHelper.VerifyUploadPageUrl);
             verifyUploadPostRequest.Method = "POST";
-            verifyUploadPostRequest.ExpectedResponseUrl = UrlHelper.GetPackagePageUrl(packageId) + "/" + packageVersion;
+            verifyUploadPostRequest.ExpectedResponseUrl = UrlHelper.GetPackagePageUrl(packageId, packageVersion);
             FormPostHttpBody verifyUploadPostRequestBody = new FormPostHttpBody();
             verifyUploadPostRequestBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
             verifyUploadPostRequestBody.FormPostParameters.Add("Id", packageId);

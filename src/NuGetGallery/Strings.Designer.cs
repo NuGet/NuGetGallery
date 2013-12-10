@@ -61,6 +61,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You are already logged in!.
+        /// </summary>
+        public static string AlreadyLoggedIn {
+            get {
+                return ResourceManager.GetString("AlreadyLoggedIn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified API key is invalid or does not have permission to access the specified package..
         /// </summary>
         public static string ApiKeyNotAuthorized {
@@ -79,11 +88,66 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your API Key has been reset, check the new value below..
+        /// </summary>
+        public static string ApiKeyReset {
+            get {
+                return ResourceManager.GetString("ApiKeyReset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You must confirm the email address for the account in order to use the API key..
         /// </summary>
         public static string ApiKeyUserAccountIsUnconfirmed {
             get {
                 return ResourceManager.GetString("ApiKeyUserAccountIsUnconfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;{0}&apos; authentication provider is disabled and cannot be used to authenticate
+        ///.
+        /// </summary>
+        public static string AuthenticationProviderDisabled {
+            get {
+                return ResourceManager.GetString("AuthenticationProviderDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Oops! You can&apos;t remove the only credential that can be used to log in to the website!.
+        /// </summary>
+        public static string CannotRemoveOnlyLoginCredential {
+            get {
+                return ResourceManager.GetString("CannotRemoveOnlyLoginCredential", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The external account has been removed.
+        /// </summary>
+        public static string CredentialRemoved {
+            get {
+                return ResourceManager.GetString("CredentialRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to API Key.
+        /// </summary>
+        public static string CredentialType_ApiKey {
+            get {
+                return ResourceManager.GetString("CredentialType_ApiKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password.
+        /// </summary>
+        public static string CredentialType_Password {
+            get {
+                return ResourceManager.GetString("CredentialType_Password", resourceCulture);
             }
         }
         
@@ -115,7 +179,131 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to read the package file..
+        ///   Looks up a localized string similar to Your email preferences have been updated.
+        /// </summary>
+        public static string EmailPreferencesUpdated {
+            get {
+                return ResourceManager.GetString("EmailPreferencesUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A {0} was added to your account and can now be used to log in. If you did not request this change, please reply to this email to contact support..
+        /// </summary>
+        public static string Emails_CredentialAdded_Body {
+            get {
+                return ResourceManager.GetString("Emails_CredentialAdded_Body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [{0}] {1} added to your account.
+        /// </summary>
+        public static string Emails_CredentialAdded_Subject {
+            get {
+                return ResourceManager.GetString("Emails_CredentialAdded_Subject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A {0} was removed from your account and can no longer be used to log in. If you did not request this change, please reply to this email to contact support..
+        /// </summary>
+        public static string Emails_CredentialRemoved_Body {
+            get {
+                return ResourceManager.GetString("Emails_CredentialRemoved_Body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [{0}] {1} removed from your account.
+        /// </summary>
+        public static string Emails_CredentialRemoved_Subject {
+            get {
+                return ResourceManager.GetString("Emails_CredentialRemoved_Subject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The word on the street is you lost your password. Sorry to hear it!
+        ///If you haven&apos;t forgotten your password you can safely ignore this email. Your password has not been changed.
+        ///
+        ///Click the following link within the next {0} hours to reset your password:
+        ///
+        ///[{1}]({1})
+        ///
+        ///Thanks,
+        ///The {2} Team.
+        /// </summary>
+        public static string Emails_ForgotPassword_Body {
+            get {
+                return ResourceManager.GetString("Emails_ForgotPassword_Body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [{0}] Please reset your password..
+        /// </summary>
+        public static string Emails_ForgotPassword_Subject {
+            get {
+                return ResourceManager.GetString("Emails_ForgotPassword_Subject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The word on the street is you want to set a password for your account.
+        ///If you didn&apos;t request a password, you can safely ignore this message. A password has not yet been set.
+        ///
+        ///Click the following link within the next {0} hours to set your password:
+        ///
+        ///[{1}]({1})
+        ///
+        ///Thanks,
+        ///The {2} Team.
+        /// </summary>
+        public static string Emails_SetPassword_Body {
+            get {
+                return ResourceManager.GetString("Emails_SetPassword_Body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [{0}] Please set your password..
+        /// </summary>
+        public static string Emails_SetPassword_Subject {
+            get {
+                return ResourceManager.GetString("Emails_SetPassword_Subject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your new email address was saved!.
+        /// </summary>
+        public static string EmailUpdated {
+            get {
+                return ResourceManager.GetString("EmailUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one..
+        /// </summary>
+        public static string EmailUpdated_ConfirmationRequired {
+            get {
+                return ResourceManager.GetString("EmailUpdated_ConfirmationRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your external account credential expired or you did not allow us access to your account. Try logging in again..
+        /// </summary>
+        public static string ExternalAccountLinkExpired {
+            get {
+                return ResourceManager.GetString("ExternalAccountLinkExpired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to read the package file. Ensure it is a valid NuGet package with a valid manifest..
         /// </summary>
         public static string FailedToReadUploadFile {
             get {
@@ -129,6 +317,51 @@ namespace NuGetGallery {
         public static string InvalidApiKey {
             get {
                 return ResourceManager.GetString("InvalidApiKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot send added/removed email for credentials of type &apos;{0}&apos;.
+        /// </summary>
+        public static string MessageService_CannotSendEmailForCredential {
+            get {
+                return ResourceManager.GetString("MessageService_CannotSendEmailForCredential", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Microsoft account.
+        /// </summary>
+        public static string MicrosoftAccount_AccountNoun {
+            get {
+                return ResourceManager.GetString("MicrosoftAccount_AccountNoun", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Microsoft account.
+        /// </summary>
+        public static string MicrosoftAccount_Caption {
+            get {
+                return ResourceManager.GetString("MicrosoftAccount_Caption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sign in with a Microsoft account.
+        /// </summary>
+        public static string MicrosoftAccount_SignInMessage {
+            get {
+                return ResourceManager.GetString("MicrosoftAccount_SignInMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing required configuration value: &apos;{0}&apos;.
+        /// </summary>
+        public static string MissingRequiredConfigurationValue {
+            get {
+                return ResourceManager.GetString("MissingRequiredConfigurationValue", resourceCulture);
             }
         }
         
@@ -205,11 +438,38 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your password has been changed.
+        /// </summary>
+        public static string PasswordChanged {
+            get {
+                return ResourceManager.GetString("PasswordChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Password credentials cannot be used with Authenticate(Credential). Use Authenticate(string, string) instead..
         /// </summary>
         public static string PasswordCredentialsCannotBeUsedHere {
             get {
                 return ResourceManager.GetString("PasswordCredentialsCannotBeUsedHere", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your password has been removed.
+        /// </summary>
+        public static string PasswordRemoved {
+            get {
+                return ResourceManager.GetString("PasswordRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your password has been set.
+        /// </summary>
+        public static string PasswordSet {
+            get {
+                return ResourceManager.GetString("PasswordSet", resourceCulture);
             }
         }
         
@@ -241,6 +501,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unknown authentication provider: &apos;{0}&apos;.
+        /// </summary>
+        public static string UnknownAuthenticationProvider {
+            get {
+                return ResourceManager.GetString("UnknownAuthenticationProvider", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A package file is required..
         /// </summary>
         public static string UploadFileIsRequired {
@@ -255,6 +524,15 @@ namespace NuGetGallery {
         public static string UploadFileMustBeNuGetPackage {
             get {
                 return ResourceManager.GetString("UploadFileMustBeNuGetPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package requires version &apos;{0}&apos; of NuGet, which this gallery does not currently support. Please contact us if you have questions..
+        /// </summary>
+        public static string UploadPackage_MinClientVersionOutOfRange {
+            get {
+                return ResourceManager.GetString("UploadPackage_MinClientVersionOutOfRange", resourceCulture);
             }
         }
         

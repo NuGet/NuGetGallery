@@ -151,7 +151,7 @@
     <value>The requested resource can only be accessed via SSL.</value>
   </data>
   <data name="FailedToReadUploadFile" xml:space="preserve">
-    <value>Failed to read the package file.</value>
+    <value>Failed to read the package file. Ensure it is a valid NuGet package with a valid manifest.</value>
   </data>
   <data name="UploadFileIsRequired" xml:space="preserve">
     <value>A package file is required.</value>
@@ -194,5 +194,109 @@
   </data>
   <data name="Unauthorized" xml:space="preserve">
     <value>User is not authorized</value>
+  </data>
+  <data name="MicrosoftAccount_SignInMessage" xml:space="preserve">
+    <value>Sign in with a Microsoft account</value>
+  </data>
+  <data name="MissingRequiredConfigurationValue" xml:space="preserve">
+    <value>Missing required configuration value: '{0}'</value>
+  </data>
+  <data name="UnknownAuthenticationProvider" xml:space="preserve">
+    <value>Unknown authentication provider: '{0}'</value>
+  </data>
+  <data name="ExternalAccountLinkExpired" xml:space="preserve">
+    <value>Your external account credential expired or you did not allow us access to your account. Try logging in again.</value>
+  </data>
+  <data name="MicrosoftAccount_AccountNoun" xml:space="preserve">
+    <value>Microsoft account</value>
+  </data>
+  <data name="CredentialType_ApiKey" xml:space="preserve">
+    <value>API Key</value>
+  </data>
+  <data name="CredentialType_Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="MicrosoftAccount_Caption" xml:space="preserve">
+    <value>Microsoft account</value>
+  </data>
+  <data name="ApiKeyReset" xml:space="preserve">
+    <value>Your API Key has been reset, check the new value below.</value>
+  </data>
+  <data name="CannotRemoveOnlyLoginCredential" xml:space="preserve">
+    <value>Oops! You can't remove the only credential that can be used to log in to the website!</value>
+  </data>
+  <data name="CredentialRemoved" xml:space="preserve">
+    <value>The external account has been removed</value>
+  </data>
+  <data name="PasswordChanged" xml:space="preserve">
+    <value>Your password has been changed</value>
+  </data>
+  <data name="PasswordRemoved" xml:space="preserve">
+    <value>Your password has been removed</value>
+  </data>
+  <data name="PasswordSet" xml:space="preserve">
+    <value>Your password has been set</value>
+  </data>
+  <data name="Emails_ForgotPassword_Body" xml:space="preserve">
+    <value>The word on the street is you lost your password. Sorry to hear it!
+If you haven't forgotten your password you can safely ignore this email. Your password has not been changed.
+
+Click the following link within the next {0} hours to reset your password:
+
+[{1}]({1})
+
+Thanks,
+The {2} Team</value>
+  </data>
+  <data name="Emails_ForgotPassword_Subject" xml:space="preserve">
+    <value>[{0}] Please reset your password.</value>
+  </data>
+  <data name="Emails_SetPassword_Body" xml:space="preserve">
+    <value>The word on the street is you want to set a password for your account.
+If you didn't request a password, you can safely ignore this message. A password has not yet been set.
+
+Click the following link within the next {0} hours to set your password:
+
+[{1}]({1})
+
+Thanks,
+The {2} Team</value>
+  </data>
+  <data name="Emails_SetPassword_Subject" xml:space="preserve">
+    <value>[{0}] Please set your password.</value>
+  </data>
+  <data name="Emails_CredentialAdded_Body" xml:space="preserve">
+    <value>A {0} was added to your account and can now be used to log in. If you did not request this change, please reply to this email to contact support.</value>
+  </data>
+  <data name="Emails_CredentialAdded_Subject" xml:space="preserve">
+    <value>[{0}] {1} added to your account</value>
+  </data>
+  <data name="Emails_CredentialRemoved_Body" xml:space="preserve">
+    <value>A {0} was removed from your account and can no longer be used to log in. If you did not request this change, please reply to this email to contact support.</value>
+  </data>
+  <data name="Emails_CredentialRemoved_Subject" xml:space="preserve">
+    <value>[{0}] {1} removed from your account</value>
+  </data>
+  <data name="MessageService_CannotSendEmailForCredential" xml:space="preserve">
+    <value>Cannot send added/removed email for credentials of type '{0}'</value>
+  </data>
+  <data name="AlreadyLoggedIn" xml:space="preserve">
+    <value>You are already logged in!</value>
+  </data>
+  <data name="AuthenticationProviderDisabled" xml:space="preserve">
+    <value>The '{0}' authentication provider is disabled and cannot be used to authenticate
+</value>
+  </data>
+  <data name="EmailPreferencesUpdated" xml:space="preserve">
+    <value>Your email preferences have been updated</value>
+  </data>
+  <data name="EmailUpdated" xml:space="preserve">
+    <value>Your new email address was saved!</value>
+  </data>
+  <data name="EmailUpdated_ConfirmationRequired" xml:space="preserve">
+    <value>Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one.</value>
+  </data>
+  <data name="UploadPackage_MinClientVersionOutOfRange" xml:space="preserve">
+    <value>This package requires version '{0}' of NuGet, which this gallery does not currently support. Please contact us if you have questions.</value>
   </data>
 </root>

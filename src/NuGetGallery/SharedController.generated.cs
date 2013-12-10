@@ -28,8 +28,12 @@ namespace T4MVC {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
-            public readonly string Error = "~/Views/Shared/Error.cshtml";
+            public readonly string _ListPackage = "~/Views/Shared/_ListPackage.cshtml";
             public readonly string Layout = "~/Views/Shared/Layout.cshtml";
+            public readonly string LayoutFooter = "~/Views/Shared/LayoutFooter.cshtml";
+            public readonly string ListPackages = "~/Views/Shared/ListPackages.cshtml";
+            public readonly string SiteMenu = "~/Views/Shared/SiteMenu.cshtml";
+            public readonly string Title = "~/Views/Shared/Title.cshtml";
             public readonly string TwoColumnLayout = "~/Views/Shared/TwoColumnLayout.cshtml";
             public readonly string UserDisplay = "~/Views/Shared/UserDisplay.cshtml";
             static readonly _EditorTemplates s_EditorTemplates = new _EditorTemplates();

@@ -5,6 +5,7 @@ using System.Web;
 using Ninject;
 using Ninject.Modules;
 using Ninject.Web.Common;
+using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
@@ -30,6 +31,7 @@ namespace NuGetGallery
         {
             yield return new ContainerBindings();
             yield return new DiagnosticsNinjectModule();
+            yield return new AuthNinjectModule();
         }
     }
 }

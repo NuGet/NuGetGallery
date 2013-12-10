@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using System.Web;
 using AnglicanGeek.DbExecutor;
 using Microsoft.WindowsAzure.Storage;
@@ -12,6 +13,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using NLog;
+using NuGetGallery.Auditing;
 using NuGetGallery.Operations.Model;
 
 namespace NuGetGallery.Operations
@@ -381,39 +383,15 @@ namespace NuGetGallery.Operations
                 id, version, action.ToString(), DateTime.UtcNow.ToString("O"));
         }
 
-        internal static void SaveAuditRecord(CloudStorageAccount storage, string name, AuditRecord auditRecord)
+        internal static async Task<Uri> SaveAuditRecord(CloudStorageAccount storage, AuditRecord auditRecord)
         {
-            // Write the record to a temp file
-            string tempFile = null;
-            try
-            {
-                tempFile = Path.GetTempFileName();
-                string report = RenderAuditRecord(auditRecord);
-                File.WriteAllText(tempFile, report);
-
-                // Get the blob
-                var client = storage.CreateCloudBlobClient();
-                var container = client.GetContainerReference("auditing");
-                container.CreateIfNotExists();
-                var blob = container.GetBlockBlobReference(name);
-                if (blob.Exists())
-                {
-                    throw new InvalidOperationException("Duplicate audit record found! " + name);
-                }
-                blob.UploadFile(tempFile);
-            }
-            finally
-            {
-                if (!String.IsNullOrEmpty(tempFile) && File.Exists(tempFile))
-                {
-                    File.Delete(tempFile);
-                }
-            }
-        }
-
-        public static string RenderAuditRecord(AuditRecord auditRecord)
-        {
-            return JsonConvert.SerializeObject(auditRecord, _auditRecordSerializerSettings);
+            string localIP = await AuditActor.GetLocalIP();
+            CloudAuditingService audit = new CloudAuditingService(
+                Environment.MachineName,
+                localIP,
+                storage.CreateCloudBlobClient().GetContainerReference("auditing"),
+                onBehalfOfThunk: null);
+            return await audit.SaveAuditRecord(auditRecord);
         }
 
         public static string GenerateStatusString(int total, ref int counter)
