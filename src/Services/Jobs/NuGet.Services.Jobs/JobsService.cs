@@ -85,19 +85,5 @@ namespace NuGet.Services.Jobs
                 _jobsTable.Merge(job);
             }
         }
-
-        protected override IEnumerable<IModule> GetComponentModules()
-        {
-            yield return new JobsServiceComponentModule();
-        }
-
-        private class JobsServiceComponentModule : Module
-        {
-            protected override void Load(ContainerBuilder builder)
-            {
-                builder.RegisterType<JobDispatcher>();
-                builder.RegisterType<JobRunner>();
-            }
-        }
     }
 }

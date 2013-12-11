@@ -34,7 +34,7 @@ namespace NuGet.Services.Jobs
             _dispatcher = dispatcher;
             
             _pollInterval = config.GetSection<QueueConfiguration>().PollInterval;
-            _queue = new InvocationQueue(service.ServiceInstanceName, storage);
+            _queue = new InvocationQueue("Flarg", storage);
         }
 
         public async Task Run(CancellationToken cancelToken)

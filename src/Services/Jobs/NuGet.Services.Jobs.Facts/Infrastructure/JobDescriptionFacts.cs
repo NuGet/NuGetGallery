@@ -14,19 +14,19 @@ namespace NuGet.Services.Jobs
             [Fact]
             public void GivenAJobWithClassNameEndingJob_ItReturnsThePartBeforeTheWordJob()
             {
-                Assert.Equal("ATest", JobDescription.Create(typeof(ATestJob), container: null).Name);
+                Assert.Equal("ATest", JobDescription.Create(typeof(ATestJob)).Name);
             }
 
             [Fact]
             public void GivenAJobWithClassNameNotEndingJob_ItReturnsTheWholeTypeName()
             {
-                Assert.Equal("ATestJerb", JobDescription.Create(typeof(ATestJerb), container: null).Name);
+                Assert.Equal("ATestJerb", JobDescription.Create(typeof(ATestJerb)).Name);
             }
 
             [Fact]
             public void GivenAJobWithAttribute_ItReturnsTheNameFromTheAttribute()
             {
-                Assert.Equal("ATestJob", JobDescription.Create(typeof(ATestJorb), container: null).Name);
+                Assert.Equal("ATestJob", JobDescription.Create(typeof(ATestJorb)).Name);
             }
 
             [Job("ATestJob")]

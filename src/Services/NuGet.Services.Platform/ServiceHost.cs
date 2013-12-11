@@ -40,7 +40,7 @@ namespace NuGet.Services
         public async Task<bool> Start()
         {
             var instances = await Task.WhenAll(_serviceTypes.Select(StartService));
-            Instances = instances.Where(s => s != null);
+            Instances = instances.Where(s => s != null).ToList().AsReadOnly();
             return instances.All(s => s != null);
         }
 
@@ -49,7 +49,7 @@ namespace NuGet.Services
         /// </summary>
         public Task Run()
         {
-            return Task.WhenAll(Services.Select(s => s.Run()));
+            return Task.WhenAll(Instances.Select(s => s.Run()));
         }
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace NuGet.Services
             // Now get the services
             _serviceTypes = GetServices().ToList().AsReadOnly();
 
-            var invalidService = _serviceTypes.FirstOrDefault(t => !typeof(NuGetService).IsAssignableFrom);
+            var invalidService = _serviceTypes.FirstOrDefault(t => !typeof(NuGetService).IsAssignableFrom(t));
             if (invalidService != null)
             {
                 throw new InvalidCastException(String.Format(
@@ -93,17 +93,21 @@ namespace NuGet.Services
             }
         }
 
-        private Task<NuGetService> StartService(Type service)
+        private async Task<NuGetService> StartService(Type service)
         {
             // Create a lifetime scope
             var scope = _container.BeginLifetimeScope();
-            var service = (NuGetService)scope.Resolve(service);
+            var instance = (NuGetService)scope.Resolve(service);
             var builder = new ContainerBuilder();
             builder.RegisterInstance(service).As<NuGetService>();
-            service.RegisterComponents(builder);
+            instance.RegisterComponents(builder);
             builder.Update(scope.ComponentRegistry);
 
-            return service.Start(scope);
+            if (await instance.Start(scope))
+            {
+                return instance;
+            }
+            return null;
         }
 
         protected abstract IEnumerable<Type> GetServices();
