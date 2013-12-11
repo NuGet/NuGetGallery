@@ -102,24 +102,5 @@ namespace NuGetGallery
         {
             return new MemoryStream(Encoding.UTF8.GetBytes(content));
         }
-
-        public static MailMessage Clone(this MailMessage mailMessage)
-        {
-            var clonedMessage = new MailMessage
-            {
-                Sender = mailMessage.Sender,
-                From = mailMessage.From,
-                Subject = mailMessage.Subject,
-                Body = mailMessage.Body
-            };
-            clonedMessage.To.AddRange(mailMessage.To);
-            clonedMessage.CC.AddRange(mailMessage.CC);
-            clonedMessage.Bcc.AddRange(mailMessage.Bcc);
-            clonedMessage.ReplyToList.AddRange(mailMessage.ReplyToList);
-            clonedMessage.Attachments.AddRange(mailMessage.Attachments);
-            clonedMessage.AlternateViews.AddRange(mailMessage.AlternateViews);
-
-            return clonedMessage;
-        }
     }
 }
