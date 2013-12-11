@@ -23,9 +23,9 @@ namespace NuGetGallery
             if (String.IsNullOrWhiteSpace(Url) ||
                 !context.RequestContext.HttpContext.Request.IsUrlLocalToHost(Url) ||
                 Url.Length <= 1 ||
-                !Url.StartsWith("/", StringComparison.Ordinal) ||
-                !Url.StartsWith("//", StringComparison.Ordinal) ||
-                !Url.StartsWith("/\\", StringComparison.Ordinal))
+                !(Url.StartsWith("/", StringComparison.Ordinal) ||
+                Url.StartsWith("//", StringComparison.Ordinal) ||
+                Url.StartsWith("/\\", StringComparison.Ordinal)))
             {
                 // Redirect to the safe url
                 new RedirectResult(SafeUrl).ExecuteResult(context);
