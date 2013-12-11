@@ -48,7 +48,7 @@ namespace NuGetGallery
                 var message = messageService.MockMailSender.Sent.Last();
 
                 // Assert
-                Assert.Equal(TestGalleryOwner, message.To[0]);
+                Assert.Equal(TestGalleryOwner, message.To.Single());
                 Assert.Equal(TestGalleryOwner, message.From);
                 Assert.Equal(from, message.ReplyToList.Single());
                 Assert.Equal("[Joe Shmoe] Support Request for 'smangit' version 1.42.0.1 (Reason: Reason!)", message.Subject);
@@ -89,12 +89,12 @@ namespace NuGetGallery
                 };
                 messageService.ReportAbuse(reportPackageRequest);
 
-                var messages = messageService.MockMailSender.Sent;
-                Assert.Equal(2, messages.Count);
-                Assert.Equal(reportPackageRequest.RequestingUser.EmailAddress, messages[1].To[0].Address);
-                Assert.Equal(reportPackageRequest.RequestingUser.EmailAddress, messages[1].ReplyToList.Single().Address);
-                Assert.Contains("Owners", messages[0].Body);
-                Assert.DoesNotContain("Owners", messages[1].Body);
+                var message = messageService.MockMailSender.Sent.Single();
+                Assert.Equal(TestGalleryOwner, message.To.Single());
+                Assert.Equal(TestGalleryOwner, message.From);
+                Assert.Equal(reportPackageRequest.FromAddress, message.ReplyToList.Single());
+                Assert.Equal(reportPackageRequest.FromAddress, message.CC.Single());
+                Assert.DoesNotContain("Owners", message.Body);
             }
         }
 
@@ -133,8 +133,8 @@ namespace NuGetGallery
 
                 var message = messageService.MockMailSender.Sent.Last();
 
-                Assert.Equal(TestGalleryOwner.Address, message.To[0].Address);
-                Assert.Equal(TestGalleryOwner.Address, message.From.Address);
+                Assert.Equal(TestGalleryOwner, message.To[0]);
+                Assert.Equal(TestGalleryOwner, message.From);
                 Assert.Equal("legit@example.com", message.ReplyToList.Single().Address);
                 Assert.Equal("[Joe Shmoe] Owner Support Request for 'smangit' version 1.42.0.1 (Reason: Reason!)", message.Subject);
                 Assert.Contains("Reason!", message.Body);
@@ -172,12 +172,12 @@ namespace NuGetGallery
                 };
                 messageService.ReportMyPackage(reportPackageRequest);
 
-                var messages = messageService.MockMailSender.Sent;
-                Assert.Equal(2, messages.Count);
-                Assert.Equal(reportPackageRequest.RequestingUser.EmailAddress, messages[1].To[0].Address);
-                Assert.Equal(reportPackageRequest.RequestingUser.EmailAddress, messages[1].ReplyToList.Single().Address);
-                Assert.Contains("Owners", messages[0].Body);
-                Assert.DoesNotContain("Owners", messages[1].Body);
+                var message = messageService.MockMailSender.Sent.Single();
+                Assert.Equal(TestGalleryOwner, message.To.Single());
+                Assert.Equal(TestGalleryOwner, message.From);
+                Assert.Equal(reportPackageRequest.FromAddress, message.ReplyToList.Single());
+                Assert.Equal(reportPackageRequest.FromAddress, message.CC.Single());
+                Assert.DoesNotContain("Owners", message.Body);
             }
         }
 
@@ -203,9 +203,9 @@ namespace NuGetGallery
                 Assert.Equal(1, messages[1].To.Count);
                 Assert.Equal("yung@example.com", messages[0].To[0].Address);
                 Assert.Equal("flynt@example.com", messages[0].To[1].Address);
-                Assert.Equal(messages[1].ReplyToList.Single().Address, messages[1].To.First().Address);
-                Assert.Equal(TestGalleryOwner.Address, messages[0].From.Address);
-                Assert.Equal(TestGalleryOwner.Address, messages[1].From.Address);
+                Assert.Equal(messages[1].ReplyToList.Single(), messages[1].To.First());
+                Assert.Equal(TestGalleryOwner, messages[0].From);
+                Assert.Equal(TestGalleryOwner, messages[1].From);
                 Assert.Equal("smangit@example.com", messages[0].ReplyToList.Single().Address);
                 Assert.Equal("smangit@example.com", messages[1].ReplyToList.Single().Address);
             }
@@ -230,7 +230,7 @@ namespace NuGetGallery
 
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal("flynt@example.com", message.To[1].Address);
-                Assert.Equal(TestGalleryOwner.Address, message.From.Address);
+                Assert.Equal(TestGalleryOwner, message.From);
                 Assert.Equal("smangit@example.com", message.ReplyToList.Single().Address);
                 Assert.Contains("[Joe Shmoe] Message for owners of the package 'smangit'", message.Subject);
                 Assert.Contains("Test message", message.Body);

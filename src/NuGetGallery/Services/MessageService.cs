@@ -39,8 +39,7 @@ namespace NuGetGallery
 
 **Version:** {Version}
 {VersionUrl}
-{OwnersTemplate}
-{UserTemplate}
+{User}
 
 **Reason:**
 {Reason}
@@ -65,25 +64,15 @@ namespace NuGetGallery
                 mailMessage.Body = body.ToString();
                 mailMessage.From = Config.GalleryOwner;
                 mailMessage.ReplyToList.Add(request.FromAddress);
-                mailMessage.To.Add(mailMessage.From);
-                SendMessage(mailMessage);
-            }
-            if (request.CopySender)
-            {
-                body.Clear();
-                body.Append(request.FillIn(bodyTemplate, Config, true));
-                body.AppendFormat(CultureInfo.InvariantCulture, @"
-
-*Message sent from {0}*", Config.GalleryOwner.DisplayName);
-                using (var mailMessage = new MailMessage())
+                mailMessage.To.Add(Config.GalleryOwner);
+                if (request.CopySender)
                 {
-                    mailMessage.Subject = subject;
-                    mailMessage.Body = body.ToString();
-                    mailMessage.From = Config.GalleryOwner;
-                    mailMessage.ReplyToList.Add(request.RequestingUser.EmailAddress);
-                    mailMessage.To.Add(request.RequestingUser.EmailAddress);
-                    SendMessage(mailMessage);
+                    // Normally we use a second email to copy the sender to avoid disclosing the receiver's address
+                    // but here, the receiver is the gallery operators who already disclose their address
+                    // CCing helps to create a thread of email that can be augmented by the sending user
+                    mailMessage.CC.Add(request.FromAddress);
                 }
+                SendMessage(mailMessage);
             }
         }
 
@@ -100,8 +89,7 @@ namespace NuGetGallery
 
 **Version:** {Version}
 {VersionUrl}
-{OwnersTemplate}
-{UserTemplate}
+{User}
 
 **Reason:**
 {Reason}
@@ -123,24 +111,14 @@ namespace NuGetGallery
                 mailMessage.From = Config.GalleryOwner;
                 mailMessage.ReplyToList.Add(request.FromAddress);
                 mailMessage.To.Add(Config.GalleryOwner);
-                SendMessage(mailMessage);
-            }
-            if (request.CopySender)
-            {
-                body.Clear();
-                body.Append(request.FillIn(bodyTemplate, Config, true));
-                body.AppendFormat(CultureInfo.InvariantCulture, @"
-
-*Message sent from {0}*", Config.GalleryOwner.DisplayName);
-                using (var mailMessage = new MailMessage())
+                if (request.CopySender)
                 {
-                    mailMessage.Subject = subject;
-                    mailMessage.Body = body.ToString();
-                    mailMessage.From = Config.GalleryOwner;
-                    mailMessage.ReplyToList.Add(request.RequestingUser.EmailAddress);
-                    mailMessage.To.Add(request.RequestingUser.EmailAddress);
-                    SendMessage(mailMessage);
+                    // Normally we use a second email to copy the sender to avoid disclosing the receiver's address
+                    // but here, the receiver is the gallery operators who already disclose their address
+                    // CCing helps to create a thread of email that can be augmented by the sending user
+                    mailMessage.CC.Add(request.FromAddress);
                 }
+                SendMessage(mailMessage);
             }
         }
 
