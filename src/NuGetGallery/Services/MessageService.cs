@@ -30,7 +30,7 @@ namespace NuGetGallery
         public void ReportAbuse(ReportPackageRequest request)
         {
             string subject = "[{GalleryOwnerName}] Support Request for '{Id}' version {Version} (Reason: {Reason})";
-            subject = request.FillIn(subject, _config);
+            subject = request.FillIn(subject, Config);
             const string bodyTemplate = @"
 **Email:** {Name} ({Address})
 
@@ -71,15 +71,15 @@ namespace NuGetGallery
             if (request.CopySender)
             {
                 body.Clear();
-                body.Append(request.FillIn(bodyTemplate, _config, true));
+                body.Append(request.FillIn(bodyTemplate, Config, true));
                 body.AppendFormat(CultureInfo.InvariantCulture, @"
 
-*Message sent from {0}*", _config.GalleryOwner.DisplayName);
+*Message sent from {0}*", Config.GalleryOwner.DisplayName);
                 using (var mailMessage = new MailMessage())
                 {
                     mailMessage.Subject = subject;
                     mailMessage.Body = body.ToString();
-                    mailMessage.From = _config.GalleryOwner;
+                    mailMessage.From = Config.GalleryOwner;
                     mailMessage.ReplyToList.Add(request.RequestingUser.EmailAddress);
                     mailMessage.To.Add(request.RequestingUser.EmailAddress);
                     SendMessage(mailMessage);
@@ -128,15 +128,15 @@ namespace NuGetGallery
             if (request.CopySender)
             {
                 body.Clear();
-                body.Append(request.FillIn(bodyTemplate, _config, true));
+                body.Append(request.FillIn(bodyTemplate, Config, true));
                 body.AppendFormat(CultureInfo.InvariantCulture, @"
 
-*Message sent from {0}*", _config.GalleryOwner.DisplayName);
+*Message sent from {0}*", Config.GalleryOwner.DisplayName);
                 using (var mailMessage = new MailMessage())
                 {
                     mailMessage.Subject = subject;
                     mailMessage.Body = body.ToString();
-                    mailMessage.From = _config.GalleryOwner;
+                    mailMessage.From = Config.GalleryOwner;
                     mailMessage.ReplyToList.Add(request.RequestingUser.EmailAddress);
                     mailMessage.To.Add(request.RequestingUser.EmailAddress);
                     SendMessage(mailMessage);
@@ -386,12 +386,19 @@ The {3} Team";
                 MailSender.Send(mailMessage);
                 if (copySender)
                 {
-                    mailMessage.Subject = "[Sender Copy] " + mailMessage.Subject;
-                    mailMessage.Body = string.Format("You sent the following message via {0}: {1}{1}{2}",
-                        _config.GalleryOwner.DisplayName, Environment.NewLine, mailMessage.Body);
-                    mailMessage.To.Clear();
-                    mailMessage.To.Add(mailMessage.ReplyToList.First());
-                    MailSender.Send(mailMessage);
+                    var senderCopy = new MailMessage(
+                        Config.GalleryOwner,
+                        mailMessage.ReplyToList.First()) {
+                        Subject = mailMessage.Subject + " [Sender Copy]",
+                        Body = String.Format(
+                            CultureInfo.CurrentCulture,
+                            "You sent the following message via {0}: {1}{1}{2}",
+                            Config.GalleryOwner.DisplayName, 
+                            Environment.NewLine, 
+                            mailMessage.Body),
+                    };
+                    senderCopy.ReplyToList.Add(mailMessage.ReplyToList.First());
+                    MailSender.Send(senderCopy);
                 }
             }
             catch (SmtpException ex)

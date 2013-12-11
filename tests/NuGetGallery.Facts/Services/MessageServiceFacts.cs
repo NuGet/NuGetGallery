@@ -45,7 +45,7 @@ namespace NuGetGallery
                         RequestingUser = null,
                         Url = TestUtility.MockUrlHelper(),
                     });
-                var message = messageService.MockMailSender.LastSent;
+                var message = messageService.MockMailSender.Sent.Last();
 
                 // Assert
                 Assert.Equal(TestGalleryOwner, message.To[0]);
@@ -69,12 +69,8 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Id = "smangit" },
                     Version = "1.42.0.1",
                 };
-                var mailSender = new Mock<IMailSender>();
-                var config = new Mock<IAppConfiguration>();
-                config.Setup(x => x.GalleryOwner).Returns(TestGalleryOwner);
-                var messageService = new MessageService(mailSender.Object, config.Object);
-                var messages = new List<MailMessage>(2);
-                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { messages.Add(m); });
+
+                var messageService = new TestableMessageService();
 
                 var reportPackageRequest = new ReportPackageRequest
                 {
@@ -93,6 +89,7 @@ namespace NuGetGallery
                 };
                 messageService.ReportAbuse(reportPackageRequest);
 
+                var messages = messageService.MockMailSender.Sent;
                 Assert.Equal(2, messages.Count);
                 Assert.Equal(reportPackageRequest.RequestingUser.EmailAddress, messages[1].To[0].Address);
                 Assert.Equal(reportPackageRequest.RequestingUser.EmailAddress, messages[1].ReplyToList.Single().Address);
@@ -134,7 +131,7 @@ namespace NuGetGallery
                         Url = TestUtility.MockUrlHelper(),
                     });
 
-                var message = messageService.MockMailSender.LastSent;
+                var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(TestGalleryOwner.Address, message.To[0].Address);
                 Assert.Equal(TestGalleryOwner.Address, message.From.Address);
@@ -156,12 +153,7 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Id = "smangit" },
                     Version = "1.42.0.1",
                 };
-                var mailSender = new Mock<IMailSender>();
-                var config = new Mock<IAppConfiguration>();
-                config.Setup(x => x.GalleryOwner).Returns(TestGalleryOwner);
-                var messageService = new MessageService(mailSender.Object, config.Object);
-                var messages = new List<MailMessage>(2);
-                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { messages.Add(m); });
+                var messageService = new TestableMessageService();
 
                 var reportPackageRequest = new ReportPackageRequest
                 {
@@ -180,6 +172,7 @@ namespace NuGetGallery
                 };
                 messageService.ReportMyPackage(reportPackageRequest);
 
+                var messages = messageService.MockMailSender.Sent;
                 Assert.Equal(2, messages.Count);
                 Assert.Equal(reportPackageRequest.RequestingUser.EmailAddress, messages[1].To[0].Address);
                 Assert.Equal(reportPackageRequest.RequestingUser.EmailAddress, messages[1].ReplyToList.Single().Address);
@@ -200,16 +193,11 @@ namespace NuGetGallery
                         new User { EmailAddress = "yung@example.com", EmailAllowed = true },
                         new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
                     };
-                var mailSender = new Mock<IMailSender>();
-                var config = new Mock<IAppConfiguration>();
-                config.Setup(x => x.GalleryOwner).Returns(TestGalleryOwner);
-                var messageService = new MessageService(mailSender.Object, config.Object);
-                var messages = new List<MailMessage>(2);
-                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => messages.Add(m.Clone()));
+                var messageService = new TestableMessageService();
 
                 messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", true);
 
-                mailSender.Verify(m => m.Send(It.IsAny<MailMessage>()));
+                var messages = messageService.MockMailSender.Sent;
                 Assert.Equal(2, messages.Count);
                 Assert.Equal(package.Owners.Count, messages[0].To.Count);
                 Assert.Equal(1, messages[1].To.Count);
@@ -238,7 +226,7 @@ namespace NuGetGallery
 
                 var messageService = new TestableMessageService();
                 messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
-                var message = messageService.MockMailSender.LastSent;
+                var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal("flynt@example.com", message.To[1].Address);
@@ -266,7 +254,7 @@ namespace NuGetGallery
 
                 var messageService = new TestableMessageService();
                 messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
-                var message = messageService.MockMailSender.LastSent;
+                var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal(1, message.To.Count);
@@ -288,9 +276,8 @@ namespace NuGetGallery
 
                 var messageService = new TestableMessageService();
                 messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
-                var message = messageService.MockMailSender.LastSent;
-
-                Assert.Null(message);
+                
+                Assert.Empty(messageService.MockMailSender.Sent);
             }
 
             [Fact]
@@ -303,18 +290,11 @@ namespace NuGetGallery
                         new User { EmailAddress = "yung@example.com", EmailAllowed = false },
                         new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
                     };
-                var mailSender = new Mock<IMailSender>();
-                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Throws(new InvalidOperationException());
-                var config = new Mock<IAppConfiguration>();
-                config.Setup(x => x.GalleryOwner).Returns(TestGalleryOwner);
-                var messageService = new MessageService(mailSender.Object, config.Object);
-                var messages = new List<MailMessage>(1);
-                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => messages.Add(m.Clone()));
 
-                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", true);
-
-                mailSender.Verify(m => m.Send(It.IsAny<MailMessage>()), Times.Never());
-                Assert.Equal(0, messages.Count);
+                var messageService = new TestableMessageService();
+                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
+                
+                Assert.Empty(messageService.MockMailSender.Sent);
             }
         }
 
@@ -327,7 +307,7 @@ namespace NuGetGallery
                 
                 var messageService = new TestableMessageService();
                 messageService.SendNewAccountEmail(to, "http://example.com/confirmation-token-url");
-                var message = messageService.MockMailSender.LastSent;
+                var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("legit@example.com", message.To[0].Address);
                 Assert.Equal(TestGalleryOwner.Address, message.From.Address);
@@ -348,7 +328,7 @@ namespace NuGetGallery
 
                 var messageService = new TestableMessageService();
                 messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl);
-                var message = messageService.MockMailSender.LastSent;
+                var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("new-owner@example.com", message.To[0].Address);
                 Assert.Equal(TestGalleryOwner.Address, message.From.Address);
@@ -369,7 +349,7 @@ namespace NuGetGallery
                 var messageService = new TestableMessageService();
                 messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl);
 
-                Assert.Null(messageService.MockMailSender.LastSent);
+                Assert.Empty(messageService.MockMailSender.Sent);
             }
         }
 
@@ -382,7 +362,7 @@ namespace NuGetGallery
 
                 var messageService = new TestableMessageService();
                 messageService.SendPasswordResetInstructions(user, "http://example.com/pwd-reset-token-url", true);
-                var message = messageService.MockMailSender.LastSent;
+                var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("legit@example.com", message.To[0].Address);
                 Assert.Equal(TestGalleryOwner.Address, message.From.Address);
@@ -407,7 +387,7 @@ namespace NuGetGallery
                     });
 
                 messageService.SendCredentialRemovedNotice(user, cred);
-                var message = messageService.MockMailSender.LastSent;
+                var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
                 Assert.Equal(TestGalleryOwner, message.From);
@@ -428,7 +408,7 @@ namespace NuGetGallery
                     });
 
                 messageService.SendCredentialRemovedNotice(user, cred);
-                var message = messageService.MockMailSender.LastSent;
+                var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
                 Assert.Equal(TestGalleryOwner, message.From);
@@ -452,7 +432,7 @@ namespace NuGetGallery
                     });
 
                 messageService.SendCredentialAddedNotice(user, cred);
-                var message = messageService.MockMailSender.LastSent;
+                var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
                 Assert.Equal(TestGalleryOwner, message.From);
@@ -473,7 +453,7 @@ namespace NuGetGallery
                     });
 
                 messageService.SendCredentialAddedNotice(user, cred);
-                var message = messageService.MockMailSender.LastSent;
+                var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
                 Assert.Equal(TestGalleryOwner, message.From);
@@ -501,11 +481,16 @@ namespace NuGetGallery
         // Normally I don't like hand-written mocks, but this actually seems appropriate - anurse
         public class TestMailSender : IMailSender
         {
-            public MailMessage LastSent { get; private set; }
+            public IList<MailMessage> Sent { get; private set; }
+
+            public TestMailSender()
+            {
+                Sent = new List<MailMessage>();
+            }
 
             public void Send(MailMessage mailMessage)
             {
-                LastSent = mailMessage;
+                Sent.Add(mailMessage);
             }
 
             public void Send(MailAddress fromAddress, MailAddress toAddress, string subject, string markdownBody)
