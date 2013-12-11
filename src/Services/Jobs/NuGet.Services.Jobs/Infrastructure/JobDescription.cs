@@ -24,9 +24,6 @@ namespace NuGet.Services.Jobs
         public Guid? EventProviderId { get; set; }
         public bool? Enabled { get; set; }
 
-        [IgnoreProperty]
-        public Type Type { get; private set; }
-
         [Obsolete("For serialization only")]
         public JobDescription() { }
 
@@ -50,10 +47,7 @@ namespace NuGet.Services.Jobs
                 name: attr.Name,
                 description: descAttr == null ? null : descAttr.Description,
                 runtime: jobType.AssemblyQualifiedName,
-                eventProviderId: attr.EventProvider == null ? (Guid?)null : (Guid?)EventSource.GetGuid(attr.EventProvider))
-                {
-                    Type = jobType
-                };
+                eventProviderId: attr.EventProvider == null ? (Guid?)null : (Guid?)EventSource.GetGuid(attr.EventProvider));
         }
     }
 }

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
+using Autofac.Features.ResolveAnything;
 using NuGet.Services.Configuration;
 using NuGet.Services.Storage;
 
@@ -74,8 +75,11 @@ namespace NuGet.Services
         public virtual void Initialize()
         {
             ContainerBuilder builder = new ContainerBuilder();
+            
+            // Resolve a concrete type that isn't overridden by just constructing it:
+            builder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource());
 
-            // Add modules
+            // Add core modules
             builder.RegisterModule(new NuGetCoreModule(this));
             
             _container = builder.Build();
@@ -95,14 +99,21 @@ namespace NuGet.Services
 
         private async Task<NuGetService> StartService(Type service)
         {
-            // Create a lifetime scope
-            var scope = _container.BeginLifetimeScope();
+            // Create a lifetime scope and register the service in it
+            var scope = _container.BeginLifetimeScope(b =>
+            {
+                b.RegisterType(service).As<NuGetService>();
+            });
+
+            // Resolve the instance
             var instance = (NuGetService)scope.Resolve(service);
+
+            // Augment the scope with service-specific services
             var builder = new ContainerBuilder();
-            builder.RegisterInstance(service).As<NuGetService>();
             instance.RegisterComponents(builder);
             builder.Update(scope.ComponentRegistry);
 
+            // Start the service and return it if the start succeeds.
             if (await instance.Start(scope))
             {
                 return instance;

@@ -118,18 +118,21 @@
     <Compile Include="Helpers\DapperExtensions.cs" />
     <Compile Include="Helpers\DateTimeOffsetExtensions.cs" />
     <Compile Include="Helpers\EventSourceInstanceManager.cs" />
+    <Compile Include="Infrastructure\InvalidJobRequestException.cs" />
+    <Compile Include="Infrastructure\Invocation.cs" />
+    <Compile Include="Infrastructure\InvocationPayloadSerializer.cs" />
+    <Compile Include="Infrastructure\InvocationQueue.cs" />
+    <Compile Include="Infrastructure\InvocationRequest.cs" />
+    <Compile Include="Infrastructure\InvocationResult.cs" />
+    <Compile Include="Infrastructure\InvocationStatus.cs" />
     <Compile Include="Infrastructure\Job.cs" />
     <Compile Include="Infrastructure\JobAttribute.cs" />
     <Compile Include="Infrastructure\JobCollection.cs" />
+    <Compile Include="Infrastructure\JobContinuation.cs" />
+    <Compile Include="Infrastructure\JobDefinition.cs" />
     <Compile Include="Infrastructure\JobDescription.cs" />
     <Compile Include="Infrastructure\InvocationContext.cs" />
-    <Compile Include="Invocation.cs" />
-    <Compile Include="InvocationPayloadSerializer.cs" />
-    <Compile Include="InvocationQueue.cs" />
-    <Compile Include="InvocationRequest.cs" />
-    <Compile Include="InvocationResult.cs" />
-    <Compile Include="InvocationStatus.cs" />
-    <Compile Include="JobContinuation.cs" />
+    <Compile Include="Infrastructure\UnknownJobException.cs" />
     <Compile Include="JobsManagementService.cs" />
     <Compile Include="Jobs\HeartBeatJob.cs" />
     <Compile Include="Jobs\PingJob.cs" />
@@ -138,7 +141,6 @@
     <Compile Include="Infrastructure\JobBase.cs" />
     <Compile Include="Infrastructure\JobDispatcher.cs" />
     <Compile Include="Infrastructure\JobRunner.cs" />
-    <Compile Include="InvalidJobRequestException.cs" />
     <Compile Include="Jobs\CreateOnlineDatabaseBackupJob.cs" />
     <Compile Include="Monitoring\InvocationEventSource.cs" />
     <Compile Include="Monitoring\InvocationLogCapture.cs" />
@@ -150,7 +152,6 @@
     </Compile>
     <Compile Include="JobsService.cs" />
     <Compile Include="Monitoring\JobsServiceEventSource.cs" />
-    <Compile Include="UnknownJobException.cs" />
     <Compile Include="JobsWorkerRole.cs" />
   </ItemGroup>
   <ItemGroup>
