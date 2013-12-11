@@ -1,5 +1,5 @@
 ﻿
-SELECT TOP(1000) Dimension_Package.PackageId, SUM(DownloadCount) 'Downloads'
+SELECT TOP(200) Dimension_Package.PackageId, SUM(DownloadCount) 'Downloads'
 FROM Fact_Download
 INNER JOIN Dimension_Package ON Dimension_Package.Id = Fact_Download.Dimension_Package_Id
 INNER JOIN Dimension_Date ON Dimension_Date.Id = Fact_Download.Dimension_Date_Id
