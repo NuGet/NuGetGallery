@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Autofac;
 using Autofac.Core.Registration;
 using Autofac.Features.ResolveAnything;
+using Moq;
+using NuGet.Services.ServiceModel;
 using Xunit;
 
 namespace NuGet.Services

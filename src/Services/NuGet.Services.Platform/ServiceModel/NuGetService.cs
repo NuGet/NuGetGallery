@@ -21,8 +21,6 @@ namespace NuGet.Services.ServiceModel
 {
     public abstract class NuGetService : IDisposable
     {
-        private static volatile int _nextId = 0;
-
         private const string TraceTableBaseName = "Trace";
         
         private SinkSubscription<WindowsAzureTableSink> _globalSinkSubscription;
@@ -46,11 +44,10 @@ namespace NuGet.Services.ServiceModel
             TempDirectory = Path.Combine(Path.GetTempPath(), "NuGetServices", serviceName);
 
             // Assign a unique id to this service (it'll be global across this host, but that's OK)
-            int id = Interlocked.Increment(ref _nextId) - 1;
+            int id = host.AssignInstanceId();
 
             // Build an instance name
             InstanceName = new ServiceInstanceName(host.Description.ServiceHostName, serviceName, id);
-            ServiceInstanceName.SetCurrent(InstanceName);
         }
 
         public virtual async Task<bool> Start(ILifetimeScope scope, ServiceInstanceEntry instanceEntry)
@@ -74,6 +71,8 @@ namespace NuGet.Services.ServiceModel
 
         public virtual async Task Run()
         {
+            ServiceInstanceName.SetCurrent(InstanceName);
+
             if (Host == null)
             {
                 throw new InvalidOperationException(Strings.NuGetService_HostNotSet);
@@ -93,6 +92,8 @@ namespace NuGet.Services.ServiceModel
             {
                 dispContainer.Dispose();
             }
+
+            ServiceInstanceName.FreeCurrent();
         }
 
         public virtual Task Heartbeat()
@@ -118,8 +119,7 @@ namespace NuGet.Services.ServiceModel
         {
             // Set up worker logging
             var listener = new ObservableEventListener();
-            var capturedId = ServiceInstanceName.GetCurrent();
-            var stream = listener.Where(_ => Equals(ServiceInstanceName.GetCurrent(), capturedId));
+            var stream = listener.Where(_ => Equals(ServiceInstanceName.GetCurrent(), InstanceName));
             foreach (var source in GetTraceEventSources())
             {
                 listener.EnableEvents(source, EventLevel.Informational);

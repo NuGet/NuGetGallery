@@ -109,5 +109,10 @@ namespace NuGet.Services.ServiceModel
         {
             CallContext.LogicalSetData(InstanceNameDataName, name);
         }
+
+        public static void FreeCurrent()
+        {
+            CallContext.FreeNamedDataSlot(InstanceNameDataName);
+        }
     }
 }

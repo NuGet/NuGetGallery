@@ -81,5 +81,12 @@ namespace NuGet.Services.Models
         {
             PartitionKey = Host.ToString().ToLowerInvariant();
         }
+
+        internal static ServiceInstanceEntry FromService(NuGetService service)
+        {
+            return new ServiceInstanceEntry(
+                service.InstanceName,
+                AssemblyInformation.FromObject(service));
+        }
     }
 }

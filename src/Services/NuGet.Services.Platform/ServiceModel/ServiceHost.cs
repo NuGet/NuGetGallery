@@ -24,6 +24,7 @@ namespace NuGet.Services.ServiceModel
 
         private ConfigurationHub _config;
         private StorageHub _storage;
+        private volatile int _nextId = 0;
 
         public abstract ServiceHostDescription Description { get; }
 
@@ -125,6 +126,11 @@ namespace NuGet.Services.ServiceModel
             ServicePlatformEventSource.Log.HostStarted(Description.ServiceHostName.ToString());
         }
 
+        public int AssignInstanceId()
+        {
+            return Interlocked.Increment(ref _nextId) - 1;
+        }
+
         protected abstract void InitializePlatformLogging();
         protected abstract IEnumerable<Type> GetServices();
 
@@ -163,7 +169,7 @@ namespace NuGet.Services.ServiceModel
             ServicePlatformEventSource.Log.ServiceInitialized(Description.ServiceHostName.ToString(), serviceType);
 
             // Report that we're starting the service
-            var entry = new ServiceInstanceEntry(service.InstanceName, AssemblyInformation.ForAssembly(service.GetType().Assembly));
+            var entry = new ServiceInstanceEntry(service.InstanceName, AssemblyInformation.FromAssembly(service.GetType().Assembly));
             await _storage.Primary.Tables.Table<ServiceInstanceEntry>().InsertOrReplace(entry);
             
             // Start the service and return it if the start succeeds.

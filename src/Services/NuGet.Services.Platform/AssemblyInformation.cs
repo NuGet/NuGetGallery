@@ -40,7 +40,17 @@ namespace NuGet.Services
             SourceCodeRepository = repository;
         }
 
-        public static AssemblyInformation ForAssembly(Assembly asm)
+        public static AssemblyInformation FromObject(object obj)
+        {
+            return FromAssembly(obj.GetType().Assembly);
+        }
+
+        public static AssemblyInformation FromType(Type typ)
+        {
+            return FromAssembly(typ.Assembly);
+        }
+
+        public static AssemblyInformation FromAssembly(Assembly asm)
         {
             var metadata = asm.GetCustomAttributes<AssemblyMetadataAttribute>()
                 .ToDictionary(m => m.Key, m => m.Value);
