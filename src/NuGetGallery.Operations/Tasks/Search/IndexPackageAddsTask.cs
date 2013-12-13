@@ -34,11 +34,10 @@ namespace NuGetGallery.Operations.Tasks.Search
                 PackageIndexing.CreateNewEmptyIndex(directory);
             }
 
-            PackageRanking packageRanking = new WarehousePackageRanking(StorageAccount);
-            PackageIndexing.BuildIndex(ConnectionString.ToString(), directory, packageRanking);
+            PackageIndexing.BuildIndex(ConnectionString.ToString(), directory);
 
             DateTime after = DateTime.Now;
-            Console.WriteLine("duration = {0} seconds", (after - before).TotalSeconds);
+            Log.Info("duration = {0} seconds", (after - before).TotalSeconds);
         }
     }
 }

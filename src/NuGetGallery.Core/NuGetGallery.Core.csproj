@@ -169,9 +169,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Search\AzureDirectoryManagement.cs" />
     <Compile Include="Search\CamelCaseFilter.cs" />
+    <Compile Include="Search\FolderRankings.cs" />
+    <Compile Include="Search\StorageRankings.cs" />
+    <Compile Include="Search\RankingsScoreQuery.cs" />
     <Compile Include="Search\LuceneQueryCreator.cs" />
     <Compile Include="Search\IndexDocumentContext.cs" />
     <Compile Include="Search\IndexDocumentData.cs" />
+    <Compile Include="Search\Rankings.cs" />
     <Compile Include="Search\ShingledIdentifierAnalyzer.cs" />
     <Compile Include="Search\CustomSimilarity.cs" />
     <Compile Include="Search\IdentifierKeywordAnalyzer.cs" />
@@ -181,7 +185,6 @@
     <Compile Include="Search\PackageQueryParser.cs" />
     <Compile Include="Search\PackageRanking.cs" />
     <Compile Include="Search\PackageSearcherManager.cs" />
-    <Compile Include="Search\RankingBoostingQuery.cs" />
     <Compile Include="Search\Searcher.cs" />
     <Compile Include="Search\SearcherManager.cs" />
     <Compile Include="Search\SearchServiceClient.cs" />

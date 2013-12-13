@@ -16,10 +16,76 @@ namespace NuGetGallery.Operations
         {
             Log.Info("Export current rankings begin");
 
-            IDictionary<string, int> overallRanking = GetOverallRanking();
-            CreateRankingBlob("Overall", overallRanking);
+            CreateRankingsBlob();
+        }
 
-            CreatePerProjectRankings();
+        private void CreateRankingsBlob()
+        {
+            string overallSql = ResourceHelper.GetBatchFromSqlFile("NuGetGallery.Operations.Scripts.Ranking_Overall.sql");
+            string projectSql = ResourceHelper.GetBatchFromSqlFile("NuGetGallery.Operations.Scripts.Ranking_Project.sql");
+
+            string connectionString = "Server=tcp:ig2vd9xfaa.database.windows.net;Database=NuGetWarehouse;User ID=nugetwarehouse-sa@ig2vd9xfaa;Password=7999b095-4b09;Trusted_Connection=False;Encrypt=True;Connection Timeout=90;";
+
+            JObject report = new JObject();
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                SqlCommand command = new SqlCommand(overallSql, connection);
+                command.CommandType = CommandType.Text;
+                command.CommandTimeout = 60 * 5;
+
+                SqlDataReader reader = command.ExecuteReader();
+
+                JArray array = new JArray();
+
+                while (reader.Read())
+                {
+                    string packageId = reader.GetString(0);
+                    array.Add(packageId.ToLowerInvariant());
+                }
+
+                Log.Info("{0} {1}", "Rank", array.Count);
+
+                report.Add("Rank", array);
+            }
+
+            IList<string> projectTypes = GetProjectTypes();
+
+            foreach (string projectGuid in projectTypes)
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+
+                    SqlCommand command = new SqlCommand(projectSql, connection);
+                    command.CommandType = CommandType.Text;
+                    command.CommandTimeout = 60 * 5;
+
+                    command.Parameters.AddWithValue("ProjectGuid", projectGuid);
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    JArray array = new JArray();
+
+                    while (reader.Read())
+                    {
+                        string packageId = reader.GetString(0);
+                        array.Add(packageId.ToLowerInvariant());
+                    }
+
+                    Log.Info("{0} {1}", projectGuid, array.Count);
+
+                    if (array.Count > 0 && projectGuid != "(unknown)")
+                    {
+                        report.Add(projectGuid, array);
+                    }
+                }
+            }
+
+            Log.Info("creating blob");
+
+            CreateBlob("all.json", report);
         }
 
         private IList<string> GetProjectTypes()
@@ -47,122 +113,6 @@ namespace NuGetGallery.Operations
             }
 
             return result;
-        }
-
-        public IDictionary<string, int> GetRankingForProject(string projectGuid)
-        {
-            IDictionary<string, int> result = new Dictionary<string, int>();
-
-            string cmdText = ResourceHelper.GetBatchFromSqlFile("NuGetGallery.Operations.Scripts.Ranking_Project.sql");
-
-            using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
-            {
-                connection.Open();
-
-                SqlCommand command = new SqlCommand(cmdText, connection);
-                command.CommandType = CommandType.Text;
-                command.CommandTimeout = 60 * 5;
-
-                command.Parameters.AddWithValue("ProjectGuid", projectGuid);
-                SqlDataReader reader = command.ExecuteReader();
-
-                int order = 1;
-
-                while (reader.Read())
-                {
-                    string packageId = reader.GetString(0);
-
-                    result[packageId] = order++;
-                }
-            }
-
-            return result;
-        }
-
-        public void CreatePerProjectRankings()
-        {
-            IList<string> projectTypes = GetProjectTypes();
-
-            Log.Info("Gathering statistics for {0} project types.", projectTypes.Count);
-
-            IList<string> exported = new List<string>();
-
-            foreach (string projectType in projectTypes)
-            {
-                if (projectType == "(unknown)")
-                {
-                    continue;
-                }
-
-                IDictionary<string, int> ranking = GetRankingForProject(projectType);
-
-                if (ranking.Count > 0)
-                {
-                    CreateRankingBlob(projectType, ranking);
-
-                    exported.Add(projectType);
-                }
-
-                Console.WriteLine("{0}\t{1}", exported.Count, projectType);
-            }
-
-            Log.Info("Exported {0} blobs", exported.Count);
-
-            CreateProjectRankingListingBlob(exported);
-        }
-
-        public IDictionary<string, int> GetOverallRanking()
-        {
-            IDictionary<string, int> rank = new Dictionary<string, int>();
-
-            string sql = ResourceHelper.GetBatchFromSqlFile("NuGetGallery.Operations.Scripts.Ranking_Overall.sql");
-
-            using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
-            {
-                connection.Open();
-
-                SqlCommand command = new SqlCommand(sql, connection);
-                command.CommandType = CommandType.Text;
-                command.CommandTimeout = 60 * 5;
-
-                SqlDataReader reader = command.ExecuteReader();
-
-                int order = 1;
-
-                while (reader.Read())
-                {
-                    string packageId = reader.GetString(0);
-
-                    rank.Add(packageId, order++);
-                }
-            }
-
-            return rank;
-        }
-
-        private void CreateProjectRankingListingBlob(IList<string> projectTypes)
-        {
-            JArray data = new JArray();
-            foreach (string projectType in projectTypes)
-            {
-                if (projectType != "(unknown)")
-                {
-                    data.Add(projectType);
-                }
-            }
-
-            CreateBlob("ProjectTypeList", data);
-        }
-
-        private void CreateRankingBlob(string blobName, IDictionary<string, int> ranking)
-        {
-            JArray data = new JArray();
-            foreach (KeyValuePair<string, int> item in ranking)
-            {
-                data.Add(new JObject { { "id", item.Key }, { "rank", item.Value } });
-            }
-
-            CreateBlob(blobName, data);
         }
 
         private void CreateBlob(string blobName, JToken data)

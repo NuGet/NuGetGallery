@@ -66,7 +66,9 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        return ListDocuments(searcher, projectType, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
+                        IDictionary<string, int> rankings = searcherManager.GetRankings(projectType);
+
+                        return ListDocuments(searcher, rankings, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
                     }
                 }
                 else
@@ -79,7 +81,9 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        return ListDocumentsForQuery(searcher, q, projectType, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
+                        IDictionary<string, int> rankings = searcherManager.GetRankings(projectType);
+
+                        return ListDocumentsForQuery(searcher, q, rankings, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
                     }
                 }
             }
@@ -94,9 +98,9 @@ namespace NuGetGallery
             return DocumentCountImpl(searcher, new MatchAllDocsQuery(), includePrerelease, feed, ignoreFilter);
         }
 
-        private static string ListDocuments(IndexSearcher searcher, string projectType, bool includePrerelease, string feed, string sortBy, int skip, int take, bool includeExplanation, bool ignoreFilter)
+        private static string ListDocuments(IndexSearcher searcher, IDictionary<string, int> rankings, bool includePrerelease, string feed, string sortBy, int skip, int take, bool includeExplanation, bool ignoreFilter)
         {
-            return ListDocumentsImpl(searcher, new MatchAllDocsQuery(), projectType, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
+            return ListDocumentsImpl(searcher, new MatchAllDocsQuery(), rankings, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
         }
 
         private static string DocumentCountForQuery(IndexSearcher searcher, string q, bool includePrerelease, string feed, bool ignoreFilter)
@@ -104,9 +108,9 @@ namespace NuGetGallery
             return DocumentCountImpl(searcher, CreateBasicQuery(q), includePrerelease, feed, ignoreFilter);
         }
 
-        private static string ListDocumentsForQuery(IndexSearcher searcher, string q, string projectType, bool includePrerelease, string feed, string sortBy, int skip, int take, bool includeExplanation, bool ignoreFilter)
+        private static string ListDocumentsForQuery(IndexSearcher searcher, string q, IDictionary<string, int> rankings, bool includePrerelease, string feed, string sortBy, int skip, int take, bool includeExplanation, bool ignoreFilter)
         {
-            return ListDocumentsImpl(searcher, CreateBasicQuery(q), projectType, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
+            return ListDocumentsImpl(searcher, CreateBasicQuery(q), rankings, includePrerelease, feed, sortBy, skip, take, includeExplanation, ignoreFilter);
         }
 
         private static string DocumentCountImpl(IndexSearcher searcher, Query query, bool includePrerelease, string feed, bool ignoreFilter)
@@ -117,17 +121,15 @@ namespace NuGetGallery
             return MakeCountResult(topDocs.TotalHits);
         }
 
-        private static string ListDocumentsImpl(IndexSearcher searcher, Query query, string projectType, bool includePrerelease, string feed, string sortBy, int skip, int take, bool includeExplanation, bool ignoreFilter)
+        private static string ListDocumentsImpl(IndexSearcher searcher, Query query, IDictionary<string, int> rankings, bool includePrerelease, string feed, string sortBy, int skip, int take, bool includeExplanation, bool ignoreFilter)
         {
             Filter filter = ignoreFilter ? null : GetFilter(includePrerelease, feed);
 
-            string rank = (string.IsNullOrEmpty(projectType)) ? "Rank" : projectType;
-            Query boostedQuery = new RankingBoostingQuery(query, rank);
-
+            Query boostedQuery = new RankingScoreQuery(query, rankings);
+            
             int nDocs = GetDocsCount(skip, take);
-            Sort sort = GetSort(sortBy, rank);
 
-            TopDocs topDocs = (sort == null) ? searcher.Search(boostedQuery, filter, nDocs) : searcher.Search(boostedQuery, filter, nDocs, sort);
+            TopDocs topDocs = searcher.Search(boostedQuery, filter, nDocs);
 
             return MakeResults(searcher, topDocs, skip, take, includeExplanation, boostedQuery);
         }
@@ -375,26 +377,6 @@ namespace NuGetGallery
         private static int GetDocsCount(int skip, int take)
         {
             return (skip + 1) * take;
-        }
-
-        private static Sort GetSort(string sortBy, string rank)
-        {
-            switch (sortBy)
-            {
-                case "relevance":
-                    break;
-                case "rank":
-                    return new Sort(new SortField(rank, SortField.INT));
-                case "title-asc":
-                    return new Sort(new SortField("DisplayName", SortField.STRING));
-                case "title-desc":
-                    return new Sort(new SortField("DisplayName", SortField.STRING, true));
-                case "published":
-                    return new Sort(new SortField("PublishedDate", SortField.INT, true));
-                case "last-edited":
-                    return new Sort(new SortField("EditedDate", SortField.INT, true));
-            }
-            return null;
         }
     }
 }

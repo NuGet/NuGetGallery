@@ -253,6 +253,27 @@ namespace SearchService.Controllers
 
         //  private helpers
 
+        //private IDictionary<string, int> GetRankings(string projectType)
+        //{
+        //    if (_rankingsSet == null)
+        //    {
+        //        //_rankingsSet = Rankings.Load(WebConfigurationManager.AppSettings["StorageConnectionString"]);
+        //        string storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=nugetgallery;AccountKey=8/gQmMS10oR9AQA02tlrwi2hDhIfAjF3vWMduQKakZLtrJbx07qHHZrSf1KW9asbLjqx/gCCyJRws+tdlqcYZw==";
+        //        _rankingsSet = Rankings.Load(storageConnectionString);
+        //    }
+
+        //    if (projectType != null)
+        //    {
+        //        IDictionary<string, int> rankings;
+        //        if (_rankingsSet.TryGetValue(projectType, out rankings))
+        //        {
+        //            return rankings;
+        //        }
+        //    }
+
+        //    return _rankingsSet["Rank"];
+        //}
+
         private ActionResult MakeResponse(string content)
         {
             HttpContext.Response.AddHeader("Pragma", "no-cache");
@@ -273,7 +294,8 @@ namespace SearchService.Controllers
                 Trace.TraceInformation("InitializeSearcherManager: new PackageSearcherManager");
 
                 Lucene.Net.Store.Directory directory = GetDirectory();
-                _searcherManager = new PackageSearcherManager(directory);
+                Rankings rankings = GetRankings();
+                _searcherManager = new PackageSearcherManager(directory, rankings);
             }
         }
 
@@ -295,6 +317,26 @@ namespace SearchService.Controllers
                 Trace.TraceInformation("GetDirectory using filesystem. Folder: {0}", fileSystemPath);
 
                 return new SimpleFSDirectory(new DirectoryInfo(fileSystemPath));
+            }
+        }
+
+        private static Rankings GetRankings()
+        {
+            if (GetUseStorageConfiguration())
+            {
+                string storageConnectionString = WebConfigurationManager.AppSettings["StorageConnectionString"];
+
+                Trace.TraceInformation("Rankings from storage.");
+
+                return new StorageRankings(storageConnectionString);
+            }
+            else
+            {
+                string folder = WebConfigurationManager.AppSettings["FileSystemPathRankings"];
+
+                Trace.TraceInformation("Rankings from folder.");
+
+                return new FolderRankings(folder);
             }
         }
 

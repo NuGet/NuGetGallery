@@ -30,9 +30,7 @@ namespace NuGetGallery.Operations.Tasks.Search
                 throw new CommandLineException("Either specify a Folder or a Container not both");
             }
 
-            //  we still always need Blob Storage at least for the ranking
-
-            if (StorageAccount == null)
+            if (Container != null && StorageAccount == null)
             {
                 throw new CommandLineException("You must specify a StorageAccount with a Container");
             }
