@@ -9,7 +9,7 @@ using Autofac.Core.Registration;
 using Autofac.Features.ResolveAnything;
 using Xunit;
 
-namespace NuGet.Services.Platform.Facts
+namespace NuGet.Services
 {
     // Tests that verify the expected behavior of the IoC container. These were mostly just so that I (anurse)
     //  could verify that Autofac behaved the way I expected, but they can also serve as a criteria for what

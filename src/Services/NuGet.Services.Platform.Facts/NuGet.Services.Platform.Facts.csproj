@@ -6,7 +6,7 @@
     <ProjectGuid>{304B7FDA-3111-4670-9E77-4E5F20C89A8C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGet.Services.Platform.Facts</RootNamespace>
+    <RootNamespace>NuGet.Services</RootNamespace>
     <AssemblyName>NuGet.Services.Platform.Facts</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -53,6 +53,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\WindowsAzure.Storage.2.1.0.3\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
     </Reference>
+    <Reference Include="Moq">
+      <HintPath>..\..\..\packages\Moq.4.1.1309.1617\lib\net40\Moq.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Services.Client" />
@@ -77,6 +80,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="Configuration\ConfigurationHubFacts.cs" />
     <Compile Include="ContainerBehaviorFacts.cs" />
     <Compile Include="ServiceModel\ServiceHostNameFacts.cs" />
     <Compile Include="Storage\AzureTableEntityFacts.cs" />

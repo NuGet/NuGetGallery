@@ -37,6 +37,9 @@ namespace NuGet.Services.Azure
 
         public override bool OnStart()
         {
+            // Set the maximum number of concurrent connections 
+            ServicePointManager.DefaultConnectionLimit = 12;
+
             // Initialize the host
             _host.Initialize().Wait();
 

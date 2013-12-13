@@ -7,7 +7,7 @@ using NuGet.Services.ServiceModel;
 using Xunit;
 using Xunit.Extensions;
 
-namespace NuGet.Services.Platform.Facts
+namespace NuGet.Services.ServiceModel
 {
     public class ServiceHostNameFacts
     {
