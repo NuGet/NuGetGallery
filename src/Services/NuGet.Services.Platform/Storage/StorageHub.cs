@@ -21,12 +21,12 @@ namespace NuGet.Services.Storage
 
         private StorageAccountHub TryLoadAccount(ConfigurationHub configuration, KnownStorageAccount account)
         {
-            string str = configuration.Storage.GetConnectionString(account);
-            if (String.IsNullOrEmpty(str))
+            var connectionString = configuration.Storage.GetAccount(account);
+            if (connectionString == null)
             {
                 return null;
             }
-            return new StorageAccountHub(CloudStorageAccount.Parse(str));
+            return new StorageAccountHub(connectionString);
         }
     }
 }

@@ -81,6 +81,8 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Configuration\ConfigurationHubFacts.cs" />
+    <Compile Include="Configuration\StorageConfigurationFacts.cs" />
+    <Compile Include="Configuration\SqlConfigurationFacts.cs" />
     <Compile Include="ContainerBehaviorFacts.cs" />
     <Compile Include="ServiceModel\ServiceHostNameFacts.cs" />
     <Compile Include="Storage\AzureTableEntityFacts.cs" />

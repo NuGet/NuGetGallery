@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using Microsoft.WindowsAzure.Storage;
 
 namespace NuGet.Services.Configuration
 {
     public class StorageConfiguration : ICustomConfigurationSection
     {
-        private Dictionary<KnownStorageAccount, string> _accounts;
+        private Dictionary<KnownStorageAccount, CloudStorageAccount> _accounts;
 
-        public string GetConnectionString(KnownStorageAccount account)
+        public CloudStorageAccount GetAccount(KnownStorageAccount account)
         {
-            string connectionString;
+            CloudStorageAccount connectionString;
             if (!_accounts.TryGetValue(account, out connectionString))
             {
                 return null;
@@ -26,7 +27,7 @@ namespace NuGet.Services.Configuration
                 .OfType<KnownStorageAccount>()
                 .Select(a => new KeyValuePair<KnownStorageAccount, string>(a, hub.GetSetting(prefix + a.ToString())))
                 .Where(p => !String.IsNullOrEmpty(p.Value))
-                .ToDictionary(p => p.Key, p => p.Value);
+                .ToDictionary(p => p.Key, p => CloudStorageAccount.Parse(p.Value));
         }
     }
 }
