@@ -37,6 +37,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Autofac, Version=3.0.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\Autofac.3.1.5\lib\net40\Autofac.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Data.Edm, Version=5.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\..\..\packages\Microsoft.Data.Edm.5.2.0\lib\net40\Microsoft.Data.Edm.dll</HintPath>
     </Reference>
@@ -86,6 +90,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\NuGet.Services.Platform.Facts\NuGet.Services.Platform.Facts.csproj">
+      <Project>{304b7fda-3111-4670-9e77-4e5f20c89a8c}</Project>
+      <Name>NuGet.Services.Platform.Facts</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\NuGet.Services.Platform\NuGet.Services.Platform.csproj">
       <Project>{ef86883e-a1b4-4052-9222-51a01c6c41cd}</Project>
       <Name>NuGet.Services.Platform</Name>

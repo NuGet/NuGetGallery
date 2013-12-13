@@ -28,12 +28,12 @@ namespace NuGet.Services.Storage
                 namePrefix + InferTableName(typeof(TEntity)));
         }
 
-        public Task InsertOrReplace(TEntity entity)
+        public virtual Task InsertOrReplace(TEntity entity)
         {
             return _table.SafeExecute(t => t.ExecuteAsync(TableOperation.InsertOrReplace(entity)));
         }
 
-        public async Task InsertOrIgnore(TEntity entity)
+        public virtual async Task InsertOrIgnore(TEntity entity)
         {
             try
             {
@@ -49,12 +49,12 @@ namespace NuGet.Services.Storage
             }
         }
 
-        public Task Merge(TEntity entity)
+        public virtual Task Merge(TEntity entity)
         {
             return _table.SafeExecute(t => t.ExecuteAsync(TableOperation.InsertOrMerge(entity)));
         }
 
-        public async Task<TEntity> Get(string partitionKey, string rowKey)
+        public virtual async Task<TEntity> Get(string partitionKey, string rowKey)
         {
             return await SafeExecuteWithoutCreate(async table =>
             {
@@ -67,7 +67,7 @@ namespace NuGet.Services.Storage
             });
         }
 
-        public IEnumerable<TEntity> Get(string partitionKey)
+        public virtual IEnumerable<TEntity> Get(string partitionKey)
         {
             var query = _table.CreateQuery<TEntity>()
                 .Where(t => t.PartitionKey == partitionKey);

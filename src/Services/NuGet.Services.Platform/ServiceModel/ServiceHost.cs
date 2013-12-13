@@ -20,9 +20,9 @@ namespace NuGet.Services.ServiceModel
     {
         private CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
         private IContainer _container;
+        private IServiceProvider _containerWrapper;
         private IReadOnlyList<Type> _serviceTypes;
 
-        private ConfigurationHub _config;
         private StorageHub _storage;
         private volatile int _nextId = 0;
 
@@ -32,7 +32,7 @@ namespace NuGet.Services.ServiceModel
 
         public IReadOnlyList<NuGetService> Instances { get; private set; }
 
-        public IContainer Container { get { return _container; } }
+        public IServiceProvider Container { get { return _containerWrapper; } }
 
         /// <summary>
         /// Starts all services in the host and blocks until they have completed starting.
@@ -88,18 +88,18 @@ namespace NuGet.Services.ServiceModel
             ServicePlatformEventSource.Log.HostStarting(Description.ServiceHostName.ToString());
             try
             {
+                // Build the container
+                _container = Compose();
+
+                // Add the container itself to the container
                 ContainerBuilder builder = new ContainerBuilder();
-
-                // Resolve a concrete type that isn't overridden by just constructing it
-                builder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource());
-
-                // Add core module containing most of our components
-                builder.RegisterModule(new NuGetCoreModule(this));
-
-                _container = builder.Build();
+                builder.RegisterInstance(_container)
+                    .As<IContainer>()
+                    .As<IServiceProvider>();
+                builder.Update(_container);
+                _containerWrapper = new AutofacServiceProvider(_container);
 
                 // Manually resolve components the host uses
-                _config = _container.Resolve<ConfigurationHub>();
                 _storage = _container.Resolve<StorageHub>();
 
                 // Now get the services
@@ -115,8 +115,7 @@ namespace NuGet.Services.ServiceModel
                 }
 
                 // Report status
-                var entry = new ServiceHostEntry(Description);
-                await _storage.Primary.Tables.Table<ServiceHostEntry>().InsertOrReplace(entry);
+                await ReportHostInitialized();
             }
             catch (Exception ex)
             {
@@ -131,10 +130,29 @@ namespace NuGet.Services.ServiceModel
             return Interlocked.Increment(ref _nextId) - 1;
         }
 
+        protected virtual IContainer Compose()
+        {
+            ContainerBuilder builder = new ContainerBuilder();
+
+            // Resolve a concrete type that isn't overridden by just constructing it
+            builder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource());
+
+            // Add core module containing most of our components
+            builder.RegisterModule(new NuGetCoreModule(this));
+
+            return builder.Build();
+        }
+
+        protected virtual async Task ReportHostInitialized()
+        {
+            var entry = new ServiceHostEntry(Description);
+            await _storage.Primary.Tables.Table<ServiceHostEntry>().InsertOrReplace(entry);
+        }
+
         protected abstract void InitializePlatformLogging();
         protected abstract IEnumerable<Type> GetServices();
 
-        private async Task<NuGetService> StartService(Type serviceType)
+        internal async Task<NuGetService> StartService(Type serviceType)
         {
             // Initialize the serice, create the necessary IoC components and construct the instance.
             ServicePlatformEventSource.Log.ServiceInitializing(Description.ServiceHostName.ToString(), serviceType);

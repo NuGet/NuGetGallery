@@ -3,12 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Autofac;
+using Autofac.Features.ResolveAnything;
 using NuGet.Services.ServiceModel;
 
 namespace NuGet.Services.TestInfrastructure
 {
     public class TestServiceHost : ServiceHost
     {
+        private IEnumerable<Type> _services;
+        private Action<ContainerBuilder> _componentRegistrations;
+
+        public TestServiceHost() : this(Enumerable.Empty<Type>()) { }
+        public TestServiceHost(IEnumerable<Type> services) : this(services, null) { }
+        public TestServiceHost(IEnumerable<Type> services, Action<ContainerBuilder> componentRegistrations)
+        {
+            _services = services;
+            _componentRegistrations = componentRegistrations;
+        }
+
         public override ServiceHostDescription Description
         {
             get
@@ -29,7 +42,27 @@ namespace NuGet.Services.TestInfrastructure
 
         protected override IEnumerable<Type> GetServices()
         {
-            return Enumerable.Empty<Type>();
+            return _services;
+        }
+
+        protected override IContainer Compose()
+        {
+            ContainerBuilder builder = new ContainerBuilder();
+            builder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource());
+            builder.RegisterInstance(this).As<ServiceHost>();
+
+            if (_componentRegistrations != null)
+            {
+                _componentRegistrations(builder);
+            }
+
+            return builder.Build();
+        }
+
+        protected override Task ReportHostInitialized()
+        {
+            // Don't have storage or monitoring in tests.
+            return Task.FromResult<object>(null);
         }
     }
 }

@@ -1,74 +1,220 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
-//using Moq;
-//using Xunit;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.Tracing;
+using System.Linq;
+using System.Runtime.Remoting.Messaging;
+using System.Text;
+using System.Threading.Tasks;
+using Autofac;
+using Moq;
+using NuGet.Services.TestInfrastructure;
+using Xunit;
 
-//namespace NuGet.Services.Jobs
-//{
-//    public class JobDispatcherFacts
-//    {
-//        public class TheDispatchMethod
-//        {
-//            [Fact]
-//            public async Task GivenNoJobWithName_ItThrowsUnknownJobException()
-//            {
-//                // Arrange
-//                var dispatcher = new JobDispatcher(Enumerable.Empty<JobDescription>());
-//                var invocation = new Invocation(Guid.NewGuid(), "flarg", "test", new Dictionary<string, string>());
-//                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
-
-//                // Act/Assert
-//                var ex = await AssertEx.Throws<UnknownJobException>(() => dispatcher.Dispatch(context));
-//                Assert.Equal("flarg", ex.JobName);
-//            }
-
-//            [Fact]
-//            public async Task GivenJobWithName_ItCreatesAnInvocationAndInvokesJob()
-//            {
-//                // Arrange
-//                var jobImpl = new Mock<JobBase>();
-//                var job = new JobDescription("test", "blarg", () => jobImpl.Object);
-
-//                var dispatcher = new JobDispatcher(new[] { job });
-//                var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>());
-//                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
-
-//                jobImpl.Setup(j => j.Invoke(It.IsAny<InvocationContext>()))
-//                   .Returns(Task.FromResult(InvocationResult.Completed()));
-
-
-//                // Act
-//                var result = await dispatcher.Dispatch(context);
-
-//                // Assert
-//                Assert.Equal(InvocationStatus.Completed, result.Status);
-//            }
-
-//            [Fact]
-//            public async Task GivenJobWithName_ItReturnsResponseContainingInvocationAndResult()
-//            {
-//                // Arrange
-//                var jobImpl = new Mock<JobBase>();
-//                var job = new JobDescription("test", "blarg", () => jobImpl.Object);
+namespace NuGet.Services.Jobs
+{
+    public class JobDispatcherFacts
+    {
+        public class TheDispatchMethod
+        {
+            [Fact]
+            public async Task GivenNoJobWithName_ItThrowsUnknownJobException()
+            {
+                // Arrange
+                var host = new TestServiceHost();
+                await host.Initialize();
                 
-//                var ex = new Exception();
-//                var dispatcher = new JobDispatcher(new[] { job });
-//                var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>());
-//                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
+                var dispatcher = new JobDispatcher(Enumerable.Empty<JobDefinition>(), host.Container);
+                var invocation = new Invocation(Guid.NewGuid(), "flarg", "test", new Dictionary<string, string>());
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
 
-//                jobImpl.Setup(j => j.Invoke(It.IsAny<InvocationContext>()))
-//                   .Returns(Task.FromResult(InvocationResult.Completed()));
+                // Act/Assert
+                var ex = await AssertEx.Throws<UnknownJobException>(() => dispatcher.Dispatch(context));
+                Assert.Equal("flarg", ex.JobName);
+            }
 
-//                // Act
-//                var result = await dispatcher.Dispatch(context);
+            [Fact]
+            public async Task GivenJobWithName_ItInvokesTheJobAndReturnsTheResult()
+            {
+                // Arrange
+                var host = new TestServiceHost();
+                await host.Initialize();
 
-//                // Assert
-//                Assert.Equal(InvocationStatus.Completed, result.Status);
-//                Assert.Null(result.Exception);
-//            }
-//        }
-//    }
-//}
+                var job = new JobDefinition(
+                    new JobDescription("test", "runtime"),
+                    typeof(TestJob));
+
+                var dispatcher = new JobDispatcher(new[] { job }, host.Container);
+                var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>());
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
+                var expected = InvocationResult.Completed();
+                TestJob.SetTestResult(expected);
+
+                // Act
+                var actual = await dispatcher.Dispatch(context);
+
+                // Assert
+                Assert.Same(expected, actual);
+            }
+
+            [Fact]
+            public async Task GivenJobWithConstructorArgs_ItResolvesThemFromTheContainer()
+            {
+                // Arrange
+                var expected = new SomeService();
+                var host = new TestServiceHost(
+                    services: Enumerable.Empty<Type>(),
+                    componentRegistrations: b => {
+                        b.RegisterInstance(expected).As<SomeService>();
+                    });
+                await host.Initialize();
+
+                var job = new JobDefinition(
+                    new JobDescription("test", "runtime"),
+                    typeof(TestJobWithService));
+
+                var dispatcher = new JobDispatcher(new[] { job }, host.Container);
+                var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>());
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
+                var slot = new ContextSlot();
+                TestJobWithService.SetContextSlot(slot);
+                
+                // Act
+                await dispatcher.Dispatch(context);
+                
+                // Assert
+                Assert.Same(expected, slot.Value);
+            }
+
+            [Fact]
+            public async Task GivenAContinuationRequest_ItCallsTheInvokeContinuationMethod()
+            {
+                // Arrange
+                var host = new TestServiceHost();
+                await host.Initialize();
+
+                var job = new JobDefinition(
+                    new JobDescription("test", "runtime"),
+                    typeof(TestAsyncJob));
+
+                var dispatcher = new JobDispatcher(new[] { job }, host.Container);
+                var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>())
+                {
+                    Continuation = true
+                };
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
+                
+                // Act
+                var result = await dispatcher.Dispatch(context);
+
+                // Assert
+                Assert.Equal(InvocationStatus.Completed, result.Status);
+            }
+
+            [Fact]
+            public async Task GivenAContinuationRequestToANonAsyncJob_ItThrows()
+            {
+                // Arrange
+                var host = new TestServiceHost();
+                await host.Initialize();
+
+                var job = new JobDefinition(
+                    new JobDescription("test", "runtime"),
+                    typeof(TestJob));
+
+                var dispatcher = new JobDispatcher(new[] { job }, host.Container);
+                var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>())
+                {
+                    Continuation = true
+                };
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
+
+                // Act/Assert
+                var ex = await AssertEx.Throws<InvalidOperationException>(() => dispatcher.Dispatch(context));
+                Assert.Equal(String.Format(
+                    Strings.JobDispatcher_AsyncContinuationOfNonAsyncJob,
+                    job.Description.Name), ex.Message);
+            }
+        }
+
+        public class TestJob : JobBase
+        {
+            public override EventSource GetEventSource()
+            {
+                return null;
+            }
+
+            protected internal override Task<InvocationResult> Invoke()
+            {
+                return Task.FromResult(GetTestResult());
+            }
+
+            public static InvocationResult GetTestResult()
+            {
+                return (InvocationResult)CallContext.LogicalGetData(typeof(TestJob).FullName + "!TestResult");
+            }
+
+            public static void SetTestResult(InvocationResult value)
+            {
+                CallContext.LogicalSetData(typeof(TestJob).FullName + "!TestResult", value);
+            }
+        }
+
+        public class TestAsyncJob : JobBase, IAsyncJob
+        {
+            public override EventSource GetEventSource()
+            {
+                return null;
+            }
+
+            public Task<InvocationResult> InvokeContinuation(InvocationContext context)
+            {
+                return Task.FromResult(InvocationResult.Completed());
+            }
+
+            protected internal override Task<InvocationResult> Invoke()
+            {
+                return Task.FromResult(InvocationResult.Faulted(new Exception("Supposed to be invoked as a continuation!")));
+            }
+        }
+
+        public class TestJobWithService : JobBase
+        {
+            public TestJobWithService(SomeService service)
+            {
+                GetContextSlot().Value = service;
+            }
+
+            public override EventSource GetEventSource()
+            {
+                return null;
+            }
+
+            protected internal override Task<InvocationResult> Invoke()
+            {
+                return Task.FromResult(InvocationResult.Completed());
+            }
+
+            internal static ContextSlot GetContextSlot()
+            {
+                return (ContextSlot)CallContext.LogicalGetData(typeof(TestJobWithService).FullName + "!ContextSlot");
+            }
+
+            // Call context doesn't flow up the call stack, only down, but it's
+            // a shallow copy (i.e. objects are copied as references), so we can
+            // use a property on a dummy object to fake passing things up the call stack in the test
+            internal static void SetContextSlot(ContextSlot value)
+            {
+                CallContext.LogicalSetData(typeof(TestJobWithService).FullName + "!ContextSlot", value);
+            }
+        }
+
+        public class SomeService
+        {
+        }
+
+        internal class ContextSlot
+        {
+            public SomeService Value { get; set; }
+        }
+    }
+}

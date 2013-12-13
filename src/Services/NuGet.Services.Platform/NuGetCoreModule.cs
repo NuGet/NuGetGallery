@@ -9,7 +9,7 @@ using NuGet.Services.Storage;
 
 namespace NuGet.Services
 {
-    public class NuGetCoreModule : Module
+    internal class NuGetCoreModule : Module
     {
         private ServiceHost _serviceHost;
 

@@ -87,7 +87,6 @@
     <Compile Include="Mockery.cs" />
     <Compile Include="ServiceModel\DatacenterNameFacts.cs" />
     <Compile Include="ServiceModel\NuGetServiceFacts.cs" />
-    <Compile Include="ServiceModel\ServiceHostFacts.cs" />
     <Compile Include="ServiceModel\ServiceHostNameFacts.cs" />
     <Compile Include="ServiceModel\ServiceInstanceNameFacts.cs" />
     <Compile Include="Storage\AzureTableEntityFacts.cs" />

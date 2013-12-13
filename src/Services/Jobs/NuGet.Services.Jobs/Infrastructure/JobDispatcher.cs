@@ -13,15 +13,15 @@ namespace NuGet.Services.Jobs
     {
         private Dictionary<string, JobDefinition> _jobMap;
         private List<JobDefinition> _jobs;
-        private JobsService _service;
+        private IServiceProvider _container;
 
         public IReadOnlyList<JobDefinition> Jobs { get { return _jobs.AsReadOnly(); } }
-        
-        public JobDispatcher(IEnumerable<JobDefinition> jobs, JobsService service)
+
+        public JobDispatcher(IEnumerable<JobDefinition> jobs, IServiceProvider container)
         {
             _jobs = jobs.ToList();
             _jobMap = jobs.ToDictionary(j => j.Description.Name, StringComparer.OrdinalIgnoreCase);
-            _service = service;
+            _container = container;
         }
 
         public virtual async Task<InvocationResult> Dispatch(InvocationContext context)
@@ -31,11 +31,26 @@ namespace NuGet.Services.Jobs
             {
                 throw new UnknownJobException(context.Invocation.Job);
             }
-            JobBase job = _service.Container.GetService<JobBase>(jobdef.Implementation);
+            JobBase job = _container.GetService<JobBase>(jobdef.Implementation);
 
             if (context.LogCapture != null)
             {
                 context.LogCapture.SetJob(jobdef, job);
+            }
+
+            Func<Task<InvocationResult>> invocationThunk = () => job.Invoke(context);
+            if (context.Invocation.Continuation)
+            {
+                IAsyncJob asyncJob = job as IAsyncJob;
+                if (asyncJob == null)
+                {
+                    // Just going to be caught below, but that's what we want :).
+                    throw new InvalidOperationException(String.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.JobDispatcher_AsyncContinuationOfNonAsyncJob,
+                        jobdef.Description.Name));
+                }
+                invocationThunk = () => asyncJob.InvokeContinuation(context);
             }
 
             InvocationEventSource.Log.Invoking(jobdef);
@@ -43,23 +58,7 @@ namespace NuGet.Services.Jobs
 
             try
             {
-                if (context.Invocation.Continuation)
-                {
-                    IAsyncJob asyncJob = job as IAsyncJob;
-                    if (asyncJob == null)
-                    {
-                        // Just going to be caught below, but that's what we want :).
-                        throw new InvalidOperationException(String.Format(
-                            CultureInfo.CurrentCulture,
-                            Strings.JobDispatcher_AsyncContinuationOfNonAsyncJob,
-                            jobdef.Description.Name));
-                    }
-                    result = await asyncJob.InvokeContinuation(context);
-                }
-                else
-                {
-                    result = await job.Invoke(context);
-                }
+                result = await invocationThunk();
             }
             catch (Exception ex)
             {

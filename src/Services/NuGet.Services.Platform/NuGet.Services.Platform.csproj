@@ -124,8 +124,6 @@
     <Compile Include="Configuration\ConfigurationSectionAttribute.cs" />
     <Compile Include="Configuration\SqlConfiguration.cs" />
     <Compile Include="Configuration\StorageConfiguration.cs" />
-    <Compile Include="Constants.cs" />
-    <Compile Include="Helpers\PrincipalExtensions.cs" />
     <Compile Include="Http\NuGetApiService.cs" />
     <Compile Include="Http\NuGetHttpService.cs" />
     <Compile Include="KnownServers.cs" />
