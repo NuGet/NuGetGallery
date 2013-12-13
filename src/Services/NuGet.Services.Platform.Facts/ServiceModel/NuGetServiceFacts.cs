@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Moq;
 using NuGet.Services.Models;
+using NuGet.Services.TestInfrastructure;
 using Xunit;
 
 namespace NuGet.Services.ServiceModel
@@ -49,13 +50,13 @@ namespace NuGet.Services.ServiceModel
                 // Arrange
                 var host = new TestServiceHost();
                 var container = CreateTestContainer();
-                var service = new TestService(host);
+                var service = new TestServiceWithComponents(host);
 
                 // Act
                 await service.Start(container, ServiceInstanceEntry.FromService(service));
 
                 // Assert
-                Assert.Same(service.Something, container.Resolve<SomeService>());
+                Assert.Same(service.Something, container.Resolve<SomeComponent>());
                 Assert.Null(service.SomethingElse);
             }
 
@@ -151,86 +152,26 @@ namespace NuGet.Services.ServiceModel
         private static IContainer CreateTestContainer()
         {
             var builder = new ContainerBuilder();
-            builder.RegisterType<SomeService>().SingleInstance();
-            builder.RegisterType<SomeOtherService>().SingleInstance();
+            builder.RegisterType<SomeComponent>().SingleInstance();
+            builder.RegisterType<SomeOtherComponent>().SingleInstance();
             var container = builder.Build();
             return container;
         }
 
         // Helper nested classes
-        public class TestServiceHost : ServiceHost
+        public class TestServiceWithComponents : TestService
         {
-            public override ServiceHostDescription Description
-            {
-                get
-                {
-                    return new ServiceHostDescription(
-                        new ServiceHostName(
-                            new DatacenterName(
-                                "local",
-                                42),
-                            "testhost"),
-                        "testmachine");
-                }
-            }
+            public SomeComponent Something { get; set; }
+            public SomeOtherComponent SomethingElse { get; set; }
 
-            protected override void InitializePlatformLogging()
-            {
-            }
-
-            protected override IEnumerable<Type> GetServices()
-            {
-                return Enumerable.Empty<Type>();
-            }
+            public TestServiceWithComponents(ServiceHost host) : base(host) { }
         }
 
-        public class TestService : NuGetService
-        {
-            public bool WasRun { get; private set; }
-            public bool WasStarted { get; private set; }
-            public bool WasShutdown { get; private set; }
-
-            public SomeService Something { get; set; }
-            public SomeOtherService SomethingElse { get; set; }
-
-            public Func<Task> CustomOnRun { get; set; }
-
-            public TestService(ServiceHost host) : base("TestService", host) { }
-
-            protected override Task OnRun()
-            {
-                WasRun = true;
-                
-                if (CustomOnRun != null)
-                {
-                    return CustomOnRun();
-                }
-                else
-                {
-                    TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
-                    tcs.TrySetResult(null);
-                    return tcs.Task;
-                }
-            }
-
-            protected override Task<bool> OnStart()
-            {
-                WasStarted = true;
-                return base.OnStart();
-            }
-
-            protected override void OnShutdown()
-            {
-                WasShutdown = true;
-                base.OnShutdown();
-            }
-        }
-
-        public class SomeService
+        public class SomeComponent
         {
         }
 
-        public class SomeOtherService
+        public class SomeOtherComponent
         {
         }
     }
