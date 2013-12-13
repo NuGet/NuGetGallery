@@ -23,6 +23,7 @@ namespace NuGet.Services.Azure
         {
             _runTask = _host.Run();
             _runTask.Wait();
+            ServicePlatformEventSource.Log.HostShutdownComplete(_host.Description.ServiceHostName.ToString());
         }
 
         public override void OnStop()
@@ -37,7 +38,7 @@ namespace NuGet.Services.Azure
         public override bool OnStart()
         {
             // Initialize the host
-            _host.Initialize();
+            _host.Initialize().Wait();
 
             return _host.StartAndWait();
         }

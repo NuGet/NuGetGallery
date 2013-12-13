@@ -22,6 +22,7 @@ using NuGet.Services.Storage;
 using NuGet.Services.Jobs.Configuration;
 using Autofac.Core;
 using Autofac;
+using NuGet.Services.ServiceModel;
 
 namespace NuGet.Services.Jobs
 {
@@ -33,12 +34,10 @@ namespace NuGet.Services.Jobs
         private AzureTable<JobDescription> _jobsTable;
 
         public IEnumerable<JobDescription> Jobs { get; private set; }
-        public StorageHub Storage { get; private set; }
         
-        public JobsService(ServiceHost host, StorageHub storage)
+        public JobsService(ServiceHost host)
             : base(MyServiceName, host)
         {
-            Storage = storage;
         }
 
         protected override Task<bool> OnStart()

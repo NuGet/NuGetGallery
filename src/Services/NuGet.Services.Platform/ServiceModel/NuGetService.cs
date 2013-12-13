@@ -15,69 +15,70 @@ using NuGet.Services.Storage;
 using NuGet.Services.Configuration;
 using Autofac;
 using Autofac.Core;
+using NuGet.Services.Models;
 
-namespace NuGet.Services
+namespace NuGet.Services.ServiceModel
 {
     public abstract class NuGetService : IDisposable
     {
-        private static int _nextId = 0;
+        private static volatile int _nextId = 0;
 
-        private AzureTable<ServiceInstance> _instancesTable;
-        private const string TraceTableBaseName = "ServiceTrace";
+        private const string TraceTableBaseName = "Trace";
+        
         private SinkSubscription<WindowsAzureTableSink> _globalSinkSubscription;
-        private ServiceInstance _serviceInstance;
+        private ServiceInstanceEntry _instanceEntry;
 
-        public string Name { get; private set; }
+        public string ServiceName { get; private set; }
         public ServiceHost Host { get; private set; }
-        public string ServiceInstanceName { get; private set; }
+        public ServiceInstanceName InstanceName { get; private set; }
 
         public StorageHub Storage { get; set; }
         public ConfigurationHub Configuration { get; set; }
-
         public IServiceProvider Container { get; protected set; }
 
         public string TempDirectory { get; protected set; }
 
         protected NuGetService(string serviceName, ServiceHost host)
         {
-            Name = serviceName;
+            ServiceName = serviceName;
             Host = host;
-
-            _instancesTable = Storage.Primary.Tables.Table<ServiceInstance>();
-            ServiceInstanceName = Host.Name + "_" + Name + "_" + ServiceInstanceId.Get().ToString();
 
             TempDirectory = Path.Combine(Path.GetTempPath(), "NuGetServices", serviceName);
 
-            ServiceInstanceId.Set(Interlocked.Increment(ref _nextId) - 1);
+            // Assign a unique id to this service (it'll be global across this host, but that's OK)
+            int id = Interlocked.Increment(ref _nextId) - 1;
+
+            // Build an instance name
+            InstanceName = new ServiceInstanceName(host.Description.ServiceHostName, serviceName, id);
+            ServiceInstanceName.SetCurrent(InstanceName);
         }
 
-        public virtual async Task<bool> Start(ILifetimeScope scope)
+        public virtual async Task<bool> Start(ILifetimeScope scope, ServiceInstanceEntry instanceEntry)
         {
             Container = new AutofacServiceProvider(scope);
+            _instanceEntry = instanceEntry;
 
-            ServicePlatformEventSource.Log.Starting(Name, ServiceInstanceName);
+            scope.InjectProperties(this);
+
             if (Host == null)
             {
                 throw new InvalidOperationException(Strings.NuGetService_HostNotSet);
             }
             Host.ShutdownToken.Register(OnShutdown);
 
-            await StartTracing();
+            StartTracing();
 
             var ret = await OnStart();
-            ServicePlatformEventSource.Log.Started(Name, ServiceInstanceName);
             return ret;
         }
 
         public virtual async Task Run()
         {
-            ServicePlatformEventSource.Log.Running(Name, ServiceInstanceName);
             if (Host == null)
             {
                 throw new InvalidOperationException(Strings.NuGetService_HostNotSet);
             }
             await OnRun();
-            ServicePlatformEventSource.Log.Stopped(Name, ServiceInstanceName);
         }
 
         public void Dispose()
@@ -96,8 +97,8 @@ namespace NuGet.Services
 
         public virtual Task Heartbeat()
         {
-            _serviceInstance.LastHeartbeat = DateTimeOffset.UtcNow;
-            return _instancesTable.InsertOrReplace(_serviceInstance);
+            _instanceEntry.LastHeartbeat = DateTimeOffset.UtcNow;
+            return Storage.Primary.Tables.Table<ServiceInstanceEntry>().InsertOrReplace(_instanceEntry);
         }
 
         protected virtual Task<bool> OnStart() { return Task.FromResult(true); }
@@ -109,27 +110,16 @@ namespace NuGet.Services
             return Enumerable.Empty<EventSource>();
         }
 
-        protected virtual IEnumerable<IModule> GetComponentModules()
-        {
-            return Enumerable.Empty<IModule>();
-        }
-
         public virtual void RegisterComponents(ContainerBuilder builder)
         {
-            builder.RegisterInstance(this).As(GetType());
-
-            foreach (var module in GetComponentModules())
-            {
-                builder.RegisterModule(module);
-            }
         }
 
-        private async Task StartTracing()
+        private void StartTracing()
         {
             // Set up worker logging
             var listener = new ObservableEventListener();
-            var capturedId = ServiceInstanceId.Get();
-            var stream = listener.Where(_ => ServiceInstanceId.Get() == capturedId);
+            var capturedId = ServiceInstanceName.GetCurrent();
+            var stream = listener.Where(_ => Equals(ServiceInstanceName.GetCurrent(), capturedId));
             foreach (var source in GetTraceEventSources())
             {
                 listener.EnableEvents(source, EventLevel.Informational);
@@ -137,35 +127,9 @@ namespace NuGet.Services
             listener.EnableEvents(SemanticLoggingEventSource.Log, EventLevel.Informational);
             listener.EnableEvents(ServicePlatformEventSource.Log, EventLevel.Informational);
             _globalSinkSubscription = stream.LogToWindowsAzureTable(
-                ServiceInstanceName,
+                InstanceName.ToString(),
                 Storage.Primary.ConnectionString,
-                tableAddress: Storage.Primary.Tables.GetTableFullName(Name + TraceTableBaseName));
-
-            // Log Instance Status
-            _serviceInstance = new ServiceInstance(
-                Host.Name,
-                ServiceInstanceName,
-                Name,
-                Environment.MachineName,
-                DateTimeOffset.UtcNow,
-                DateTimeOffset.UtcNow,
-                AssemblyInformation.ForAssembly(GetType().Assembly));
-            await _instancesTable.InsertOrReplace(_serviceInstance);
-        }
-
-        private static class ServiceInstanceId
-        {
-            private const string RunnerIdDataName = "_NuGet_Service_Instance_Id";
-
-            public static int Get()
-            {
-                return (int)CallContext.LogicalGetData(RunnerIdDataName);
-            }
-
-            public static void Set(int id)
-            {
-                CallContext.LogicalSetData(RunnerIdDataName, id);
-            }
+                tableAddress: Storage.Primary.Tables.GetTableFullName(ServiceName + TraceTableBaseName));
         }
     }
 }

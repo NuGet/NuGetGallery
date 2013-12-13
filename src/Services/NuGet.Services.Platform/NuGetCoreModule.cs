@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using Autofac;
 using NuGet.Services.Configuration;
+using NuGet.Services.ServiceModel;
+using NuGet.Services.Storage;
 
 namespace NuGet.Services
 {
@@ -22,6 +24,7 @@ namespace NuGet.Services
 
             builder.RegisterInstance<ServiceHost>(_serviceHost);
             builder.RegisterType<ConfigurationHub>();
+            builder.RegisterType<StorageHub>();
         }
     }
 }

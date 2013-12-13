@@ -61,6 +61,24 @@ namespace NuGet.Services {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected a name in the format: &apos;&lt;index&gt;-&lt;id&gt;&apos;.
+        /// </summary>
+        internal static string Datacenter_InvalidName {
+            get {
+                return ResourceManager.GetString("Datacenter_InvalidName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected a name in the format: &quot;&lt;environment&gt;_DC&lt;datacenter id&gt;&quot;.
+        /// </summary>
+        internal static string DatacenterName_InvalidName {
+            get {
+                return ResourceManager.GetString("DatacenterName_InvalidName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Host must be set using SetHost before invoking this method..
         /// </summary>
         internal static string NuGetService_HostNotSet {
@@ -102,6 +120,24 @@ namespace NuGet.Services {
         internal static string ServiceHost_NotAValidServiceType {
             get {
                 return ResourceManager.GetString("ServiceHost_NotAValidServiceType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected a name in the format: &quot;&lt;environment&gt;_DC&lt;datacenter id&gt;_&lt;name&gt;&quot;.
+        /// </summary>
+        internal static string ServiceHostName_InvalidName {
+            get {
+                return ResourceManager.GetString("ServiceHostName_InvalidName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected a name in the format: &quot;&lt;environment&gt;_DC&lt;datacenter id&gt;_&lt;service host name&gt;_&lt;service name&gt;_IN&lt;service instance index&gt;&quot;.
+        /// </summary>
+        internal static string ServiceInstanceName_InvalidName {
+            get {
+                return ResourceManager.GetString("ServiceInstanceName_InvalidName", resourceCulture);
             }
         }
     }

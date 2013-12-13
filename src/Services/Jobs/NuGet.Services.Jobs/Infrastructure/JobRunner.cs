@@ -12,6 +12,7 @@ using Newtonsoft.Json.Linq;
 using NuGet.Services.Configuration;
 using NuGet.Services.Jobs.Configuration;
 using NuGet.Services.Jobs.Monitoring;
+using NuGet.Services.ServiceModel;
 using NuGet.Services.Storage;
 
 namespace NuGet.Services.Jobs
@@ -23,18 +24,17 @@ namespace NuGet.Services.Jobs
         private JobDispatcher _dispatcher;
         private InvocationQueue _queue;
         private TimeSpan _pollInterval;
-        private string _tempDirectory;
-
+        
         public StorageHub Storage { get; private set; }
 
         public event EventHandler Heartbeat;
 
-        public JobRunner(JobDispatcher dispatcher, ConfigurationHub config, StorageHub storage)
+        public JobRunner(JobDispatcher dispatcher, NuGetService service, ConfigurationHub config, StorageHub storage)
         {
             _dispatcher = dispatcher;
             
             _pollInterval = config.GetSection<QueueConfiguration>().PollInterval;
-            _queue = new InvocationQueue(, storage);
+            _queue = new InvocationQueue(storage);
         }
 
         public async Task Run(CancellationToken cancelToken)

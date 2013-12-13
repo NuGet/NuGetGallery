@@ -117,6 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="DatacenterName_InvalidName" xml:space="preserve">
+    <value>Expected a name in the format: "&lt;environment&gt;_DC&lt;datacenter id&gt;"</value>
+  </data>
+  <data name="Datacenter_InvalidName" xml:space="preserve">
+    <value>Expected a name in the format: '&lt;index&gt;-&lt;id&gt;'</value>
+  </data>
   <data name="NuGetService_HostNotSet" xml:space="preserve">
     <value>Host must be set using SetHost before invoking this method.</value>
   </data>
@@ -126,10 +132,16 @@
   <data name="ServiceConfiguration_UnknownStorageAccount" xml:space="preserve">
     <value>Unknown Storage Account: {0}</value>
   </data>
+  <data name="ServiceHostName_InvalidName" xml:space="preserve">
+    <value>Expected a name in the format: "&lt;environment&gt;_DC&lt;datacenter id&gt;_&lt;name&gt;"</value>
+  </data>
   <data name="ServiceHost_DoesNotSupportEndpoints" xml:space="preserve">
     <value>This host does not support IP endpoints</value>
   </data>
   <data name="ServiceHost_NotAValidServiceType" xml:space="preserve">
     <value>'{0}' is not a valid NuGetService, it must inherit from NuGet.Services.NuGetService</value>
+  </data>
+  <data name="ServiceInstanceName_InvalidName" xml:space="preserve">
+    <value>Expected a name in the format: "&lt;environment&gt;_DC&lt;datacenter id&gt;_&lt;service host name&gt;_&lt;service name&gt;_IN&lt;service instance index&gt;"</value>
   </data>
 </root>

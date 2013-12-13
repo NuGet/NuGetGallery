@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Concurrent;
 using System.Globalization;
+using NuGet.Services.ServiceModel;
 
 namespace NuGet.Services.Configuration
 {

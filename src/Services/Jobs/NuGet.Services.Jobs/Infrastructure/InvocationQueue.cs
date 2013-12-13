@@ -21,17 +21,13 @@ namespace NuGet.Services.Jobs
         private CloudQueue _queue;
         private AzureTable<Invocation> _table;
 
-        public string InstanceName { get; private set; }
-
-        public InvocationQueue(string instanceName, StorageHub hub)
+        public InvocationQueue(StorageHub hub)
             : this(
-                instanceName, 
                 hub.Primary.Queues.Client.GetQueueReference(DefaultQueueName), 
                 hub.Primary.Tables.Table<Invocation>()) { }
 
-        public InvocationQueue(string instanceName, CloudQueue queue, AzureTable<Invocation> table)
+        public InvocationQueue(CloudQueue queue, AzureTable<Invocation> table)
         {
-            InstanceName = instanceName;
             _queue = queue;
             _table = table;
         }

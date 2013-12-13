@@ -72,7 +72,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void Invoking(Guid invocationId, string jobName, string jobRuntime) { WriteEvent(5, invocationId, jobName, jobRuntime); }
 
         [NonEvent]
-        public void Invoking(JobDescription job) { Invoking(InvocationContext.GetCurrentInvocationId(), job.Name, job.Runtime); }
+        public void Invoking(JobDefinition jobdef) { Invoking(InvocationContext.GetCurrentInvocationId(), jobdef.Description.Name, jobdef.Description.Runtime); }
 
         [Event(
             eventId: 6,

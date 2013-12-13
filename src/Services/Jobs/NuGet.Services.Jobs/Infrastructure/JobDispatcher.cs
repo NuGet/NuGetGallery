@@ -11,33 +11,34 @@ namespace NuGet.Services.Jobs
 {
     public class JobDispatcher
     {
-        private Dictionary<string, JobDescription> _jobMap;
-        private List<JobDescription> _jobs;
+        private Dictionary<string, JobDefinition> _jobMap;
+        private List<JobDefinition> _jobs;
         private JobsService _service;
 
-        public IReadOnlyList<JobDescription> Jobs { get { return _jobs.AsReadOnly(); } }
+        public IReadOnlyList<JobDefinition> Jobs { get { return _jobs.AsReadOnly(); } }
         
-        public JobDispatcher(JobsService service)
+        public JobDispatcher(IEnumerable<JobDefinition> jobs, JobsService service)
         {
-            _jobs = service.Jobs.ToList();
-            _jobMap = service.Jobs.ToDictionary(j => j.Name, StringComparer.OrdinalIgnoreCase);
+            _jobs = jobs.ToList();
+            _jobMap = jobs.ToDictionary(j => j.Description.Name, StringComparer.OrdinalIgnoreCase);
+            _service = service;
         }
 
         public virtual async Task<InvocationResult> Dispatch(InvocationContext context)
         {
-            JobDescription jobDesc;
-            if (!_jobMap.TryGetValue(context.Invocation.Job, out jobDesc))
+            JobDefinition jobdef;
+            if (!_jobMap.TryGetValue(context.Invocation.Job, out jobdef))
             {
                 throw new UnknownJobException(context.Invocation.Job);
             }
-            JobBase job = _service.Container.GetService<JobBase>(jobDesc.Type);
+            JobBase job = _service.Container.GetService<JobBase>(jobdef.Implementation);
 
             if (context.LogCapture != null)
             {
-                context.LogCapture.SetJob(jobDesc, job);
+                context.LogCapture.SetJob(jobdef, job);
             }
 
-            InvocationEventSource.Log.Invoking(jobDesc);
+            InvocationEventSource.Log.Invoking(jobdef);
             InvocationResult result = null;
 
             try
@@ -51,7 +52,7 @@ namespace NuGet.Services.Jobs
                         throw new InvalidOperationException(String.Format(
                             CultureInfo.CurrentCulture,
                             Strings.JobDispatcher_AsyncContinuationOfNonAsyncJob,
-                            jobDesc.Name));
+                            jobdef.Description.Name));
                     }
                     result = await asyncJob.InvokeContinuation(context);
                 }

@@ -78,6 +78,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ContainerBehaviorFacts.cs" />
+    <Compile Include="ServiceModel\ServiceHostNameFacts.cs" />
     <Compile Include="Storage\AzureTableEntityFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

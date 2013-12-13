@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Owin.Hosting;
 using Microsoft.Owin.Hosting.Starter;
+using NuGet.Services.ServiceModel;
 using Owin;
 
 namespace NuGet.Services.Http
@@ -22,7 +23,7 @@ namespace NuGet.Services.Http
             var ep = Host.GetEndpoint("http");
             if (ep == null)
             {
-                ServicePlatformEventSource.Log.MissingEndpoint(Name, ServiceInstanceName, "http");
+                ServicePlatformEventSource.Log.MissingEndpoint(Host.Description.ServiceHostName.ToString(), InstanceName.ToString(), "http");
                 return Task.FromResult(false); // Failed to start
             }
 
@@ -31,9 +32,17 @@ namespace NuGet.Services.Http
             {
                 Port = ep.Port
             };
-            ServicePlatformEventSource.Log.StartingHttpServices(Name, ServiceInstanceName, ep.Port);
-            _httpServerLifetime = WebApp.Start(options, Startup);
-            ServicePlatformEventSource.Log.StartedHttpServices(Name, ServiceInstanceName, ep.Port);
+            ServicePlatformEventSource.Log.StartingHttpServices(Host.Description.ServiceHostName.ToString(), InstanceName.ToString(), ep.Port);
+            try
+            {
+                _httpServerLifetime = WebApp.Start(options, Startup);
+            }
+            catch (Exception ex)
+            {
+                ServicePlatformEventSource.Log.ErrorStartingHttpServices(Host.Description.ServiceHostName.ToString(), InstanceName.ToString(), ex);
+                throw;
+            }
+            ServicePlatformEventSource.Log.StartedHttpServices(Host.Description.ServiceHostName.ToString(), InstanceName.ToString(), ep.Port);
 
             return base.OnStart();
         }
