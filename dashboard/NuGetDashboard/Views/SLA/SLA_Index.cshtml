@@ -1,0 +1,43 @@
+﻿<script type="text/javascript">
+    function UpdateResponseTime() {
+        $.ajax({
+            url: '@Url.Action("GetResponseTime", "SLA")',
+             type: "GET",
+             dataType: 'json',
+             success: function (result) {
+                 $("#ResponseTime").html("ResponseTime " + result);
+                 window.setTimeout(UpdateResponseTime, 5000 * 60);
+             }
+         });
+    };
+
+    function UpdateThroughput() {
+        $.ajax({
+            url: '@Url.Action("GetThroughput", "SLA")',
+            type: "GET",
+            dataType: 'json',
+            success: function (result) {
+                $("#Throughput").html( "Throughput" + result);
+                window.setTimeout(UpdateThroughput, 5000 * 60);
+            }
+        });
+    };
+</script>
+
+<div class="tile" data-role="tile-slider" data-param-period="20000" id="SLAdiv" title="Appserver throughout and responsetime">
+    <div id="Response Time" class="tile-content bg-color-green">
+        <h1>ResponseTime</h1>
+        <br />
+        <div class="badge">
+    </div>
+        </div>
+    <div id="Throughput" class="tile-content bg-color-green">
+        <h1>Throughput</h1>
+        <br />
+        <div class="badge"></div>
+    </div>
+     <div class="brand bg-color-green">
+                                         <p class="text"><em>AppServer SLA</em></p>
+                                        </div>
+
+    </div>

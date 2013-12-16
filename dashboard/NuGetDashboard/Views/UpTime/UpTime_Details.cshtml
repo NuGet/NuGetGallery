@@ -1,0 +1,20 @@
+﻿
+<script src="~/Scripts/pagecontrol.js" type="text/javascript"></script>
+<div class="page-control" data-role="page-control" style="width: 800px">
+    <!-- Responsive controls -->
+    <span class="menu-pull"></span>
+    <div class="menu-pull-bar"></div>
+    <!-- Tabs -->
+    <ul>
+        <li class="active"><a href="#Daily">Daily</a></li>
+        <li><a href="#Weekly">Weekly</a></li>
+        <li><a href="#Monthly">Monthly</a></li>
+    </ul>
+    <!-- Tabs content -->
+    <div class="frames">
+        <div class="frame active" id="Daily">@Html.Action("Now", "UpTime") </div>
+        <div class="frame" id="Weekly">@Html.Action("ThisWeek", "UpTime") </div>
+     <!--   <div class="frame" id="Monthly">@Html.Action("Monthly", "UpTime")</div> -->
+    </div>
+</div>
+

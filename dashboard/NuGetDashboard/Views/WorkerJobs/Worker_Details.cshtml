@@ -1,0 +1,67 @@
+﻿@using NuGetDashboard.Models
+@using System;
+@using System.Collections.Generic;
+@using System.Linq;
+@using System.Web;
+@model IEnumerable<WorkerJobStatusViewModel>
+
+<div style="width: 1000px;" class="fg-color-darken">
+    <table class="bordered">
+        <tbody>
+            <tr>
+                <th><small>Name</small>
+                </th>
+                <th><small>Status</small>
+                </th>
+                <th><small>Last Run time</small>
+                </th>
+                <th><Small>Last Run Duration</Small>
+                </th>
+                <th><small>Additional notes</small>
+                </th>
+                <th><small>Lastest log</small>
+                </th>
+
+            </tr>
+            @foreach (WorkerJobStatusViewModel job in @Model)
+            {
+
+            
+                <tr>
+                    <td>
+                        @job.Name
+                    </td>
+                    <td>
+                        @if (job.Status == "Success")
+                        {
+                            <span class="square bg-color-green"></span>
+                        }
+                        else if (job.Status == "Warning")
+                        {
+                            <span class="square bg-color-orange"></span>
+                        }
+                        else
+                        {
+                            <span class="square bg-color-red"></span>
+                        }
+
+
+                    </td>
+                    <td>
+                        @job.LastCompletedTime
+                    </td>
+                    <td>
+                        @job.LastRunDuration
+                    </td>
+                    <td>
+                        @job.Notes
+                    </td>
+                    <td>
+                        <a href="#">Download Log</a>
+                    </td>
+                </tr>
+        
+            }
+        </tbody>
+    </table>
+</div>

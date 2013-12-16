@@ -1,0 +1,56 @@
+﻿<script type="text/javascript">
+
+    $(document).ready(function () {
+        //Initialize various scripts to update the tiles on regular intervals.
+        GetPingdomStatusUpdate();
+        GetWorkerStatusUpdate();
+        UpdateResponseTime();
+        UpdateThroughput();
+    });
+
+    function GetPingdomStatusUpdate() {
+        $.ajax({
+            url: '@Url.Action("GetStatus", "UpTime")',
+             type: "GET",
+             dataType: 'json',
+             success: function (result) {
+                 for (var a = 0; a <= 6 ; a++) {
+                     var element = document.getElementById(result[a].Id);
+                     if (element != null) {
+                         element.innerHTML = "<h2>" + result[a].Name + " </h2> <br/><h1> " + result[a].Status + "</h1> ";
+                         if (result[a].Status != 'up') {
+                             $(element).removeClass('tile-content bg-color-green');
+                             $(element).addClass('tile double bg-color-red');
+                         }
+                         else
+                             $(element).addClass('tile double bg-color-green');
+                     }
+                 }
+                 window.setTimeout(GetPingdomStatusUpdate, 1000 * 60 * 3);
+             }
+         });
+     };
+
+</script>
+
+
+<div class="tile double outline-color-green" data-role="tile-slider" data-param-period="25000" id="PingdomDiv" onclick="ShowDetails('Details','UpTime');"  title="Status of pingdom checks">
+    <div id="525739" class="tile-content bg-color-green">
+    </div>
+    <div id="631950" class="tile-content bg-color-green">
+    </div>
+    <div id="958101" class="tile-content bg-color-green">
+    </div>
+    <div id="517878" class="tile-content bg-color-green">
+    </div>
+    <div id="953916" class="tile-content bg-color-green">
+    </div>
+    <div id="958099" class="tile-content bg-color-green">
+    </div>
+    <div id="953915" class="tile-content bg-color-green">
+    </div>
+    <div class="brand bg-color-green">
+                                            <p class="text"><em>Availability</em></p>
+                                        </div>
+
+</div>

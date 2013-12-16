@@ -1,0 +1,40 @@
+﻿
+<script type="text/javascript"> 
+
+    function ShowDetails(action, controller) {
+        
+      $.ajax({
+          url: ' /' + controller + '/' + action ,
+                      type: "GET",
+                      dataType: 'html',
+                      success: function (result) {
+
+                          $("#backbutton").attr('class','back-button big page-back');
+                          $("#title").html(controller + "<small>" + action + "</small>");                                              
+                          $("#maincontent").html(result);
+                      }
+      });
+    
+              };
+
+</script>
+  
+<div class="page secondary with-sidebar">    
+    <div class="page-header">
+    <div class="page-header-content" id="headercontent">
+        <h1 id="title"></h1>
+        <a href="/" id="backbutton"></a>
+    </div>
+</div>    
+    <div class="page-region">
+          <div style="position:absolute; top: 1em; right: 1em;"> 
+              <div class="button-set">
+    <button class="active">Prod</button>
+    <button>QA</button>  
+</div>
+          </div>
+            <div id="maincontent" >@Html.Action("Tiles", "Home");</div>
+        </div>  
+    
+</div>
+

@@ -1,0 +1,165 @@
+﻿<div class="grid grid-pad">
+    <div class="col-1-2">
+        <div class="content">
+            <h2 style="font-family: 'Trebuchet MS'"><em>LiveSite Monitoring</em></h2>
+            <p style="font-family: arial; color: gray; font-size: 15px; font-style: italic"><small>*Refreshed every 3 minutes</small> </p>
+        </div>
+    </div>
+    <div class="col-1-2">
+        <div class="content">
+            <h2 style="font-family: 'Trebuchet MS'"><em>Trends & Team stats</em></h2>
+            <p style="font-family: arial; color: gray; font-size: 15px; font-style: italic"><small>*Refreshed every 60 minutes</small> </p>
+        </div>
+    </div>
+</div>
+<div class="grid grid-pad">
+    <div class="col-1-2">
+        <div class="content">
+            @Html.Action("Index", "SLA")
+            @Html.Action("Index", "UpTime")       
+            @Html.Action("Index", "ResourceMonitoring");             
+            @Html.Action("Index", "WorkerJobs");
+        </div>
+    </div>
+    <div class="col-1-2">
+        <div class="content">
+
+            <div class="tile bg-color-blue" title="New user registrations per hour">
+                <div class="tile-content" onclick="ShowDetails('Details','Trending');">
+                    <h2>New Users</h2>
+                </div>
+                <div class="brand">
+                    <div class="badge"></div>
+                </div>
+            </div>
+            <div class="tile bg-color-blue" data-role="tile-slider" data-param-period="10000" onclick="ShowDetails('Details','Trending');" title="New packages uploaded per hour">
+                <div class="tile-content">
+                    <h2>New Packages</h2>
+                    <div class="brand">
+                        <div class="badge"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="tile bg-color-blue">
+                <div class="tile-content" onclick="ShowDetails('Details','SupportRequests');">
+                    <h2>Support requests</h2>
+                </div>
+                <div class="brand">
+                    <div class="badge"></div>
+                </div>
+            </div>
+            <div class="tile bg-color-blue">
+                <div class="tile-content">
+                    <h2>New Visitors</h2>
+                </div>
+                <div class="brand">
+                    <div class="badge"></div>
+                </div>
+            </div>
+     <div class="tile double" data-role="tile-slider" data-param-period="30000" id="SLAdiv" onclick="ShowDetails('Details','SLA');" title="Tweets on #nuget">  
+          <div class="brand bg-color-blue">
+                                            <p class="text">Tweets</p>
+                                        </div>
+
+
+</div>
+        </div>
+    </div>
+</div>
+<div class="nav-bar bg-color-darken">
+        <div class="nav-bar-inner">
+ 
+            <span class="element">AppServer Tier<small> Hourly trending</small></span>
+            </div>
+    </div>
+<div class="grid grid-pad">
+    <div class="col-1-3">
+        <div class="content">
+            <div title="Throughput per minute">
+                @Html.Action("Throughput", "SLA");
+                     <p style="font-family: arial; color: gray; font-size: 15px; font-style: italic"><small>*Threshold set to 100 and below</small></p>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-1-3">
+        <div class="content">
+            <div title="Server Errors per hour">
+                @Html.Action("ErrorRate", "SLA"); 
+                     <p style="font-family: arial; color: gray; font-size: 15px; font-style: italic"><small>*Threshold set to 0.5 and above</small></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-1-3">
+        <div class="content">
+            <div title="User response time">
+                @Html.Action("ThisWeek", "UpTime");
+                     <p style="font-family: arial; color: gray; font-size: 15px; font-style: italic"><small>*Threshold set to 2000 ms or above</small></p>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="nav-bar bg-color-darken">
+        <div class="nav-bar-inner">
+ 
+            <span class="element">Database Tier <small>Hourly trending</small></span>
+            </div>
+    </div>
+<div class="grid grid-pad">
+    <div class="col-1-3">
+        <div class="content">
+            <div title="SQL Azure DB usage">
+                @Html.Action("DBSize", "ResourceMonitoring");
+                <p style="font-family: arial; color: gray; font-size: 15px; font-style: italic"><small>*Threshold set to 50 or above</small></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-1-3">
+        <div class="content">
+            <div title="CPU time spent on DB operations">
+                @Html.Action("DBConnections", "ResourceMonitoring");                                    
+                 <p style="font-family: arial; color: gray; font-size: 15px; font-style: italic"><small>*Threshold set to 20 and above</small></p>   
+            </div>
+        </div>
+    </div>
+        <div class="col-1-3">
+        <div class="content">
+            <div title="Top time consuming queries">
+              @Html.Action("DBQueries", "ResourceMonitoring");  
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="nav-bar bg-color-darken">
+        <div class="nav-bar-inner"> 
+            <span class="element">Browser Tier<small> Hourly trending</small></span>
+            </div>
+    </div>
+<div class="grid grid-pad">
+    <div class="col-1-3">
+        <div class="content">
+            <div title="Top landing pages">
+                @Html.Action("Details", "Analytics");                                        
+            </div>
+        </div>
+    </div>
+    <div class="col-1-3">
+        <div class="content">
+            <div title="Response time per country">
+                @Html.Action("PerCountry", "Analytics"); 
+            </div>
+        </div>
+    </div>
+    <div class="col-1-3">
+        <div class="content">
+            <div title="Usage based on browser">
+                                                  
+                     @Html.Action("PerBrowser", "Analytics");
+            </div>
+        </div>
+    </div>
+</div>
+

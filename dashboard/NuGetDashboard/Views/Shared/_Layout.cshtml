@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>NuGet Dashboard</title>
+        <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+        <meta name="viewport" content="width=device-width" />
+         @Styles.Render("~/Content/css")
+         @Scripts.Render("~/bundles/jquery")  
+         @Scripts.Render("~/bundles/metro")                          
+         @Scripts.Render("http://code.highcharts.com/highcharts.js")
+    </head>
+ <body class="metrouicss">         
+       <div class="page">
+            <div class="nav-bar bg-color-darken">
+                <div class="nav-bar-inner padding10">
+                    <span class="pull-menu"></span>
+                        <a href="/"><span class="element brand">
+                             <img class="place-left" src="images/logo32.png" style="height: 20px"/>
+                                NuGet <small>Dashboard</small>
+                            </span></a>
+                       <div class="divider"></div>
+                        <ul class="menu">
+                            <li><a href="/" >Home</a></li>
+                             <li><a href="#" onclick="ShowDetails('Details', 'UpTime');">Uptime</a></li>    
+                            <li><a href="#" onclick="ShowDetails('Details', 'SLA');">SLA</a></li>  
+                            <li><a href="#" onclick="ShowDetails('Details', 'Trending');">Trends</a></li>    
+                            <li><a href="#" onclick="ShowDetails('Details', 'TeamStats');">TeamStats</a></li>     
+                            <li><a href="#" onclick="ShowDetails('Details', 'TroubleShooting');" >TroubleShoot</a></li>
+                        </ul>
+
+                </div>
+        </div>
+    </div>    
+      @RenderBody()
+     <br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+     <br />
+<br />
+<br />
+     <br />
+<br />
+<br />
+
+
+     
+</body>
+</html>

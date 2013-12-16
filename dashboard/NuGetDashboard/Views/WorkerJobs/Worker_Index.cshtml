@@ -1,0 +1,46 @@
+﻿<script type="text/javascript">
+    function GetWorkerStatusUpdate() {
+
+        $.ajax({
+            url: '@Url.Action("GetWorkerStatus", "WorkerJobs")',
+             type: "GET",
+             dataType: 'json',
+             success: function (result) {
+                 for (var a = 0; a <= 1 ; a++) {
+                     var element = document.getElementById(result[a].Name);
+                     if (element != null) {
+                         element.innerHTML = "<h3>" + result[a].Name + " </h3> <br/><h4> " + result[a].Status + "</h4> ";
+                         if (result[a].Status == 'Error') {
+                             $(element).removeClass('tile-content bg-color-green');
+                             $(element).addClass('tile double bg-color-red');
+                         }
+                         if (result[a].Status == 'Warning') {
+                             $(element).removeClass('tile-content bg-color-green');
+                             $(element).addClass('tile double bg-color-orange');
+                         }
+                         if (result[a].Status == 'Success') {
+                             $(element).addClass('tile double bg-color-green');
+                         }
+
+                     }
+                 }
+                 window.setTimeout(GetWorkerStatusUpdate, 1000 * 60 * 10);
+             }
+         });
+     };
+
+</script>
+
+
+<div class="tile double" data-role="tile-slider" data-param-period="12000" id="Workerdiv" onclick="ShowDetails('Details','WorkerJobs');">
+    <div id="BackupDatabaseTask" class="tile-content bg-color-green">    
+    </div>  
+    <div id="HandleQueuedPackageEditsTask" class="tile-content bg-color-red">         
+    </div>
+
+    <div class="brand bg-color-green">
+                                            <p class="text"><em>Worker Jobs</em></p>
+                                        </div>
+</div>
+
+

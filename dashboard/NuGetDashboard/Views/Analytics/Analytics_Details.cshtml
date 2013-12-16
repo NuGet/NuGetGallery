@@ -1,0 +1,32 @@
+﻿
+@using System;
+@using System.Collections.Generic;
+@using System.Linq;
+@model Dictionary<string,string>
+<div class="fg-color-darken">
+<table class="hovered">
+    <tbody>
+    <tr>
+        <th>
+       <small> Query</small>
+        </th>
+        <th>
+       <small>  %</small>
+        </th>
+              
+    </tr>
+    @foreach( KeyValuePair<string,string> pair in @Model)
+    {
+        <tr>
+            <td>
+             <a> @pair.Key</a>  
+            </td>
+             <td>
+                @pair.Value
+            </td>                   
+        </tr>
+    }
+  </tbody>
+</table>
+    </div>
+

@@ -1,0 +1,20 @@
+﻿
+<div class="page-control" data-role="page-control" style="width: 800px;">
+    <!-- Responsive controls -->
+    <span class="menu-pull"></span>
+    <div class="menu-pull-bar"></div>
+    <!-- Tabs -->
+    <ul>
+        <li class="active"><a href="#Daily">Weekly</a></li>
+        <li><a href="#Monthly">Monthly</a></li>
+        <li><a href="#Yearly">Yearly</a></li>
+
+    </ul>
+    <!-- Tabs content -->
+    <div class="frames">
+        <div class="frame active" id="Daily">@Html.Action("Monthly", "Trending") </div>
+        <div class="frame" id="Monthly">@Html.Action("Monthly", "Trending")</div>
+        <div class="frame" id="Yearly">@Html.Action("Monthly", "Trending") </div>
+    </div>
+</div>
+

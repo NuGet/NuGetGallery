@@ -1,0 +1,20 @@
+﻿ <script type="text/javascript">
+     function UpdateSupportRequest() {
+
+         $.ajax({
+             url: '@Url.Action("Index", "SupportRequests")',
+                      type: "GET",
+                      dataType: 'json',
+                      success: function (result) {
+                          $("#SupportRequestBadge").html(result);
+                          window.setTimeout(UpdateSupportRequest, 5000 * 60);
+                      }
+                  });
+              };
+
+</script>   
+
+ <div class="tile bg-color-blue" title="Incoming support requests per hour">
+                    <div class="tile-content" onclick="ShowDetails('Details','SupportRequests');"><h2>Support requests</h2></div>
+                      <div class="brand"><div class="badge" id="SupportRequestBadge"></div>0</div>                                                                          
+                 </div>   

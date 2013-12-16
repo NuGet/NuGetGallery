@@ -1,0 +1,47 @@
+﻿@using NuGetDashboard.Models
+@using System;
+@using System.Collections.Generic;
+@using System.Linq;
+@using System.Web;
+@model IEnumerable<PingdomMonthlyReportViewModel>
+
+<div class="fg-color-darken">
+<h3>Last month uptime report</h3>
+<table>
+    <tbody>
+        <tr>
+            <th>Name
+            </th>
+            <th>UpTime
+            </th>
+            <th>DownTime
+            </th>
+            <th>Outages
+            </th>
+            <th>Avg Response time
+            </th>
+
+        </tr>
+        @foreach (PingdomMonthlyReportViewModel pingdomcheck in @Model)
+        {
+            <tr>
+                <td>
+                    @pingdomcheck.Name
+                </td>
+                <td>
+                    @pingdomcheck.totalUpTime
+                </td>
+                <td>
+                    @pingdomcheck.DownTime
+                </td>
+                <td>
+                    @pingdomcheck.Outages
+                </td>
+                <td>
+                    @pingdomcheck.AvgResponseTime
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+    </div>

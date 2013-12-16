@@ -1,0 +1,34 @@
+﻿
+@using System;
+@using System.Collections.Generic;
+@using System.Linq;
+@model Dictionary<string,string>
+
+<table class="hovered">
+    <tbody>
+    <tr>
+        <th>
+         Metrix
+        </th>
+        <th>
+         Value
+        </th>
+              
+    </tr>
+    @foreach( KeyValuePair<string,string> pair in @Model)
+    {
+        <tr>
+            <td>
+              <a href="https://nuget.visualstudio.com/DefaultCollection/NuGet%20Support%20Requests/_workItems/#path=Assigned+to+me">@pair.Key</a>  
+            </td>
+             <td>
+                @pair.Value
+            </td>                   
+        </tr>
+    }
+  </tbody>
+</table>
+<br />
+<br />
+
+

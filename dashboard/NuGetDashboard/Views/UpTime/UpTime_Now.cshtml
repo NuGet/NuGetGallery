@@ -1,0 +1,47 @@
+﻿@using NuGetDashboard.Models
+@using System;
+@using System.Collections.Generic;
+@using System.Linq;
+@using System.Web;
+@model IEnumerable<PingdomStatusViewModel>
+<div class="fg-color-darken">
+    <p style="font-family: arial; color: gray; font-size: 15px; font-style: italic">* More details can be found at http://status.nuget.org/. </p>
+    <table class="hovered">
+        <tbody>
+            <tr>
+                <th>Name
+                </th>
+                <th>Status
+                </th>
+                <th>Current Response time
+                </th>
+            </tr>
+            @foreach (PingdomStatusViewModel pingdomcheck in @Model)
+            {
+                <tr>
+                    <td>
+                        <a href='http://status.nuget.org/' + @pingdomcheck.Id>@pingdomcheck.Name</a>
+                    </td>
+                    <td>
+                        @if (pingdomcheck.Status == "up")
+                        {
+                            <span class="square bg-color-green"></span>
+                        }
+                        else
+                        {
+                            <span class="square bg-color-red"></span>
+                        }
+                    </td>
+                    <td>
+                        @pingdomcheck.LastResponseTime ms
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>
+
+
+
+

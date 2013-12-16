@@ -1,0 +1,33 @@
+﻿<script src="~/Scripts/pagecontrol.js" type="text/javascript"></script>
+<div class="page-control" data-role="page-control" style="height: 100%">
+    <!-- Responsive controls -->
+    <span class="menu-pull"></span>
+    <div class="menu-pull-bar"></div>
+    <!-- Tabs -->
+    <ul>
+        <li class="active"><a href="#Daily">Daily</a></li>
+        <li><a href="#Weekly">Weekly</a></li>
+        <li><a href="#Monthly">Monthly</a></li>
+    </ul>
+    <!-- Tabs content -->
+    <div class="frames">
+        <div class="frame active" id="Daily">
+            <div class="grid grid-pad">
+    <div class="col-1-2">
+        <div class="content">
+            @Html.Action("Instance0CPU") @Html.Action("Instance0CPU") 
+                @Html.Action("Instance1CPU") @Html.Action("Instance1CPU")
+            </div>
+        </div>
+             
+            <div class="col-1-2">
+                <div class="content">
+                @Html.Action("Instance0Memory") @Html.Action("Instance0Memory")
+                @Html.Action("Instance0Memory") @Html.Action("Instance1Memory")
+                    </div>
+                </div>
+            </div>            
+        <div class="frame" id="Weekly">....tbd...</div>
+        <div class="frame" id="Montly">...tbd....</div>
+    </div>
+</div>

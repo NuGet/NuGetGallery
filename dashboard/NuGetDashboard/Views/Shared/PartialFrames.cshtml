@@ -1,0 +1,26 @@
+﻿<script src="~/Scripts/pagecontrol.js" type="text/javascript"></script>
+
+
+
+
+<div class="page-control" data-role="page-control">
+    <!-- Responsive controls -->
+    <span class="menu-pull"></span>
+    <div class="menu-pull-bar"></div>
+    <!-- Tabs -->
+    <ul>
+        <li class="active"><a href="#Daily">Daily</a></li>
+        <li><a href="#Weekly">Weekly</a></li>
+        <li><a href="#Monthly">Monthly</a></li>
+    </ul>
+    <!-- Tabs content -->
+    <div class="frames">
+        <div class="frame active" id="Daily">@Html.Action("Now") </div>
+        <div class="frame" id="Weekly">@Html.Action("Now") </div>
+        <div class="frame" id="Montly">...frame content... </div>
+    </div>
+</div>
+
+
+
+

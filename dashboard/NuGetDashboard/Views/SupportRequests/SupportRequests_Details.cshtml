@@ -1,0 +1,8 @@
+﻿@using DotNet.Highcharts;
+@model DotNet.Highcharts.Highcharts
+@Scripts.Render("http://code.highcharts.com/highcharts.js")
+
+<div style="width:800px;" class="fg-color-darken">@Html.Action("Summary","SupportRequests")</div>
+<div style="width:800px;" class="fg-color-darken" >@(Model)</div>
+
+
