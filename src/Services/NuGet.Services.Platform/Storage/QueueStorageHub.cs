@@ -14,5 +14,10 @@ namespace NuGet.Services.Storage
         {
             Client = client;
         }
+
+        public AzureQueue Queue(string name)
+        {
+            return new AzureQueue(Client.GetQueueReference(name));
+        }
     }
 }

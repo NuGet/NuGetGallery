@@ -48,7 +48,7 @@ namespace NuGet.Services.Jobs
         /// <summary>
         /// Indicates that the a fatal error occurred during the execution of this invocation
         /// </summary>
-        /// <remarks>Invocations in this state can be cleaned up as they will not be needed again</remarks>
+        /// <remarks>Invocations in this state can be cleaned up as they will not be needed again (other than for debugging purposes)</remarks>
         Crashed,
 
         /// <summary>

@@ -66,5 +66,10 @@ namespace NuGet.Services.Jobs
         {
             return new InvocationResult(InvocationStatus.Faulted, ex, rescheduleIn);
         }
+
+        public static InvocationResult Crashed(System.Exception ex)
+        {
+            return new InvocationResult(InvocationStatus.Crashed, ex);
+        }
     }
 }

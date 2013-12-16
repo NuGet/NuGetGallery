@@ -118,6 +118,7 @@
     <Compile Include="AutofacServiceProvider.cs" />
     <Compile Include="Azure\AzureServiceHost.cs" />
     <Compile Include="Azure\NuGetWorkerRole.cs" />
+    <Compile Include="Clock.cs" />
     <Compile Include="Configuration\ICustomConfigurationSection.cs" />
     <Compile Include="Configuration\ConfigurationErrorsException.cs" />
     <Compile Include="Configuration\ConfigurationHub.cs" />
@@ -139,6 +140,7 @@
     <Compile Include="ServiceModel\ServiceInstanceName.cs" />
     <Compile Include="ServicePlatformEventSource.cs" />
     <Compile Include="ServiceProviderExtensions.cs" />
+    <Compile Include="Storage\AzureQueue.cs" />
     <Compile Include="Storage\AzureTable.cs" />
     <Compile Include="Storage\AzureTableEntity.cs" />
     <Compile Include="Storage\BlobStorageHub.cs" />

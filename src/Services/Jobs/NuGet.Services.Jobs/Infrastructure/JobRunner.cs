@@ -24,20 +24,22 @@ namespace NuGet.Services.Jobs
         private JobDispatcher _dispatcher;
         private InvocationQueue _queue;
         private TimeSpan _pollInterval;
-        
-        public StorageHub Storage { get; private set; }
 
+        public StorageHub Storage { get; private set; }
+        
         public event EventHandler Heartbeat;
 
-        public JobRunner(JobDispatcher dispatcher, NuGetService service, ConfigurationHub config, StorageHub storage)
+        public JobRunner(JobDispatcher dispatcher, InvocationQueue queue, ConfigurationHub config, StorageHub storage)
         {
             _dispatcher = dispatcher;
-            
+            _queue = queue;
+
+            Storage = storage;
+
             _pollInterval = config.GetSection<QueueConfiguration>().PollInterval;
-            _queue = new InvocationQueue(storage);
         }
 
-        public async Task Run(CancellationToken cancelToken)
+        public virtual async Task Run(CancellationToken cancelToken)
         {
             JobsServiceEventSource.Log.DispatchLoopStarted();
             try
@@ -87,7 +89,7 @@ namespace NuGet.Services.Jobs
             }
         }
 
-        private async Task Dispatch(InvocationRequest request)
+        protected internal virtual async Task Dispatch(InvocationRequest request)
         {
             InvocationContext.SetCurrentInvocationId(request.Invocation.Id);
             
@@ -145,6 +147,7 @@ namespace NuGet.Services.Jobs
             catch (Exception ex)
             {
                 InvocationEventSource.Log.DispatchError(ex);
+                result = InvocationResult.Crashed(ex);
             }
 
             // Stop capturing and set the log url

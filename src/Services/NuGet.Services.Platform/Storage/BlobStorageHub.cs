@@ -19,7 +19,7 @@ namespace NuGet.Services.Storage
             Client = client;
         }
 
-        public Task<CloudBlockBlob> UploadBlob(string sourceFileName, string containerName, string path)
+        public virtual Task<CloudBlockBlob> UploadBlob(string sourceFileName, string containerName, string path)
         {
             CloudBlobContainer container = Client.GetContainerReference(GetFullContainerName(containerName));
             return container.SafeExecute(async ct =>
@@ -30,7 +30,7 @@ namespace NuGet.Services.Storage
             });
         }
 
-        public Task<CloudBlockBlob> DownloadBlob(string containerName, string path, string destinationFileName)
+        public virtual Task<CloudBlockBlob> DownloadBlob(string containerName, string path, string destinationFileName)
         {
             CloudBlobContainer container = Client.GetContainerReference(GetFullContainerName(containerName));
             return container.SafeExecute(async ct =>

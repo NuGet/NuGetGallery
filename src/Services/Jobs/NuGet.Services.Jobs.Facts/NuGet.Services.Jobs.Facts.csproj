@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\AssertEx.cs" />
+    <Compile Include="Infrastructure\JobRunnerFacts.cs" />
     <Compile Include="InvocationPayloadSerializerFacts.cs" />
     <Compile Include="Models\DatabaseBackupMetadataFacts.cs" />
     <Compile Include="Infrastructure\JobDescriptionFacts.cs" />

@@ -17,15 +17,15 @@ namespace NuGet.Services.Jobs
     {
         public static readonly string DefaultQueueName = "nginvocations";
 
-        private CloudQueue _queue;
+        private AzureQueue _queue;
         private AzureTable<Invocation> _table;
 
         public InvocationQueue(StorageHub hub)
             : this(
-                hub.Primary.Queues.Client.GetQueueReference(DefaultQueueName), 
+                hub.Primary.Queues.Queue(DefaultQueueName), 
                 hub.Primary.Tables.Table<Invocation>()) { }
 
-        public InvocationQueue(CloudQueue queue, AzureTable<Invocation> table)
+        public InvocationQueue(AzureQueue queue, AzureTable<Invocation> table)
         {
             _queue = queue;
             _table = table;
@@ -38,11 +38,7 @@ namespace NuGet.Services.Jobs
         public async Task<InvocationRequest> Dequeue(TimeSpan invisibleFor, CancellationToken token)
         {
             // Get the ID of the next invocation to process from the queue
-            var message = await _queue.SafeExecute(q => q.GetMessageAsync(
-                invisibleFor,
-                new QueueRequestOptions(),
-                new OperationContext(),
-                token));
+            var message = await _queue.Dequeue(invisibleFor, token);
             
             Guid invocationId;
             if (message == null)
@@ -76,7 +72,7 @@ namespace NuGet.Services.Jobs
         {
             if (request.Message != null)
             {
-                await _queue.SafeExecute(q => q.DeleteMessageAsync(request.Message));
+                await _queue.Delete(request.Message);
             }
         }
 
@@ -90,7 +86,7 @@ namespace NuGet.Services.Jobs
         {
             if (request.Message != null)
             {
-                await _queue.SafeExecute(q => q.UpdateMessageAsync(request.Message, duration, MessageUpdateFields.Visibility));
+                await _queue.Update(request.Message, duration, MessageUpdateFields.Visibility);
             }
         }
 
@@ -119,12 +115,7 @@ namespace NuGet.Services.Jobs
             await _table.InsertOrReplace(invocation);
 
             // Enqueue the message
-            await _queue.SafeExecute(q => q.AddMessageAsync(
-                message,
-                timeToLive: null,
-                initialVisibilityDelay: visibilityTimeout,
-                options: new QueueRequestOptions(),
-                operationContext: new OperationContext() { ClientRequestID = invocation.Id.ToString("N").ToLowerInvariant() }));
+            await _queue.Enqueue(message, visibilityTimeout, invocation.Id.ToString("N").ToLowerInvariant());
 
             // Update the invocation entry
             invocation.QueuedAt = DateTimeOffset.UtcNow;
