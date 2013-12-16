@@ -23,8 +23,9 @@ namespace NuGet.Services
             base.Load(builder);
 
             builder.RegisterInstance<ServiceHost>(_serviceHost);
-            builder.RegisterType<ConfigurationHub>();
-            builder.RegisterType<StorageHub>();
+            builder.RegisterType<ConfigurationHub>().UsingConstructor(typeof(ServiceHost));
+            builder.RegisterType<StorageHub>().UsingConstructor(typeof(ConfigurationHub));
+            builder.RegisterInstance(Clock.RealClock).As<Clock>();
         }
     }
 }

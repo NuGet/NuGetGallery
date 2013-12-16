@@ -20,12 +20,15 @@ namespace NuGet.Services.Jobs
         private AzureQueue _queue;
         private AzureTable<Invocation> _table;
 
+        protected InvocationQueue() { }
+
         public InvocationQueue(StorageHub hub)
             : this(
                 hub.Primary.Queues.Queue(DefaultQueueName), 
                 hub.Primary.Tables.Table<Invocation>()) { }
 
         public InvocationQueue(AzureQueue queue, AzureTable<Invocation> table)
+            : this()
         {
             _queue = queue;
             _table = table;
@@ -35,7 +38,7 @@ namespace NuGet.Services.Jobs
         /// Dequeues the next request, if one is present
         /// </summary>
         /// <param name="invisibleFor">The period of time during which the message is invisble to other clients. The job must be <see cref="Acknowledge"/>d before this time or it will be dispatched again</param>
-        public async Task<InvocationRequest> Dequeue(TimeSpan invisibleFor, CancellationToken token)
+        public virtual async Task<InvocationRequest> Dequeue(TimeSpan invisibleFor, CancellationToken token)
         {
             // Get the ID of the next invocation to process from the queue
             var message = await _queue.Dequeue(invisibleFor, token);
@@ -68,7 +71,7 @@ namespace NuGet.Services.Jobs
         /// Acknowledges that the request has completed successfully, removing the message from the queue.
         /// </summary>
         /// <param name="request">The request to acknowledge</param>
-        public async Task Acknowledge(InvocationRequest request)
+        public virtual async Task Acknowledge(InvocationRequest request)
         {
             if (request.Message != null)
             {
@@ -82,7 +85,7 @@ namespace NuGet.Services.Jobs
         /// </summary>
         /// <param name="request">The request to extend</param>
         /// <param name="duration">The duration from the time of invocation to hide the message</param>
-        public async Task Extend(InvocationRequest request, TimeSpan duration)
+        public virtual async Task Extend(InvocationRequest request, TimeSpan duration)
         {
             if (request.Message != null)
             {
@@ -90,17 +93,17 @@ namespace NuGet.Services.Jobs
             }
         }
 
-        public Task Update(Invocation invocation)
+        public virtual Task Update(Invocation invocation)
         {
             return _table.Merge(invocation);
         }
 
-        public Task Enqueue(Invocation invocation)
+        public virtual Task Enqueue(Invocation invocation)
         {
             return EnqueueCore(invocation, visibilityTimeout: null);
         }
 
-        public Task Enqueue(Invocation invocation, TimeSpan visibilityTimeout)
+        public virtual Task Enqueue(Invocation invocation, TimeSpan visibilityTimeout)
         {
             return EnqueueCore(invocation, visibilityTimeout);
         }

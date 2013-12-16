@@ -16,7 +16,7 @@ namespace NuGet.Services.Configuration
 {
     public class ConfigurationHub
     {
-        private ServiceHost _host;
+        private Func<string, string> _getSettingThunk;
         private static readonly Regex NameMatch = new Regex("(?<shortname>.*)Configuration", RegexOptions.IgnoreCase);
 
         private ConcurrentDictionary<Type, object> _configCache = new ConcurrentDictionary<Type,object>();
@@ -26,7 +26,25 @@ namespace NuGet.Services.Configuration
 
         public ConfigurationHub(ServiceHost host)
         {
-            _host = host;
+            _getSettingThunk = host.GetConfigurationSetting;
+        }
+
+        public ConfigurationHub(IDictionary<string, string> settings)
+        {
+            _getSettingThunk = key =>
+            {
+                string val;
+                if (!settings.TryGetValue(key, out val))
+                {
+                    return null;
+                }
+                return val;
+            };
+        }
+
+        public ConfigurationHub(Func<string, string> getSettingThunk)
+        {
+            _getSettingThunk = getSettingThunk;
         }
 
         public virtual T GetSection<T>()
@@ -53,7 +71,7 @@ namespace NuGet.Services.Configuration
 
         public virtual string GetSetting(string fullName)
         {
-            return _host.GetConfigurationSetting(fullName);
+            return _getSettingThunk(fullName);
         }
 
         protected virtual IEnumerable<PropertyDescriptor> GetConfigProperties<T>(T instance)

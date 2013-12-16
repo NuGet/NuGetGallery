@@ -80,6 +80,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="ClockFacts.cs" />
     <Compile Include="Configuration\ConfigurationHubFacts.cs" />
     <Compile Include="Configuration\StorageConfigurationFacts.cs" />
     <Compile Include="Configuration\SqlConfigurationFacts.cs" />
@@ -91,6 +92,7 @@
     <Compile Include="ServiceModel\ServiceInstanceNameFacts.cs" />
     <Compile Include="Storage\AzureTableEntityFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestInfrastructure\MoqExtensions.cs" />
     <Compile Include="TestInfrastructure\TestService.cs" />
     <Compile Include="TestInfrastructure\TestServiceHost.cs" />
   </ItemGroup>

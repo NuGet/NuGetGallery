@@ -21,22 +21,35 @@ namespace NuGet.Services.Jobs
     {
         public static readonly TimeSpan DefaultInvisibilityPeriod = TimeSpan.FromSeconds(30);
 
-        private JobDispatcher _dispatcher;
-        private InvocationQueue _queue;
         private TimeSpan _pollInterval;
+        private RunnerStatus _status;
 
-        public StorageHub Storage { get; private set; }
+        protected Clock Clock { get; set; }
+        protected InvocationQueue Queue { get; set; }
+        protected JobDispatcher Dispatcher { get; set; }
+        protected StorageHub Storage { get; set; }
+
+        public RunnerStatus Status
+        {
+            get { return _status; }
+            set { _status = value; OnHeartbeat(EventArgs.Empty); }
+        }
         
         public event EventHandler Heartbeat;
 
-        public JobRunner(JobDispatcher dispatcher, InvocationQueue queue, ConfigurationHub config, StorageHub storage)
+        protected JobRunner(TimeSpan pollInterval)
         {
-            _dispatcher = dispatcher;
-            _queue = queue;
+            _status = RunnerStatus.Working;
+            _pollInterval = pollInterval;
+        }
 
+        public JobRunner(JobDispatcher dispatcher, InvocationQueue queue, ConfigurationHub config, StorageHub storage, Clock clock)
+            : this(config.GetSection<QueueConfiguration>().PollInterval)
+        {
+            Dispatcher = dispatcher;
+            Queue = queue;
+            Clock = clock;
             Storage = storage;
-
-            _pollInterval = config.GetSection<QueueConfiguration>().PollInterval;
         }
 
         public virtual async Task Run(CancellationToken cancelToken)
@@ -49,17 +62,28 @@ namespace NuGet.Services.Jobs
                     InvocationRequest request = null;
                     try
                     {
-                        request = await _queue.Dequeue(DefaultInvisibilityPeriod, cancelToken);
+                        Status = RunnerStatus.Dequeuing;
+                        request = await Queue.Dequeue(DefaultInvisibilityPeriod, cancelToken);
+                        Status = RunnerStatus.Working;
                     }
                     catch (Exception ex)
                     {
                         JobsServiceEventSource.Log.ErrorRetrievingInvocation(ex);
                     }
+                    
+                    // Check Cancellation
+                    if (cancelToken.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
                     if (request == null)
                     {
+                        Status = RunnerStatus.Sleeping;
                         JobsServiceEventSource.Log.DispatchLoopWaiting(_pollInterval);
-                        await Task.Delay(_pollInterval);
+                        await Clock.Delay(_pollInterval, cancelToken);
                         JobsServiceEventSource.Log.DispatchLoopResumed();
+                        Status = RunnerStatus.Working;
                     }
                     else if (request.Invocation.Status == InvocationStatus.Cancelled)
                     {
@@ -68,14 +92,17 @@ namespace NuGet.Services.Jobs
                     }
                     else
                     {
-                        await Dispatch(request);
+                        Status = RunnerStatus.Dispatching;
+                        await Dispatch(request, cancelToken);
+                        Status = RunnerStatus.Working;
                     }
-                    OnHeartbeat(EventArgs.Empty);
                 }
+                Status = RunnerStatus.Stopping;
             }
             catch (Exception ex)
             {
                 JobsServiceEventSource.Log.DispatchLoopError(ex);
+                throw;
             }
             JobsServiceEventSource.Log.DispatchLoopEnded();
         }
@@ -89,7 +116,7 @@ namespace NuGet.Services.Jobs
             }
         }
 
-        protected internal virtual async Task Dispatch(InvocationRequest request)
+        protected internal virtual async Task Dispatch(InvocationRequest request, CancellationToken cancelToken)
         {
             InvocationContext.SetCurrentInvocationId(request.Invocation.Id);
             
@@ -103,19 +130,24 @@ namespace NuGet.Services.Jobs
             }
             
             // Record that we are executing the job
-            request.Invocation.LastDequeuedAt = DateTimeOffset.UtcNow;
+            request.Invocation.LastDequeuedAt = Clock.UtcNow;
             request.Invocation.Status = InvocationStatus.Executing;
-            await _queue.Update(request.Invocation);
+            await Queue.Update(request.Invocation);
+
+            if (cancelToken.IsCancellationRequested)
+            {
+                return;
+            }
 
             // Create the request.Invocation context and start capturing the logs
             var capture = new InvocationLogCapture(request.Invocation, Storage, Path.Combine(Path.GetTempPath(), "InvocationLogs"));
-            var context = new InvocationContext(request, _queue, capture);
+            var context = new InvocationContext(request, Queue, capture);
             await capture.Start();
 
             InvocationResult result = null;
             try
             {
-                result = await _dispatcher.Dispatch(context);
+                result = await Dispatcher.Dispatch(context);
 
                 // TODO: If response.Continuation != null, enqueue continuation
                 switch (result.Status)
@@ -142,7 +174,7 @@ namespace NuGet.Services.Jobs
                 // If dispatch throws, we don't delete the message
                 // NOTE: If the JOB throws, the dispatcher should catch it and return the error in the response
                 // Thus the request is considered "handled"
-                await _queue.Acknowledge(request);
+                await Queue.Acknowledge(request);
             }
             catch (Exception ex)
             {
@@ -173,7 +205,7 @@ namespace NuGet.Services.Jobs
             }
 
             // Update the status of the request.Invocation
-            await _queue.Update(request.Invocation);
+            await Queue.Update(request.Invocation);
             
             // If we're suspended, queue a continuation
             if (result.Status == InvocationStatus.Suspended)
@@ -202,7 +234,7 @@ namespace NuGet.Services.Jobs
                     LastSuspendedAt = DateTimeOffset.UtcNow,
                     EstimatedContinueAt = DateTimeOffset.UtcNow + result.Continuation.WaitPeriod
                 };
-            return _queue.Enqueue(continuation, result.Continuation.WaitPeriod);
+            return Queue.Enqueue(continuation, result.Continuation.WaitPeriod);
         }
 
         private Task EnqueueRepeat(Invocation repeat, InvocationResult result)
@@ -215,7 +247,16 @@ namespace NuGet.Services.Jobs
                 {
                     EstimatedNextVisibleTime = DateTimeOffset.UtcNow + result.RescheduleIn.Value
                 };
-            return _queue.Enqueue(invocation, result.RescheduleIn.Value);
+            return Queue.Enqueue(invocation, result.RescheduleIn.Value);
+        }
+
+        public enum RunnerStatus
+        {
+            Working,
+            Dequeuing,
+            Sleeping,
+            Dispatching,
+            Stopping
         }
     }
 }

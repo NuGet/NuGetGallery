@@ -127,7 +127,12 @@ namespace NuGet.Services.ServiceModel
 
         public int AssignInstanceId()
         {
+            // It's OK to pass volatile fields as ref to Interlocked APIs
+            //  "...there are exceptions to this, such as when calling an interlocked API"
+            //  from http://msdn.microsoft.com/en-us/library/4bw5ewxy.aspx
+#pragma warning disable 0420 
             return Interlocked.Increment(ref _nextId) - 1;
+#pragma warning restore 0420
         }
 
         protected virtual IContainer Compose()

@@ -17,7 +17,9 @@ namespace NuGet.Services.Jobs
 
         public IReadOnlyList<JobDefinition> Jobs { get { return _jobs.AsReadOnly(); } }
 
-        public JobDispatcher(IEnumerable<JobDefinition> jobs, IServiceProvider container)
+        protected JobDispatcher() { }
+
+        public JobDispatcher(IEnumerable<JobDefinition> jobs, IServiceProvider container) : this()
         {
             _jobs = jobs.ToList();
             _jobMap = jobs.ToDictionary(j => j.Description.Name, StringComparer.OrdinalIgnoreCase);

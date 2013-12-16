@@ -70,41 +70,6 @@ namespace NuGet.Services.ServiceModel
                 // Assert
                 Assert.Equal(name, ServiceInstanceName.GetCurrent());
             }
-
-            [Fact]
-            public async Task ChangesMadeInASubTaskAreNotSeenByParentTaskEvenWhenRunSynchronously()
-            {
-                // Arrange
-                var name = new ServiceInstanceName(
-                    new ServiceHostName(
-                        new DatacenterName(
-                            "test",
-                            42),
-                        "testhost"),
-                    "testservice",
-                    1);
-                var bad = new ServiceInstanceName(
-                    new ServiceHostName(
-                        new DatacenterName(
-                            "test",
-                            42),
-                        "testhost"),
-                    "testservice",
-                    1);
-                ServiceInstanceName.SetCurrent(name);
-
-                // Act
-                int wasRunOn = -1;
-                new Task(() =>
-                {
-                    wasRunOn = Thread.CurrentThread.ManagedThreadId;
-                    ServiceInstanceName.SetCurrent(bad);
-                }).RunSynchronously();
-
-                // Assert
-                Assert.Equal(wasRunOn, Thread.CurrentThread.ManagedThreadId);
-                Assert.Equal(name, ServiceInstanceName.GetCurrent());
-            }
         }
     }
 }

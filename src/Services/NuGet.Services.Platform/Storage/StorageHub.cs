@@ -13,13 +13,23 @@ namespace NuGet.Services.Storage
         public StorageAccountHub Primary { get; private set; }
         public StorageAccountHub Backup { get; private set; }
 
+        protected StorageHub() { }
+
         public StorageHub(ConfigurationHub configuration)
+            : this(
+                primary: TryLoadAccount(configuration, KnownStorageAccount.Primary),
+                backup: TryLoadAccount(configuration, KnownStorageAccount.Backup))
         {
-            Primary = TryLoadAccount(configuration, KnownStorageAccount.Primary);
-            Backup = TryLoadAccount(configuration, KnownStorageAccount.Backup);
         }
 
-        private StorageAccountHub TryLoadAccount(ConfigurationHub configuration, KnownStorageAccount account)
+        public StorageHub(StorageAccountHub primary, StorageAccountHub backup)
+            : this()
+        {
+            Primary = primary;
+            Backup = backup;
+        }
+
+        private static StorageAccountHub TryLoadAccount(ConfigurationHub configuration, KnownStorageAccount account)
         {
             var connectionString = configuration.Storage.GetAccount(account);
             if (connectionString == null)

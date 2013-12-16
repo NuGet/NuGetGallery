@@ -8,42 +8,17 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services
 {
-    public static class Clock
+    public class Clock
     {
-        private static ClockManager _manager;
-
-        public static Clock Current { get { return _manager.CurrentClock; } }
-        public static DateTimeOffset UtcNow { get { return Current.UtcNow; } }
-
-        public static Task Delay(TimeSpan period)
-        {
-            return Current.Delay(period);
-        }
-
-        internal class ClockManager 
-        {
-            public virtual Clock CurrentClock { get; set; }
-
-            public ClockManager()
-            {
-                CurrentClock = RealClock.Instance;
-            }
-        }
-
-        // TODO: When VirtualClock is enabled, replace the ClockManager with a CallContextClockManager
-    }
-
-    public class RealClock
-    {
-        public static readonly RealClock Instance = new RealClock();
+        public static readonly Clock RealClock = new Clock();
 
         public virtual DateTimeOffset UtcNow { get { return DateTimeOffset.UtcNow; } }
 
-        protected RealClock() { }
+        protected Clock() { }
 
         public virtual Task Delay(TimeSpan period)
         {
-            return Task.Delay(period)
+            return Task.Delay(period);
         }
 
         public virtual Task Delay(TimeSpan period, CancellationToken cancelToken)
@@ -52,11 +27,11 @@ namespace NuGet.Services
         }
     }
 
-    public class VirtualClock : RealClock
+    public class VirtualClock : Clock
     {
         private readonly object _clockLock = new object();
         private DateTimeOffset _utcNow;
-        private List<Tuple<DateTimeOffset, TaskCompletionSource<object>>> _waits = new List<Tuple<DateTimeOffset, TaskCompletionSource<object>>>();
+        private List<Tuple<DateTimeOffset, TaskCompletionSource<object>, CancellationToken>> _waits = new List<Tuple<DateTimeOffset, TaskCompletionSource<object>, CancellationToken>>();
 
         public override DateTimeOffset UtcNow
         {
@@ -75,18 +50,18 @@ namespace NuGet.Services
             _utcNow = startTime;
         }
 
-        public virtual Task Delay(TimeSpan period)
+        public override Task Delay(TimeSpan period)
         {
             return Delay(period, CancellationToken.None);
         }
 
-        public virtual Task Delay(TimeSpan period, CancellationToken cancelToken)
+        public override Task Delay(TimeSpan period, CancellationToken cancelToken)
         {
             lock (_clockLock)
             {
                 var tcs = new TaskCompletionSource<object>();
                 cancelToken.Register(() => tcs.TrySetCanceled());
-                _waits.Add(Tuple.Create(_utcNow + period, tcs));
+                _waits.Add(Tuple.Create(_utcNow + period, tcs, cancelToken));
                 return tcs.Task;
             }
         }
@@ -113,8 +88,15 @@ namespace NuGet.Services
             var fired = _waits.Where(t => t.Item1 <= _utcNow).ToList();
             foreach (var wait in fired)
             {
-                _waits.Remove(wait);
-                wait.Item2.TrySetResult(null);
+                if (wait.Item3.IsCancellationRequested)
+                {
+                    wait.Item2.TrySetCanceled();
+                }
+                else
+                {
+                    _waits.Remove(wait);
+                    wait.Item2.TrySetResult(null);
+                }
             }
         }
     }
