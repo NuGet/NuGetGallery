@@ -128,7 +128,6 @@
     <Compile Include="Infrastructure\InvocationStatus.cs" />
     <Compile Include="Infrastructure\Job.cs" />
     <Compile Include="Infrastructure\JobAttribute.cs" />
-    <Compile Include="Infrastructure\JobCollection.cs" />
     <Compile Include="Infrastructure\JobContinuation.cs" />
     <Compile Include="Infrastructure\JobDefinition.cs" />
     <Compile Include="Infrastructure\JobDescription.cs" />
