@@ -136,7 +136,9 @@ namespace NuGet.Services.Storage
             }
             catch (StorageException ex)
             {
-                if (ex.RequestInformation.ExtendedErrorInformation.ErrorCode == notFoundErrorCode)
+                if (ex.RequestInformation != null &&
+                    ex.RequestInformation.ExtendedErrorInformation != null &&
+                    ex.RequestInformation.ExtendedErrorInformation.ErrorCode == notFoundErrorCode)
                 {
                     retry = true; // Can't await in a catch block :(
                 }

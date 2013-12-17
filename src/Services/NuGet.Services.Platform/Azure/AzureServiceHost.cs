@@ -8,6 +8,7 @@ using System.Text;
 using Autofac;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Formatters;
+using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Sinks;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.ServiceModel;
 
@@ -39,6 +40,16 @@ namespace NuGet.Services.Azure
                 RoleEnvironment.CurrentRoleInstance.Id);
         }
 
+        public override IPEndPoint GetEndpoint(string name)
+        {
+            RoleInstanceEndpoint ep;
+            if (!RoleEnvironment.CurrentRoleInstance.InstanceEndpoints.TryGetValue(name, out ep))
+            {
+                return null;
+            }
+            return ep.IPEndpoint;
+        }
+
         public override string GetConfigurationSetting(string fullName)
         {
             try
@@ -60,10 +71,17 @@ namespace NuGet.Services.Azure
         {
             var logsResource = RoleEnvironment.GetLocalResource("Logs");
 
+            var logFile = Path.Combine(logsResource.RootPath, "Platform", "Platform.log.json");
+            
             // Initialize core platform logging
-            FlatFileLog.CreateListener(
-                fileName: Path.Combine(logsResource.RootPath, "Platform.log.json"),
+            RollingFlatFileLog.CreateListener(
+                fileName: logFile,
+                rollSizeKB: 1024,
+                timestampPattern: "yyyyMMdd-HHmmss",
+                rollFileExistsBehavior: RollFileExistsBehavior.Increment,
+                rollInterval: RollInterval.Hour,
                 formatter: new JsonEventTextFormatter(EventTextFormatting.None, dateTimeFormat: "O"),
+                maxArchivedFiles: 768, // We have a buffer size of 1024 for this folder
                 isAsync: false)
                 .EnableEvents(ServicePlatformEventSource.Log, EventLevel.LogAlways);
         }

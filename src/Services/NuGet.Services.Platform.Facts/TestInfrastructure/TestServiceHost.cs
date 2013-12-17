@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Features.ResolveAnything;
+using NuGet.Services.Composition;
 using NuGet.Services.Configuration;
 using NuGet.Services.ServiceModel;
 using NuGet.Services.Storage;
@@ -15,6 +16,8 @@ namespace NuGet.Services.TestInfrastructure
     {
         private IEnumerable<Type> _services;
         private Action<ContainerBuilder> _componentRegistrations;
+
+        public IComponentContainer Container { get; private set; }
 
         public TestServiceHost() : this(Enumerable.Empty<Type>()) { }
         public TestServiceHost(IEnumerable<Type> services) : this(services, null) { }
@@ -60,7 +63,9 @@ namespace NuGet.Services.TestInfrastructure
                 _componentRegistrations(builder);
             }
 
-            return builder.Build();
+            var container = builder.Build();
+            Container = new AutofacComponentContainer(builder.Build());
+            return container;
         }
 
         protected override Task ReportHostInitialized()

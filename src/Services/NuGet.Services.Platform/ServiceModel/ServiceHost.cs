@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Autofac.Features.ResolveAnything;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
+using NuGet.Services.Composition;
 using NuGet.Services.Configuration;
 using NuGet.Services.Models;
 using NuGet.Services.Storage;
@@ -20,8 +21,9 @@ namespace NuGet.Services.ServiceModel
     {
         private CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
         private IContainer _container;
-        private IServiceProvider _containerWrapper;
+        private IComponentContainer _containerWrapper;
         private IReadOnlyList<Type> _serviceTypes;
+        private AssemblyInformation _runtimeInformation = AssemblyInformation.FromType<ServiceHost>();
 
         private StorageHub _storage;
         private volatile int _nextId = 0;
@@ -32,7 +34,7 @@ namespace NuGet.Services.ServiceModel
 
         public IReadOnlyList<NuGetService> Instances { get; private set; }
 
-        public IServiceProvider Container { get { return _containerWrapper; } }
+        public AssemblyInformation RuntimeInformation { get { return _runtimeInformation; } }
 
         /// <summary>
         /// Starts all services in the host and blocks until they have completed starting.
@@ -78,7 +80,7 @@ namespace NuGet.Services.ServiceModel
         {
             return ConfigurationManager.AppSettings[fullName];
         }
-
+        
         public virtual async Task Initialize()
         {
             // Initialize the very very basic platform logging system (just logs service platform events to a single host-specific log file)
@@ -90,14 +92,7 @@ namespace NuGet.Services.ServiceModel
             {
                 // Build the container
                 _container = Compose();
-
-                // Add the container itself to the container
-                ContainerBuilder builder = new ContainerBuilder();
-                builder.RegisterInstance(_container)
-                    .As<IContainer>()
-                    .As<IServiceProvider>();
-                builder.Update(_container);
-                _containerWrapper = new AutofacServiceProvider(_container);
+                _containerWrapper = new AutofacComponentContainer(_container);
 
                 // Manually resolve components the host uses
                 _storage = _container.Resolve<StorageHub>();
@@ -179,6 +174,15 @@ namespace NuGet.Services.ServiceModel
                 
                 // Augment the scope with service-specific services
                 var builder = new ContainerBuilder();
+                
+                // Add the container itself to the container
+                builder.RegisterInstance(scope)
+                    .As<ILifetimeScope>()
+                    .As<IServiceProvider>();
+                builder.RegisterInstance(new AutofacComponentContainer(scope))
+                    .As<IComponentContainer>();
+                
+                // Add components provided by the service
                 service.RegisterComponents(builder);
                 builder.Update(scope.ComponentRegistry);
             }

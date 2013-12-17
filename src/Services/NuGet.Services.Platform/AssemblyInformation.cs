@@ -9,13 +9,15 @@ namespace NuGet.Services
 {
     public class AssemblyInformation
     {
+        public AssemblyName FullName { get; private set; }
         public string BuildBranch { get; private set; }
         public string BuildCommit { get; private set; }
         public DateTimeOffset BuildDate { get; private set; }
         public Uri SourceCodeRepository { get; private set; }
 
-        private AssemblyInformation(string buildBranch, string buildCommit, string buildDate, string repository)
+        private AssemblyInformation(AssemblyName fullName, string buildBranch, string buildCommit, string buildDate, string repository)
         {
+            FullName = fullName;
             BuildBranch = buildBranch;
             BuildCommit = buildCommit;
 
@@ -50,11 +52,17 @@ namespace NuGet.Services
             return FromAssembly(typ.Assembly);
         }
 
+        public static AssemblyInformation FromType<T>()
+        {
+            return FromAssembly(typeof(T).Assembly);
+        }
+
         public static AssemblyInformation FromAssembly(Assembly asm)
         {
             var metadata = asm.GetCustomAttributes<AssemblyMetadataAttribute>()
                 .ToDictionary(m => m.Key, m => m.Value);
             return new AssemblyInformation(
+                asm.GetName(),
                 GetOrDefault(metadata, "Branch"),
                 GetOrDefault(metadata, "CommitId"),
                 GetOrDefault(metadata, "BuildDateUtc"),

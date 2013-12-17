@@ -16,6 +16,13 @@ namespace NuGet.Services.Storage
     /// </summary>
     public abstract class AzureTableEntity : ITableEntity
     {
+        private static HashSet<string> _specialProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+            "Timestamp",
+            "PartitionKey",
+            "RowKey",
+            "ETag"
+        };
+
         public virtual DateTimeOffset Timestamp { get; set; }
         public virtual string PartitionKey { get; set; }
         public virtual string RowKey { get; set; }
@@ -70,7 +77,7 @@ namespace NuGet.Services.Storage
         protected virtual IEnumerable<PropertyInfo> SelectProperties()
         {
             return from p in GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                   where p.CanRead && p.CanWrite
+                   where p.CanRead && p.CanWrite && !_specialProperties.Contains(p.Name)
                    let ignore = p.GetCustomAttribute<IgnorePropertyAttribute>()
                    where ignore == null
                    select p;

@@ -16,6 +16,7 @@ using NuGet.Services.Configuration;
 using Autofac;
 using Autofac.Core;
 using NuGet.Services.Models;
+using NuGet.Services.Composition;
 
 namespace NuGet.Services.ServiceModel
 {
@@ -32,7 +33,7 @@ namespace NuGet.Services.ServiceModel
 
         public StorageHub Storage { get; set; }
         public ConfigurationHub Configuration { get; set; }
-        public IServiceProvider Container { get; protected set; }
+        public ILifetimeScope Container { get; protected set; }
 
         public string TempDirectory { get; protected set; }
 
@@ -52,7 +53,7 @@ namespace NuGet.Services.ServiceModel
 
         public virtual async Task<bool> Start(ILifetimeScope scope, ServiceInstanceEntry instanceEntry)
         {
-            Container = new AutofacServiceProvider(scope);
+            Container = scope;
             _instanceEntry = instanceEntry;
 
             scope.InjectProperties(this);

@@ -13,7 +13,7 @@ namespace NuGet.Services.Azure
     {
         private AzureServiceHost _host;
         private Task _runTask;
-        
+
         protected NuGetWorkerRole()
         {
             _host = new AzureServiceHost(this);
@@ -21,29 +21,53 @@ namespace NuGet.Services.Azure
 
         public override void Run()
         {
-            _runTask = _host.Run();
-            _runTask.Wait();
-            ServicePlatformEventSource.Log.HostShutdownComplete(_host.Description.ServiceHostName.ToString());
+            try
+            {
+                _runTask = _host.Run();
+                _runTask.Wait();
+                ServicePlatformEventSource.Log.HostShutdownComplete(_host.Description.ServiceHostName.ToString());
+            }
+            catch (Exception ex)
+            {
+                ServicePlatformEventSource.Log.FatalException(ex);
+                throw;
+            }
         }
 
         public override void OnStop()
         {
-            _host.Shutdown();
+            try
+            {
+                _host.Shutdown();
 
-            // As per http://msdn.microsoft.com/en-us/library/microsoft.windowsazure.serviceruntime.roleentrypoint.onstop.aspx
-            // We need to block the thread that's running OnStop until the shutdown completes.
-            _runTask.Wait();
+                // As per http://msdn.microsoft.com/en-us/library/microsoft.windowsazure.serviceruntime.roleentrypoint.onstop.aspx
+                // We need to block the thread that's running OnStop until the shutdown completes.
+                _runTask.Wait();
+            }
+            catch (Exception ex)
+            {
+                ServicePlatformEventSource.Log.FatalException(ex);
+                throw;
+            }
         }
 
         public override bool OnStart()
         {
-            // Set the maximum number of concurrent connections 
-            ServicePointManager.DefaultConnectionLimit = 12;
+            try
+            {
+                // Set the maximum number of concurrent connections 
+                ServicePointManager.DefaultConnectionLimit = 12;
 
-            // Initialize the host
-            _host.Initialize().Wait();
+                // Initialize the host
+                _host.Initialize().Wait();
 
-            return _host.StartAndWait();
+                return _host.StartAndWait();
+            }
+            catch (Exception ex)
+            {
+                ServicePlatformEventSource.Log.FatalException(ex);
+                throw;
+            }
         }
 
         protected internal abstract IEnumerable<Type> GetServices();

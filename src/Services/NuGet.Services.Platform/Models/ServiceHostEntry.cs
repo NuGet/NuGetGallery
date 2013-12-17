@@ -33,6 +33,7 @@ namespace NuGet.Services.Models
         public string Environment { get; set; }
         public int DatacenterId { get; set; }
         public string Name { get; set; }
+        public string FullName { get; set; }
         public string MachineName { get; set; }
 
         [Obsolete("For serialization only")]
@@ -47,6 +48,7 @@ namespace NuGet.Services.Models
             Environment = description.ServiceHostName.Datacenter.Environment;
             DatacenterId = description.ServiceHostName.Datacenter.Id;
             Name = description.ServiceHostName.Name;
+            FullName = description.ServiceHostName.ToString();
             MachineName = description.MachineName;
         }
 

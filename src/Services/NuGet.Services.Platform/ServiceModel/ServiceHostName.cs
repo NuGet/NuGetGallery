@@ -11,7 +11,7 @@ namespace NuGet.Services.ServiceModel
     [Serializable]
     public class ServiceHostName : IEquatable<ServiceHostName>
     {
-        private static readonly Regex ParseRegex = new Regex("^(?<env>.*)_DC(?<dc>.*)_(?<host>.*)$");
+        private static readonly Regex ParseRegex = new Regex("^(?<env>.*)_DC(?<dc>.*)_(?<host>.*)$", RegexOptions.IgnoreCase);
         private static readonly string ToStringFormat = "{0}_{1}";
         
         public DatacenterName Datacenter { get; private set; }

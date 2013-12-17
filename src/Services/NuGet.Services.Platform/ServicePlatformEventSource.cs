@@ -144,6 +144,14 @@ namespace NuGet.Services
             Message = "{0}: Host Shutdown Complete")]
         public void HostShutdownComplete(string hostName) { WriteEvent(15, hostName); }
 
+        [Event(
+            eventId: 16,
+            Level = EventLevel.Critical,
+            Message = "A fatal unhandled exception occurred: {0}")]
+        private void FatalException(string exception) { WriteEvent(16, exception); }
+        [NonEvent]
+        public void FatalException(Exception ex) { FatalException(ex.ToString()); }
+
         public static class Tasks {
             public const EventTask HostStartup = (EventTask)0x01;
             public const EventTask ServiceInitialization = (EventTask)0x02;

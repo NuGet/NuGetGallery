@@ -55,6 +55,10 @@ namespace NuGet.Services.Http
 
         protected override void OnShutdown()
         {
+            if (_httpServerLifetime != null)
+            {
+                _httpServerLifetime.Dispose();
+            }
             _shutdownSource.SetResult(null);
         }
 

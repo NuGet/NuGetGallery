@@ -38,8 +38,8 @@ namespace NuGet.Services.ServiceModel
 
                 // Assert
                 Assert.NotEqual(names[0], names[1]);
-                Assert.Contains("local_DC42_testhost_TestService_IN0", names);
-                Assert.Contains("local_DC42_testhost_TestService_IN1", names);
+                Assert.Contains("local_dc42_testhost_TestService_IN0", names);
+                Assert.Contains("local_dc42_testhost_TestService_IN1", names);
             }
         }
 

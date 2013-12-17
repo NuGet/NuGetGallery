@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Autofac.Features.OwnedInstances;
+using NuGet.Services.Composition;
 using NuGet.Services.Jobs.Monitoring;
 
 namespace NuGet.Services.Jobs
@@ -13,13 +14,13 @@ namespace NuGet.Services.Jobs
     {
         private Dictionary<string, JobDefinition> _jobMap;
         private List<JobDefinition> _jobs;
-        private IServiceProvider _container;
+        private IComponentContainer _container;
 
         public IReadOnlyList<JobDefinition> Jobs { get { return _jobs.AsReadOnly(); } }
 
         protected JobDispatcher() { }
 
-        public JobDispatcher(IEnumerable<JobDefinition> jobs, IServiceProvider container) : this()
+        public JobDispatcher(IEnumerable<JobDefinition> jobs, IComponentContainer container) : this()
         {
             _jobs = jobs.ToList();
             _jobMap = jobs.ToDictionary(j => j.Description.Name, StringComparer.OrdinalIgnoreCase);

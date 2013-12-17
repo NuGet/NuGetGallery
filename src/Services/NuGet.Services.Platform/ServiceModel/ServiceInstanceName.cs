@@ -14,7 +14,7 @@ namespace NuGet.Services.ServiceModel
     {
         private const string InstanceNameDataName = "_NuGet_ServiceInstanceName";
 
-        private static readonly Regex ParseRegex = new Regex("^(?<env>.*)_DC(?<dc>.*)_(?<host>.*)_(?<service>.*)_IN(?<instance>.*)$");
+        private static readonly Regex ParseRegex = new Regex("^(?<env>.*)_DC(?<dc>.*)_(?<host>.*)_(?<service>.*)_IN(?<instance>.*)$", RegexOptions.IgnoreCase);
         private static readonly string ToStringFormat = "{0}_{1}";
         
         public ServiceHostName Host { get; private set; }

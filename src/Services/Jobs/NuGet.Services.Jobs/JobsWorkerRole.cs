@@ -23,12 +23,9 @@ namespace NuGet.Services.Jobs
     {
         protected override IEnumerable<Type> GetServices()
         {
-            for (int i = 0; i < Environment.ProcessorCount; i++)
-            {
-                // This should register multiple copies of the service
-                yield return typeof(JobsService);
-            }
-
+            // TODO: Register multiple copies per processor?
+            yield return typeof(JobsService);
+            
             yield return typeof(JobsManagementService);
         }
     }

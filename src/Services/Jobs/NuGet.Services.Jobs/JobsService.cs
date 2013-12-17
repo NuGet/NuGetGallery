@@ -59,7 +59,7 @@ namespace NuGet.Services.Jobs
         protected override Task OnRun()
         {
             var queueConfig = Configuration.GetSection<QueueConfiguration>();
-            var runner = Container.GetService<JobRunner>();
+            var runner = Container.Resolve<JobRunner>();
 
             return runner.Run(Host.ShutdownToken);
         }
