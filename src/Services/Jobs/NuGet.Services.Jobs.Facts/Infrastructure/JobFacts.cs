@@ -24,7 +24,7 @@ namespace NuGet.Services.Jobs
                     "Test",
                     "Test",
                     new Dictionary<string, string>());
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
 
                 // Act
                 await job.Invoke(context);
@@ -47,7 +47,7 @@ namespace NuGet.Services.Jobs
                         {"TestParameter", "frob"},
                         {"NotMapped", "bar"}
                     });
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
 
                 // Act
                 await job.Invoke(context);
@@ -69,7 +69,7 @@ namespace NuGet.Services.Jobs
                     {
                         {"ConvertValue", "frob"},
                     });
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
 
                 // Act
                 await job.Invoke(context);
@@ -88,13 +88,13 @@ namespace NuGet.Services.Jobs
                     "Jerb",
                     "Test",
                     new Dictionary<string, string>());
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
 
                 // Act
                 var result = await job.Object.Invoke(context);
 
                 // Assert
-                Assert.Equal(InvocationStatus.Completed, result.Status);
+                Assert.Equal(ExecutionResult.Completed, result.Result);
             }
 
             [Fact]
@@ -109,13 +109,13 @@ namespace NuGet.Services.Jobs
                     new Dictionary<string, string>());
                 var ex = new NotImplementedException("Broked!");
                 job.Setup(j => j.Execute()).Throws(ex);
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
 
                 // Act
                 var result = await job.Object.Invoke(context);
 
                 // Assert
-                Assert.Equal(InvocationStatus.Faulted, result.Status);
+                Assert.Equal(ExecutionResult.Faulted, result.Result);
                 Assert.Equal(ex, result.Exception);
             }
         }

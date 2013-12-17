@@ -99,7 +99,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void Faulted(Guid invocationId, string completedAt, string exception) { WriteEvent(8, invocationId, completedAt, exception); }
 
         [NonEvent]
-        public void Faulted(InvocationResult result) { Faulted(InvocationContext.GetCurrentInvocationId(), DateTimeOffset.UtcNow.ToString("O"), result.Exception.ToString()); }
+        public void Faulted(InvocationResult result) { Faulted(InvocationContext.GetCurrentInvocationId(), DateTimeOffset.UtcNow.ToString("O"), result.Exception != null ? result.Exception.ToString() : ""); }
 
         [Event(
             eventId: 9,
@@ -108,7 +108,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void UnknownStatus(Guid invocationId, string completedAt, string status) { WriteEvent(9, invocationId, completedAt, status); }
 
         [NonEvent]
-        public void UnknownStatus(InvocationResult result) { UnknownStatus(InvocationContext.GetCurrentInvocationId(), DateTimeOffset.UtcNow.ToString("O"), result.Status.ToString()); }
+        public void UnknownStatus(InvocationResult result) { UnknownStatus(InvocationContext.GetCurrentInvocationId(), DateTimeOffset.UtcNow.ToString("O"), result.Result.ToString()); }
 
         [Event(
             eventId: 10,
@@ -119,7 +119,7 @@ namespace NuGet.Services.Jobs.Monitoring
         private void Suspended(Guid invocationId, string suspendedAt, string waitingFor) { WriteEvent(10, invocationId, suspendedAt, waitingFor); }
 
         [NonEvent]
-        public void Suspended(InvocationResult result) { Suspended(InvocationContext.GetCurrentInvocationId(), DateTimeOffset.UtcNow.ToString("O"), result.Continuation.WaitPeriod.ToString()); }
+        public void Suspended(InvocationResult result) { Suspended(InvocationContext.GetCurrentInvocationId(), DateTimeOffset.UtcNow.ToString("O"), result.Continuation != null ? result.Continuation.WaitPeriod.ToString() : "<UNKNOWN>"); }
 
         [Event(
             eventId: 11,

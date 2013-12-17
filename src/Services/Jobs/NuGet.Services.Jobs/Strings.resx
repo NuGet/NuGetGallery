@@ -117,6 +117,24 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="InvocationResult_CannotBeIncomplete" xml:space="preserve">
+    <value>An invocation result cannot be incomplete!</value>
+  </data>
+  <data name="InvocationResult_ResultMustHaveContinuation" xml:space="preserve">
+    <value>An invocation result in the '{0}' state must include a Continuation</value>
+  </data>
+  <data name="InvocationResult_ResultMustHaveException" xml:space="preserve">
+    <value>An invocation result in the '{0}' state must include an Exception</value>
+  </data>
+  <data name="InvocationResult_ResultMustNotHaveContinuation" xml:space="preserve">
+    <value>An invocation result in the '{0}' state must not include a Continuation</value>
+  </data>
+  <data name="InvocationResult_ResultMustNotHaveException" xml:space="preserve">
+    <value>An invocation result in the '{0}' state must not include an Exception</value>
+  </data>
+  <data name="InvocationResult_ResultMustNotHaveRescheduleIn" xml:space="preserve">
+    <value>An invocation result in the '{0}' state must not include an RescheduleIn time</value>
+  </data>
   <data name="InvocationsQueue_InvalidInvocationId" xml:space="preserve">
     <value>Invalid Invocation ID in message: '{0}'</value>
   </data>

@@ -25,7 +25,7 @@ namespace NuGet.Services.Jobs
                 
                 var dispatcher = new JobDispatcher(Enumerable.Empty<JobDefinition>(), host.Container);
                 var invocation = new Invocation(Guid.NewGuid(), "flarg", "test", new Dictionary<string, string>());
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
 
                 // Act/Assert
                 var ex = await AssertEx.Throws<UnknownJobException>(() => dispatcher.Dispatch(context));
@@ -45,7 +45,7 @@ namespace NuGet.Services.Jobs
 
                 var dispatcher = new JobDispatcher(new[] { job }, host.Container);
                 var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>());
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
                 var expected = InvocationResult.Completed();
                 TestJob.SetTestResult(expected);
 
@@ -74,7 +74,7 @@ namespace NuGet.Services.Jobs
 
                 var dispatcher = new JobDispatcher(new[] { job }, host.Container);
                 var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>());
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
                 var slot = new ContextSlot();
                 TestJobWithService.SetContextSlot(slot);
                 
@@ -101,13 +101,13 @@ namespace NuGet.Services.Jobs
                 {
                     Continuation = true
                 };
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
                 
                 // Act
                 var result = await dispatcher.Dispatch(context);
 
                 // Assert
-                Assert.Equal(InvocationStatus.Completed, result.Status);
+                Assert.Equal(ExecutionResult.Completed, result.Result);
             }
 
             [Fact]
@@ -126,7 +126,7 @@ namespace NuGet.Services.Jobs
                 {
                     Continuation = true
                 };
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null, logCapture: null);
+                var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
 
                 // Act/Assert
                 var ex = await AssertEx.Throws<InvalidOperationException>(() => dispatcher.Dispatch(context));

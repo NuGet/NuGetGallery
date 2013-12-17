@@ -35,10 +35,7 @@ namespace NuGet.Services.Jobs
             }
             JobBase job = _container.GetService<JobBase>(jobdef.Implementation);
 
-            if (context.LogCapture != null)
-            {
-                context.LogCapture.SetJob(jobdef, job);
-            }
+            context.SetJob(jobdef, job);
 
             Func<Task<InvocationResult>> invocationThunk = () => job.Invoke(context);
             if (context.Invocation.Continuation)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
+using System.Threading;
 using NuGet.Services.Jobs.Monitoring;
 
 namespace NuGet.Services.Jobs
@@ -11,17 +12,30 @@ namespace NuGet.Services.Jobs
     {
         private const string InvocationIdDataName = "_NuGet_Services_Jobs_Invocation_Id";
 
+        private InvocationLogCapture _capture;
+
         public InvocationRequest Request { get; private set; }
-        public InvocationLogCapture LogCapture { get; private set; }
         public InvocationQueue Queue { get; private set; }
+        public CancellationToken CancelToken { get; private set; }
 
         public Invocation Invocation { get { return Request.Invocation; } }
 
-        public InvocationContext(InvocationRequest request, InvocationQueue queue, InvocationLogCapture logCapture)
+        public InvocationContext(InvocationRequest request, InvocationQueue queue)
+            : this(request, queue, CancellationToken.None)
+        {
+        }
+
+        public InvocationContext(InvocationRequest request, InvocationQueue queue, CancellationToken cancelToken)
         {
             Request = request;
             Queue = queue;
-            LogCapture = logCapture;
+            CancelToken = cancelToken;
+        }
+
+        public InvocationContext(InvocationRequest request, InvocationQueue queue, CancellationToken cancelToken, InvocationLogCapture capture)
+            : this(request, queue, cancelToken)
+        {
+            _capture = capture;
         }
 
         public static Guid GetCurrentInvocationId()
@@ -33,6 +47,14 @@ namespace NuGet.Services.Jobs
         public static void SetCurrentInvocationId(Guid id)
         {
             CallContext.LogicalSetData(InvocationIdDataName, id);
+        }
+
+        public void SetJob(JobDefinition jobdef, JobBase job)
+        {
+            if (_capture != null)
+            {
+                _capture.SetJob(jobdef, job);   
+            }
         }
     }
 }

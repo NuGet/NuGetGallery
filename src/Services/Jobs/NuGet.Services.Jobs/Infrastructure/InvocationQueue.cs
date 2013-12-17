@@ -95,6 +95,7 @@ namespace NuGet.Services.Jobs
 
         public virtual Task Update(Invocation invocation)
         {
+            invocation.Timestamp = DateTimeOffset.UtcNow;
             return _table.Merge(invocation);
         }
 

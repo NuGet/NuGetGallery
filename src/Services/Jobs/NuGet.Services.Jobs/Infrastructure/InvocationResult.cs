@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -8,68 +9,84 @@ namespace NuGet.Services.Jobs
 {
     public class InvocationResult
     {
-        public InvocationStatus Status { get; private set; }
+        public ExecutionResult Result { get; private set; }
         public Exception Exception { get; private set; }
         public JobContinuation Continuation { get; private set; }
         public TimeSpan? RescheduleIn { get; private set; }
 
-        private InvocationResult(InvocationStatus status)
+        private InvocationResult(ExecutionResult result, TimeSpan? rescheduleIn, JobContinuation continuation, Exception exception)
         {
-            Status = status;
-        }
-
-        private InvocationResult(InvocationStatus status, TimeSpan rescheduleIn)
-            : this(status)
-        {
+            Result = result;
             RescheduleIn = rescheduleIn;
-        }
-
-        private InvocationResult(InvocationStatus status, Exception exception)
-            : this(status)
-        {
-            Exception = exception;
-        }
-
-        private InvocationResult(InvocationStatus status, Exception exception, TimeSpan rescheduleIn)
-            : this(status, exception)
-        {
-            RescheduleIn = rescheduleIn;
-        }
-
-        private InvocationResult(InvocationStatus status, JobContinuation continuation)
-            : this(status)
-        {
             Continuation = continuation;
+            Exception = exception;
+            ConsistencyCheck();
         }
+
+        internal InvocationResult(ExecutionResult result) : this(result, null, null, null) { }
+        internal InvocationResult(ExecutionResult result, TimeSpan rescheduleIn) : this(result, rescheduleIn, null, null) { }
+        internal InvocationResult(ExecutionResult result, Exception exception) : this(result, null, null, exception) { }
+        internal InvocationResult(ExecutionResult result, Exception exception, TimeSpan rescheduleIn) : this(result, rescheduleIn, null, exception) { }
+        internal InvocationResult(ExecutionResult result, JobContinuation continuation) : this(result, null, continuation, null) {}
 
         public static InvocationResult Completed()
         {
-            return new InvocationResult(InvocationStatus.Completed);
+            return new InvocationResult(ExecutionResult.Completed);
         }
 
         public static InvocationResult Completed(TimeSpan rescheduleIn)
         {
-            return new InvocationResult(InvocationStatus.Completed, rescheduleIn);
+            return new InvocationResult(ExecutionResult.Completed, rescheduleIn);
         }
 
-        public static InvocationResult Continuing(JobContinuation continuation)
+        public static InvocationResult Suspended(JobContinuation continuation)
         {
-            return new InvocationResult(InvocationStatus.Suspended, continuation);
+            return new InvocationResult(ExecutionResult.Suspended, continuation);
         }
 
         public static InvocationResult Faulted(Exception ex)
         {
-            return new InvocationResult(InvocationStatus.Faulted, ex);
+            return new InvocationResult(ExecutionResult.Faulted, ex);
         }
 
         public static InvocationResult Faulted(Exception ex, TimeSpan rescheduleIn)
         {
-            return new InvocationResult(InvocationStatus.Faulted, ex, rescheduleIn);
+            return new InvocationResult(ExecutionResult.Faulted, ex, rescheduleIn);
         }
 
-        public static InvocationResult Crashed(System.Exception ex)
+        [Conditional("DEBUG")]
+        private void ConsistencyCheck()
         {
-            return new InvocationResult(InvocationStatus.Crashed, ex);
+            Debug.Assert(Result != ExecutionResult.Incomplete, Strings.InvocationResult_CannotBeIncomplete);
+
+            // Checks that we don't have missing or invalid fields
+            switch (Result)
+            {
+                case ExecutionResult.Suspended:
+                    Debug.Assert(Continuation != null, String.Format(CultureInfo.CurrentCulture, Strings.InvocationResult_ResultMustHaveContinuation, Result));
+                    Debug.Assert(Exception == null, String.Format(CultureInfo.CurrentCulture, Strings.InvocationResult_ResultMustNotHaveException, Result));
+                    Debug.Assert(RescheduleIn == null, String.Format(CultureInfo.CurrentCulture, Strings.InvocationResult_ResultMustNotHaveRescheduleIn, Result));
+                    break;
+                case ExecutionResult.Completed:
+                    Debug.Assert(Continuation == null, String.Format(CultureInfo.CurrentCulture, Strings.InvocationResult_ResultMustNotHaveContinuation, Result));
+                    Debug.Assert(Exception == null, String.Format(CultureInfo.CurrentCulture, Strings.InvocationResult_ResultMustNotHaveException, Result));
+                    break;
+                case ExecutionResult.Faulted:
+                    Debug.Assert(Continuation == null, String.Format(CultureInfo.CurrentCulture, Strings.InvocationResult_ResultMustNotHaveContinuation, Result));
+                    Debug.Assert(Exception != null, String.Format(CultureInfo.CurrentCulture, Strings.InvocationResult_ResultMustHaveException, Result));
+                    break;
+                case ExecutionResult.Crashed:
+                    Debug.Assert(Continuation == null, String.Format(CultureInfo.CurrentCulture, Strings.InvocationResult_ResultMustNotHaveContinuation, Result));
+                    Debug.Assert(Exception != null, String.Format(CultureInfo.CurrentCulture, Strings.InvocationResult_ResultMustHaveException, Result));
+                    Debug.Assert(RescheduleIn == null, String.Format(CultureInfo.CurrentCulture, Strings.InvocationResult_ResultMustNotHaveRescheduleIn, Result));
+                    break;
+                case ExecutionResult.Aborted:
+                    Debug.Assert(Continuation == null, String.Format(CultureInfo.CurrentCulture, Strings.InvocationResult_ResultMustNotHaveContinuation, Result));
+                    Debug.Assert(Exception == null, String.Format(CultureInfo.CurrentCulture, Strings.InvocationResult_ResultMustNotHaveException, Result));
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

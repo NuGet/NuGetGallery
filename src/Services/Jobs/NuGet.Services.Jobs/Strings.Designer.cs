@@ -61,6 +61,60 @@ namespace NuGet.Services.Jobs {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An invocation result cannot be incomplete!.
+        /// </summary>
+        internal static string InvocationResult_CannotBeIncomplete {
+            get {
+                return ResourceManager.GetString("InvocationResult_CannotBeIncomplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An invocation result in the &apos;{0}&apos; state must include a Continuation.
+        /// </summary>
+        internal static string InvocationResult_ResultMustHaveContinuation {
+            get {
+                return ResourceManager.GetString("InvocationResult_ResultMustHaveContinuation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An invocation result in the &apos;{0}&apos; state must include an Exception.
+        /// </summary>
+        internal static string InvocationResult_ResultMustHaveException {
+            get {
+                return ResourceManager.GetString("InvocationResult_ResultMustHaveException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An invocation result in the &apos;{0}&apos; state must not include a Continuation.
+        /// </summary>
+        internal static string InvocationResult_ResultMustNotHaveContinuation {
+            get {
+                return ResourceManager.GetString("InvocationResult_ResultMustNotHaveContinuation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An invocation result in the &apos;{0}&apos; state must not include an Exception.
+        /// </summary>
+        internal static string InvocationResult_ResultMustNotHaveException {
+            get {
+                return ResourceManager.GetString("InvocationResult_ResultMustNotHaveException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An invocation result in the &apos;{0}&apos; state must not include an RescheduleIn time.
+        /// </summary>
+        internal static string InvocationResult_ResultMustNotHaveRescheduleIn {
+            get {
+                return ResourceManager.GetString("InvocationResult_ResultMustNotHaveRescheduleIn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid Invocation ID in message: &apos;{0}&apos;.
         /// </summary>
         internal static string InvocationsQueue_InvalidInvocationId {

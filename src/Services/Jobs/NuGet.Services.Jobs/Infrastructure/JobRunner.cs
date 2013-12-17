@@ -7,6 +7,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Configuration;
@@ -134,15 +135,9 @@ namespace NuGet.Services.Jobs
             request.Invocation.Status = InvocationStatus.Executing;
             await Queue.Update(request.Invocation);
 
-            if (cancelToken.IsCancellationRequested)
-            {
-                return;
-            }
-
             // Create the request.Invocation context and start capturing the logs
-            var capture = new InvocationLogCapture(request.Invocation, Storage, Path.Combine(Path.GetTempPath(), "InvocationLogs"));
-            var context = new InvocationContext(request, Queue, capture);
-            await capture.Start();
+            var capture = await StartCapture(request);
+            var context = new InvocationContext(request, Queue, cancelToken, capture);
 
             InvocationResult result = null;
             try
@@ -150,15 +145,15 @@ namespace NuGet.Services.Jobs
                 result = await Dispatcher.Dispatch(context);
 
                 // TODO: If response.Continuation != null, enqueue continuation
-                switch (result.Status)
+                switch (result.Result)
                 {
-                    case InvocationStatus.Completed:
+                    case ExecutionResult.Completed:
                         InvocationEventSource.Log.Succeeded(result);
                         break;
-                    case InvocationStatus.Faulted:
+                    case ExecutionResult.Faulted:
                         InvocationEventSource.Log.Faulted(result);
                         break;
-                    case InvocationStatus.Suspended:
+                    case ExecutionResult.Suspended:
                         InvocationEventSource.Log.Suspended(result);
                         break;
                     default:
@@ -166,7 +161,7 @@ namespace NuGet.Services.Jobs
                         break;
                 }
 
-                if (request.Message.NextVisibleTime.HasValue && request.Message.NextVisibleTime.Value < DateTimeOffset.UtcNow)
+                if (request.Message.NextVisibleTime.HasValue && request.Message.NextVisibleTime.Value < Clock.UtcNow)
                 {
                     InvocationEventSource.Log.InvocationTookTooLong(request);
                 }
@@ -179,47 +174,66 @@ namespace NuGet.Services.Jobs
             catch (Exception ex)
             {
                 InvocationEventSource.Log.DispatchError(ex);
-                result = InvocationResult.Crashed(ex);
+                result = new InvocationResult(ExecutionResult.Crashed, ex);
             }
 
             // Stop capturing and set the log url
-            var logBlob = await capture.End();
-            request.Invocation.Status = result.Status;
-            if (logBlob != null)
+            if (capture != null)
             {
+                var logBlob = await capture.End();
                 request.Invocation.LogUrl = logBlob.Uri.AbsoluteUri;
             }
 
-            // If we are in a termination state, report that
-            if (result.Status == InvocationStatus.Completed || 
-                result.Status == InvocationStatus.Faulted)
+            request.Invocation.Result = result.Result;
+            if (result.Result != ExecutionResult.Suspended)
             {
-                request.Invocation.CompletedAt = DateTimeOffset.UtcNow;
+                // If we're not suspended, the invocation has completed
+                request.Invocation.Status = InvocationStatus.Executed;
+            }
+            else
+            {
+                request.Invocation.LastSuspendedAt = Clock.UtcNow;
+            }
+
+            // If we are in a termination state, report that
+            if (result.Result == ExecutionResult.Completed ||
+                result.Result == ExecutionResult.Faulted ||
+                result.Result == ExecutionResult.Aborted ||
+                result.Result == ExecutionResult.Crashed)
+            {
+                request.Invocation.CompletedAt = Clock.UtcNow;
                 InvocationEventSource.Log.Ended();
             }
 
             // If we faulted, report the error
-            if (result.Status == InvocationStatus.Faulted)
+            if (result.Exception != null)
             {
-                request.Invocation.StatusMessage = result.Exception.ToString();
+                request.Invocation.ResultMessage = result.Exception.ToString();
             }
 
             // Update the status of the request.Invocation
             await Queue.Update(request.Invocation);
             
             // If we're suspended, queue a continuation
-            if (result.Status == InvocationStatus.Suspended)
+            if (result.Result == ExecutionResult.Suspended)
             {
                 Debug.Assert(result.Continuation != null);
                 await EnqueueContinuation(request.Invocation, result);
             }
             
             // If we've completed and there's a repeat, queue the repeat
-            if (result.Status == InvocationStatus.Completed && result.RescheduleIn != null)
+            if (result.RescheduleIn != null)
             {
                 // Rescheule it to run again
                 await EnqueueRepeat(request.Invocation, result);
             }
+        }
+
+        protected virtual async Task<InvocationLogCapture> StartCapture(InvocationRequest request)
+        {
+            var capture = new InvocationLogCapture(request.Invocation, Storage, Path.Combine(Path.GetTempPath(), "InvocationLogs"));
+            await capture.Start();
+            return capture;
         }
 
         private Task EnqueueContinuation(Invocation continuation, InvocationResult result)
@@ -228,13 +242,13 @@ namespace NuGet.Services.Jobs
                 continuation.Id,
                 continuation.Job,
                 Constants.Source_AsyncContinuation,
-                continuation.Payload)
+                result.Continuation.Parameters)
                 {
                     Continuation = true,
-                    LastSuspendedAt = DateTimeOffset.UtcNow,
-                    EstimatedContinueAt = DateTimeOffset.UtcNow + result.Continuation.WaitPeriod
+                    LastSuspendedAt = continuation.LastSuspendedAt.Value,
+                    EstimatedContinueAt = Clock.UtcNow + result.Continuation.WaitPeriod
                 };
-            return Queue.Enqueue(continuation, result.Continuation.WaitPeriod);
+            return Queue.Enqueue(invocation, result.Continuation.WaitPeriod);
         }
 
         private Task EnqueueRepeat(Invocation repeat, InvocationResult result)
@@ -245,7 +259,7 @@ namespace NuGet.Services.Jobs
                 Constants.Source_RepeatingJob,
                 repeat.Payload)
                 {
-                    EstimatedNextVisibleTime = DateTimeOffset.UtcNow + result.RescheduleIn.Value
+                    EstimatedNextVisibleTime = Clock.UtcNow + result.RescheduleIn.Value
                 };
             return Queue.Enqueue(invocation, result.RescheduleIn.Value);
         }

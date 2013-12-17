@@ -32,9 +32,10 @@ namespace NuGet.Services.Jobs
         public Dictionary<string, string> Payload { get; private set; }
 
         public InvocationStatus Status { get; set; }
+        public ExecutionResult Result { get; set; }
         public int DequeueCount { get; set; }
         public string LastInstanceName { get; set; }
-        public string StatusMessage { get; set; }
+        public string ResultMessage { get; set; }
         public string LogUrl { get; set; }
         public bool Continuation { get; set; }
 
@@ -66,6 +67,7 @@ namespace NuGet.Services.Jobs
             Source = source;
             Payload = payload;
             Status = InvocationStatus.Unspecified;
+            Result = ExecutionResult.Incomplete;
         }
 
         public static string GetPartitionKey(Guid id)

@@ -22,11 +22,29 @@ namespace NuGet.Services.Jobs
         /// Indicates that the invocation has been placed on the invocation queue
         /// </summary>
         Queued,
-        
+
         /// <summary>
         /// Indicates that the invocation has been dequeued by a worker and is executing
         /// </summary>
         Executing,
+
+        /// <summary>
+        /// Indicates that the invocation has been executed
+        /// </summary>
+        Executed,
+
+        /// <summary>
+        /// Indicates that the invocation has been cancelled by an outside agent and should not be invoked.
+        /// </summary>
+        Cancelled
+    }
+
+    public enum ExecutionResult
+    {
+        /// <summary>
+        /// Indicates that the invocation has not yet been executed
+        /// </summary>
+        Incomplete = 0,
 
         /// <summary>
         /// Indicates that the invocation has been suspended and is being queued for another invocation
@@ -50,10 +68,11 @@ namespace NuGet.Services.Jobs
         /// </summary>
         /// <remarks>Invocations in this state can be cleaned up as they will not be needed again (other than for debugging purposes)</remarks>
         Crashed,
-
+        
         /// <summary>
-        /// Indicates that the invocation has been cancelled by an outside agent and should not be invoked.
+        /// Indicates that the invocation failed due to the worker running it being shutdown
         /// </summary>
-        Cancelled
+        /// <remarks>Invocations in this state can be cleaned up as they will not be needed again (other than for debugging/retry purposes)</remarks>
+        Aborted
     }
 }

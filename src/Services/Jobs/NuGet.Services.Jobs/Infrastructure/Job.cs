@@ -115,7 +115,7 @@ namespace NuGet.Services.Jobs
                 var continuation = await invoker();
                 if (continuation != null)
                 {
-                    return InvocationResult.Continuing(continuation);
+                    return InvocationResult.Suspended(continuation);
                 }
                 else
                 {
