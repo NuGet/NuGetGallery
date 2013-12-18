@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Jobs.Api.Models
 {
-    public class JobsServiceDescriptionModel
+    public class JobsServiceModel
     {
         public IEnumerable<JobDefinitionModel> Jobs { get; private set; }
 
-        public JobsServiceDescriptionModel() { }
-        public JobsServiceDescriptionModel(IEnumerable<JobDescription> jobs)
+        public JobsServiceModel() { }
+        public JobsServiceModel(IEnumerable<JobDescription> jobs)
         {
             Jobs = jobs.Select(j => new JobDefinitionModel(j));
         }

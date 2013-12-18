@@ -25,7 +25,7 @@ namespace NuGet.Services.Storage
         public AzureTable(CloudTableClient client, string namePrefix)
         {
             _table = client.GetTableReference(
-                namePrefix + InferTableName(typeof(TEntity)));
+                namePrefix + AzureTableHelpers.InferTableName(typeof(TEntity)));
         }
 
         public virtual Task InsertOrReplace(TEntity entity)
@@ -69,14 +69,27 @@ namespace NuGet.Services.Storage
 
         public virtual IEnumerable<TEntity> Get(string partitionKey)
         {
-            var query = _table.CreateQuery<TEntity>()
-                .Where(t => t.PartitionKey == partitionKey);
+            return Query(
+                _table.CreateQuery<TEntity>()
+                    .Where(t => t.PartitionKey == partitionKey));
+        }
+
+        public virtual IEnumerable<TEntity> GetAll()
+        {
+            return Query(_table.CreateQuery<TEntity>());    
+        }
+
+        protected virtual IEnumerable<TEntity> Query(IQueryable<TEntity> query) 
+        {
             var enumerator = query.GetEnumerator();
 
             // There may be an exception grabbing the first one due to the table being missing
             try
             {
-                enumerator.MoveNext();
+                if (!enumerator.MoveNext())
+                {
+                    yield break;
+                }
             }
             catch (StorageException ex)
             {
@@ -94,28 +107,6 @@ namespace NuGet.Services.Storage
             {
                 yield return enumerator.Current;
             } while (enumerator.MoveNext());
-        }
-
-        private static ConcurrentDictionary<Type, string> _tableNameMap = new ConcurrentDictionary<Type, string>();
-        public static string InferTableName(Type entityType)
-        {
-            return _tableNameMap.GetOrAdd(entityType, t =>
-            {
-                string name = t.Name;
-                TableAttribute attr = t.GetCustomAttribute<TableAttribute>();
-                if (attr != null)
-                {
-                    name = attr.Name;
-                }
-                else
-                {
-                    if (name.EndsWith("Entry"))
-                    {
-                        name = name.Substring(0, name.Length - 5);
-                    }
-                }
-                return name;
-            });
         }
 
         private async Task<TResult> SafeExecuteWithoutCreate<TResult>(Func<CloudTable, Task<TResult>> action)
@@ -137,6 +128,31 @@ namespace NuGet.Services.Storage
                 throw;
             }
             return result;
+        }
+    }
+
+    internal static class AzureTableHelpers
+    {
+        private static ConcurrentDictionary<Type, string> _tableNameMap = new ConcurrentDictionary<Type, string>();
+        public static string InferTableName(Type entityType)
+        {
+            return _tableNameMap.GetOrAdd(entityType, t =>
+            {
+                string name = t.Name;
+                TableAttribute attr = t.GetCustomAttribute<TableAttribute>();
+                if (attr != null)
+                {
+                    name = attr.Name;
+                }
+                else
+                {
+                    if (name.EndsWith("Entry"))
+                    {
+                        name = name.Substring(0, name.Length - 5);
+                    }
+                }
+                return name;
+            });
         }
     }
 }

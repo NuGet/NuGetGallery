@@ -8,7 +8,7 @@ namespace NuGet.Services.Http.Models
 {
     public class HostRootModel
     {
-        public Uri HostInfo { get; set; }
-        public object ApiDescription { get; set; }
+        public Uri Host { get; set; }
+        public object Api { get; set; }
     }
 }

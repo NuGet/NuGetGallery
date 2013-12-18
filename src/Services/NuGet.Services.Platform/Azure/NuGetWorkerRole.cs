@@ -43,7 +43,10 @@ namespace NuGet.Services.Azure
 
                 // As per http://msdn.microsoft.com/en-us/library/microsoft.windowsazure.serviceruntime.roleentrypoint.onstop.aspx
                 // We need to block the thread that's running OnStop until the shutdown completes.
-                _runTask.Wait();
+                if (_runTask != null)
+                {
+                    _runTask.Wait();
+                }
             }
             catch (Exception ex)
             {

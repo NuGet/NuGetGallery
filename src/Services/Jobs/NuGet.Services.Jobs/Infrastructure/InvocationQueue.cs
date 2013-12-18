@@ -60,8 +60,8 @@ namespace NuGet.Services.Jobs
             {
                 // Retrieve the invocation details from the Invocations table.
                 var invocation = await _table.Get(
-                    Invocation.GetPartitionKey(invocationId),
-                    Invocation.GetRowKey(invocationId));
+                    invocationId.ToString("N").ToLowerInvariant(),
+                    String.Empty);
                 await _table.Merge(invocation);
                 return new InvocationRequest(invocation, message);
             }

@@ -21,10 +21,17 @@ namespace NuGet.Services.Storage
 
         public override object Read(Type targetType, string name, IDictionary<string, EntityProperty> properties, OperationContext operationContext)
         {
-            EntityProperty prop;
-            if (targetType == typeof(Dictionary<string, string>) && properties.TryGetValue(name, out prop))
+            if (targetType == typeof(Dictionary<string, string>))
             {
-                return JsonConvert.DeserializeObject<Dictionary<string, string>>(prop.StringValue);
+                EntityProperty prop;
+                if (properties.TryGetValue(name, out prop))
+                {
+                    return JsonConvert.DeserializeObject<Dictionary<string, string>>(prop.StringValue);
+                }
+                else
+                {
+                    return new Dictionary<string, string>();
+                }
             }
             return null;
         }

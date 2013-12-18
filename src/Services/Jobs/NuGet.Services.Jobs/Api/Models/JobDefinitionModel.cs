@@ -20,7 +20,7 @@ namespace NuGet.Services.Jobs.Api.Models
         {
             Name = jobdef.Name;
             Description = jobdef.Description;
-            Runtime = jobdef.Implementation.FullName;
+            Runtime = jobdef.Runtime;
             Assembly = new AssemblyInformationModel(jobdef.Assembly);
             EventProviderId = jobdef.EventProviderId;
             Enabled = jobdef.Enabled;

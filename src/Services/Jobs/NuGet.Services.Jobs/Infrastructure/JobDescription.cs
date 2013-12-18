@@ -20,9 +20,9 @@ namespace NuGet.Services.Jobs
     {
         public string Name { get { return PartitionKey; } set { PartitionKey = value; } }
         public string Description { get; set; }
-        public string Runtime { get { return Implementation == null ? String.Empty : Implementation.FullName; } }
         public Guid? EventProviderId { get; set; }
         public bool? Enabled { get; set; }
+        public string Runtime { get; private set; }
         public AssemblyInformation Assembly { get; private set; }
 
         [IgnoreProperty]
@@ -40,6 +40,7 @@ namespace NuGet.Services.Jobs
             Description = description;
             EventProviderId = eventProviderId;
             Implementation = implementation;
+            Runtime = implementation.FullName;
             Assembly = AssemblyInformation.FromType(implementation);
         }
 

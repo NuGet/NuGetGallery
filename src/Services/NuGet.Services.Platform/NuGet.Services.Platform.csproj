@@ -129,7 +129,7 @@
     <Compile Include="Configuration\SqlConfiguration.cs" />
     <Compile Include="Configuration\StorageConfiguration.cs" />
     <Compile Include="Http\ComponentDependencyResolver.cs" />
-    <Compile Include="Http\Controllers\HostController.cs" />
+    <Compile Include="Http\Controllers\RootControllerBase.cs" />
     <Compile Include="Http\Filters\LocationHeaderFilter.cs" />
     <Compile Include="Http\Models\AssemblyInformationModel.cs" />
     <Compile Include="Http\Models\HostInformationModel.cs" />
@@ -138,6 +138,7 @@
     <Compile Include="Http\NuGetApiController.cs" />
     <Compile Include="Http\NuGetApiService.cs" />
     <Compile Include="Http\NuGetHttpService.cs" />
+    <Compile Include="Http\Routes.cs" />
     <Compile Include="Http\WebApiExtensions.cs" />
     <Compile Include="KnownServers.cs" />
     <Compile Include="Models\ServiceHostEntry.cs" />
@@ -159,6 +160,8 @@
     <Compile Include="Storage\BlobStorageHub.cs" />
     <Compile Include="Storage\DefaultTablePropertySerializer.cs" />
     <Compile Include="Storage\JsonDictionarySerializer.cs" />
+    <Compile Include="Storage\PivotedAzureTable.cs" />
+    <Compile Include="Storage\PivotedTableEntity.cs" />
     <Compile Include="Storage\PropertySerializerAttribute.cs" />
     <Compile Include="Storage\QueueStorageHub.cs" />
     <Compile Include="Storage\ReverseChronologicalTableEntry.cs" />

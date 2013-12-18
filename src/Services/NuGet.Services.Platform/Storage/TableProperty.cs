@@ -28,6 +28,8 @@ namespace NuGet.Services.Storage
 
         public TableProperty(object instance, PropertyInfo property)
         {
+            // PERF: This is very slow. We can totally do better!
+
             var attributes = property.GetCustomAttributes();
             var columnAttribute = attributes.OfType<ColumnAttribute>().FirstOrDefault();
             var converterAttribute = attributes.OfType<TypeConverterAttribute>().FirstOrDefault();
@@ -42,8 +44,37 @@ namespace NuGet.Services.Storage
 
             Type = property.PropertyType;
             PropertyName = columnAttribute == null ? property.Name : columnAttribute.Name;
-            Getter = () => property.GetValue(instance);
-            Setter = value => property.SetValue(instance, value);
+
+            // Some special cases
+            if (property.PropertyType == typeof(DateTimeOffset?))
+            {
+                Getter = () =>
+                {
+                    var val = ((DateTimeOffset?)property.GetValue(instance));
+                    return val.HasValue ? val.Value.UtcDateTime : (DateTimeOffset?)null;
+                };
+                Setter = value =>
+                {
+                    if (value != null)
+                    {
+                        DateTimeOffset val;
+                        if (value is DateTime)
+                        {
+                            val = new DateTimeOffset(((DateTime)value), TimeSpan.Zero);
+                        }
+                        else
+                        {
+                            val = (DateTimeOffset)value;
+                        }
+                        property.SetValue(instance, val);
+                    }
+                };
+            }
+            else
+            {
+                Getter = () => property.GetValue(instance);
+                Setter = value => property.SetValue(instance, value);
+            }
 
             if (serializerAttribute != null)
             {

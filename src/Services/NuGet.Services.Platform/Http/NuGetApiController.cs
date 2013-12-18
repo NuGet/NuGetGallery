@@ -9,7 +9,7 @@ using NuGet.Services.ServiceModel;
 
 namespace NuGet.Services.Http
 {
-    public class NuGetApiController : ApiController
+    public abstract class NuGetApiController : ApiController
     {
         public ServiceHost Host { get; set; }
         public NuGetApiService Service { get; set; }

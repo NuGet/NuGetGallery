@@ -29,7 +29,7 @@ namespace NuGet.Services.Jobs
 {
     public class JobsService : NuGetService
     {
-        internal const string InvocationLogsContainerBaseName = "ng-jobs-invocationlogs";
+        internal const string InvocationLogsContainerBaseName = "jobs-invocationlogs";
         public static readonly string MyServiceName = "Jobs";
 
         private AzureTable<JobDescription> _jobsTable;
@@ -99,7 +99,7 @@ namespace NuGet.Services.Jobs
 
         public override Task<object> Describe()
         {
-            return Task.FromResult<object>(new JobsServiceDescriptionModel(Jobs));
+            return Task.FromResult<object>(new JobsServiceModel(Jobs));
         }
     }
 }

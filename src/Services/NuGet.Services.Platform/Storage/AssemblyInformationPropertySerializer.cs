@@ -18,7 +18,7 @@ namespace NuGet.Services.Storage
                 properties.Add(name + "_FullName", EntityProperty.CreateEntityPropertyFromObject(asmInfo.FullName.ToString()));
                 properties.Add(name + "_BuildBranch", EntityProperty.CreateEntityPropertyFromObject(asmInfo.BuildBranch));
                 properties.Add(name + "_BuildCommit", EntityProperty.CreateEntityPropertyFromObject(asmInfo.BuildCommit));
-                properties.Add(name + "_BuildDate", EntityProperty.CreateEntityPropertyFromObject(asmInfo.BuildDate));
+                properties.Add(name + "_BuildDate", EntityProperty.CreateEntityPropertyFromObject(asmInfo.BuildDate.UtcDateTime));
 
                 string repoStr;
                 if (asmInfo.SourceCodeRepository.IsAbsoluteUri)
@@ -40,7 +40,7 @@ namespace NuGet.Services.Storage
                 string fullName = GetOrDefault<string>(properties, name + "_FullName");
                 string buildBranch = GetOrDefault<string>(properties, name + "_BuildBranch");
                 string buildCommit = GetOrDefault<string>(properties, name + "_BuildCommit");
-                DateTimeOffset buildDate = GetOrDefault<DateTimeOffset>(properties, name + "_BuildDate");
+                DateTime buildDate = GetOrDefault<DateTime>(properties, name + "_BuildDate");
                 string repoStr = GetOrDefault<string>(properties, name + "_SourceCodeRepository");
 
                 Uri repo;
@@ -55,7 +55,7 @@ namespace NuGet.Services.Storage
                     asmName,
                     buildBranch,
                     buildCommit,
-                    buildDate,
+                    new DateTimeOffset(buildDate, TimeSpan.Zero),
                     repo);
             }
             return null;

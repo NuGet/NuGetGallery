@@ -7,7 +7,9 @@ using NuGet.Services.Http.Models;
 
 namespace NuGet.Services.Jobs.Api.Models
 {
-    public class JobsManagementServiceDescriptionModel : HostRootModel
+    public class JobsManagementServiceModel : HostRootModel
     {
+        public Uri Invocations { get; set; }
+        public Uri Jobs { get; set; }
     }
 }

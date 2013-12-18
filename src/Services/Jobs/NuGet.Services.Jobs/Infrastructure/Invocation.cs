@@ -46,21 +46,11 @@ namespace NuGet.Services.Jobs
         public DateTimeOffset? EstimatedContinueAt { get; set; }
         public DateTimeOffset? EstimatedNextVisibleTime { get; set; }
 
-        public override string PartitionKey
-        {
-            get { return GetPartitionKey(Id); }
-        }
-
-        public override string RowKey
-        {
-            get { return GetRowKey(Id); }
-        }
-
         [Obsolete("For serialization only")]
         public Invocation() { }
 
         public Invocation(Guid id, string job, string source, Dictionary<string, string> payload)
-            : base(GetPartitionKey(id), GetRowKey(id), DateTimeOffset.UtcNow)
+            : base(id.ToString("N").ToLowerInvariant(), String.Empty, DateTimeOffset.UtcNow)
         {
             Id = id;
             Job = job;
@@ -70,20 +60,9 @@ namespace NuGet.Services.Jobs
             Result = ExecutionResult.Incomplete;
         }
 
-        public static string GetPartitionKey(Guid id)
-        {
-            return id.ToString("N").Substring(0, 2); // First segment of the GUID
-        }
-
-        public static string GetRowKey(Guid id)
-        {
-            return id.ToString("N").Substring(2); // First segment of the GUID
-        }
-
         protected override void RefreshKeys()
         {
-            PartitionKey = GetPartitionKey(Id);
-            RowKey = GetRowKey(Id);
+            PartitionKey = Id.ToString("N").ToLowerInvariant();
         }
     }
 }

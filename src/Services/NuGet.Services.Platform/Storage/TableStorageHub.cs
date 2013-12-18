@@ -23,6 +23,11 @@ namespace NuGet.Services.Storage
             return new AzureTable<TEntity>(Client, TableNamePrefix);
         }
 
+        public virtual AzureTable<TEntity> Table<TEntity>(string name) where TEntity : ITableEntity, new()
+        {
+            return new AzureTable<TEntity>(Client.GetTableReference(GetTableFullName(name)));
+        }
+
         public virtual string GetTableFullName(string tableName)
         {
             return TableNamePrefix + tableName;
