@@ -138,7 +138,9 @@
                         using (Html.BeginForm(MVC.Packages.SetLicenseReportVisibility(Model.Id, Model.Version, Model.HideLicenseReport), FormMethod.Post, new { @class = "form" }))
                         {
                             @Html.AntiForgeryToken()
-                            <input id="enableDisableLicenseReportButton" type="submit" title="@(Model.HideLicenseReport ? "Display" : "Hide") license information provided by Sonatype CLM" value="@(Model.HideLicenseReport ? "Enable" : "Disable")"/>
+                            <input id="enableDisableLicenseReportButton" name="licenseButton" type="submit" title="@(Model.HideLicenseReport ? "Display" : "Hide") license information provided by Sonatype CLM" value="@(Model.HideLicenseReport ? "Enable For This Version" : "Disable For This Version")" />
+
+                            <input id="enableDisableLicenseReportForAllVersionsButton" name="licenseButton" type="submit" title="@(Model.HideLicenseReport ? "Display" : "Hide") license information provided by Sonatype CLM" value="@(Model.HideLicenseReport ? "Enable For All Versions" : "Disable For All Versions")" />
                         }
                     }
                 }

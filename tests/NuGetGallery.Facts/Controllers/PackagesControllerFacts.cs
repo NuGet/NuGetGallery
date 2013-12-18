@@ -17,6 +17,7 @@ using Xunit;
 using Xunit.Extensions;
 using System.Collections.Generic;
 using NuGetGallery.Framework;
+using System.Collections.Specialized;
 
 namespace NuGetGallery
 {
@@ -1726,6 +1727,62 @@ namespace NuGetGallery
                 // Assert
                 packageService.Verify();
                 indexingService.Verify(i => i.UpdatePackage(package));
+                Assert.IsType<RedirectResult>(result);
+                Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+            }
+
+            [Fact]
+            public void IndexingAndPackageServicesAreUpdatedForAllVersions()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration
+                {
+                    Id = "Foo"
+                };
+
+                var package = new Package
+                {
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0",
+                    HideLicenseReport = true
+                };
+
+
+                var package2 = new Package
+                {
+                    PackageRegistration = packageRegistration,
+                    Version = "2.0",
+                    HideLicenseReport = true
+                };
+                
+                package.PackageRegistration.Owners.Add(new User("Smeagol"));
+                package2.PackageRegistration.Owners.Add(new User("Smeagol"));
+                packageRegistration.Packages.Add(package);
+                packageRegistration.Packages.Add(package2);
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.SetLicenseReportVisibilityForPackageRegistration(It.IsAny<PackageRegistration>(), It.Is<bool>(t => t == true), It.IsAny<bool>())).Throws(new Exception("Shouldn't be called"));
+                packageService.Setup(svc => svc.SetLicenseReportVisibilityForPackageRegistration(It.IsAny<PackageRegistration>(), It.Is<bool>(t => t == false), It.IsAny<bool>())).Verifiable();
+                packageService.Setup(svc => svc.FindPackageRegistrationById("Foo")).Returns(packageRegistration).Verifiable();
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();            
+
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
+                httpContext.Setup(h => h.User.Identity.Name).Returns("Smeagol");              
+
+                var indexingService = new Mock<IIndexingService>();
+                var controller = CreateController(packageService: packageService, httpContext: httpContext, indexingService: indexingService);
+                controller.SetCurrentUser("Smeagol");
+                RequestContext context = new RequestContext();             
+                controller.Url = new UrlHelper(context, new RouteCollection());
+
+                // Act
+                var result = controller.SetLicenseReportVisibilityForPackageRegistration("Foo", "1.0", visible: false, urlFactory: p => @"~\Bar.cshtml");
+
+                // Assert
+                packageService.Verify(i => i.FindPackageByIdAndVersion("Foo", "1.0", true));             
+                indexingService.Verify(i => i.UpdatePackage(package));
+                indexingService.Verify(i => i.UpdatePackage(package2));
                 Assert.IsType<RedirectResult>(result);
                 Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
             }

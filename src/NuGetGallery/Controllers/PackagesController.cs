@@ -906,11 +906,20 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult SetLicenseReportVisibility(string id, string version, bool visible)
         {
-            return SetLicenseReportVisibility(id, version, visible, Url.Package);
+            
+            if ( HttpContext.Request.Form["licenseButton"].Contains("All Versions"))
+            {
+                return SetLicenseReportVisibilityForPackageRegistration(id, version, visible, Url.Package);
+            }
+            else
+            {
+                return SetLicenseReportVisibility(id, version, visible, Url.Package);
+            }
         }
 
         internal virtual ActionResult SetLicenseReportVisibility(string id, string version, bool visible, Func<Package, string> urlFactory)
         {
+                     
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
@@ -930,6 +939,38 @@ namespace NuGetGallery
 
             // Update the index
             _indexingService.UpdatePackage(package);
+
+            return Redirect(urlFactory(package));
+        }
+
+      
+        internal virtual ActionResult SetLicenseReportVisibilityForPackageRegistration(string id, string version, bool visible, Func<Package, string> urlFactory)
+        {
+            PackageRegistration packageRegistration = _packageService.FindPackageRegistrationById(id);
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+            if (packageRegistration == null || packageRegistration.Packages == null)
+            {
+                return HttpNotFound();
+            }
+            if (!packageRegistration.IsOwner(User))
+            {
+                return new HttpStatusCodeResult(401, "Unauthorized");
+            }
+
+            _packageService.SetLicenseReportVisibilityForPackageRegistration(packageRegistration, visible);
+
+            TempData["Message"] = String.Format(
+                CultureInfo.CurrentCulture,
+                "The license report for all versions of this package has been {0}. It may take several hours for this change to propagate through our system.",
+                visible ? "enabled" : "disabled");
+
+            // Update the index for all versions
+            foreach(Package packageVersion in packageRegistration.Packages)
+            _indexingService.UpdatePackage(packageVersion);
 
             return Redirect(urlFactory(package));
         }
