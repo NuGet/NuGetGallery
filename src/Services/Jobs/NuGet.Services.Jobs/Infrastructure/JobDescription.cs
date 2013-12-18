@@ -20,22 +20,27 @@ namespace NuGet.Services.Jobs
     {
         public string Name { get { return PartitionKey; } set { PartitionKey = value; } }
         public string Description { get; set; }
-        public string Runtime { get; set; }
+        public string Runtime { get { return Implementation == null ? String.Empty : Implementation.FullName; } }
         public Guid? EventProviderId { get; set; }
         public bool? Enabled { get; set; }
+        public AssemblyInformation Assembly { get; private set; }
 
+        [IgnoreProperty]
+        public Type Implementation { get; private set; }
+        
         [Obsolete("For serialization only")]
         public JobDescription() { }
 
-        public JobDescription(string name, string runtime)
-            : this(name, null, runtime, null) { }
+        public JobDescription(string name, Type implementation)
+            : this(name, null, null, implementation) { }
 
-        public JobDescription(string name, string description, string runtime, Guid? eventProviderId)
+        public JobDescription(string name, string description, Guid? eventProviderId, Type implementation)
             : base(name, DateTimeOffset.UtcNow)
         {
             Description = description;
-            Runtime = runtime;
             EventProviderId = eventProviderId;
+            Implementation = implementation;
+            Assembly = AssemblyInformation.FromType(implementation);
         }
 
         public static JobDescription Create(Type jobType)
@@ -46,8 +51,8 @@ namespace NuGet.Services.Jobs
             return new JobDescription(
                 name: attr.Name,
                 description: descAttr == null ? null : descAttr.Description,
-                runtime: jobType.AssemblyQualifiedName,
-                eventProviderId: attr.EventProvider == null ? (Guid?)null : (Guid?)EventSource.GetGuid(attr.EventProvider));
+                eventProviderId: attr.EventProvider == null ? (Guid?)null : (Guid?)EventSource.GetGuid(attr.EventProvider),
+                implementation: jobType);
         }
     }
 }

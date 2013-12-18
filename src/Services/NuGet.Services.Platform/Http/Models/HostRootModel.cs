@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Http.Models
 {
-    public class ApiDescriptionModelBase
+    public class HostRootModel
     {
         public Uri HostInfo { get; set; }
+        public object ApiDescription { get; set; }
     }
 }

@@ -22,8 +22,8 @@ namespace NuGet.Services.Jobs
                 // Arrange
                 var host = new TestServiceHost();
                 await host.Initialize();
-                
-                var dispatcher = new JobDispatcher(Enumerable.Empty<JobDefinition>(), host.Container);
+
+                var dispatcher = new JobDispatcher(Enumerable.Empty<JobDescription>(), host.Container);
                 var invocation = new Invocation(Guid.NewGuid(), "flarg", "test", new Dictionary<string, string>());
                 var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
 
@@ -39,9 +39,7 @@ namespace NuGet.Services.Jobs
                 var host = new TestServiceHost();
                 await host.Initialize();
 
-                var job = new JobDefinition(
-                    new JobDescription("test", "runtime"),
-                    typeof(TestJob));
+                var job = new JobDescription("test", typeof(TestJob));
 
                 var dispatcher = new JobDispatcher(new[] { job }, host.Container);
                 var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>());
@@ -67,9 +65,7 @@ namespace NuGet.Services.Jobs
                     });
                 await host.Initialize();
 
-                var job = new JobDefinition(
-                    new JobDescription("test", "runtime"),
-                    typeof(TestJobWithService));
+                var job = new JobDescription("test", typeof(TestJobWithService));
 
                 var dispatcher = new JobDispatcher(new[] { job }, host.Container);
                 var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>());
@@ -91,9 +87,7 @@ namespace NuGet.Services.Jobs
                 var host = new TestServiceHost();
                 await host.Initialize();
 
-                var job = new JobDefinition(
-                    new JobDescription("test", "runtime"),
-                    typeof(TestAsyncJob));
+                var job = new JobDescription("test", typeof(TestAsyncJob));
 
                 var dispatcher = new JobDispatcher(new[] { job }, host.Container);
                 var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>())
@@ -116,9 +110,7 @@ namespace NuGet.Services.Jobs
                 var host = new TestServiceHost();
                 await host.Initialize();
 
-                var job = new JobDefinition(
-                    new JobDescription("test", "runtime"),
-                    typeof(TestJob));
+                var job = new JobDescription("test", typeof(TestJob));
 
                 var dispatcher = new JobDispatcher(new[] { job }, host.Container);
                 var invocation = new Invocation(Guid.NewGuid(), "Test", "test", new Dictionary<string, string>())
@@ -131,7 +123,7 @@ namespace NuGet.Services.Jobs
                 var ex = await AssertEx.Throws<InvalidOperationException>(() => dispatcher.Dispatch(context));
                 Assert.Equal(String.Format(
                     Strings.JobDispatcher_AsyncContinuationOfNonAsyncJob,
-                    job.Description.Name), ex.Message);
+                    job.Name), ex.Message);
             }
         }
 

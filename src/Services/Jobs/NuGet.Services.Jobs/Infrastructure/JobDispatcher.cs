@@ -12,24 +12,25 @@ namespace NuGet.Services.Jobs
 {
     public class JobDispatcher
     {
-        private Dictionary<string, JobDefinition> _jobMap;
-        private List<JobDefinition> _jobs;
+        private Dictionary<string, JobDescription> _jobMap;
+        private List<JobDescription> _jobs;
         private IComponentContainer _container;
 
-        public IReadOnlyList<JobDefinition> Jobs { get { return _jobs.AsReadOnly(); } }
+        public IReadOnlyList<JobDescription> Jobs { get { return _jobs.AsReadOnly(); } }
 
         protected JobDispatcher() { }
 
-        public JobDispatcher(IEnumerable<JobDefinition> jobs, IComponentContainer container) : this()
+        public JobDispatcher(IEnumerable<JobDescription> jobs, IComponentContainer container)
+            : this()
         {
             _jobs = jobs.ToList();
-            _jobMap = jobs.ToDictionary(j => j.Description.Name, StringComparer.OrdinalIgnoreCase);
+            _jobMap = jobs.ToDictionary(j => j.Name, StringComparer.OrdinalIgnoreCase);
             _container = container;
         }
 
         public virtual async Task<InvocationResult> Dispatch(InvocationContext context)
         {
-            JobDefinition jobdef;
+            JobDescription jobdef;
             if (!_jobMap.TryGetValue(context.Invocation.Job, out jobdef))
             {
                 throw new UnknownJobException(context.Invocation.Job);
@@ -48,7 +49,7 @@ namespace NuGet.Services.Jobs
                     throw new InvalidOperationException(String.Format(
                         CultureInfo.CurrentCulture,
                         Strings.JobDispatcher_AsyncContinuationOfNonAsyncJob,
-                        jobdef.Description.Name));
+                        jobdef.Name));
                 }
                 invocationThunk = () => asyncJob.InvokeContinuation(context);
             }

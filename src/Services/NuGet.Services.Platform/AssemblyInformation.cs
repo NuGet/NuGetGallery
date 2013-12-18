@@ -4,9 +4,11 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using NuGet.Services.Storage;
 
 namespace NuGet.Services
 {
+    [PropertySerializer(typeof(AssemblyInformationPropertySerializer))]
     public class AssemblyInformation
     {
         public AssemblyName FullName { get; private set; }
@@ -34,6 +36,11 @@ namespace NuGet.Services
             }
         }
 
+        public AssemblyInformation(AssemblyName fullName, string buildBranch, string buildCommit, DateTimeOffset buildDate, Uri repository)
+            : this(buildBranch, buildCommit, buildDate, repository)
+        {
+            FullName = fullName;
+        }
         public AssemblyInformation(string buildBranch, string buildCommit, DateTimeOffset buildDate, Uri repository)
         {
             BuildBranch = buildBranch;

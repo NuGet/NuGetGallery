@@ -78,12 +78,12 @@ namespace NuGet.Services.Jobs.Monitoring
             return logBlob;
         }
 
-        public void SetJob(JobDefinition jobdef, JobBase job)
+        public void SetJob(JobDescription jobdef, JobBase job)
         {
             var eventSource = job.GetEventSource();
             if (eventSource == null)
             {
-                InvocationEventSource.Log.NoEventSource(jobdef.Description.Name);
+                InvocationEventSource.Log.NoEventSource(jobdef.Name);
             }
             else
             {

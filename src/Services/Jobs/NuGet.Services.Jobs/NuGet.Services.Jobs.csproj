@@ -116,6 +116,8 @@
     <Compile Include="..\..\..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Api\Models\JobDefinitionModel.cs" />
+    <Compile Include="Api\Models\JobsManagementServiceDescriptionModel.cs" />
     <Compile Include="Api\Models\JobsServiceDescriptionModel.cs" />
     <Compile Include="Configuration\QueueConfiguration.cs" />
     <Compile Include="Constants.cs" />
@@ -132,7 +134,6 @@
     <Compile Include="Infrastructure\Job.cs" />
     <Compile Include="Infrastructure\JobAttribute.cs" />
     <Compile Include="Infrastructure\JobContinuation.cs" />
-    <Compile Include="Infrastructure\JobDefinition.cs" />
     <Compile Include="Infrastructure\JobDescription.cs" />
     <Compile Include="Infrastructure\InvocationContext.cs" />
     <Compile Include="Infrastructure\UnknownJobException.cs" />

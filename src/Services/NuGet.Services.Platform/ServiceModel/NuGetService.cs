@@ -17,6 +17,7 @@ using Autofac;
 using Autofac.Core;
 using NuGet.Services.Models;
 using NuGet.Services.Composition;
+using NuGet.Services.Http.Models;
 
 namespace NuGet.Services.ServiceModel
 {
@@ -117,6 +118,12 @@ namespace NuGet.Services.ServiceModel
         protected virtual Task<bool> OnStart() { return Task.FromResult(true); }
         protected virtual void OnShutdown() { }
         protected abstract Task OnRun();
+
+        /// <summary>
+        /// Returns a service description object, which is a simple model that lists information about the service
+        /// </summary>
+        /// <returns></returns>
+        public virtual Task<object> Describe() { return Task.FromResult<object>(null); }
 
         protected virtual IEnumerable<EventSource> GetTraceEventSources()
         {

@@ -11,29 +11,33 @@ namespace NuGet.Services.Http.Controllers
     public class HostController : NuGetApiController
     {
         [Route("")]
-        public ApiDescriptionModelBase GetDescription()
+        public async Task<HostRootModel> GetDescription()
         {
-            var description = Service.Describe();
-            description.HostInfo =
-                Url.RouteUri("Platform-Host-GetInfo", new Dictionary<string, object>());
-            return description;
+            return new HostRootModel() {
+                HostInfo = Url.RouteUri("Platform-Host-GetInfo", new Dictionary<string, object>()),
+                ApiDescription = await Service.Describe()
+            };
         }
 
         [Route("host", Name="Platform-Host-GetInfo")]
-        public HostInfoResponseModel GetHostInfo()
+        public HostInformationModel GetHostInfo()
         {
-            return new HostInfoResponseModel(
+            return new HostInformationModel(
                 Host.Description,
-                new AssemblyResponseModel(Host.RuntimeInformation))
+                new AssemblyInformationModel(Host.RuntimeInformation))
                 {
                     ServiceInstances = Url.RouteUri("Platform-Host-GetServices")
                 };
         }
 
         [Route("host/services", Name="Platform-Host-GetServices")]
-        public IEnumerable<ServiceInstanceResponseModel> GetServices()
+        public Task<ServiceInstanceModel[]> GetServices()
         {
-            return Host.Instances.Select(s => new ServiceInstanceResponseModel(s));
+            return Task.WhenAll(Host.Instances.Select(async s =>
+            {
+                var desc = await s.Describe();
+                return new ServiceInstanceModel(s, desc);
+            }));
         }
     }
 }

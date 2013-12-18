@@ -131,10 +131,10 @@
     <Compile Include="Http\ComponentDependencyResolver.cs" />
     <Compile Include="Http\Controllers\HostController.cs" />
     <Compile Include="Http\Filters\LocationHeaderFilter.cs" />
-    <Compile Include="Http\Models\AssemblyResponseModel.cs" />
-    <Compile Include="Http\Models\HostInfoResponseModel.cs" />
-    <Compile Include="Http\Models\ApiDescriptionModelBase.cs" />
-    <Compile Include="Http\Models\ServiceInstanceResponseModel.cs" />
+    <Compile Include="Http\Models\AssemblyInformationModel.cs" />
+    <Compile Include="Http\Models\HostInformationModel.cs" />
+    <Compile Include="Http\Models\HostRootModel.cs" />
+    <Compile Include="Http\Models\ServiceInstanceModel.cs" />
     <Compile Include="Http\NuGetApiController.cs" />
     <Compile Include="Http\NuGetApiService.cs" />
     <Compile Include="Http\NuGetHttpService.cs" />
@@ -152,6 +152,7 @@
     <Compile Include="ServiceModel\ServiceInstanceName.cs" />
     <Compile Include="ServicePlatformEventSource.cs" />
     <Compile Include="Composition\ComponentContainerExtensions.cs" />
+    <Compile Include="Storage\AssemblyInformationPropertySerializer.cs" />
     <Compile Include="Storage\AzureQueue.cs" />
     <Compile Include="Storage\AzureTable.cs" />
     <Compile Include="Storage\AzureTableEntity.cs" />

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace NuGet.Services.Http.Models
 {
-    public class AssemblyResponseModel
+    public class AssemblyInformationModel
     {
         public string FullName { get; set; }
         public string BuildBranch { get; set; }
@@ -13,8 +13,8 @@ namespace NuGet.Services.Http.Models
         public DateTimeOffset BuildDate { get; set; }
         public Uri SourceCodeRepository { get; set; }
 
-        public AssemblyResponseModel() { }
-        public AssemblyResponseModel(AssemblyInformation info)
+        public AssemblyInformationModel() { }
+        public AssemblyInformationModel(AssemblyInformation info)
         {
             FullName = info.FullName.ToString();
             BuildBranch = info.BuildBranch;

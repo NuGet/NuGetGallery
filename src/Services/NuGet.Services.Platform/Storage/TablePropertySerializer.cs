@@ -12,5 +12,15 @@ namespace NuGet.Services.Storage
     {
         public abstract void Write(string name, object value, IDictionary<string, EntityProperty> properties, OperationContext operationContext);
         public abstract object Read(Type targetType, string name, IDictionary<string, EntityProperty> properties, OperationContext operationContext);
+
+        protected T GetOrDefault<T>(IDictionary<string, EntityProperty> dict, string name)
+        {
+            EntityProperty prop;
+            if (!dict.TryGetValue(name, out prop))
+            {
+                return default(T);
+            }
+            return (T)prop.PropertyAsObject;
+        }
     }
 }

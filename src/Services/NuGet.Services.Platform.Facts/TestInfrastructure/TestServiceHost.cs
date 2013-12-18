@@ -70,5 +70,9 @@ namespace NuGet.Services.TestInfrastructure
             // Don't have storage or monitoring in tests.
             return Task.FromResult<object>(null);
         }
+
+        protected override void InitializeCloudLogging()
+        {
+        }
     }
 }

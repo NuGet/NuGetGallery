@@ -101,7 +101,5 @@ namespace NuGet.Services.Http
 
             return config;
         }
-
-        public abstract ApiDescriptionModelBase Describe();
     }
 }

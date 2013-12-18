@@ -49,7 +49,7 @@ namespace NuGet.Services.Jobs
             CallContext.LogicalSetData(InvocationIdDataName, id);
         }
 
-        public void SetJob(JobDefinition jobdef, JobBase job)
+        public void SetJob(JobDescription jobdef, JobBase job)
         {
             if (_capture != null)
             {

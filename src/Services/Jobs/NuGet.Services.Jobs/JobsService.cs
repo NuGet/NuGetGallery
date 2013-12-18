@@ -23,6 +23,7 @@ using NuGet.Services.Jobs.Configuration;
 using Autofac.Core;
 using Autofac;
 using NuGet.Services.ServiceModel;
+using NuGet.Services.Jobs.Api.Models;
 
 namespace NuGet.Services.Jobs
 {
@@ -33,7 +34,7 @@ namespace NuGet.Services.Jobs
 
         private AzureTable<JobDescription> _jobsTable;
 
-        public IEnumerable<JobDefinition> Jobs { get; private set; }
+        public IEnumerable<JobDescription> Jobs { get; private set; }
         
         public JobsService(ServiceHost host)
             : base(MyServiceName, host)
@@ -69,15 +70,15 @@ namespace NuGet.Services.Jobs
         {
             _jobsTable = Storage.Primary.Tables.Table<JobDescription>();
 
-            Jobs = Container.Resolve<IEnumerable<JobDefinition>>();
+            Jobs = Container.Resolve<IEnumerable<JobDescription>>();
 
             await Task.WhenAll(Jobs.Select(j =>
             {
                 // Record the discovery in the trace
-                JobsServiceEventSource.Log.JobDiscovered(j.Description);
+                JobsServiceEventSource.Log.JobDiscovered(j);
 
                 // Log an entry for the job in the status table
-                return _jobsTable.Merge(j.Description);
+                return _jobsTable.Merge(j);
             }));
         }
 
@@ -89,11 +90,16 @@ namespace NuGet.Services.Jobs
                    .Assembly
                    .GetExportedTypes()
                    .Where(t => !t.IsAbstract && typeof(JobBase).IsAssignableFrom(t))
-                   .Select(t => new JobDefinition(JobDescription.Create(t), t))
-                   .Where(d => d.Description != null);
-            builder.RegisterInstance(jobdefs).As<IEnumerable<JobDefinition>>();
+                   .Select(t => JobDescription.Create(t))
+                   .Where(d => d != null);
+            builder.RegisterInstance(jobdefs).As<IEnumerable<JobDescription>>();
 
             builder.RegisterType<InvocationQueue>().AsSelf().UsingConstructor(typeof(StorageHub));
+        }
+
+        public override Task<object> Describe()
+        {
+            return Task.FromResult<object>(new JobsServiceDescriptionModel(Jobs));
         }
     }
 }
