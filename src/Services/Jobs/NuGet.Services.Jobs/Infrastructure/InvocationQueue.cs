@@ -9,6 +9,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Queue.Protocol;
 using Microsoft.WindowsAzure.Storage.Table;
+using NuGet.Services.Jobs.Infrastructure;
 using NuGet.Services.Storage;
 
 namespace NuGet.Services.Jobs
@@ -18,16 +19,16 @@ namespace NuGet.Services.Jobs
         public static readonly string DefaultQueueName = "nginvocations";
 
         private AzureQueue _queue;
-        private AzureTable<Invocation> _table;
+        private InvocationTable _table;
 
         protected InvocationQueue() { }
 
-        public InvocationQueue(StorageHub hub)
+        public InvocationQueue(StorageHub hub, InvocationTable table)
             : this(
                 hub.Primary.Queues.Queue(DefaultQueueName), 
-                hub.Primary.Tables.Table<Invocation>()) { }
+                table) { }
 
-        public InvocationQueue(AzureQueue queue, AzureTable<Invocation> table)
+        public InvocationQueue(AzureQueue queue, InvocationTable table)
             : this()
         {
             _queue = queue;
@@ -59,10 +60,8 @@ namespace NuGet.Services.Jobs
             else 
             {
                 // Retrieve the invocation details from the Invocations table.
-                var invocation = await _table.Get(
-                    invocationId.ToString("N").ToLowerInvariant(),
-                    String.Empty);
-                await _table.Merge(invocation);
+                var invocation = await _table.Get(invocationId);
+                await _table.Update(invocation);
                 return new InvocationRequest(invocation, message);
             }
         }
@@ -96,7 +95,7 @@ namespace NuGet.Services.Jobs
         public virtual Task Update(Invocation invocation)
         {
             invocation.Timestamp = DateTimeOffset.UtcNow;
-            return _table.Merge(invocation);
+            return _table.Update(invocation);
         }
 
         public virtual Task Enqueue(Invocation invocation)
@@ -116,7 +115,7 @@ namespace NuGet.Services.Jobs
 
             // Create an invocation entry and write it to the table
             invocation.Status = InvocationStatus.Queuing;
-            await _table.InsertOrReplace(invocation);
+            await _table.Update(invocation);
 
             // Enqueue the message
             await _queue.Enqueue(message, visibilityTimeout, invocation.Id.ToString("N").ToLowerInvariant());
@@ -125,7 +124,7 @@ namespace NuGet.Services.Jobs
             invocation.QueuedAt = DateTimeOffset.UtcNow;
             invocation.Status = InvocationStatus.Queued;
             invocation.EstimatedNextVisibleTime = DateTimeOffset.UtcNow + visibilityTimeout;
-            await _table.InsertOrReplace(invocation);
+            await _table.Update(invocation);
         }
     }
 }

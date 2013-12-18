@@ -137,6 +137,7 @@
     <Compile Include="Infrastructure\InvocationRequest.cs" />
     <Compile Include="Infrastructure\InvocationResult.cs" />
     <Compile Include="Infrastructure\InvocationStatus.cs" />
+    <Compile Include="Infrastructure\InvocationTable.cs" />
     <Compile Include="Infrastructure\Job.cs" />
     <Compile Include="Infrastructure\JobAttribute.cs" />
     <Compile Include="Infrastructure\JobContinuation.cs" />

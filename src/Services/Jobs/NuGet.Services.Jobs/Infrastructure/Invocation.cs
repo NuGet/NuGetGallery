@@ -15,15 +15,9 @@ namespace NuGet.Services.Jobs
     /// status record of an invocation
     /// </summary>
     [Table("Invocations")]
-    public class Invocation : AzureTableEntity
+    public class Invocation : AzureTableEntity, ICloneable
     {
-        private Guid _id;
-
-        public Guid Id
-        {
-            get { return _id; }
-            set { _id = value; RefreshKeys(); }
-        }
+        public Guid Id { get; private set; }
 
         public string Job { get; set; }
         public string Source { get; set; }
@@ -60,9 +54,42 @@ namespace NuGet.Services.Jobs
             Result = ExecutionResult.Incomplete;
         }
 
-        protected override void RefreshKeys()
+        public Invocation Clone()
         {
-            PartitionKey = Id.ToString("N").ToLowerInvariant();
+            return CloneCore();
+        }
+
+        object ICloneable.Clone()
+        {
+            return CloneCore();
+        }
+
+        private Invocation CloneCore()
+        {
+            return new Invocation()
+            {
+                PartitionKey = PartitionKey,
+                RowKey = RowKey,
+                Timestamp = Timestamp,
+
+                Id = Id,
+                Job = Job,
+                Source = Source,
+                Payload = Payload,
+                Status = Status,
+                Result = Result,
+                DequeueCount = DequeueCount,
+                LastInstanceName = LastInstanceName,
+                ResultMessage = ResultMessage,
+                LogUrl = LogUrl,
+                Continuation = Continuation,
+                QueuedAt = QueuedAt,
+                LastDequeuedAt = LastDequeuedAt,
+                LastSuspendedAt = LastSuspendedAt,
+                CompletedAt = CompletedAt,
+                EstimatedContinueAt = EstimatedContinueAt,
+                EstimatedNextVisibleTime = EstimatedNextVisibleTime
+            };
         }
     }
 }

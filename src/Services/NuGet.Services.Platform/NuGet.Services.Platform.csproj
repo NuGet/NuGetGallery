@@ -164,7 +164,7 @@
     <Compile Include="Storage\PivotedTableEntity.cs" />
     <Compile Include="Storage\PropertySerializerAttribute.cs" />
     <Compile Include="Storage\QueueStorageHub.cs" />
-    <Compile Include="Storage\ReverseChronologicalTableEntry.cs" />
+    <Compile Include="Storage\ReverseChronologicalRowKey.cs" />
     <Compile Include="Storage\StorageAccountHub.cs" />
     <Compile Include="Storage\StorageHelpers.cs" />
     <Compile Include="Storage\StorageHub.cs" />
