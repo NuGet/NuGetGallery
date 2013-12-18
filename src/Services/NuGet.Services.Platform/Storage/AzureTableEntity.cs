@@ -29,6 +29,7 @@ namespace NuGet.Services.Storage
         public virtual string ETag { get; set; }
 
         protected AzureTableEntity() { }
+        protected AzureTableEntity(string partitionKey, DateTimeOffset timestamp) : this(partitionKey, String.Empty, timestamp) { }
         protected AzureTableEntity(string partitionKey, string rowKey, DateTimeOffset timestamp)
         {
             PartitionKey = partitionKey;

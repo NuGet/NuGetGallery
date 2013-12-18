@@ -24,13 +24,13 @@ namespace NuGet.Services.ServiceModel
         private IComponentContainer _containerWrapper;
         private AssemblyInformation _runtimeInformation = AssemblyInformation.FromType<ServiceHost>();
 
-        private StorageHub _storage;
         private volatile int _nextId = 0;
 
         public abstract ServiceHostDescription Description { get; }
 
         public CancellationToken ShutdownToken { get { return _shutdownTokenSource.Token; } }
 
+        public StorageHub Storage { get; private set; }
         public IReadOnlyList<NuGetService> Instances { get; private set; }
 
         public AssemblyInformation RuntimeInformation { get { return _runtimeInformation; } }
@@ -84,7 +84,7 @@ namespace NuGet.Services.ServiceModel
         {
             // Initialize the very very basic platform logging system (just logs service platform events to a single host-specific log file)
             // This way, if the below code fails, we can see some kind of log as to why.
-            InitializePlatformLogging();
+            InitializeLocalLogging();
 
             ServicePlatformEventSource.Log.HostStarting(Description.ServiceHostName.ToString());
             try
@@ -94,13 +94,16 @@ namespace NuGet.Services.ServiceModel
                 _containerWrapper = new AutofacComponentContainer(_container);
 
                 // Manually resolve components the host uses
-                _storage = _container.Resolve<StorageHub>();
+                Storage = _container.Resolve<StorageHub>();
 
                 // Now get the services
                 Instances = GetServices().ToList().AsReadOnly();
 
                 // Report status
                 await ReportHostInitialized();
+
+                // Start full cloud logging
+                InitializeCloudLogging();
             }
             catch (Exception ex)
             {
@@ -136,10 +139,21 @@ namespace NuGet.Services.ServiceModel
         protected virtual async Task ReportHostInitialized()
         {
             var entry = new ServiceHostEntry(Description);
-            await _storage.Primary.Tables.Table<ServiceHostEntry>().InsertOrReplace(entry);
+            await Storage.Primary.Tables.Table<ServiceHostEntry>().InsertOrReplace(entry);
         }
 
-        protected abstract void InitializePlatformLogging();
+        /// <summary>
+        /// Initializes low-level logging of data to the local machine
+        /// </summary>
+        protected abstract void InitializeLocalLogging();
+        /// <summary>
+        /// Initializes logging of data to external sources in order to gather debugging data in the cloud
+        /// </summary>
+        protected abstract void InitializeCloudLogging();
+        /// <summary>
+        /// Gets instances of the services to host
+        /// </summary>
+        /// <returns></returns>
         protected abstract IEnumerable<NuGetService> GetServices();
 
         private async Task RunService(NuGetService service)
@@ -175,7 +189,7 @@ namespace NuGet.Services.ServiceModel
                     builder.Register(c => scope)
                         .As<ILifetimeScope>()
                         .SingleInstance();
-                    builder.Register(c => c.Resolve<ILifetimeScope>() as IComponentContainer)
+                    builder.Register(c => new AutofacComponentContainer(c.Resolve<ILifetimeScope>()))
                         .As<IComponentContainer>()
                         .As<IServiceProvider>()
                         .SingleInstance();
@@ -195,7 +209,7 @@ namespace NuGet.Services.ServiceModel
 
             // Report that we're starting the service
             var entry = new ServiceInstanceEntry(service.InstanceName, AssemblyInformation.FromAssembly(service.GetType().Assembly));
-            await _storage.Primary.Tables.Table<ServiceInstanceEntry>().InsertOrReplace(entry);
+            await Storage.Primary.Tables.Table<ServiceInstanceEntry>().InsertOrReplace(entry);
             
             // Start the service and return it if the start succeeds.
             ServicePlatformEventSource.Log.ServiceStarting(service.InstanceName);
@@ -212,7 +226,7 @@ namespace NuGet.Services.ServiceModel
 
             // Update the status entry
             entry.StartedAt = entry.LastHeartbeat = DateTimeOffset.UtcNow;
-            await _storage.Primary.Tables.Table<ServiceInstanceEntry>().InsertOrReplace(entry);
+            await Storage.Primary.Tables.Table<ServiceInstanceEntry>().InsertOrReplace(entry);
             
             // Because of the "throw" in the catch block, we won't arrive here unless successful
             ServicePlatformEventSource.Log.ServiceStarted(service.InstanceName);

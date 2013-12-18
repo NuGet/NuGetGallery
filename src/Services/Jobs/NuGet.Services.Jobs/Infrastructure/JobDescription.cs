@@ -18,7 +18,7 @@ namespace NuGet.Services.Jobs
     [Table("Jobs")]
     public class JobDescription : AzureTableEntity
     {
-        public string Name { get; set; }
+        public string Name { get { return PartitionKey; } set { PartitionKey = value; } }
         public string Description { get; set; }
         public string Runtime { get; set; }
         public Guid? EventProviderId { get; set; }
@@ -31,8 +31,8 @@ namespace NuGet.Services.Jobs
             : this(name, null, runtime, null) { }
 
         public JobDescription(string name, string description, string runtime, Guid? eventProviderId)
+            : base(name, DateTimeOffset.UtcNow)
         {
-            Name = name;
             Description = description;
             Runtime = runtime;
             EventProviderId = eventProviderId;

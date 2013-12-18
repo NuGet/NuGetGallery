@@ -38,7 +38,7 @@ namespace NuGet.Services.TestInfrastructure
             }
         }
 
-        protected override void InitializePlatformLogging()
+        protected override void InitializeLocalLogging()
         {
         }
 

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Formatters;
@@ -18,6 +20,7 @@ namespace NuGet.Services.Azure
     {
         private NuGetWorkerRole _worker;
         private ServiceHostDescription _description;
+        private ObservableEventListener _platformEventStream;
 
         public override ServiceHostDescription Description
         {
@@ -67,23 +70,52 @@ namespace NuGet.Services.Azure
             return _worker.GetServices(this);
         }
 
-        protected override void InitializePlatformLogging()
+        protected override void InitializeLocalLogging()
         {
-            var logsResource = RoleEnvironment.GetLocalResource("Logs");
+            _platformEventStream = new ObservableEventListener();
+            _platformEventStream.EnableEvents(ServicePlatformEventSource.Log, EventLevel.LogAlways);
 
-            var logFile = Path.Combine(logsResource.RootPath, "Platform", "Platform.log.json");
-            
-            // Initialize core platform logging
-            RollingFlatFileLog.CreateListener(
-                fileName: logFile,
-                rollSizeKB: 1024,
-                timestampPattern: "yyyyMMdd-HHmmss",
-                rollFileExistsBehavior: RollFileExistsBehavior.Increment,
-                rollInterval: RollInterval.Hour,
-                formatter: new JsonEventTextFormatter(EventTextFormatting.None, dateTimeFormat: "O"),
-                maxArchivedFiles: 768, // We have a buffer size of 1024 for this folder
-                isAsync: false)
-                .EnableEvents(ServicePlatformEventSource.Log, EventLevel.LogAlways);
+            var formatter = new EventTextFormatter(dateTimeFormat: "O");
+            _platformEventStream.Subscribe(evt =>
+            {
+                StringBuilder b = new StringBuilder();
+                using (var writer = new StringWriter(b))
+                {
+                    formatter.WriteEvent(evt, writer);
+                }
+                Trace.WriteLine(b.ToString());
+            });
+
+            try
+            {
+                var logsResource = RoleEnvironment.GetLocalResource("Logs");
+
+                var logFile = Path.Combine(logsResource.RootPath, "Platform", "Platform.log.json");
+
+                // Initialize core platform logging
+                _platformEventStream.LogToRollingFlatFile(
+                    fileName: logFile,
+                    rollSizeKB: 1024,
+                    timestampPattern: "yyyyMMdd-HHmmss",
+                    rollFileExistsBehavior: RollFileExistsBehavior.Increment,
+                    rollInterval: RollInterval.Hour,
+                    formatter: new JsonEventTextFormatter(EventTextFormatting.None, dateTimeFormat: "O"),
+                    maxArchivedFiles: 768, // We have a buffer size of 1024 for this folder
+                    isAsync: false);
+            }
+            catch (Exception ex)
+            {
+                ServicePlatformEventSource.Log.FatalException(ex);
+                throw;
+            }
+        }
+
+        protected override void InitializeCloudLogging()
+        {
+            _platformEventStream.LogToWindowsAzureTable(
+                instanceName: Description.ServiceHostName.ToString(),
+                connectionString: Storage.Primary.ConnectionString,
+                tableAddress: Storage.Primary.Tables.GetTableFullName("PlatformTrace"));
         }
     }
 }

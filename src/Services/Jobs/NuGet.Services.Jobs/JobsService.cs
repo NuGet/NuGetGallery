@@ -40,19 +40,19 @@ namespace NuGet.Services.Jobs
         {
         }
 
-        protected override Task<bool> OnStart()
+        protected override async Task<bool> OnStart()
         {
             try
             {
-                DiscoverJobs();
+                await DiscoverJobs();
 
-                return base.OnStart();
+                return await base.OnStart();
             }
             catch (Exception ex)
             {
                 // Exceptions that escape to this level are fatal
                 JobsServiceEventSource.Log.StartupError(ex);
-                return Task.FromResult(false);
+                return false;
             }
         }
 
@@ -65,20 +65,20 @@ namespace NuGet.Services.Jobs
             return runner.Run(Host.ShutdownToken);
         }
 
-        private void DiscoverJobs()
+        private async Task DiscoverJobs()
         {
             _jobsTable = Storage.Primary.Tables.Table<JobDescription>();
 
             Jobs = Container.Resolve<IEnumerable<JobDefinition>>();
 
-            foreach (var job in Jobs)
+            await Task.WhenAll(Jobs.Select(j =>
             {
                 // Record the discovery in the trace
-                JobsServiceEventSource.Log.JobDiscovered(job.Description);
+                JobsServiceEventSource.Log.JobDiscovered(j.Description);
 
                 // Log an entry for the job in the status table
-                _jobsTable.Merge(job.Description);
-            }
+                return _jobsTable.Merge(j.Description);
+            }));
         }
 
         public override void RegisterComponents(ContainerBuilder builder)
@@ -91,10 +91,9 @@ namespace NuGet.Services.Jobs
                    .Where(t => !t.IsAbstract && typeof(JobBase).IsAssignableFrom(t))
                    .Select(t => new JobDefinition(JobDescription.Create(t), t))
                    .Where(d => d.Description != null);
-            foreach (var jobdef in jobdefs)
-            {
-                builder.RegisterInstance(jobdef).As<JobDefinition>();
-            }
+            builder.RegisterInstance(jobdefs).As<IEnumerable<JobDefinition>>();
+
+            builder.RegisterType<InvocationQueue>().AsSelf().UsingConstructor(typeof(StorageHub));
         }
     }
 }
