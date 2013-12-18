@@ -18,15 +18,15 @@ namespace NuGet.Services.ServiceModel
         private static readonly string ToStringFormat = "{0}_{1}";
         
         public ServiceHostName Host { get; private set; }
-        public string Name { get; private set; }
+        public string ServiceName { get; private set; }
         public int InstanceId { get; private set; }
 
-        public string FullInstanceName { get { return String.Concat(Name, "_IN", InstanceId); } }
+        public string ShortName { get { return String.Concat(ServiceName, "_IN", InstanceId); } }
 
         public ServiceInstanceName(ServiceHostName host, string name, int instanceId)
         {
             Host = host;
-            Name = name;
+            ServiceName = name;
             InstanceId = instanceId;
         }
 
@@ -75,7 +75,7 @@ namespace NuGet.Services.ServiceModel
             return String.Format(CultureInfo.InvariantCulture,
                 ToStringFormat,
                 Host,
-                FullInstanceName);
+                ShortName);
         }
 
         public override bool Equals(object obj)
@@ -87,7 +87,7 @@ namespace NuGet.Services.ServiceModel
         {
             return other != null &&
                 Equals(Host, other.Host) &&
-                String.Equals(Name, other.Name, StringComparison.OrdinalIgnoreCase) &&
+                String.Equals(ServiceName, other.ServiceName, StringComparison.OrdinalIgnoreCase) &&
                 InstanceId == other.InstanceId;
         }
 
@@ -95,7 +95,7 @@ namespace NuGet.Services.ServiceModel
         {
             return HashCodeCombiner.Start()
                 .Add(Host)
-                .Add(Name)
+                .Add(ServiceName)
                 .Add(InstanceId)
                 .CombinedHash;
         }

@@ -33,7 +33,7 @@ namespace NuGet.Services.Jobs
 
         private AzureTable<JobDescription> _jobsTable;
 
-        public IEnumerable<JobDescription> Jobs { get; private set; }
+        public IEnumerable<JobDefinition> Jobs { get; private set; }
         
         public JobsService(ServiceHost host)
             : base(MyServiceName, host)
@@ -60,6 +60,7 @@ namespace NuGet.Services.Jobs
         {
             var queueConfig = Configuration.GetSection<QueueConfiguration>();
             var runner = Container.Resolve<JobRunner>();
+            runner.Heartbeat += (_, __) => Heartbeat();
 
             return runner.Run(Host.ShutdownToken);
         }
@@ -68,20 +69,31 @@ namespace NuGet.Services.Jobs
         {
             _jobsTable = Storage.Primary.Tables.Table<JobDescription>();
 
-            Jobs = typeof(JobsWorkerRole)
-                   .Assembly
-                   .GetExportedTypes()
-                   .Where(t => !t.IsAbstract && typeof(JobBase).IsAssignableFrom(t))
-                   .Select(t => JobDescription.Create(t))
-                   .Where(d => d != null);
+            Jobs = Container.Resolve<IEnumerable<JobDefinition>>();
 
             foreach (var job in Jobs)
             {
                 // Record the discovery in the trace
-                JobsServiceEventSource.Log.JobDiscovered(job);
+                JobsServiceEventSource.Log.JobDiscovered(job.Description);
 
                 // Log an entry for the job in the status table
-                _jobsTable.Merge(job);
+                _jobsTable.Merge(job.Description);
+            }
+        }
+
+        public override void RegisterComponents(ContainerBuilder builder)
+        {
+            base.RegisterComponents(builder);
+
+            var jobdefs = typeof(JobsWorkerRole)
+                   .Assembly
+                   .GetExportedTypes()
+                   .Where(t => !t.IsAbstract && typeof(JobBase).IsAssignableFrom(t))
+                   .Select(t => new JobDefinition(JobDescription.Create(t), t))
+                   .Where(d => d.Description != null);
+            foreach (var jobdef in jobdefs)
+            {
+                builder.RegisterInstance(jobdef).As<JobDefinition>();
             }
         }
     }

@@ -4,6 +4,7 @@ using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NuGet.Services.ServiceModel;
 
 namespace NuGet.Services
 {
@@ -44,30 +45,30 @@ namespace NuGet.Services
             Level = EventLevel.Informational,
             Task = Tasks.ServiceInitialization,
             Opcode = EventOpcode.Start,
-            Message = "{0}: Initializing an instance of the service: {1}")]
-        private void ServiceInitializing(string hostName, string serviceTypeName, string serviceTypeFullName) { WriteEvent(4, hostName, serviceTypeName, serviceTypeFullName); }
+            Message = "{0}/{1}: Initializing")]
+        private void ServiceInitializing(string hostName, string instanceName) { WriteEvent(4, hostName, instanceName); }
         [NonEvent]
-        public void ServiceInitializing(string hostName, Type serviceType) { ServiceInitializing(hostName, serviceType.Name, serviceType.AssemblyQualifiedName); }
+        public void ServiceInitializing(ServiceInstanceName name) { ServiceInitializing(name.Host.ToString(), name.ShortName); }
 
         [Event(
             eventId: 5,
             Level = EventLevel.Informational,
             Task = Tasks.ServiceInitialization,
             Opcode = EventOpcode.Stop,
-            Message = "{0}: Initialized an instance of the service: {1}")]
-        private void ServiceInitialized(string hostName, string serviceTypeName, string serviceTypeFullName) { WriteEvent(5, hostName, serviceTypeName, serviceTypeFullName); }
+            Message = "{0}/{1}: Initialized")]
+        private void ServiceInitialized(string hostName, string instanceName) { WriteEvent(5, hostName, instanceName); }
         [NonEvent]
-        public void ServiceInitialized(string hostName, Type serviceType) { ServiceInitialized(hostName, serviceType.Name, serviceType.AssemblyQualifiedName); }
+        public void ServiceInitialized(ServiceInstanceName name) { ServiceInitialized(name.Host.ToString(), name.ShortName); }
 
         [Event(
             eventId: 6,
             Level = EventLevel.Critical,
             Task = Tasks.ServiceInitialization,
             Opcode = EventOpcode.Stop,
-            Message = "{0}: Failed to initialize an instance of the service: {2}. Exception: {1}")]
-        private void ServiceInitializationFailed(string hostName, string exception, string serviceTypeName, string serviceTypeFullName) { WriteEvent(6, hostName, serviceTypeName, serviceTypeFullName); }
+            Message = "{0}/{1}: Initialization failed. Exception: {2}")]
+        private void ServiceInitializationFailed(string hostName, string serviceName, string exception) { WriteEvent(6, hostName, serviceName, exception); }
         [NonEvent]
-        public void ServiceInitializationFailed(string hostName, Exception exception, Type serviceType) { ServiceInitializationFailed(hostName, exception.ToString(), serviceType.Name, serviceType.AssemblyQualifiedName); }
+        public void ServiceInitializationFailed(ServiceInstanceName name, Exception ex) { ServiceInitializationFailed(name.Host.ToString(), name.ShortName, ex.ToString()); }
 
         [Event(
             eventId: 7,
@@ -75,7 +76,9 @@ namespace NuGet.Services
             Task = Tasks.ServiceStartup,
             Opcode = EventOpcode.Start,
             Message = "{0}/{1}: Starting")]
-        public void ServiceStarting(string hostName, string serviceName) { WriteEvent(7, hostName, serviceName); }
+        private void ServiceStarting(string hostName, string instanceName) { WriteEvent(7, hostName, instanceName); }
+        [NonEvent]
+        public void ServiceStarting(ServiceInstanceName name) { ServiceStarting(name.Host.ToString(), name.ShortName); }
 
         [Event(
             eventId: 8,
@@ -83,7 +86,9 @@ namespace NuGet.Services
             Task = Tasks.ServiceStartup,
             Opcode = EventOpcode.Stop,
             Message = "{0}/{1}: Started")]
-        public void ServiceStarted(string hostName, string serviceName) { WriteEvent(8, hostName, serviceName); }
+        public void ServiceStarted(string hostName, string instanceName) { WriteEvent(8, hostName, instanceName); }
+        [NonEvent]
+        public void ServiceStarted(ServiceInstanceName name) { ServiceStarted(name.Host.ToString(), name.ShortName); }
 
         [Event(
             eventId: 9,
@@ -91,16 +96,18 @@ namespace NuGet.Services
             Task = Tasks.ServiceStartup,
             Opcode = EventOpcode.Stop,
             Message = "{0}/{1}: Failed to start with exception: {2}")]
-        private void ServiceStartupFailed(string hostName, string serviceName, string exception) { WriteEvent(9, hostName, serviceName, exception); }
+        private void ServiceStartupFailed(string hostName, string instanceName, string exception) { WriteEvent(9, hostName, instanceName, exception); }
         [NonEvent]
-        public void ServiceStartupFailed(string hostName, string serviceName, Exception exception) { ServiceStartupFailed(hostName, serviceName, exception.ToString()); }
+        public void ServiceStartupFailed(ServiceInstanceName name, Exception ex) { ServiceStartupFailed(name.Host.ToString(), name.ShortName, ex.ToString()); }
 
 
         [Event(
             eventId: 10,
             Level = EventLevel.Critical,
             Message = "{0}/{1}: Missing Required Endpoint '{2}'")]
-        public void MissingEndpoint(string hostName, string serviceName, string endpoint) { WriteEvent(10, hostName, serviceName, endpoint); }
+        private void MissingEndpoint(string hostName, string instanceName, string endpoint) { WriteEvent(10, hostName, instanceName, endpoint); }
+        [NonEvent]
+        public void MissingEndpoint(ServiceInstanceName name, string endpoint) { MissingEndpoint(name.Host.ToString(), name.ShortName, endpoint); }
 
         [Event(
             eventId: 11,
@@ -108,7 +115,9 @@ namespace NuGet.Services
             Task = Tasks.HttpStartup,
             Opcode = EventOpcode.Start,
             Message = "{0}/{1}: Starting HTTP Services on port {2}")]
-        public void StartingHttpServices(string hostName, string serviceName, int port) { WriteEvent(11, hostName, serviceName, port); }
+        private void StartingHttpServices(string hostName, string instanceName, int port) { WriteEvent(11, hostName, instanceName, port); }
+        [NonEvent]
+        public void StartingHttpServices(ServiceInstanceName name, int port) { StartingHttpServices(name.Host.ToString(), name.ShortName, port); }
 
         [Event(
             eventId: 12,
@@ -116,7 +125,9 @@ namespace NuGet.Services
             Task = Tasks.HttpStartup,
             Opcode = EventOpcode.Stop,
             Message = "{0}/{1}: Started HTTP Services on port {2}")]
-        public void StartedHttpServices(string hostName, string serviceName, int port) { WriteEvent(12, hostName, serviceName, port); }
+        private void StartedHttpServices(string hostName, string instanceName, int port) { WriteEvent(12, hostName, instanceName, port); }
+        [NonEvent]
+        public void StartedHttpServices(ServiceInstanceName name, int port) { StartedHttpServices(name.Host.ToString(), name.ShortName, port); }
 
         [Event(
             eventId: 13,
@@ -124,9 +135,9 @@ namespace NuGet.Services
             Task = Tasks.HttpStartup,
             Opcode = EventOpcode.Stop,
             Message = "{0}/{1}: Error Starting HTTP Services")]
-        private void ErrorStartingHttpServices(string hostName, string serviceName, string exception) { WriteEvent(13, hostName, serviceName, exception); }
+        private void ErrorStartingHttpServices(string hostName, string instanceName, string exception) { WriteEvent(13, hostName, instanceName, exception); }
         [NonEvent]
-        public void ErrorStartingHttpServices(string hostName, string serviceName, Exception exception) { ErrorStartingHttpServices(hostName, serviceName, exception.ToString()); }
+        public void ErrorStartingHttpServices(ServiceInstanceName name, Exception ex) { ErrorStartingHttpServices(name.Host.ToString(), name.ShortName, ex.ToString()); }
 
         [Event(
             eventId: 14,
@@ -152,12 +163,43 @@ namespace NuGet.Services
         [NonEvent]
         public void FatalException(Exception ex) { FatalException(ex.ToString()); }
 
+        [Event(
+            eventId: 17,
+            Level = EventLevel.Informational,
+            Opcode = EventOpcode.Start,
+            Task = Tasks.ServiceExecution,
+            Message = "{0}/{1}: Running")]
+        private void ServiceRunning(string hostName, string instanceName) { }
+        [NonEvent]
+        public void ServiceRunning(ServiceInstanceName name) { ServiceRunning(name.Host.ToString(), name.ShortName); }
+
+        [Event(
+            eventId: 18,
+            Level = EventLevel.Informational,
+            Opcode = EventOpcode.Stop,
+            Task = Tasks.ServiceExecution,
+            Message = "{0}/{1}: Stopped")]
+        private void ServiceStoppedRunning(string hostName, string instanceName) { }
+        [NonEvent]
+        public void ServiceStoppedRunning(ServiceInstanceName name) { ServiceStoppedRunning(name.Host.ToString(), name.ShortName); }
+
+        [Event(
+            eventId: 19,
+            Level = EventLevel.Critical,
+            Opcode = EventOpcode.Stop,
+            Task = Tasks.ServiceExecution,
+            Message = "{0}/{1}: Exception during execution: {2}")]
+        private void ServiceException(string hostName, string instanceName, string exception) { WriteEvent(19, hostName, instanceName, exception); }
+        [NonEvent]
+        public void ServiceException(ServiceInstanceName name, Exception ex) { ServiceException(name.Host.ToString(), name.ShortName, ex.ToString()); }
+
         public static class Tasks {
             public const EventTask HostStartup = (EventTask)0x01;
             public const EventTask ServiceInitialization = (EventTask)0x02;
             public const EventTask ServiceStartup = (EventTask)0x03;
-            public const EventTask HttpStartup = (EventTask)0x04;
-            public const EventTask HostShutdown = (EventTask)0x05;
+            public const EventTask ServiceExecution = (EventTask)0x04;
+            public const EventTask HttpStartup = (EventTask)0x05;
+            public const EventTask HostShutdown = (EventTask)0x06;
         }
     }
 }

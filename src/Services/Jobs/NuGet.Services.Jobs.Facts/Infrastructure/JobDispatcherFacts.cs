@@ -62,7 +62,6 @@ namespace NuGet.Services.Jobs
                 // Arrange
                 var expected = new SomeService();
                 var host = new TestServiceHost(
-                    services: Enumerable.Empty<Type>(),
                     componentRegistrations: b => {
                         b.RegisterInstance(expected).As<SomeService>();
                     });

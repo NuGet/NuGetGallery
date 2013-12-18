@@ -22,7 +22,6 @@ namespace NuGet.Services.ServiceModel
         private CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
         private IContainer _container;
         private IComponentContainer _containerWrapper;
-        private IReadOnlyList<Type> _serviceTypes;
         private AssemblyInformation _runtimeInformation = AssemblyInformation.FromType<ServiceHost>();
 
         private StorageHub _storage;
@@ -49,7 +48,7 @@ namespace NuGet.Services.ServiceModel
         /// </summary>
         public async Task<bool> Start()
         {
-            var instances = await Task.WhenAll(_serviceTypes.Select(StartService));
+            var instances = await Task.WhenAll(Instances.Select(StartService));
             Instances = instances.Where(s => s != null).ToList().AsReadOnly();
             return instances.All(s => s != null);
         }
@@ -59,7 +58,7 @@ namespace NuGet.Services.ServiceModel
         /// </summary>
         public Task Run()
         {
-            return Task.WhenAll(Instances.Select(s => s.Run()));
+            return Task.WhenAll(Instances.Select(RunService));
         }
 
         /// <summary>
@@ -98,16 +97,7 @@ namespace NuGet.Services.ServiceModel
                 _storage = _container.Resolve<StorageHub>();
 
                 // Now get the services
-                _serviceTypes = GetServices().ToList().AsReadOnly();
-
-                var invalidService = _serviceTypes.FirstOrDefault(t => !typeof(NuGetService).IsAssignableFrom(t));
-                if (invalidService != null)
-                {
-                    throw new InvalidCastException(String.Format(
-                        CultureInfo.CurrentCulture,
-                        Strings.ServiceHost_NotAValidServiceType,
-                        invalidService.FullName));
-                }
+                Instances = GetServices().ToList().AsReadOnly();
 
                 // Report status
                 await ReportHostInitialized();
@@ -150,57 +140,65 @@ namespace NuGet.Services.ServiceModel
         }
 
         protected abstract void InitializePlatformLogging();
-        protected abstract IEnumerable<Type> GetServices();
+        protected abstract IEnumerable<NuGetService> GetServices();
 
-        internal async Task<NuGetService> StartService(Type serviceType)
+        private async Task RunService(NuGetService service)
         {
-            // Initialize the serice, create the necessary IoC components and construct the instance.
-            ServicePlatformEventSource.Log.ServiceInitializing(Description.ServiceHostName.ToString(), serviceType);
-            NuGetService service = null;
-            ILifetimeScope scope = null;
+            ServicePlatformEventSource.Log.ServiceRunning(service.InstanceName);
             try
             {
-                // Create a lifetime scope and register the service in it
-                scope = _container.BeginLifetimeScope(b =>
-                {
-                    b.RegisterType(serviceType)
-                     .As<NuGetService>()
-                     .As(serviceType)
-                     .SingleInstance();
-                });
-
-                // Resolve the instance
-                service = (NuGetService)scope.Resolve(serviceType);
-                
-                // Augment the scope with service-specific services
-                var builder = new ContainerBuilder();
-                
-                // Add the container itself to the container
-                builder.RegisterInstance(scope)
-                    .As<ILifetimeScope>()
-                    .As<IServiceProvider>();
-                builder.RegisterInstance(new AutofacComponentContainer(scope))
-                    .As<IComponentContainer>();
-                
-                // Add components provided by the service
-                service.RegisterComponents(builder);
-                builder.Update(scope.ComponentRegistry);
+                await service.Run();
             }
             catch (Exception ex)
             {
-                ServicePlatformEventSource.Log.ServiceInitializationFailed(Description.ServiceHostName.ToString(), ex, serviceType);
+                ServicePlatformEventSource.Log.ServiceException(service.InstanceName, ex);
+                throw;
+            }
+            ServicePlatformEventSource.Log.ServiceStoppedRunning(service.InstanceName);
+        }
+
+        internal async Task<NuGetService> StartService(NuGetService service)
+        {
+            // Initialize the serice, create the necessary IoC components and construct the instance.
+            ServicePlatformEventSource.Log.ServiceInitializing(service.InstanceName);
+            ILifetimeScope scope = null;
+            try
+            {
+                // Construct a scope with the instance in it
+                scope = _container.BeginLifetimeScope(builder =>
+                {
+                    builder.RegisterInstance(service)
+                     .As<NuGetService>()
+                     .As(service.GetType());
+
+                    // Add the container itself to the container
+                    builder.Register(c => scope)
+                        .As<ILifetimeScope>()
+                        .SingleInstance();
+                    builder.Register(c => c.Resolve<ILifetimeScope>() as IComponentContainer)
+                        .As<IComponentContainer>()
+                        .As<IServiceProvider>()
+                        .SingleInstance();
+
+                    // Add components provided by the service
+                    service.RegisterComponents(builder);
+                });
+            }
+            catch (Exception ex)
+            {
+                ServicePlatformEventSource.Log.ServiceInitializationFailed(service.InstanceName, ex);
                 throw;
             }
 
             // Because of the "throw" in the catch block, we won't arrive here unless successful
-            ServicePlatformEventSource.Log.ServiceInitialized(Description.ServiceHostName.ToString(), serviceType);
+            ServicePlatformEventSource.Log.ServiceInitialized(service.InstanceName);
 
             // Report that we're starting the service
             var entry = new ServiceInstanceEntry(service.InstanceName, AssemblyInformation.FromAssembly(service.GetType().Assembly));
             await _storage.Primary.Tables.Table<ServiceInstanceEntry>().InsertOrReplace(entry);
             
             // Start the service and return it if the start succeeds.
-            ServicePlatformEventSource.Log.ServiceStarting(Description.ServiceHostName.ToString(), service.InstanceName.ToString());
+            ServicePlatformEventSource.Log.ServiceStarting(service.InstanceName);
             bool result = false;
             try
             {
@@ -208,7 +206,7 @@ namespace NuGet.Services.ServiceModel
             }
             catch (Exception ex)
             {
-                ServicePlatformEventSource.Log.ServiceStartupFailed(Description.ServiceHostName.ToString(), service.InstanceName.ToString(), ex);
+                ServicePlatformEventSource.Log.ServiceStartupFailed(service.InstanceName, ex);
                 throw;
             }
 
@@ -217,7 +215,7 @@ namespace NuGet.Services.ServiceModel
             await _storage.Primary.Tables.Table<ServiceInstanceEntry>().InsertOrReplace(entry);
             
             // Because of the "throw" in the catch block, we won't arrive here unless successful
-            ServicePlatformEventSource.Log.ServiceStarted(Description.ServiceHostName.ToString(), service.InstanceName.ToString());
+            ServicePlatformEventSource.Log.ServiceStarted(service.InstanceName);
 
             if (result)
             {

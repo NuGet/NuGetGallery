@@ -16,17 +16,18 @@ using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Azure;
 using NuGet.Services.Http;
 using NuGet.Services.Jobs.Monitoring;
+using NuGet.Services.ServiceModel;
 
 namespace NuGet.Services.Jobs
 {
     public class JobsWorkerRole : NuGetWorkerRole
     {
-        protected override IEnumerable<Type> GetServices()
+        protected override IEnumerable<NuGetService> GetServices(ServiceHost host)
         {
             // TODO: Register multiple copies per processor?
-            yield return typeof(JobsService);
-            
-            yield return typeof(JobsManagementService);
+            yield return new JobsService(host);
+
+            yield return new JobsManagementService(host);
         }
     }
 }

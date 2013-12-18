@@ -13,16 +13,17 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using NuGet.Services.Composition;
 using NuGet.Services.Http.Controllers;
+using NuGet.Services.Http.Models;
 using NuGet.Services.ServiceModel;
 using Owin;
 
 namespace NuGet.Services.Http
 {
-    public class NuGetApiService : NuGetHttpService
+    public abstract class NuGetApiService : NuGetHttpService
     {
         public NuGetApiService(string name, ServiceHost host) : base(name, host) { }
 
-        protected override void Startup(IAppBuilder app)
+        protected override void Configure(IAppBuilder app)
         {
             var config = Container.Resolve<HttpConfiguration>();
             config.DependencyResolver = new AutofacWebApiDependencyResolver(Container);
@@ -32,6 +33,8 @@ namespace NuGet.Services.Http
         public override void RegisterComponents(Autofac.ContainerBuilder builder)
         {
             base.RegisterComponents(builder);
+            
+            builder.RegisterInstance(this).As<NuGetApiService>();
 
             var config = ConfigureWebApi();
             builder.RegisterInstance(config).AsSelf();
@@ -44,7 +47,7 @@ namespace NuGet.Services.Http
                     if (nugetController != null)
                     {
                         nugetController.Host = e.Context.Resolve<ServiceHost>();
-                        nugetController.Service = e.Context.Resolve<NuGetService>();
+                        nugetController.Service = e.Context.Resolve<NuGetApiService>();
                         nugetController.Container = e.Context.Resolve<IComponentContainer>();
                     }
                 })
@@ -98,5 +101,7 @@ namespace NuGet.Services.Http
 
             return config;
         }
+
+        public abstract ApiDescriptionModelBase Describe();
     }
 }

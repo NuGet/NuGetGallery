@@ -62,9 +62,9 @@ namespace NuGet.Services.Azure
             }
         }
 
-        protected override IEnumerable<Type> GetServices()
+        protected override IEnumerable<NuGetService> GetServices()
         {
-            return _worker.GetServices();
+            return _worker.GetServices(this);
         }
 
         protected override void InitializePlatformLogging()

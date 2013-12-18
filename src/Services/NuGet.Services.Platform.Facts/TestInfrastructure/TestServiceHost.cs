@@ -14,16 +14,13 @@ namespace NuGet.Services.TestInfrastructure
 {
     public class TestServiceHost : ServiceHost
     {
-        private IEnumerable<Type> _services;
         private Action<ContainerBuilder> _componentRegistrations;
 
         public IComponentContainer Container { get; private set; }
 
-        public TestServiceHost() : this(Enumerable.Empty<Type>()) { }
-        public TestServiceHost(IEnumerable<Type> services) : this(services, null) { }
-        public TestServiceHost(IEnumerable<Type> services, Action<ContainerBuilder> componentRegistrations)
+        public TestServiceHost() : this(null) { }
+        public TestServiceHost(Action<ContainerBuilder> componentRegistrations)
         {
-            _services = services;
             _componentRegistrations = componentRegistrations;
         }
 
@@ -45,9 +42,9 @@ namespace NuGet.Services.TestInfrastructure
         {
         }
 
-        protected override IEnumerable<Type> GetServices()
+        protected override IEnumerable<NuGetService> GetServices()
         {
-            return _services;
+            return Enumerable.Empty<NuGetService>();
         }
 
         protected override IContainer Compose()
@@ -64,7 +61,7 @@ namespace NuGet.Services.TestInfrastructure
             }
 
             var container = builder.Build();
-            Container = new AutofacComponentContainer(builder.Build());
+            Container = new AutofacComponentContainer(container);
             return container;
         }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Autofac;
 using Microsoft.Owin.Hosting;
 using Microsoft.Owin.Hosting.Starter;
 using NuGet.Services.ServiceModel;
@@ -23,7 +24,7 @@ namespace NuGet.Services.Http
             var ep = Host.GetEndpoint("http");
             if (ep == null)
             {
-                ServicePlatformEventSource.Log.MissingEndpoint(Host.Description.ServiceHostName.ToString(), InstanceName.ToString(), "http");
+                ServicePlatformEventSource.Log.MissingEndpoint(InstanceName, "http");
                 return Task.FromResult(false); // Failed to start
             }
 
@@ -32,17 +33,17 @@ namespace NuGet.Services.Http
             {
                 Port = ep.Port
             };
-            ServicePlatformEventSource.Log.StartingHttpServices(Host.Description.ServiceHostName.ToString(), InstanceName.ToString(), ep.Port);
+            ServicePlatformEventSource.Log.StartingHttpServices(InstanceName, ep.Port);
             try
             {
                 _httpServerLifetime = WebApp.Start(options, Startup);
             }
             catch (Exception ex)
             {
-                ServicePlatformEventSource.Log.ErrorStartingHttpServices(Host.Description.ServiceHostName.ToString(), InstanceName.ToString(), ex);
+                ServicePlatformEventSource.Log.ErrorStartingHttpServices(InstanceName, ex);
                 throw;
             }
-            ServicePlatformEventSource.Log.StartedHttpServices(Host.Description.ServiceHostName.ToString(), InstanceName.ToString(), ep.Port);
+            ServicePlatformEventSource.Log.StartedHttpServices(InstanceName, ep.Port);
 
             return base.OnStart();
         }
@@ -62,6 +63,23 @@ namespace NuGet.Services.Http
             _shutdownSource.SetResult(null);
         }
 
-        protected abstract void Startup(IAppBuilder app);
+        protected virtual void Startup(IAppBuilder app)
+        {
+            app.Use(async (ctx, next) =>
+            {
+                await next();
+                await Heartbeat();
+            });
+            Configure(app);
+        }
+
+        protected abstract void Configure(IAppBuilder app);
+
+        public override void RegisterComponents(ContainerBuilder builder)
+        {
+            base.RegisterComponents(builder);
+
+            builder.RegisterInstance(this).As<NuGetHttpService>();
+        }
     }
 }

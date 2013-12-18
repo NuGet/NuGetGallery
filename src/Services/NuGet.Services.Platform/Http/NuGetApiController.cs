@@ -12,7 +12,7 @@ namespace NuGet.Services.Http
     public class NuGetApiController : ApiController
     {
         public ServiceHost Host { get; set; }
-        public NuGetService Service { get; set; }
+        public NuGetApiService Service { get; set; }
         public IComponentContainer Container { get; set; }
 
         public NuGetApiController()

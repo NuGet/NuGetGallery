@@ -7,7 +7,7 @@ using NuGet.Services.ServiceModel;
 
 namespace NuGet.Services.Http.Models
 {
-    public class HostResponseModel
+    public class HostInfoResponseModel
     {
         public string Environment { get; set; }
         public int Datacenter { get; set; }
@@ -17,12 +17,12 @@ namespace NuGet.Services.Http.Models
 
         public AssemblyResponseModel Runtime { get; set; }
 
-        public Uri Services { get; set; }
+        public Uri ServiceInstances { get; set; }
         public Uri Processes { get; set; }
         public Uri Tracing { get; set; }
 
-        public HostResponseModel() { }
-        public HostResponseModel(ServiceHostDescription hostDesc, AssemblyResponseModel runtime)
+        public HostInfoResponseModel() { }
+        public HostInfoResponseModel(ServiceHostDescription hostDesc, AssemblyResponseModel runtime)
         {
             Environment = hostDesc.ServiceHostName.Datacenter.Environment;
             Datacenter = hostDesc.ServiceHostName.Datacenter.Id;

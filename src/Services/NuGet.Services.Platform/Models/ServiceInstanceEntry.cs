@@ -49,14 +49,14 @@ namespace NuGet.Services.Models
         public ServiceInstanceEntry(ServiceInstanceName instance, AssemblyInformation runtime)
         {
             Host = instance.Host;
-            RowKey = instance.FullInstanceName;
+            RowKey = instance.ShortName;
             Timestamp = DateTimeOffset.UtcNow;
 
             Environment = instance.Host.Datacenter.Environment;
             DatacenterId = instance.Host.Datacenter.Id;
             ServiceHost = instance.Host.Name;
-            FullName = instance.FullInstanceName;
-            Name = instance.Name;
+            FullName = instance.ShortName;
+            Name = instance.ServiceName;
             Instance = instance.InstanceId;
 
             BuildCommit = runtime.BuildCommit;
@@ -69,7 +69,7 @@ namespace NuGet.Services.Models
         {
             return new TableStorageKey(
                 serviceInstanceName.Host.ToString().ToLowerInvariant(),
-                serviceInstanceName.FullInstanceName);
+                serviceInstanceName.ShortName);
         }
 
         private ServiceHostName ParseKey()

@@ -23,6 +23,7 @@ namespace NuGet.Services.ServiceModel
     public abstract class NuGetService : IDisposable
     {
         private const string TraceTableBaseName = "Trace";
+        private long _lastHeartbeatTicks = 0;
         
         private SinkSubscription<WindowsAzureTableSink> _globalSinkSubscription;
         private ServiceInstanceEntry _instanceEntry;
@@ -34,6 +35,11 @@ namespace NuGet.Services.ServiceModel
         public StorageHub Storage { get; set; }
         public ConfigurationHub Configuration { get; set; }
         public ILifetimeScope Container { get; protected set; }
+
+        public DateTimeOffset? LastHeartbeat
+        {
+            get { return _lastHeartbeatTicks == 0 ? (DateTimeOffset?)null : new DateTimeOffset(_lastHeartbeatTicks, TimeSpan.Zero); }
+        }
 
         public string TempDirectory { get; protected set; }
 
@@ -56,7 +62,8 @@ namespace NuGet.Services.ServiceModel
             Container = scope;
             _instanceEntry = instanceEntry;
 
-            scope.InjectProperties(this);
+            Storage = scope.Resolve<StorageHub>();
+            Configuration = scope.Resolve<ConfigurationHub>();
 
             if (Host == null)
             {
@@ -99,7 +106,11 @@ namespace NuGet.Services.ServiceModel
 
         public virtual Task Heartbeat()
         {
-            _instanceEntry.LastHeartbeat = DateTimeOffset.UtcNow;
+            var beatTime = DateTimeOffset.UtcNow;
+            Interlocked.Exchange(ref _lastHeartbeatTicks, beatTime.Ticks);
+            
+            // TODO: PERF: This part won't be able to be synchronous for long...
+            _instanceEntry.LastHeartbeat = beatTime;
             return Storage.Primary.Tables.Table<ServiceInstanceEntry>().InsertOrReplace(_instanceEntry);
         }
 
