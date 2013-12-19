@@ -1,57 +1,56 @@
-﻿<!DOCTYPE html> 
+﻿<!DOCTYPE html>
 <html lang="en" class="static " data-root="@Href("~/")">
-    <head>
-        <meta charset="utf-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        @RenderSection("OpenGraph", required: false)
-        <title>
-            @(Config.Current.Brand) 
-            @(String.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)</title>
-        
-        @Styles.Render("~/Content/css")
-        @Styles.Render("~/Content/font-awesome/css")
-        <!--[if IE 7]>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>
+    @(Config.Current.Brand)
+    @(String.IsNullOrWhiteSpace(ViewBag.Title) ? "" : ("| " + (string)ViewBag.Title.ToLower()))</title>
+
+  @Styles.Render("~/Content/css")
+  @Styles.Render("~/Content/font-awesome/css")
+  <!--[if IE 7]>
         @Styles.Render("~/Content/font-awesome-ie7.min.css")
         <![endif]-->
 
-        <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
-        @Scripts.Render("~/Scripts/modernizr")
-        @ViewHelpers.AnalyticsScript()
-        @RenderSection("TopScripts", required: false)
-        @ViewHelpers.ReleaseMeta()
-    </head>
-    <body>
-        <div id="service-alert"></div>
-        <div id="outer-wrapper">
-            <div id="content-wrapper">
-                <header class="main">
-                    <div id="logo"><a href="@Url.Home()">@(Config.Current.Brand)</a></div>
-                    @Html.Partial("UserDisplay")
-                </header>
-                <nav class="main">
-                    @Html.Partial( "SiteMenu")
-                    <div id="searchBox" role="search">
-                        <form action="@Url.PackageList()" method="get">
-                            <input name="q" id="searchBoxInput" class="expanding-search" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" />
-                            <input id="searchBoxSubmit" type="submit" value=" " />
-                        </form>
-                    </div>
-                </nav>
-                <div id="body" role="main">
-                    @if (TempData.ContainsKey("Message"))
-                    {
-                        <p class="message">@TempData["Message"]</p>
-                    }
-                    @RenderBody()
-                </div>
-            </div>
-            <div id="layout-footer" class="group">
-                <footer id="footer">
-                    @Html.Partial("LayoutFooter")
-                </footer>
-            </div>
+  <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
+  @Scripts.Render("~/Scripts/modernizr")
+  @RenderSection("TopScripts", required: false)
+</head>
+<body>
+  <!--
+  <div id="service-alert"></div>
+  -->
+  <div id="outer-wrapper">
+    <div id="content-wrapper">
+      <header class="main">
+        <div id="logo"><a href="@Url.Home()">@(Config.Current.Brand)</a></div>
+        @Html.Partial("UserDisplay")
+      </header>
+      <nav class="main">
+        @Html.Partial("SiteMenu")
+        <div id="searchBox" role="search">
+          <form action="@Url.PackageList()" method="get">
+            <input name="q" id="searchBoxInput" class="expanding-search" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" />
+            <input id="searchBoxSubmit" type="submit" value=" " />
+          </form>
         </div>
-        @Scripts.Render("~/Scripts/all")
-        @RenderSection("BottomScripts", required: false)
-    </body>
+      </nav>
+      <div id="body" role="main">
+        @if (TempData.ContainsKey("Message")) {
+
+          <p class="message">@TempData["Message"]</p>
+        }
+        @RenderBody()
+      </div>
+    </div>
+    <div id="layout-footer" class="group">
+      <footer id="footer">
+        @Html.Partial("LayoutFooter")
+      </footer>
+    </div>
+  </div>
+  @Scripts.Render("~/Scripts/all")
+  @RenderSection("BottomScripts", required: false)
+</body>
 </html>
