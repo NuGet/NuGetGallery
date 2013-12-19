@@ -62,18 +62,18 @@
     <Folder Include="Properties" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="private.InvocationsStore.sql" />
-    <Build Include="jobs.EnqueueInvocation.sql" />
-    <Build Include="jobs.CompleteInvocation.sql" />
-    <Build Include="jobs.SetInvocationStatus.sql" />
-    <Build Include="jobs.SuspendInvocation.sql" />
-    <Build Include="jobs.sql" />
-    <Build Include="jobs.DequeueInvocation.sql" />
-    <Build Include="jobs.ExtendInvocation.sql" />
-    <Build Include="private.sql" />
-    <Build Include="jobs.Invocations.sql" />
-    <Build Include="jobs.PurgeInvocation.sql" />
-    <Build Include="jobs.ActiveInvocations.sql" />
+    <Build Include="private.table.InvocationsStore.sql" />
+    <Build Include="jobs.sproc.EnqueueInvocation.sql" />
+    <Build Include="jobs.sproc.CompleteInvocation.sql" />
+    <Build Include="jobs.sproc.SetInvocationStatus.sql" />
+    <Build Include="jobs.sproc.SuspendInvocation.sql" />
+    <Build Include="jobs.schema.sql" />
+    <Build Include="jobs.sproc.DequeueInvocation.sql" />
+    <Build Include="jobs.sproc.ExtendInvocation.sql" />
+    <Build Include="private.schema.sql" />
+    <Build Include="jobs.view.Invocations.sql" />
+    <Build Include="jobs.sproc.PurgeInvocation.sql" />
+    <Build Include="jobs.view.ActiveInvocations.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="NuGet.Services.Jobs.Database.refactorlog" />
