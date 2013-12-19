@@ -24,6 +24,7 @@ using Autofac.Core;
 using Autofac;
 using NuGet.Services.ServiceModel;
 using NuGet.Services.Jobs.Api.Models;
+using NuGet.Services.Configuration;
 
 namespace NuGet.Services.Jobs
 {
@@ -94,7 +95,7 @@ namespace NuGet.Services.Jobs
                    .Where(d => d != null);
             builder.RegisterInstance(jobdefs).As<IEnumerable<JobDescription>>();
 
-            builder.RegisterType<InvocationQueue>().AsSelf().UsingConstructor(typeof(StorageHub));
+            builder.RegisterModule(new JobComponentsModule());
         }
 
         public override Task<object> Describe()

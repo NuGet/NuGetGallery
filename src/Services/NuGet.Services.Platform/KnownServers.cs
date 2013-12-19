@@ -8,7 +8,19 @@ namespace NuGet.Services
 {
     public enum KnownSqlServer
     {
+        /// <summary>
+        /// The primary SQL Server for APIv3 Data
+        /// </summary>
         Primary,
+
+        /// <summary>
+        /// The SQL Server for Legacy APIv2 Data
+        /// </summary>
+        Legacy,
+
+        /// <summary>
+        /// The SQL Server for Warehouse data
+        /// </summary>
         Warehouse
     }
 
