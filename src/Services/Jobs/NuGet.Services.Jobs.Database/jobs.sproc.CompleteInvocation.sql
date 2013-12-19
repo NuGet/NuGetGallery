@@ -1,5 +1,5 @@
 ﻿CREATE PROCEDURE [jobs].[CompleteInvocation]
-	@InvocationId uniqueidentifier,
+	@Id uniqueidentifier,
 	@Version int,
 	@Status nvarchar(50),
 	@Result nvarchar(50),
@@ -8,7 +8,7 @@
 AS
 	-- Add a new row for the specified Invocation indicating its new state and completion marker
 	INSERT INTO [private].InvocationsStore(
-			[InvocationId],
+			[Id],
 			[Job],
 			[Source],
 			[Payload],
@@ -24,7 +24,7 @@ AS
 			[NextVisibleAt],
 			[UpdatedAt])
 	OUTPUT	inserted.*
-	SELECT	InvocationId,
+	SELECT	Id,
 			Job, 
 			Source, 
 			Payload, 
@@ -40,4 +40,4 @@ AS
 			[NextVisibleAt],
 			SYSDATETIMEOFFSET() AS [UpdatedAt]
 	FROM	[jobs].ActiveInvocations
-	WHERE	[InvocationId] = @InvocationId AND [Version] = @Version
+	WHERE	[Id] = @Id AND [Version] = @Version

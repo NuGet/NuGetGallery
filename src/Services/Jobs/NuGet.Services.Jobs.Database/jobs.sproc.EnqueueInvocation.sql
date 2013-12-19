@@ -5,9 +5,9 @@
 	@InstanceName nvarchar(100),
 	@NextVisibleAt datetimeoffset
 AS
-	-- Insert a row with a completely new InvocationId
+	-- Insert a row with a completely new Id
 	INSERT INTO [private].InvocationsStore(
-		[InvocationId],
+		[Id],
 		[Job], 
 		[Source], 
 		[Payload], 
@@ -23,7 +23,7 @@ AS
 		[UpdatedAt])
 	OUTPUT inserted.*
 	VALUES(
-		NEWID(),				-- InvocationId
+		NEWID(),				-- Id
 		@Job,					-- Job
 		@Source,				-- Source
 		@Payload,				-- Payload

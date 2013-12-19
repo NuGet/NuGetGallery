@@ -33,36 +33,36 @@ namespace NuGet.Services.Jobs
             _connectionString = connectionString;
         }
 
-        ///// <summary>
-        ///// Dequeues the next request, if one is present
-        ///// </summary>
-        ///// <param name="invisibleFor">The period of time during which the message is invisble to other clients. The job must be <see cref="Acknowledge"/>d before this time or it will be dispatched again</param>
-        //public virtual async Task<InvocationRequest> Dequeue(TimeSpan invisibleFor, CancellationToken token)
-        //{
-        //    // Get the ID of the next invocation to process from the queue
-        //    var message = await _queue.Dequeue(invisibleFor, token);
-            
-        //    Guid invocationId;
-        //    if (message == null)
-        //    {
-        //        return null;
-        //    }
-        //    // Parse the ID
-        //    else if(!Guid.TryParse(message.AsString, out invocationId))
-        //    {
-        //        throw new FormatException(String.Format(
-        //            CultureInfo.CurrentCulture,
-        //            Strings.InvocationsQueue_InvalidInvocationId,
-        //            message.AsString));
-        //    }
-        //    else 
-        //    {
-        //        // Retrieve the invocation details from the Invocations table.
-        //        var invocation = await _table.Get(invocationId);
-        //        await _table.Update(invocation);
-        //        return new InvocationRequest(invocation, message);
-        //    }
-        //}
+        /// <summary>
+        /// Dequeues the next request, if one is present
+        /// </summary>
+        /// <param name="invisibleFor">The period of time during which the message is invisble to other clients. The job must be <see cref="Acknowledge"/>d before this time or it will be dispatched again</param>
+        public virtual async Task<Invocation> Dequeue(TimeSpan invisibleFor, CancellationToken token)
+        {
+            // Get the ID of the next invocation to process from the queue
+            var message = await _queue.Dequeue(invisibleFor, token);
+
+            Guid invocationId;
+            if (message == null)
+            {
+                return null;
+            }
+            // Parse the ID
+            else if (!Guid.TryParse(message.AsString, out invocationId))
+            {
+                throw new FormatException(String.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.InvocationsQueue_InvalidInvocationId,
+                    message.AsString));
+            }
+            else
+            {
+                // Retrieve the invocation details from the Invocations table.
+                var invocation = await _table.Get(invocationId);
+                await _table.Update(invocation);
+                return new InvocationRequest(invocation, message);
+            }
+        }
 
         ///// <summary>
         ///// Acknowledges that the request has completed successfully, removing the message from the queue.

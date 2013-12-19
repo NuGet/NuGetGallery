@@ -4,7 +4,7 @@
 CREATE TABLE [private].[InvocationsStore]
 (
     [Version] int NOT NULL PRIMARY KEY IDENTITY,
-    [InvocationId] uniqueidentifier NOT NULL,
+    [Id] uniqueidentifier NOT NULL,
     [Job] nvarchar(50) NOT NULL,
     [Source] nvarchar(50) NOT NULL,
     [Payload] nvarchar(max) NULL,

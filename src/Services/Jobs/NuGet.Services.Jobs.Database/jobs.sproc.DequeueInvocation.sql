@@ -14,7 +14,7 @@ AS
 		ORDER BY [NextVisibleAt]
 	)
 	INSERT INTO [private].InvocationsStore(
-			[InvocationId],
+			[Id],
 			[Job],
 			[Source],
 			[Payload],
@@ -29,7 +29,7 @@ AS
 			[NextVisibleAt],
 			[UpdatedAt])
 	OUTPUT	inserted.*
-	SELECT	InvocationId, 
+	SELECT	Id, 
 			Job, 
 			Source, 
 			Payload, 

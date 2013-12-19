@@ -1,4 +1,4 @@
 ﻿CREATE PROCEDURE [jobs].[PurgeInvocation]
-	@InvocationId uniqueidentifier
+	@Id uniqueidentifier
 AS
-	DELETE FROM [private].InvocationsStore WHERE InvocationId = @InvocationId
+	DELETE FROM [private].InvocationsStore WHERE Id = @Id

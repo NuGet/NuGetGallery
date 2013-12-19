@@ -14,10 +14,9 @@ namespace NuGet.Services.Jobs
     /// Contains all information about the current status of an invocation, serves as the central
     /// status record of an invocation
     /// </summary>
-    [Table("Invocations")]
-    public class Invocation : AzureTableEntity, ICloneable
+    public class Invocation
     {
-        public int Id { get; private set; }
+        public Guid Id { get; private set; }
 
         public string Job { get; set; }
         public string Source { get; set; }
