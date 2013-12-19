@@ -126,5 +126,20 @@ namespace NuGet.Services.Jobs
             invocation.EstimatedNextVisibleTime = DateTimeOffset.UtcNow + visibilityTimeout;
             await _table.Update(invocation);
         }
+
+        internal Task Suspend(int p, JobContinuation jobContinuation)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal Task Complete(int p1, ExecutionResult executionResult, string p2)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal Task SetStatus(int p, InvocationStatus invocationStatus)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

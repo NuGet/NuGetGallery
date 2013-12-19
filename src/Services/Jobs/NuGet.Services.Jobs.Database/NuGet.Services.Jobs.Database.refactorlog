@@ -7,4 +7,32 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="Complete" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="6558e0c4-ea8a-49c1-b841-70732d3ac5f2" ChangeDateTime="12/19/2013 03:15:42">
+    <Property Name="ElementName" Value="[jobs].[UpdateInvocation]" />
+    <Property Name="ElementType" Value="SqlProcedure" />
+    <Property Name="ParentElementName" Value="[jobs]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[SetInvocationStatus]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="cf79babf-c3b3-4f0a-bc54-e18b2af20308" ChangeDateTime="12/19/2013 03:16:49">
+    <Property Name="ElementName" Value="[jobs].[Invocations].[RowVersion]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[jobs].[Invocations]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="PopReceipt" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="6ca86f86-bdb5-4a93-afb5-bb840abcf3d7" ChangeDateTime="12/19/2013 03:17:11">
+    <Property Name="ElementName" Value="[jobs].[Invocations].[PopReceipt]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[jobs].[Invocations]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="RowVersion" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="c02beafc-b536-4661-adf2-12fe88d5b9b3" ChangeDateTime="12/19/2013 04:48:24">
+    <Property Name="ElementName" Value="[private].[Invocations].[LastUpdatedAt]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[private].[Invocations]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="UpdatedAt" />
+  </Operation>
 </Operations>

@@ -24,7 +24,12 @@ namespace NuGet.Services.Jobs
         Queued,
 
         /// <summary>
-        /// Indicates that the invocation has been dequeued by a worker and is executing
+        /// Indicates that the invocation has been dequeued from the data store
+        /// </summary>
+        Dequeued,
+
+        /// <summary>
+        /// Indicates that the invocation has been received by a worker and is executing
         /// </summary>
         Executing,
 

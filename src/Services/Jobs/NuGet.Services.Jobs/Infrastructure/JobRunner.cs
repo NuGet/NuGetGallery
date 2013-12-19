@@ -131,9 +131,7 @@ namespace NuGet.Services.Jobs
             }
             
             // Record that we are executing the job
-            request.Invocation.LastDequeuedAt = Clock.UtcNow;
-            request.Invocation.Status = InvocationStatus.Executing;
-            await Queue.Update(request.Invocation);
+            await Queue.SetStatus(request.Invocation.Id, InvocationStatus.Executing);
 
             // Create the request.Invocation context and start capturing the logs
             var capture = await StartCapture(request);
@@ -188,44 +186,21 @@ namespace NuGet.Services.Jobs
             if (result.Result != ExecutionResult.Suspended)
             {
                 // If we're not suspended, the invocation has completed
+                InvocationEventSource.Log.Ended();
                 request.Invocation.Status = InvocationStatus.Executed;
+                await Queue.Complete(request.Invocation.Id, result.Result, result.Exception == null ? null : result.Exception.ToString());
+
+                // If we've completed and there's a repeat, queue the repeat
+                if (result.RescheduleIn != null)
+                {
+                    // Rescheule it to run again
+                    await EnqueueRepeat(request.Invocation, result);
+                }
             }
             else
             {
-                request.Invocation.LastSuspendedAt = Clock.UtcNow;
-            }
-
-            // If we are in a termination state, report that
-            if (result.Result == ExecutionResult.Completed ||
-                result.Result == ExecutionResult.Faulted ||
-                result.Result == ExecutionResult.Aborted ||
-                result.Result == ExecutionResult.Crashed)
-            {
-                request.Invocation.CompletedAt = Clock.UtcNow;
-                InvocationEventSource.Log.Ended();
-            }
-
-            // If we faulted, report the error
-            if (result.Exception != null)
-            {
-                request.Invocation.ResultMessage = result.Exception.ToString();
-            }
-
-            // Update the status of the request.Invocation
-            await Queue.Update(request.Invocation);
-            
-            // If we're suspended, queue a continuation
-            if (result.Result == ExecutionResult.Suspended)
-            {
-                Debug.Assert(result.Continuation != null);
-                await EnqueueContinuation(request.Invocation, result);
-            }
-            
-            // If we've completed and there's a repeat, queue the repeat
-            if (result.RescheduleIn != null)
-            {
-                // Rescheule it to run again
-                await EnqueueRepeat(request.Invocation, result);
+                // Suspend the job until the continuation is ready to run
+                await Queue.Suspend(request.Invocation.Id, result.Continuation);
             }
         }
 
@@ -234,21 +209,6 @@ namespace NuGet.Services.Jobs
             var capture = new InvocationLogCapture(request.Invocation, Storage, Path.Combine(Path.GetTempPath(), "InvocationLogs"));
             await capture.Start();
             return capture;
-        }
-
-        private Task EnqueueContinuation(Invocation continuation, InvocationResult result)
-        {
-            var invocation = new Invocation(
-                continuation.Id,
-                continuation.Job,
-                Constants.Source_AsyncContinuation,
-                result.Continuation.Parameters)
-                {
-                    Continuation = true,
-                    LastSuspendedAt = continuation.LastSuspendedAt.Value,
-                    EstimatedContinueAt = Clock.UtcNow + result.Continuation.WaitPeriod
-                };
-            return Queue.Enqueue(invocation, result.Continuation.WaitPeriod);
         }
 
         private Task EnqueueRepeat(Invocation repeat, InvocationResult result)

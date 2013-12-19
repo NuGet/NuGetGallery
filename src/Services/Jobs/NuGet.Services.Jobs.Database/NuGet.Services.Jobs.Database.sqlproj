@@ -23,6 +23,9 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
+    <DefaultSchema>jobs</DefaultSchema>
+    <IncludeSchemaNameInFileName>True</IncludeSchemaNameInFileName>
+    <DacVersion>3.0.0.0</DacVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -59,20 +62,24 @@
     <Folder Include="Properties" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="Invocations.sql" />
-    <Build Include="EnqueueInvocation.sql" />
-    <Build Include="DequeueInvocation.sql" />
-    <Build Include="GetPendingInvocations.sql" />
-    <Build Include="CompleteInvocation.sql" />
-    <Build Include="UpdateInvocation.sql" />
-    <Build Include="GetInProcessInvocations.sql" />
-    <Build Include="SuspendInvocation.sql" />
-    <Build Include="GetHiddenInvocations.sql" />
+    <Build Include="private.InvocationsStore.sql" />
+    <Build Include="jobs.EnqueueInvocation.sql" />
+    <Build Include="jobs.CompleteInvocation.sql" />
+    <Build Include="jobs.SetInvocationStatus.sql" />
+    <Build Include="jobs.SuspendInvocation.sql" />
+    <Build Include="jobs.sql" />
+    <Build Include="jobs.DequeueInvocation.sql" />
+    <Build Include="jobs.ExtendInvocation.sql" />
+    <Build Include="private.sql" />
+    <Build Include="jobs.Invocations.sql" />
+    <Build Include="jobs.PurgeInvocation.sql" />
+    <Build Include="jobs.ActiveInvocations.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="NuGet.Services.Jobs.Database.refactorlog" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LocalDb.publish.xml" />
+    <None Include="NuGet.Services.Jobs.Database.publish.xml" />
   </ItemGroup>
 </Project>
