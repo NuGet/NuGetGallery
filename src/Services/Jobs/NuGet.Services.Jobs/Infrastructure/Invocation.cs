@@ -17,7 +17,7 @@ namespace NuGet.Services.Jobs
     [Table("Invocations")]
     public class Invocation : AzureTableEntity, ICloneable
     {
-        public Guid Id { get; private set; }
+        public int Id { get; private set; }
 
         public string Job { get; set; }
         public string Source { get; set; }
