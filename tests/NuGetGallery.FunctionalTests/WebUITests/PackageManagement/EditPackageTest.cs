@@ -72,15 +72,23 @@
             yield return verifyEditRequest;
             verifyEditRequest = null;
 
-            // TO DO:  Post isn't weorking and I need to investigate why.  I'll investigate more later, but the current verification is still 
-            // useful in the meantime. [clayco 11/13/2013]
-            WebTestRequest verifyEditPostRequest = AssertAndValidationHelper.GetEditPackagePostRequest(this, packageId, "1.0.0", description: "This is a new description.");
+            WebTestRequest verifyEditPostRequest = AssertAndValidationHelper.GetEditPackagePostRequest(this, packageId, "1.0.0", description: "This is a new description.", authors: "clayco", copyright: "Copyright 2014", tags:"Tag1 Tag2", summary:"This is a summary.");
             ValidationRuleFindText newDescriptionValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(@"This is a new description.");
-            //ValidationRuleFindText pendingEditValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(@"An edit is pending for this package version. You are seeing the <em>edited</em> package description now.");
+            ValidationRuleFindText pendingEditValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(@"An edit is pending for this package version.");          
             verifyEditPostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(newDescriptionValidationRule.Validate);
-            //verifyEditPostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(pendingEditValidationRule.Validate);
+            verifyEditPostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(pendingEditValidationRule.Validate);
             yield return verifyEditPostRequest;
             verifyEditPostRequest = null;
+
+            // wait a minute.
+            System.Threading.Thread.Sleep(60000);
+            WebTestRequest verifyProcessedRequest = new WebTestRequest(UrlHelper.GetPackagePageUrl(packageId, "1.0.0"));
+            ValidationRuleFindText noPendingEditValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(@"An edit is pending for this package version.", false);
+            verifyProcessedRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(newDescriptionValidationRule.Validate);
+            verifyProcessedRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(noPendingEditValidationRule.Validate);
+            yield return verifyProcessedRequest;
+            verifyProcessedRequest = null;
+
         }
     }
 }

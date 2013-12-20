@@ -48,8 +48,15 @@
                 waittime += 30;
             }
 
+            //send a request to home page and check aggregate stats numbers.
+            WebTestRequest pageRequest = new WebTestRequest(UrlHelper.BaseUrl);
+            ValidationRuleFindText homePageTextValidationRuleAggStats = AssertAndValidationHelper.GetValidationRuleForFindText(aggregateStatsAfterDownload.ToString("N0"));
+            pageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(homePageTextValidationRuleAggStats.Validate);
+            yield return pageRequest;
+            pageRequest = null;
+
             //check download count. New download count should be old one + 1.
-            Assert.IsTrue( aggregateStatsBeforeDownload == (aggregateStatsAfterDownload -1 ), "Aggregate stats count is not increased by 1 after downloading. Aggregate stats before download :{0}. Stats after download : {1}", aggregateStatsBeforeDownload, aggregateStatsAfterDownload);
+            Assert.IsTrue( aggregateStatsBeforeDownload < aggregateStatsAfterDownload, "Aggregate stats count is not increased by 1 after downloading. Aggregate stats before download :{0}. Stats after download : {1}", aggregateStatsBeforeDownload, aggregateStatsAfterDownload);
         }
 
       
