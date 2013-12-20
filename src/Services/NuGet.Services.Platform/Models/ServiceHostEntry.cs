@@ -35,6 +35,7 @@ namespace NuGet.Services.Models
         public string Name { get; set; }
         public string FullName { get; set; }
         public string MachineName { get; set; }
+        public int InstancePort { get; set; }
 
         [Obsolete("For serialization only")]
         public ServiceHostEntry() { }

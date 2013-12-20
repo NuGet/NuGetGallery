@@ -19,7 +19,7 @@ namespace NuGet.Services.Http.Controllers
             };
         }
 
-        [Route("host", Name = Routes.GetHostInfo)]
+        [Route("self", Name = Routes.GetHostInfo)]
         public HostInformationModel GetHostInfo()
         {
             return new HostInformationModel(
@@ -30,7 +30,7 @@ namespace NuGet.Services.Http.Controllers
                 };
         }
 
-        [Route("host/services", Name = Routes.GetServices)]
+        [Route("self/services", Name = Routes.GetServices)]
         public Task<ServiceInstanceModel[]> GetServices()
         {
             return Task.WhenAll(Host.Instances.Select(async s =>

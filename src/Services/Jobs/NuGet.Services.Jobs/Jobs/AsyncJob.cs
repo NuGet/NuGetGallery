@@ -11,13 +11,13 @@ namespace NuGet.Services.Jobs.Jobs
     {
         public string Message { get; set; }
 
-        protected internal override async Task<JobContinuation> Execute()
+        protected internal override Task<JobContinuation> Execute()
         {
             Log.Started();
             Log.Suspending();
-            return Suspend(TimeSpan.FromMinutes(1), new Dictionary<string, string>() {
+            return Task.FromResult(Suspend(TimeSpan.FromMinutes(1), new Dictionary<string, string>() {
                 {"Message", "Hello!"}
-            });
+            }));
         }
 
         protected internal override async Task<JobContinuation> Resume()

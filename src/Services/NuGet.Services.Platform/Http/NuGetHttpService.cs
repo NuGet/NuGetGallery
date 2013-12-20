@@ -31,7 +31,7 @@ namespace NuGet.Services.Http
             // Set up start options
             var options = new StartOptions()
             {
-                Port = ep.Port
+                Port = 80
             };
             ServicePlatformEventSource.Log.StartingHttpServices(InstanceName, ep.Port);
             try

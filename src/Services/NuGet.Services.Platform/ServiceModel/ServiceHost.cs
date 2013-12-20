@@ -72,7 +72,7 @@ namespace NuGet.Services.ServiceModel
 
         public virtual IPEndPoint GetEndpoint(string name)
         {
-            throw new NotSupportedException(Strings.ServiceHost_DoesNotSupportEndpoints);
+            return null;
         }
 
         public virtual string GetConfigurationSetting(string fullName)
@@ -97,7 +97,9 @@ namespace NuGet.Services.ServiceModel
                 Storage = _container.Resolve<StorageHub>();
 
                 // Now get the services
-                Instances = GetServices().ToList().AsReadOnly();
+                var list = GetServices().ToList();
+                list.Add(GetManagementService());
+                Instances = list.AsReadOnly();
 
                 // Report status
                 await ReportHostInitialized();
@@ -139,6 +141,14 @@ namespace NuGet.Services.ServiceModel
         protected virtual async Task ReportHostInitialized()
         {
             var entry = new ServiceHostEntry(Description);
+            
+            // Get the http-instance endpoint if it exists
+            var instanceEp = GetEndpoint(Constants.HttpInstanceEndpoint);
+            if (instanceEp != null)
+            {
+                entry.InstancePort = instanceEp.Port;
+            }
+
             await Storage.Primary.Tables.Table<ServiceHostEntry>().InsertOrReplace(entry);
         }
 
@@ -155,6 +165,11 @@ namespace NuGet.Services.ServiceModel
         /// </summary>
         /// <returns></returns>
         protected abstract IEnumerable<NuGetService> GetServices();
+        /// <summary>
+        /// Gets the instance of the HTTP management service for this host
+        /// </summary>
+        /// <returns></returns>
+        protected abstract NuGetService GetManagementService();
 
         private async Task RunService(NuGetService service)
         {

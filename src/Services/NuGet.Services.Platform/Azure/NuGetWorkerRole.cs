@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using NuGet.Services.Http;
 using NuGet.Services.ServiceModel;
 
 namespace NuGet.Services.Azure
@@ -75,5 +76,6 @@ namespace NuGet.Services.Azure
         }
 
         protected internal abstract IEnumerable<NuGetService> GetServices(ServiceHost host);
+        protected internal abstract NuGetHttpService GetManagementService(ServiceHost host);
     }
 }

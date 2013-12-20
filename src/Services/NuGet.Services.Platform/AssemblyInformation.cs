@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NuGet.Services.Storage;
 
 namespace NuGet.Services
@@ -11,6 +12,7 @@ namespace NuGet.Services
     [PropertySerializer(typeof(AssemblyInformationPropertySerializer))]
     public class AssemblyInformation
     {
+        [JsonConverter(typeof(AssemblyFullNameConverter))]
         public AssemblyName FullName { get; private set; }
         public string BuildBranch { get; private set; }
         public string BuildCommit { get; private set; }

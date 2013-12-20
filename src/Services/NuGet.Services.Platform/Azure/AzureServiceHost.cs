@@ -70,6 +70,11 @@ namespace NuGet.Services.Azure
             return _worker.GetServices(this);
         }
 
+        protected override NuGetService GetManagementService()
+        {
+            return _worker.GetManagementService(this);
+        }
+
         protected override void InitializeLocalLogging()
         {
             _platformEventStream = new ObservableEventListener();

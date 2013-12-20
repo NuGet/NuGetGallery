@@ -207,6 +207,13 @@ namespace NuGet.Services.Jobs
                         {
                             status = InvocationStatus.Suspended
                         });
+                case InvocationListCriteria.Executing:
+                    return ConnectAndQuery(
+                        "SELECT * FROM jobs.ActiveInvocations WHERE [Status] = @status",
+                        new
+                        {
+                            status = InvocationStatus.Executing
+                        });
                 default:
                     return Task.FromResult(Enumerable.Empty<Invocation>());
             }

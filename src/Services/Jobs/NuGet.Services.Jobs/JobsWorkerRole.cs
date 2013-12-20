@@ -28,8 +28,11 @@ namespace NuGet.Services.Jobs
             {
                 yield return new JobsService(host);
             }
+        }
 
-            yield return new JobsManagementService(host);
+        protected override NuGetHttpService GetManagementService(ServiceHost host)
+        {
+            return new JobsManagementService(host);
         }
     }
 }

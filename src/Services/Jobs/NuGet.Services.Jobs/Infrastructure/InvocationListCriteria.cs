@@ -11,6 +11,7 @@ namespace NuGet.Services.Jobs
         All,
         Active,
         Completed,
+        Executing,
         Pending,
         Hidden,
         Suspended

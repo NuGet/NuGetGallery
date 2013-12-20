@@ -1,5 +1,5 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildThisFileDirectory)\NuGetGallery.tasks.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)\NuGet.tasks.targets" />
   <Import Project="$(MsBuildThisFileDirectory)\NuGet.props" />
   <PropertyGroup Condition="'$(Configuration)' == ''">
     <Configuration>Debug</Configuration>
