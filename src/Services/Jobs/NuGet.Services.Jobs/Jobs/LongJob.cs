@@ -21,24 +21,7 @@ namespace NuGet.Services.Jobs
             await Task.Delay(TimeSpan.FromMinutes(1));
             Log.StillRunning();
 
-            // Sleep for a minute and report that we're still running
-            await Task.Delay(TimeSpan.FromMinutes(1));
-            Log.StillRunning();
-
-            // Sleep for a minute and report that we're still running
-            await Task.Delay(TimeSpan.FromMinutes(1));
-            Log.StillRunning();
-
-            // Sleep for a minute and report that we're still running
-            await Task.Delay(TimeSpan.FromMinutes(1));
-            Log.StillRunning();
-
-            // Sleep for a minute and report that we're still running
-            await Task.Delay(TimeSpan.FromMinutes(1));
-            Log.StillRunning();
-
-            // Sleep for a minute and report that we're still running
-            await Task.Delay(TimeSpan.FromMinutes(1));
+            await Task.Delay(TimeSpan.FromSeconds(10 * new Random().Next(1, 5)));
             Log.StillRunning();
         }
     }
@@ -46,6 +29,9 @@ namespace NuGet.Services.Jobs
     [EventSource(Name = "NuGet-Jobs-Long")]
     public class LongEventSource : EventSource
     {
+        public static LongEventSource Log = new LongEventSource();
+        private LongEventSource() { }
+
         [Event(
             eventId: 1,
             Message = "Still running")]

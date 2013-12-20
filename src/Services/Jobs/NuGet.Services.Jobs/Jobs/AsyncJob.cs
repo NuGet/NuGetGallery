@@ -14,7 +14,6 @@ namespace NuGet.Services.Jobs.Jobs
         protected internal override async Task<JobContinuation> Execute()
         {
             Log.Started();
-            await Task.Delay(TimeSpan.FromMinutes(1));
             Log.Suspending();
             return Suspend(TimeSpan.FromMinutes(1), new Dictionary<string, string>() {
                 {"Message", "Hello!"}

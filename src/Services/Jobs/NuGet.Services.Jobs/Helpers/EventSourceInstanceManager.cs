@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -31,15 +32,10 @@ namespace NuGet.Services.Jobs.Helpers
                 }
                 else
                 {
-                    var ctor = type.GetConstructor(Type.EmptyTypes);
-                    if (ctor != null)
-                    {
-                        eventSource = (EventSource)ctor.Invoke(new object[0]);
-                    }
-                    else
-                    {
-                        eventSource = null;
-                    }
+                    throw new MissingMemberException(String.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.EventSourceInstanceManager_EventSourceDoesNotHaveLogField,
+                        eventSourceType.AssemblyQualifiedName));
                 }
                 return eventSource;
             });

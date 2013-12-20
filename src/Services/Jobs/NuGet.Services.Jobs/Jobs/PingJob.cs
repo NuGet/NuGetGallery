@@ -22,6 +22,9 @@ namespace NuGet.Services.Jobs
     [EventSource(Name = "NuGet-Jobs-Ping")]
     public class PingEventSource : EventSource
     {
+        public static PingEventSource Log = new PingEventSource();
+        private PingEventSource() { }
+
         [Event(
             eventId: 1,
             Message = "Pong")]

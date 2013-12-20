@@ -50,8 +50,6 @@ namespace NuGet.Services.Jobs
             });
             var job = scope.GetService<JobBase>(jobdef.Implementation);
 
-            context.SetJob(jobdef, job);
-
             Func<Task<InvocationResult>> invocationThunk = () => job.Invoke(context);
             if (context.Invocation.IsContinuation)
             {
@@ -72,6 +70,8 @@ namespace NuGet.Services.Jobs
 
             try
             {
+                context.SetJob(jobdef, job);
+
                 result = await invocationThunk();
             }
             catch (Exception ex)

@@ -31,7 +31,7 @@ AS
 			Job, 
 			Source, 
 			@Payload AS Payload, 
-			7 AS [Status], -- Suspended
+			6 AS [Status], -- Suspended
 			[Result],
             [ResultMessage],
 			@InstanceName AS [UpdatedBy],

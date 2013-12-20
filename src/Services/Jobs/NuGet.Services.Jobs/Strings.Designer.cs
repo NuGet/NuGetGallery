@@ -61,6 +61,15 @@ namespace NuGet.Services.Jobs {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Event Source &apos;{0}&apos; does not have a public static field &quot;Log&quot; containing an instance of it. Event Sources must implement this pattern for all jobs..
+        /// </summary>
+        internal static string EventSourceInstanceManager_EventSourceDoesNotHaveLogField {
+            get {
+                return ResourceManager.GetString("EventSourceInstanceManager_EventSourceDoesNotHaveLogField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An invocation result cannot be incomplete!.
         /// </summary>
         internal static string InvocationResult_CannotBeIncomplete {

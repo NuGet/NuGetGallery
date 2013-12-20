@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Platform.Fac
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "NuGet.Services.Jobs.Database", "src\Services\Jobs\NuGet.Services.Jobs.Database\NuGet.Services.Jobs.Database.sqlproj", "{A8B0845E-CF36-4ADB-B641-CA8542202878}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Jobs.StressTest", "src\Services\Jobs\NuGet.Services.Jobs.StressTest\NuGet.Services.Jobs.StressTest.csproj", "{2FE7D8D4-16AD-4652-8EC4-95AE03361B55}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,10 @@ Global
 		{A8B0845E-CF36-4ADB-B641-CA8542202878}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8B0845E-CF36-4ADB-B641-CA8542202878}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A8B0845E-CF36-4ADB-B641-CA8542202878}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{2FE7D8D4-16AD-4652-8EC4-95AE03361B55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FE7D8D4-16AD-4652-8EC4-95AE03361B55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FE7D8D4-16AD-4652-8EC4-95AE03361B55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FE7D8D4-16AD-4652-8EC4-95AE03361B55}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -58,5 +64,6 @@ Global
 		{1D0164B6-92D4-455A-AC68-C30B61733748} = {69E0B03C-B1FE-47E2-BFFD-5B9474BED386}
 		{4405C24C-7F57-4826-831F-D5D7E139F02E} = {69E0B03C-B1FE-47E2-BFFD-5B9474BED386}
 		{A8B0845E-CF36-4ADB-B641-CA8542202878} = {69E0B03C-B1FE-47E2-BFFD-5B9474BED386}
+		{2FE7D8D4-16AD-4652-8EC4-95AE03361B55} = {69E0B03C-B1FE-47E2-BFFD-5B9474BED386}
 	EndGlobalSection
 EndGlobal

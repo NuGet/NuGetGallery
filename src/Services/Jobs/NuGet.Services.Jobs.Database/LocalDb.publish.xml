@@ -5,7 +5,7 @@
     <TargetDatabaseName>nuget-local-0</TargetDatabaseName>
     <DeployScriptFileName>NuGet.Services.Jobs.Database.sql</DeployScriptFileName>
     <TargetConnectionString>Data Source=(localdb)\v11.0;Integrated Security=True;Pooling=False</TargetConnectionString>
-    <BlockWhenDriftDetected>True</BlockWhenDriftDetected>
+    <BlockWhenDriftDetected>False</BlockWhenDriftDetected>
     <RegisterDataTierApplication>True</RegisterDataTierApplication>
     <ProfileVersionNumber>1</ProfileVersionNumber>
   </PropertyGroup>
