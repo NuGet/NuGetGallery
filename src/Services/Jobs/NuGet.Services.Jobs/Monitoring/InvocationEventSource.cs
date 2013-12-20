@@ -43,17 +43,14 @@ namespace NuGet.Services.Jobs.Monitoring
 
         [Event(
             eventId: 3,
-            Level = EventLevel.Critical,
-            Message = "Invocation took too long. Adjust the visibility timeout for the job. Invocation: {0}. Job: {1}. Queued At: {3}. Expired At: {4}")]
-        private void InvocationTookTooLong(Guid invocationId, string jobName, string messageId, string inserted, string expired) { WriteEvent(3, invocationId, jobName, messageId, inserted, expired); }
+            Level = EventLevel.Error,
+            Message = "Invocation {0} took too long. Adjust the visibility timeout for the job. Job: {1}. Queued At: {2}. Expired At: {3}")]
+        private void InvocationTookTooLong(Guid invocationId, string jobName, string inserted, string expired) { WriteEvent(3, invocationId, jobName, inserted, expired); }
 
         [NonEvent]
-        public void InvocationTookTooLong(InvocationRequest request)
+        public void InvocationTookTooLong(Invocation invocation)
         {
-            if (request.Message != null) // Request is not guaranteed to have a message
-            {
-                InvocationTookTooLong(InvocationContext.GetCurrentInvocationId(), request.Invocation.Job, request.Message.Id, request.Message.InsertionTime.HasValue ? request.Message.InsertionTime.Value.ToString("O") : String.Empty, request.Message.NextVisibleTime.HasValue ? request.Message.NextVisibleTime.Value.ToString("O") : String.Empty);
-            }
+            InvocationTookTooLong(invocation.Id, invocation.Job, invocation.QueuedAt.ToString("O"), invocation.NextVisibleAt.ToString("O"));
         }
 
         [Event(
@@ -140,5 +137,21 @@ namespace NuGet.Services.Jobs.Monitoring
 
         [NonEvent]
         public void Resumed() { Resumed(InvocationContext.GetCurrentInvocationId()); }
+
+        [Event(
+            eventId: 13,
+            Level = EventLevel.Informational,
+            Message = "Scheduled a repeat of '{0}' as invocation '{1}'. Expected to run in: {2}")]
+        private void ScheduledRepeat(Guid original, Guid repeat, string job, string period) { WriteEvent(13, original, repeat, job, period); }
+        [NonEvent]
+        public void ScheduledRepeat(Invocation original, Invocation repeat, TimeSpan period) { ScheduledRepeat(original.Id, repeat.Id, repeat.Job, period.ToString()); }
+
+        [Event(
+            eventId: 14,
+            Level = EventLevel.Warning,
+            Message = "Execution of invocation '{0}' was aborted because another node has taken action on it since this node last heard from it")]
+        private void Aborted(Guid invocationId) { WriteEvent(14, invocationId); }
+        [NonEvent]
+        public void Aborted(Invocation invocation) { Aborted(invocation.Id); }
     }
 }

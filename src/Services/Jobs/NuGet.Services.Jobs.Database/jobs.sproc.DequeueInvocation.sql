@@ -1,7 +1,7 @@
 ﻿CREATE PROCEDURE [jobs].[DequeueInvocation]
 (
 	@InstanceName nvarchar(100),
-	@HideUntil datetimeoffset
+	@HideUntil datetime2
 )
 AS
 	-- Find an available row to dequeue and insert a new one indicating it has been dequeued
@@ -9,38 +9,46 @@ AS
 	AS (
 		SELECT TOP (1) *
 		FROM [jobs].ActiveInvocations WITH (rowlock, readpast)
-		WHERE [NextVisibleAt] <= SYSDATETIMEOFFSET() 
+		WHERE [NextVisibleAt] <= SYSUTCDATETIME() 
 			AND Complete = 0
 		ORDER BY [NextVisibleAt]
 	)
 	INSERT INTO [private].InvocationsStore(
-			[Id],
-			[Job],
-			[Source],
-			[Payload],
-			[Status],
-			[Result],
-			[UpdatedBy],
-			[IsContinuation],
-			[DequeueCount],
-			[Complete],
-			[Dequeued],
-			[QueuedAt], 
-			[NextVisibleAt],
-			[UpdatedAt])
+            [Id],
+            [Job],
+            [Source],
+            [Payload],
+            [Status],
+            [Result],
+            [ResultMessage],
+            [UpdatedBy],
+            [LogUrl],
+            [DequeueCount],
+            [IsContinuation],
+            [Complete],
+            [LastDequeuedAt],
+            [LastSuspendedAt],
+            [CompletedAt],
+            [QueuedAt],
+            [NextVisibleAt],
+            [UpdatedAt])
 	OUTPUT	inserted.*
 	SELECT	Id, 
 			Job, 
 			Source, 
 			Payload, 
-			'Dequeued' AS [Status],
+			2 AS [Status], -- Dequeued
 			Result,
+            ResultMessage,
 			@InstanceName AS [UpdatedBy],
-			IsContinuation,
+            LogUrl,
 			DequeueCount + 1 AS [DequeueCount],
+			IsContinuation,
 			Complete,
-			1 AS [Dequeued],
+            SYSUTCDATETIME() AS [LastDequeuedAt],
+            [LastSuspendedAt],
+            [CompletedAt],
 			QueuedAt,
 			@HideUntil AS [NextVisibleAt],
-			SYSDATETIMEOFFSET() AS [UpdatedAt]
+			SYSUTCDATETIME() AS [UpdatedAt]
 	FROM cte

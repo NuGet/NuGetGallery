@@ -11,5 +11,6 @@ namespace NuGet.Services.Jobs.Api.Models
         public string Job { get; set; }
         public string Source { get; set; }
         public Dictionary<string, string> Payload { get; set; }
+        public TimeSpan? VisibilityDelay { get; set; }
     }
 }

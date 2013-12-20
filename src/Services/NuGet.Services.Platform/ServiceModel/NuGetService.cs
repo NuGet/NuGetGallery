@@ -26,7 +26,6 @@ namespace NuGet.Services.ServiceModel
         private const string TraceTableBaseName = "Trace";
         private long _lastHeartbeatTicks = 0;
         
-        private SinkSubscription<WindowsAzureTableSink> _globalSinkSubscription;
         private ServiceInstanceEntry _instanceEntry;
 
         public string ServiceName { get; private set; }
@@ -72,16 +71,12 @@ namespace NuGet.Services.ServiceModel
             }
             Host.ShutdownToken.Register(OnShutdown);
 
-            StartTracing();
-
             var ret = await OnStart();
             return ret;
         }
 
         public virtual async Task Run()
         {
-            ServiceInstanceName.SetCurrent(InstanceName);
-
             if (Host == null)
             {
                 throw new InvalidOperationException(Strings.NuGetService_HostNotSet);
@@ -91,18 +86,11 @@ namespace NuGet.Services.ServiceModel
 
         public void Dispose()
         {
-            if (_globalSinkSubscription != null)
-            {
-                _globalSinkSubscription.Dispose();
-            }
-
             var dispContainer = Container as IDisposable;
             if (dispContainer != null)
             {
                 dispContainer.Dispose();
             }
-
-            ServiceInstanceName.FreeCurrent();
         }
 
         public virtual Task Heartbeat()
@@ -132,23 +120,6 @@ namespace NuGet.Services.ServiceModel
 
         public virtual void RegisterComponents(ContainerBuilder builder)
         {
-        }
-
-        private void StartTracing()
-        {
-            // Set up worker logging
-            var listener = new ObservableEventListener();
-            var stream = listener.Where(_ => Equals(ServiceInstanceName.GetCurrent(), InstanceName));
-            foreach (var source in GetTraceEventSources())
-            {
-                listener.EnableEvents(source, EventLevel.Informational);
-            }
-            listener.EnableEvents(SemanticLoggingEventSource.Log, EventLevel.Informational);
-            listener.EnableEvents(ServicePlatformEventSource.Log, EventLevel.Informational);
-            _globalSinkSubscription = stream.LogToWindowsAzureTable(
-                InstanceName.ToString(),
-                Storage.Primary.ConnectionString,
-                tableAddress: Storage.Primary.Tables.GetTableFullName(ServiceName + TraceTableBaseName));
         }
     }
 }

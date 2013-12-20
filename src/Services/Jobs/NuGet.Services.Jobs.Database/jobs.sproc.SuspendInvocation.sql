@@ -1,40 +1,49 @@
 ﻿CREATE PROCEDURE [jobs].[SuspendInvocation]
 	@Id uniqueidentifier,
 	@Version int,
-	@InstanceName nvarchar(100),
 	@Payload nvarchar(MAX),
-	@SuspendUntil datetimeoffset
+	@SuspendUntil datetime2,
+    @LogUrl nvarchar(200),
+	@InstanceName nvarchar(100)
 AS
 	-- Add a new row for the specified Invocation indicating it has been suspended
 	INSERT INTO [private].InvocationsStore(
-			[Id],
-			[Job],
-			[Source],
-			[Payload],
-			[Status],
-			[Result],
-			[UpdatedBy],
-			[IsContinuation],
-			[DequeueCount],
-			[Complete],
-			[Dequeued],
-			[QueuedAt], 
-			[NextVisibleAt],
-			[UpdatedAt])
+            [Id],
+            [Job],
+            [Source],
+            [Payload],
+            [Status],
+            [Result],
+            [ResultMessage],
+            [UpdatedBy],
+            [LogUrl],
+            [DequeueCount],
+            [IsContinuation],
+            [Complete],
+            [LastDequeuedAt],
+            [LastSuspendedAt],
+            [CompletedAt],
+            [QueuedAt],
+            [NextVisibleAt],
+            [UpdatedAt])
 	OUTPUT	inserted.*
 	SELECT	Id,
 			Job, 
 			Source, 
 			@Payload AS Payload, 
-			[Status],
-			'Suspended' AS [Result],
+			7 AS [Status], -- Suspended
+			[Result],
+            [ResultMessage],
 			@InstanceName AS [UpdatedBy],
-			1 AS IsContinuation,
+            @LogUrl AS [LogUrl],
 			DequeueCount,
+			1 AS IsContinuation,
 			[Complete],
-			0 AS Dequeued,
+            [LastDequeuedAt],
+            SYSUTCDATETIME() AS [LastSuspendedAt],
+            [CompletedAt],
 			QueuedAt,
 			@SuspendUntil AS [NextVisibleAt],
-			SYSDATETIMEOFFSET() AS [UpdatedAt]
+			SYSUTCDATETIME() AS [UpdatedAt]
 	FROM	[jobs].ActiveInvocations
 	WHERE	[Id] = @Id AND [Version] = @Version

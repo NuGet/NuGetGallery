@@ -30,7 +30,7 @@ namespace NuGet.Services.Jobs
 {
     public class JobsService : NuGetService
     {
-        internal const string InvocationLogsContainerBaseName = "jobs-invocationlogs";
+        internal const string InvocationLogsContainerBaseName = "jobs";
         public static readonly string MyServiceName = "Jobs";
 
         private AzureTable<JobDescription> _jobsTable;

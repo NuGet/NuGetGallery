@@ -1,43 +1,49 @@
 ﻿CREATE PROCEDURE [jobs].[CompleteInvocation]
 	@Id uniqueidentifier,
 	@Version int,
-	@Status nvarchar(50),
-	@Result nvarchar(50),
+	@Result int,
 	@ResultMessage nvarchar(MAX),
+    @LogUrl nvarchar(200),
 	@InstanceName nvarchar(100)
 AS
 	-- Add a new row for the specified Invocation indicating its new state and completion marker
 	INSERT INTO [private].InvocationsStore(
-			[Id],
-			[Job],
-			[Source],
-			[Payload],
-			[Status],
-			[Result],
-			[ResultMessage],
-			[UpdatedBy],
-			[IsContinuation],
-			[DequeueCount],
-			[Complete],
-			[Dequeued],
-			[QueuedAt], 
-			[NextVisibleAt],
-			[UpdatedAt])
+            [Id],
+            [Job],
+            [Source],
+            [Payload],
+            [Status],
+            [Result],
+            [ResultMessage],
+            [UpdatedBy],
+            [LogUrl],
+            [DequeueCount],
+            [IsContinuation],
+            [Complete],
+            [LastDequeuedAt],
+            [LastSuspendedAt],
+            [CompletedAt],
+            [QueuedAt],
+            [NextVisibleAt],
+            [UpdatedAt])
 	OUTPUT	inserted.*
 	SELECT	Id,
 			Job, 
 			Source, 
 			Payload, 
-			@Status AS [Status],
+			4 AS [Status], -- Executed
 			@Result AS [Result],
 			@ResultMessage AS [ResultMessage],
 			@InstanceName AS [UpdatedBy],
+            @LogUrl AS [LogUrl],
+            [DequeueCount],
 			IsContinuation,
-			DequeueCount,
 			1 AS [Complete],
-			Dequeued,
+            [LastDequeuedAt],
+            [LastSuspendedAt],
+            SYSUTCDATETIME() AS [CompletedAt],
 			QueuedAt,
 			[NextVisibleAt],
-			SYSDATETIMEOFFSET() AS [UpdatedAt]
+			SYSUTCDATETIME() AS [UpdatedAt]
 	FROM	[jobs].ActiveInvocations
 	WHERE	[Id] = @Id AND [Version] = @Version

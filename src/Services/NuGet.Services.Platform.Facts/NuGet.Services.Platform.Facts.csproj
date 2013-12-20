@@ -89,7 +89,6 @@
     <Compile Include="ServiceModel\DatacenterNameFacts.cs" />
     <Compile Include="ServiceModel\NuGetServiceFacts.cs" />
     <Compile Include="ServiceModel\ServiceHostNameFacts.cs" />
-    <Compile Include="ServiceModel\ServiceInstanceNameFacts.cs" />
     <Compile Include="Storage\AzureTableEntityFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestInfrastructure\MoqExtensions.cs" />

@@ -25,9 +25,9 @@ namespace NuGet.Services.Composition
             return (IEnumerable<object>)Container.Resolve(typeof(IEnumerable<>).MakeGenericType(type));
         }
 
-        public IComponentContainer BeginScope()
+        public IComponentContainer BeginScope(Action<ContainerBuilder> configuration)
         {
-            return new AutofacComponentContainer(Container.BeginLifetimeScope());
+            return new AutofacComponentContainer(Container.BeginLifetimeScope(configuration));
         }
 
         public void InjectServices(object instance)

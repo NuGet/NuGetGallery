@@ -106,46 +106,6 @@ namespace NuGet.Services.ServiceModel
                 // Assert
                 Assert.True(service.WasRun);
             }
-
-            public async Task InsideTheRunMethodTheServiceInstanceNameIsCorrect()
-            {
-                // Arrange
-                var host = new TestServiceHost();
-                var container = CreateTestContainer();
-                var bogusName = new ServiceInstanceName(
-                    new ServiceHostName(
-                        new DatacenterName(
-                            "bogus",
-                            1),
-                        "bogus"),
-                    "bogus",
-                    42);
-                var evt = new TaskCompletionSource<object>();
-
-                ServiceInstanceName actual = null;
-                var service = new TestService(host) {
-                    CustomOnRun = async () => {
-                        // Wait for the other task to have tried to mess with us
-                        await evt.Task;
-
-                        actual = ServiceInstanceName.GetCurrent();
-                    }
-                };
-                await service.Start(container, ServiceInstanceEntry.FromService(service));
-
-                // Act
-                var runTask = service.Run();
-                await Task.Factory.StartNew(() =>
-                {
-                    // Set the instance name to something bogus
-                    ServiceInstanceName.SetCurrent(bogusName);
-                    evt.TrySetResult(null);
-                });
-                await runTask;
-
-                // Assert
-                Assert.Equal(service.InstanceName, actual);
-            }
         }
 
         // Helper methods

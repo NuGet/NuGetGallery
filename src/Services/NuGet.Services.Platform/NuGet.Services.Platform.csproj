@@ -159,7 +159,6 @@
     <Compile Include="Storage\AzureTableEntity.cs" />
     <Compile Include="Storage\BlobStorageHub.cs" />
     <Compile Include="Storage\DefaultTablePropertySerializer.cs" />
-    <Compile Include="Storage\JsonDictionarySerializer.cs" />
     <Compile Include="Storage\PivotedAzureTable.cs" />
     <Compile Include="Storage\PivotedTableEntity.cs" />
     <Compile Include="Storage\PropertySerializerAttribute.cs" />

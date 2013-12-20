@@ -19,12 +19,11 @@ namespace NuGet.Services.Jobs
             {
                 // Arrange
                 var job = new TestJob();
-                var invocation = new Invocation(
+                var invocation = TestHelpers.CreateInvocation(
                     Guid.NewGuid(), 
                     "Test",
-                    "Test",
-                    new Dictionary<string, string>());
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
+                    "Test");
+                var context = new InvocationContext(invocation, queue: null);
 
                 // Act
                 await job.Invoke(context);
@@ -38,7 +37,7 @@ namespace NuGet.Services.Jobs
             {
                 // Arrange
                 var job = new TestJob();
-                var invocation = new Invocation(
+                var invocation = TestHelpers.CreateInvocation(
                     Guid.NewGuid(), 
                     "Test",
                     "Test",
@@ -47,7 +46,7 @@ namespace NuGet.Services.Jobs
                         {"TestParameter", "frob"},
                         {"NotMapped", "bar"}
                     });
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
+                var context = new InvocationContext(invocation, queue: null);
 
                 // Act
                 await job.Invoke(context);
@@ -61,7 +60,7 @@ namespace NuGet.Services.Jobs
             {
                 // Arrange
                 var job = new TestJob();
-                var invocation = new Invocation(
+                var invocation = TestHelpers.CreateInvocation(
                     Guid.NewGuid(),
                     "Test",
                     "Test",
@@ -69,7 +68,7 @@ namespace NuGet.Services.Jobs
                     {
                         {"ConvertValue", "frob"},
                     });
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
+                var context = new InvocationContext(invocation, queue: null);
 
                 // Act
                 await job.Invoke(context);
@@ -83,12 +82,11 @@ namespace NuGet.Services.Jobs
             {
                 // Arrange
                 var job = new Mock<TestJob>() { CallBase = true };
-                var invocation = new Invocation(
+                var invocation = TestHelpers.CreateInvocation(
                     Guid.NewGuid(),
                     "Jerb",
-                    "Test",
-                    new Dictionary<string, string>());
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
+                    "Test");
+                var context = new InvocationContext(invocation, queue: null);
 
                 // Act
                 var result = await job.Object.Invoke(context);
@@ -102,14 +100,13 @@ namespace NuGet.Services.Jobs
             {
                 // Arrange
                 var job = new Mock<TestJob>() { CallBase = true };
-                var invocation = new Invocation(
+                var invocation = TestHelpers.CreateInvocation(
                     Guid.NewGuid(),
                     "Jerb",
-                    "Test",
-                    new Dictionary<string, string>());
+                    "Test");
                 var ex = new NotImplementedException("Broked!");
                 job.Setup(j => j.Execute()).Throws(ex);
-                var context = new InvocationContext(new InvocationRequest(invocation), queue: null);
+                var context = new InvocationContext(invocation, queue: null);
 
                 // Act
                 var result = await job.Object.Invoke(context);

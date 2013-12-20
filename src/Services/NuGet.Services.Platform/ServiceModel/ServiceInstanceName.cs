@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.ServiceModel
 {
-    [Serializable]
     public class ServiceInstanceName : IEquatable<ServiceInstanceName>
     {
         private const string InstanceNameDataName = "_NuGet_ServiceInstanceName";
@@ -98,21 +97,6 @@ namespace NuGet.Services.ServiceModel
                 .Add(ServiceName)
                 .Add(InstanceId)
                 .CombinedHash;
-        }
-
-        public static ServiceInstanceName GetCurrent()
-        {
-            return (ServiceInstanceName)CallContext.LogicalGetData(InstanceNameDataName);
-        }
-
-        public static void SetCurrent(ServiceInstanceName name)
-        {
-            CallContext.LogicalSetData(InstanceNameDataName, name);
-        }
-
-        public static void FreeCurrent()
-        {
-            CallContext.FreeNamedDataSlot(InstanceNameDataName);
         }
     }
 }

@@ -119,8 +119,9 @@
     <Compile Include="Api\Controllers\InvocationDetailModel.cs" />
     <Compile Include="Api\Controllers\JobsController.cs" />
     <Compile Include="Api\Controllers\InvocationsController.cs" />
-    <Compile Include="Api\Models\InvocationSummaryModel.cs" />
+    <Compile Include="Api\Models\InvocationResponseModel.cs" />
     <Compile Include="Api\Models\InvocationRequestModel.cs" />
+    <Compile Include="Infrastructure\InvocationListCriteria.cs" />
     <Compile Include="Api\Models\JobDefinitionModel.cs" />
     <Compile Include="Api\Models\JobsManagementServiceModel.cs" />
     <Compile Include="Api\Models\JobsServiceModel.cs" />
@@ -134,10 +135,8 @@
     <Compile Include="Infrastructure\Invocation.cs" />
     <Compile Include="Infrastructure\InvocationPayloadSerializer.cs" />
     <Compile Include="Infrastructure\InvocationQueue.cs" />
-    <Compile Include="Infrastructure\InvocationRequest.cs" />
     <Compile Include="Infrastructure\InvocationResult.cs" />
     <Compile Include="Infrastructure\InvocationStatus.cs" />
-    <Compile Include="Infrastructure\InvocationTable.cs" />
     <Compile Include="Infrastructure\Job.cs" />
     <Compile Include="Infrastructure\JobAttribute.cs" />
     <Compile Include="Infrastructure\JobContinuation.cs" />

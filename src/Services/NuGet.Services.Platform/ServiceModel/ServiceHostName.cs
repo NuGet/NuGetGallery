@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.ServiceModel
 {
-    [Serializable]
     public class ServiceHostName : IEquatable<ServiceHostName>
     {
         private static readonly Regex ParseRegex = new Regex("^(?<env>.*)_DC(?<dc>.*)_(?<host>.*)$", RegexOptions.IgnoreCase);

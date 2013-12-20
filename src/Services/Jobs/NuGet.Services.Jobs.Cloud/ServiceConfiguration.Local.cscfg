@@ -10,8 +10,11 @@
             <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
             <Setting name="Storage.Primary" value="UseDevelopmentStorage=true" />
             <Setting name="Storage.Backup" value="UseDevelopmentStorage=true" />
-            <Setting name="Sql.Primary" value="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetGallery;Integrated Security=SSPI" />
+            
+            <Setting name="Sql.Primary" value="Data Source=(LocalDB)\v11.0;Initial Catalog=nuget-local-0;Integrated Security=SSPI" />
+            <Setting name="Sql.Legacy" value="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetGallery;Integrated Security=SSPI" />
             <Setting name="Sql.Warehouse" value="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetWarehouse;Integrated Security=SSPI" />
+            
             <Setting name="Queue.PollInterval" value="00:00:01" />
             <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="" />
             <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="" />

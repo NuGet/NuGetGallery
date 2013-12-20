@@ -8,21 +8,21 @@ CREATE TABLE [private].[InvocationsStore]
     [Job] nvarchar(50) NOT NULL,
     [Source] nvarchar(50) NOT NULL,
     [Payload] nvarchar(max) NULL,
-    [Status] nvarchar(50) NOT NULL,
-    [Result] nvarchar(50) NOT NULL,
-    [DequeueCount] int NOT NULL,
-    [UpdatedBy] nvarchar(100) NOT NULL,
+    [Status] INT NOT NULL,
+    [Result] INT NOT NULL,
     [ResultMessage] nvarchar(100) NULL,
-    [LogUrl] nvarchar(100) NULL,
-    [IsContinuation] bit NOT NULL,
+    [UpdatedBy] nvarchar(100) NOT NULL,
+    [LogUrl] nvarchar(200) NULL,
 
-    [QueuedAt] datetimeoffset NOT NULL,
-    [LastDequeuedAt] datetimeoffset NULL,
-    [LastSuspendedAt] datetimeoffset NULL,
-    [CompletedAt] datetimeoffset NULL,
-    [NextVisibleAt] datetimeoffset NOT NULL, 
-    [Complete] CHAR(10) NOT NULL, 
-    [UpdatedAt] DATETIMEOFFSET NOT NULL, 
-    [Dequeued] BIT NOT NULL, 
-    [RowVersion] ROWVERSION NOT NULL 
+    [DequeueCount] int NOT NULL,
+
+    [IsContinuation] bit NOT NULL,
+    [Complete] bit NOT NULL, 
+
+    [LastDequeuedAt] DATETIME2 NULL,
+    [LastSuspendedAt] DATETIME2 NULL,
+    [CompletedAt] DATETIME2 NULL,
+    [QueuedAt] DATETIME2 NOT NULL,
+    [NextVisibleAt] DATETIME2 NOT NULL, 
+    [UpdatedAt] DATETIME2 NOT NULL
 )

@@ -20,7 +20,7 @@ namespace NuGet.Services.Jobs
 {
     public class JobRunner
     {
-        public static readonly TimeSpan DefaultInvisibilityPeriod = TimeSpan.FromSeconds(30);
+        public static readonly TimeSpan DefaultInvisibilityPeriod = TimeSpan.FromMinutes(5);
 
         private TimeSpan _pollInterval;
         private RunnerStatus _status;
@@ -60,11 +60,11 @@ namespace NuGet.Services.Jobs
             {
                 while (!cancelToken.IsCancellationRequested)
                 {
-                    InvocationRequest request = null;
+                    Invocation invocation = null;
                     try
                     {
                         Status = RunnerStatus.Dequeuing;
-                        request = await Queue.Dequeue(DefaultInvisibilityPeriod, cancelToken);
+                        invocation = await Queue.Dequeue(DefaultInvisibilityPeriod, cancelToken);
                         Status = RunnerStatus.Working;
                     }
                     catch (Exception ex)
@@ -78,7 +78,7 @@ namespace NuGet.Services.Jobs
                         break;
                     }
 
-                    if (request == null)
+                    if (invocation == null)
                     {
                         Status = RunnerStatus.Sleeping;
                         JobsServiceEventSource.Log.DispatchLoopWaiting(_pollInterval);
@@ -86,15 +86,15 @@ namespace NuGet.Services.Jobs
                         JobsServiceEventSource.Log.DispatchLoopResumed();
                         Status = RunnerStatus.Working;
                     }
-                    else if (request.Invocation.Status == InvocationStatus.Cancelled)
+                    else if (invocation.Status == InvocationStatus.Cancelled)
                     {
                         // Job was cancelled by the user, so just continue.
-                        JobsServiceEventSource.Log.Cancelled(request.Invocation);
+                        JobsServiceEventSource.Log.Cancelled(invocation);
                     }
                     else
                     {
                         Status = RunnerStatus.Dispatching;
-                        await Dispatch(request, cancelToken);
+                        await Dispatch(invocation, cancelToken);
                         Status = RunnerStatus.Working;
                     }
                 }
@@ -117,11 +117,11 @@ namespace NuGet.Services.Jobs
             }
         }
 
-        protected internal virtual async Task Dispatch(InvocationRequest request, CancellationToken cancelToken)
+        protected internal virtual async Task Dispatch(Invocation invocation, CancellationToken cancelToken)
         {
-            InvocationContext.SetCurrentInvocationId(request.Invocation.Id);
+            InvocationContext.SetCurrentInvocationId(invocation.Id);
             
-            if (request.Invocation.Continuation)
+            if (invocation.IsContinuation)
             {
                 InvocationEventSource.Log.Resumed();
             }
@@ -131,11 +131,15 @@ namespace NuGet.Services.Jobs
             }
             
             // Record that we are executing the job
-            await Queue.SetStatus(request.Invocation.Id, InvocationStatus.Executing);
+            if (!await Queue.UpdateStatus(invocation, InvocationStatus.Executing, ExecutionResult.Incomplete))
+            {
+                InvocationEventSource.Log.Aborted(invocation);
+                return;
+            }
 
             // Create the request.Invocation context and start capturing the logs
-            var capture = await StartCapture(request);
-            var context = new InvocationContext(request, Queue, cancelToken, capture);
+            var capture = await StartCapture(invocation);
+            var context = new InvocationContext(invocation, Queue, cancelToken, capture);
 
             InvocationResult result = null;
             try
@@ -151,7 +155,7 @@ namespace NuGet.Services.Jobs
                     case ExecutionResult.Faulted:
                         InvocationEventSource.Log.Faulted(result);
                         break;
-                    case ExecutionResult.Suspended:
+                    case ExecutionResult.Incomplete:
                         InvocationEventSource.Log.Suspended(result);
                         break;
                     default:
@@ -159,15 +163,10 @@ namespace NuGet.Services.Jobs
                         break;
                 }
 
-                if (request.Message.NextVisibleTime.HasValue && request.Message.NextVisibleTime.Value < Clock.UtcNow)
+                if (invocation.NextVisibleAt < Clock.UtcNow)
                 {
-                    InvocationEventSource.Log.InvocationTookTooLong(request);
+                    InvocationEventSource.Log.InvocationTookTooLong(invocation);
                 }
-
-                // If dispatch throws, we don't delete the message
-                // NOTE: If the JOB throws, the dispatcher should catch it and return the error in the response
-                // Thus the request is considered "handled"
-                await Queue.Acknowledge(request);
             }
             catch (Exception ex)
             {
@@ -176,52 +175,44 @@ namespace NuGet.Services.Jobs
             }
 
             // Stop capturing and set the log url
+            string logUrl = null;
             if (capture != null)
             {
                 var logBlob = await capture.End();
-                request.Invocation.LogUrl = logBlob.Uri.AbsoluteUri;
+                logUrl = logBlob.Uri.AbsoluteUri;
             }
 
-            request.Invocation.Result = result.Result;
-            if (result.Result != ExecutionResult.Suspended)
+            if (result.Result != ExecutionResult.Incomplete)
             {
                 // If we're not suspended, the invocation has completed
                 InvocationEventSource.Log.Ended();
-                request.Invocation.Status = InvocationStatus.Executed;
-                await Queue.Complete(request.Invocation.Id, result.Result, result.Exception == null ? null : result.Exception.ToString());
+                await Queue.Complete(invocation, result.Result, result.Exception == null ? null : result.Exception.ToString(), logUrl);
 
                 // If we've completed and there's a repeat, queue the repeat
                 if (result.RescheduleIn != null)
                 {
                     // Rescheule it to run again
-                    await EnqueueRepeat(request.Invocation, result);
+                    var repeat = await EnqueueRepeat(invocation, result);
+                    InvocationEventSource.Log.ScheduledRepeat(invocation, repeat, result.RescheduleIn.Value);
                 }
             }
             else
             {
                 // Suspend the job until the continuation is ready to run
-                await Queue.Suspend(request.Invocation.Id, result.Continuation);
+                await Queue.Suspend(invocation, result.Continuation.Parameters, result.Continuation.WaitPeriod, logUrl);
             }
         }
 
-        protected virtual async Task<InvocationLogCapture> StartCapture(InvocationRequest request)
+        protected virtual async Task<InvocationLogCapture> StartCapture(Invocation invocation)
         {
-            var capture = new InvocationLogCapture(request.Invocation, Storage, Path.Combine(Path.GetTempPath(), "InvocationLogs"));
+            var capture = new InvocationLogCapture(invocation, Storage, Path.Combine(Path.GetTempPath(), "InvocationLogs"));
             await capture.Start();
             return capture;
         }
 
-        private Task EnqueueRepeat(Invocation repeat, InvocationResult result)
+        private Task<Invocation> EnqueueRepeat(Invocation repeat, InvocationResult result)
         {
-            var invocation = new Invocation(
-                Guid.NewGuid(),
-                repeat.Job,
-                Constants.Source_RepeatingJob,
-                repeat.Payload)
-                {
-                    EstimatedNextVisibleTime = Clock.UtcNow + result.RescheduleIn.Value
-                };
-            return Queue.Enqueue(invocation, result.RescheduleIn.Value);
+            return Queue.Enqueue(repeat.Job, Constants.Source_RepeatingJob, repeat.Payload, result.RescheduleIn.Value);
         }
 
         public enum RunnerStatus

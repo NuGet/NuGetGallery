@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Autofac.Features.OwnedInstances;
+using Autofac;
 using NuGet.Services.Composition;
 using NuGet.Services.Jobs.Monitoring;
 
@@ -35,12 +35,21 @@ namespace NuGet.Services.Jobs
             {
                 throw new UnknownJobException(context.Invocation.Job);
             }
-            JobBase job = _container.GetService<JobBase>(jobdef.Implementation);
+
+            IComponentContainer scope = null;
+            scope = _container.BeginScope(b =>
+            {
+                b.RegisterType(jobdef.Implementation).As(jobdef.Implementation);
+                b.RegisterInstance(context).As<InvocationContext>();
+                b.Register(ctx => scope)
+                    .As<IComponentContainer>();
+            });
+            var job = scope.GetService<JobBase>(jobdef.Implementation);
 
             context.SetJob(jobdef, job);
 
             Func<Task<InvocationResult>> invocationThunk = () => job.Invoke(context);
-            if (context.Invocation.Continuation)
+            if (context.Invocation.IsContinuation)
             {
                 IAsyncJob asyncJob = job as IAsyncJob;
                 if (asyncJob == null)

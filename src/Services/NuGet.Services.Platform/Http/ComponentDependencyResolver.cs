@@ -46,7 +46,7 @@ namespace NuGet.Services.Http
 
         public IDependencyScope BeginScope()
         {
-            return new ComponentDependencyScope(Container.BeginScope());
+            return new ComponentDependencyScope(Container.BeginScope(_ => { }));
         }
     }
 }

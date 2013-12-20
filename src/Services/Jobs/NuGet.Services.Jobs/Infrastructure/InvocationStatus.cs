@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Jobs
 {
+    /// <summary>
+    /// Indicates the status of the invocation
+    /// </summary>
+    /// <remarks>NOTE: This is stored in an INT column in a database, DO NOT adjust the numbers assigned to each value!</remarks>
     public enum InvocationStatus
     {
         /// <summary>
@@ -14,36 +18,40 @@ namespace NuGet.Services.Jobs
         Unspecified = 0,
 
         /// <summary>
-        /// Indicates that the invocation is being placed on the invocation queue
-        /// </summary>
-        Queuing,
-
-        /// <summary>
         /// Indicates that the invocation has been placed on the invocation queue
         /// </summary>
-        Queued,
+        Queued = 1,
 
         /// <summary>
         /// Indicates that the invocation has been dequeued from the data store
         /// </summary>
-        Dequeued,
+        Dequeued = 2,
 
         /// <summary>
         /// Indicates that the invocation has been received by a worker and is executing
         /// </summary>
-        Executing,
+        Executing = 3,
 
         /// <summary>
         /// Indicates that the invocation has been executed
         /// </summary>
-        Executed,
+        Executed = 4,
 
         /// <summary>
         /// Indicates that the invocation has been cancelled by an outside agent and should not be invoked.
         /// </summary>
-        Cancelled
+        Cancelled = 5,
+
+        /// <summary>
+        /// Indicates that the invocation has been suspended and is being queued for another invocation
+        /// </summary>
+        Suspended = 6
     }
 
+    /// <summary>
+    /// Indicates the result of the invocation
+    /// </summary>
+    /// <remarks>NOTE: This is stored in an INT column in a database, DO NOT adjust the numbers assigned to each value!</remarks>
     public enum ExecutionResult
     {
         /// <summary>
@@ -52,32 +60,27 @@ namespace NuGet.Services.Jobs
         Incomplete = 0,
 
         /// <summary>
-        /// Indicates that the invocation has been suspended and is being queued for another invocation
-        /// </summary>
-        Suspended,
-
-        /// <summary>
         /// Indicates that the invocation has completed successfully
         /// </summary>
         /// <remarks>Invocations in this state can be cleaned up as they will not be needed again</remarks>
-        Completed,
+        Completed = 1,
 
         /// <summary>
         /// Indicates that the invocation has completed with an error
         /// </summary>
         /// <remarks>Invocations in this state can be cleaned up as they will not be needed again (other than for debugging purposes)</remarks>
-        Faulted,
+        Faulted = 2,
 
         /// <summary>
         /// Indicates that the a fatal error occurred during the execution of this invocation
         /// </summary>
         /// <remarks>Invocations in this state can be cleaned up as they will not be needed again (other than for debugging purposes)</remarks>
-        Crashed,
-        
+        Crashed = 3,
+
         /// <summary>
         /// Indicates that the invocation failed due to the worker running it being shutdown
         /// </summary>
         /// <remarks>Invocations in this state can be cleaned up as they will not be needed again (other than for debugging/retry purposes)</remarks>
-        Aborted
+        Aborted = 4
     }
 }

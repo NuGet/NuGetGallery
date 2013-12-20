@@ -184,6 +184,8 @@ namespace NuGet.Services.ServiceModel
                     builder.RegisterInstance(service)
                      .As<NuGetService>()
                      .As(service.GetType());
+                    builder.Register(c => c.Resolve<NuGetService>().InstanceName)
+                        .As<ServiceInstanceName>();
 
                     // Add the container itself to the container
                     builder.Register(c => scope)

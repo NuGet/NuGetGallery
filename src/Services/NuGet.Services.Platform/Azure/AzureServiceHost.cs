@@ -73,6 +73,7 @@ namespace NuGet.Services.Azure
         protected override void InitializeLocalLogging()
         {
             _platformEventStream = new ObservableEventListener();
+            _platformEventStream.EnableEvents(SemanticLoggingEventSource.Log, EventLevel.Informational);
             _platformEventStream.EnableEvents(ServicePlatformEventSource.Log, EventLevel.LogAlways);
 
             var formatter = new EventTextFormatter(dateTimeFormat: "O");
@@ -113,7 +114,7 @@ namespace NuGet.Services.Azure
         protected override void InitializeCloudLogging()
         {
             _platformEventStream.LogToWindowsAzureTable(
-                instanceName: Description.ServiceHostName.ToString(),
+                instanceName: Description.ServiceHostName.ToString() + "/" + Description.MachineName,
                 connectionString: Storage.Primary.ConnectionString,
                 tableAddress: Storage.Primary.Tables.GetTableFullName("PlatformTrace"));
         }

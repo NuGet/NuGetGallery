@@ -55,7 +55,7 @@ namespace NuGet.Services.Jobs.Monitoring
             }
             
             // Fetch the current logs if this is a continuation, we'll append to them during the invocation
-            if (Invocation.Continuation)
+            if (Invocation.IsContinuation)
             {
                 await Storage.Primary.Blobs.DownloadBlob(JobsService.InvocationLogsContainerBaseName, "invocations/" + Path.GetFileName(_tempFile), _tempFile);
             }

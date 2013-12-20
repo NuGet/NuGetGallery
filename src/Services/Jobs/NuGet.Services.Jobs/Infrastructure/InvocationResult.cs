@@ -41,7 +41,7 @@ namespace NuGet.Services.Jobs
 
         public static InvocationResult Suspended(JobContinuation continuation)
         {
-            return new InvocationResult(ExecutionResult.Suspended, continuation);
+            return new InvocationResult(ExecutionResult.Incomplete, continuation);
         }
 
         public static InvocationResult Faulted(Exception ex)
@@ -57,12 +57,10 @@ namespace NuGet.Services.Jobs
         [Conditional("DEBUG")]
         private void ConsistencyCheck()
         {
-            Debug.Assert(Result != ExecutionResult.Incomplete, Strings.InvocationResult_CannotBeIncomplete);
-
             // Checks that we don't have missing or invalid fields
             switch (Result)
             {
-                case ExecutionResult.Suspended:
+                case ExecutionResult.Incomplete:
                     Debug.Assert(Continuation != null, String.Format(CultureInfo.CurrentCulture, Strings.InvocationResult_ResultMustHaveContinuation, Result));
                     Debug.Assert(Exception == null, String.Format(CultureInfo.CurrentCulture, Strings.InvocationResult_ResultMustNotHaveException, Result));
                     Debug.Assert(RescheduleIn == null, String.Format(CultureInfo.CurrentCulture, Strings.InvocationResult_ResultMustNotHaveRescheduleIn, Result));

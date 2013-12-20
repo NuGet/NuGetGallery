@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -22,29 +23,44 @@ namespace NuGet.Services.Jobs.Api.Controllers
             Queue = queue;
         }
 
-        [Route("", Name = Routes.GetInvocations)]
-        public IEnumerable<InvocationSummaryModel> Get()
+        [Route("{criteria:alpha?}", Name = Routes.GetInvocations)]
+        public async Task<IHttpActionResult> Get(InvocationListCriteria criteria = InvocationListCriteria.Active)
         {
-            return Storage.Primary.Tables.Table<Invocation>().GetAll().Select(i => new InvocationSummaryModel(i) {
-                Detail = Url.RouteUri(Routes.GetSingleInvocation, new { id = i.Id })
-            });
+            if (!Enum.IsDefined(typeof(InvocationListCriteria), criteria))
+            {
+                return NotFound();
+            }
+
+            return Content(HttpStatusCode.OK, (await Queue.GetAll(criteria)).Select(i => new InvocationResponseModel(i)));
         }
 
         [Route("{id}", Name = Routes.GetSingleInvocation)]
-        public async Task<Invocation> Get(Guid id)
+        public async Task<IHttpActionResult> Get(Guid id)
         {
-            var invocation = await Storage.Primary.Tables.Table<Invocation>().Get(id.ToString("N").ToLowerInvariant(), String.Empty);
-            return invocation;
+            var invocation = await Queue.Get(id);
+            if (invocation == null)
+            {
+                return NotFound();
+            }
+            return Content(HttpStatusCode.OK, invocation);
         }
 
         [Route("", Name = Routes.PutInvocation)]
-        public async Task<InvocationSummaryModel> Put([FromBody] InvocationRequestModel request)
+        public async Task<IHttpActionResult> Put([FromBody] InvocationRequestModel request)
         {
-            var invocation = new Invocation(Guid.NewGuid(), request.Job, request.Source, request.Payload);
-            await Queue.Enqueue(invocation);
-            return new InvocationSummaryModel(invocation) {
-                Detail = Url.RouteUri(Routes.GetSingleInvocation, new { id = invocation.Id })
-            };
+            var invocation = await Queue.Enqueue(
+                request.Job, 
+                request.Source, 
+                request.Payload, 
+                request.VisibilityDelay ?? TimeSpan.Zero);
+            if (invocation == null)
+            {
+                return StatusCode(HttpStatusCode.ServiceUnavailable);
+            }
+            else
+            {
+                return Content(HttpStatusCode.Created, new InvocationResponseModel(invocation));
+            }
         }
     }
 }

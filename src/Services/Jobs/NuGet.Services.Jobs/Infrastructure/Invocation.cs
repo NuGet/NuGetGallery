@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Table;
+using Newtonsoft.Json;
 using NuGet.Services.Storage;
 
 namespace NuGet.Services.Jobs
@@ -16,79 +17,93 @@ namespace NuGet.Services.Jobs
     /// </summary>
     public class Invocation
     {
-        public Guid Id { get; private set; }
+        public int CurrentVersion { get { return CurrentRow.Version; } }
+        public Guid Id { get { return CurrentRow.Id; } }
+        public string Job { get { return CurrentRow.Job; } }
+        public string Source { get { return CurrentRow.Source; } }
 
-        public string Job { get; set; }
-        public string Source { get; set; }
-
-        [PropertySerializer(typeof(JsonDictionarySerializer))]
         public Dictionary<string, string> Payload { get; private set; }
 
-        public InvocationStatus Status { get; set; }
-        public ExecutionResult Result { get; set; }
-        public int DequeueCount { get; set; }
-        public string LastInstanceName { get; set; }
-        public string ResultMessage { get; set; }
-        public string LogUrl { get; set; }
-        public bool Continuation { get; set; }
+        public InvocationStatus Status { get; private set; }
+        public ExecutionResult Result { get; private set; }
+        public string ResultMessage { get { return CurrentRow.ResultMessage; } }
+        public string LastUpdatedBy { get { return CurrentRow.UpdatedBy; } }
+        public string LogUrl { get { return CurrentRow.LogUrl; } }
 
-        public DateTimeOffset? QueuedAt { get; set; }
-        public DateTimeOffset? LastDequeuedAt { get; set; }
-        public DateTimeOffset? LastSuspendedAt { get; set; }
-        public DateTimeOffset? CompletedAt { get; set; }
-        public DateTimeOffset? EstimatedContinueAt { get; set; }
-        public DateTimeOffset? EstimatedNextVisibleTime { get; set; }
+        public int DequeueCount { get { return CurrentRow.DequeueCount; } }
+        public bool IsContinuation { get { return CurrentRow.IsContinuation; } }
 
-        [Obsolete("For serialization only")]
-        public Invocation() { }
+        public DateTimeOffset? LastDequeuedAt { get; private set; }
+        public DateTimeOffset? LastSuspendedAt { get; private set; }
+        public DateTimeOffset? CompletedAt { get; private set; }
+        public DateTimeOffset QueuedAt { get; private set; }
+        public DateTimeOffset NextVisibleAt { get; private set; }
+        public DateTimeOffset UpdatedAt { get; private set; }
 
-        public Invocation(Guid id, string job, string source, Dictionary<string, string> payload)
-            : base(id.ToString("N").ToLowerInvariant(), String.Empty, DateTimeOffset.UtcNow)
+        internal InvocationRow CurrentRow { get; private set; }
+
+        internal Invocation(InvocationRow latest)
         {
-            Id = id;
-            Job = job;
-            Source = source;
-            Payload = payload;
-            Status = InvocationStatus.Unspecified;
-            Result = ExecutionResult.Incomplete;
+            Update(latest);
         }
 
-        public Invocation Clone()
+        internal void Update(InvocationRow newVersion)
         {
-            return CloneCore();
-        }
+            // Cast here so that failures occur during the update.
+            Status = (InvocationStatus)newVersion.Status;
+            Result = (ExecutionResult)newVersion.Result;
 
-        object ICloneable.Clone()
-        {
-            return CloneCore();
-        }
+            // Set up dates
+            LastDequeuedAt = LoadUtcDateTime(newVersion.LastDequeuedAt);
+            LastSuspendedAt = LoadUtcDateTime(newVersion.LastSuspendedAt);
+            CompletedAt = LoadUtcDateTime(newVersion.CompletedAt);
+            QueuedAt = new DateTimeOffset(newVersion.QueuedAt, TimeSpan.Zero);
+            NextVisibleAt = new DateTimeOffset(newVersion.NextVisibleAt, TimeSpan.Zero);
+            UpdatedAt = new DateTimeOffset(newVersion.UpdatedAt, TimeSpan.Zero);
 
-        private Invocation CloneCore()
-        {
-            return new Invocation()
+            if (String.IsNullOrEmpty(newVersion.Payload))
             {
-                PartitionKey = PartitionKey,
-                RowKey = RowKey,
-                Timestamp = Timestamp,
+                Payload = new Dictionary<string, string>();
+            }
+            else if (CurrentRow == null || !String.Equals(CurrentRow.Payload, newVersion.Payload, StringComparison.Ordinal))
+            {
+                Payload = InvocationPayloadSerializer.Deserialize(newVersion.Payload);
+            }
+            CurrentRow = newVersion;
+        }
 
-                Id = Id,
-                Job = Job,
-                Source = Source,
-                Payload = Payload,
-                Status = Status,
-                Result = Result,
-                DequeueCount = DequeueCount,
-                LastInstanceName = LastInstanceName,
-                ResultMessage = ResultMessage,
-                LogUrl = LogUrl,
-                Continuation = Continuation,
-                QueuedAt = QueuedAt,
-                LastDequeuedAt = LastDequeuedAt,
-                LastSuspendedAt = LastSuspendedAt,
-                CompletedAt = CompletedAt,
-                EstimatedContinueAt = EstimatedContinueAt,
-                EstimatedNextVisibleTime = EstimatedNextVisibleTime
-            };
+        private DateTimeOffset? LoadUtcDateTime(DateTime? dateTime)
+        {
+            return dateTime.HasValue ? new DateTimeOffset(dateTime.Value, TimeSpan.Zero) : (DateTimeOffset?)null;
+        }
+
+        /// <summary>
+        /// Simple Data Transfer Object for the Invocations Table
+        /// </summary>
+        internal class InvocationRow
+        {
+            public int Version { get; set; }
+            public Guid Id { get; set; }
+            public string Job { get; set; }
+            public string Source { get; set; }
+            public string Payload { get; set; }
+            public int Status { get; set; }
+            public int Result { get; set; }
+            public string UpdatedBy { get; set; }
+            public string ResultMessage { get; set; }
+            public string LogUrl { get; set; }
+            public int DequeueCount { get; set; }
+
+            public bool IsContinuation { get; set; }
+            public bool Dequeued { get; set; }
+            public bool Complete { get; set; }
+
+            public DateTime? LastDequeuedAt { get; set; }
+            public DateTime? LastSuspendedAt { get; set; }
+            public DateTime? CompletedAt { get; set; }
+            public DateTime QueuedAt { get; set; }
+            public DateTime NextVisibleAt { get; set; }
+            public DateTime UpdatedAt { get; set; }
         }
     }
 }

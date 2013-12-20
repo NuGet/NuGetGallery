@@ -21,7 +21,7 @@ namespace NuGet.Services.Jobs
         public override void RegisterComponents(Autofac.ContainerBuilder builder)
         {
             base.RegisterComponents(builder);
-            builder.RegisterType<InvocationQueue>().AsSelf().UsingConstructor(typeof(StorageHub));
+            builder.RegisterModule(new JobComponentsModule());
         }
 
         public override Task<object> GetApiModel(NuGetApiController controller)

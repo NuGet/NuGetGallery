@@ -14,26 +14,24 @@ namespace NuGet.Services.Jobs
 
         private InvocationLogCapture _capture;
 
-        public InvocationRequest Request { get; private set; }
+        public Invocation Invocation { get; private set; }
         public InvocationQueue Queue { get; private set; }
         public CancellationToken CancelToken { get; private set; }
 
-        public Invocation Invocation { get { return Request.Invocation; } }
-
-        public InvocationContext(InvocationRequest request, InvocationQueue queue)
-            : this(request, queue, CancellationToken.None)
+        public InvocationContext(Invocation invocation, InvocationQueue queue)
+            : this(invocation, queue, CancellationToken.None)
         {
         }
 
-        public InvocationContext(InvocationRequest request, InvocationQueue queue, CancellationToken cancelToken)
+        public InvocationContext(Invocation invocation, InvocationQueue queue, CancellationToken cancelToken)
         {
-            Request = request;
+            Invocation = invocation;
             Queue = queue;
             CancelToken = cancelToken;
         }
 
-        public InvocationContext(InvocationRequest request, InvocationQueue queue, CancellationToken cancelToken, InvocationLogCapture capture)
-            : this(request, queue, cancelToken)
+        public InvocationContext(Invocation invocation, InvocationQueue queue, CancellationToken cancelToken, InvocationLogCapture capture)
+            : this(invocation, queue, cancelToken)
         {
             _capture = capture;
         }

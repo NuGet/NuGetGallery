@@ -79,14 +79,14 @@ namespace NuGet.Services.Jobs.Infrastructure
                 // Arrange
                 var cts = new CancellationTokenSource();
                 var runner = new TestableJobRunner(TimeSpan.FromSeconds(5), skipDispatch: true);
-                var dequeueTcs = new TaskCompletionSource<InvocationRequest>();
+                var dequeueTcs = new TaskCompletionSource<Invocation>();
 
                 runner.MockQueue
                     .Setup(q => q.Dequeue(JobRunner.DefaultInvisibilityPeriod, cts.Token))
                     .Returns(async () =>
                     {
                         var result = await dequeueTcs.Task;
-                        dequeueTcs = new TaskCompletionSource<InvocationRequest>();
+                        dequeueTcs = new TaskCompletionSource<Invocation>();
                         return result;
                     });
                 JobRunner.RunnerStatus statusAtHeartBeat = JobRunner.RunnerStatus.Working;
@@ -94,7 +94,7 @@ namespace NuGet.Services.Jobs.Infrastructure
 
                 // Act
                 var task = runner.Run(cts.Token);
-                dequeueTcs.SetResult(new InvocationRequest(new Invocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>()), new CloudQueueMessage("foo")));
+                dequeueTcs.SetResult(TestHelpers.CreateInvocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>()));
 
                 // Assert
                 Assert.Equal(JobRunner.RunnerStatus.Dispatching, runner.Status);
@@ -120,7 +120,7 @@ namespace NuGet.Services.Jobs.Infrastructure
                 var dequeueTcs = runner.MockQueue
                     .Setup(q => q.Dequeue(JobRunner.DefaultInvisibilityPeriod, cts.Token))
                     .WaitsForSignal();
-                var request = new InvocationRequest(new Invocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>()), new CloudQueueMessage("foo"));
+                var request = TestHelpers.CreateInvocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>());
 
                 // Act
                 var task = runner.Run(cts.Token);
@@ -145,14 +145,14 @@ namespace NuGet.Services.Jobs.Infrastructure
                 // Arrange
                 var cts = new CancellationTokenSource();
                 var runner = new TestableJobRunner(TimeSpan.FromSeconds(5), skipDispatch: true);
-                var dequeueTcs = new TaskCompletionSource<InvocationRequest>();
+                var dequeueTcs = new TaskCompletionSource<Invocation>();
 
                 runner.MockQueue
                     .Setup(q => q.Dequeue(JobRunner.DefaultInvisibilityPeriod, cts.Token))
                     .Returns(async () =>
                     {
                         var result = await dequeueTcs.Task;
-                        dequeueTcs = new TaskCompletionSource<InvocationRequest>();
+                        dequeueTcs = new TaskCompletionSource<Invocation>();
                         return result;
                     });
                 JobRunner.RunnerStatus statusAtLastHeartBeat = JobRunner.RunnerStatus.Working;
@@ -249,21 +249,18 @@ namespace NuGet.Services.Jobs.Infrastructure
                 // Arrange
                 var cts = new CancellationTokenSource();
                 var runner = new TestableJobRunner(TimeSpan.FromSeconds(5));
-                var invocation = new Invocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>());
-                var request = new InvocationRequest(invocation, new CloudQueueMessage("foo"));
-
+                var invocation = TestHelpers.CreateInvocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>());
+                
                 var dispatchTCS = runner
                     .MockDispatcher
                     .Setup(d => d.Dispatch(It.IsAny<InvocationContext>()))
                     .WaitsForSignal();
 
                 // Act
-                var task = runner.Dispatch(request, cts.Token);
+                var task = runner.Dispatch(invocation, cts.Token);
 
                 // Assert
-                runner.MockQueue.Verify(q => q.Update(It.Is<Invocation>(i =>
-                    i.LastDequeuedAt.Value == runner.VirtualClock.UtcNow &&
-                    i.Status == InvocationStatus.Executing)));
+                runner.MockQueue.Verify(q => q.UpdateStatus(invocation, InvocationStatus.Executing, ExecutionResult.Incomplete));
 
                 dispatchTCS.SetResult(InvocationResult.Completed());
 
@@ -276,16 +273,15 @@ namespace NuGet.Services.Jobs.Infrastructure
                 // Arrange
                 var cts = new CancellationTokenSource();
                 var runner = new TestableJobRunner(TimeSpan.FromSeconds(5));
-                var invocation = new Invocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>());
-                var request = new InvocationRequest(invocation, new CloudQueueMessage("foo"));
-
+                var invocation = TestHelpers.CreateInvocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>());
+                
                 runner.MockDispatcher
                     .Setup(d => d.Dispatch(It.IsAny<InvocationContext>()))
                     .Completes(InvocationResult.Completed())
                     .Verifiable();
 
                 // Act
-                await runner.Dispatch(request, cts.Token);
+                await runner.Dispatch(invocation, cts.Token);
 
                 // Assert
                 runner.MockDispatcher.VerifyAll();
@@ -297,147 +293,66 @@ namespace NuGet.Services.Jobs.Infrastructure
                 // Arrange
                 var cts = new CancellationTokenSource();
                 var runner = new TestableJobRunner(TimeSpan.FromSeconds(5));
-                var invocation = new Invocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>());
-                var request = new InvocationRequest(invocation, new CloudQueueMessage("foo"));
-
+                var invocation = TestHelpers.CreateInvocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>());
+                
                 runner.MockDispatcher
                     .Setup(d => d.Dispatch(It.IsAny<InvocationContext>()))
                     .Completes(InvocationResult.Completed())
                     .Verifiable();
 
                 // Act
-                await runner.Dispatch(request, cts.Token);
+                await runner.Dispatch(invocation, cts.Token);
 
                 // Assert
-                runner.MockQueue.Verify(q => q.Acknowledge(request));
-            }
-
-            [Theory]
-            [InlineData(ExecutionResult.Completed)]
-            [InlineData(ExecutionResult.Faulted)]
-            [InlineData(ExecutionResult.Aborted)]
-            [InlineData(ExecutionResult.Crashed)]
-            public async Task SetsCompletedAtIfInvocationResultRepresentsFinalCompletion(ExecutionResult result)
-            {
-                // Arrange
-                var cts = new CancellationTokenSource();
-                var runner = new TestableJobRunner(TimeSpan.FromSeconds(5));
-                var invocation = new Invocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>());
-                var request = new InvocationRequest(invocation, new CloudQueueMessage("foo"));
-
-                runner.MockDispatcher
-                    .Setup(d => d.Dispatch(It.IsAny<InvocationContext>()))
-                    .Completes(() =>
-                    {
-                        runner.VirtualClock.Advance(TimeSpan.FromDays(365)); // Wow this is a long job ;)
-                        return new InvocationResult(result, result == ExecutionResult.Faulted ? new Exception() : null);
-                    })
-                    .Verifiable();
-
-                // Act
-                await runner.Dispatch(request, cts.Token);
-
-                // Assert
-                Assert.Equal(InvocationStatus.Executed, invocation.Status);
-                Assert.Equal(result, invocation.Result);
-                Assert.False(invocation.LastSuspendedAt.HasValue);
-                Assert.Equal(runner.VirtualClock.UtcNow, invocation.CompletedAt.Value);
-                runner.MockQueue.Verify(q => q.Update(invocation));
-            }
-
-            [Fact]
-            public async Task SetsLastSuspendedAtIfResultIsSuspended()
-            {
-                // Arrange
-                var cts = new CancellationTokenSource();
-                var runner = new TestableJobRunner(TimeSpan.FromSeconds(5));
-                var invocation = new Invocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>());
-                var request = new InvocationRequest(invocation, new CloudQueueMessage("foo"));
-
-                runner.MockDispatcher
-                    .Setup(d => d.Dispatch(It.IsAny<InvocationContext>()))
-                    .Completes(() =>
-                    {
-                        runner.VirtualClock.Advance(TimeSpan.FromDays(365)); // Wow this is a long job ;)
-                        return InvocationResult.Suspended(new JobContinuation(TimeSpan.FromSeconds(10), new Dictionary<string, string>()));
-                    })
-                    .Verifiable();
-
-                // Act
-                await runner.Dispatch(request, cts.Token);
-
-                // Assert
-                Assert.Equal(InvocationStatus.Executing, invocation.Status);
-                Assert.Equal(ExecutionResult.Suspended, invocation.Result);
-                Assert.False(invocation.CompletedAt.HasValue);
-                runner.MockQueue.Verify(q => q.Update(invocation));
+                runner.MockQueue.Verify(q => q.Complete(invocation, ExecutionResult.Completed, null, null));
             }
 
             [Theory]
             [InlineData(ExecutionResult.Faulted)]
             [InlineData(ExecutionResult.Crashed)]
-            public async Task SetsResultMessageIfThereIsAnException(ExecutionResult result)
+            public async Task CompletesWithResultMessageIfThereIsAnException(ExecutionResult result)
             {
                 // Arrange
                 var cts = new CancellationTokenSource();
                 var runner = new TestableJobRunner(TimeSpan.FromSeconds(5));
-                var invocation = new Invocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>());
-                var request = new InvocationRequest(invocation, new CloudQueueMessage("foo"));
-
+                var invocation = TestHelpers.CreateInvocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>());
+                var exception = new Exception("BORK!");
+                
                 runner.MockDispatcher
                     .Setup(d => d.Dispatch(It.IsAny<InvocationContext>()))
                     .Completes(() =>
                     {
                         runner.VirtualClock.Advance(TimeSpan.FromDays(365)); // Wow this is a long job ;)
-                        return new InvocationResult(result, new Exception("BORK!"));
+                        return new InvocationResult(result, exception);
                     })
                     .Verifiable();
 
                 // Act
-                await runner.Dispatch(request, cts.Token);
+                await runner.Dispatch(invocation, cts.Token);
 
                 // Assert
-                Assert.Equal(InvocationStatus.Executed, invocation.Status);
-                Assert.Equal(result, invocation.Result);
-                Assert.Equal("System.Exception: BORK!", invocation.ResultMessage);
-                Assert.Equal(runner.VirtualClock.UtcNow, invocation.CompletedAt.Value);
-                runner.MockQueue.Verify(q => q.Update(invocation));
+                runner.MockQueue.Verify(q => q.Complete(invocation, result, exception.ToString(), null));
             }
 
             [Fact]
-            public async Task EnqueuesAContinuationIfTheInvocationIsSuspended()
+            public async Task SuspendsInvocationIfJobRemainsIncompleteWithAContinuation()
             {
                 // Arrange
                 var cts = new CancellationTokenSource();
                 var runner = new TestableJobRunner(TimeSpan.FromSeconds(5));
-                var invocation = new Invocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>());
-                var request = new InvocationRequest(invocation, new CloudQueueMessage("foo"));
-
-                Invocation enqueued = null;
-                TimeSpan? visibleIn = null;
+                var invocation = TestHelpers.CreateInvocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>());
+                
                 var continuationPayload = new Dictionary<string, string>() { { "foo", "bar" } };
-                runner.MockQueue
-                    .Setup(q => q.Enqueue(It.IsAny<Invocation>(), It.IsAny<TimeSpan>()))
-                    .Callback<Invocation, TimeSpan>((i, t) => { enqueued = i; visibleIn = t; })
-                    .Completes();
                 runner.MockDispatcher
                     .Setup(d => d.Dispatch(It.IsAny<InvocationContext>()))
                     .Completes(InvocationResult.Suspended(new JobContinuation(TimeSpan.FromDays(365), continuationPayload)))
                     .Verifiable();
 
                 // Act
-                await runner.Dispatch(request, cts.Token);
+                await runner.Dispatch(invocation, cts.Token);
 
                 // Assert
-                Assert.NotNull(enqueued);
-                Assert.Equal(invocation.Id, enqueued.Id);
-                Assert.Equal(invocation.Job, enqueued.Job);
-                Assert.Equal(Constants.Source_AsyncContinuation, enqueued.Source);
-                Assert.Same(continuationPayload, enqueued.Payload);
-                Assert.True(enqueued.Continuation);
-                Assert.Equal(runner.VirtualClock.UtcNow, enqueued.LastSuspendedAt.Value);
-                Assert.Equal(runner.VirtualClock.UtcNow + TimeSpan.FromDays(365), enqueued.EstimatedContinueAt.Value);
-                Assert.Equal(TimeSpan.FromDays(365), visibleIn.Value);
+                runner.MockQueue.Verify(q => q.Suspend(invocation, continuationPayload, TimeSpan.FromDays(365), null));
             }
 
             [Theory]
@@ -448,33 +363,22 @@ namespace NuGet.Services.Jobs.Infrastructure
                 // Arrange
                 var cts = new CancellationTokenSource();
                 var runner = new TestableJobRunner(TimeSpan.FromSeconds(5));
-                var invocation = new Invocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>());
-                var request = new InvocationRequest(invocation, new CloudQueueMessage("foo"));
-
-                Invocation enqueued = null;
-                TimeSpan? visibleIn = null;
-                var continuationPayload = new Dictionary<string, string>() { { "foo", "bar" } };
-                runner.MockQueue
-                    .Setup(q => q.Enqueue(It.IsAny<Invocation>(), It.IsAny<TimeSpan>()))
-                    .Callback<Invocation, TimeSpan>((i, t) => { enqueued = i; visibleIn = t; })
-                    .Completes();
+                var invocation = TestHelpers.CreateInvocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>());
+                var repeat = TestHelpers.CreateInvocation(Guid.NewGuid(), "test", "test", new Dictionary<string,string>());
+                
                 runner.MockDispatcher
                     .Setup(d => d.Dispatch(It.IsAny<InvocationContext>()))
                     .Completes(new InvocationResult(result, result == ExecutionResult.Faulted ? new Exception() : null, TimeSpan.FromDays(365)))
                     .Verifiable();
+                runner.MockQueue
+                    .Setup(q => q.Enqueue("test", Constants.Source_RepeatingJob, It.IsAny<Dictionary<string, string>>(), TimeSpan.FromDays(365)))
+                    .Completes(repeat);
 
                 // Act
-                await runner.Dispatch(request, cts.Token);
+                await runner.Dispatch(invocation, cts.Token);
 
                 // Assert
-                Assert.NotNull(enqueued);
-                Assert.NotEqual(invocation.Id, enqueued.Id);
-                Assert.Equal(invocation.Job, enqueued.Job);
-                Assert.Equal(Constants.Source_RepeatingJob, enqueued.Source);
-                Assert.Same(invocation.Payload, enqueued.Payload);
-                Assert.False(enqueued.Continuation);
-                Assert.Equal(runner.VirtualClock.UtcNow + TimeSpan.FromDays(365), enqueued.EstimatedNextVisibleTime.Value);
-                Assert.Equal(TimeSpan.FromDays(365), visibleIn.Value);
+                runner.MockQueue.Verify(q => q.Enqueue(invocation.Job, Constants.Source_RepeatingJob, invocation.Payload, TimeSpan.FromDays(365)));
             }
         }
 
@@ -488,7 +392,7 @@ namespace NuGet.Services.Jobs.Infrastructure
             public VirtualClock VirtualClock { get; private set; }
 
             public bool CaptureStarted { get; private set; }
-            public InvocationRequest LastDispatched { get; private set; }
+            public Invocation LastDispatched { get; private set; }
             public TaskCompletionSource<object> DispatchTCS { get; set; }
 
             public TestableJobRunner(TimeSpan pollInterval, bool skipDispatch = false)
@@ -505,33 +409,36 @@ namespace NuGet.Services.Jobs.Infrastructure
 
                 // Set up things so that async methods don't return null Tasks
                 MockQueue
-                    .Setup(q => q.Update(It.IsAny<Invocation>()))
-                    .Completes();
+                    .Setup(q => q.UpdateStatus(It.IsAny<Invocation>(), It.IsAny<InvocationStatus>(), It.IsAny<ExecutionResult>()))
+                    .Completes(true);
                 MockQueue
-                    .Setup(q => q.Acknowledge(It.IsAny<InvocationRequest>()))
-                    .Completes();
+                    .Setup(q => q.Complete(It.IsAny<Invocation>(), It.IsAny<ExecutionResult>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .Completes(true);
                 MockQueue
-                    .Setup(q => q.Enqueue(It.IsAny<Invocation>()))
-                    .Completes();
+                    .Setup(q => q.Enqueue(It.IsAny<string>(), It.IsAny<string>()))
+                    .Completes((Invocation)null);
                 MockQueue
-                    .Setup(q => q.Enqueue(It.IsAny<Invocation>(), It.IsAny<TimeSpan>()))
-                    .Completes();
+                    .Setup(q => q.Enqueue(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<TimeSpan>()))
+                    .Completes((Invocation)null);
+                MockQueue
+                    .Setup(q => q.Suspend(It.IsAny<Invocation>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<TimeSpan>(), It.IsAny<string>()))
+                    .Completes(true);
             }
 
-            protected internal override Task Dispatch(InvocationRequest request, CancellationToken cancelToken)
+            protected internal override Task Dispatch(Invocation invocation, CancellationToken cancelToken)
             {
-                LastDispatched = request;
+                LastDispatched = invocation;
                 if (_skipDispatch)
                 {
                     return DispatchTCS.Task;
                 }
                 else
                 {
-                    return base.Dispatch(request, cancelToken);
+                    return base.Dispatch(invocation, cancelToken);
                 }
             }
 
-            protected override Task<InvocationLogCapture> StartCapture(InvocationRequest request)
+            protected override Task<InvocationLogCapture> StartCapture(Invocation invocation)
             {
                 CaptureStarted = true;
                 return Task.FromResult<InvocationLogCapture>(null);
