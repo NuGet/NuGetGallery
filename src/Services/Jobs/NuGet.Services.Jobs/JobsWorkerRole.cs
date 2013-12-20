@@ -24,8 +24,10 @@ namespace NuGet.Services.Jobs
     {
         protected override IEnumerable<NuGetService> GetServices(ServiceHost host)
         {
-            // TODO: Register multiple copies per processor?
-            yield return new JobsService(host);
+            for (int i = 0; i < (Environment.ProcessorCount - 1); i++)
+            {
+                yield return new JobsService(host);
+            }
 
             yield return new JobsManagementService(host);
         }

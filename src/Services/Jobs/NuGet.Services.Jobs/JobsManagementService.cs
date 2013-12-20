@@ -26,9 +26,16 @@ namespace NuGet.Services.Jobs
 
         public override Task<object> GetApiModel(NuGetApiController controller)
         {
-            return Task.FromResult<object>(new JobsManagementServiceModel()
+            return Task.FromResult<object>(new
             {
-                Invocations = controller.Url.RouteUri(Routes.GetInvocations),
+                Invocations = new {
+                    All = controller.Url.RouteUri(Routes.GetInvocations, new { criteria = InvocationListCriteria.All }),
+                    Active = controller.Url.RouteUri(Routes.GetInvocations),
+                    Completed = controller.Url.RouteUri(Routes.GetInvocations, new { criteria = InvocationListCriteria.Completed }),
+                    Hidden = controller.Url.RouteUri(Routes.GetInvocations, new { criteria = InvocationListCriteria.Hidden }),
+                    Pending = controller.Url.RouteUri(Routes.GetInvocations, new { criteria = InvocationListCriteria.Pending }),
+                    Suspended = controller.Url.RouteUri(Routes.GetInvocations, new { criteria = InvocationListCriteria.Suspended })
+                },
                 Jobs = controller.Url.RouteUri(Routes.GetJobs)
             });
         }

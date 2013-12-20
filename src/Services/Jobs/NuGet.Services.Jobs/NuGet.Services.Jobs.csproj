@@ -123,7 +123,6 @@
     <Compile Include="Api\Models\InvocationRequestModel.cs" />
     <Compile Include="Infrastructure\InvocationListCriteria.cs" />
     <Compile Include="Api\Models\JobDefinitionModel.cs" />
-    <Compile Include="Api\Models\JobsManagementServiceModel.cs" />
     <Compile Include="Api\Models\JobsServiceModel.cs" />
     <Compile Include="Api\Routes.cs" />
     <Compile Include="Configuration\QueueConfiguration.cs" />
@@ -144,8 +143,11 @@
     <Compile Include="Infrastructure\InvocationContext.cs" />
     <Compile Include="Infrastructure\UnknownJobException.cs" />
     <Compile Include="JobComponentsModule.cs" />
+    <Compile Include="JobServiceStatus.cs" />
     <Compile Include="JobsManagementService.cs" />
+    <Compile Include="Jobs\AsyncJob.cs" />
     <Compile Include="Jobs\HeartBeatJob.cs" />
+    <Compile Include="Jobs\LongJob.cs" />
     <Compile Include="Jobs\PingJob.cs" />
     <Compile Include="Models\Database.cs" />
     <Compile Include="Helpers\SqlConnectionStringBuilderExtensions.cs" />

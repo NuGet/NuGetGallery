@@ -113,6 +113,12 @@ namespace NuGet.Services.ServiceModel
         /// <returns></returns>
         public virtual Task<object> Describe() { return Task.FromResult<object>(null); }
 
+        /// <summary>
+        /// Returns the current status of the service.
+        /// </summary>
+        /// <returns></returns>
+        public virtual Task<object> GetCurrentStatus() { return Task.FromResult<object>(null); }
+
         protected virtual IEnumerable<EventSource> GetTraceEventSources()
         {
             return Enumerable.Empty<EventSource>();

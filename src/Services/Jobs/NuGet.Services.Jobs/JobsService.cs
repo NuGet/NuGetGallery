@@ -34,6 +34,7 @@ namespace NuGet.Services.Jobs
         public static readonly string MyServiceName = "Jobs";
 
         private AzureTable<JobDescription> _jobsTable;
+        private JobRunner _runner;
 
         public IEnumerable<JobDescription> Jobs { get; private set; }
         
@@ -61,10 +62,10 @@ namespace NuGet.Services.Jobs
         protected override Task OnRun()
         {
             var queueConfig = Configuration.GetSection<QueueConfiguration>();
-            var runner = Container.Resolve<JobRunner>();
-            runner.Heartbeat += (_, __) => Heartbeat();
+            _runner = Container.Resolve<JobRunner>();
+            _runner.Heartbeat += (_, __) => Heartbeat();
 
-            return runner.Run(Host.ShutdownToken);
+            return _runner.Run(Host.ShutdownToken);
         }
 
         private async Task DiscoverJobs()
@@ -96,6 +97,15 @@ namespace NuGet.Services.Jobs
             builder.RegisterInstance(jobdefs).As<IEnumerable<JobDescription>>();
 
             builder.RegisterModule(new JobComponentsModule());
+        }
+
+        public override Task<object> GetCurrentStatus()
+        {
+            if (_runner != null)
+            {
+                return _runner.GetCurrentStatus();
+            }
+            return Task.FromResult<object>(null);
         }
 
         public override Task<object> Describe()

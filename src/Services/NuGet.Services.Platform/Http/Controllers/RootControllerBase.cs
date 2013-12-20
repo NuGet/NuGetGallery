@@ -36,7 +36,8 @@ namespace NuGet.Services.Http.Controllers
             return Task.WhenAll(Host.Instances.Select(async s =>
             {
                 var desc = await s.Describe();
-                return new ServiceInstanceModel(s, desc);
+                var status = await s.GetCurrentStatus();
+                return new ServiceInstanceModel(s, desc, status);
             }));
         }
     }

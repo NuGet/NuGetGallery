@@ -83,7 +83,7 @@ namespace NuGet.Services.Jobs
                     if (!databases.Any(db => String.Equals(db.name, cstr.InitialCatalog, StringComparison.OrdinalIgnoreCase)))
                     {
                         Log.SourceDatabaseNotFound(cstr.InitialCatalog);
-                        return await Complete();
+                        return Complete();
                     }
 
                     // Gather backups with matching prefix and order descending
@@ -103,7 +103,7 @@ namespace NuGet.Services.Jobs
                     {
                         // Skip the backup
                         Log.BackupWithinMaxAge(mostRecent, MaxAge.Value);
-                        return await Complete();
+                        return Complete();
                     }
                 }
 
@@ -122,7 +122,7 @@ namespace NuGet.Services.Jobs
                 Log.StartedCopy(cstr.InitialCatalog, BackupName);
 
                 // Check back in 5 minute intervals
-                return await ContinueCheckingBackup();
+                return ContinueCheckingBackup();
             }
         }
 
@@ -142,13 +142,13 @@ namespace NuGet.Services.Jobs
                 {
                     case DatabaseState.ONLINE:
                         Log.CopyComplete(cstr.InitialCatalog, BackupName);
-                        return await Complete();
+                        return Complete();
                     case DatabaseState.SUSPECT:
                         Log.CopyFailed(cstr.InitialCatalog, BackupName);
                         throw new Exception("Database copy failed!");
                     case DatabaseState.COPYING:
                         Log.CopyContinuing(cstr.InitialCatalog, BackupName);
-                        return await ContinueCheckingBackup();
+                        return ContinueCheckingBackup();
                     default:
                         Log.CopyStateUnexpected(cstr.InitialCatalog, BackupName, db.state);
                         throw new Exception("Database entered unexpected state: " + db.state.ToString());
@@ -156,7 +156,7 @@ namespace NuGet.Services.Jobs
             }
         }
 
-        private Task<JobContinuation> ContinueCheckingBackup()
+        private JobContinuation ContinueCheckingBackup()
         {
             var parameters = new Dictionary<string, string>() {
                     {"BackupName", BackupName}
@@ -170,7 +170,7 @@ namespace NuGet.Services.Jobs
                 parameters["TargetServer"] = TargetServer.ToString();
                 parameters["TargetDatabaseName"] = TargetDatabaseName.ToString();
             }
-            return Continue(TimeSpan.FromMinutes(5), parameters);
+            return Suspend(TimeSpan.FromMinutes(5), parameters);
         }
 
         private SqlConnectionStringBuilder GetConnectionString()

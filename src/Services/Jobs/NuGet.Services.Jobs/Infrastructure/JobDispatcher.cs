@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using NuGet.Services.Composition;
@@ -15,6 +16,8 @@ namespace NuGet.Services.Jobs
         private Dictionary<string, JobDescription> _jobMap;
         private List<JobDescription> _jobs;
         private IComponentContainer _container;
+
+        private JobDescription _currentJob = null;
 
         public IReadOnlyList<JobDescription> Jobs { get { return _jobs.AsReadOnly(); } }
 
@@ -35,6 +38,7 @@ namespace NuGet.Services.Jobs
             {
                 throw new UnknownJobException(context.Invocation.Job);
             }
+            Interlocked.Exchange(ref _currentJob, jobdef);
 
             IComponentContainer scope = null;
             scope = _container.BeginScope(b =>
@@ -74,8 +78,13 @@ namespace NuGet.Services.Jobs
             {
                 result = InvocationResult.Faulted(ex);
             }
-
+            Interlocked.Exchange(ref _currentJob, null);
             return result;
+        }
+
+        public JobDescription GetCurrentJob()
+        {
+            return _currentJob;
         }
     }
 }

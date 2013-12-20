@@ -94,17 +94,17 @@ namespace NuGet.Services.Jobs
         protected internal abstract Task<JobContinuation> Execute();
         protected internal abstract Task<JobContinuation> Resume();
 
-        protected virtual Task<JobContinuation> Continue(TimeSpan waitPeriod, Dictionary<string, string> parameters)
+        protected virtual JobContinuation Suspend(TimeSpan waitPeriod, Dictionary<string, string> parameters)
         {
             // TODO: Using a [ContinuationState] or similar attribute, allow the job author
             //  to just mark properties that they want carried over to the continuation.
             //  Then just build the 'parameters' dictionary by reading those values.
-            return Task.FromResult(new JobContinuation(waitPeriod, parameters));
+            return new JobContinuation(waitPeriod, parameters);
         }
 
-        protected virtual Task<JobContinuation> Complete()
+        protected virtual JobContinuation Complete()
         {
-            return Task.FromResult<JobContinuation>(null);
+            return null;
         }
 
         private async Task<InvocationResult> InvokeCore(Func<Task<JobContinuation>> invoker)

@@ -25,6 +25,8 @@ namespace NuGet.Services.Jobs
         private TimeSpan _pollInterval;
         private RunnerStatus _status;
 
+        private byte[] _currentInvocationId = Guid.Empty.ToByteArray();
+
         protected Clock Clock { get; set; }
         protected InvocationQueue Queue { get; set; }
         protected JobDispatcher Dispatcher { get; set; }
@@ -51,6 +53,14 @@ namespace NuGet.Services.Jobs
             Queue = queue;
             Clock = clock;
             Storage = storage;
+        }
+
+        public Task<object> GetCurrentStatus()
+        {
+            return Task.FromResult<object>(new JobServiceStatus(
+                _status,
+                new Guid(_currentInvocationId),
+                Dispatcher.GetCurrentJob()));
         }
 
         public virtual async Task Run(CancellationToken cancelToken)
@@ -94,7 +104,9 @@ namespace NuGet.Services.Jobs
                     else
                     {
                         Status = RunnerStatus.Dispatching;
+                        Interlocked.Exchange(ref _currentInvocationId, invocation.Id.ToByteArray());
                         await Dispatch(invocation, cancelToken);
+                        Interlocked.Exchange(ref _currentInvocationId, Guid.Empty.ToByteArray());
                         Status = RunnerStatus.Working;
                     }
                 }
@@ -213,15 +225,6 @@ namespace NuGet.Services.Jobs
         private Task<Invocation> EnqueueRepeat(Invocation repeat, InvocationResult result)
         {
             return Queue.Enqueue(repeat.Job, Constants.Source_RepeatingJob, repeat.Payload, result.RescheduleIn.Value);
-        }
-
-        public enum RunnerStatus
-        {
-            Working,
-            Dequeuing,
-            Sleeping,
-            Dispatching,
-            Stopping
         }
     }
 }

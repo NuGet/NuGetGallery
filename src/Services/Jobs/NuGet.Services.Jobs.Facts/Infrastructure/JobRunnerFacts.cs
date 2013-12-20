@@ -53,15 +53,15 @@ namespace NuGet.Services.Jobs.Infrastructure
                 var dequeueTcs = runner.MockQueue
                     .Setup(q => q.Dequeue(JobRunner.DefaultInvisibilityPeriod, cts.Token))
                     .WaitsForSignal();
-                JobRunner.RunnerStatus statusAtHeartBeat = JobRunner.RunnerStatus.Working;
+                RunnerStatus statusAtHeartBeat = RunnerStatus.Working;
                 runner.Heartbeat += (_, __) => statusAtHeartBeat = runner.Status;
 
                 // Act
                 var task = runner.Run(cts.Token);
 
                 // Assert
-                Assert.Equal(JobRunner.RunnerStatus.Dequeuing, runner.Status);
-                Assert.Equal(JobRunner.RunnerStatus.Dequeuing, statusAtHeartBeat);
+                Assert.Equal(RunnerStatus.Dequeuing, runner.Status);
+                Assert.Equal(RunnerStatus.Dequeuing, statusAtHeartBeat);
 
                 // Abort the waiting threads
                 dequeueTcs.SetException(new OperationCanceledException());
@@ -89,7 +89,7 @@ namespace NuGet.Services.Jobs.Infrastructure
                         dequeueTcs = new TaskCompletionSource<Invocation>();
                         return result;
                     });
-                JobRunner.RunnerStatus statusAtHeartBeat = JobRunner.RunnerStatus.Working;
+                RunnerStatus statusAtHeartBeat = RunnerStatus.Working;
                 runner.Heartbeat += (_, __) => statusAtHeartBeat = runner.Status;
 
                 // Act
@@ -97,8 +97,8 @@ namespace NuGet.Services.Jobs.Infrastructure
                 dequeueTcs.SetResult(TestHelpers.CreateInvocation(Guid.NewGuid(), "test", "test", new Dictionary<string, string>()));
 
                 // Assert
-                Assert.Equal(JobRunner.RunnerStatus.Dispatching, runner.Status);
-                Assert.Equal(JobRunner.RunnerStatus.Dispatching, statusAtHeartBeat);
+                Assert.Equal(RunnerStatus.Dispatching, runner.Status);
+                Assert.Equal(RunnerStatus.Dispatching, statusAtHeartBeat);
 
                 // Abort the waiting threads
                 cts.Cancel();
@@ -155,7 +155,7 @@ namespace NuGet.Services.Jobs.Infrastructure
                         dequeueTcs = new TaskCompletionSource<Invocation>();
                         return result;
                     });
-                JobRunner.RunnerStatus statusAtLastHeartBeat = JobRunner.RunnerStatus.Working;
+                RunnerStatus statusAtLastHeartBeat = RunnerStatus.Working;
                 runner.Heartbeat += (_, __) => statusAtLastHeartBeat = runner.Status;
                 dequeueTcs.SetResult(null);
                 runner.DispatchTCS.TrySetResult(null);
@@ -168,8 +168,8 @@ namespace NuGet.Services.Jobs.Infrastructure
                 runner.VirtualClock.Advance(TimeSpan.FromSeconds(5));
 
                 // Assert
-                Assert.Equal(JobRunner.RunnerStatus.Dequeuing, runner.Status);
-                Assert.Equal(JobRunner.RunnerStatus.Dequeuing, statusAtLastHeartBeat);
+                Assert.Equal(RunnerStatus.Dequeuing, runner.Status);
+                Assert.Equal(RunnerStatus.Dequeuing, statusAtLastHeartBeat);
 
                 // Abort the waiting threads
                 runner.DispatchTCS.SetResult(null);
@@ -191,7 +191,7 @@ namespace NuGet.Services.Jobs.Infrastructure
                 var dequeueTcs = runner.MockQueue
                     .Setup(q => q.Dequeue(JobRunner.DefaultInvisibilityPeriod, cts.Token))
                     .WaitsForSignal();
-                JobRunner.RunnerStatus statusAtLastHeartBeat = JobRunner.RunnerStatus.Working;
+                RunnerStatus statusAtLastHeartBeat = RunnerStatus.Working;
                 runner.Heartbeat += (_, __) => statusAtLastHeartBeat = runner.Status;
                 dequeueTcs.SetResult(null);
 
@@ -199,8 +199,8 @@ namespace NuGet.Services.Jobs.Infrastructure
                 var task = runner.Run(cts.Token);
 
                 // Assert
-                Assert.Equal(JobRunner.RunnerStatus.Sleeping, runner.Status);
-                Assert.Equal(JobRunner.RunnerStatus.Sleeping, statusAtLastHeartBeat);
+                Assert.Equal(RunnerStatus.Sleeping, runner.Status);
+                Assert.Equal(RunnerStatus.Sleeping, statusAtLastHeartBeat);
 
                 // Abort the waiting threads
                 runner.VirtualClock.Advance(TimeSpan.FromMinutes(10));
@@ -222,15 +222,15 @@ namespace NuGet.Services.Jobs.Infrastructure
                     .Setup(q => q.Dequeue(JobRunner.DefaultInvisibilityPeriod, cts.Token))
                     .WaitsForSignal();
                 cts.Cancel();
-                JobRunner.RunnerStatus statusAtLastHeartBeat = JobRunner.RunnerStatus.Working;
+                RunnerStatus statusAtLastHeartBeat = RunnerStatus.Working;
                 runner.Heartbeat += (_, __) => statusAtLastHeartBeat = runner.Status;
 
                 // Act
                 var task = runner.Run(cts.Token);
 
                 // Assert
-                Assert.Equal(JobRunner.RunnerStatus.Stopping, runner.Status);
-                Assert.Equal(JobRunner.RunnerStatus.Stopping, statusAtLastHeartBeat);
+                Assert.Equal(RunnerStatus.Stopping, runner.Status);
+                Assert.Equal(RunnerStatus.Stopping, statusAtLastHeartBeat);
 
                 // Abort the waiting threads
                 try
