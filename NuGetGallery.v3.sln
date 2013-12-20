@@ -3,21 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Jobs", "Jobs", "{69E0B03C-B1FE-47E2-BFFD-5B9474BED386}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Jobs", "src\Services\Jobs\NuGet.Services.Jobs\NuGet.Services.Jobs.csproj", "{7F92C174-5310-4090-A6A3-3CC7C67C19D6}"
-EndProject
-Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGet.Services.Jobs.Cloud", "src\Services\Jobs\NuGet.Services.Jobs.Cloud\NuGet.Services.Jobs.Cloud.ccproj", "{1D0164B6-92D4-455A-AC68-C30B61733748}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Jobs.Facts", "src\Services\Jobs\NuGet.Services.Jobs.Facts\NuGet.Services.Jobs.Facts.csproj", "{4405C24C-7F57-4826-831F-D5D7E139F02E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Work", "Work", "{69E0B03C-B1FE-47E2-BFFD-5B9474BED386}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Platform", "src\Services\NuGet.Services.Platform\NuGet.Services.Platform.csproj", "{EF86883E-A1B4-4052-9222-51A01C6C41CD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Platform.Facts", "src\Services\NuGet.Services.Platform.Facts\NuGet.Services.Platform.Facts.csproj", "{304B7FDA-3111-4670-9E77-4E5F20C89A8C}"
 EndProject
-Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "NuGet.Services.Jobs.Database", "src\Services\Jobs\NuGet.Services.Jobs.Database\NuGet.Services.Jobs.Database.sqlproj", "{A8B0845E-CF36-4ADB-B641-CA8542202878}"
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "NuGet.Services.Work.Database", "src\Services\Work\NuGet.Services.Work.Database\NuGet.Services.Work.Database.sqlproj", "{A8B0845E-CF36-4ADB-B641-CA8542202878}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Jobs.StressTest", "src\Services\Jobs\NuGet.Services.Jobs.StressTest\NuGet.Services.Jobs.StressTest.csproj", "{2FE7D8D4-16AD-4652-8EC4-95AE03361B55}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Work", "src\Services\Work\NuGet.Services.Work\NuGet.Services.Work.csproj", "{7F92C174-5310-4090-A6A3-3CC7C67C19D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Work.Facts", "src\Services\Work\NuGet.Services.Work.Facts\NuGet.Services.Work.Facts.csproj", "{4405C24C-7F57-4826-831F-D5D7E139F02E}"
+EndProject
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGet.Services.Work.Cloud", "src\Services\Work\NuGet.Services.Work.Cloud\NuGet.Services.Work.Cloud.ccproj", "{1D0164B6-92D4-455A-AC68-C30B61733748}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Work.StressTest", "src\Services\Work\NuGet.Services.Work.StressTest\NuGet.Services.Work.StressTest.csproj", "{2FE7D8D4-16AD-4652-8EC4-95AE03361B55}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,18 +25,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1D0164B6-92D4-455A-AC68-C30B61733748}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1D0164B6-92D4-455A-AC68-C30B61733748}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1D0164B6-92D4-455A-AC68-C30B61733748}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1D0164B6-92D4-455A-AC68-C30B61733748}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4405C24C-7F57-4826-831F-D5D7E139F02E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4405C24C-7F57-4826-831F-D5D7E139F02E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4405C24C-7F57-4826-831F-D5D7E139F02E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4405C24C-7F57-4826-831F-D5D7E139F02E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EF86883E-A1B4-4052-9222-51A01C6C41CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EF86883E-A1B4-4052-9222-51A01C6C41CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EF86883E-A1B4-4052-9222-51A01C6C41CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -51,6 +39,18 @@ Global
 		{A8B0845E-CF36-4ADB-B641-CA8542202878}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8B0845E-CF36-4ADB-B641-CA8542202878}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A8B0845E-CF36-4ADB-B641-CA8542202878}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4405C24C-7F57-4826-831F-D5D7E139F02E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4405C24C-7F57-4826-831F-D5D7E139F02E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4405C24C-7F57-4826-831F-D5D7E139F02E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4405C24C-7F57-4826-831F-D5D7E139F02E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D0164B6-92D4-455A-AC68-C30B61733748}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D0164B6-92D4-455A-AC68-C30B61733748}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D0164B6-92D4-455A-AC68-C30B61733748}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D0164B6-92D4-455A-AC68-C30B61733748}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2FE7D8D4-16AD-4652-8EC4-95AE03361B55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2FE7D8D4-16AD-4652-8EC4-95AE03361B55}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FE7D8D4-16AD-4652-8EC4-95AE03361B55}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -60,10 +60,10 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{7F92C174-5310-4090-A6A3-3CC7C67C19D6} = {69E0B03C-B1FE-47E2-BFFD-5B9474BED386}
-		{1D0164B6-92D4-455A-AC68-C30B61733748} = {69E0B03C-B1FE-47E2-BFFD-5B9474BED386}
-		{4405C24C-7F57-4826-831F-D5D7E139F02E} = {69E0B03C-B1FE-47E2-BFFD-5B9474BED386}
 		{A8B0845E-CF36-4ADB-B641-CA8542202878} = {69E0B03C-B1FE-47E2-BFFD-5B9474BED386}
+		{7F92C174-5310-4090-A6A3-3CC7C67C19D6} = {69E0B03C-B1FE-47E2-BFFD-5B9474BED386}
+		{4405C24C-7F57-4826-831F-D5D7E139F02E} = {69E0B03C-B1FE-47E2-BFFD-5B9474BED386}
+		{1D0164B6-92D4-455A-AC68-C30B61733748} = {69E0B03C-B1FE-47E2-BFFD-5B9474BED386}
 		{2FE7D8D4-16AD-4652-8EC4-95AE03361B55} = {69E0B03C-B1FE-47E2-BFFD-5B9474BED386}
 	EndGlobalSection
 EndGlobal

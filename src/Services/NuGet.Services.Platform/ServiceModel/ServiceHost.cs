@@ -98,7 +98,11 @@ namespace NuGet.Services.ServiceModel
 
                 // Now get the services
                 var list = GetServices().ToList();
-                list.Add(GetManagementService());
+                var management = GetManagementService();
+                if (management != null)
+                {
+                    list.Add(management);
+                }
                 Instances = list.AsReadOnly();
 
                 // Report status

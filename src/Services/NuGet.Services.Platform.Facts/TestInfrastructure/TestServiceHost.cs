@@ -74,5 +74,10 @@ namespace NuGet.Services.TestInfrastructure
         protected override void InitializeCloudLogging()
         {
         }
+
+        protected override NuGetService GetManagementService()
+        {
+            return null;
+        }
     }
 }

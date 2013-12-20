@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyCompany("Outercurve Foundation")]
-[assembly: AssemblyProduct("NuGet Gallery")]
+[assembly: AssemblyProduct("NuGet Services")]
 [assembly: AssemblyCopyright("\x00a9 Outercurve Foundation. All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
