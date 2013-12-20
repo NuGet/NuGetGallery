@@ -7,9 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using NuGet.Services.Composition;
-using NuGet.Services.Jobs.Monitoring;
+using NuGet.Services.Work.Monitoring;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work
 {
     public class JobDispatcher
     {

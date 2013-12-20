@@ -4,9 +4,9 @@ using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading;
-using NuGet.Services.Jobs.Monitoring;
+using NuGet.Services.Work.Monitoring;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work
 {
     public class InvocationContext
     {

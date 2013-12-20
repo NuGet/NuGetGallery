@@ -13,7 +13,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using NuGet.Services.Storage;
 using Autofac.Builder;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work
 {
     [Table("Jobs")]
     public class JobDescription : AzureTableEntity

@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Jobs.Helpers
+namespace NuGet.Services.Work.Helpers
 {
     internal static class EventSourceInstanceManager
     {

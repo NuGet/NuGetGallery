@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
-namespace NuGet.Services.Jobs.Configuration
+namespace NuGet.Services.Work.Configuration
 {
     public class QueueConfiguration
     {

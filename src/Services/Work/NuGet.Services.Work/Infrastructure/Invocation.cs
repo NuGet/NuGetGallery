@@ -9,7 +9,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 using NuGet.Services.Storage;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work
 {
     /// <summary>
     /// Contains all information about the current status of an invocation, serves as the central

@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
-using NuGet.Services.Jobs.Models;
 using System.Globalization;
 using NuGet.Services.Configuration;
+using NuGet.Services.Work.Jobs.Models;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work.Jobs
 {
     public class CreateOnlineDatabaseBackupJob : AsyncJob<CreateOnlineDatabaseBackupEventSource>
     {

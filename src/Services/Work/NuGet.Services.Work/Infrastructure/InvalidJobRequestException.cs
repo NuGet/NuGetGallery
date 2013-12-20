@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work
 {
     [Serializable]
     public class InvalidJobRequestException : Exception

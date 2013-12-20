@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Jobs.Api.Models
+namespace NuGet.Services.Work.Api.Models
 {
-    public class JobsServiceModel
+    public class WorkServiceModel
     {
         public IEnumerable<JobDefinitionModel> Jobs { get; private set; }
 
-        public JobsServiceModel() { }
-        public JobsServiceModel(IEnumerable<JobDescription> jobs)
+        public WorkServiceModel() { }
+        public WorkServiceModel(IEnumerable<JobDescription> jobs)
         {
             Jobs = jobs.Select(j => new JobDefinitionModel(j));
         }

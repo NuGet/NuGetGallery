@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using NuGet.Services.Http.Models;
 
-namespace NuGet.Services.Jobs.Api.Models
+namespace NuGet.Services.Work.Api.Models
 {
     public class JobDefinitionModel
     {

@@ -6,7 +6,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Jobs.Monitoring
+namespace NuGet.Services.Work.Monitoring
 {
     [EventSource(Name = "NuGet-Worker-Invocation")]
     public class InvocationEventSource : EventSource

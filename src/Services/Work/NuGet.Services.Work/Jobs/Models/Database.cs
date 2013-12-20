@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Jobs.Models
+namespace NuGet.Services.Work.Jobs.Models
 {
     public class Database
     {

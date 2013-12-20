@@ -1,12 +1,20 @@
-﻿CREATE PROCEDURE [jobs].[ExtendInvocation]
-	@Id uniqueidentifier,
-	@Version int,
-	@ExtendTo datetime2,
-	@InstanceName nvarchar(100)
+﻿CREATE PROCEDURE [work].[DequeueInvocation]
+(
+	@InstanceName nvarchar(100),
+	@HideUntil datetime2
+)
 AS
-	-- Add a new row for the specified Invocation indicating its new visibility time
+	-- Find an available row to dequeue and insert a new one indicating it has been dequeued
+	WITH cte
+	AS (
+		SELECT TOP (1) *
+		FROM [work].ActiveInvocations WITH (rowlock, readpast)
+		WHERE [NextVisibleAt] <= SYSUTCDATETIME() 
+			AND Complete = 0
+		ORDER BY [NextVisibleAt]
+	)
 	INSERT INTO [private].InvocationsStore(
-			[Id],
+            [Id],
             [Job],
             [Source],
             [Payload],
@@ -25,23 +33,22 @@ AS
             [NextVisibleAt],
             [UpdatedAt])
 	OUTPUT	inserted.*
-	SELECT	Id,
+	SELECT	Id, 
 			Job, 
 			Source, 
 			Payload, 
-			[Status],
-			[Result],
-            [ResultMessage],
+			2 AS [Status], -- Dequeued
+			Result,
+            ResultMessage,
 			@InstanceName AS [UpdatedBy],
-            [LogUrl],
-			DequeueCount,
+            LogUrl,
+			DequeueCount + 1 AS [DequeueCount],
 			IsContinuation,
 			Complete,
-            [LastDequeuedAt],
+            SYSUTCDATETIME() AS [LastDequeuedAt],
             [LastSuspendedAt],
             [CompletedAt],
 			QueuedAt,
-			@ExtendTo AS [NextVisibleAt],
+			@HideUntil AS [NextVisibleAt],
 			SYSUTCDATETIME() AS [UpdatedAt]
-	FROM	[jobs].ActiveInvocations
-	WHERE	[Id] = @Id AND [Version] = @Version
+	FROM cte

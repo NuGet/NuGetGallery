@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work.Jobs
 {
     /// <summary>
     /// Job used to confirm that the worker remains active

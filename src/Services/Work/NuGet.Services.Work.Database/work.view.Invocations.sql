@@ -1,4 +1,4 @@
-﻿CREATE VIEW [jobs].[Invocations] AS 
+﻿CREATE VIEW [work].[Invocations] AS 
 	WITH cte AS (
 		SELECT *, ROW_NUMBER() OVER (PARTITION BY Id ORDER BY [Version] DESC) AS RowNumber
 		FROM [private].InvocationsStore

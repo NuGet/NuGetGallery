@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NuGet.Services.Work.Jobs.Models;
 using Xunit;
 using Xunit.Extensions;
 
-namespace NuGet.Services.Jobs.Models
+namespace NuGet.Services.Work.Models
 {
     public class DatabaseBackupMetadataFacts
     {

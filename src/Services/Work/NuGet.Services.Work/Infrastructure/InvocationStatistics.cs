@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work
 {
     /// <summary>
     /// Represents a single row out of the InvocationStatistics, JobStatistics or InstanceStatistics views

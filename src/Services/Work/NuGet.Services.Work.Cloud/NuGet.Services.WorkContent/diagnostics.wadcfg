@@ -3,7 +3,7 @@
   <DiagnosticInfrastructureLogs bufferQuotaInMB="1024" scheduledTransferPeriod="PT5M" />
   <Directories>
     <DataSources>
-      <DirectoryConfiguration container="wad-ng-platform" directoryQuotaInMB="1024">
+      <DirectoryConfiguration container="wad-ng-work" directoryQuotaInMB="1024">
         <Absolute path="[Logs]\Platform" expandEnvironment="false" />
       </DirectoryConfiguration>
     </DataSources>

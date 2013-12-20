@@ -126,7 +126,7 @@
     <Compile Include="Api\Models\InvocationStatisticsModel.cs" />
     <Compile Include="Infrastructure\InvocationListCriteria.cs" />
     <Compile Include="Api\Models\JobDefinitionModel.cs" />
-    <Compile Include="Api\Models\JobsServiceModel.cs" />
+    <Compile Include="Api\Models\WorkServiceModel.cs" />
     <Compile Include="Api\Routes.cs" />
     <Compile Include="Configuration\QueueConfiguration.cs" />
     <Compile Include="Constants.cs" />
@@ -147,18 +147,18 @@
     <Compile Include="Infrastructure\InvocationContext.cs" />
     <Compile Include="Infrastructure\UnknownJobException.cs" />
     <Compile Include="JobComponentsModule.cs" />
-    <Compile Include="JobServiceStatus.cs" />
-    <Compile Include="JobsManagementService.cs" />
     <Compile Include="Jobs\AsyncJob.cs" />
+    <Compile Include="Jobs\CreateOnlineDatabaseBackupJob.cs" />
     <Compile Include="Jobs\HeartBeatJob.cs" />
     <Compile Include="Jobs\LongJob.cs" />
+    <Compile Include="Jobs\Models\Database.cs" />
     <Compile Include="Jobs\PingJob.cs" />
-    <Compile Include="Models\Database.cs" />
+    <Compile Include="WorkServiceStatus.cs" />
+    <Compile Include="WorkManagementService.cs" />
     <Compile Include="Helpers\SqlConnectionStringBuilderExtensions.cs" />
     <Compile Include="Infrastructure\JobBase.cs" />
     <Compile Include="Infrastructure\JobDispatcher.cs" />
     <Compile Include="Infrastructure\JobRunner.cs" />
-    <Compile Include="Jobs\CreateOnlineDatabaseBackupJob.cs" />
     <Compile Include="Monitoring\InvocationEventSource.cs" />
     <Compile Include="Monitoring\InvocationLogCapture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -167,9 +167,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
-    <Compile Include="JobsService.cs" />
-    <Compile Include="Monitoring\JobsServiceEventSource.cs" />
-    <Compile Include="JobsWorkerRole.cs" />
+    <Compile Include="WorkService.cs" />
+    <Compile Include="Monitoring\WorkServiceEventSource.cs" />
+    <Compile Include="WorkWorkerRole.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">

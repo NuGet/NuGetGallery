@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace NuGet.Services.Jobs.StressTest
+namespace NuGet.Services.Work.StressTest
 {
     public class Program
     {

@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Moq;
 using NuGet.Services.Configuration;
-using NuGet.Services.Jobs.Monitoring;
+using NuGet.Services.Work.Monitoring;
 using NuGet.Services.Storage;
 using Xunit;
 using Xunit.Extensions;
 
-namespace NuGet.Services.Jobs.Infrastructure
+namespace NuGet.Services.Work.Infrastructure
 {
     public class JobRunnerFacts
     {

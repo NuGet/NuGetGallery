@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
 using NuGet.Services.Http;
-using NuGet.Services.Jobs.Api.Models;
+using NuGet.Services.Work.Api.Models;
 
-namespace NuGet.Services.Jobs.Api.Controllers
+namespace NuGet.Services.Work.Api.Controllers
 {
     [RoutePrefix("instances")]
     public class InstancesController : NuGetApiController

@@ -11,7 +11,7 @@ using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Formatters;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Services.Storage;
 
-namespace NuGet.Services.Jobs.Monitoring
+namespace NuGet.Services.Work.Monitoring
 {
     public class InvocationLogCapture
     {
@@ -57,7 +57,7 @@ namespace NuGet.Services.Jobs.Monitoring
             // Fetch the current logs if this is a continuation, we'll append to them during the invocation
             if (Invocation.IsContinuation)
             {
-                await Storage.Primary.Blobs.DownloadBlob(JobsService.InvocationLogsContainerBaseName, "invocations/" + Path.GetFileName(_tempFile), _tempFile);
+                await Storage.Primary.Blobs.DownloadBlob(WorkService.InvocationLogsContainerBaseName, "invocations/" + Path.GetFileName(_tempFile), _tempFile);
             }
 
             // Capture the events into a JSON file and a plain text file
@@ -70,7 +70,7 @@ namespace NuGet.Services.Jobs.Monitoring
             _eventSubscription.Dispose();
 
             // Upload the file to blob storage
-            var logBlob = await Storage.Primary.Blobs.UploadBlob(_tempFile, JobsService.InvocationLogsContainerBaseName, "invocations/" + Path.GetFileName(_tempFile));
+            var logBlob = await Storage.Primary.Blobs.UploadBlob(_tempFile, WorkService.InvocationLogsContainerBaseName, "invocations/" + Path.GetFileName(_tempFile));
 
             // Delete the temp files
             File.Delete(_tempFile);

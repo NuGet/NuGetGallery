@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [jobs].[EnqueueInvocation]
+﻿CREATE PROCEDURE [work].[EnqueueInvocation]
 	@Job nvarchar(50),
 	@Source nvarchar(50),
 	@Payload nvarchar(MAX) = NULL,

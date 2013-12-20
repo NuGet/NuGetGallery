@@ -15,24 +15,24 @@ using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Azure;
 using NuGet.Services.Http;
-using NuGet.Services.Jobs.Monitoring;
+using NuGet.Services.Work.Monitoring;
 using NuGet.Services.ServiceModel;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work
 {
-    public class JobsWorkerRole : NuGetWorkerRole
+    public class WorkWorkerRole : NuGetWorkerRole
     {
         protected override IEnumerable<NuGetService> GetServices(ServiceHost host)
         {
             for (int i = 0; i < (Environment.ProcessorCount - 1); i++)
             {
-                yield return new JobsService(host);
+                yield return new WorkService(host);
             }
         }
 
         protected override NuGetHttpService GetManagementService(ServiceHost host)
         {
-            return new JobsManagementService(host);
+            return new WorkManagementService(host);
         }
     }
 }

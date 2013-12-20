@@ -1,12 +1,12 @@
-﻿CREATE PROCEDURE [jobs].[SuspendInvocation]
+﻿CREATE PROCEDURE [work].[CompleteInvocation]
 	@Id uniqueidentifier,
 	@Version int,
-	@Payload nvarchar(MAX),
-	@SuspendUntil datetime2,
+	@Result int,
+	@ResultMessage nvarchar(MAX),
     @LogUrl nvarchar(200),
 	@InstanceName nvarchar(100)
 AS
-	-- Add a new row for the specified Invocation indicating it has been suspended
+	-- Add a new row for the specified Invocation indicating its new state and completion marker
 	INSERT INTO [private].InvocationsStore(
             [Id],
             [Job],
@@ -30,20 +30,20 @@ AS
 	SELECT	Id,
 			Job, 
 			Source, 
-			@Payload AS Payload, 
-			6 AS [Status], -- Suspended
-			[Result],
-            [ResultMessage],
+			Payload, 
+			4 AS [Status], -- Executed
+			@Result AS [Result],
+			@ResultMessage AS [ResultMessage],
 			@InstanceName AS [UpdatedBy],
             @LogUrl AS [LogUrl],
-			DequeueCount,
-			1 AS IsContinuation,
-			[Complete],
+            [DequeueCount],
+			IsContinuation,
+			1 AS [Complete],
             [LastDequeuedAt],
-            SYSUTCDATETIME() AS [LastSuspendedAt],
-            [CompletedAt],
+            [LastSuspendedAt],
+            SYSUTCDATETIME() AS [CompletedAt],
 			QueuedAt,
-			@SuspendUntil AS [NextVisibleAt],
+			[NextVisibleAt],
 			SYSUTCDATETIME() AS [UpdatedAt]
-	FROM	[jobs].ActiveInvocations
+	FROM	[work].ActiveInvocations
 	WHERE	[Id] = @Id AND [Version] = @Version

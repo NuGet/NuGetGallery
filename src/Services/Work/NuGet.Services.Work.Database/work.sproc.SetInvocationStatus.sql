@@ -1,14 +1,13 @@
-﻿CREATE PROCEDURE [jobs].[CompleteInvocation]
+﻿CREATE PROCEDURE [work].[SetInvocationStatus]
 	@Id uniqueidentifier,
 	@Version int,
+	@Status int,
 	@Result int,
-	@ResultMessage nvarchar(MAX),
-    @LogUrl nvarchar(200),
 	@InstanceName nvarchar(100)
 AS
-	-- Add a new row for the specified Invocation indicating its new state and completion marker
+	-- Add a new row for the specified Invocation indicating its new status
 	INSERT INTO [private].InvocationsStore(
-            [Id],
+			[Id],
             [Job],
             [Source],
             [Payload],
@@ -31,19 +30,19 @@ AS
 			Job, 
 			Source, 
 			Payload, 
-			4 AS [Status], -- Executed
+			@Status AS [Status],
 			@Result AS [Result],
-			@ResultMessage AS [ResultMessage],
+            [ResultMessage],
 			@InstanceName AS [UpdatedBy],
-            @LogUrl AS [LogUrl],
-            [DequeueCount],
+            [LogUrl],
+			DequeueCount,
 			IsContinuation,
-			1 AS [Complete],
+			Complete,
             [LastDequeuedAt],
             [LastSuspendedAt],
-            SYSUTCDATETIME() AS [CompletedAt],
+            [CompletedAt],
 			QueuedAt,
 			[NextVisibleAt],
 			SYSUTCDATETIME() AS [UpdatedAt]
-	FROM	[jobs].ActiveInvocations
+	FROM	[work].ActiveInvocations
 	WHERE	[Id] = @Id AND [Version] = @Version

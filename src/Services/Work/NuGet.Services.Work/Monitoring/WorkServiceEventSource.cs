@@ -5,14 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Jobs.Monitoring
+namespace NuGet.Services.Work.Monitoring
 {
-    [EventSource(Name = "NuGet-Services-Jobs")]
-    public class JobsServiceEventSource : EventSource
+    [EventSource(Name = "NuGet-Services-Work")]
+    public class WorkServiceEventSource : EventSource
     {
-        public static readonly JobsServiceEventSource Log = new JobsServiceEventSource();
+        public static readonly WorkServiceEventSource Log = new WorkServiceEventSource();
 
-        private JobsServiceEventSource() { }
+        private WorkServiceEventSource() { }
 
         public static class Tasks
         {
@@ -26,7 +26,7 @@ namespace NuGet.Services.Jobs.Monitoring
             Level = EventLevel.Critical,
             Task = Tasks.Startup,
             Opcode = EventOpcode.Stop,
-            Message = "Jobs Service encountered a fatal startup error: {0}")]
+            Message = "Work Service encountered a fatal startup error: {0}")]
         private void StartupError(string exception) { WriteEvent(2, exception); }
 
         [NonEvent]
@@ -34,7 +34,7 @@ namespace NuGet.Services.Jobs.Monitoring
 
         [Event(
             eventId: 3,
-            Message = "Jobs Service has started",
+            Message = "Work Service has started",
             Task = Tasks.Startup,
             Opcode = EventOpcode.Stop,
             Level = EventLevel.Informational)]
@@ -54,7 +54,7 @@ namespace NuGet.Services.Jobs.Monitoring
             Task = Tasks.Dispatching,
             Opcode = EventOpcode.Start,
             Level = EventLevel.Informational,
-            Message = "Jobs Service has begun dispatching events")]
+            Message = "Work Service has begun dispatching events")]
         public void DispatchLoopStarted() { WriteEvent(7); }
 
         [Event(
@@ -62,7 +62,7 @@ namespace NuGet.Services.Jobs.Monitoring
             Task = Tasks.Dispatching,
             Opcode = EventOpcode.Stop,
             Level = EventLevel.Informational,
-            Message = "Jobs Service has stopped dispatching events")]
+            Message = "Work Service has stopped dispatching events")]
         public void DispatchLoopEnded() { WriteEvent(8); }
 
         [Event(
@@ -70,7 +70,7 @@ namespace NuGet.Services.Jobs.Monitoring
             Level = EventLevel.Critical,
             Task = Tasks.Startup,
             Opcode = EventOpcode.Stop,
-            Message = "Jobs Service encountered a fatal error in the dispatch loop: {0}")]
+            Message = "Work Service encountered a fatal error in the dispatch loop: {0}")]
         private void DispatchLoopError(string exception) { WriteEvent(9, exception); }
 
         [NonEvent]
@@ -92,7 +92,7 @@ namespace NuGet.Services.Jobs.Monitoring
             Task = Tasks.Dispatching,
             Opcode = EventOpcode.Resume,
             Level = EventLevel.Verbose,
-            Message = "Jobs Service has resumed dispatching events")]
+            Message = "Work Service has resumed dispatching events")]
         public void DispatchLoopResumed() { WriteEvent(11); }
 
         [Event(

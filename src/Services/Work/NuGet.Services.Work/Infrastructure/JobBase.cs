@@ -7,11 +7,11 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using NuGet.Services.Jobs.Monitoring;
+using NuGet.Services.Work.Monitoring;
 using System.Diagnostics;
 using System.Data.SqlClient;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work
 {
     public abstract class JobBase
     {

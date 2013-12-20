@@ -10,7 +10,7 @@ using Moq;
 using NuGet.Services.TestInfrastructure;
 using Xunit;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work
 {
     public class JobDispatcherFacts
     {

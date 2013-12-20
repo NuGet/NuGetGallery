@@ -16,29 +16,29 @@ using Microsoft.WindowsAzure.Storage.Table;
 using System.Reactive.Subjects;
 using System.Reactive.Disposables;
 using Microsoft.WindowsAzure.Storage.Blob;
-using NuGet.Services.Jobs.Monitoring;
+using NuGet.Services.Work.Monitoring;
 using System.Net;
 using NuGet.Services.Storage;
-using NuGet.Services.Jobs.Configuration;
+using NuGet.Services.Work.Configuration;
 using Autofac.Core;
 using Autofac;
 using NuGet.Services.ServiceModel;
-using NuGet.Services.Jobs.Api.Models;
+using NuGet.Services.Work.Api.Models;
 using NuGet.Services.Configuration;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work
 {
-    public class JobsService : NuGetService
+    public class WorkService : NuGetService
     {
-        internal const string InvocationLogsContainerBaseName = "jobs";
-        public static readonly string MyServiceName = "Jobs";
+        internal const string InvocationLogsContainerBaseName = "work";
+        public static readonly string MyServiceName = "Work";
 
         private AzureTable<JobDescription> _jobsTable;
         private JobRunner _runner;
 
         public IEnumerable<JobDescription> Jobs { get; private set; }
         
-        public JobsService(ServiceHost host)
+        public WorkService(ServiceHost host)
             : base(MyServiceName, host)
         {
         }
@@ -54,7 +54,7 @@ namespace NuGet.Services.Jobs
             catch (Exception ex)
             {
                 // Exceptions that escape to this level are fatal
-                JobsServiceEventSource.Log.StartupError(ex);
+                WorkServiceEventSource.Log.StartupError(ex);
                 return false;
             }
         }
@@ -77,7 +77,7 @@ namespace NuGet.Services.Jobs
             await Task.WhenAll(Jobs.Select(j =>
             {
                 // Record the discovery in the trace
-                JobsServiceEventSource.Log.JobDiscovered(j);
+                WorkServiceEventSource.Log.JobDiscovered(j);
 
                 // Log an entry for the job in the status table
                 return _jobsTable.Merge(j);
@@ -88,7 +88,7 @@ namespace NuGet.Services.Jobs
         {
             base.RegisterComponents(builder);
 
-            var jobdefs = typeof(JobsWorkerRole)
+            var jobdefs = typeof(WorkWorkerRole)
                    .Assembly
                    .GetExportedTypes()
                    .Where(t => !t.IsAbstract && typeof(JobBase).IsAssignableFrom(t))
@@ -110,7 +110,7 @@ namespace NuGet.Services.Jobs
 
         public override Task<object> Describe()
         {
-            return Task.FromResult<object>(new JobsServiceModel(Jobs));
+            return Task.FromResult<object>(new WorkServiceModel(Jobs));
         }
     }
 }

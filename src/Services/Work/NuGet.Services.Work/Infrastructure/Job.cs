@@ -5,9 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using NuGet.Services.Jobs.Helpers;
+using NuGet.Services.Work.Helpers;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work
 {
     public abstract class JobBase<TEventSource> : JobBase
         where TEventSource : EventSource

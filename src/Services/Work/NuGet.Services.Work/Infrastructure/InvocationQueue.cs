@@ -16,7 +16,7 @@ using NuGet.Services.Configuration;
 using NuGet.Services.ServiceModel;
 using NuGet.Services.Storage;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work
 {
     public class InvocationQueue
     {

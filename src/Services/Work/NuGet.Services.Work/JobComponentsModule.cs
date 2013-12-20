@@ -7,7 +7,7 @@ using Autofac;
 using NuGet.Services.Configuration;
 using NuGet.Services.ServiceModel;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work
 {
     public class JobComponentsModule : Module
     {

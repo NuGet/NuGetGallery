@@ -4,15 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work
 {
-    public class JobServiceStatus
+    public class WorkServiceStatus
     {
         public RunnerStatus RunnerStatus { get; private set; }
         public Guid CurrentInvocationId { get; private set; }
         public JobDescription CurrentJob { get; private set; }
 
-        public JobServiceStatus(RunnerStatus runnerStatus, Guid currentInvocationId, JobDescription currentJob)
+        public WorkServiceStatus(RunnerStatus runnerStatus, Guid currentInvocationId, JobDescription currentJob)
         {
             RunnerStatus = runnerStatus;
             CurrentInvocationId = currentInvocationId;

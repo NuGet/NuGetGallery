@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Moq;
 using Xunit;
 
-namespace NuGet.Services.Jobs
+namespace NuGet.Services.Work
 {
     public class JobFacts
     {

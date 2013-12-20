@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Jobs.Api
+namespace NuGet.Services.Work.Api
 {
     internal static class Routes
     {

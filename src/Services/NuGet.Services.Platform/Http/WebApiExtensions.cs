@@ -16,12 +16,12 @@ namespace System.Web.Http
 
         public static Uri RouteUri(this UrlHelper self, string name, Dictionary<string, object> routeValues)
         {
-            return new Uri(self.Route(name, routeValues), UriKind.Relative);
+            return new Uri(self.Request.RequestUri, self.Route(name, routeValues));
         }
 
         public static Uri RouteUri(this UrlHelper self, string name, object routeValues)
         {
-            return new Uri(self.Route(name, routeValues), UriKind.Relative);
+            return new Uri(self.Request.RequestUri, self.Route(name, routeValues));
         }
     }
 }
