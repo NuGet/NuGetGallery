@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
+using NuGet.Services.Work.Models;
 using Xunit;
 
 namespace NuGet.Services.Work
@@ -117,7 +118,7 @@ namespace NuGet.Services.Work
             }
         }
 
-        public class TestJob : Job<TestJobEventSource>
+        public class TestJob : JobHandler<TestJobEventSource>
         {
             public string TestParameter { get; set; }
 

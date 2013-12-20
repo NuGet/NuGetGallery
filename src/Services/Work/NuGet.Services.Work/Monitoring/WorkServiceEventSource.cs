@@ -111,6 +111,6 @@ namespace NuGet.Services.Work.Monitoring
         private void Cancelled(Guid id, string job, string timestamp, string reason) { WriteEvent(13, id, job, timestamp, reason); }
 
         [NonEvent]
-        public void Cancelled(Invocation invocation) { Cancelled(invocation.Id, invocation.Job, invocation.UpdatedAt.ToString("O"), invocation.ResultMessage); }
+        public void Cancelled(InvocationState invocation) { Cancelled(invocation.Id, invocation.Job, invocation.UpdatedAt.ToString("O"), invocation.ResultMessage); }
     }
 }

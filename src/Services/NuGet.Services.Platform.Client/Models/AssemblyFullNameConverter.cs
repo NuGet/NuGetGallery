@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace NuGet.Services
 {
-    public class AssemblyFullNameConverter : JsonConverter
+    internal class AssemblyFullNameConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {

@@ -10,7 +10,7 @@ namespace NuGet.Services.Work.Jobs
     /// <summary>
     /// Job used to confirm that the worker remains active
     /// </summary>
-    public class HeartBeatJob : RepeatingJob<HeartBeatEventSource>
+    public class HeartBeatJob : RepeatingJobHandler<HeartBeatEventSource>
     {
         public override TimeSpan WaitPeriod
         {

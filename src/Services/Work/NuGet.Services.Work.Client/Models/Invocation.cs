@@ -4,13 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Work.Api.Models
+namespace NuGet.Services.Work.Models
 {
-    public class InvocationResponseModel
+    public class Invocation
     {
         public Guid Id { get; set; }
         public string Job { get; set; }
         public string Source { get; set; }
+
+        public Dictionary<string, string> Payload { get; set; }
         
         public InvocationStatus Status { get; set; }
         public ExecutionResult Result { get; set; }
@@ -28,27 +30,11 @@ namespace NuGet.Services.Work.Api.Models
         public DateTimeOffset NextVisibleAt { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }
 
-        public InvocationResponseModel(Invocation invocation)
+        /// <summary>
+        /// Constructs a new Invocation. You probably don't want to do this, this should just be loaded from the API.
+        /// </summary>
+        public Invocation()
         {
-            Id = invocation.Id;
-            Job = invocation.Job;
-            Source = invocation.Source;
-
-            Status = invocation.Status;
-            Result = invocation.Result;
-            ResultMessage = invocation.ResultMessage;
-            LastUpdatedBy = invocation.LastUpdatedBy;
-            LogUrl = invocation.LogUrl;
-
-            DequeueCount = invocation.DequeueCount;
-            IsContinuation = invocation.IsContinuation;
-
-            LastDequeuedAt = invocation.LastDequeuedAt;
-            LastSuspendedAt = invocation.LastSuspendedAt;
-            CompletedAt = invocation.CompletedAt;
-            QueuedAt = invocation.QueuedAt;
-            NextVisibleAt = invocation.NextVisibleAt;
-            UpdatedAt = invocation.UpdatedAt;
         }
     }
 }

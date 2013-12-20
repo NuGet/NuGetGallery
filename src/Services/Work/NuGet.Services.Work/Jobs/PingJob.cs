@@ -10,7 +10,7 @@ namespace NuGet.Services.Work.Jobs
     /// <summary>
     /// Job used to confirm the worker is responding to requests
     /// </summary>
-    public class PingJob : Job<PingEventSource>
+    public class PingJob : JobHandler<PingEventSource>
     {
         protected internal override Task Execute()
         {

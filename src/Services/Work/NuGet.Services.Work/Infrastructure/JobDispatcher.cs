@@ -48,7 +48,7 @@ namespace NuGet.Services.Work
                 b.Register(ctx => scope)
                     .As<IComponentContainer>();
             });
-            var job = scope.GetService<JobBase>(jobdef.Implementation);
+            var job = scope.GetService<JobHandlerBase>(jobdef.Implementation);
 
             Func<Task<InvocationResult>> invocationThunk = () => job.Invoke(context);
             if (context.Invocation.IsContinuation)

@@ -24,7 +24,7 @@ namespace NuGet.Services.Http.Controllers
         {
             return new HostInformationModel(
                 Host.Description,
-                new AssemblyInformationModel(Host.RuntimeInformation))
+                Host.RuntimeInformation)
                 {
                     ServiceInstances = Url.RouteUri(Routes.GetServices)
                 };

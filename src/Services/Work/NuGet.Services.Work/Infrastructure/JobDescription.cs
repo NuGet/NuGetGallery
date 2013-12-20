@@ -41,7 +41,7 @@ namespace NuGet.Services.Work
             EventProviderId = eventProviderId;
             Implementation = implementation;
             Runtime = implementation.FullName;
-            Assembly = AssemblyInformation.FromType(implementation);
+            Assembly = implementation.GetAssemblyInfo();
         }
 
         public static JobDescription Create(Type jobType)

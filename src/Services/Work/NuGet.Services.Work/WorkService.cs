@@ -91,7 +91,7 @@ namespace NuGet.Services.Work
             var jobdefs = typeof(WorkWorkerRole)
                    .Assembly
                    .GetExportedTypes()
-                   .Where(t => !t.IsAbstract && typeof(JobBase).IsAssignableFrom(t))
+                   .Where(t => !t.IsAbstract && typeof(JobHandlerBase).IsAssignableFrom(t))
                    .Select(t => JobDescription.Create(t))
                    .Where(d => d != null);
             builder.RegisterInstance(jobdefs).As<IEnumerable<JobDescription>>();

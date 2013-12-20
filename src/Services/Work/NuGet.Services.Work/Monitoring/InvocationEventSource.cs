@@ -48,7 +48,7 @@ namespace NuGet.Services.Work.Monitoring
         private void InvocationTookTooLong(Guid invocationId, string jobName, string inserted, string expired) { WriteEvent(3, invocationId, jobName, inserted, expired); }
 
         [NonEvent]
-        public void InvocationTookTooLong(Invocation invocation)
+        public void InvocationTookTooLong(InvocationState invocation)
         {
             InvocationTookTooLong(invocation.Id, invocation.Job, invocation.QueuedAt.ToString("O"), invocation.NextVisibleAt.ToString("O"));
         }
@@ -144,7 +144,7 @@ namespace NuGet.Services.Work.Monitoring
             Message = "Scheduled a repeat of '{0}' as invocation '{1}'. Expected to run in: {2}")]
         private void ScheduledRepeat(Guid original, Guid repeat, string job, string period) { WriteEvent(13, original, repeat, job, period); }
         [NonEvent]
-        public void ScheduledRepeat(Invocation original, Invocation repeat, TimeSpan period) { ScheduledRepeat(original.Id, repeat.Id, repeat.Job, period.ToString()); }
+        public void ScheduledRepeat(InvocationState original, InvocationState repeat, TimeSpan period) { ScheduledRepeat(original.Id, repeat.Id, repeat.Job, period.ToString()); }
 
         [Event(
             eventId: 14,
@@ -152,6 +152,6 @@ namespace NuGet.Services.Work.Monitoring
             Message = "Execution of invocation '{0}' was aborted because another node has taken action on it since this node last heard from it")]
         private void Aborted(Guid invocationId) { WriteEvent(14, invocationId); }
         [NonEvent]
-        public void Aborted(Invocation invocation) { Aborted(invocation.Id); }
+        public void Aborted(InvocationState invocation) { Aborted(invocation.Id); }
     }
 }

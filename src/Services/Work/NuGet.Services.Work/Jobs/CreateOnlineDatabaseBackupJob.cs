@@ -12,7 +12,7 @@ using NuGet.Services.Work.Jobs.Models;
 
 namespace NuGet.Services.Work.Jobs
 {
-    public class CreateOnlineDatabaseBackupJob : AsyncJob<CreateOnlineDatabaseBackupEventSource>
+    public class CreateOnlineDatabaseBackupJob : AsyncJobHandler<CreateOnlineDatabaseBackupEventSource>
     {
         public static readonly string DefaultBackupPrefix = "Backup_";
 

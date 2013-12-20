@@ -15,6 +15,7 @@ using NuGet.Services.Work.Configuration;
 using NuGet.Services.Work.Monitoring;
 using NuGet.Services.ServiceModel;
 using NuGet.Services.Storage;
+using NuGet.Services.Work.Models;
 
 namespace NuGet.Services.Work
 {
@@ -70,7 +71,7 @@ namespace NuGet.Services.Work
             {
                 while (!cancelToken.IsCancellationRequested)
                 {
-                    Invocation invocation = null;
+                    InvocationState invocation = null;
                     try
                     {
                         Status = RunnerStatus.Dequeuing;
@@ -129,7 +130,7 @@ namespace NuGet.Services.Work
             }
         }
 
-        protected internal virtual async Task Dispatch(Invocation invocation, CancellationToken cancelToken)
+        protected internal virtual async Task Dispatch(InvocationState invocation, CancellationToken cancelToken)
         {
             InvocationContext.SetCurrentInvocationId(invocation.Id);
             
@@ -215,14 +216,14 @@ namespace NuGet.Services.Work
             }
         }
 
-        protected virtual async Task<InvocationLogCapture> StartCapture(Invocation invocation)
+        protected virtual async Task<InvocationLogCapture> StartCapture(InvocationState invocation)
         {
             var capture = new InvocationLogCapture(invocation, Storage, Path.Combine(Path.GetTempPath(), "InvocationLogs"));
             await capture.Start();
             return capture;
         }
 
-        private Task<Invocation> EnqueueRepeat(Invocation repeat, InvocationResult result)
+        private Task<InvocationState> EnqueueRepeat(InvocationState repeat, InvocationResult result)
         {
             return Queue.Enqueue(repeat.Job, Constants.Source_RepeatingJob, repeat.Payload, result.RescheduleIn.Value);
         }

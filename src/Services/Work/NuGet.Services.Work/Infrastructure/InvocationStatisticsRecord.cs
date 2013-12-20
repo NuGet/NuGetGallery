@@ -9,7 +9,7 @@ namespace NuGet.Services.Work
     /// <summary>
     /// Represents a single row out of the InvocationStatistics, JobStatistics or InstanceStatistics views
     /// </summary>
-    public class InvocationStatistics
+    public class InvocationStatisticsRecord
     {
         /// <summary>
         /// Gets the item this row relates to (null in the case of InvocationStatistics, which returns only a single row)

@@ -13,11 +13,11 @@ using System.Data.SqlClient;
 
 namespace NuGet.Services.Work
 {
-    public abstract class JobBase
+    public abstract class JobHandlerBase
     {
         public InvocationContext Context { get; protected set; }
 
-        public Invocation Invocation { get { return Context.Invocation; } }
+        public InvocationState Invocation { get { return Context.Invocation; } }
         
         public virtual async Task<InvocationResult> Invoke(InvocationContext context)
         {
@@ -44,17 +44,17 @@ namespace NuGet.Services.Work
         public abstract EventSource GetEventSource();
         protected internal abstract Task<InvocationResult> Invoke();
 
-        public virtual Task<Invocation> Enqueue(string job, string source)
+        public virtual Task<InvocationState> Enqueue(string job, string source)
         {
             return Context.Queue.Enqueue(job, source);
         }
 
-        public virtual Task<Invocation> Enqueue(string job, string source, Dictionary<string, string> payload)
+        public virtual Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload)
         {
             return Context.Queue.Enqueue(job, source, payload);
         }
 
-        public virtual Task<Invocation> Enqueue(string job, string source, Dictionary<string, string> payload, TimeSpan invisibleFor)
+        public virtual Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload, TimeSpan invisibleFor)
         {
             return Context.Queue.Enqueue(job, source, payload, invisibleFor);
         }

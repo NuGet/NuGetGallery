@@ -8,6 +8,7 @@ using System.Web.Http;
 using NuGet.Services.Http;
 using NuGet.Services.Work.Api.Models;
 using NuGet.Services.Storage;
+using NuGet.Services.Work.Models;
 
 namespace NuGet.Services.Work.Api.Controllers
 {
@@ -31,7 +32,7 @@ namespace NuGet.Services.Work.Api.Controllers
                 return NotFound();
             }
 
-            return Content(HttpStatusCode.OK, (await Queue.GetAll(criteria)).Select(i => new InvocationResponseModel(i)));
+            return Content(HttpStatusCode.OK, (await Queue.GetAll(criteria)).Select(i => i.ToModel()));
         }
 
         [Route("{id}", Name = Routes.GetSingleInvocation)]
@@ -42,11 +43,11 @@ namespace NuGet.Services.Work.Api.Controllers
             {
                 return NotFound();
             }
-            return Content(HttpStatusCode.OK, invocation);
+            return Content(HttpStatusCode.OK, invocation.ToModel());
         }
 
         [Route("", Name = Routes.PutInvocation)]
-        public async Task<IHttpActionResult> Put([FromBody] InvocationRequestModel request)
+        public async Task<IHttpActionResult> Put([FromBody] InvocationRequest request)
         {
             var invocation = await Queue.Enqueue(
                 request.Job, 
@@ -59,7 +60,7 @@ namespace NuGet.Services.Work.Api.Controllers
             }
             else
             {
-                return Content(HttpStatusCode.Created, new InvocationResponseModel(invocation));
+                return Content(HttpStatusCode.Created, invocation.ToModel());
             }
         }
 
@@ -73,7 +74,7 @@ namespace NuGet.Services.Work.Api.Controllers
             }
             else
             {
-                return Content(HttpStatusCode.OK, new InvocationStatisticsModel(stats));
+                return Content(HttpStatusCode.OK, stats.ToInvocationModel());
             }
         }
     }

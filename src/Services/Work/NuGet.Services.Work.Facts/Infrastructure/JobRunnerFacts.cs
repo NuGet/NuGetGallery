@@ -11,6 +11,7 @@ using NuGet.Services.Work.Monitoring;
 using NuGet.Services.Storage;
 using Xunit;
 using Xunit.Extensions;
+using NuGet.Services.Work.Models;
 
 namespace NuGet.Services.Work.Infrastructure
 {
@@ -79,14 +80,14 @@ namespace NuGet.Services.Work.Infrastructure
                 // Arrange
                 var cts = new CancellationTokenSource();
                 var runner = new TestableJobRunner(TimeSpan.FromSeconds(5), skipDispatch: true);
-                var dequeueTcs = new TaskCompletionSource<Invocation>();
+                var dequeueTcs = new TaskCompletionSource<InvocationState>();
 
                 runner.MockQueue
                     .Setup(q => q.Dequeue(JobRunner.DefaultInvisibilityPeriod, cts.Token))
                     .Returns(async () =>
                     {
                         var result = await dequeueTcs.Task;
-                        dequeueTcs = new TaskCompletionSource<Invocation>();
+                        dequeueTcs = new TaskCompletionSource<InvocationState>();
                         return result;
                     });
                 RunnerStatus statusAtHeartBeat = RunnerStatus.Working;
@@ -145,14 +146,14 @@ namespace NuGet.Services.Work.Infrastructure
                 // Arrange
                 var cts = new CancellationTokenSource();
                 var runner = new TestableJobRunner(TimeSpan.FromSeconds(5), skipDispatch: true);
-                var dequeueTcs = new TaskCompletionSource<Invocation>();
+                var dequeueTcs = new TaskCompletionSource<InvocationState>();
 
                 runner.MockQueue
                     .Setup(q => q.Dequeue(JobRunner.DefaultInvisibilityPeriod, cts.Token))
                     .Returns(async () =>
                     {
                         var result = await dequeueTcs.Task;
-                        dequeueTcs = new TaskCompletionSource<Invocation>();
+                        dequeueTcs = new TaskCompletionSource<InvocationState>();
                         return result;
                     });
                 RunnerStatus statusAtLastHeartBeat = RunnerStatus.Working;
@@ -392,7 +393,7 @@ namespace NuGet.Services.Work.Infrastructure
             public VirtualClock VirtualClock { get; private set; }
 
             public bool CaptureStarted { get; private set; }
-            public Invocation LastDispatched { get; private set; }
+            public InvocationState LastDispatched { get; private set; }
             public TaskCompletionSource<object> DispatchTCS { get; set; }
 
             public TestableJobRunner(TimeSpan pollInterval, bool skipDispatch = false)
@@ -409,23 +410,23 @@ namespace NuGet.Services.Work.Infrastructure
 
                 // Set up things so that async methods don't return null Tasks
                 MockQueue
-                    .Setup(q => q.UpdateStatus(It.IsAny<Invocation>(), It.IsAny<InvocationStatus>(), It.IsAny<ExecutionResult>()))
+                    .Setup(q => q.UpdateStatus(It.IsAny<InvocationState>(), It.IsAny<InvocationStatus>(), It.IsAny<ExecutionResult>()))
                     .Completes(true);
                 MockQueue
-                    .Setup(q => q.Complete(It.IsAny<Invocation>(), It.IsAny<ExecutionResult>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .Setup(q => q.Complete(It.IsAny<InvocationState>(), It.IsAny<ExecutionResult>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Completes(true);
                 MockQueue
                     .Setup(q => q.Enqueue(It.IsAny<string>(), It.IsAny<string>()))
-                    .Completes((Invocation)null);
+                    .Completes((InvocationState)null);
                 MockQueue
                     .Setup(q => q.Enqueue(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<TimeSpan>()))
-                    .Completes((Invocation)null);
+                    .Completes((InvocationState)null);
                 MockQueue
-                    .Setup(q => q.Suspend(It.IsAny<Invocation>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<TimeSpan>(), It.IsAny<string>()))
+                    .Setup(q => q.Suspend(It.IsAny<InvocationState>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<TimeSpan>(), It.IsAny<string>()))
                     .Completes(true);
             }
 
-            protected internal override Task Dispatch(Invocation invocation, CancellationToken cancelToken)
+            protected internal override Task Dispatch(InvocationState invocation, CancellationToken cancelToken)
             {
                 LastDispatched = invocation;
                 if (_skipDispatch)
@@ -438,7 +439,7 @@ namespace NuGet.Services.Work.Infrastructure
                 }
             }
 
-            protected override Task<InvocationLogCapture> StartCapture(Invocation invocation)
+            protected override Task<InvocationLogCapture> StartCapture(InvocationState invocation)
             {
                 CaptureStarted = true;
                 return Task.FromResult<InvocationLogCapture>(null);

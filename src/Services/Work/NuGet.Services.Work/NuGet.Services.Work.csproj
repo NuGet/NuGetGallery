@@ -118,14 +118,10 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Api\Controllers\InstancesController.cs" />
-    <Compile Include="Api\Controllers\InvocationDetailModel.cs" />
     <Compile Include="Api\Controllers\JobsController.cs" />
     <Compile Include="Api\Controllers\InvocationsController.cs" />
-    <Compile Include="Api\Models\InvocationResponseModel.cs" />
-    <Compile Include="Api\Models\InvocationRequestModel.cs" />
-    <Compile Include="Api\Models\InvocationStatisticsModel.cs" />
+    <Compile Include="Api\ModelConverters.cs" />
     <Compile Include="Infrastructure\InvocationListCriteria.cs" />
-    <Compile Include="Api\Models\JobDefinitionModel.cs" />
     <Compile Include="Api\Models\WorkServiceModel.cs" />
     <Compile Include="Api\Routes.cs" />
     <Compile Include="Configuration\QueueConfiguration.cs" />
@@ -134,13 +130,12 @@
     <Compile Include="Helpers\DateTimeOffsetExtensions.cs" />
     <Compile Include="Helpers\EventSourceInstanceManager.cs" />
     <Compile Include="Infrastructure\InvalidJobRequestException.cs" />
-    <Compile Include="Infrastructure\Invocation.cs" />
+    <Compile Include="Infrastructure\InvocationState.cs" />
     <Compile Include="Infrastructure\InvocationPayloadSerializer.cs" />
     <Compile Include="Infrastructure\InvocationQueue.cs" />
     <Compile Include="Infrastructure\InvocationResult.cs" />
-    <Compile Include="Infrastructure\InvocationStatistics.cs" />
-    <Compile Include="Infrastructure\InvocationStatus.cs" />
-    <Compile Include="Infrastructure\Job.cs" />
+    <Compile Include="Infrastructure\InvocationStatisticsRecord.cs" />
+    <Compile Include="Infrastructure\JobHandler.cs" />
     <Compile Include="Infrastructure\JobAttribute.cs" />
     <Compile Include="Infrastructure\JobContinuation.cs" />
     <Compile Include="Infrastructure\JobDescription.cs" />
@@ -156,7 +151,7 @@
     <Compile Include="WorkServiceStatus.cs" />
     <Compile Include="WorkManagementService.cs" />
     <Compile Include="Helpers\SqlConnectionStringBuilderExtensions.cs" />
-    <Compile Include="Infrastructure\JobBase.cs" />
+    <Compile Include="Infrastructure\JobHandlerBase.cs" />
     <Compile Include="Infrastructure\JobDispatcher.cs" />
     <Compile Include="Infrastructure\JobRunner.cs" />
     <Compile Include="Monitoring\InvocationEventSource.cs" />
@@ -187,9 +182,17 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\NuGet.Services.Platform.Client\NuGet.Services.Platform.Client.csproj">
+      <Project>{3be823f7-53aa-4263-a953-06bf643f0e43}</Project>
+      <Name>NuGet.Services.Platform.Client</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\NuGet.Services.Platform\NuGet.Services.Platform.csproj">
       <Project>{ef86883e-a1b4-4052-9222-51a01c6c41cd}</Project>
       <Name>NuGet.Services.Platform</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Work.Client\NuGet.Services.Work.Client.csproj">
+      <Project>{19324b97-1c22-49e2-8c1a-e4eab682a974}</Project>
+      <Name>NuGet.Services.Work.Client</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

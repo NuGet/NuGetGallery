@@ -15,6 +15,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using NuGet.Services.Configuration;
 using NuGet.Services.ServiceModel;
 using NuGet.Services.Storage;
+using NuGet.Services.Work.Models;
 
 namespace NuGet.Services.Work
 {
@@ -37,17 +38,17 @@ namespace NuGet.Services.Work
             _connectionString = connectionString;
         }
 
-        public virtual Task<Invocation> Enqueue(string job, string source)
+        public virtual Task<InvocationState> Enqueue(string job, string source)
         {
             return Enqueue(job, source, null, TimeSpan.Zero);
         }
 
-        public virtual Task<Invocation> Enqueue(string job, string source, Dictionary<string, string> payload)
+        public virtual Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload)
         {
             return Enqueue(job, source, payload, TimeSpan.Zero);
         }
 
-        public virtual async Task<Invocation> Enqueue(string job, string source, Dictionary<string, string> payload, TimeSpan invisibleFor)
+        public virtual async Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload, TimeSpan invisibleFor)
         {
             var invisibleUntil = _clock.UtcNow + invisibleFor;
 
@@ -71,14 +72,14 @@ namespace NuGet.Services.Work
             {
                 return null;
             }
-            return new Invocation(row);
+            return new InvocationState(row);
         }
 
         /// <summary>
         /// Dequeues the next request, if one is present
         /// </summary>
         /// <param name="invisibleFor">The period of time during which the message is invisble to other clients. The job must be <see cref="Complete"/>d before this time or it will be dispatched again</param>
-        public virtual async Task<Invocation> Dequeue(TimeSpan invisibleFor, CancellationToken token)
+        public virtual async Task<InvocationState> Dequeue(TimeSpan invisibleFor, CancellationToken token)
         {
             var invisibleUntil = _clock.UtcNow + invisibleFor;
             var row = await ConnectAndExec(
@@ -95,7 +96,7 @@ namespace NuGet.Services.Work
             }
             else
             {
-                return new Invocation(row);
+                return new InvocationState(row);
             }
         }
 
@@ -104,7 +105,7 @@ namespace NuGet.Services.Work
         /// </summary>
         /// <param name="request">The request to acknowledge</param>
         /// <returns>A boolean indicating if the request was successful. Failure indicates that another node has updated the invocation since we last checked</returns>
-        public virtual async Task<bool> Complete(Invocation invocation, ExecutionResult result, string resultMessage, string logUrl)
+        public virtual async Task<bool> Complete(InvocationState invocation, ExecutionResult result, string resultMessage, string logUrl)
         {
             // Try to complete the row
             var newVersion = await ConnectAndExec(
@@ -127,7 +128,7 @@ namespace NuGet.Services.Work
         /// </summary>
         /// <param name="request">The request to extend</param>
         /// <param name="duration">The duration from the time of invocation to hide the message</param>
-        public virtual async Task<bool> Extend(Invocation invocation, TimeSpan duration)
+        public virtual async Task<bool> Extend(InvocationState invocation, TimeSpan duration)
         {
             var invisibleUntil = _clock.UtcNow + duration;
             var newVersion = await ConnectAndExec(
@@ -143,7 +144,7 @@ namespace NuGet.Services.Work
             return ProcessResult(invocation, newVersion);
         }
 
-        public virtual async Task<bool> Suspend(Invocation invocation, Dictionary<string, string> newPayload, TimeSpan suspendFor, string logUrl)
+        public virtual async Task<bool> Suspend(InvocationState invocation, Dictionary<string, string> newPayload, TimeSpan suspendFor, string logUrl)
         {
             var suspendUntil = _clock.UtcNow + suspendFor;
             var serializedPayload = InvocationPayloadSerializer.Serialize(newPayload);
@@ -161,7 +162,7 @@ namespace NuGet.Services.Work
             return ProcessResult(invocation, newVersion);
         }
 
-        public virtual async Task<bool> UpdateStatus(Invocation invocation, InvocationStatus status, ExecutionResult result)
+        public virtual async Task<bool> UpdateStatus(InvocationState invocation, InvocationStatus status, ExecutionResult result)
         {
             var newVersion = await ConnectAndExec(
                 "jobs.SetInvocationStatus",
@@ -176,7 +177,7 @@ namespace NuGet.Services.Work
             return ProcessResult(invocation, newVersion);
         }
 
-        public virtual Task<IEnumerable<Invocation>> GetAll(InvocationListCriteria criteria)
+        public virtual Task<IEnumerable<InvocationState>> GetAll(InvocationListCriteria criteria)
         {
             switch (criteria)
             {
@@ -215,42 +216,42 @@ namespace NuGet.Services.Work
                             status = InvocationStatus.Executing
                         });
                 default:
-                    return Task.FromResult(Enumerable.Empty<Invocation>());
+                    return Task.FromResult(Enumerable.Empty<InvocationState>());
             }
         }
 
-        public virtual async Task<InvocationStatistics> GetStatistics()
+        public virtual async Task<InvocationStatisticsRecord> GetStatistics()
         {
             return (await GetStatisticsCore("InvocationStatistics")).SingleOrDefault();
         }
 
-        public virtual Task<IEnumerable<InvocationStatistics>> GetJobStatistics()
+        public virtual Task<IEnumerable<InvocationStatisticsRecord>> GetJobStatistics()
         {
             return GetStatisticsCore("JobStatistics");
         }
 
-        public virtual Task<IEnumerable<InvocationStatistics>> GetInstanceStatistics()
+        public virtual Task<IEnumerable<InvocationStatisticsRecord>> GetInstanceStatistics()
         {
             return GetStatisticsCore("InstanceStatistics");
         }
 
-        public virtual Task<Invocation> Get(Guid id)
+        public virtual Task<InvocationState> Get(Guid id)
         {
             return ConnectAndQuerySingle(
                 "SELECT * FROM jobs.Invocations WHERE Id = @id",
                 new { id });
         }
 
-        private async Task<IEnumerable<InvocationStatistics>> GetStatisticsCore(string view)
+        private async Task<IEnumerable<InvocationStatisticsRecord>> GetStatisticsCore(string view)
         {
             using (var connection = await Connect())
             {
                 // Teeny tiny SQL Injection :)
-                return await connection.QueryAsync<InvocationStatistics>("SELECT * FROM jobs." + view);
+                return await connection.QueryAsync<InvocationStatisticsRecord>("SELECT * FROM jobs." + view);
             }
         }
 
-        private bool ProcessResult(Invocation invocation, Invocation.InvocationRow result)
+        private bool ProcessResult(InvocationState invocation, InvocationState.InvocationRow result)
         {
             if (result == null)
             {
@@ -270,11 +271,11 @@ namespace NuGet.Services.Work
             return conn;
         }
 
-        private async Task<Invocation.InvocationRow> ConnectAndExec(string proc, object parameters)
+        private async Task<InvocationState.InvocationRow> ConnectAndExec(string proc, object parameters)
         {
             using (var connection = await Connect())
             {
-                return (await connection.QueryAsync<Invocation.InvocationRow>(
+                return (await connection.QueryAsync<InvocationState.InvocationRow>(
                     proc,
                     parameters,
                     commandType: CommandType.StoredProcedure))
@@ -282,18 +283,18 @@ namespace NuGet.Services.Work
             }
         }
         
-        private async Task<IEnumerable<Invocation>> ConnectAndQuery(string sql, object parameters = null)
+        private async Task<IEnumerable<InvocationState>> ConnectAndQuery(string sql, object parameters = null)
         {
             using (var connection = await Connect())
             {
-                return (await connection.QueryAsync<Invocation.InvocationRow>(
+                return (await connection.QueryAsync<InvocationState.InvocationRow>(
                     sql,
                     parameters,
-                    commandType: CommandType.Text)).Select(r => new Invocation(r));
+                    commandType: CommandType.Text)).Select(r => new InvocationState(r));
             }
         }
 
-        private async Task<Invocation> ConnectAndQuerySingle(string sql, object parameters = null)
+        private async Task<InvocationState> ConnectAndQuerySingle(string sql, object parameters = null)
         {
             return (await ConnectAndQuery(sql, parameters)).SingleOrDefault();
         }

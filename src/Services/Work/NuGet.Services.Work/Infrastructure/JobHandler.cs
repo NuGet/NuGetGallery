@@ -9,7 +9,7 @@ using NuGet.Services.Work.Helpers;
 
 namespace NuGet.Services.Work
 {
-    public abstract class JobBase<TEventSource> : JobBase
+    public abstract class JobHandlerBase<TEventSource> : JobHandlerBase
         where TEventSource : EventSource
     {
         private TEventSource _log = EventSourceInstanceManager.Get<TEventSource>();
@@ -22,7 +22,7 @@ namespace NuGet.Services.Work
         }
     }
 
-    public abstract class Job<TEventSource> : JobBase<TEventSource>
+    public abstract class JobHandler<TEventSource> : JobHandlerBase<TEventSource>
         where TEventSource : EventSource
     {
         protected internal override async Task<InvocationResult> Invoke()
@@ -41,7 +41,7 @@ namespace NuGet.Services.Work
         protected internal abstract Task Execute();
     }
 
-    public abstract class RepeatingJob<TEventSource> : JobBase<TEventSource> 
+    public abstract class RepeatingJobHandler<TEventSource> : JobHandlerBase<TEventSource> 
         where TEventSource: EventSource
     {
         /// <summary>
@@ -72,7 +72,7 @@ namespace NuGet.Services.Work
         Task<InvocationResult> InvokeContinuation(InvocationContext context);
     }
 
-    public abstract class AsyncJob<TEventSource> : JobBase<TEventSource>, IAsyncJob
+    public abstract class AsyncJobHandler<TEventSource> : JobHandlerBase<TEventSource>, IAsyncJob
         where TEventSource : EventSource
     {
         protected internal override Task<InvocationResult> Invoke()

@@ -24,16 +24,16 @@ namespace NuGet.Services.Work.Api.Controllers
         }
 
         [Route("", Name = Routes.GetJobs)]
-        public IEnumerable<JobDefinitionModel> Get()
+        public IHttpActionResult Get()
         {
-            return Storage.Primary.Tables.Table<JobDescription>().GetAll().Select(d => new JobDefinitionModel(d));
+            return Content(HttpStatusCode.OK, Storage.Primary.Tables.Table<JobDescription>().GetAll().Select(d => d.ToModel()));
         }
 
         [Route("stats", Name = Routes.GetJobStatistics)]
         public async Task<IHttpActionResult> GetStatistics()
         {
             var stats = await Queue.GetJobStatistics();
-            return Content(HttpStatusCode.OK, stats.Select(s => new JobStatisticsModel(s)));
+            return Content(HttpStatusCode.OK, stats.Select(s => s.ToJobModel()));
         }
     }
 }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Moq;
 using NuGet.Services.TestInfrastructure;
+using NuGet.Services.Work.Models;
 using Xunit;
 
 namespace NuGet.Services.Work
@@ -121,7 +122,7 @@ namespace NuGet.Services.Work
             }
         }
 
-        public class TestJob : JobBase
+        public class TestJob : JobHandlerBase
         {
             public override EventSource GetEventSource()
             {
@@ -144,7 +145,7 @@ namespace NuGet.Services.Work
             }
         }
 
-        public class TestAsyncJob : JobBase, IAsyncJob
+        public class TestAsyncJob : JobHandlerBase, IAsyncJob
         {
             public override EventSource GetEventSource()
             {
@@ -162,7 +163,7 @@ namespace NuGet.Services.Work
             }
         }
 
-        public class TestJobWithService : JobBase
+        public class TestJobWithService : JobHandlerBase
         {
             public TestJobWithService(SomeService service)
             {

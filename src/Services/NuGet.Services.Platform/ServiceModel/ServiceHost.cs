@@ -22,7 +22,7 @@ namespace NuGet.Services.ServiceModel
         private CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
         private IContainer _container;
         private IComponentContainer _containerWrapper;
-        private AssemblyInformation _runtimeInformation = AssemblyInformation.FromType<ServiceHost>();
+        private AssemblyInformation _runtimeInformation = typeof(ServiceHost).GetAssemblyInfo();
 
         private volatile int _nextId = 0;
 
@@ -229,7 +229,7 @@ namespace NuGet.Services.ServiceModel
             ServicePlatformEventSource.Log.ServiceInitialized(service.InstanceName);
 
             // Report that we're starting the service
-            var entry = new ServiceInstanceEntry(service.InstanceName, AssemblyInformation.FromAssembly(service.GetType().Assembly));
+            var entry = new ServiceInstanceEntry(service.InstanceName, service.GetType().GetAssemblyInfo());
             await Storage.Primary.Tables.Table<ServiceInstanceEntry>().InsertOrReplace(entry);
             
             // Start the service and return it if the start succeeds.

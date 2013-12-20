@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using NuGet.Services.Work.Models;
 
 namespace NuGet.Services.Work
 {

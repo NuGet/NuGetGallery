@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Work.Jobs
 {
-    public class AsyncJob : AsyncJob<AsyncEventSource>
+    public class AsyncJob : AsyncJobHandler<AsyncEventSource>
     {
         public string Message { get; set; }
 

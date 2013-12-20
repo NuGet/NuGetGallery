@@ -22,10 +22,10 @@ namespace NuGet.Services.Work.Monitoring
         private string _tempFile;
         private IDisposable _eventSubscription;
 
-        public Invocation Invocation { get; private set; }
+        public InvocationState Invocation { get; private set; }
         public StorageHub Storage { get; private set; }
         
-        public InvocationLogCapture(Invocation invocation, StorageHub storage, string tempDirectory)
+        public InvocationLogCapture(InvocationState invocation, StorageHub storage, string tempDirectory)
         {
             Invocation = invocation;
             Storage = storage;
@@ -78,7 +78,7 @@ namespace NuGet.Services.Work.Monitoring
             return logBlob;
         }
 
-        public void SetJob(JobDescription jobdef, JobBase job)
+        public void SetJob(JobDescription jobdef, JobHandlerBase job)
         {
             var eventSource = job.GetEventSource();
             if (eventSource == null)

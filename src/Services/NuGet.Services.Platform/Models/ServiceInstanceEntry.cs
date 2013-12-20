@@ -86,7 +86,7 @@ namespace NuGet.Services.Models
         {
             return new ServiceInstanceEntry(
                 service.InstanceName,
-                AssemblyInformation.FromObject(service));
+                service.GetType().GetAssemblyInfo());
         }
     }
 }

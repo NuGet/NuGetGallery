@@ -15,14 +15,14 @@ namespace NuGet.Services.Http.Models
         public string FullName { get; set; }
         public string MachineName { get; set; }
 
-        public AssemblyInformationModel Runtime { get; set; }
+        public AssemblyInformation Runtime { get; set; }
 
         public Uri ServiceInstances { get; set; }
         public Uri Processes { get; set; }
         public Uri Tracing { get; set; }
 
         public HostInformationModel() { }
-        public HostInformationModel(ServiceHostDescription hostDesc, AssemblyInformationModel runtime)
+        public HostInformationModel(ServiceHostDescription hostDesc, AssemblyInformation runtime)
         {
             Environment = hostDesc.ServiceHostName.Datacenter.Environment;
             Datacenter = hostDesc.ServiceHostName.Datacenter.Id;

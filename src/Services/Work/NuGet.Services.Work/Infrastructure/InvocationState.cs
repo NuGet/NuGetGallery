@@ -8,6 +8,7 @@ using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 using NuGet.Services.Storage;
+using NuGet.Services.Work.Models;
 
 namespace NuGet.Services.Work
 {
@@ -15,7 +16,7 @@ namespace NuGet.Services.Work
     /// Contains all information about the current status of an invocation, serves as the central
     /// status record of an invocation
     /// </summary>
-    public class Invocation
+    public class InvocationState
     {
         public int CurrentVersion { get { return CurrentRow.Version; } }
         public Guid Id { get { return CurrentRow.Id; } }
@@ -42,7 +43,7 @@ namespace NuGet.Services.Work
 
         internal InvocationRow CurrentRow { get; private set; }
 
-        internal Invocation(InvocationRow latest)
+        internal InvocationState(InvocationRow latest)
         {
             Update(latest);
         }

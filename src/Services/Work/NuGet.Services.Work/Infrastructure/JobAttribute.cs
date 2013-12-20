@@ -49,7 +49,7 @@ namespace NuGet.Services.Work
                 }
 
                 Type jobBase = jobType.BaseType;
-                while (jobBase != null && (!jobBase.IsGenericType || (jobBase.GetGenericTypeDefinition() != typeof(JobBase<>))))
+                while (jobBase != null && (!jobBase.IsGenericType || (jobBase.GetGenericTypeDefinition() != typeof(JobHandlerBase<>))))
                 {
                     jobBase = jobBase.BaseType;
                 }

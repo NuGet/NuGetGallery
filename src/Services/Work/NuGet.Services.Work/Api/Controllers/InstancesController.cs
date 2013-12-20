@@ -24,7 +24,7 @@ namespace NuGet.Services.Work.Api.Controllers
         public async Task<IHttpActionResult> GetStatistics()
         {
             var stats = await Queue.GetInstanceStatistics();
-            return Content(HttpStatusCode.OK, stats.Select(s => new InstanceStatisticsModel(s)));
+            return Content(HttpStatusCode.OK, stats.Select(s => s.ToInstanceModel()));
         }
     }
 }

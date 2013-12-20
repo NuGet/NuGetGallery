@@ -30,7 +30,7 @@ namespace NuGet.Services.Work
             }
 
             [Job("ATestJob")]
-            public class ATestJorb : JobBase
+            public class ATestJorb : JobHandlerBase
             {
                 public override System.Diagnostics.Tracing.EventSource GetEventSource()
                 {
@@ -43,7 +43,7 @@ namespace NuGet.Services.Work
                 }
             }
 
-            public class ATestJerb : JobBase
+            public class ATestJerb : JobHandlerBase
             {
                 public override System.Diagnostics.Tracing.EventSource GetEventSource()
                 {
@@ -56,7 +56,7 @@ namespace NuGet.Services.Work
                 }
             }
 
-            public class ATestJob : JobBase
+            public class ATestJob : JobHandlerBase
             {
                 public override System.Diagnostics.Tracing.EventSource GetEventSource()
                 {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Work
+namespace NuGet.Services.Work.Models
 {
     /// <summary>
     /// Indicates the status of the invocation

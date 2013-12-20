@@ -10,7 +10,7 @@ namespace NuGet.Services.Work.Jobs
     /// <summary>
     /// Job used to confirm the worker is responding to requests
     /// </summary>
-    public class LongJob : Job<LongEventSource>
+    public class LongJob : JobHandler<LongEventSource>
     {
         protected internal override async Task Execute()
         {

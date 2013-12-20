@@ -14,23 +14,23 @@ namespace NuGet.Services.Work
 
         private InvocationLogCapture _capture;
 
-        public Invocation Invocation { get; private set; }
+        public InvocationState Invocation { get; private set; }
         public InvocationQueue Queue { get; private set; }
         public CancellationToken CancelToken { get; private set; }
 
-        public InvocationContext(Invocation invocation, InvocationQueue queue)
+        public InvocationContext(InvocationState invocation, InvocationQueue queue)
             : this(invocation, queue, CancellationToken.None)
         {
         }
 
-        public InvocationContext(Invocation invocation, InvocationQueue queue, CancellationToken cancelToken)
+        public InvocationContext(InvocationState invocation, InvocationQueue queue, CancellationToken cancelToken)
         {
             Invocation = invocation;
             Queue = queue;
             CancelToken = cancelToken;
         }
 
-        public InvocationContext(Invocation invocation, InvocationQueue queue, CancellationToken cancelToken, InvocationLogCapture capture)
+        public InvocationContext(InvocationState invocation, InvocationQueue queue, CancellationToken cancelToken, InvocationLogCapture capture)
             : this(invocation, queue, cancelToken)
         {
             _capture = capture;
@@ -47,7 +47,7 @@ namespace NuGet.Services.Work
             CallContext.LogicalSetData(InvocationIdDataName, id);
         }
 
-        public void SetJob(JobDescription jobdef, JobBase job)
+        public void SetJob(JobDescription jobdef, JobHandlerBase job)
         {
             if (_capture != null)
             {
