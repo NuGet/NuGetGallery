@@ -17,6 +17,11 @@ namespace NuGet.Services.Work
 
         public static string Serialize(Dictionary<string, string> payload)
         {
+            if (payload == null)
+            {
+                return null;
+            }
+
             var builder = new StringBuilder();
             using (var writer = new StringWriter(builder))
             {
@@ -27,6 +32,11 @@ namespace NuGet.Services.Work
 
         public static Dictionary<string, string> Deserialize(string payload)
         {
+            if (String.IsNullOrEmpty(payload))
+            {
+                return null;
+            }
+
             using (var reader = new JsonTextReader(new StringReader(payload)))
             {
                 return _serializer.Deserialize<Dictionary<string, string>>(reader);

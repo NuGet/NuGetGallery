@@ -13,6 +13,8 @@ namespace NuGet.Services.Work.Models
         public Dictionary<string, string> Payload { get; set; }
         public TimeSpan? VisibilityDelay { get; set; }
 
+        [Obsolete("For serialization only")]
+        public InvocationRequest() { }
         public InvocationRequest(string job, string source) : this(job, source, new Dictionary<string, string>(), TimeSpan.Zero) { }
         public InvocationRequest(string job, string source, Dictionary<string, string> payload) : this(job, source, payload, TimeSpan.Zero) { }
         public InvocationRequest(string job, string source, TimeSpan visibilityDelay) : this(job, source, new Dictionary<string, string>(), visibilityDelay) { }

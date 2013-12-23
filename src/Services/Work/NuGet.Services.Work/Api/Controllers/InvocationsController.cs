@@ -51,7 +51,7 @@ namespace NuGet.Services.Work.Api.Controllers
         {
             var invocation = await Queue.Enqueue(
                 request.Job, 
-                request.Source, 
+                request.Source ?? Constants.Source_Unknown, 
                 request.Payload, 
                 request.VisibilityDelay ?? TimeSpan.Zero);
             if (invocation == null)

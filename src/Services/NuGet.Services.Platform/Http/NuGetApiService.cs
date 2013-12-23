@@ -12,6 +12,7 @@ using Autofac.Integration.WebApi;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using NuGet.Services.Client;
 using NuGet.Services.Composition;
 using NuGet.Services.Http.Controllers;
 using NuGet.Services.Http.Models;
@@ -72,31 +73,8 @@ namespace NuGet.Services.Http
         {
             var config = new HttpConfiguration();
 
-            var serializerSettings = new JsonSerializerSettings()
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                DateFormatHandling = DateFormatHandling.IsoDateFormat,
-                DateParseHandling = DateParseHandling.DateTimeOffset,
-                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                DefaultValueHandling = DefaultValueHandling.Ignore,
-                Formatting = Formatting.Indented,
-                MissingMemberHandling = MissingMemberHandling.Ignore,
-                NullValueHandling = NullValueHandling.Ignore,
-                ReferenceLoopHandling = ReferenceLoopHandling.Error,
-                TypeNameHandling = TypeNameHandling.None
-            };
-            serializerSettings.Converters.Add(new StringEnumConverter());
-
-            var formatter = new JsonMediaTypeFormatter()
-            {
-                SerializerSettings = serializerSettings
-            };
-
-            formatter.SupportedMediaTypes.Clear();
-            formatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/json"));
-
             config.Formatters.Clear();
-            config.Formatters.Add(formatter);
+            config.Formatters.Add(JsonFormat.Formatter);
 
             config.IncludeErrorDetailPolicy = IncludeErrorDetailPolicy.LocalOnly;
 

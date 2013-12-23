@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Work.Client"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Platform.Client", "src\Services\NuGet.Services.Platform.Client\NuGet.Services.Platform.Client.csproj", "{3BE823F7-53AA-4263-A953-06BF643F0E43}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuCmd", "src\Services\NuCmd\NuCmd.csproj", "{9752C50D-2DDE-4DC3-8A06-A01EC68FEDC0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,6 +69,10 @@ Global
 		{3BE823F7-53AA-4263-A953-06BF643F0E43}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BE823F7-53AA-4263-A953-06BF643F0E43}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BE823F7-53AA-4263-A953-06BF643F0E43}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9752C50D-2DDE-4DC3-8A06-A01EC68FEDC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9752C50D-2DDE-4DC3-8A06-A01EC68FEDC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9752C50D-2DDE-4DC3-8A06-A01EC68FEDC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9752C50D-2DDE-4DC3-8A06-A01EC68FEDC0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
