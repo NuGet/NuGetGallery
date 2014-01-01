@@ -9,7 +9,7 @@ website for the NuGet client. For information about the NuGet clients, visit htt
  1. Visual Studio 2012
  2. PowerShell 2.0 (comes with Windows 7+)
  3. [NuGet](http://docs.nuget.org/docs/start-here/installing-nuget)
- 4. [Windows Azure SDK v2.1 or later](http://www.microsoft.com/windowsazure/sdk/)
+ 4. [Windows Azure SDK v2.2](http://www.microsoft.com/windowsazure/sdk/) - Note that later versions may be supported, but will require you to manually upgrade the ".Cloud" projects in the solution.
  5. (Optional, for unit tests) [xUnit for Visual Studio 2012](http://visualstudiogallery.msdn.microsoft.com/463c5987-f82b-46c8-a97e-b1cde42b9099)
 2. Clone it!
     
@@ -20,20 +20,29 @@ website for the NuGet client. For information about the NuGet clients, visit htt
     cd NuGetGallery
     .\build
     ```
-4. Create the Database!
+4. Set up the website in IIS Express!
+ 1. We highly recommend using IIS Express. Use the [Web Platform Installer](microsoft.com/web) to install it if you don't have it already (it comes with recent versions of VS and WebMatrix though)
+ 2. In an ADMIN powershell prompt, run the .\tools\Enable-LocalTestMe.ps1 file. It allows non-admins to host websites at: http://nuget.localtest.me, it configures an IIS Express site at that URL and creates a self-signed SSL certificate. For more information on localtest.me, check out [readme.localtest.me](readme.localtest.me)
+ 3. If you're having trouble, go to the Project Properties for the Website project, click on the Web tab and change the URL to localhost:port where _port_ is some port number above 1024.
+
+5. Create the Database!
  1. Open Visual Studio 2012
  2. Open the Package Manager Console window
- 3. Ensure that the Default Project is set to `NugetGallery`
+ 3. Ensure that the Default Project is set to `NuGetGallery`
  4. Open the NuGetGallery.sln solution from the root of this repository. ***Important:*** Make sure the Package Manager Console has been opened once before you open the solution. If the solution was already open, open the package manager console and then close and re-open the solution (from the file menu)
  5. Run the following command in the Package Manager Console:
  
     ```
     Update-Database
     ```
-5. Set up the website in IIS Express!
+If this fails, you are likely to get more useful output by passing -Debug than -Verbose.
+
+6. Set up the website in IIS Express!
  1. We highly recommend using IIS Express. Use the [Web Platform Installer](microsoft.com/web) to install it if you don't have it already (it comes with recent versions of VS and WebMatrix though)
  2. In an ADMIN powershell prompt, run the .\build\Enable-LocalTestMe.ps1 file. It allows non-admins to host websites at: http://nuget.localtest.me, it configures an IIS Express site at that URL and creates a self-signed SSL certificate. For more information on localtest.me, check out [readme.localtest.me](readme.localtest.me)
  3. If you're having trouble, go to the Project Properties for the Website project, click on the Web tab and change the URL to localhost:port where _port_ is some port number above 1024.
+
+7. Ensure the 'NuGetGallery' project (under the Frontend folder) is set to the Startup Project
   
 
 That's it! You should now be able to press Ctrl-F5 to run the site!

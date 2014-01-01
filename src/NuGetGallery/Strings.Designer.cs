@@ -303,7 +303,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to read the package file..
+        ///   Looks up a localized string similar to Failed to read the package file. Ensure it is a valid NuGet package with a valid manifest..
         /// </summary>
         public static string FailedToReadUploadFile {
             get {
@@ -524,6 +524,15 @@ namespace NuGetGallery {
         public static string UploadFileMustBeNuGetPackage {
             get {
                 return ResourceManager.GetString("UploadFileMustBeNuGetPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package requires version &apos;{0}&apos; of NuGet, which this gallery does not currently support. Please contact us if you have questions..
+        /// </summary>
+        public static string UploadPackage_MinClientVersionOutOfRange {
+            get {
+                return ResourceManager.GetString("UploadPackage_MinClientVersionOutOfRange", resourceCulture);
             }
         }
         

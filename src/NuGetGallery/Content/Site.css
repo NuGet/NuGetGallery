@@ -654,7 +654,9 @@ ul.pager li.next { padding-left: 10px; }
             background-color: #f4f5f6;
         }
 
-.sexy-table tbody tr.recommended { font-weight: 800; word-break: break-all; }
+.sexy-table tbody tr.recommended { 
+    font-weight: 800;
+}
 
     .sexy-table tbody td {
         padding: 5px 25px 5px 0;

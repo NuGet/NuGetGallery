@@ -26,6 +26,11 @@ namespace NuGetGallery
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference("stats");
             CloudBlockBlob blob = container.GetBlockBlobReference("popularity/" + name);
+            //Check if the report blob is present before processing it.
+            if(!blob.Exists())
+            {
+                throw new StatisticsReportNotFoundException();
+            }
             
             MemoryStream stream = new MemoryStream();
 
