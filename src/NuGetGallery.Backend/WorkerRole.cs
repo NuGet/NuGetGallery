@@ -36,9 +36,12 @@ namespace NuGetGallery.Backend
                 LoggingConfiguration config = new LoggingConfiguration();
 
                 // Console Target
-                var consoleTarget = new SnazzyConsoleTarget();
-                config.AddTarget("console", consoleTarget);
-                consoleTarget.Layout = "[${logger:shortName=true}] ${message}";
+                bool inCloud = false;
+                try
+                {
+                    inCloud = RoleEnvironment.IsAvailable;
+                }
+                catch { }
 
                 // Get the logs resource if it exists and use it as the log dir
                 try
@@ -68,9 +71,16 @@ namespace NuGetGallery.Backend
                 ConfigureFileTarget(hostTarget);
                 config.AddTarget("file", hostTarget);
 
-                LoggingRule allMessagesToConsole = new LoggingRule("*", NLog.LogLevel.Trace, consoleTarget);
-                config.LoggingRules.Add(allMessagesToConsole);
-
+                if (!inCloud)
+                {
+                    var consoleTarget = new SnazzyConsoleTarget();
+                    config.AddTarget("console", consoleTarget);
+                    consoleTarget.Layout = "[${logger:shortName=true}] ${message}";
+                
+                    LoggingRule allMessagesToConsole = new LoggingRule("*", NLog.LogLevel.Trace, consoleTarget);
+                    config.LoggingRules.Add(allMessagesToConsole);
+                }
+                
                 // All other rules transfer all kinds of log messages EXCEPT Trace.
                 LoggingRule hostToFile = new LoggingRule("JobRunner", NLog.LogLevel.Debug, hostTarget);
                 config.LoggingRules.Add(hostToFile);

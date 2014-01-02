@@ -120,4 +120,28 @@
   <data name="CloudAuditingService_DuplicateAuditRecord" xml:space="preserve">
     <value>Unable to write audit record: '{0}'. Record already exists.</value>
   </data>
+  <data name="Manifest_IdTooLong" xml:space="preserve">
+    <value>The package manifest contains an ID that is too long. Package IDs can be no longer than 100 characters.</value>
+  </data>
+  <data name="Manifest_InvalidDependency" xml:space="preserve">
+    <value>The package manifest contains an invalid Dependency: '{0} {1}'</value>
+  </data>
+  <data name="Manifest_InvalidId" xml:space="preserve">
+    <value>The package manifest contains an invalid ID: '{0}'</value>
+  </data>
+  <data name="Manifest_InvalidMinClientVersion" xml:space="preserve">
+    <value>The package manifest contains an invalid Minimum Client Version: '{0}'</value>
+  </data>
+  <data name="Manifest_InvalidTargetFramework" xml:space="preserve">
+    <value>The package manifest contains an invalid Target Framework: '{0}'</value>
+  </data>
+  <data name="Manifest_InvalidUrl" xml:space="preserve">
+    <value>The package manifest contains an invalid URL</value>
+  </data>
+  <data name="Manifest_InvalidVersion" xml:space="preserve">
+    <value>The package manifest contains an invalid Version: '{0}'</value>
+  </data>
+  <data name="Manifest_MissingId" xml:space="preserve">
+    <value>The package manifest is missing the Id field</value>
+  </data>
 </root>
