@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using PowerArgs;
 
 namespace NuCmd.Commands.Work
 {
+    [Description("Queues a command for immediate execution by the work service.")]
     public class InvokeCommand : Command
     {
         [ArgRequired()]

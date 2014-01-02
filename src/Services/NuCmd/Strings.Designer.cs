@@ -117,9 +117,7 @@ namespace NuCmd {
         /// <summary>
         ///   Looks up a localized string similar to NuCmd Usage:
         ///  nucmd &lt;command&gt;
-        ///  nucmd &lt;group&gt; &lt;command&gt;
-        ///
-        ///For a list of commands and groups, type &apos;nucmd help&apos;.
+        ///  nucmd &lt;group&gt; &lt;command&gt;.
         /// </summary>
         internal static string Usage {
             get {

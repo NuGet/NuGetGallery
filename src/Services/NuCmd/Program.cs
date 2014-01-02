@@ -46,46 +46,83 @@ namespace NuCmd
 
             // Get the command group
             var groupOrCommand = _args.FirstOrDefault();
-            if (groupOrCommand == null)
-            {
-                await WriteUsage(error: Strings.Program_MissingCommand);
-            }
-            else
-            {
-                _args = _args.Skip(1);
-                await DispatchGroup(groupOrCommand);
-            }
+            
+            _args = _args.Skip(1);
+            await DispatchGroup(groupOrCommand ?? "help");
         }
 
-        private Task DispatchGroup(string groupOrRootCommand)
+        private async Task DispatchGroup(string groupOrRootCommand)
         {
-            // Convention is simple
+            // Commands are classes with the following naming convention
             //  NuCmd.Commands.<CommandName>Command
             // OR:
             //  NuCmd.Commands.<Group>.<CommandName>Command
 
-            // Try to resolve the command directly
-            var commandType = typeof(Program).Assembly.GetType("NuCmd.Commands." + groupOrRootCommand + "Command", throwOnError: false, ignoreCase: true);
-            if (commandType != null && typeof(ICommand).IsAssignableFrom(commandType))
+            // Get all the commands by group
+            var groups = CommandDefinition
+                .GetAllCommands()
+                .GroupBy(c => c.Group ?? String.Empty)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.ToDictionary(c => c.Name, StringComparer.OrdinalIgnoreCase),
+                    StringComparer.OrdinalIgnoreCase);
+
+            // Find the group being referenced
+            Dictionary<string, CommandDefinition> groupMembers;
+            string commandName;
+            if (groups.TryGetValue(groupOrRootCommand, out groupMembers))
             {
-                return Dispatch(commandType);
+                commandName = _args.FirstOrDefault();
+                _args = _args.Skip(1);
+            }
+            else
+            {
+                commandName = groupOrRootCommand;
+                groupOrRootCommand = null;
+                groupMembers = groups.ContainsKey(String.Empty) ?
+                    groups[String.Empty] :
+                    new Dictionary<string, CommandDefinition>();
             }
 
-            // Try using the group
-            var command = _args.FirstOrDefault();
-            if (command == null)
+            if (commandName == null)
             {
-                return WriteUsage(error: String.Format(CultureInfo.CurrentCulture, Strings.Program_NoSuchCommand, groupOrRootCommand));
+                _args = Enumerable.Concat(
+                    String.IsNullOrEmpty(groupOrRootCommand) ? 
+                        Enumerable.Empty<string>() :
+                        new[] { groupOrRootCommand },
+                    _args);
+                await Dispatch(typeof(HelpCommand));
             }
-            _args = _args.Skip(1);
-            commandType = typeof(Program).Assembly.GetType("NuCmd.Commands." + groupOrRootCommand + "." + command + "Command", throwOnError: false, ignoreCase: true);
-            if (commandType != null && typeof(ICommand).IsAssignableFrom(commandType))
+            else
             {
-                return Dispatch(commandType);
+                CommandDefinition command;
+                Type commandType;
+                if (groupMembers.TryGetValue(commandName, out command))
+                {
+                    commandType = command.Type;
+                }
+                else
+                {
+                    if (String.IsNullOrEmpty(groupOrRootCommand))
+                    {
+                        await _console.WriteErrorLine(String.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.Program_NoSuchCommand,
+                            commandName));
+                    }
+                    else
+                    {
+                        await _console.WriteErrorLine(String.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.Program_NoSuchCommandInGroup,
+                            commandName,
+                            groupOrRootCommand));
+                    }
+                    commandType = typeof(HelpCommand);
+                }
+                await Dispatch(commandType);
             }
 
-            // No matches!
-            return WriteUsage(error: String.Format(CultureInfo.CurrentCulture, Strings.Program_NoSuchCommandInGroup, command, groupOrRootCommand));
         }
 
         private async Task Dispatch(Type commandType)
@@ -140,7 +177,6 @@ namespace NuCmd
         private async Task WriteUsage(string error)
         {
             await _console.WriteErrorLine(error);
-            await _console.WriteHelpLine(Strings.Usage);
         }
     }
 }

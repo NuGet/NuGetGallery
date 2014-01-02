@@ -138,9 +138,7 @@
   <data name="Usage" xml:space="preserve">
     <value>NuCmd Usage:
   nucmd &lt;command&gt;
-  nucmd &lt;group&gt; &lt;command&gt;
-
-For a list of commands and groups, type 'nucmd help'</value>
+  nucmd &lt;group&gt; &lt;command&gt;</value>
   </data>
   <data name="Work_InvokeCommand_CreatedInvocation" xml:space="preserve">
     <value>Created Invocation: {0}</value>
