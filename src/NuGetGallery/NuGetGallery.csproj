@@ -1267,8 +1267,7 @@
     <Content Include="entity-framework.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <None Include="Properties\PublishProfiles\nuget-gallery.sizethreestudios.com.pubxml" />
-    <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
+    <None Include="Properties\PublishProfiles\package.pubxml" />
     <None Include="Scripts\jquery-1.6.4-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.4.js" />
     <Content Include="Scripts\jquery-1.6.4.min.js" />

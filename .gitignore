@@ -27,6 +27,7 @@ x64/
 #build/ # We use this folder for our Build Scripts
 [Bb]in/
 [Oo]bj/
+[Pp]ackage/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
