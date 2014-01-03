@@ -1411,6 +1411,9 @@
     </Content>
     <Content Include="Areas\Admin\Views\Config\Index.cshtml" />
     <Content Include="Views\Errors\CookieError.cshtml" />
+    <Content Include="settings.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>
