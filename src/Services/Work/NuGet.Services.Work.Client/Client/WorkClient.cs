@@ -13,6 +13,8 @@ namespace NuGet.Services.Work.Client
         private HttpClient _client;
 
         public InvocationsClient Invocations { get; private set; }
+        public JobsClient Jobs { get; private set; }
+        public InstancesClient Instances { get; private set; }
         
         /// <summary>
         /// Create a work service client from the specified base uri and default credentials
@@ -53,6 +55,8 @@ namespace NuGet.Services.Work.Client
         private void InitializeResources()
         {
             Invocations = new InvocationsClient(_client);
+            Jobs = new JobsClient(_client);
+            Instances = new InstancesClient(_client);
         }
     }
 }

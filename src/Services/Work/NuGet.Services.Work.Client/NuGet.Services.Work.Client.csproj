@@ -40,9 +40,12 @@
       <Link>Common\HashCodeCombiner.cs</Link>
     </Compile>
     <Compile Include="Client\InvocationsClient.cs" />
+    <Compile Include="Client\InstancesClient.cs" />
+    <Compile Include="Client\JobsClient.cs" />
     <Compile Include="Client\WorkClient.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="InvocationPayloadSerializer.cs" />
+    <Compile Include="Models\InvocationListCriteria.cs" />
     <Compile Include="Models\InvocationRequest.cs" />
     <Compile Include="Models\Invocation.cs" />
     <Compile Include="Models\InvocationsStatistics.cs" />

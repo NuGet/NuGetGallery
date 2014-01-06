@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,12 +17,51 @@ namespace NuCmd
         private TextWriter _info = new ConsoleWriter("info", ConsoleColor.Green, Console.Out);
         private TextWriter _help = new ConsoleWriter("help", ConsoleColor.Blue, Console.Error);
         private TextWriter _trace = new ConsoleWriter("trace", ConsoleColor.Gray, Console.Error);
+        private TextWriter _data = new ConsoleWriter("data", ConsoleColor.DarkRed, Console.Out);
 
         public TextWriter Error { get { return _error; } }
         public TextWriter Trace { get { return _trace; } }
         public TextWriter Warning { get { return _warning; } }
         public TextWriter Info { get { return _info; } }
         public TextWriter Help { get { return _help; } }
+
+        public Task WriteObject(object obj, IConsoleFormatter formatter)
+        {
+            var formatted = formatter.Format(obj);
+            return _data.WriteLineAsync(formatted);
+        }
+
+        public async Task WriteObjects(IEnumerable<object> objs, IConsoleFormatter formatter)
+        {
+            foreach (var obj in objs)
+            {
+                await WriteObject(obj, formatter);
+            }
+        }
+
+        public async Task WriteTable(ConsoleTable table)
+        {
+            await _data.WriteLineAsync(table.GetHeader());
+
+            var rows = table.GetRows();
+            if (rows.Any())
+            {
+                foreach (var row in rows)
+                {
+                    await _data.WriteLineAsync(row);
+                }
+            }
+            else
+            {
+                await _data.WriteLineAsync(" << none >>");
+            }
+        }
+
+        public Task WriteTable<T>(IEnumerable<T> objs, params Expression<Func<T, object>>[] columns)
+        {
+            var table = ConsoleTable.For(objs, columns);
+            return WriteTable(table);
+        }
 
         internal class ConsoleWriter : TextWriter
         {

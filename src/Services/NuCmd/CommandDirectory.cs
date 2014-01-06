@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using NuCmd.Commands;
 
 namespace NuCmd
 {
@@ -34,7 +35,7 @@ namespace NuCmd
             _commands = assemblies
                 .SelectMany(a => 
                     a.GetExportedTypes()
-                     .Where(t => !t.IsAbstract && t.Namespace.StartsWith("NuCmd.Commands"))
+                     .Where(t => !t.IsAbstract && t.Namespace.StartsWith("NuCmd.Commands") && typeof(ICommand).IsAssignableFrom(t))
                      .Select(CommandDefinition.FromType))
                 .ToList();
             _groups = new ReadOnlyDictionary<string, IReadOnlyDictionary<string, CommandDefinition>>(

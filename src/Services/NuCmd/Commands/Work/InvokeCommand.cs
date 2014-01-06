@@ -12,13 +12,8 @@ using PowerArgs;
 namespace NuCmd.Commands.Work
 {
     [Description("Queues a command for immediate execution by the work service.")]
-    public class InvokeCommand : Command
+    public class InvokeCommand : WorkServiceCommandBase
     {
-        [ArgRequired()]
-        [ArgShortcut("u")]
-        [ArgDescription("The URI to the root of the work service")]
-        public Uri ServiceUri { get; set; }
-
         [ArgRequired()]
         [ArgShortcut("j")]
         [ArgDescription("The job to invoke")]
@@ -34,7 +29,7 @@ namespace NuCmd.Commands.Work
 
         protected override async Task OnExecute()
         {
-            var client = new WorkClient(ServiceUri);
+            var client = OpenClient();
             await Console.WriteTraceLine(Strings.Commands_UsingServiceUri, ServiceUri.AbsoluteUri);
 
             // Try to parse the payload
@@ -62,14 +57,7 @@ namespace NuCmd.Commands.Work
                     Payload = payload
                 });
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    await Console.WriteErrorLine(
-                        Strings.Commands_HttpError,
-                        response.StatusCode,
-                        response.ReasonPhrase);
-                }
-                else
+                if (await ReportHttpStatus(response))
                 {
                     var invocation = await response.ReadContent();
                     await Console.WriteInfoLine(Strings.Work_InvokeCommand_CreatedInvocation, invocation.Id.ToString("N").ToLowerInvariant());

@@ -27,5 +27,22 @@ namespace NuGet.Services.Work.Client
                     JsonFormat.Formatter))
                 .AsServiceResponse<Invocation>();
         }
+
+        public Task<ServiceResponse<IEnumerable<Invocation>>> Get(InvocationListCriteria criteria)
+        {
+            return _client.GetAsync(
+                "invocations/" + criteria.ToString().ToLowerInvariant())
+                .AsServiceResponse<IEnumerable<Invocation>>();
+        }
+
+        public Task<ServiceResponse<Invocation>> Get(string id)
+        {
+            return _client.GetAsync("invocations/" + id).AsServiceResponse<Invocation>();
+        }
+
+        public Task<ServiceResponse<InvocationStatistics>> GetStatistics()
+        {
+            return _client.GetAsync("invocations/stats").AsServiceResponse<InvocationStatistics>();
+        }
     }
 }

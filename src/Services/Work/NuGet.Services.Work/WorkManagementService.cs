@@ -13,6 +13,7 @@ using NuGet.Services.ServiceModel;
 using NuGet.Services.Storage;
 using Newtonsoft.Json.Linq;
 using System.Threading;
+using NuGet.Services.Work.Models;
 
 namespace NuGet.Services.Work
 {

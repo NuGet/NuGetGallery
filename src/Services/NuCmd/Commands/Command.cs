@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NuGet.Services.Client;
 using PowerArgs;
 
 namespace NuCmd.Commands
@@ -32,5 +33,18 @@ namespace NuCmd.Commands
         }
 
         protected abstract Task OnExecute();
+
+        protected virtual async Task<bool> ReportHttpStatus<T>(ServiceResponse<T> response)
+        {
+            if (response.IsSuccessStatusCode)
+            {
+                return true;
+            }
+            await Console.WriteErrorLine(
+                Strings.Commands_HttpError,
+                response.StatusCode,
+                response.ReasonPhrase);
+            return false;
+        }
     }
 }

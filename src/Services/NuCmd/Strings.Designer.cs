@@ -196,5 +196,14 @@ namespace NuCmd {
                 return ResourceManager.GetString("Work_InvokeCommand_PayloadInvalid", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown stats type: {0}.
+        /// </summary>
+        internal static string Work_StatsCommand_UnknownStatsType {
+            get {
+                return ResourceManager.GetString("Work_StatsCommand_UnknownStatsType", resourceCulture);
+            }
+        }
     }
 }

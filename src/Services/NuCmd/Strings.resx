@@ -164,4 +164,7 @@
   <data name="Work_InvokeCommand_PayloadInvalid" xml:space="preserve">
     <value>Error deserializing payload: {0}</value>
   </data>
+  <data name="Work_StatsCommand_UnknownStatsType" xml:space="preserve">
+    <value>Unknown stats type: {0}</value>
+  </data>
 </root>

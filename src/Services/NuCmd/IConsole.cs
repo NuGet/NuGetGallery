@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,10 +16,25 @@ namespace NuCmd
         TextWriter Warning { get; }
         TextWriter Info { get; }
         TextWriter Help { get; }
+
+        Task WriteObject(object obj, IConsoleFormatter formatter);
+        Task WriteObjects(IEnumerable<object> objs, IConsoleFormatter formatter);
+        Task WriteTable(ConsoleTable table);
+        Task WriteTable<T>(IEnumerable<T> objs, params Expression<Func<T, object>>[] columns);
     }
 
     public static class ConsoleExtensions
     {
+        public static Task WriteObject(this IConsole self, object obj)
+        {
+            return self.WriteObject(obj, DefaultConsoleFormatter.Instance);
+        }
+
+        public static Task WriteObjects(this IConsole self, IEnumerable<object> obj)
+        {
+            return self.WriteObjects(obj, DefaultConsoleFormatter.Instance);
+        }
+
         public static Task WriteError(this IConsole self, string format, params object[] args)
         {
             return self.Error.WriteAsync(String.Format(CultureInfo.CurrentCulture, format, args));

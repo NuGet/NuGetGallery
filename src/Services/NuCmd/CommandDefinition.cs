@@ -31,21 +31,27 @@ namespace NuCmd
             var descAttr = type.GetCustomAttribute<DescriptionAttribute>();
             var match = NameParser.Match(type.FullName);
 
+            string name;
+            string group;
             if (!match.Success)
             {
-                return null;
+                name = type.Name;
+                group = null;
             }
             else
             {
-                string name = match.Groups["command"].Value.ToLowerInvariant();
-                string group = null;
+                name = match.Groups["command"].Value.ToLowerInvariant();
                 if (match.Groups["group"].Success)
                 {
                     group = match.Groups["group"].Value.ToLowerInvariant();
                 }
-
-                return new CommandDefinition(group, name, descAttr == null ? null : descAttr.Description, type);
+                else
+                {
+                    group = null;
+                }
             }
+
+            return new CommandDefinition(group, name, descAttr == null ? null : descAttr.Description, type);
         }
     }
 }
