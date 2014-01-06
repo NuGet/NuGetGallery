@@ -79,6 +79,51 @@ namespace NuCmd {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Command groups. Type &apos;nucmd help &lt;group&gt;&apos; to see a list of commands available in that group.
+        /// </summary>
+        internal static string Help_CommandGroupsHeader {
+            get {
+                return ResourceManager.GetString("Help_CommandGroupsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Global commands. Type &apos;nucmd help &lt;command&gt;&apos; to see detailed command help information.
+        /// </summary>
+        internal static string Help_GlobalCommandsHeader {
+            get {
+                return ResourceManager.GetString("Help_GlobalCommandsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Commands in the &apos;{0}&apos; group. Type &apos;nucmd help {0} &lt;command&gt;&apos; to see detailed command help information.
+        /// </summary>
+        internal static string Help_GroupCommandsHeader {
+            get {
+                return ResourceManager.GetString("Help_GroupCommandsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0} {1}&apos; is not a nucmd command..
+        /// </summary>
+        internal static string Help_UnknownCommand {
+            get {
+                return ResourceManager.GetString("Help_UnknownCommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a nucmd group or command..
+        /// </summary>
+        internal static string Help_UnknownGroup {
+            get {
+                return ResourceManager.GetString("Help_UnknownGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fatal Error: Command type &apos;{0}&apos; is not convertable to &apos;{1}&apos;..
         /// </summary>
         internal static string Program_CommandNotConvertible {

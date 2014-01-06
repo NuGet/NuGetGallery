@@ -26,15 +26,15 @@ namespace NuCmd
         internal class ConsoleWriter : TextWriter
         {
             private static ConcurrentBag<string> _prefixes = new ConcurrentBag<string>();
-            private static bool _twoCharNewline = Environment.NewLine == "\r\n";
             private static Lazy<int> _maxPrefix = new Lazy<int>(() => _prefixes.Max(p => p.Length));
 
             private string _prefix;
             private TextWriter _console;
-            private bool _prefixNeeded = true;
             private ConsoleColor _prefixColor;
             private Action<ConsoleColor> _setForegroundColor;
             private Func<ConsoleColor> _getForegroundColor;
+
+            private char? _previous = null;
 
             public override Encoding Encoding
             {
@@ -58,17 +58,7 @@ namespace NuCmd
             public override async Task WriteAsync(char value)
             {
                 await WritePrefixIfNecessary(value);
-                if (_twoCharNewline && value == '\r')
-                {
-                    // Mark us as prefix needed. However, WritePrefixIfNecessary won't write the prefix if the next character is '\n'
-                    //  (it also won't clear the flag, so everything should work out fine :)).
-                    _prefixNeeded = true;
-                }
-                else if (Environment.NewLine.Length == 1 && value == Environment.NewLine[0])
-                {
-                    // Newline!
-                    _prefixNeeded = true;
-                }
+                _previous = value;
                 await _console.WriteAsync(value);
             }
 
@@ -127,14 +117,10 @@ namespace NuCmd
 
             private async Task WritePrefixIfNecessary(char value)
             {
-                if (_twoCharNewline && value == '\n')
-                {
-                    // Never write prefix for \n.
-                }
-                else if (_prefixNeeded)
+                // Don't write prefix for \n in two-char newline
+                if(_previous == null || (_previous == '\r' && value != '\n') || _previous == '\n')
                 {
                     await WritePrefix();
-                    _prefixNeeded = false;
                 }
             }
 

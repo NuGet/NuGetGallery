@@ -47,15 +47,5 @@ namespace NuCmd
                 return new CommandDefinition(group, name, descAttr == null ? null : descAttr.Description, type);
             }
         }
-
-        public static IList<CommandDefinition> GetAllCommands()
-        {
-            return typeof(Program)
-                .Assembly
-                .GetExportedTypes()
-                .Where(t => !t.IsAbstract && t.Namespace.StartsWith("NuCmd.Commands"))
-                .Select(CommandDefinition.FromType)
-                .ToList();
-        }
     }
 }

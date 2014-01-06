@@ -1,0 +1,1 @@
+@%~dp0src\Services\NuCmd\bin\Debug\NuCmd.exe %*

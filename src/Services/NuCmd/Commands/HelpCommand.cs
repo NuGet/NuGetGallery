@@ -20,47 +20,100 @@ namespace NuCmd.Commands
         protected override async Task OnExecute()
         {
             await Console.WriteHelpLine(Strings.Usage);
-            await Console.WriteHelpLine();
-            await Console.WriteHelpLine("The following commands are available: ");
-
-            // Get the list of commands
-            var commands = CommandDefinition.GetAllCommands();
-
-            // Calculate max size of a command or group for alignment purposes
-            var maxLength = commands.Max(
-                c => Math.Max((c.Group ?? String.Empty).Length, c.Name.Length));
-
-            if (String.IsNullOrEmpty(Group))
+            
+            if (!String.IsNullOrEmpty(Group) && !String.IsNullOrEmpty(Command))
             {
-                // Write the groups
-                var groups = commands.GroupBy(c => c.Group).Where(g => g.Key != null).ToList();
-                if (groups.Any())
+                await HelpFor(Group, Command);
+            }
+            else if (!String.IsNullOrEmpty(Group))
+            {
+                // Check if there's a root command
+                CommandDefinition command;
+                if (Directory.RootCommands.TryGetValue(Group, out command))
                 {
-                    await Console.WriteHelpLine();
-                    await Console.WriteHelpLine("Command groups. Type 'nucmd help <group>' to see a list of commands available in that group");
-                    foreach (var group in groups)
-                    {
-                        await Console.WriteHelpLine("    {0} {1}", group.Key.PadRight(maxLength), "TODO: group descriptions");
-                    }
+                    await HelpFor(command);
+                }
+                else
+                {
+                    await HelpFor(Group);
                 }
             }
-
-            // Write the root commands
-            var rootCommands = commands.Where(c => String.Equals(String).ToList();
-            if (rootCommands.Any())
+            else
             {
-                await Console.WriteHelpLine();
-                await Console.WriteHelpLine("Global commands. Type 'nucmd help <command>' to see detailed command help information");
-                foreach (var command in rootCommands)
-                {
-                    await Console.WriteHelpLine("    {0} {1}", command.Name.PadRight(maxLength), command.Description);
-                }
+                await HelpFor(String.Empty);
             }
         }
 
-        public virtual async Task HelpFor(Type command)
+        private async Task HelpFor(string groupName)
         {
-            await Console.WriteHelpLine("TODO: Help for: " + command.FullName);
+            // Get the list of commands
+            IReadOnlyDictionary<string, CommandDefinition> groupCommands = null;
+            if (!String.IsNullOrEmpty(groupName) && !Directory.Groups.TryGetValue(groupName, out groupCommands))
+            {
+                await Console.WriteErrorLine(Strings.Help_UnknownGroup, groupName);
+            }
+            else
+            {
+                var commands = groupCommands == null ?
+                    Directory.RootCommands.Values.ToList() :
+                    groupCommands.Values.ToList();
+
+                // Calculate max size of a command or group for alignment purposes
+                var maxLength = commands.Max(
+                    c => Math.Max((c.Group ?? String.Empty).Length, c.Name.Length));
+
+                if (String.IsNullOrEmpty(groupName))
+                {
+                    // Write the groups
+                    if (Directory.Groups.Any())
+                    {
+                        await Console.WriteHelpLine();
+                        await Console.WriteHelpLine(Strings.Help_CommandGroupsHeader);
+                        foreach (var group in Directory.Groups)
+                        {
+                            await Console.WriteHelp("    {0}  {1}", group.Key.PadRight(maxLength), "TODO: group descriptions");
+                        }
+                    }
+                }
+
+                // Write the root commands
+                if (commands.Any())
+                {
+                    await Console.WriteHelpLine();
+                    if (String.IsNullOrEmpty(groupName))
+                    {
+                        await Console.WriteHelpLine(Strings.Help_GlobalCommandsHeader);
+                    }
+                    else
+                    {
+                        await Console.WriteHelpLine(Strings.Help_GroupCommandsHeader, groupName);
+                    }
+                    foreach (var command in commands)
+                    {
+                        await Console.WriteHelpLine("    {0}  {1}", command.Name.PadRight(maxLength), command.Description);
+                    }
+                }
+                await Console.WriteHelpLine();
+            }
+        }
+
+        private Task HelpFor(string group, string name)
+        {
+            var command = Directory.GetCommand(group, name);
+            if (command == null)
+            {
+                return Console.WriteErrorLine(Strings.Help_UnknownCommand, group, name);
+            }
+            else
+            {
+                return HelpFor(command);
+            }
+        }
+
+        public virtual async Task HelpFor(CommandDefinition command)
+        {
+            await Console.WriteHelpLine("nucmd {0} {1} - {2}", command.Group, command.Name, command.Description);
+            await Console.WriteHelp(ArgUsage.GetStyledUsage(command.Type).ToString());
         }
     }
 }

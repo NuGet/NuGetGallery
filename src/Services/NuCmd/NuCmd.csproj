@@ -57,6 +57,7 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="CommandDefinition.cs" />
+    <Compile Include="CommandDirectory.cs" />
     <Compile Include="Commands\HelpCommand.cs" />
     <Compile Include="Commands\Work\InvokeCommand.cs" />
     <Compile Include="IConsole.cs" />

@@ -16,16 +16,20 @@ namespace NuCmd.Commands.Work
     {
         [ArgRequired()]
         [ArgShortcut("u")]
+        [ArgDescription("The URI to the root of the work service")]
         public Uri ServiceUri { get; set; }
 
         [ArgRequired()]
         [ArgShortcut("j")]
+        [ArgDescription("The job to invoke")]
         public string Job { get; set; }
 
         [ArgShortcut("s")]
+        [ArgDescription("A value to report as the source of the job")]
         public string Source { get; set; }
 
         [ArgShortcut("p")]
+        [ArgDescription("The JSON dictionary payload to provide to the job")]
         public string Payload { get; set; }
 
         protected override async Task OnExecute()

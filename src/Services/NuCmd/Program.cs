@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -15,11 +16,14 @@ namespace NuCmd
     {
         public IConsole _console;
         private IEnumerable<string> _args;
+        private CommandDirectory _directory;
 
         public Program(IEnumerable<string> args)
         {
             _args = args;
             _console = new SystemConsole();
+            _directory = new CommandDirectory();
+            _directory.LoadCommands(typeof(Program).Assembly);
         }
 
         static void Main(string[] args)
@@ -58,19 +62,10 @@ namespace NuCmd
             // OR:
             //  NuCmd.Commands.<Group>.<CommandName>Command
 
-            // Get all the commands by group
-            var groups = CommandDefinition
-                .GetAllCommands()
-                .GroupBy(c => c.Group ?? String.Empty)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.ToDictionary(c => c.Name, StringComparer.OrdinalIgnoreCase),
-                    StringComparer.OrdinalIgnoreCase);
-
             // Find the group being referenced
-            Dictionary<string, CommandDefinition> groupMembers;
+            IReadOnlyDictionary<string, CommandDefinition> groupMembers;
             string commandName;
-            if (groups.TryGetValue(groupOrRootCommand, out groupMembers))
+            if (_directory.Groups.TryGetValue(groupOrRootCommand, out groupMembers))
             {
                 commandName = _args.FirstOrDefault();
                 _args = _args.Skip(1);
@@ -79,9 +74,7 @@ namespace NuCmd
             {
                 commandName = groupOrRootCommand;
                 groupOrRootCommand = null;
-                groupMembers = groups.ContainsKey(String.Empty) ?
-                    groups[String.Empty] :
-                    new Dictionary<string, CommandDefinition>();
+                groupMembers = _directory.RootCommands;
             }
 
             if (commandName == null)
@@ -157,7 +150,7 @@ namespace NuCmd
                 thrown = null;
                 try
                 {
-                    await cmd.Execute(_console);
+                    await cmd.Execute(_console, _directory);
                 }
                 catch (AggregateException aex)
                 {
