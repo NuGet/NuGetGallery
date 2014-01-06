@@ -9,9 +9,11 @@ using Dapper;
 using System.Globalization;
 using NuGet.Services.Configuration;
 using NuGet.Services.Work.Jobs.Models;
+using System.ComponentModel;
 
 namespace NuGet.Services.Work.Jobs
 {
+    [Description("Creates an Online backup of the Target SQL Database")]
     public class CreateOnlineDatabaseBackupJob : AsyncJobHandler<CreateOnlineDatabaseBackupEventSource>
     {
         public static readonly string DefaultBackupPrefix = "Backup_";

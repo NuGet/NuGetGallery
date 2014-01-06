@@ -14,6 +14,7 @@ using NuGet.Services.Storage;
 using Newtonsoft.Json.Linq;
 using System.Threading;
 using NuGet.Services.Work.Models;
+using System.Security.Principal;
 
 namespace NuGet.Services.Work
 {
@@ -29,8 +30,13 @@ namespace NuGet.Services.Work
             builder.RegisterModule(new JobComponentsModule());
         }
 
-        public override Task<object> GetApiModel(NuGetApiController controller)
+        public override Task<object> GetApiModel(NuGetApiController controller, IPrincipal requestor)
         {
+            if (!requestor.IsInRole(Roles.Admin))
+            {
+                return null;
+            }
+
             if (_apiModel == null)
             {
                 // Multiple threads may enter, but that's OK since the resulting object should be the same

@@ -17,7 +17,13 @@ namespace NuGet.Services
         public DateTimeOffset BuildDate { get; private set; }
         public Uri SourceCodeRepository { get; private set; }
 
-        public AssemblyInformation(AssemblyName fullName, string buildBranch, string buildCommit, string buildDate, string repository)
+        [JsonConstructor]
+        public AssemblyInformation(string fullName, string buildBranch, string buildCommit, string buildDate, string sourceCodeRepository)
+            : this(new AssemblyName(fullName), buildBranch, buildCommit, buildDate, sourceCodeRepository)
+        {
+        }
+
+        public AssemblyInformation(AssemblyName fullName, string buildBranch, string buildCommit, string buildDate, string sourceCodeRepository)
         {
             FullName = fullName;
             BuildBranch = buildBranch;
@@ -30,24 +36,24 @@ namespace NuGet.Services
             }
 
             Uri repo;
-            if (Uri.TryCreate(repository, UriKind.RelativeOrAbsolute, out repo))
+            if (Uri.TryCreate(sourceCodeRepository, UriKind.RelativeOrAbsolute, out repo))
             {
                 SourceCodeRepository = repo;
             }
         }
 
-        public AssemblyInformation(AssemblyName fullName, string buildBranch, string buildCommit, DateTimeOffset buildDate, Uri repository)
-            : this(buildBranch, buildCommit, buildDate, repository)
+        public AssemblyInformation(AssemblyName fullName, string buildBranch, string buildCommit, DateTimeOffset buildDate, Uri sourceCodeRepository)
+            : this(buildBranch, buildCommit, buildDate, sourceCodeRepository)
         {
             FullName = fullName;
         }
 
-        public AssemblyInformation(string buildBranch, string buildCommit, DateTimeOffset buildDate, Uri repository)
+        public AssemblyInformation(string buildBranch, string buildCommit, DateTimeOffset buildDate, Uri sourceCodeRepository)
         {
             BuildBranch = buildBranch;
             BuildCommit = buildCommit;
             BuildDate = buildDate;
-            SourceCodeRepository = repository;
+            SourceCodeRepository = sourceCodeRepository;
         }
     }
 }

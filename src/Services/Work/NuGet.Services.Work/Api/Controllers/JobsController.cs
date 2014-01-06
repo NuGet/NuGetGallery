@@ -12,6 +12,7 @@ using NuGet.Services.Storage;
 namespace NuGet.Services.Work.Api.Controllers
 {
     [RoutePrefix("jobs")]
+    [Authorize(Roles = Roles.Admin)]
     public class JobsController : NuGetApiController
     {
         public StorageHub Storage { get; private set; }

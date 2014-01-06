@@ -48,7 +48,10 @@ namespace NuCmd
 
             var compiled = columns.Select(e => e.Compile());
 
-            var data = items.Select(i => compiled.Select(e => e(i).ToString()));
+            var data = items.Select(i => compiled.Select(e => {
+                var val = e(i);
+                return (val == null ? String.Empty : val.ToString());
+            }));
 
             return new ConsoleTable(columnNames, data);
         }
@@ -62,6 +65,13 @@ namespace NuCmd
             {
                 builder.Append(" ");
                 builder.Append(Columns[i].PadRight(maxes[i]));
+                builder.Append(" ");
+            }
+            builder.AppendLine();
+            for (int i = 0; i < Columns.Count; i++)
+            {
+                builder.Append(" ");
+                builder.Append(new String('-', maxes[i]));
                 builder.Append(" ");
             }
             return builder.ToString();

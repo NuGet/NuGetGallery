@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,8 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Work.Jobs
 {
-    public class AsyncJob : AsyncJobHandler<AsyncEventSource>
+    [Description("A simple async job for testing")]
+    public class TestAsyncJob : AsyncJobHandler<AsyncEventSource>
     {
         public string Message { get; set; }
 

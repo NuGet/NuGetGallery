@@ -59,6 +59,7 @@
     <Compile Include="CommandDefinition.cs" />
     <Compile Include="CommandDirectory.cs" />
     <Compile Include="Commands\HelpCommand.cs" />
+    <Compile Include="Commands\Work\JobsCommand.cs" />
     <Compile Include="Commands\Work\StatsCommand.cs" />
     <Compile Include="Commands\Work\GetCommand.cs" />
     <Compile Include="Commands\Work\InvokeCommand.cs" />

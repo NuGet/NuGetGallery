@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
@@ -10,7 +11,8 @@ namespace NuGet.Services.Work.Jobs
     /// <summary>
     /// Job used to confirm the worker is responding to requests
     /// </summary>
-    public class PingJob : JobHandler<PingEventSource>
+    [Description("A simple one-time job for testing")]
+    public class TestPingJob : JobHandler<PingEventSource>
     {
         protected internal override Task Execute()
         {

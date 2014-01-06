@@ -141,12 +141,12 @@
     <Compile Include="Infrastructure\InvocationContext.cs" />
     <Compile Include="Infrastructure\UnknownJobException.cs" />
     <Compile Include="JobComponentsModule.cs" />
-    <Compile Include="Jobs\AsyncJob.cs" />
+    <Compile Include="Jobs\TestAsyncJob.cs" />
     <Compile Include="Jobs\CreateOnlineDatabaseBackupJob.cs" />
-    <Compile Include="Jobs\HeartBeatJob.cs" />
-    <Compile Include="Jobs\LongJob.cs" />
+    <Compile Include="Jobs\TestHeartBeatJob.cs" />
+    <Compile Include="Jobs\TestLongJob.cs" />
     <Compile Include="Jobs\Models\Database.cs" />
-    <Compile Include="Jobs\PingJob.cs" />
+    <Compile Include="Jobs\TestPingJob.cs" />
     <Compile Include="WorkServiceStatus.cs" />
     <Compile Include="WorkManagementService.cs" />
     <Compile Include="Helpers\SqlConnectionStringBuilderExtensions.cs" />

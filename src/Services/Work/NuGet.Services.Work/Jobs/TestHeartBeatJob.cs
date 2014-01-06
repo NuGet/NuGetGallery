@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
@@ -10,7 +11,8 @@ namespace NuGet.Services.Work.Jobs
     /// <summary>
     /// Job used to confirm that the worker remains active
     /// </summary>
-    public class HeartBeatJob : RepeatingJobHandler<HeartBeatEventSource>
+    [Description("A simple heart-beat job for testing")]
+    public class TestHeartBeatJob : RepeatingJobHandler<HeartBeatEventSource>
     {
         public override TimeSpan WaitPeriod
         {

@@ -77,6 +77,8 @@ namespace NuCmd
                 groupMembers = _directory.RootCommands;
             }
 
+            commandName = commandName ?? String.Empty;
+
             CommandDefinition command;
             Type commandType;
             if (!groupMembers.TryGetValue(commandName, out command))

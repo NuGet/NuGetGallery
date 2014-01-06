@@ -48,11 +48,16 @@
     <Reference Include="Microsoft.Data.OData, Version=5.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\..\packages\Microsoft.Data.OData.5.2.0\lib\net40\Microsoft.Data.OData.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Owin">
-      <HintPath>..\..\..\packages\Microsoft.Owin.2.0.2\lib\net45\Microsoft.Owin.dll</HintPath>
+    <Reference Include="Microsoft.Owin, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\Microsoft.Owin.2.1.0-rc1\lib\net45\Microsoft.Owin.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Owin.Hosting">
-      <HintPath>..\..\..\packages\Microsoft.Owin.Hosting.2.0.2\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
+    <Reference Include="Microsoft.Owin.Hosting, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\Microsoft.Owin.Hosting.2.1.0-rc1\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security">
+      <HintPath>..\..\..\packages\Microsoft.Owin.Security.2.1.0-rc1\lib\net45\Microsoft.Owin.Security.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Practices.EnterpriseLibrary.SemanticLogging">
       <HintPath>..\..\..\packages\EnterpriseLibrary.SemanticLogging.1.0.1304.0\lib\NET45\Microsoft.Practices.EnterpriseLibrary.SemanticLogging.dll</HintPath>
@@ -118,6 +123,14 @@
     <Compile Include="..\..\Common\HashCodeCombiner.cs">
       <Link>Common\HashCodeCombiner.cs</Link>
     </Compile>
+    <Compile Include="Configuration\HttpConfiguration.cs" />
+    <Compile Include="Http\Authentication\AdminKeyAuthenticationMiddleware.cs" />
+    <Compile Include="Http\Authentication\AdminKeyAuthenticationOptions.cs" />
+    <Compile Include="Http\Authentication\AdminKeyAuthenticationHandler.cs" />
+    <Compile Include="Roles.cs" />
+    <Compile Include="Storage\AssemblyInformationPropertySerializer.cs" />
+    <Compile Include="Storage\DefaultTablePropertySerializer.cs" />
+    <Compile Include="Storage\TablePropertySerializer.cs" />
     <Compile Include="TypeExtensions.cs" />
     <Compile Include="Composition\AutofacComponentContainer.cs" />
     <Compile Include="Azure\AzureServiceHost.cs" />
@@ -132,7 +145,7 @@
     <Compile Include="Configuration\StorageConfiguration.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Http\ComponentDependencyResolver.cs" />
-    <Compile Include="Http\Controllers\RootControllerBase.cs" />
+    <Compile Include="Http\Controllers\RootController.cs" />
     <Compile Include="Http\Filters\LocationHeaderFilter.cs" />
     <Compile Include="Http\Models\HostInformationModel.cs" />
     <Compile Include="Http\Models\HostRootModel.cs" />
@@ -155,12 +168,10 @@
     <Compile Include="ServiceModel\ServiceInstanceName.cs" />
     <Compile Include="ServicePlatformEventSource.cs" />
     <Compile Include="Composition\ComponentContainerExtensions.cs" />
-    <Compile Include="Storage\AssemblyInformationPropertySerializer.cs" />
     <Compile Include="Storage\AzureQueue.cs" />
     <Compile Include="Storage\AzureTable.cs" />
     <Compile Include="Storage\AzureTableEntity.cs" />
     <Compile Include="Storage\BlobStorageHub.cs" />
-    <Compile Include="Storage\DefaultTablePropertySerializer.cs" />
     <Compile Include="Storage\PivotedAzureTable.cs" />
     <Compile Include="Storage\PivotedTableEntity.cs" />
     <Compile Include="Storage\PropertySerializerAttribute.cs" />
@@ -170,7 +181,6 @@
     <Compile Include="Storage\StorageHelpers.cs" />
     <Compile Include="Storage\StorageHub.cs" />
     <Compile Include="Storage\TableProperty.cs" />
-    <Compile Include="Storage\TablePropertySerializer.cs" />
     <Compile Include="Storage\TableStorageHub.cs" />
     <Compile Include="Storage\TableStorageKey.cs" />
     <Compile Include="Strings.Designer.cs">

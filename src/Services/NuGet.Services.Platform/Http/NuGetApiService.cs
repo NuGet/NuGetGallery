@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -14,6 +15,7 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using NuGet.Services.Client;
 using NuGet.Services.Composition;
+using NuGet.Services.Http.Authentication;
 using NuGet.Services.Http.Controllers;
 using NuGet.Services.Http.Models;
 using NuGet.Services.ServiceModel;
@@ -29,6 +31,14 @@ namespace NuGet.Services.Http
         {
             var config = Container.Resolve<HttpConfiguration>();
             config.DependencyResolver = new AutofacWebApiDependencyResolver(Container);
+            if (!String.IsNullOrEmpty(Configuration.Http.AdminKey))
+            {
+                app.UseAdminKeyAuthentication(new AdminKeyAuthenticationOptions()
+                {
+                    Key = Configuration.Http.AdminKey,
+                    GrantedRole = Roles.Admin
+                });
+            }
             app.UseWebApi(config);
         }
 
@@ -55,8 +65,8 @@ namespace NuGet.Services.Http
                 })
                 .InstancePerApiRequest();
 
-            builder.RegisterWebApiFilterProvider(config);
-            builder.RegisterWebApiModelBinderProvider();
+            //builder.RegisterWebApiFilterProvider(config);
+            //builder.RegisterWebApiModelBinderProvider();
         }
 
         protected virtual IEnumerable<Assembly> GetControllerAssemblies()
@@ -84,6 +94,6 @@ namespace NuGet.Services.Http
             return config;
         }
 
-        public abstract Task<object> GetApiModel(NuGetApiController controller);
+        public abstract Task<object> GetApiModel(NuGetApiController controller, IPrincipal requestor);
     }
 }

@@ -11,6 +11,7 @@ using NuGet.Services.Work.Api.Models;
 namespace NuGet.Services.Work.Api.Controllers
 {
     [RoutePrefix("instances")]
+    [Authorize(Roles = Roles.Admin)]
     public class InstancesController : NuGetApiController
     {
         public InvocationQueue Queue { get; private set; }

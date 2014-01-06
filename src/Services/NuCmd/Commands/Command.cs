@@ -42,7 +42,7 @@ namespace NuCmd.Commands
             }
             await Console.WriteErrorLine(
                 Strings.Commands_HttpError,
-                response.StatusCode,
+                (int)response.StatusCode,
                 response.ReasonPhrase);
             return false;
         }

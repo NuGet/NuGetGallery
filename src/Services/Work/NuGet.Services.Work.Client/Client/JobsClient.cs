@@ -22,5 +22,10 @@ namespace NuGet.Services.Work.Client
         {
             return _client.GetAsync("jobs/stats").AsServiceResponse<IEnumerable<JobStatistics>>();
         }
+
+        public Task<ServiceResponse<IEnumerable<Job>>> Get()
+        {
+            return _client.GetAsync("jobs").AsServiceResponse<IEnumerable<Job>>();
+        }
     }
 }

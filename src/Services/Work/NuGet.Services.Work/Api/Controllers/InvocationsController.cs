@@ -13,6 +13,7 @@ using NuGet.Services.Work.Models;
 namespace NuGet.Services.Work.Api.Controllers
 {
     [RoutePrefix("invocations")]
+    [Authorize(Roles = Roles.Admin)]
     public class InvocationsController : NuGetApiController
     {
         public StorageHub Storage { get; private set; }

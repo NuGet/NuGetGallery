@@ -23,6 +23,7 @@ namespace NuGet.Services.Configuration
 
         public StorageConfiguration Storage { get { return GetSection<StorageConfiguration>(); } }
         public SqlConfiguration Sql { get { return GetSection<SqlConfiguration>(); } }
+        public HttpConfiguration Http { get { return GetSection<HttpConfiguration>(); } }
 
         public ConfigurationHub(ServiceHost host)
         {
