@@ -8,7 +8,7 @@ using PowerArgs;
 namespace NuCmd.Commands
 {
     public interface ICommand {
-        Task Execute(IConsole console, CommandDirectory directory);
+        Task Execute(IConsole console, CommandDefinition definition, CommandDirectory directory);
     }
 
     public abstract class Command : ICommand
@@ -19,12 +19,15 @@ namespace NuCmd.Commands
         public bool WhatIf { get; set; }
 
         protected IConsole Console { get; private set; }
+        protected CommandDefinition Definition { get; private set; }
         protected CommandDirectory Directory { get; private set; }
 
-        public virtual Task Execute(IConsole console, CommandDirectory directory)
+        public virtual Task Execute(IConsole console, CommandDefinition definition, CommandDirectory directory)
         {
             Console = console;
             Directory = directory;
+            Definition = definition;
+
             return OnExecute();
         }
 

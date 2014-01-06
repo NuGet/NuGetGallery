@@ -77,54 +77,39 @@ namespace NuCmd
                 groupMembers = _directory.RootCommands;
             }
 
-            if (commandName == null)
+            CommandDefinition command;
+            Type commandType;
+            if (!groupMembers.TryGetValue(commandName, out command))
             {
-                _args = Enumerable.Concat(
-                    String.IsNullOrEmpty(groupOrRootCommand) ? 
-                        Enumerable.Empty<string>() :
-                        new[] { groupOrRootCommand },
-                    _args);
-                await Dispatch(typeof(HelpCommand));
-            }
-            else
-            {
-                CommandDefinition command;
-                Type commandType;
-                if (groupMembers.TryGetValue(commandName, out command))
+                if (String.IsNullOrEmpty(groupOrRootCommand))
                 {
-                    commandType = command.Type;
+                    await _console.WriteErrorLine(String.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.Program_NoSuchCommand,
+                        commandName));
                 }
                 else
                 {
-                    if (String.IsNullOrEmpty(groupOrRootCommand))
-                    {
-                        await _console.WriteErrorLine(String.Format(
-                            CultureInfo.CurrentCulture,
-                            Strings.Program_NoSuchCommand,
-                            commandName));
-                    }
-                    else
-                    {
-                        await _console.WriteErrorLine(String.Format(
-                            CultureInfo.CurrentCulture,
-                            Strings.Program_NoSuchCommandInGroup,
-                            commandName,
-                            groupOrRootCommand));
-                    }
-                    commandType = typeof(HelpCommand);
+                    await _console.WriteErrorLine(String.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.Program_NoSuchCommandInGroup,
+                        commandName,
+                        groupOrRootCommand));
                 }
-                await Dispatch(commandType);
             }
-
+            else
+            {
+                await Dispatch(command);
+            }
         }
 
-        private async Task Dispatch(Type commandType)
+        private async Task Dispatch(CommandDefinition definition)
         {
             ICommand cmd = null;
             Exception thrown = null;
             try
             {
-                cmd = Args.Parse(commandType, _args.ToArray()) as ICommand;
+                cmd = Args.Parse(definition.Type, _args.ToArray()) as ICommand;
             }
             catch (AggregateException aex)
             {
@@ -137,12 +122,13 @@ namespace NuCmd
             if (thrown != null)
             {
                 await _console.WriteErrorLine(thrown.Message);
+                await new HelpCommand().HelpFor(_console, definition);
             }
             else if (cmd == null)
             {
                 await _console.WriteErrorLine(
                     Strings.Program_CommandNotConvertible,
-                    commandType.FullName,
+                    definition.Type.FullName,
                     typeof(ICommand).FullName);
             }
             else
@@ -150,7 +136,7 @@ namespace NuCmd
                 thrown = null;
                 try
                 {
-                    await cmd.Execute(_console, _directory);
+                    await cmd.Execute(_console, definition, _directory);
                 }
                 catch (AggregateException aex)
                 {

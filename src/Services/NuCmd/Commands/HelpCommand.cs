@@ -110,10 +110,18 @@ namespace NuCmd.Commands
             }
         }
 
-        public virtual async Task HelpFor(CommandDefinition command)
+        private Task HelpFor(CommandDefinition command)
         {
-            await Console.WriteHelpLine("nucmd {0} {1} - {2}", command.Group, command.Name, command.Description);
-            await Console.WriteHelp(ArgUsage.GetStyledUsage(command.Type).ToString());
+            return HelpFor(Console, command);
+        }
+
+        public virtual async Task HelpFor(IConsole console, CommandDefinition command)
+        {
+            await console.WriteHelpLine("nucmd {0} - {1}", 
+                String.IsNullOrEmpty(command.Group) ?
+                command.Name :
+                (command.Group + " " + command.Name), command.Description);
+            await console.WriteHelp(ArgUsage.GetStyledUsage(command.Type).ToString());
         }
     }
 }
