@@ -33,11 +33,10 @@ namespace NuGet.Services.Work
         internal const string InvocationLogsContainerBaseName = "work";
         public static readonly string MyServiceName = "Work";
 
-        private AzureTable<JobDescription> _jobsTable;
         private JobRunner _runner;
 
         public IEnumerable<JobDescription> Jobs { get; private set; }
-        
+
         public WorkService(ServiceHost host)
             : base(MyServiceName, host)
         {
@@ -47,7 +46,7 @@ namespace NuGet.Services.Work
         {
             try
             {
-                await DiscoverJobs();
+                DiscoverJobs();
 
                 return await base.OnStart();
             }
@@ -68,20 +67,15 @@ namespace NuGet.Services.Work
             return _runner.Run(Host.ShutdownToken);
         }
 
-        private async Task DiscoverJobs()
+        private void DiscoverJobs()
         {
-            _jobsTable = Storage.Primary.Tables.Table<JobDescription>();
-
             Jobs = Container.Resolve<IEnumerable<JobDescription>>();
 
-            await Task.WhenAll(Jobs.Select(j =>
+            foreach (var job in Jobs)
             {
                 // Record the discovery in the trace
-                WorkServiceEventSource.Log.JobDiscovered(j);
-
-                // Log an entry for the job in the status table
-                return _jobsTable.Merge(j);
-            }));
+                WorkServiceEventSource.Log.JobDiscovered(job);
+            }
         }
 
         public override void RegisterComponents(ContainerBuilder builder)

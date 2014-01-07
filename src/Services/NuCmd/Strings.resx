@@ -145,10 +145,10 @@
     <value>Missing command.</value>
   </data>
   <data name="Program_NoSuchCommand" xml:space="preserve">
-    <value>Command not found: '{0}'.</value>
+    <value>Command not found: '{0}'. Use 'nucmd help' to list available commands.</value>
   </data>
   <data name="Program_NoSuchCommandInGroup" xml:space="preserve">
-    <value>Command '{0}' not found in '{1}' group.</value>
+    <value>Command '{0}' not found in '{1}' group. Use 'nucmd help {1}' to list available commands.</value>
   </data>
   <data name="Usage" xml:space="preserve">
     <value>NuCmd Usage:

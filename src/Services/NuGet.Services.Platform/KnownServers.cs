@@ -27,6 +27,7 @@ namespace NuGet.Services
     public enum KnownStorageAccount
     {
         Primary,
+        Legacy,
         Backup
     }
 }

@@ -27,7 +27,16 @@ namespace NuGet.Services.Work.Api.Controllers
         [Route("", Name = Routes.GetJobs)]
         public IHttpActionResult Get()
         {
-            return Content(HttpStatusCode.OK, Storage.Primary.Tables.Table<JobDescription>().GetAll().Select(d => d.ToModel()));
+            // Find an instance of the work service
+            var workService = Host.Instances.OfType<WorkService>().FirstOrDefault();
+            if (workService == null)
+            {
+                return Content(HttpStatusCode.OK, new object[0]);
+            }
+            else
+            {
+                return Content(HttpStatusCode.OK, workService.Jobs.Select(j => j.ToModel()));
+            }
         }
 
         [Route("stats", Name = Routes.GetJobStatistics)]

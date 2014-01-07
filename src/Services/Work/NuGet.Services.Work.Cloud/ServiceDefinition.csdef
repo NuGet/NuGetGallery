@@ -14,6 +14,7 @@
             <Setting name="Host.Name" />
             <!-- The name of the service host -->
             <Setting name="Storage.Primary" />
+            <Setting name="Storage.Legacy" />
             <Setting name="Storage.Backup" />
             
             <!-- SQL Connections -->
@@ -35,11 +36,10 @@
             <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="2048" />
         </LocalResources>
         <Endpoints>
-            <InputEndpoint name="http" protocol="http" port="80" localPort="80" />
             <InputEndpoint name="https" protocol="https" port="443" localPort="443" certificate="SSL" />
-            <InstanceInputEndpoint name="http-instance" protocol="tcp" localPort="80">
+            <InstanceInputEndpoint name="https-instance" protocol="tcp" localPort="443">
                 <AllocatePublicPortFrom>
-                    <FixedPortRange max="8999" min="8001" />
+                    <FixedPortRange max="44399" min="44300" />
                 </AllocatePublicPortFrom>
             </InstanceInputEndpoint>
         </Endpoints>

@@ -26,6 +26,7 @@ namespace NuCmd.Commands.Work
                     j => j.Name,
                     j => j.Description,
                     j => j.Enabled,
+                    j => new { Assembly = j.Assembly.FullName.Name }.Assembly, // Hack to get the name to show up right
                     j => j.Assembly.BuildCommit,
                     j => j.Assembly.BuildDate);
             }

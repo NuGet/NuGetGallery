@@ -142,7 +142,7 @@ namespace NuCmd {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Command not found: &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Command not found: &apos;{0}&apos;. Use &apos;nucmd help&apos; to list available commands..
         /// </summary>
         internal static string Program_NoSuchCommand {
             get {
@@ -151,7 +151,7 @@ namespace NuCmd {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Command &apos;{0}&apos; not found in &apos;{1}&apos; group..
+        ///   Looks up a localized string similar to Command &apos;{0}&apos; not found in &apos;{1}&apos; group. Use &apos;nucmd help {1}&apos; to list available commands..
         /// </summary>
         internal static string Program_NoSuchCommandInGroup {
             get {
