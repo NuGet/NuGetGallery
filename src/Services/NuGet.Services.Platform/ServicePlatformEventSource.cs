@@ -193,6 +193,22 @@ namespace NuGet.Services
         [NonEvent]
         public void ServiceException(ServiceInstanceName name, Exception ex) { ServiceException(name.Host.ToString(), name.ShortName, ex.ToString()); }
 
+        [Event(
+            eventId: 20,
+            Level = EventLevel.Error,
+            Message = "Exeception during HTTP request to {0}: {1}")]
+        private void HttpException(string uri, string exception) { WriteEvent(20, uri, exception); }
+        [NonEvent]
+        public void HttpException(string uri, Exception ex) { HttpException(uri, ex.ToString()); }
+
+        [Event(
+            eventId: 21,
+            Level = EventLevel.Error,
+            Message = "Exeception during API request to {0} ({1}, {2}): {3}")]
+        private void ApiException(string uri, string controller, string action, string exception) { WriteEvent(21, uri, controller, action, exception); }
+        [NonEvent]
+        public void ApiException(string uri, string controller, string action, Exception ex) { ApiException(uri, controller, action, ex.ToString()); }
+
         public static class Tasks {
             public const EventTask HostStartup = (EventTask)0x01;
             public const EventTask ServiceInitialization = (EventTask)0x02;

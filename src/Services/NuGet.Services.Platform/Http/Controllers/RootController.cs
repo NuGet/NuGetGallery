@@ -13,8 +13,7 @@ namespace NuGet.Services.Http.Controllers
         [Route("")]
         public async Task<HostRootModel> GetDescription()
         {
-            bool admin = false;
-            admin = User != null && User.IsInRole(Roles.Admin);
+            bool admin = User != null && User.IsInRole(Roles.Admin);
 
             return new HostRootModel()
             {

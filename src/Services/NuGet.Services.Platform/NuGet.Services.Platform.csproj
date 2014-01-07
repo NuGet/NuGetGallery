@@ -127,6 +127,7 @@
     <Compile Include="Http\Authentication\AdminKeyAuthenticationMiddleware.cs" />
     <Compile Include="Http\Authentication\AdminKeyAuthenticationOptions.cs" />
     <Compile Include="Http\Authentication\AdminKeyAuthenticationHandler.cs" />
+    <Compile Include="Http\RecordApiExceptionFilter.cs" />
     <Compile Include="Roles.cs" />
     <Compile Include="Storage\AssemblyInformationPropertySerializer.cs" />
     <Compile Include="Storage\DefaultTablePropertySerializer.cs" />

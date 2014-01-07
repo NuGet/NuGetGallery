@@ -30,10 +30,12 @@ namespace NuGet.Services.Http
             if (httpEndpoint != null)
             {
                 options.Urls.Add("http://+:" + httpEndpoint.Port.ToString() + "/");
+                options.Urls.Add("http://localhost:" + httpEndpoint.Port.ToString() + "/");
             }
             if (httpsEndpoint != null)
             {
                 options.Urls.Add("https://+:" + httpsEndpoint.Port.ToString() + "/");
+                options.Urls.Add("https://localhost:" + httpsEndpoint.Port.ToString() + "/");
             }
             if (options.Urls.Count == 0)
             {
@@ -73,6 +75,17 @@ namespace NuGet.Services.Http
 
         protected virtual void Startup(IAppBuilder app)
         {
+            app.Use(async (ctx, next) =>
+            {
+                try
+                {
+                    await next();
+                }
+                catch (Exception ex)
+                {
+                    ServicePlatformEventSource.Log.HttpException(ctx.Request.Uri.AbsoluteUri, ex);
+                }
+            });
             app.Use(async (ctx, next) =>
             {
                 await next();

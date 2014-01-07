@@ -87,6 +87,7 @@ namespace NuGet.Services.Http
             config.Formatters.Add(JsonFormat.Formatter);
 
             config.IncludeErrorDetailPolicy = IncludeErrorDetailPolicy.LocalOnly;
+            config.Filters.Add(new RecordApiExceptionFilter());
 
             // Use Attribute routing
             config.MapHttpAttributeRoutes();
