@@ -53,11 +53,6 @@ namespace NuGet.Services.Work.Jobs
         /// </summary>
         public TimeSpan? MaxAge { get; set; }
 
-        /// <summary>
-        /// Forces a new backup to be created
-        /// </summary>
-        public bool Force { get; set; }
-
         public CreateOnlineDatabaseBackupJob(ConfigurationHub config)
         {
             _config = config;
@@ -75,7 +70,7 @@ namespace NuGet.Services.Work.Jobs
             // Connect to the master database
             using (var connection = await cstr.ConnectToMaster())
             {
-                if (!Force && MaxAge != null)
+                if (MaxAge != null)
                 {
                     // Get databases
                     Log.GettingDatabaseList(cstr.DataSource);
@@ -110,7 +105,10 @@ namespace NuGet.Services.Work.Jobs
                 }
 
                 // Generate a backup name
-                BackupName = DatabaseBackup.GetName(BackupPrefix, DateTimeOffset.UtcNow);
+                if (String.IsNullOrEmpty(BackupName))
+                {
+                    BackupName = DatabaseBackup.GetName(BackupPrefix, DateTimeOffset.UtcNow);
+                }
 
                 // Start a copy
                 //  (have to build the SQL string manually because you can't parameterize CREATE DATABASE,
@@ -118,7 +116,7 @@ namespace NuGet.Services.Work.Jobs
                 Log.StartingCopy(cstr.InitialCatalog, BackupName);
                 await connection.ExecuteAsync(String.Format(
                     CultureInfo.InvariantCulture,
-                    "CREATE DATABASE {0} AS COPY OF {1}",
+                    "CREATE DATABASE [{0}] AS COPY OF [{1}]",
                     BackupName,
                     cstr.InitialCatalog));
                 Log.StartedCopy(cstr.InitialCatalog, BackupName);
@@ -181,7 +179,7 @@ namespace NuGet.Services.Work.Jobs
             if (connection == null)
             {
                 connection = _config.Sql
-                    .GetConnectionString(TargetServer)
+                    .GetConnectionString(TargetServer, admin: true)
                     .ChangeDatabase(TargetDatabaseName);
             }
             return connection;
@@ -208,6 +206,10 @@ namespace NuGet.Services.Work.Jobs
     [EventSource(Name = "NuGet-Jobs-CreateOnlineDatabaseBackup")]
     public class CreateOnlineDatabaseBackupEventSource : EventSource
     {
+        public static readonly CreateOnlineDatabaseBackupEventSource Log = new CreateOnlineDatabaseBackupEventSource();
+
+        private CreateOnlineDatabaseBackupEventSource() { }
+
         [Event(
             eventId: 1,
             Level = EventLevel.Informational,

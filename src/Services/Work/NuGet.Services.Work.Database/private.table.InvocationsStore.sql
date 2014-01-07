@@ -10,7 +10,7 @@ CREATE TABLE [private].[InvocationsStore]
     [Payload] nvarchar(max) NULL,
     [Status] INT NOT NULL,
     [Result] INT NOT NULL,
-    [ResultMessage] nvarchar(100) NULL,
+    [ResultMessage] nvarchar(MAX) NULL,
     [UpdatedBy] nvarchar(100) NOT NULL,
     [LogUrl] nvarchar(200) NULL,
 

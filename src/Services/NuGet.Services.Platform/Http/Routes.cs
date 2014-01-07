@@ -11,5 +11,6 @@ namespace NuGet.Services.Http
         public const string Root = "Platform-Host-Root";
         public const string GetHostInfo = "Platform-Host-GetInfo";
         public const string GetServices = "Platform-Host-GetServices";
+        public const string GetConfig = "Platform-Host-GetConfig";
     }
 }

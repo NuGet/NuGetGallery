@@ -9,12 +9,18 @@ namespace NuGet.Services.Configuration
 {
     public class SqlConfiguration : ICustomConfigurationSection
     {
-        private Dictionary<KnownSqlServer, SqlConnectionStringBuilder> _servers;
+        public Dictionary<KnownSqlServer, SqlConnectionStringBuilder> Connections { get; private set; }
+        public Dictionary<KnownSqlServer, SqlConnectionStringBuilder> AdminConnections { get; private set; }
 
         public SqlConnectionStringBuilder GetConnectionString(KnownSqlServer account)
         {
+            return GetConnectionString(account, admin: false);
+        }
+
+        public SqlConnectionStringBuilder GetConnectionString(KnownSqlServer account, bool admin)
+        {
             SqlConnectionStringBuilder connectionString;
-            if (!_servers.TryGetValue(account, out connectionString))
+            if (!(admin ? AdminConnections : Connections).TryGetValue(account, out connectionString))
             {
                 return null;
             }
@@ -23,9 +29,15 @@ namespace NuGet.Services.Configuration
 
         public void Resolve(string prefix, ConfigurationHub hub)
         {
-            _servers = Enum.GetValues(typeof(KnownSqlServer))
+            Connections = GetConnections(hub, prefix, String.Empty);
+            AdminConnections = GetConnections(hub, prefix, ".Admin");
+        }
+
+        private static Dictionary<KnownSqlServer, SqlConnectionStringBuilder> GetConnections(ConfigurationHub hub, string prefix, string suffix)
+        {
+            return Enum.GetValues(typeof(KnownSqlServer))
                 .OfType<KnownSqlServer>()
-                .Select(a => new KeyValuePair<KnownSqlServer, string>(a, hub.GetSetting(prefix + a.ToString())))
+                .Select(a => new KeyValuePair<KnownSqlServer, string>(a, hub.GetSetting(prefix + a.ToString() + suffix)))
                 .Where(p => !String.IsNullOrEmpty(p.Value))
                 .ToDictionary(p => p.Key, p => new SqlConnectionStringBuilder(p.Value));
         }

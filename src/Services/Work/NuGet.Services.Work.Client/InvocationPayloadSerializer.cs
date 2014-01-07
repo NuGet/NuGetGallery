@@ -39,7 +39,10 @@ namespace NuGet.Services.Work
 
             using (var reader = new JsonTextReader(new StringReader(payload)))
             {
-                return _serializer.Deserialize<Dictionary<string, string>>(reader);
+                var original = _serializer.Deserialize<Dictionary<string, string>>(reader);
+                
+                // Rebuild the dictionary with a OrdinalIgnoreCase key comparer
+                return new Dictionary<string, string>(original, StringComparer.OrdinalIgnoreCase);
             }
         }
     }

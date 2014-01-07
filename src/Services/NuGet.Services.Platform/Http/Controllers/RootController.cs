@@ -16,14 +16,16 @@ namespace NuGet.Services.Http.Controllers
             bool admin = false;
             admin = User != null && User.IsInRole(Roles.Admin);
 
-            return new HostRootModel() {
-                Host = admin ? 
+            return new HostRootModel()
+            {
+                Host = admin ?
                     Url.RouteUri(Routes.GetHostInfo, new Dictionary<string, object>()) :
                     null,
                 Api = await Service.GetApiModel(this, User)
             };
         }
 
+        [Authorize(Roles = Roles.Admin)]
         [Route("self", Name = Routes.GetHostInfo)]
         public HostInformationModel GetHostInfo()
         {
@@ -35,6 +37,7 @@ namespace NuGet.Services.Http.Controllers
                 };
         }
 
+        [Authorize(Roles = Roles.Admin)]
         [Route("self/services", Name = Routes.GetServices)]
         public Task<ServiceInstanceModel[]> GetServices()
         {

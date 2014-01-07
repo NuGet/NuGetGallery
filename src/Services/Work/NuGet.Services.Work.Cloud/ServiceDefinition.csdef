@@ -15,9 +15,16 @@
             <!-- The name of the service host -->
             <Setting name="Storage.Primary" />
             <Setting name="Storage.Backup" />
+            
+            <!-- SQL Connections -->
             <Setting name="Sql.Primary" />
             <Setting name="Sql.Legacy" />
             <Setting name="Sql.Warehouse" />
+            <!-- Admin SQL Connections if the service has access to them -->
+            <Setting name="Sql.Primary.Admin" />
+            <Setting name="Sql.Legacy.Admin" />
+            <Setting name="Sql.Warehouse.Admin" />
+            
             <Setting name="Queue.PollInterval" />
             <Setting name="Http.AdminKey" />
         </ConfigurationSettings>

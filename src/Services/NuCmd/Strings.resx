@@ -158,8 +158,11 @@
   <data name="Work_InvokeCommand_CreatedInvocation" xml:space="preserve">
     <value>Created Invocation: {0}</value>
   </data>
-  <data name="Work_InvokeCommand_CreatingInvocation" xml:space="preserve">
-    <value>Creating Invocation of {0} with payload {1}</value>
+  <data name="Work_InvokeCommand_CreatingInvocation_NoPayload" xml:space="preserve">
+    <value>Creating Invocation of {0} with no payload</value>
+  </data>
+  <data name="Work_InvokeCommand_CreatingInvocation_WithPayload" xml:space="preserve">
+    <value>Creating Invocation of {0} with the following payload:</value>
   </data>
   <data name="Work_InvokeCommand_PayloadInvalid" xml:space="preserve">
     <value>Error deserializing payload: {0}</value>

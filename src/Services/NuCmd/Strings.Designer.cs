@@ -180,11 +180,20 @@ namespace NuCmd {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Creating Invocation of {0} with payload {1}.
+        ///   Looks up a localized string similar to Creating Invocation of {0} with no payload.
         /// </summary>
-        internal static string Work_InvokeCommand_CreatingInvocation {
+        internal static string Work_InvokeCommand_CreatingInvocation_NoPayload {
             get {
-                return ResourceManager.GetString("Work_InvokeCommand_CreatingInvocation", resourceCulture);
+                return ResourceManager.GetString("Work_InvokeCommand_CreatingInvocation_NoPayload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creating Invocation of {0} with the following payload:.
+        /// </summary>
+        internal static string Work_InvokeCommand_CreatingInvocation_WithPayload {
+            get {
+                return ResourceManager.GetString("Work_InvokeCommand_CreatingInvocation_WithPayload", resourceCulture);
             }
         }
         

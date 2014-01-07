@@ -9,12 +9,12 @@ namespace NuGet.Services.Configuration
 {
     public class StorageConfiguration : ICustomConfigurationSection
     {
-        private Dictionary<KnownStorageAccount, CloudStorageAccount> _accounts;
+        public Dictionary<KnownStorageAccount, CloudStorageAccount> Accounts { get; private set; }
 
         public CloudStorageAccount GetAccount(KnownStorageAccount account)
         {
             CloudStorageAccount connectionString;
-            if (!_accounts.TryGetValue(account, out connectionString))
+            if (!Accounts.TryGetValue(account, out connectionString))
             {
                 return null;
             }
@@ -23,7 +23,7 @@ namespace NuGet.Services.Configuration
 
         public void Resolve(string prefix, ConfigurationHub hub)
         {
-            _accounts = Enum.GetValues(typeof(KnownStorageAccount))
+            Accounts = Enum.GetValues(typeof(KnownStorageAccount))
                 .OfType<KnownStorageAccount>()
                 .Select(a => new KeyValuePair<KnownStorageAccount, string>(a, hub.GetSetting(prefix + a.ToString())))
                 .Where(p => !String.IsNullOrEmpty(p.Value))

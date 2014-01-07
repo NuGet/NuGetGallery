@@ -56,6 +56,7 @@ namespace NuCmd.Commands.Work
                 await Console.WriteTable(invocations,
                     i => i.Job,
                     i => i.Status,
+                    i => i.Result,
                     i => i.Id);
             }
         }

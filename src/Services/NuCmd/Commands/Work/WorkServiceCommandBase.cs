@@ -12,16 +12,28 @@ namespace NuCmd.Commands.Work
     public abstract class WorkServiceCommandBase : Command
     {
         [ArgRequired()]
-        [ArgShortcut("u")]
+        [ArgShortcut("url")]
         [ArgDescription("The URI to the root of the work service")]
         public Uri ServiceUri { get; set; }
 
-        [ArgShortcut("p")]
+        [ArgShortcut("pass")]
         [ArgDescription("The admin password for the service")]
         public string Password { get; set; }
 
+        [ArgShortcut("ice")]
+        [ArgDescription("Ignore certificate errors")]
+        public bool IgnoreCertErrors { get; set; }
+
         protected virtual WorkClient OpenClient()
         {
+            if (IgnoreCertErrors)
+            {
+                ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) =>
+                {
+                    return true;
+                };
+            }
+
             return new WorkClient(ServiceUri,
                 String.IsNullOrEmpty(Password) ?
                 null :

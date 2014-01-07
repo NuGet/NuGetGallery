@@ -27,8 +27,17 @@ namespace NuCmd.Commands.Work
         [ArgDescription("The JSON dictionary payload to provide to the job")]
         public string Payload { get; set; }
 
+        [ArgShortcut("ep")]
+        [ArgDescription("A base64-encoded UTF8 payload string to use. Designed for command-line piping")]
+        public string EncodedPayload { get; set; }
+
         protected override async Task OnExecute()
         {
+            if (!String.IsNullOrEmpty(EncodedPayload))
+            {
+                Payload = Encoding.UTF8.GetString(Convert.FromBase64String(EncodedPayload));
+            }
+
             var client = OpenClient();
             await Console.WriteTraceLine(Strings.Commands_UsingServiceUri, ServiceUri.AbsoluteUri);
 
@@ -49,7 +58,15 @@ namespace NuCmd.Commands.Work
                 return;
             }
 
-            await Console.WriteInfoLine(Strings.Work_InvokeCommand_CreatingInvocation, Job, Payload);
+            if (String.IsNullOrEmpty(Payload))
+            {
+                await Console.WriteInfoLine(Strings.Work_InvokeCommand_CreatingInvocation_NoPayload, Job);
+            }
+            else
+            {
+                await Console.WriteInfoLine(Strings.Work_InvokeCommand_CreatingInvocation_WithPayload, Job);
+                await Console.WriteInfoLine(Payload.Replace("{", "{{").Replace("}", "}}"));
+            }
             if (!WhatIf)
             {
                 var response = await client.Invocations.Put(new InvocationRequest(Job, Source)
