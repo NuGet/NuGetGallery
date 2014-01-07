@@ -32,14 +32,8 @@ namespace NuGetGallery
             return View();
         }
 
-        public virtual async Task<ActionResult> Home()
+        public virtual ActionResult Home()
         {
-            if (ContentService != null)
-            {
-                ViewBag.Content = await ContentService.GetContentItemAsync(
-                    Constants.ContentNames.Home,
-                    TimeSpan.FromMinutes(1));
-            }
             return View();
         }
 

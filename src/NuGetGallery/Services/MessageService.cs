@@ -4,6 +4,9 @@ using System.Linq;
 using System.Net.Mail;
 using System.Text;
 using System.Web;
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using NuGetGallery.Authentication;
@@ -381,6 +384,7 @@ The {3} Team";
         {
             try
             {
+                ServicePointManager.ServerCertificateValidationCallback = delegate(object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) { return true; };
                 MailSender.Send(mailMessage);
             }
             catch (SmtpException ex)
