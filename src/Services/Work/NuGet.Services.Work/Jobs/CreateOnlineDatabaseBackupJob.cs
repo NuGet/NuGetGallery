@@ -161,8 +161,8 @@ namespace NuGet.Services.Work.Jobs
         private JobContinuation ContinueCheckingBackup()
         {
             var parameters = new Dictionary<string, string>() {
-                    {"BackupName", BackupName}
-                };
+                {"BackupName", BackupName}
+            };
             if (TargetDatabaseConnection != null)
             {
                 parameters["TargetDatabaseConnection"] = TargetDatabaseConnection.ConnectionString;
