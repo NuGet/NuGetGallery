@@ -105,7 +105,7 @@ namespace NuGet.Services.Azure
                     timestampPattern: "yyyyMMdd-HHmmss",
                     rollFileExistsBehavior: RollFileExistsBehavior.Increment,
                     rollInterval: RollInterval.Hour,
-                    formatter: new JsonEventTextFormatter(EventTextFormatting.None, dateTimeFormat: "O"),
+                    formatter: new JsonEventTextFormatter(EventTextFormatting.Indented, dateTimeFormat: "O"),
                     maxArchivedFiles: 768, // We have a buffer size of 1024 for this folder
                     isAsync: false);
             }

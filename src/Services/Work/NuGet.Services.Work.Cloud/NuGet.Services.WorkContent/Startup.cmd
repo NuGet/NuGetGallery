@@ -1,1 +1,0 @@
-﻿@powershell -NoProfile -NoLogo -File %~dp0Startup.ps1

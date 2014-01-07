@@ -44,12 +44,6 @@
     <Content Include="NuGet.Services.WorkContent\diagnostics.wadcfg">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="NuGet.Services.WorkContent\Startup.cmd">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="NuGet.Services.WorkContent\Startup.ps1">
-      <SubType>Content</SubType>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.Work\NuGet.Services.Work.csproj">

@@ -1,6 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="NuGet.Services.Work.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2013-10.2.2">
     <WorkerRole name="NuGet.Services.Work" vmsize="Small">
+        <!-- Must be elevated to bind to ports under 1024 -->
+        <Runtime executionContext="elevated" />
         <Imports>
             <Import moduleName="Diagnostics" />
             <Import moduleName="RemoteAccess" />
