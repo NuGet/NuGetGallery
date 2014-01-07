@@ -24,7 +24,7 @@ namespace NuGet.Services.Work
     {
         protected override IEnumerable<NuGetService> GetServices(ServiceHost host)
         {
-            for (int i = 0; i < (Environment.ProcessorCount - 1); i++)
+            for (int i = 0; i < Environment.ProcessorCount; i++)
             {
                 yield return new WorkService(host);
             }
