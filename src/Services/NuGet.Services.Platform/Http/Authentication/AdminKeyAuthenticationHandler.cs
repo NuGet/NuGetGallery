@@ -16,6 +16,12 @@ namespace NuGet.Services.Http.Authentication
         {
             // Based on http://lbadri.wordpress.com/2013/07/13/basic-authentication-with-asp-net-web-api-using-owin-middleware/
 
+            if (!Context.Request.IsSecure)
+            {
+                // No authentication on insecure links
+                return Task.FromResult<AuthenticationTicket>(null);
+            }
+
             var header = Context.Request.Headers.Get("Authorization");
 
             if (!String.IsNullOrWhiteSpace(header))

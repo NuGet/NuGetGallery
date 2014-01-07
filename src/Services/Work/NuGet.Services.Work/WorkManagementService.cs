@@ -32,7 +32,8 @@ namespace NuGet.Services.Work
 
         public override Task<object> GetApiModel(NuGetApiController controller, IPrincipal requestor)
         {
-            if (!requestor.IsInRole(Roles.Admin))
+            // This is an admin-only API
+            if (requestor == null || !requestor.IsInRole(Roles.Admin))
             {
                 return null;
             }

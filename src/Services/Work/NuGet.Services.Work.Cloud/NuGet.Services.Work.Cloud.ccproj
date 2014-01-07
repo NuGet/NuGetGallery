@@ -12,7 +12,7 @@
     <AssemblyName>NuGetGallery.Backend.Cloud</AssemblyName>
     <StartDevelopmentStorage>True</StartDevelopmentStorage>
     <Name>NuGet.Services.Work.Cloud</Name>
-    <UseWebProjectPorts>True</UseWebProjectPorts>
+    <UseWebProjectPorts>False</UseWebProjectPorts>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -41,6 +41,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="NuGet.Services.WorkContent\diagnostics.wadcfg">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="NuGet.Services.WorkContent\Startup.cmd">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="NuGet.Services.WorkContent\Startup.ps1">
       <SubType>Content</SubType>
     </Content>
   </ItemGroup>

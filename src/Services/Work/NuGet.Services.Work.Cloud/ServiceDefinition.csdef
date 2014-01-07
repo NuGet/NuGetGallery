@@ -21,11 +21,15 @@
             <Setting name="Queue.PollInterval" />
             <Setting name="Http.AdminKey" />
         </ConfigurationSettings>
+        <Certificates>
+            <Certificate name="SSL" permissionLevel="limitedOrElevated" storeLocation="LocalMachine" storeName="My" />
+        </Certificates>
         <LocalResources>
             <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="2048" />
         </LocalResources>
         <Endpoints>
             <InputEndpoint name="http" protocol="http" port="80" localPort="80" />
+            <InputEndpoint name="https" protocol="https" port="443" localPort="443" certificate="SSL" />
             <InstanceInputEndpoint name="http-instance" protocol="tcp" localPort="80">
                 <AllocatePublicPortFrom>
                     <FixedPortRange max="8999" min="8001" />

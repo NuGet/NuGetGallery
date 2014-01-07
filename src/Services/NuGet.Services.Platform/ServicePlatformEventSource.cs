@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using NuGet.Services.ServiceModel;
@@ -100,34 +101,33 @@ namespace NuGet.Services
         [NonEvent]
         public void ServiceStartupFailed(ServiceInstanceName name, Exception ex) { ServiceStartupFailed(name.Host.ToString(), name.ShortName, ex.ToString()); }
 
-
         [Event(
             eventId: 10,
             Level = EventLevel.Critical,
-            Message = "{0}/{1}: Missing Required Endpoint '{2}'")]
-        private void MissingEndpoint(string hostName, string instanceName, string endpoint) { WriteEvent(10, hostName, instanceName, endpoint); }
+            Message = "{0}/{1}: Missing HTTP Endpoints. 'http' and/or 'https' must be provided to run HTTP services.")]
+        private void MissingHttpEndpoints(string hostName, string instanceName) { WriteEvent(10, hostName, instanceName); }
         [NonEvent]
-        public void MissingEndpoint(ServiceInstanceName name, string endpoint) { MissingEndpoint(name.Host.ToString(), name.ShortName, endpoint); }
+        public void MissingHttpEndpoints(ServiceInstanceName name) { MissingHttpEndpoints(name.Host.ToString(), name.ShortName); }
 
         [Event(
             eventId: 11,
             Level = EventLevel.Informational,
             Task = Tasks.HttpStartup,
             Opcode = EventOpcode.Start,
-            Message = "{0}/{1}: Starting HTTP Services on port {2}")]
-        private void StartingHttpServices(string hostName, string instanceName, int port) { WriteEvent(11, hostName, instanceName, port); }
+            Message = "{0}/{1}: Starting HTTP Services. http {0}, https {1}")]
+        private void StartingHttpServices(string hostName, string instanceName, string http, string https) { WriteEvent(11, hostName, instanceName, http, https); }
         [NonEvent]
-        public void StartingHttpServices(ServiceInstanceName name, int port) { StartingHttpServices(name.Host.ToString(), name.ShortName, port); }
+        public void StartingHttpServices(ServiceInstanceName name, IPEndPoint http, IPEndPoint https) { StartingHttpServices(name.Host.ToString(), name.ShortName, http == null ? "<disabled>" : ("on port " + http.Port.ToString()), https == null ? "<disabled>" : ("on port " + https.Port.ToString())); }
 
         [Event(
             eventId: 12,
             Level = EventLevel.Informational,
             Task = Tasks.HttpStartup,
             Opcode = EventOpcode.Stop,
-            Message = "{0}/{1}: Started HTTP Services on port {2}")]
-        private void StartedHttpServices(string hostName, string instanceName, int port) { WriteEvent(12, hostName, instanceName, port); }
+            Message = "{0}/{1}: Started HTTP Services")]
+        private void StartedHttpServices(string hostName, string instanceName) { WriteEvent(12, hostName, instanceName); }
         [NonEvent]
-        public void StartedHttpServices(ServiceInstanceName name, int port) { StartedHttpServices(name.Host.ToString(), name.ShortName, port); }
+        public void StartedHttpServices(ServiceInstanceName name) { StartedHttpServices(name.Host.ToString(), name.ShortName); }
 
         [Event(
             eventId: 13,

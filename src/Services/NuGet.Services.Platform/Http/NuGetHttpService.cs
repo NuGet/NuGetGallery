@@ -21,19 +21,27 @@ namespace NuGet.Services.Http
 
         protected override Task<bool> OnStart()
         {
-            var ep = Host.GetEndpoint("http");
-            if (ep == null)
+            var httpEndpoint = Host.GetEndpoint("http");
+            var httpsEndpoint = Host.GetEndpoint("https");
+            
+            // Set up start options
+            var options = new StartOptions();
+
+            if (httpEndpoint != null)
             {
-                ServicePlatformEventSource.Log.MissingEndpoint(InstanceName, "http");
+                options.Urls.Add("http://+:" + httpEndpoint.Port.ToString() + "/");
+            }
+            if (httpsEndpoint != null)
+            {
+                options.Urls.Add("https://+:" + httpsEndpoint.Port.ToString() + "/");
+            }
+            if (options.Urls.Count == 0)
+            {
+                ServicePlatformEventSource.Log.MissingHttpEndpoints(InstanceName);
                 return Task.FromResult(false); // Failed to start
             }
 
-            // Set up start options
-            var options = new StartOptions()
-            {
-                Port = ep.Port
-            };
-            ServicePlatformEventSource.Log.StartingHttpServices(InstanceName, ep.Port);
+            ServicePlatformEventSource.Log.StartingHttpServices(InstanceName, httpEndpoint, httpsEndpoint);
             try
             {
                 _httpServerLifetime = WebApp.Start(options, Startup);
@@ -43,7 +51,7 @@ namespace NuGet.Services.Http
                 ServicePlatformEventSource.Log.ErrorStartingHttpServices(InstanceName, ex);
                 throw;
             }
-            ServicePlatformEventSource.Log.StartedHttpServices(InstanceName, ep.Port);
+            ServicePlatformEventSource.Log.StartedHttpServices(InstanceName);
 
             return base.OnStart();
         }

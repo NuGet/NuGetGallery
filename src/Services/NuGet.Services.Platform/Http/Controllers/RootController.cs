@@ -8,14 +8,16 @@ using NuGet.Services.Http.Models;
 
 namespace NuGet.Services.Http.Controllers
 {
-    [Authorize]
     public class RootController : NuGetApiController
     {
         [Route("")]
         public async Task<HostRootModel> GetDescription()
         {
+            bool admin = false;
+            admin = User != null && User.IsInRole(Roles.Admin);
+
             return new HostRootModel() {
-                Host = User.IsInRole(Roles.Admin) ? 
+                Host = admin ? 
                     Url.RouteUri(Routes.GetHostInfo, new Dictionary<string, object>()) :
                     null,
                 Api = await Service.GetApiModel(this, User)
