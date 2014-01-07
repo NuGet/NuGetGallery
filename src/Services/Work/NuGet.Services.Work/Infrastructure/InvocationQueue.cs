@@ -59,7 +59,7 @@ namespace NuGet.Services.Work
             }
 
             var row = await ConnectAndExec(
-                "jobs.EnqueueInvocation",
+                "work.EnqueueInvocation",
                 new
                 {
                     Job = job,
@@ -83,7 +83,7 @@ namespace NuGet.Services.Work
         {
             var invisibleUntil = _clock.UtcNow + invisibleFor;
             var row = await ConnectAndExec(
-                "jobs.DequeueInvocation",
+                "work.DequeueInvocation",
                 new
                 {
                     InstanceName = _instanceName.ToString(),
@@ -109,7 +109,7 @@ namespace NuGet.Services.Work
         {
             // Try to complete the row
             var newVersion = await ConnectAndExec(
-                "jobs.CompleteInvocation",
+                "work.CompleteInvocation",
                 new
                 {
                     Id = invocation.Id,
@@ -132,7 +132,7 @@ namespace NuGet.Services.Work
         {
             var invisibleUntil = _clock.UtcNow + duration;
             var newVersion = await ConnectAndExec(
-                "jobs.ExtendInvocation",
+                "work.ExtendInvocation",
                 new
                 {
                     Id = invocation.Id,
@@ -149,7 +149,7 @@ namespace NuGet.Services.Work
             var suspendUntil = _clock.UtcNow + suspendFor;
             var serializedPayload = InvocationPayloadSerializer.Serialize(newPayload);
             var newVersion = await ConnectAndExec(
-                "jobs.SuspendInvocation",
+                "work.SuspendInvocation",
                 new
                 {
                     Id = invocation.Id,
@@ -165,7 +165,7 @@ namespace NuGet.Services.Work
         public virtual async Task<bool> UpdateStatus(InvocationState invocation, InvocationStatus status, ExecutionResult result)
         {
             var newVersion = await ConnectAndExec(
-                "jobs.SetInvocationStatus",
+                "work.SetInvocationStatus",
                 new
                 {
                     Id = invocation.Id,
@@ -182,35 +182,35 @@ namespace NuGet.Services.Work
             switch (criteria)
             {
                 case InvocationListCriteria.All:
-                    return ConnectAndQuery("SELECT * FROM jobs.Invocations");
+                    return ConnectAndQuery("SELECT * FROM work.Invocations");
                 case InvocationListCriteria.Active:
-                    return ConnectAndQuery("SELECT * FROM jobs.ActiveInvocations");
+                    return ConnectAndQuery("SELECT * FROM work.ActiveInvocations");
                 case InvocationListCriteria.Completed:
-                    return ConnectAndQuery("SELECT * FROM jobs.Invocations WHERE Complete = 1");
+                    return ConnectAndQuery("SELECT * FROM work.Invocations WHERE Complete = 1");
                 case InvocationListCriteria.Pending:
                     return ConnectAndQuery(
-                        "SELECT * FROM jobs.ActiveInvocations WHERE [NextVisibleAt] <= @now",
+                        "SELECT * FROM work.ActiveInvocations WHERE [NextVisibleAt] <= @now",
                         new
                         {
                             now = _clock.UtcNow.UtcDateTime
                         });
                 case InvocationListCriteria.Hidden:
                     return ConnectAndQuery(
-                        "SELECT * FROM jobs.ActiveInvocations WHERE [NextVisibleAt] > @now",
+                        "SELECT * FROM work.ActiveInvocations WHERE [NextVisibleAt] > @now",
                         new
                         {
                             now = _clock.UtcNow.UtcDateTime
                         });
                 case InvocationListCriteria.Suspended:
                     return ConnectAndQuery(
-                        "SELECT * FROM jobs.ActiveInvocations WHERE [Status] = @status",
+                        "SELECT * FROM work.ActiveInvocations WHERE [Status] = @status",
                         new
                         {
                             status = InvocationStatus.Suspended
                         });
                 case InvocationListCriteria.Executing:
                     return ConnectAndQuery(
-                        "SELECT * FROM jobs.ActiveInvocations WHERE [Status] = @status",
+                        "SELECT * FROM work.ActiveInvocations WHERE [Status] = @status",
                         new
                         {
                             status = InvocationStatus.Executing
@@ -238,7 +238,7 @@ namespace NuGet.Services.Work
         public virtual Task<InvocationState> Get(Guid id)
         {
             return ConnectAndQuerySingle(
-                "SELECT * FROM jobs.Invocations WHERE Id = @id",
+                "SELECT * FROM work.Invocations WHERE Id = @id",
                 new { id });
         }
 
@@ -247,7 +247,7 @@ namespace NuGet.Services.Work
             using (var connection = await Connect())
             {
                 // Teeny tiny SQL Injection :)
-                return await connection.QueryAsync<InvocationStatisticsRecord>("SELECT * FROM jobs." + view);
+                return await connection.QueryAsync<InvocationStatisticsRecord>("SELECT * FROM work." + view);
             }
         }
 
