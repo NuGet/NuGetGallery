@@ -14,7 +14,8 @@ namespace NuCmd.Commands.Work
     {
         protected override async Task OnExecute()
         {
-            var client = OpenClient();
+            var client = await OpenClient();
+            if (client == null) { return; }
 
             var response = await client.Jobs.Get();
 

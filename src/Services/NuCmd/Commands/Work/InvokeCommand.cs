@@ -38,7 +38,8 @@ namespace NuCmd.Commands.Work
                 Payload = Encoding.UTF8.GetString(Convert.FromBase64String(EncodedPayload));
             }
 
-            var client = OpenClient();
+            var client = await OpenClient();
+            if (client == null) { return; }
             await Console.WriteTraceLine(Strings.Commands_UsingServiceUri, ServiceUri.AbsoluteUri);
 
             // Try to parse the payload

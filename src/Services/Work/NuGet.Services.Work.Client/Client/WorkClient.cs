@@ -17,24 +17,37 @@ namespace NuGet.Services.Work.Client
         public InstancesClient Instances { get; private set; }
         
         /// <summary>
-        /// Create a work service client from the specified base uri and default credentials
+        /// Create a work service client from the specified base uri and credentials.
         /// </summary>
         /// <param name="baseUri">The base URI of the service</param>
-        public WorkClient(Uri baseUri) : this(baseUri, credentials: null) { }
+        /// <param name="handlers">Handlers to apply to the request in order from first to last</param>
+        public WorkClient(Uri baseUri, params DelegatingHandler[] handlers) : this(baseUri, null, handlers)
+        {
+        }
 
         /// <summary>
         /// Create a work service client from the specified base uri and credentials.
         /// </summary>
         /// <param name="baseUri">The base URI of the service</param>
         /// <param name="credentials">The credentials to connect to the service with</param>
-        public WorkClient(Uri baseUri, ICredentials credentials)
+        /// <param name="handlers">Handlers to apply to the request in order from first to last</param>
+        public WorkClient(Uri baseUri, ICredentials credentials, params DelegatingHandler[] handlers)
         {
-            _client = new HttpClient(new HttpClientHandler()
+            // Link the handlers
+            HttpMessageHandler handler = new HttpClientHandler()
             {
                 Credentials = credentials,
                 AllowAutoRedirect = true,
                 UseDefaultCredentials = credentials == null
-            }, disposeHandler: true);
+            };
+
+            foreach (var providedHandler in handlers.Reverse())
+            {
+                providedHandler.InnerHandler = handler;
+                handler = providedHandler;
+            }
+
+            _client = new HttpClient(handler, disposeHandler: true);
             _client.BaseAddress = baseUri;
 
             InitializeResources();

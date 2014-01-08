@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using NuGet.Services;
 using NuGet.Services.Work.Client;
 using PowerArgs;
 
@@ -11,7 +12,6 @@ namespace NuCmd.Commands.Work
 {
     public abstract class WorkServiceCommandBase : Command
     {
-        [ArgRequired()]
         [ArgShortcut("url")]
         [ArgDescription("The URI to the root of the work service")]
         public Uri ServiceUri { get; set; }
@@ -24,9 +24,9 @@ namespace NuCmd.Commands.Work
         [ArgDescription("Ignore certificate errors")]
         public bool IgnoreCertErrors { get; set; }
 
-        protected virtual WorkClient OpenClient()
+        protected virtual async Task<WorkClient> OpenClient()
         {
-            if (IgnoreCertErrors)
+            if (IgnoreCertErrors || (ServiceUri != null && String.Equals(ServiceUri.Host, "localhost", StringComparison.OrdinalIgnoreCase)))
             {
                 ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) =>
                 {
@@ -34,10 +34,24 @@ namespace NuCmd.Commands.Work
                 };
             }
 
-            return new WorkClient(ServiceUri,
-                String.IsNullOrEmpty(Password) ?
-                null :
-                new NetworkCredential("admin", Password));
+            // Prefill values that come from the environment
+            if (TargetEnvironment != null && ServiceUri == null)
+            {
+                ServiceUri = TargetEnvironment.GetServiceUri("work");
+            }
+
+            if (ServiceUri == null)
+            {
+                await Console.WriteErrorLine(Strings.ParameterRequired, "SerivceUri");
+                return null;
+            }
+            else
+            {
+                return new WorkClient(ServiceUri,
+                    String.IsNullOrEmpty(Password) ?
+                    null :
+                    new NetworkCredential("admin", Password));
+            }
         }
     }
 }

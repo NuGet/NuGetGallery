@@ -42,7 +42,8 @@ namespace NuCmd.Commands.Work
 
         private async Task StatsByInstance()
         {
-            var client = OpenClient();
+            var client = await OpenClient();
+            if (client == null) { return; }
 
             var response = await client.Instances.GetStatistics();
 
@@ -62,7 +63,8 @@ namespace NuCmd.Commands.Work
 
         private async Task StatsByJob()
         {
-            var client = OpenClient();
+            var client = await OpenClient();
+            if (client == null) { return; }
 
             var response = await client.Jobs.GetStatistics();
 
@@ -82,7 +84,8 @@ namespace NuCmd.Commands.Work
 
         private async Task StatsSummary()
         {
-            var client = OpenClient();
+            var client = await OpenClient();
+            if (client == null) { return; }
 
             var response = await client.Invocations.GetStatistics();
 

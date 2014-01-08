@@ -79,6 +79,15 @@ namespace NuCmd {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enter the admin password for {0}..
+        /// </summary>
+        internal static string CredentialProvider_Message {
+            get {
+                return ResourceManager.GetString("CredentialProvider_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Command groups. Type &apos;nucmd help &lt;group&gt;&apos; to see a list of commands available in that group.
         /// </summary>
         internal static string Help_CommandGroupsHeader {
@@ -120,6 +129,15 @@ namespace NuCmd {
         internal static string Help_UnknownGroup {
             get {
                 return ResourceManager.GetString("Help_UnknownGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;{0}&apos; parameter is required.
+        /// </summary>
+        internal static string ParameterRequired {
+            get {
+                return ResourceManager.GetString("ParameterRequired", resourceCulture);
             }
         }
         

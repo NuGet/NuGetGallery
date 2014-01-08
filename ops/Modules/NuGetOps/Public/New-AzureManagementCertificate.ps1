@@ -13,7 +13,7 @@ function New-AzureManagementCertificate {
     }
 
     $subName = $CurrentEnvironment.Subscription.Name.Replace(" ", "")
-    $NamePrefix = "$subName-$([Environment]::UserName)-on-$([Environment]::MachineName)-"
+    $NamePrefix = "Azure-$subName-$([Environment]::UserName)-on-$([Environment]::MachineName)-"
     if(@(dir cert:\CurrentUser\My | where { $_.Subject -like "CN=$NamePrefix*, O=Azure, OU=$($CurrentEnvironment.Subscription.Id)" }).Length -gt 0) {
         throw "A cert is already registered in the store for this (subscription, user, machine) triple"
     }

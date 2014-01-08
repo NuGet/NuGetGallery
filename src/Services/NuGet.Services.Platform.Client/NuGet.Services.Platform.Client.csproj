@@ -35,6 +35,8 @@
   <ItemGroup>
     <Compile Include="Client\JsonFormat.cs" />
     <Compile Include="Client\ServiceResponse.cs" />
+    <Compile Include="CredentialProviderHandler.cs" />
+    <Compile Include="ICredentialProvider.cs" />
     <Compile Include="Models\AssemblyFullNameConverter.cs" />
     <Compile Include="Models\AssemblyInformation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -30,7 +30,8 @@ namespace NuCmd.Commands.Work
                 BeforeUtc = BeforeLocal.Value.ToUniversalTime();
             }
 
-            var client = OpenClient();
+            var client = await OpenClient();
+            if (client == null) { return; }
             ServiceResponse<IEnumerable<Invocation>> response;
             if (BeforeUtc == null)
             {

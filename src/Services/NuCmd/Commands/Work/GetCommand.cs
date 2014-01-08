@@ -34,7 +34,8 @@ namespace NuCmd.Commands.Work
 
         private async Task GetById(string id)
         {
-            var client = OpenClient();
+            var client = await OpenClient();
+            if (client == null) { return; }
 
             var response = await client.Invocations.Get(id);
 
@@ -46,7 +47,8 @@ namespace NuCmd.Commands.Work
 
         private async Task GetByCriteria(InvocationListCriteria criteria)
         {
-            var client = OpenClient();
+            var client = await OpenClient();
+            if (client == null) { return; }
 
             var response = await client.Invocations.Get(criteria);
 

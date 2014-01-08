@@ -123,6 +123,9 @@
   <data name="Commands_UsingServiceUri" xml:space="preserve">
     <value>Using service at: {0}</value>
   </data>
+  <data name="CredentialProvider_Message" xml:space="preserve">
+    <value>Enter the admin password for {0}.</value>
+  </data>
   <data name="Help_CommandGroupsHeader" xml:space="preserve">
     <value>Command groups. Type 'nucmd help &lt;group&gt;' to see a list of commands available in that group</value>
   </data>
@@ -137,6 +140,9 @@
   </data>
   <data name="Help_UnknownGroup" xml:space="preserve">
     <value>'{0}' is not a nucmd group or command.</value>
+  </data>
+  <data name="ParameterRequired" xml:space="preserve">
+    <value>The '{0}' parameter is required</value>
   </data>
   <data name="Program_CommandNotConvertible" xml:space="preserve">
     <value>Fatal Error: Command type '{0}' is not convertable to '{1}'.</value>
