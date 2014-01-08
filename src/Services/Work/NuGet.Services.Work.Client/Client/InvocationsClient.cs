@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -35,6 +36,22 @@ namespace NuGet.Services.Work.Client
                 .AsServiceResponse<IEnumerable<Invocation>>();
         }
 
+        public Task<ServiceResponse<IEnumerable<Invocation>>> GetPurgable(DateTimeOffset? before)
+        {
+            string beforeValue = RenderBeforeQueryStringValue(before);
+            return _client.GetAsync(
+                "invocations/purgable" + beforeValue)
+                .AsServiceResponse<IEnumerable<Invocation>>();
+        }
+
+        public Task<ServiceResponse<IEnumerable<Invocation>>> Purge(DateTimeOffset? before)
+        {
+            string beforeValue = RenderBeforeQueryStringValue(before);
+            return _client.DeleteAsync(
+                "invocations/purgable" + beforeValue)
+                .AsServiceResponse<IEnumerable<Invocation>>();
+        }
+
         public Task<ServiceResponse<Invocation>> Get(string id)
         {
             return _client.GetAsync("invocations/" + id).AsServiceResponse<Invocation>();
@@ -43,6 +60,16 @@ namespace NuGet.Services.Work.Client
         public Task<ServiceResponse<InvocationStatistics>> GetStatistics()
         {
             return _client.GetAsync("invocations/stats").AsServiceResponse<InvocationStatistics>();
+        }
+
+        private static string RenderBeforeQueryStringValue(DateTimeOffset? before)
+        {
+            string beforeValue = String.Empty;
+            if (before != null)
+            {
+                beforeValue = "?before=" + WebUtility.UrlEncode(before.Value.ToString("O"));
+            }
+            return beforeValue;
         }
     }
 }

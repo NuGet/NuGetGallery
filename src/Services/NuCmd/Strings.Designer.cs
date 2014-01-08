@@ -207,6 +207,24 @@ namespace NuCmd {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Purging all invocations....
+        /// </summary>
+        internal static string Work_PurgeCommand_PurgingAllInvocations {
+            get {
+                return ResourceManager.GetString("Work_PurgeCommand_PurgingAllInvocations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Purging invocations completed before {0} UTC....
+        /// </summary>
+        internal static string Work_PurgeCommand_PurgingInvocationsBefore {
+            get {
+                return ResourceManager.GetString("Work_PurgeCommand_PurgingInvocationsBefore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unknown stats type: {0}.
         /// </summary>
         internal static string Work_StatsCommand_UnknownStatsType {

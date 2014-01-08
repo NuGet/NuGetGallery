@@ -27,18 +27,21 @@ namespace NuGet.Services.Work.Api.Controllers
 
         [HttpGet]
         [Route("purgable", Name = Routes.GetPurgableInvocations)]
-        public async Task<IHttpActionResult> GetPurgable(DateTimeOffset? since)
+        public async Task<IHttpActionResult> GetPurgable(DateTimeOffset? before = null)
         {
             return Content(
                 HttpStatusCode.OK, 
-                (await Queue.GetPurgable(since ?? DateTimeOffset.UtcNow))
+                (await Queue.GetPurgable(before ?? DateTimeOffset.UtcNow))
                 .Select(i => i.ToModel()));
         }
 
         [Route("purgable", Name = Routes.DeletePurgableInvocations)]
-        public Task<IHttpActionResult> DeletePurgableInvocations()
+        public async Task<IHttpActionResult> DeletePurgableInvocations(DateTimeOffset? before = null)
         {
-            throw new NotImplementedException();
+            var purged = await Queue.PurgeCompleted(before ?? DateTimeOffset.UtcNow);
+
+            // Return the data that was purged
+            return Content(HttpStatusCode.OK, purged.Select(i => i.ToModel()));
         }
 
         [Route("", Name = Routes.GetActiveInvocations)]

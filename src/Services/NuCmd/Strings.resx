@@ -167,6 +167,12 @@
   <data name="Work_InvokeCommand_PayloadInvalid" xml:space="preserve">
     <value>Error deserializing payload: {0}</value>
   </data>
+  <data name="Work_PurgeCommand_PurgingAllInvocations" xml:space="preserve">
+    <value>Purging all invocations...</value>
+  </data>
+  <data name="Work_PurgeCommand_PurgingInvocationsBefore" xml:space="preserve">
+    <value>Purging invocations completed before {0} UTC...</value>
+  </data>
   <data name="Work_StatsCommand_UnknownStatsType" xml:space="preserve">
     <value>Unknown stats type: {0}</value>
   </data>

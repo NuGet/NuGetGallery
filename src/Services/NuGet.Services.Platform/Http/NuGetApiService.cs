@@ -8,6 +8,8 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Controllers;
+using System.Web.Http.Dispatcher;
 using System.Web.Http.Routing;
 using Autofac;
 using Autofac.Integration.WebApi;
@@ -95,6 +97,20 @@ namespace NuGet.Services.Http
             ConfigureAttributeRouting(resolver);
             config.MapHttpAttributeRoutes(resolver);
 
+#if DEBUG
+            config.Services.Replace(
+                typeof(IHttpActionInvoker),
+                new DebugActionInvoker(config.Services.GetActionInvoker()));
+
+            config.Services.Replace(
+                typeof(IHttpActionSelector),
+                new DebugActionSelector(config.Services.GetActionSelector()));
+
+            config.Services.Replace(
+                typeof(IHttpControllerSelector),
+                new DebugControllerSelector(config.Services.GetHttpControllerSelector()));
+#endif
+
             return config;
         }
 
@@ -103,5 +119,66 @@ namespace NuGet.Services.Http
         }
 
         public abstract Task<object> GetApiModel(NuGetApiController controller, IPrincipal requestor);
+
+#if DEBUG
+        // Debug services so we can step in to them.
+        private class DebugActionInvoker : IHttpActionInvoker
+        {
+            private IHttpActionInvoker httpActionInvoker;
+
+            public DebugActionInvoker(IHttpActionInvoker httpActionInvoker)
+            {
+                // TODO: Complete member initialization
+                this.httpActionInvoker = httpActionInvoker;
+            }
+
+
+            public Task<System.Net.Http.HttpResponseMessage> InvokeActionAsync(HttpActionContext actionContext, System.Threading.CancellationToken cancellationToken)
+            {
+                return httpActionInvoker.InvokeActionAsync(actionContext, cancellationToken);
+            }
+        }
+
+        private class DebugActionSelector : IHttpActionSelector
+        {
+            private IHttpActionSelector httpActionSelector;
+
+            public DebugActionSelector(IHttpActionSelector httpActionSelector)
+            {
+                // TODO: Complete member initialization
+                this.httpActionSelector = httpActionSelector;
+            }
+
+            public ILookup<string, HttpActionDescriptor> GetActionMapping(HttpControllerDescriptor controllerDescriptor)
+            {
+                return httpActionSelector.GetActionMapping(controllerDescriptor);
+            }
+
+            public HttpActionDescriptor SelectAction(HttpControllerContext controllerContext)
+            {
+                return httpActionSelector.SelectAction(controllerContext);
+            }
+        }
+
+        private class DebugControllerSelector : IHttpControllerSelector
+        {
+            private IHttpControllerSelector httpControllerSelector;
+
+            public DebugControllerSelector(IHttpControllerSelector httpControllerSelector)
+            {
+                // TODO: Complete member initialization
+                this.httpControllerSelector = httpControllerSelector;
+            }
+            public IDictionary<string, HttpControllerDescriptor> GetControllerMapping()
+            {
+                return httpControllerSelector.GetControllerMapping();
+            }
+
+            public HttpControllerDescriptor SelectController(System.Net.Http.HttpRequestMessage request)
+            {
+                return httpControllerSelector.SelectController(request);
+            }
+        }
+#endif
     }
 }

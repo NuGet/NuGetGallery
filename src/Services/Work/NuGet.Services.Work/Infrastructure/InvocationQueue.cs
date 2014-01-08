@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using Dapper;
 using Microsoft.SqlServer.Server;
 using Microsoft.WindowsAzure.Storage;
@@ -264,12 +265,20 @@ namespace NuGet.Services.Work
                 
                 // Group by Id
                 var invocationHistories = rows.GroupBy(r => r.Id);
-                
-                // Record each invocation's history
-                await Task.WhenAll(
-                    invocationHistories.Select(
-                        invocationHistory => 
-                            ArchiveInvocation(invocationHistory.OrderBy(r => r.UpdatedAt))));
+
+                // Record invocation histories using a dataflow so we can constraint the parallelism
+                var block = new ActionBlock<IOrderedEnumerable<InvocationState.InvocationRow>>(
+                    i => ArchiveInvocation(i),
+                    new ExecutionDataflowBlockOptions()
+                    {
+                        MaxDegreeOfParallelism = 16
+                    });
+                foreach (var invocationHistory in invocationHistories)
+                {
+                    block.Post(invocationHistory.OrderBy(h => h.UpdatedAt));
+                }
+                block.Complete();
+                await block.Completion;
 
                 // Now purge the invocations
                 await connection.QueryAsync<int>(
@@ -284,17 +293,34 @@ namespace NuGet.Services.Work
             return GetPurgable(DateTimeOffset.UtcNow);
         }
 
-        public virtual Task<IEnumerable<InvocationState>> GetPurgable(DateTimeOffset since)
+        public virtual Task<IEnumerable<InvocationState>> GetPurgable(DateTimeOffset before)
         {
             return ConnectAndQuery(@"
                 SELECT *
                 FROM [work].Invocations
                 WHERE ([Result] IS NOT NULL AND [Result] <> @Incomplete)
-                AND ((@CompletedBefore IS NULL) OR [UpdatedAt] < @CompletedBefore)",
+                AND [UpdatedAt] < @CompletedBefore",
                 new { 
-                    CompletedBefore = since.UtcDateTime,
+                    CompletedBefore = before.UtcDateTime,
                     Incomplete = ExecutionResult.Incomplete
                 });
+        }
+
+        public Task<IEnumerable<InvocationState>> PurgeCompleted()
+        {
+            return PurgeCompleted(DateTimeOffset.UtcNow);
+        }
+
+        public async Task<IEnumerable<InvocationState>> PurgeCompleted(DateTimeOffset before)
+        {
+            // Get purgable invocations
+            var purgable = await GetPurgable(before);
+
+            // Purge 'em
+            await Purge(purgable.Select(i => i.Id));
+
+            // Return 'em
+            return purgable;
         }
 
         private Task ArchiveInvocation(IOrderedEnumerable<InvocationState.InvocationRow> invocationHistory)
@@ -382,7 +408,7 @@ namespace NuGet.Services.Work
 
                 var number_list = new List<SqlDataRecord>();
 
-                var tvp_definition = new[] { new SqlMetaData("Value", SqlDbType.Int) };
+                var tvp_definition = new[] { new SqlMetaData("Value", SqlDbType.UniqueIdentifier) };
 
                 foreach (Guid n in _ids)
                 {
