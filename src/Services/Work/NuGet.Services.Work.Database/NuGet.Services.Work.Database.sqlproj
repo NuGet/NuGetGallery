@@ -75,12 +75,13 @@
     <Build Include="work.sproc.ExtendInvocation.sql" />
     <Build Include="private.schema.sql" />
     <Build Include="work.view.Invocations.sql" />
-    <Build Include="work.sproc.PurgeInvocation.sql" />
+    <Build Include="work.sproc.PurgeInvocations.sql" />
     <Build Include="work.view.ActiveInvocations.sql" />
     <Build Include="work.view.InvocationStatistics.sql" />
     <Build Include="work.sproc.GetInvocationHistory.sql" />
     <Build Include="work.view.InstanceStatistics.sql" />
     <Build Include="work.JobStatistics.sql" />
+    <Build Include="work.type.IdList.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LocalDb.publish.xml" />

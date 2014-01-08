@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json;
 
 namespace NuGet.Services.Storage
 {
@@ -26,6 +27,17 @@ namespace NuGet.Services.Storage
             {
                 var blob = ct.GetBlockBlobReference(path);
                 await blob.UploadFromFileAsync(sourceFileName, FileMode.Open);
+                return blob;
+            });
+        }
+
+        public virtual Task<CloudBlockBlob> UploadJsonBlob(object obj, string containerName, string path)
+        {
+            CloudBlobContainer container = Client.GetContainerReference(GetFullContainerName(containerName));
+            return container.SafeExecute(async ct =>
+            {
+                var blob = ct.GetBlockBlobReference(path);
+                await blob.UploadTextAsync(JsonConvert.SerializeObject(obj));
                 return blob;
             });
         }

@@ -35,7 +35,7 @@ namespace NuGet.Services.Work
             // This is an admin-only API
             if (requestor == null || !requestor.IsInRole(Roles.Admin))
             {
-                return null;
+                return Task.FromResult<object>(null);
             }
 
             if (_apiModel == null)
@@ -59,6 +59,11 @@ namespace NuGet.Services.Work
             }
 
             return Task.FromResult<object>(_apiModel);
+        }
+
+        protected override void ConfigureAttributeRouting(System.Web.Http.Routing.DefaultInlineConstraintResolver resolver)
+        {
+            resolver.ConstraintMap.Add("invocationListCriteria", typeof(EnumConstraint<InvocationListCriteria>));
         }
 
         private JObject GenerateInvocationsApis(NuGetApiController controller)

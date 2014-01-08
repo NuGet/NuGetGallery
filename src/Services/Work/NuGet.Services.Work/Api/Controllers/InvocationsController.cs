@@ -25,8 +25,30 @@ namespace NuGet.Services.Work.Api.Controllers
             Queue = queue;
         }
 
-        [Route("{criteria:alpha?}", Name = Routes.GetInvocations)]
-        public async Task<IHttpActionResult> Get(InvocationListCriteria criteria = InvocationListCriteria.Active)
+        [HttpGet]
+        [Route("purgable", Name = Routes.GetPurgableInvocations)]
+        public async Task<IHttpActionResult> GetPurgable(DateTimeOffset? since)
+        {
+            return Content(
+                HttpStatusCode.OK, 
+                (await Queue.GetPurgable(since ?? DateTimeOffset.UtcNow))
+                .Select(i => i.ToModel()));
+        }
+
+        [Route("purgable", Name = Routes.DeletePurgableInvocations)]
+        public Task<IHttpActionResult> DeletePurgableInvocations()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Route("", Name = Routes.GetActiveInvocations)]
+        public Task<IHttpActionResult> GetActive()
+        {
+            return Get(InvocationListCriteria.Active);
+        }
+
+        [Route("{criteria:invocationListCriteria}", Name = Routes.GetInvocations)]
+        public async Task<IHttpActionResult> Get(InvocationListCriteria criteria)
         {
             if (!Enum.IsDefined(typeof(InvocationListCriteria), criteria))
             {
@@ -63,6 +85,12 @@ namespace NuGet.Services.Work.Api.Controllers
             {
                 return Content(HttpStatusCode.Created, invocation.ToModel());
             }
+        }
+
+        [Route("{id}", Name = Routes.DeleteSingleInvocation)]
+        public async Task Delete(Guid id)
+        {
+            await Queue.Purge(id);
         }
 
         [Route("stats", Name = Routes.GetInvocationStatistics)]

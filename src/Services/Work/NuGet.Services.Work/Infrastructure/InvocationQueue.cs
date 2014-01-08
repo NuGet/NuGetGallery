@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
+using Microsoft.SqlServer.Server;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Queue.Protocol;
@@ -21,19 +22,23 @@ namespace NuGet.Services.Work
 {
     public class InvocationQueue
     {
+        public static readonly string ArchiveContainer = "work-archive";
+
         private SqlConnectionStringBuilder _connectionString;
         private ServiceInstanceName _instanceName;
         private Clock _clock;
+        private StorageHub _storage;
 
         protected InvocationQueue() { }
 
-        public InvocationQueue(Clock clock, ServiceInstanceName instanceName, ConfigurationHub config)
-            : this(clock, instanceName, config.Sql.GetConnectionString(KnownSqlServer.Primary)) { }
+        public InvocationQueue(Clock clock, ServiceInstanceName instanceName, StorageHub storage, ConfigurationHub config)
+            : this(clock, instanceName, storage, config.Sql.GetConnectionString(KnownSqlServer.Primary)) { }
 
-        public InvocationQueue(Clock clock, ServiceInstanceName instanceName, SqlConnectionStringBuilder connectionString)
+        public InvocationQueue(Clock clock, ServiceInstanceName instanceName, StorageHub storage, SqlConnectionStringBuilder connectionString)
             : this()
         {
             _clock = clock;
+            _storage = storage;
             _instanceName = instanceName;
             _connectionString = connectionString;
         }
@@ -242,6 +247,67 @@ namespace NuGet.Services.Work
                 new { id });
         }
 
+        public virtual Task Purge(Guid id)
+        {
+            return Purge(new [] { id });
+        }
+
+        public virtual async Task Purge(IEnumerable<Guid> ids)
+        {
+            using (var connection = await Connect())
+            {
+                // First, capture the invocation history into blobs
+                var rows = await connection.QueryAsync<InvocationState.InvocationRow>(
+                    "work.GetInvocationHistory",
+                    new { Ids = new IdListParameter(ids) },
+                    commandType: CommandType.StoredProcedure);
+                
+                // Group by Id
+                var invocationHistories = rows.GroupBy(r => r.Id);
+                
+                // Record each invocation's history
+                await Task.WhenAll(
+                    invocationHistories.Select(
+                        invocationHistory => 
+                            ArchiveInvocation(invocationHistory.OrderBy(r => r.UpdatedAt))));
+
+                // Now purge the invocations
+                await connection.QueryAsync<int>(
+                    "work.PurgeInvocations",
+                    new { Ids = new IdListParameter(ids) },
+                    commandType: CommandType.StoredProcedure);
+            }
+        }
+
+        public virtual Task<IEnumerable<InvocationState>> GetPurgable()
+        {
+            return GetPurgable(DateTimeOffset.UtcNow);
+        }
+
+        public virtual Task<IEnumerable<InvocationState>> GetPurgable(DateTimeOffset since)
+        {
+            return ConnectAndQuery(@"
+                SELECT *
+                FROM [work].Invocations
+                WHERE ([Result] IS NOT NULL AND [Result] <> @Incomplete)
+                AND ((@CompletedBefore IS NULL) OR [UpdatedAt] < @CompletedBefore)",
+                new { 
+                    CompletedBefore = since.UtcDateTime,
+                    Incomplete = ExecutionResult.Incomplete
+                });
+        }
+
+        private Task ArchiveInvocation(IOrderedEnumerable<InvocationState.InvocationRow> invocationHistory)
+        {
+            var latest = invocationHistory.Last();
+            string name = String.Format(
+                    "{0}_{1}_{2}.json",
+                    latest.Job,
+                    latest.UpdatedAt.ToString("s"),
+                    latest.Id.ToString("N").ToLowerInvariant());
+            return _storage.Primary.Blobs.UploadJsonBlob(invocationHistory.ToArray(), ArchiveContainer, name);
+        }
+
         private async Task<IEnumerable<InvocationStatisticsRecord>> GetStatisticsCore(string view)
         {
             using (var connection = await Connect())
@@ -297,6 +363,39 @@ namespace NuGet.Services.Work
         private async Task<InvocationState> ConnectAndQuerySingle(string sql, object parameters = null)
         {
             return (await ConnectAndQuery(sql, parameters)).SingleOrDefault();
+        }
+
+        private class IdListParameter : SqlMapper.ICustomQueryParameter
+        {
+            // Based on https://gist.github.com/BlackjacketMack/7242538
+
+            private IEnumerable<Guid> _ids;
+
+            public IdListParameter(IEnumerable<Guid> ids)
+            {
+                _ids = ids;
+            }
+
+            public void AddParameter(IDbCommand command, string name)
+            {
+                var sqlCommand = (SqlCommand)command;
+
+                var number_list = new List<SqlDataRecord>();
+
+                var tvp_definition = new[] { new SqlMetaData("Value", SqlDbType.Int) };
+
+                foreach (Guid n in _ids)
+                {
+                    var rec = new SqlDataRecord(tvp_definition);
+                    rec.SetGuid(0, n);
+                    number_list.Add(rec);
+                }
+
+                var p = sqlCommand.Parameters.Add(name, SqlDbType.Structured);
+                p.Direction = ParameterDirection.Input;
+                p.TypeName = "[work].IdList";
+                p.Value = number_list;
+            }
         }
     }
 }

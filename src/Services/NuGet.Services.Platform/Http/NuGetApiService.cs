@@ -8,6 +8,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Routing;
 using Autofac;
 using Autofac.Integration.WebApi;
 using Newtonsoft.Json;
@@ -87,12 +88,18 @@ namespace NuGet.Services.Http
             config.Formatters.Add(JsonFormat.Formatter);
 
             config.IncludeErrorDetailPolicy = IncludeErrorDetailPolicy.LocalOnly;
-            config.Filters.Add(new RecordApiExceptionFilter());
+            config.Filters.Add(new ApiExceptionFilter());
 
             // Use Attribute routing
-            config.MapHttpAttributeRoutes();
+            var resolver = new DefaultInlineConstraintResolver();
+            ConfigureAttributeRouting(resolver);
+            config.MapHttpAttributeRoutes(resolver);
 
             return config;
+        }
+
+        protected virtual void ConfigureAttributeRouting(DefaultInlineConstraintResolver resolver)
+        {
         }
 
         public abstract Task<object> GetApiModel(NuGetApiController controller, IPrincipal requestor);

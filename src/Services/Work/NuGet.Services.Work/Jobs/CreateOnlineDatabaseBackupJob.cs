@@ -16,7 +16,7 @@ namespace NuGet.Services.Work.Jobs
     [Description("Creates an Online backup of the Target SQL Database")]
     public class CreateOnlineDatabaseBackupJob : AsyncJobHandler<CreateOnlineDatabaseBackupEventSource>
     {
-        public static readonly string DefaultBackupPrefix = "Backup_";
+        public static readonly string DefaultBackupPrefix = "Backup";
 
         private readonly ConfigurationHub _config;
 

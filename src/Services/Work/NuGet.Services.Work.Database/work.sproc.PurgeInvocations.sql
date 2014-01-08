@@ -1,6 +1,6 @@
-﻿CREATE PROCEDURE [work].[GetInvocationHistory]
+﻿CREATE PROCEDURE [work].[PurgeInvocations]
 	@Ids [work].IdList READONLY
 AS
-	SELECT s.* 
+	DELETE [private].InvocationsStore
     FROM [private].InvocationsStore s
     INNER JOIN @Ids i ON s.Id = i.Id

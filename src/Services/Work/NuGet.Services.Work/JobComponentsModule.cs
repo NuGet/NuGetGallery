@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Autofac;
 using NuGet.Services.Configuration;
 using NuGet.Services.ServiceModel;
+using NuGet.Services.Storage;
 
 namespace NuGet.Services.Work
 {
@@ -13,7 +14,11 @@ namespace NuGet.Services.Work
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<InvocationQueue>().AsSelf().UsingConstructor(typeof(Clock), typeof(ServiceInstanceName), typeof(ConfigurationHub));
+            builder.RegisterType<InvocationQueue>().AsSelf().UsingConstructor(
+                typeof(Clock), 
+                typeof(ServiceInstanceName), 
+                typeof(StorageHub),
+                typeof(ConfigurationHub));
         }
     }
 }

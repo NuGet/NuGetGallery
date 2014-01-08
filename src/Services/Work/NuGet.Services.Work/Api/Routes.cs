@@ -8,13 +8,17 @@ namespace NuGet.Services.Work.Api
 {
     internal static class Routes
     {
-        public const string GetInvocations = "Jobs-Invocations-GetAll";
-        public const string GetSingleInvocation = "Jobs-Invocations-GetOne";
-        public const string GetInvocationLog = "Jobs-Invocations-GetLog";
-        public const string PutInvocation = "Jobs-Invocations-Put";
-        public const string GetJobs = "Jobs-Jobs-GetAll";
-        public const string GetInvocationStatistics = "Jobs-Invocations-GetStatistics";
-        public const string GetInstanceStatistics = "Jobs-Instances-GetInstanceStatistics";
-        public const string GetJobStatistics = "Jobs-Jobs-GetJobStatistics";
+        public const string GetActiveInvocations = "Work-Invocations-GetActive";
+        public const string GetInvocations = "Work-Invocations-GetByCriteria";
+        public const string GetPurgableInvocations = "Work-Invocations-GetPurgable";
+        public const string GetSingleInvocation = "Work-Invocations-GetOne";
+        public const string DeleteSingleInvocation = "Work-Invocations-Delete";
+        public const string DeletePurgableInvocations = "Work-Invocations-DeleteCompleted";
+        public const string GetInvocationLog = "Work-Invocations-GetLog";
+        public const string PutInvocation = "Work-Invocations-Put";
+        public const string GetJobs = "Work-Jobs-GetAll";
+        public const string GetInvocationStatistics = "Work-Invocations-GetStatistics";
+        public const string GetInstanceStatistics = "Work-Instances-GetInstanceStatistics";
+        public const string GetJobStatistics = "Work-Jobs-GetJobStatistics";
     }
 }
