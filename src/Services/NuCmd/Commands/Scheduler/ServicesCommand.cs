@@ -10,7 +10,7 @@ using Microsoft.WindowsAzure.Management.Scheduler;
 namespace NuCmd.Commands.Scheduler
 {
     [Description("Lists the scheduler services available")]
-    public class CsListCommand : SchedulerCommandBase
+    public class ServicesCommand : SchedulerCommandBase
     {
         protected override async Task OnExecute()
         {
@@ -18,11 +18,13 @@ namespace NuCmd.Commands.Scheduler
             {
                 await Console.WriteInfoLine(Strings.Scheduler_CsListCommand_ListingAvailableServices);
                 var response = await client.CloudServices.ListAsync();
-                await Console.WriteTable(response,
-                    r => r.Name,
-                    r => r.Label,
-                    r => r.Description,
-                    r => r.GeoRegion);
+                await Console.WriteTable(response, r => new
+                {
+                    r.Name,
+                    r.Label,
+                    r.Description,
+                    r.GeoRegion
+                });
             }
         }
     }

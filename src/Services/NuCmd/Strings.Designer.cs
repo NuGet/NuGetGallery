@@ -187,6 +187,60 @@ namespace NuCmd {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deleting Job Collection &apos;{1}&apos; in scheduler service &apos;{0}&apos;..
+        /// </summary>
+        internal static string Scheduler_ColDeleteCommand_DeletingCollection {
+            get {
+                return ResourceManager.GetString("Scheduler_ColDeleteCommand_DeletingCollection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Getting Job Collection &apos;{0}&apos; in service &apos;{1}&apos;..
+        /// </summary>
+        internal static string Scheduler_CollectionsCommand_GettingCollection {
+            get {
+                return ResourceManager.GetString("Scheduler_CollectionsCommand_GettingCollection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Listing available scheduler job collections in the service &apos;{0}&apos;..
+        /// </summary>
+        internal static string Scheduler_CollectionsCommand_ListingCollections {
+            get {
+                return ResourceManager.GetString("Scheduler_CollectionsCommand_ListingCollections", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Created Job Collection &apos;{0}&apos; in scheduler service &apos;{1}&apos;..
+        /// </summary>
+        internal static string Scheduler_ColNewCommand_CreatedCollection {
+            get {
+                return ResourceManager.GetString("Scheduler_ColNewCommand_CreatedCollection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creating Job Collection &apos;{0}&apos; in scheduler service &apos;{1}&apos;..
+        /// </summary>
+        internal static string Scheduler_ColNewCommand_CreatingCollection {
+            get {
+                return ResourceManager.GetString("Scheduler_ColNewCommand_CreatingCollection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Both MaxRecurrenceFrequency and MaxRecurrenceInterval must be specified if one is specified..
+        /// </summary>
+        internal static string Scheduler_ColNewCommand_MaxRecurrenceIncomplete {
+            get {
+                return ResourceManager.GetString("Scheduler_ColNewCommand_MaxRecurrenceIncomplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Deleted scheduler service: {0}..
         /// </summary>
         internal static string Scheduler_CsDeleteCommand_DeletedService {
@@ -228,6 +282,43 @@ namespace NuCmd {
         internal static string Scheduler_CsNewCommand_CreatingService {
             get {
                 return ResourceManager.GetString("Scheduler_CsNewCommand_CreatingService", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Listing Jobs in Job Collection &apos;{0}/{1}&apos;..
+        /// </summary>
+        internal static string Scheduler_JobsCommand_ListingJobs {
+            get {
+                return ResourceManager.GetString("Scheduler_JobsCommand_ListingJobs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Created Job &apos;{0}&apos; in Job Collection &apos;{1}/{2}&apos;..
+        /// </summary>
+        internal static string Scheduler_NewJobCommand_CreatedJob {
+            get {
+                return ResourceManager.GetString("Scheduler_NewJobCommand_CreatedJob", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creating Job &apos;{0}&apos; in Job Collection &apos;{1}/{2}&apos;..
+        /// </summary>
+        internal static string Scheduler_NewJobCommand_CreatingJob {
+            get {
+                return ResourceManager.GetString("Scheduler_NewJobCommand_CreatingJob", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Would create job with the following definition:
+        ///{0}.
+        /// </summary>
+        internal static string Scheduler_NewJobCommand_WouldCreateJob {
+            get {
+                return ResourceManager.GetString("Scheduler_NewJobCommand_WouldCreateJob", resourceCulture);
             }
         }
         

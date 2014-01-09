@@ -159,6 +159,24 @@
   <data name="Program_NoSuchCommandInGroup" xml:space="preserve">
     <value>Command '{0}' not found in '{1}' group. Use 'nucmd help {1}' to list available commands.</value>
   </data>
+  <data name="Scheduler_ColDeleteCommand_DeletingCollection" xml:space="preserve">
+    <value>Deleting Job Collection '{1}' in scheduler service '{0}'.</value>
+  </data>
+  <data name="Scheduler_CollectionsCommand_GettingCollection" xml:space="preserve">
+    <value>Getting Job Collection '{0}' in service '{1}'.</value>
+  </data>
+  <data name="Scheduler_CollectionsCommand_ListingCollections" xml:space="preserve">
+    <value>Listing available scheduler job collections in the service '{0}'.</value>
+  </data>
+  <data name="Scheduler_ColNewCommand_CreatedCollection" xml:space="preserve">
+    <value>Created Job Collection '{0}' in scheduler service '{1}'.</value>
+  </data>
+  <data name="Scheduler_ColNewCommand_CreatingCollection" xml:space="preserve">
+    <value>Creating Job Collection '{0}' in scheduler service '{1}'.</value>
+  </data>
+  <data name="Scheduler_ColNewCommand_MaxRecurrenceIncomplete" xml:space="preserve">
+    <value>Both MaxRecurrenceFrequency and MaxRecurrenceInterval must be specified if one is specified.</value>
+  </data>
   <data name="Scheduler_CsDeleteCommand_DeletedService" xml:space="preserve">
     <value>Deleted scheduler service: {0}.</value>
   </data>
@@ -173,6 +191,19 @@
   </data>
   <data name="Scheduler_CsNewCommand_CreatingService" xml:space="preserve">
     <value>Creating scheduler service: {0}.</value>
+  </data>
+  <data name="Scheduler_JobsCommand_ListingJobs" xml:space="preserve">
+    <value>Listing Jobs in Job Collection '{0}/{1}'.</value>
+  </data>
+  <data name="Scheduler_NewJobCommand_CreatedJob" xml:space="preserve">
+    <value>Created Job '{0}' in Job Collection '{1}/{2}'.</value>
+  </data>
+  <data name="Scheduler_NewJobCommand_CreatingJob" xml:space="preserve">
+    <value>Creating Job '{0}' in Job Collection '{1}/{2}'.</value>
+  </data>
+  <data name="Scheduler_NewJobCommand_WouldCreateJob" xml:space="preserve">
+    <value>Would create job with the following definition:
+{0}</value>
   </data>
   <data name="Usage" xml:space="preserve">
     <value>NuCmd Usage:

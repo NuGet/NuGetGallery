@@ -53,15 +53,11 @@ namespace NuCmd
                     await _data.WriteLineAsync(row);
                 }
             }
-            else
-            {
-                await _data.WriteLineAsync(" << none >>");
-            }
         }
 
-        public Task WriteTable<T>(IEnumerable<T> objs, params Expression<Func<T, object>>[] columns)
+        public Task WriteTable<T>(IEnumerable<T> objs, Func<T, object> selector)
         {
-            var table = ConsoleTable.For(objs, columns);
+            var table = ConsoleTable.For(objs, selector);
             return WriteTable(table);
         }
 

@@ -27,12 +27,13 @@ namespace NuCmd.Commands
 
         public virtual async Task Execute(IConsole console, CommandDefinition definition, CommandDirectory directory)
         {
-            await LoadContext(console, definition, directory);
-
-            await OnExecute();
+            if (await LoadContext(console, definition, directory))
+            {
+                await OnExecute();
+            }
         }
 
-        protected virtual Task LoadContext(IConsole console, CommandDefinition definition, CommandDirectory directory)
+        protected virtual Task<bool> LoadContext(IConsole console, CommandDefinition definition, CommandDirectory directory)
         {
             Console = console;
             Directory = directory;
@@ -41,7 +42,7 @@ namespace NuCmd.Commands
             // Load the environment
             TargetEnvironment = LoadEnvironment();
 
-            return Task.FromResult<object>(null);
+            return Task.FromResult(true);
         }
 
         protected abstract Task OnExecute();

@@ -57,12 +57,14 @@ namespace NuCmd.Commands.Work
             {
                 await Console.WriteInfoLine("Successfully purged the following invocations:");
                 var purgable = await response.ReadContent();
-                await Console.WriteTable(purgable,
-                        i => i.Job,
-                        i => i.Status,
-                        i => i.Result,
-                        i => i.Id,
-                        i => new { CompletedAtLocalTime = i.CompletedAt.Value.ToLocalTime() }.CompletedAtLocalTime);
+                await Console.WriteTable(purgable, i => new
+                {
+                    i.Job,
+                    i.Status,
+                    i.Result,
+                    i.Id,
+                    CompletedAtLocalTime = i.CompletedAt.Value.ToLocalTime()
+                });
             }
         }
     }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,62 +10,63 @@ namespace NuCmd
 {
     public class ConsoleTable
     {
-        public IList<string> Columns { get; private set; }
+        public IList<ConsoleTableColumn> Columns { get; private set; }
         public IList<ConsoleTableRow> Rows { get; private set; }
 
-        public ConsoleTable(IEnumerable<string> columns, IEnumerable<IEnumerable<string>> rowData)
+        public ConsoleTable(IEnumerable<ConsoleTableColumn> columns, IEnumerable<IEnumerable<string>> rowData)
             : this(columns, rowData.Select(r => new ConsoleTableRow(r)))
         {
 
         }
 
-        public ConsoleTable(IEnumerable<string> columns, IEnumerable<ConsoleTableRow> rows)
+        public ConsoleTable(IEnumerable<ConsoleTableColumn> columns, IEnumerable<ConsoleTableRow> rows)
         {
             Columns = columns.ToList();
             Rows = rows.ToList();
         }
 
-        public static ConsoleTable For<T>(IEnumerable<T> items, params Expression<Func<T, object>>[] columns)
+        public static ConsoleTable For<T>(IEnumerable<T> items, Func<T, object> selector)
         {
-            var columnNames = columns.Select(expr =>
+            // Build the rows
+            var data = items.Select(selector).ToList();
+
+            if (!data.Any())
             {
-                MemberExpression member = null;
-                if (expr.Body.NodeType == ExpressionType.Convert)
-                {
-                    var unary = expr.Body as UnaryExpression;
-                    member = unary.Operand as MemberExpression;
-                }
-                else
-                {
-                    member = expr.Body as MemberExpression;
-                }
+                return new ConsoleTable(Enumerable.Empty<ConsoleTableColumn>(), Enumerable.Empty<ConsoleTableRow>());
+            }
+            else
+            {
+                var columns = data
+                    .First()
+                    .GetType()
+                    .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                    .Select(p => new ConsoleTableColumn(p.Name, p))
+                    .ToList();
 
-                if (member == null)
-                {
-                    return String.Empty;
-                }
-                return member.Member.Name;
-            });
+                var rows = data.Select(d => new ConsoleTableRow(
+                    columns.Select(c => {
+                        var val = c.Property.GetValue(d);
+                        return val == null ? "<<null>>" : val.ToString();
+                    })));
 
-            var compiled = columns.Select(e => e.Compile());
-
-            var data = items.Select(i => compiled.Select(e => {
-                var val = e(i);
-                return (val == null ? String.Empty : val.ToString());
-            }));
-
-            return new ConsoleTable(columnNames, data);
+                return new ConsoleTable(columns, rows);
+            }
         }
 
         public string GetHeader()
         {
+            if (!Columns.Any())
+            {
+                return "<< Empty >>";
+            }
+
             var maxes = CalcuateMaxes();
 
             StringBuilder builder = new StringBuilder();
             for (int i = 0; i < Columns.Count; i++)
             {
                 builder.Append(" ");
-                builder.Append(Columns[i].PadRight(maxes[i]));
+                builder.Append(Columns[i].Name.PadRight(maxes[i]));
                 builder.Append(" ");
             }
             builder.AppendLine();
@@ -79,23 +81,26 @@ namespace NuCmd
 
         public IEnumerable<string> GetRows()
         {
-            var maxes = CalcuateMaxes();
-            foreach(var row in Rows) 
+            if (Rows.Any())
             {
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < Columns.Count; i++)
+                var maxes = CalcuateMaxes();
+                foreach (var row in Rows)
                 {
-                    builder.Append(" ");
-                    builder.Append(row.Cells[i].PadRight(maxes[i]));
-                    builder.Append(" ");
+                    StringBuilder builder = new StringBuilder();
+                    for (int i = 0; i < Columns.Count; i++)
+                    {
+                        builder.Append(" ");
+                        builder.Append(row.Cells[i].PadRight(maxes[i]));
+                        builder.Append(" ");
+                    }
+                    yield return builder.ToString();
                 }
-                yield return builder.ToString();
             }
         }
 
         private int[] CalcuateMaxes()
         {
-            var maxes = Columns.Select(name => name.Length);
+            var maxes = Columns.Select(col => col.Name.Length);
             if (Rows.Any())
             {
                 maxes = Enumerable.Zip(
@@ -108,6 +113,18 @@ namespace NuCmd
             }
             var maxesArray = maxes.ToArray();
             return maxesArray;
+        }
+    }
+
+    public class ConsoleTableColumn
+    {
+        public string Name { get; private set; }
+        public PropertyInfo Property { get; private set; }
+
+        public ConsoleTableColumn(string name, PropertyInfo property)
+        {
+            Name = name;
+            Property = property;
         }
     }
 

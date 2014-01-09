@@ -50,14 +50,16 @@ namespace NuCmd.Commands.Work
             if (await ReportHttpStatus(response))
             {
                 var statistics = await response.ReadContent();
-                await Console.WriteTable(statistics,
-                    s => s.Instance,
-                    s => s.Queued,
-                    s => s.Executing,
-                    s => s.Suspended,
-                    s => s.Executed,
-                    s => s.Completed,
-                    s => s.Faulted);
+                await Console.WriteTable(statistics, s => new
+                {
+                    s.Instance,
+                    s.Queued,
+                    s.Executing,
+                    s.Suspended,
+                    s.Executed,
+                    s.Completed,
+                    s.Faulted
+                });
             }
         }
 
@@ -71,14 +73,16 @@ namespace NuCmd.Commands.Work
             if (await ReportHttpStatus(response))
             {
                 var statistics = await response.ReadContent();
-                await Console.WriteTable(statistics,
-                    s => s.Job,
-                    s => s.Queued,
-                    s => s.Executing,
-                    s => s.Suspended,
-                    s => s.Executed,
-                    s => s.Completed,
-                    s => s.Faulted);
+                await Console.WriteTable(statistics, s => new
+                {
+                    s.Job,
+                    s.Queued,
+                    s.Executing,
+                    s.Suspended,
+                    s.Executed,
+                    s.Completed,
+                    s.Faulted
+                });
             }
         }
 

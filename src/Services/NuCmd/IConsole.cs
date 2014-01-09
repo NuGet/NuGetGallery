@@ -21,7 +21,7 @@ namespace NuCmd
         Task WriteObject(object obj, IConsoleFormatter formatter);
         Task WriteObjects(IEnumerable<object> objs, IConsoleFormatter formatter);
         Task WriteTable(ConsoleTable table);
-        Task WriteTable<T>(IEnumerable<T> objs, params Expression<Func<T, object>>[] columns);
+        Task WriteTable<T>(IEnumerable<T> objs, Func<T, object> selector);
     }
 
     public static class ConsoleExtensions

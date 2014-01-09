@@ -55,11 +55,15 @@ namespace NuCmd.Commands.Work
             if (await ReportHttpStatus(response))
             {
                 var invocations = await response.ReadContent();
-                await Console.WriteTable(invocations,
-                    i => i.Job,
-                    i => i.Status,
-                    i => i.Result,
-                    i => i.Id);
+                await Console.WriteTable(invocations, i => new {
+                    i.Job,
+                    i.Status,
+                    i.Result,
+                    i.Id,
+                    i.QueuedAt,
+                    i.UpdatedAt,
+                    i.CompletedAt
+                });
             }
         }
     }

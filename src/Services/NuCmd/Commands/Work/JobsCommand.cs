@@ -23,13 +23,15 @@ namespace NuCmd.Commands.Work
             {
                 var jobs = await response.ReadContent();
                 await Console.WriteTable(
-                    jobs,
-                    j => j.Name,
-                    j => j.Description,
-                    j => j.Enabled,
-                    j => new { Assembly = j.Assembly.FullName.Name }.Assembly, // Hack to get the name to show up right
-                    j => j.Assembly.BuildCommit,
-                    j => j.Assembly.BuildDate);
+                    jobs, j => new
+                    {
+                        j.Name,
+                        j.Description,
+                        j.Enabled,
+                        Assembly = j.Assembly.FullName.Name,
+                        j.Assembly.BuildCommit,
+                        j.Assembly.BuildDate
+                    });
             }
         }
     }
