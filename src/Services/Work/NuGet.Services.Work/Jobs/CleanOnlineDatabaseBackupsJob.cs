@@ -83,11 +83,7 @@ namespace NuGet.Services.Work.Jobs
                     Log.DeletedBackup(db.Db.name);
                 }
             }
-        }
-
-        protected internal override Task<JobContinuation> Resume()
-        {
-            throw new NotImplementedException();
+            return Complete();
         }
     }
 

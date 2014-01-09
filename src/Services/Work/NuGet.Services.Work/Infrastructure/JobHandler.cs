@@ -92,7 +92,7 @@ namespace NuGet.Services.Work
         }
 
         protected internal abstract Task<JobContinuation> Execute();
-        protected internal abstract Task<JobContinuation> Resume();
+        protected internal virtual Task<JobContinuation> Resume() { return Complete(); }
 
         protected virtual JobContinuation Suspend(TimeSpan waitPeriod, Dictionary<string, string> parameters)
         {
