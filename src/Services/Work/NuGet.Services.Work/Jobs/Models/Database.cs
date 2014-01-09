@@ -56,6 +56,18 @@ namespace NuGet.Services.Work.Jobs.Models
         {
             return String.Format(BackupNameFormat, prefix, timestamp);
         }
+
+        public override bool Equals(object obj)
+        {
+            DatabaseBackup other = obj as DatabaseBackup;
+            return other != null && 
+                String.Equals(other.Db.name, Db.name, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public override int GetHashCode()
+        {
+            return Db.name.GetHashCode();
+        }
     }
 
     public enum DatabaseState : byte

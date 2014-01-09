@@ -14,27 +14,9 @@ using System.ComponentModel;
 namespace NuGet.Services.Work.Jobs
 {
     [Description("Creates an Online backup of the Target SQL Database")]
-    public class CreateOnlineDatabaseBackupJob : AsyncJobHandler<CreateOnlineDatabaseBackupEventSource>
+    public class CreateOnlineDatabaseBackupJob : DatabaseJobHandlerBase<CreateOnlineDatabaseBackupEventSource>
     {
         public static readonly string DefaultBackupPrefix = "Backup";
-
-        private readonly ConfigurationHub _config;
-
-        /// <summary>
-        /// The target server, in the form of a known SQL Server (primary, warehouse, etc.)
-        /// </summary>
-        public KnownSqlServer TargetServer { get; set; }
-
-        /// <summary>
-        /// The name of the database to back up
-        /// </summary>
-        public string TargetDatabaseName { get; set; }
-
-        /// <summary>
-        /// A connection string to the database to be backed up. The user credentials must
-        /// also be valid for connecting to the master database on that server.
-        /// </summary>
-        public SqlConnectionStringBuilder TargetDatabaseConnection { get; set; }
 
         /// <summary>
         /// The prefix to apply to the backup
@@ -53,20 +35,18 @@ namespace NuGet.Services.Work.Jobs
         /// </summary>
         public TimeSpan? MaxAge { get; set; }
 
-        public CreateOnlineDatabaseBackupJob(ConfigurationHub config)
-        {
-            _config = config;
-        }
+        public CreateOnlineDatabaseBackupJob(ConfigurationHub config) : base(config) { }
 
         protected internal override async Task<JobContinuation> Execute()
         {
             BackupPrefix = String.IsNullOrEmpty(BackupPrefix) ? DefaultBackupPrefix : BackupPrefix;
 
             // Resolve the connection if not specified explicitly
-            var cstr = GetConnectionString();
+            var cstr = GetConnectionString(admin: true);
             Log.PreparingToBackup(
                 cstr.DataSource,
                 cstr.InitialCatalog);
+
             // Connect to the master database
             using (var connection = await cstr.ConnectToMaster())
             {
@@ -171,35 +151,6 @@ namespace NuGet.Services.Work.Jobs
                 parameters["TargetDatabaseName"] = TargetDatabaseName.ToString();
             }
             return Suspend(TimeSpan.FromMinutes(5), parameters);
-        }
-
-        private SqlConnectionStringBuilder GetConnectionString()
-        {
-            var connection = TargetDatabaseConnection;
-            if (connection == null)
-            {
-                connection = _config.Sql
-                    .GetConnectionString(TargetServer, admin: true)
-                    .ChangeDatabase(TargetDatabaseName);
-            }
-            return connection;
-        }
-
-        protected internal virtual async Task<Database> GetDatabase(SqlConnection connection, string name)
-        {
-            return (await connection.QueryAsync<Database>(@"
-                SELECT name, database_id, create_date, state
-                FROM sys.databases
-                WHERE name = @name
-            ", new { name })).FirstOrDefault();
-        }
-
-        protected internal virtual Task<IEnumerable<Database>> GetDatabases(SqlConnection connection)
-        {
-            return connection.QueryAsync<Database>(@"
-                SELECT name, database_id, create_date, state
-                FROM sys.databases
-            ");
         }
     }
 
