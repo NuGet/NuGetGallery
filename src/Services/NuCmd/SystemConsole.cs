@@ -18,12 +18,14 @@ namespace NuCmd
         private TextWriter _help = new ConsoleWriter("help", ConsoleColor.Blue, Console.Error);
         private TextWriter _trace = new ConsoleWriter("trace", ConsoleColor.Gray, Console.Error);
         private TextWriter _data = new ConsoleWriter("data", ConsoleColor.DarkRed, Console.Out);
+        private TextWriter _http = new ConsoleWriter("http", ConsoleColor.Cyan, Console.Out);
 
         public TextWriter Error { get { return _error; } }
         public TextWriter Trace { get { return _trace; } }
         public TextWriter Warning { get { return _warning; } }
         public TextWriter Info { get { return _info; } }
         public TextWriter Help { get { return _help; } }
+        public TextWriter Http { get { return _http; } }
 
         public Task WriteObject(object obj, IConsoleFormatter formatter)
         {

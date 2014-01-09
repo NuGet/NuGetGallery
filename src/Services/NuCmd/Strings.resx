@@ -123,6 +123,9 @@
   <data name="Commands_UsingServiceUri" xml:space="preserve">
     <value>Using service at: {0}</value>
   </data>
+  <data name="Command_RequiresManagementCert" xml:space="preserve">
+    <value>This command must be run from the NuGet Ops console with a current environment that has a Management Certificate</value>
+  </data>
   <data name="CredentialProvider_Message" xml:space="preserve">
     <value>Enter the admin password for {0}.</value>
   </data>
@@ -155,6 +158,21 @@
   </data>
   <data name="Program_NoSuchCommandInGroup" xml:space="preserve">
     <value>Command '{0}' not found in '{1}' group. Use 'nucmd help {1}' to list available commands.</value>
+  </data>
+  <data name="Scheduler_CsDeleteCommand_DeletedService" xml:space="preserve">
+    <value>Deleted scheduler service: {0}.</value>
+  </data>
+  <data name="Scheduler_CsDeleteCommand_DeletingService" xml:space="preserve">
+    <value>Deleting scheduler service: {0}.</value>
+  </data>
+  <data name="Scheduler_CsListCommand_ListingAvailableServices" xml:space="preserve">
+    <value>Listing available scheduler services.</value>
+  </data>
+  <data name="Scheduler_CsNewCommand_CreatedService" xml:space="preserve">
+    <value>Created scheduler service: {0}.</value>
+  </data>
+  <data name="Scheduler_CsNewCommand_CreatingService" xml:space="preserve">
+    <value>Creating scheduler service: {0}.</value>
   </data>
   <data name="Usage" xml:space="preserve">
     <value>NuCmd Usage:

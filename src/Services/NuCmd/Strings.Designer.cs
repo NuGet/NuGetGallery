@@ -61,6 +61,15 @@ namespace NuCmd {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This command must be run from the NuGet Ops console with a current environment that has a Management Certificate.
+        /// </summary>
+        internal static string Command_RequiresManagementCert {
+            get {
+                return ResourceManager.GetString("Command_RequiresManagementCert", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Received &apos;{0} {1}&apos; response from server. TODO: Decode error details.
         /// </summary>
         internal static string Commands_HttpError {
@@ -174,6 +183,51 @@ namespace NuCmd {
         internal static string Program_NoSuchCommandInGroup {
             get {
                 return ResourceManager.GetString("Program_NoSuchCommandInGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deleted scheduler service: {0}..
+        /// </summary>
+        internal static string Scheduler_CsDeleteCommand_DeletedService {
+            get {
+                return ResourceManager.GetString("Scheduler_CsDeleteCommand_DeletedService", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deleting scheduler service: {0}..
+        /// </summary>
+        internal static string Scheduler_CsDeleteCommand_DeletingService {
+            get {
+                return ResourceManager.GetString("Scheduler_CsDeleteCommand_DeletingService", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Listing available scheduler services..
+        /// </summary>
+        internal static string Scheduler_CsListCommand_ListingAvailableServices {
+            get {
+                return ResourceManager.GetString("Scheduler_CsListCommand_ListingAvailableServices", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Created scheduler service: {0}..
+        /// </summary>
+        internal static string Scheduler_CsNewCommand_CreatedService {
+            get {
+                return ResourceManager.GetString("Scheduler_CsNewCommand_CreatedService", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creating scheduler service: {0}..
+        /// </summary>
+        internal static string Scheduler_CsNewCommand_CreatingService {
+            get {
+                return ResourceManager.GetString("Scheduler_CsNewCommand_CreatingService", resourceCulture);
             }
         }
         

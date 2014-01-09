@@ -10,7 +10,7 @@ namespace NuCmd
     public class NuGetEnvironment
     {
         public string Name { get; set; }
-        public Guid SubscriptionId { get; set; }
+        public string SubscriptionId { get; set; }
         public string SubscriptionName { get; set; }
         public X509Certificate2 SubscriptionCertificate { get; set; }
         public Dictionary<string, Uri> ServiceMap { get; set; }

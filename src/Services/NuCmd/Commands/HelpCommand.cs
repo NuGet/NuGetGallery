@@ -71,7 +71,7 @@ namespace NuCmd.Commands
                         await Console.WriteHelpLine(Strings.Help_CommandGroupsHeader);
                         foreach (var group in Directory.Groups)
                         {
-                            await Console.WriteHelp("    {0}  {1}", group.Key.PadRight(maxLength), "TODO: group descriptions");
+                            await Console.WriteHelpLine("    {0}  {1}", group.Key.PadRight(maxLength), "TODO: group descriptions");
                         }
                     }
                 }

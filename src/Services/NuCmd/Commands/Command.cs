@@ -25,7 +25,14 @@ namespace NuCmd.Commands
         protected CommandDirectory Directory { get; private set; }
         protected NuGetEnvironment TargetEnvironment { get; set; }
 
-        public virtual Task Execute(IConsole console, CommandDefinition definition, CommandDirectory directory)
+        public virtual async Task Execute(IConsole console, CommandDefinition definition, CommandDirectory directory)
+        {
+            await LoadContext(console, definition, directory);
+
+            await OnExecute();
+        }
+
+        protected virtual Task LoadContext(IConsole console, CommandDefinition definition, CommandDirectory directory)
         {
             Console = console;
             Directory = directory;
@@ -34,7 +41,7 @@ namespace NuCmd.Commands
             // Load the environment
             TargetEnvironment = LoadEnvironment();
 
-            return OnExecute();
+            return Task.FromResult<object>(null);
         }
 
         protected abstract Task OnExecute();
@@ -62,7 +69,7 @@ namespace NuCmd.Commands
             var env = new NuGetEnvironment()
             {
                 Name = name,
-                SubscriptionId = Guid.Parse(Environment.GetEnvironmentVariable("NUCMD_SUBSCRIPTION_ID")),
+                SubscriptionId = Environment.GetEnvironmentVariable("NUCMD_SUBSCRIPTION_ID"),
                 SubscriptionName = Environment.GetEnvironmentVariable("NUCMD_SUBSCRIPTION_NAME")
             };
 

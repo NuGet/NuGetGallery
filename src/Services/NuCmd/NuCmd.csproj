@@ -83,12 +83,17 @@
     <Compile Include="CommandDirectory.cs" />
     <Compile Include="Commands\EnvCommand.cs" />
     <Compile Include="Commands\HelpCommand.cs" />
+    <Compile Include="Commands\Scheduler\CsNewCommand.cs" />
+    <Compile Include="Commands\Scheduler\SchedulerCommandBase.cs" />
+    <Compile Include="Commands\Scheduler\CsDeleteCommand.cs" />
+    <Compile Include="Commands\Scheduler\CsListCommand.cs" />
     <Compile Include="Commands\Work\PurgeCommand.cs" />
     <Compile Include="Commands\Work\JobsCommand.cs" />
     <Compile Include="Commands\Work\StatsCommand.cs" />
     <Compile Include="Commands\Work\GetCommand.cs" />
     <Compile Include="Commands\Work\InvokeCommand.cs" />
     <Compile Include="Commands\Work\WorkServiceCommandBase.cs" />
+    <Compile Include="ConsoleHttpTraceHandler.cs" />
     <Compile Include="ConsoleTable.cs" />
     <Compile Include="IConsole.cs" />
     <Compile Include="IConsoleFormatter.cs" />
@@ -124,7 +129,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Commands\Scheduler\" />
     <Folder Include="Formatters\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
