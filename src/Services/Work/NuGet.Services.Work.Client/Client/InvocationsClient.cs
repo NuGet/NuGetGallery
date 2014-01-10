@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using NuGet.Services.Client;
+using NuGet.Services.Models;
 using NuGet.Services.Work.Models;
 
 namespace NuGet.Services.Work.Client
@@ -27,6 +28,13 @@ namespace NuGet.Services.Work.Client
                     request,
                     JsonFormat.Formatter))
                 .AsServiceResponse<Invocation>();
+        }
+
+        public Task<ServiceResponse> GetLog(string id)
+        {
+            return _client.GetAsync(
+                "invocations/" + id.ToLowerInvariant() + "/log")
+                .AsServiceResponse();
         }
 
         public Task<ServiceResponse<IEnumerable<Invocation>>> Get(InvocationListCriteria criteria)

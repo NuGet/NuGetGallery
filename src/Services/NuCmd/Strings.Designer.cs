@@ -370,6 +370,33 @@ namespace NuCmd {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fetching log data for Invocation {0}....
+        /// </summary>
+        internal static string Work_LogCommand_FetchingLog {
+            get {
+                return ResourceManager.GetString("Work_LogCommand_FetchingLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to End of log for Invocation {0}:.
+        /// </summary>
+        internal static string Work_LogCommand_RenderedLog {
+            get {
+                return ResourceManager.GetString("Work_LogCommand_RenderedLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Log entries for Invocation {0}:.
+        /// </summary>
+        internal static string Work_LogCommand_RenderingLog {
+            get {
+                return ResourceManager.GetString("Work_LogCommand_RenderingLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Purging all invocations....
         /// </summary>
         internal static string Work_PurgeCommand_PurgingAllInvocations {

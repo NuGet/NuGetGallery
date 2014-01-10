@@ -39,6 +39,7 @@
     <Compile Include="ICredentialProvider.cs" />
     <Compile Include="Models\AssemblyFullNameConverter.cs" />
     <Compile Include="Models\AssemblyInformation.cs" />
+    <Compile Include="Models\LogEvent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

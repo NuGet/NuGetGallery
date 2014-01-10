@@ -19,8 +19,10 @@ namespace NuCmd
         private TextWriter _trace = new ConsoleWriter("trace", ConsoleColor.Gray, Console.Error);
         private TextWriter _data = new ConsoleWriter("data", ConsoleColor.DarkRed, Console.Out);
         private TextWriter _http = new ConsoleWriter("http", ConsoleColor.Cyan, Console.Out);
+        private TextWriter _fatal = new ConsoleWriter("fatal", ConsoleColor.Red, Console.Out);
 
         public TextWriter Error { get { return _error; } }
+        public TextWriter Fatal { get { return _fatal; } }
         public TextWriter Trace { get { return _trace; } }
         public TextWriter Warning { get { return _warning; } }
         public TextWriter Info { get { return _info; } }

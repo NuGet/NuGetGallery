@@ -70,7 +70,7 @@ namespace NuGet.Services.Work.Monitoring
             _eventSubscription.Dispose();
 
             // Upload the file to blob storage
-            var logBlob = await Storage.Primary.Blobs.UploadBlob(_tempFile, WorkService.InvocationLogsContainerBaseName, "invocations/" + Path.GetFileName(_tempFile));
+            var logBlob = await Storage.Primary.Blobs.UploadBlob("application/json", _tempFile, WorkService.InvocationLogsContainerBaseName, "invocations/" + Path.GetFileName(_tempFile));
 
             // Delete the temp files
             File.Delete(_tempFile);

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Http;
+using System.Web.Http.Routing;
 using NuGet.Services.Work.Models;
 
 namespace NuGet.Services.Work.Api
@@ -10,6 +12,11 @@ namespace NuGet.Services.Work.Api
     public static class ModelConverters
     {
         public static Invocation ToModel(this InvocationState self)
+        {
+            return ToModel(self, null);
+        }
+
+        public static Invocation ToModel(this InvocationState self, UrlHelper url)
         {
             return new Invocation()
             {
@@ -23,7 +30,9 @@ namespace NuGet.Services.Work.Api
                 Result = self.Result,
                 ResultMessage = self.ResultMessage,
                 LastUpdatedBy = self.LastUpdatedBy,
-                LogUrl = self.LogUrl,
+                LogUrl = url == null ? self.LogUrl : url.RouteUri(Routes.GetInvocationLog, new {
+                    id = self.Id.ToString("N").ToLowerInvariant()
+                }).AbsoluteUri,
 
                 DequeueCount = self.DequeueCount,
                 IsContinuation = self.IsContinuation,

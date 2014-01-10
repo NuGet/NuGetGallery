@@ -20,13 +20,15 @@ namespace NuGet.Services.Storage
             Client = client;
         }
 
-        public virtual Task<CloudBlockBlob> UploadBlob(string sourceFileName, string containerName, string path)
+        public virtual Task<CloudBlockBlob> UploadBlob(string contentType, string sourceFileName, string containerName, string path)
         {
             CloudBlobContainer container = Client.GetContainerReference(GetFullContainerName(containerName));
             return container.SafeExecute(async ct =>
             {
                 var blob = ct.GetBlockBlobReference(path);
                 await blob.UploadFromFileAsync(sourceFileName, FileMode.Open);
+                blob.Properties.ContentType = contentType;
+                await blob.SetPropertiesAsync();
                 return blob;
             });
         }
@@ -38,6 +40,8 @@ namespace NuGet.Services.Storage
             {
                 var blob = ct.GetBlockBlobReference(path);
                 await blob.UploadTextAsync(JsonConvert.SerializeObject(obj));
+                blob.Properties.ContentType = "application/json";
+                await blob.SetPropertiesAsync();
                 return blob;
             });
         }

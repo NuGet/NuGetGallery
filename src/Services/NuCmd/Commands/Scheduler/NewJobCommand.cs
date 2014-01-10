@@ -64,7 +64,7 @@ namespace NuCmd.Commands.Scheduler
         public JobRecurrenceFrequency Frequency { get; set; }
 
         [ArgRequired]
-        [ArgShortcut("i")]
+        [ArgShortcut("in")]
         [ArgDescription("The interval to invoke the job at (example: Frequency = Minute, Interval = 30 => Invoke every 30 minutes)")]
         public int Interval { get; set; }
 

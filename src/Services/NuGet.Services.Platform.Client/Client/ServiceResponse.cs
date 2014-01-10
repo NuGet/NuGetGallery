@@ -8,7 +8,17 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Client
 {
-    public class ServiceResponse
+    public class ServiceResponse : ServiceResponse<string>
+    {
+        public ServiceResponse(HttpResponseMessage httpResponse) : base(httpResponse) { }
+        
+        public override Task<string> ReadContent()
+        {
+            return HttpResponse.Content.ReadAsStringAsync();
+        }
+    }
+
+    public class ServiceResponse<T>
     {
         public HttpResponseMessage HttpResponse { get; private set; }
         public HttpStatusCode StatusCode { get { return HttpResponse.StatusCode; } }
@@ -19,13 +29,8 @@ namespace NuGet.Services.Client
         {
             HttpResponse = httpResponse;
         }
-    }
 
-    public class ServiceResponse<T> : ServiceResponse
-    {
-        public ServiceResponse(HttpResponseMessage httpResponse) : base(httpResponse) { }
-
-        public Task<T> ReadContent()
+        public virtual Task<T> ReadContent()
         {
             return HttpResponse.Content.ReadAsAsync<T>();
         }

@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.SemanticLogging">
+      <HintPath>..\..\..\packages\EnterpriseLibrary.SemanticLogging.1.0.1304.0\lib\NET45\Microsoft.Practices.EnterpriseLibrary.SemanticLogging.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Threading.Tasks, Version=1.0.12.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\Microsoft.Bcl.Async.1.0.165\lib\net45\Microsoft.Threading.Tasks.dll</HintPath>
@@ -99,6 +102,7 @@
     <Compile Include="Commands\Scheduler\SchedulerCommandBase.cs" />
     <Compile Include="Commands\Scheduler\DeleteServiceCommand.cs" />
     <Compile Include="Commands\Scheduler\ServicesCommand.cs" />
+    <Compile Include="Commands\Work\LogCommand.cs" />
     <Compile Include="Commands\Work\PurgeCommand.cs" />
     <Compile Include="Commands\Work\JobsCommand.cs" />
     <Compile Include="Commands\Work\StatsCommand.cs" />
@@ -127,7 +131,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Strings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

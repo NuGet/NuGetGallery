@@ -129,6 +129,7 @@
     <Compile Include="Http\Authentication\AdminKeyAuthenticationHandler.cs" />
     <Compile Include="Http\ApiExceptionFilter.cs" />
     <Compile Include="Http\EnumConstraint.cs" />
+    <Compile Include="Http\TransferBlobResult.cs" />
     <Compile Include="Roles.cs" />
     <Compile Include="Storage\AssemblyInformationPropertySerializer.cs" />
     <Compile Include="Storage\DefaultTablePropertySerializer.cs" />

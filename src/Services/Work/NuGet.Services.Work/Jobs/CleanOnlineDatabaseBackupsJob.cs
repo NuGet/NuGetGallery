@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.SqlClient;
 using System.Diagnostics.Tracing;
 using System.Linq;
@@ -11,6 +12,7 @@ using NuGet.Services.Work.Jobs.Models;
 
 namespace NuGet.Services.Work.Jobs
 {
+    [Description("Cleans online database backups based on a provided policy")]
     public class CleanOnlineDatabaseBackupsJob : DatabaseJobHandlerBase<CleanOnlineDatabaseBackupsEventSource>
     {
         /// <summary>

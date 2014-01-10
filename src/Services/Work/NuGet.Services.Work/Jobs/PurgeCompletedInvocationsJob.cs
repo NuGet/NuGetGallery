@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Work.Jobs
 {
+    [Description("Purges completed invocations older than a provided date or age")]
     public class PurgeCompletedInvocationsJob : JobHandlerBase<PurgeCompletedInvocationsEventSource>
     {
         public DateTimeOffset? Before { get; set; }

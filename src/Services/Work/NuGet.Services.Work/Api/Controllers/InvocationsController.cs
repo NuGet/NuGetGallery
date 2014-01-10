@@ -9,6 +9,7 @@ using NuGet.Services.Http;
 using NuGet.Services.Work.Api.Models;
 using NuGet.Services.Storage;
 using NuGet.Services.Work.Models;
+using System.Net.Http;
 
 namespace NuGet.Services.Work.Api.Controllers
 {
@@ -41,7 +42,18 @@ namespace NuGet.Services.Work.Api.Controllers
             var purged = await Queue.PurgeCompleted(before ?? DateTimeOffset.UtcNow);
 
             // Return the data that was purged
-            return Content(HttpStatusCode.OK, purged.Select(i => i.ToModel()));
+            return Content(HttpStatusCode.OK, purged.Select(i => i.ToModel(Url)));
+        }
+
+        [Route("{id}/log", Name = Routes.GetInvocationLog)]
+        public async Task<IHttpActionResult> GetInvocationLog(Guid id)
+        {
+            var invocation = await Queue.Get(id);
+            if (String.IsNullOrEmpty(invocation.LogUrl))
+            {
+                return NotFound();
+            }
+            return await TransferBlob(invocation.LogUrl);
         }
 
         [Route("", Name = Routes.GetActiveInvocations)]
@@ -58,7 +70,7 @@ namespace NuGet.Services.Work.Api.Controllers
                 return NotFound();
             }
 
-            return Content(HttpStatusCode.OK, (await Queue.GetAll(criteria)).Select(i => i.ToModel()));
+            return Content(HttpStatusCode.OK, (await Queue.GetAll(criteria)).Select(i => i.ToModel(Url)));
         }
 
         [Route("{id}", Name = Routes.GetSingleInvocation)]
@@ -69,7 +81,7 @@ namespace NuGet.Services.Work.Api.Controllers
             {
                 return NotFound();
             }
-            return Content(HttpStatusCode.OK, invocation.ToModel());
+            return Content(HttpStatusCode.OK, invocation.ToModel(Url));
         }
 
         [Route("", Name = Routes.PutInvocation)]
@@ -86,7 +98,7 @@ namespace NuGet.Services.Work.Api.Controllers
             }
             else
             {
-                return Content(HttpStatusCode.Created, invocation.ToModel());
+                return Content(HttpStatusCode.Created, invocation.ToModel(Url));
             }
         }
 

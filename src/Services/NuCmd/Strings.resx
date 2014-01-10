@@ -231,4 +231,13 @@
   <data name="Work_StatsCommand_UnknownStatsType" xml:space="preserve">
     <value>Unknown stats type: {0}</value>
   </data>
+  <data name="Work_LogCommand_FetchingLog" xml:space="preserve">
+    <value>Fetching log data for Invocation {0}...</value>
+  </data>
+  <data name="Work_LogCommand_RenderedLog" xml:space="preserve">
+    <value>End of log for Invocation {0}</value>
+  </data>
+  <data name="Work_LogCommand_RenderingLog" xml:space="preserve">
+    <value>Log entries for Invocation {0}</value>
+  </data>
 </root>
