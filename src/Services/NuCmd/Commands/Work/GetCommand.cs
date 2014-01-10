@@ -55,14 +55,14 @@ namespace NuCmd.Commands.Work
             if (await ReportHttpStatus(response))
             {
                 var invocations = await response.ReadContent();
-                await Console.WriteTable(invocations, i => new {
+                await Console.WriteTable(invocations.OrderByDescending(i => i.UpdatedAt), i => new {
                     i.Job,
                     i.Status,
                     i.Result,
                     i.Id,
-                    i.QueuedAt,
-                    i.UpdatedAt,
-                    i.CompletedAt
+                    QueuedAt = i.QueuedAt.LocalDateTime,
+                    UpdatedAt = i.UpdatedAt.LocalDateTime,
+                    CompletedAt = i.CompletedAt.HasValue ? i.CompletedAt.Value.LocalDateTime : (DateTimeOffset?)null
                 });
             }
         }

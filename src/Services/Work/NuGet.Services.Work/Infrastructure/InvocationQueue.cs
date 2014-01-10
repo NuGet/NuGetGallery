@@ -299,7 +299,7 @@ namespace NuGet.Services.Work
                 SELECT *
                 FROM [work].Invocations
                 WHERE ([Result] IS NOT NULL AND [Result] <> @Incomplete)
-                AND ([CompletedAt IS NOT NULL AND [CompletedAt] < @CompletedBefore)",
+                AND ([CompletedAt] IS NOT NULL AND [CompletedAt] < @CompletedBefore)",
                 new { 
                     CompletedBefore = before.UtcDateTime,
                     Incomplete = ExecutionResult.Incomplete

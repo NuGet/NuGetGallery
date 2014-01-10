@@ -73,6 +73,10 @@ namespace NuGet.Services.Work.Jobs
                                             StringComparison.OrdinalIgnoreCase)
                                   orderby backupMeta.Timestamp descending
                                   select backupMeta;
+                    foreach (var backup in ordered)
+                    {
+                        Log.FoundBackup(backup);
+                    }
 
                     // Take the most recent one and check it's time
                     var mostRecent = ordered.FirstOrDefault();
@@ -255,6 +259,14 @@ namespace NuGet.Services.Work.Jobs
         private void QueuedClean(string id) { WriteEvent(12, id); }
         [NonEvent]
         public void QueuedClean(Guid id) { QueuedClean(id.ToString("N").ToLowerInvariant()); }
+
+        [Event(
+            eventId: 13,
+            Level = EventLevel.Verbose,
+            Message = "Found Backup {0} from {1}")]
+        private void FoundBackup(string databaseName, string timestamp) { WriteEvent(13, databaseName, timestamp); }
+        [NonEvent]
+        public void FoundBackup(DatabaseBackup backup) { FoundBackup(backup.Db.name, backup.Timestamp.ToString()); }
 
         public class Tasks
         {
