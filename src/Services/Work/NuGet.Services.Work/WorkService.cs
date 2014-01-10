@@ -82,15 +82,21 @@ namespace NuGet.Services.Work
         {
             base.RegisterComponents(builder);
 
+            var jobdefs = GetAllAvailableJobs();
+            builder.RegisterInstance(jobdefs).As<IEnumerable<JobDescription>>();
+
+            builder.RegisterModule(new JobComponentsModule());
+        }
+
+        public static IEnumerable<JobDescription> GetAllAvailableJobs()
+        {
             var jobdefs = typeof(WorkWorkerRole)
                    .Assembly
                    .GetExportedTypes()
                    .Where(t => !t.IsAbstract && typeof(JobHandlerBase).IsAssignableFrom(t))
                    .Select(t => JobDescription.Create(t))
                    .Where(d => d != null);
-            builder.RegisterInstance(jobdefs).As<IEnumerable<JobDescription>>();
-
-            builder.RegisterModule(new JobComponentsModule());
+            return jobdefs;
         }
 
         public override Task<object> GetCurrentStatus()

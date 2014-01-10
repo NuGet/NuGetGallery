@@ -240,4 +240,7 @@
   <data name="Work_LogCommand_RenderingLog" xml:space="preserve">
     <value>Log entries for Invocation {0}</value>
   </data>
+  <data name="Work_RunCommand_UnknownJob" xml:space="preserve">
+    <value>Unknown job: {0}.</value>
+  </data>
 </root>

@@ -18,6 +18,8 @@ namespace NuGet.Services.Work
         public InvocationContext Context { get; protected set; }
 
         public InvocationState Invocation { get { return Context.Invocation; } }
+
+        public bool WhatIf { get; set; }
         
         public virtual async Task<InvocationResult> Invoke(InvocationContext context)
         {

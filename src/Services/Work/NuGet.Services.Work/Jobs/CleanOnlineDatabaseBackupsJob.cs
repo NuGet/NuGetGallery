@@ -62,11 +62,10 @@ namespace NuGet.Services.Work.Jobs
                     .GroupBy(b => b.Timestamp.UtcDateTime.Date)
                     .OrderByDescending(g => g.Key);
 
-                // Keep the last backup from today and the max running backups if any
+                // Keep the last backup from today and the max daily backups if any
                 var dailyBackups = backupsByDate
                     .Take(MaxDailyBackups ?? 1)
-                    .Select(g => g.OrderBy(db => db.Timestamp))
-                    .First();
+                    .Select(g => g.OrderBy(db => db.Timestamp).Last());
                 foreach (var keeper in dailyBackups)
                 {
                     keepers.Add(keeper);
@@ -88,7 +87,10 @@ namespace NuGet.Services.Work.Jobs
                 foreach (var db in backups.Except(keepers))
                 {
                     Log.DeletingBackup(db.Db.name);
-                    await connection.ExecuteAsync("DROP DATABASE [" + db.Db.name + "]");
+                    if (!WhatIf)
+                    {
+                        await connection.ExecuteAsync("DROP DATABASE [" + db.Db.name + "]");
+                    }
                     Log.DeletedBackup(db.Db.name);
                 }
             }
