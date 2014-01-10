@@ -70,13 +70,17 @@ namespace NuGet.Services.Work.Jobs
                 foreach (var keeper in dailyBackups)
                 {
                     keepers.Add(keeper);
-                    Log.KeepingBackup(keeper.Db.name);
                 }
 
                 // Keep the most recent backups based on MaxRunningBackups
                 foreach (var keeper in backups.OrderByDescending(b => b.Timestamp).Take(MaxRunningBackups ?? 1))
                 {
                     keepers.Add(keeper);
+                }
+
+                // Report keepers
+                foreach (var keeper in keepers)
+                {
                     Log.KeepingBackup(keeper.Db.name);
                 }
 
