@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dapper;
 using NuGet.Services.Configuration;
 using NuGet.Services.Work.Jobs.Models;
 
 namespace NuGet.Services.Work.Jobs
 {
-    public class DatabaseJobHandlerBase<T> : AsyncJobHandler<T>
+    public abstract class DatabaseJobHandlerBase<T> : AsyncJobHandler<T>
+        where T : EventSource
     {
         /// <summary>
         /// The target server, in the form of a known SQL Server (primary, warehouse, etc.)
@@ -29,7 +32,7 @@ namespace NuGet.Services.Work.Jobs
 
         protected ConfigurationHub Config { get; set; }
 
-        protected DatabaseJobBase(ConfigurationHub config)
+        protected DatabaseJobHandlerBase(ConfigurationHub config)
         {
             Config = config;
         }

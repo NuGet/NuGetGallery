@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
+using NuGet.Services.Configuration;
 using NuGet.Services.Work.Jobs.Models;
 
 namespace NuGet.Services.Work.Jobs
@@ -26,6 +27,8 @@ namespace NuGet.Services.Work.Jobs
         /// The maximum number of daily backups to keep (includes "today", so to keep today's last backup and yesterday's, specify 2)
         /// </summary>
         public int? MaxDailyBackups { get; set; }
+
+        public CleanOnlineDatabaseBackupsJob(ConfigurationHub config) : base(config) { }
 
         protected internal override async Task<JobContinuation> Execute()
         {

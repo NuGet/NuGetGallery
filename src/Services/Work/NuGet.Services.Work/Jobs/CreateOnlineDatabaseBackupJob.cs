@@ -108,7 +108,7 @@ namespace NuGet.Services.Work.Jobs
 
         protected internal override async Task<JobContinuation> Resume()
         {
-            var cstr = GetConnectionString();
+            var cstr = GetConnectionString(admin: true);
             using (var connection = await cstr.ConnectToMaster())
             {
                 var db = await GetDatabase(connection, BackupName);
@@ -139,8 +139,12 @@ namespace NuGet.Services.Work.Jobs
         private JobContinuation ContinueCheckingBackup()
         {
             var parameters = new Dictionary<string, string>() {
-                {"BackupName", BackupName}
+                { "BackupName", BackupName }
             };
+            if (!String.IsNullOrEmpty(BackupPrefix))
+            {
+                parameters["BackupPrefix"] = BackupPrefix;
+            }
             if (TargetDatabaseConnection != null)
             {
                 parameters["TargetDatabaseConnection"] = TargetDatabaseConnection.ConnectionString;
@@ -243,6 +247,14 @@ namespace NuGet.Services.Work.Jobs
             Level = EventLevel.Warning,
             Message = "Source database {0} not found!")]
         public void SourceDatabaseNotFound(string source) { WriteEvent(11, source); }
+
+        [Event(
+            eventId: 12,
+            Level = EventLevel.Informational,
+            Message = "Queued clean invocation {0}.")]
+        private void QueuedClean(string id) { WriteEvent(12, id); }
+        [NonEvent]
+        public void QueuedClean(Guid id) { QueuedClean(id.ToString("N").ToLowerInvariant()); }
 
         public class Tasks
         {

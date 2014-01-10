@@ -92,9 +92,10 @@ namespace NuGet.Services.Work
         }
 
         protected internal abstract Task<JobContinuation> Execute();
-        protected internal virtual Task<JobContinuation> Resume() { return Complete(); }
+        protected internal virtual Task<JobContinuation> Resume() { return Task.FromResult(Complete()); }
 
-        protected virtual JobContinuation Suspend(TimeSpan waitPeriod, Dictionary<string, string> parameters)
+        // Helper methods for returning "Suspend" and "Complete" results (even though Complete is just null)
+        protected JobContinuation Suspend(TimeSpan waitPeriod, Dictionary<string, string> parameters)
         {
             // TODO: Using a [ContinuationState] or similar attribute, allow the job author
             //  to just mark properties that they want carried over to the continuation.
@@ -102,7 +103,7 @@ namespace NuGet.Services.Work
             return new JobContinuation(waitPeriod, parameters);
         }
 
-        protected virtual JobContinuation Complete()
+        protected JobContinuation Complete()
         {
             return null;
         }
