@@ -39,9 +39,12 @@ namespace NuGet.Services.Work.Client
 
         public Task<ServiceResponse<IEnumerable<Invocation>>> Get(InvocationListCriteria criteria)
         {
-            return _client.GetAsync(
-                "invocations/" + criteria.ToString().ToLowerInvariant())
-                .AsServiceResponse<IEnumerable<Invocation>>();
+            return GetInvocations(criteria, String.Empty);
+        }
+
+        public Task<ServiceResponse<IEnumerable<Invocation>>> Get(InvocationListCriteria criteria, int limit)
+        {
+            return GetInvocations(criteria, "?limit=" + limit.ToString());
         }
 
         public Task<ServiceResponse<IEnumerable<Invocation>>> GetPurgable(DateTimeOffset? before)
@@ -68,6 +71,13 @@ namespace NuGet.Services.Work.Client
         public Task<ServiceResponse<InvocationStatistics>> GetStatistics()
         {
             return _client.GetAsync("invocations/stats").AsServiceResponse<InvocationStatistics>();
+        }
+
+        private Task<ServiceResponse<IEnumerable<Invocation>>> GetInvocations(InvocationListCriteria criteria, string queryString)
+        {
+            return _client.GetAsync(
+                "invocations/" + criteria.ToString().ToLowerInvariant() + queryString)
+                .AsServiceResponse<IEnumerable<Invocation>>();
         }
 
         private static string RenderBeforeQueryStringValue(DateTimeOffset? before)

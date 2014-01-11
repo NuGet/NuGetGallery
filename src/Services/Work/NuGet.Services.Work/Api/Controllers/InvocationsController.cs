@@ -57,20 +57,20 @@ namespace NuGet.Services.Work.Api.Controllers
         }
 
         [Route("", Name = Routes.GetActiveInvocations)]
-        public Task<IHttpActionResult> GetActive()
+        public Task<IHttpActionResult> GetActive(int? limit)
         {
-            return Get(InvocationListCriteria.Active);
+            return Get(InvocationListCriteria.Active, limit);
         }
 
         [Route("{criteria:invocationListCriteria}", Name = Routes.GetInvocations)]
-        public async Task<IHttpActionResult> Get(InvocationListCriteria criteria)
+        public async Task<IHttpActionResult> Get(InvocationListCriteria criteria, int? limit)
         {
             if (!Enum.IsDefined(typeof(InvocationListCriteria), criteria))
             {
                 return NotFound();
             }
 
-            return Content(HttpStatusCode.OK, (await Queue.GetAll(criteria)).Select(i => i.ToModel(Url)));
+            return Content(HttpStatusCode.OK, (await Queue.GetAll(criteria, limit)).Select(i => i.ToModel(Url)));
         }
 
         [Route("{id}", Name = Routes.GetSingleInvocation)]

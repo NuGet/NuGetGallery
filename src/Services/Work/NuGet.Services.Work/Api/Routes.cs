@@ -15,6 +15,7 @@ namespace NuGet.Services.Work.Api
         public const string DeleteSingleInvocation = "Work-Invocations-Delete";
         public const string DeletePurgableInvocations = "Work-Invocations-DeleteCompleted";
         public const string GetInvocationLog = "Work-Invocations-GetLog";
+        public const string GetInvocationLogByCriteria = "Work-Invocations-GetLogByCriteria";
         public const string PutInvocation = "Work-Invocations-Put";
         public const string GetJobs = "Work-Jobs-GetAll";
         public const string GetInvocationStatistics = "Work-Invocations-GetStatistics";

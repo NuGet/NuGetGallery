@@ -185,45 +185,52 @@ namespace NuGet.Services.Work
 
         public virtual Task<IEnumerable<InvocationState>> GetAll(InvocationListCriteria criteria)
         {
+            return GetAll(criteria, limit: null);
+        }
+
+        public virtual Task<IEnumerable<InvocationState>> GetAll(InvocationListCriteria criteria, int? limit)
+        {
+            string subquery;
+            object parameters;
             switch (criteria)
             {
                 case InvocationListCriteria.All:
-                    return ConnectAndQuery("SELECT * FROM work.Invocations");
+                    subquery = "FROM work.Invocations";
+                    parameters = null;
+                    break;
                 case InvocationListCriteria.Active:
-                    return ConnectAndQuery("SELECT * FROM work.ActiveInvocations");
+                    subquery = "FROM work.ActiveInvocations";
+                    parameters = null;
+                    break;
                 case InvocationListCriteria.Completed:
-                    return ConnectAndQuery("SELECT * FROM work.Invocations WHERE Complete = 1");
+                    subquery = "FROM work.Invocations WHERE Complete = 1";
+                    parameters = null;
+                    break;
                 case InvocationListCriteria.Pending:
-                    return ConnectAndQuery(
-                        "SELECT * FROM work.ActiveInvocations WHERE [NextVisibleAt] <= @now",
-                        new
-                        {
-                            now = _clock.UtcNow.UtcDateTime
-                        });
+                    subquery = "FROM work.Invocations WHERE [NextVisibleAt] <= @p";
+                    parameters = new { now = _clock.UtcNow.UtcDateTime };
+                    break;
                 case InvocationListCriteria.Hidden:
-                    return ConnectAndQuery(
-                        "SELECT * FROM work.ActiveInvocations WHERE [NextVisibleAt] > @now",
-                        new
-                        {
-                            now = _clock.UtcNow.UtcDateTime
-                        });
+                    subquery = "FROM work.ActiveInvocations WHERE [NextVisibleAt] > @now";
+                    parameters = new { now = _clock.UtcNow.UtcDateTime };
+                    break;
                 case InvocationListCriteria.Suspended:
-                    return ConnectAndQuery(
-                        "SELECT * FROM work.ActiveInvocations WHERE [Status] = @status",
-                        new
-                        {
-                            status = InvocationStatus.Suspended
-                        });
+                    subquery = "FROM work.ActiveInvocations WHERE [Status] = @status";
+                    parameters = new { status = InvocationStatus.Suspended };
+                    break;
                 case InvocationListCriteria.Executing:
-                    return ConnectAndQuery(
-                        "SELECT * FROM work.ActiveInvocations WHERE [Status] = @status",
-                        new
-                        {
-                            status = InvocationStatus.Executing
-                        });
+                    subquery = "FROM work.ActiveInvocations WHERE [Status] = @status";
+                    parameters = new { status = InvocationStatus.Executing };
+                    break;
                 default:
                     return Task.FromResult(Enumerable.Empty<InvocationState>());
             }
+            return ConnectAndQuery(
+                "SELECT" +
+                (limit.HasValue ? (" TOP " + limit.Value.ToString()) : String.Empty) +
+                " * " +
+                subquery +
+                " ORDER BY [UpdatedAt] DESC", parameters);
         }
 
         public virtual async Task<InvocationStatisticsRecord> GetStatistics()
