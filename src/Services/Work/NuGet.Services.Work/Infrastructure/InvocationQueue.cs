@@ -255,36 +255,39 @@ namespace NuGet.Services.Work
 
         public virtual async Task Purge(IEnumerable<Guid> ids)
         {
-            using (var connection = await Connect())
+            if (ids.Any())
             {
-                // First, capture the invocation history into blobs
-                var rows = await connection.QueryAsync<InvocationState.InvocationRow>(
-                    "work.GetInvocationHistory",
-                    new { Ids = new IdListParameter(ids) },
-                    commandType: CommandType.StoredProcedure);
-                
-                // Group by Id
-                var invocationHistories = rows.GroupBy(r => r.Id);
-
-                // Record invocation histories using a dataflow so we can constraint the parallelism
-                var block = new ActionBlock<IOrderedEnumerable<InvocationState.InvocationRow>>(
-                    i => ArchiveInvocation(i),
-                    new ExecutionDataflowBlockOptions()
-                    {
-                        MaxDegreeOfParallelism = 16
-                    });
-                foreach (var invocationHistory in invocationHistories)
+                using (var connection = await Connect())
                 {
-                    block.Post(invocationHistory.OrderBy(h => h.UpdatedAt));
-                }
-                block.Complete();
-                await block.Completion;
+                    // First, capture the invocation history into blobs
+                    var rows = await connection.QueryAsync<InvocationState.InvocationRow>(
+                        "work.GetInvocationHistory",
+                        new { Ids = new IdListParameter(ids) },
+                        commandType: CommandType.StoredProcedure);
 
-                // Now purge the invocations
-                await connection.QueryAsync<int>(
-                    "work.PurgeInvocations",
-                    new { Ids = new IdListParameter(ids) },
-                    commandType: CommandType.StoredProcedure);
+                    // Group by Id
+                    var invocationHistories = rows.GroupBy(r => r.Id);
+
+                    // Record invocation histories using a dataflow so we can constraint the parallelism
+                    var block = new ActionBlock<IOrderedEnumerable<InvocationState.InvocationRow>>(
+                        i => ArchiveInvocation(i),
+                        new ExecutionDataflowBlockOptions()
+                        {
+                            MaxDegreeOfParallelism = 16
+                        });
+                    foreach (var invocationHistory in invocationHistories)
+                    {
+                        block.Post(invocationHistory.OrderBy(h => h.UpdatedAt));
+                    }
+                    block.Complete();
+                    await block.Completion;
+
+                    // Now purge the invocations
+                    await connection.QueryAsync<int>(
+                        "work.PurgeInvocations",
+                        new { Ids = new IdListParameter(ids) },
+                        commandType: CommandType.StoredProcedure);
+                }
             }
         }
 

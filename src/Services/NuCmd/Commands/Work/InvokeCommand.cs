@@ -66,7 +66,7 @@ namespace NuCmd.Commands.Work
             else
             {
                 await Console.WriteInfoLine(Strings.Work_InvokeCommand_CreatingInvocation_WithPayload, Job);
-                await Console.WriteInfoLine(Payload.Replace("{", "{{").Replace("}", "}}"));
+                await Console.WriteInfoLine(Payload);
             }
             if (!WhatIf)
             {

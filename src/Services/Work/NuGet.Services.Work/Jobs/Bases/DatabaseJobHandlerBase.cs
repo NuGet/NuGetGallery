@@ -43,8 +43,11 @@ namespace NuGet.Services.Work.Jobs
             if (connection == null)
             {
                 connection = Config.Sql
-                    .GetConnectionString(TargetServer, admin)
-                    .ChangeDatabase(TargetDatabaseName);
+                    .GetConnectionString(TargetServer, admin);
+                if (!String.IsNullOrEmpty(TargetDatabaseName))
+                {
+                    connection = connection.ChangeDatabase(TargetDatabaseName);
+                }
             }
             return connection;
         }
