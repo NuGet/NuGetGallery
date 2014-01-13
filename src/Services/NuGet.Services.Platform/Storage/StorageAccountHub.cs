@@ -15,6 +15,7 @@ namespace NuGet.Services.Storage
         public TableStorageHub Tables { get; private set; }
         public BlobStorageHub Blobs { get; private set; }
         public QueueStorageHub Queues { get; private set; }
+        public string Name { get { return Account.Credentials.AccountName; } }
 
         public StorageAccountHub(CloudStorageAccount account)
         {

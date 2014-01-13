@@ -145,8 +145,10 @@
     <Compile Include="Infrastructure\InvocationContext.cs" />
     <Compile Include="Infrastructure\UnknownJobException.cs" />
     <Compile Include="JobComponentsModule.cs" />
+    <Compile Include="Jobs\BackupPackageBlobsJob.cs" />
     <Compile Include="Jobs\CleanOnlineDatabaseBackupsJob.cs" />
     <Compile Include="Jobs\Bases\DatabaseJobHandlerBase.cs" />
+    <Compile Include="Jobs\Models\PackageReference.cs" />
     <Compile Include="Jobs\PurgeCompletedInvocationsJob.cs" />
     <Compile Include="Jobs\TestAsyncJob.cs" />
     <Compile Include="Jobs\CreateOnlineDatabaseBackupJob.cs" />
