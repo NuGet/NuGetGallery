@@ -392,7 +392,6 @@ namespace NuGet.Services.Work.Infrastructure
             public Mock<StorageHub> MockStorage { get; private set; }
             public VirtualClock VirtualClock { get; private set; }
 
-            public bool CaptureStarted { get; private set; }
             public InvocationState LastDispatched { get; private set; }
             public TaskCompletionSource<object> DispatchTCS { get; set; }
 
@@ -437,12 +436,6 @@ namespace NuGet.Services.Work.Infrastructure
                 {
                     return base.Dispatch(invocation, cancelToken);
                 }
-            }
-
-            protected override Task<InvocationLogCapture> StartCapture(InvocationState invocation)
-            {
-                CaptureStarted = true;
-                return Task.FromResult<InvocationLogCapture>(null);
             }
         }
     }

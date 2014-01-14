@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,29 +48,29 @@ namespace NuCmd.Commands.Work
                 () => tcs.SetResult(null));
             await tcs.Task;
 
-            string message = String.Format(Strings.Work_RunCommand_Invoked, Job);
+            message = String.Format(Strings.Work_RunCommand_Invoked, Job);
             await Console.WriteInfoLine(new String('-', message.Length));
             await Console.WriteInfoLine(message);
         }
 
         private async Task RenderEvent(EventEntry evt)
         {
-            string message = evt.Message;
-            switch (evt.Level)
+            string message = evt.FormattedMessage;
+            switch (evt.Schema.Level)
             {
-                case LogEventLevel.Critical:
+                case EventLevel.Critical:
                     await Console.WriteFatalLine(message);
                     break;
-                case LogEventLevel.Error:
+                case EventLevel.Error:
                     await Console.WriteErrorLine(message);
                     break;
-                case LogEventLevel.Informational:
+                case EventLevel.Informational:
                     await Console.WriteInfoLine(message);
                     break;
-                case LogEventLevel.Verbose:
+                case EventLevel.Verbose:
                     await Console.WriteTraceLine(message);
                     break;
-                case LogEventLevel.Warning:
+                case EventLevel.Warning:
                     await Console.WriteWarningLine(message);
                     break;
             }

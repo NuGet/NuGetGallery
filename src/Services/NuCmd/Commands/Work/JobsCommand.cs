@@ -21,7 +21,7 @@ namespace NuCmd.Commands.Work
         {
             if (Local)
             {
-                Console.WriteTable(
+                await Console.WriteTable(
                     WorkService.GetAllAvailableJobs(), j => new
                     {
                         j.Name,

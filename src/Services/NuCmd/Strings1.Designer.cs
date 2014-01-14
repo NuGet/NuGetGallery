@@ -379,7 +379,7 @@ namespace NuCmd {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to End of log for Invocation {0}:.
+        ///   Looks up a localized string similar to End of log for Invocation {0}.
         /// </summary>
         internal static string Work_LogCommand_RenderedLog {
             get {
@@ -388,7 +388,7 @@ namespace NuCmd {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Log entries for Invocation {0}:.
+        ///   Looks up a localized string similar to Log entries for Invocation {0}.
         /// </summary>
         internal static string Work_LogCommand_RenderingLog {
             get {
@@ -411,6 +411,33 @@ namespace NuCmd {
         internal static string Work_PurgeCommand_PurgingInvocationsBefore {
             get {
                 return ResourceManager.GetString("Work_PurgeCommand_PurgingInvocationsBefore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Completed invocation of job {0}.
+        /// </summary>
+        internal static string Work_RunCommand_Invoked {
+            get {
+                return ResourceManager.GetString("Work_RunCommand_Invoked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invoking job: {0}.
+        /// </summary>
+        internal static string Work_RunCommand_Invoking {
+            get {
+                return ResourceManager.GetString("Work_RunCommand_Invoking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown job: {0}..
+        /// </summary>
+        internal static string Work_RunCommand_UnknownJob {
+            get {
+                return ResourceManager.GetString("Work_RunCommand_UnknownJob", resourceCulture);
             }
         }
         
