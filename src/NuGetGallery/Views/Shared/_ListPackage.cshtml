@@ -9,8 +9,8 @@
     <div class="main">
         <header>
             <h1><a href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Title</a></h1>
-            <h2>By:</h2>
             <ul class="owners">
+                <li>By:</li>
                 @foreach (var owner in Model.Owners)
                 {
                     <li><a href="@Url.User(owner)" title="@owner.Username">@owner.Username</a></li>
