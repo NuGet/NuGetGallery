@@ -65,7 +65,7 @@ namespace NuGet.Services.Work.Monitoring
         [Event(
             eventId: 5,
             Level = EventLevel.Informational,
-            Message = "Invoking invocation {0}. Job: {1}. Runtime: {2}")]
+            Message = "Starting invocation {0}. Job: {1}. Runtime: {2}")]
         private void Invoking(Guid invocationId, string jobName, string jobRuntime) { WriteEvent(5, invocationId, jobName, jobRuntime); }
 
         [NonEvent]
@@ -153,5 +153,14 @@ namespace NuGet.Services.Work.Monitoring
         private void Aborted(Guid invocationId) { WriteEvent(14, invocationId); }
         [NonEvent]
         public void Aborted(InvocationState invocation) { Aborted(invocation.Id); }
+
+        [Event(
+            eventId: 15,
+            Level = EventLevel.Informational,
+            Message = "Extending timeout of Invocation {0} to {1}.")]
+        private void Extending(Guid invocationId, string newTimeout) { WriteEvent(15, invocationId, newTimeout); }
+
+        [NonEvent]
+        public void Extending(DateTimeOffset newTimeout) { Extending(InvocationContext.GetCurrentInvocationId(), newTimeout.ToString("O")); }
     }
 }

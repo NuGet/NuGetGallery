@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -39,7 +40,7 @@ namespace NuGet.Services
             return parsed;
         }
 
-        private static readonly Regex PathParser = new Regex("^(?<container>[^/]*)(/(?<path>.*))?$");
+        private static readonly Regex PathParser = new Regex("^/(?<container>[^/]*)(/(?<path>.*))?$");
         private static bool TryCreateCore(Uri sourceUri, bool throwOnError, out AzureStorageReference parsed)
         {
             parsed = null;
@@ -80,7 +81,7 @@ namespace NuGet.Services
             }
             parsed = new AzureStorageReference(
                 sourceUri.Host,
-                sourceUri.UserInfo,
+                WebUtility.UrlDecode(sourceUri.UserInfo),
                 match.Groups["container"].Value,
                 match.Groups["path"].Value);
             return true;

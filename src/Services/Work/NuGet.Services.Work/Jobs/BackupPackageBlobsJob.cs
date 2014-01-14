@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -63,16 +64,18 @@ namespace NuGet.Services.Work.Jobs
 
         protected internal override async Task Execute()
         {
+            var now = DateTimeOffset.UtcNow;
+
             // Load default data if not provided
             PackageDatabase = PackageDatabase ?? Config.Sql.GetConnectionString(KnownSqlServer.Primary);
             var sourceAccount = Source == null ?
                 Storage.Legacy :
                 Storage.GetAccount(Source);
-            SourceContainer = sourceAccount.Blobs.Client.GetContainerReference(
-                Source == null ? DefaultSourceContainer : Source.Container);
             var destAccount = Destination == null ?
                 Storage.Backup :
                 Storage.GetAccount(Destination);
+            SourceContainer = sourceAccount.Blobs.Client.GetContainerReference(
+                Source == null ? DefaultSourceContainer : Source.Container);
             DestinationContainer = destAccount.Blobs.Client.GetContainerReference(
                 Destination == null ? DefaultDestinationContainer : Destination.Container);
             Log.PreparingToBackup(sourceAccount.Name, SourceContainer.Name, destAccount.Name, DestinationContainer.Name, PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
@@ -100,6 +103,11 @@ namespace NuGet.Services.Work.Jobs
             }
             Log.GatheredListOfPackages(packages.Count, PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
 
+            if (!WhatIf)
+            {
+                await DestinationContainer.CreateIfNotExistsAsync();
+            }
+
             // Start a dataflow to parallelize the transfer
             var action = new TransformBlock<PackageReference, CloudBlockBlob>(
                 package => BackupPackage(package),
@@ -121,6 +129,11 @@ namespace NuGet.Services.Work.Jobs
             
             await completed.Completion;
             Log.StartedBackup();
+
+            // Write backup state
+            Log.SavingBackupState(destAccount.Name, DestinationContainer.Name);
+            await WriteBackupState(destAccount, DestinationContainer, now);
+            Log.SavedBackupState(destAccount.Name, DestinationContainer.Name);
         }
 
         private async Task BackupCompleted(CloudBlockBlob backupBlob)
@@ -150,7 +163,7 @@ namespace NuGet.Services.Work.Jobs
                     DestinationBlobFormat,
                     package.Id,
                     package.Version,
-                    package.Hash).ToLowerInvariant());
+                    WebUtility.UrlEncode(package.Hash)).ToLowerInvariant());
 
             if (await destBlob.ExistsAsync())
             {
@@ -172,6 +185,16 @@ namespace NuGet.Services.Work.Jobs
                 }
                 Log.StartedCopy(sourceBlob.Name, destBlob.Name);
                 return destBlob;
+            }
+        }
+
+        private async Task WriteBackupState(StorageAccountHub destAccount, CloudBlobContainer container, DateTimeOffset now)
+        {
+            if (!WhatIf)
+            {
+                await container.CreateIfNotExistsAsync();
+                var blob = container.GetBlockBlobReference(BackupStateBlobName);
+                await blob.UploadTextAsync(now.ToString("O"));
             }
         }
 
@@ -234,7 +257,7 @@ namespace NuGet.Services.Work.Jobs
             Task = Tasks.GatheringPackages,
             Opcode = EventOpcode.Stop,
             Message = "Gathered {0} packages from {1}/{2}")]
-        public void GatheredListOfPackages(int gathered, string dbServer, string dbName) { WriteEvent(5, dbServer, dbName); }
+        public void GatheredListOfPackages(int gathered, string dbServer, string dbName) { WriteEvent(5, gathered, dbServer, dbName); }
 
         [Event(
             eventId: 6,
@@ -296,12 +319,29 @@ namespace NuGet.Services.Work.Jobs
             Message = "Started copy of {0} to {1}.")]
         public void StartedCopy(string source, string dest) { WriteEvent(13, source, dest); }
 
+        [Event(
+            eventId: 14,
+            Level = EventLevel.Informational,
+            Task = Tasks.SavingBackupState,
+            Opcode = EventOpcode.Start,
+            Message = "Saving backup stage to {0}/{1}")]
+        public void SavingBackupState(string destAccount, string destContainer) { WriteEvent(14, destAccount, destContainer); }
+
+        [Event(
+            eventId: 15,
+            Level = EventLevel.Informational,
+            Task = Tasks.SavingBackupState,
+            Opcode = EventOpcode.Stop,
+            Message = "Saved backup stage to {0}/{1}")]
+        public void SavedBackupState(string destAccount, string destContainer) { WriteEvent(15, destAccount, destContainer); }
+
         public static class Tasks {
             public const EventTask LoadingBackupState = (EventTask)0x1;
             public const EventTask GatheringPackages = (EventTask)0x2;
             public const EventTask BackingUpPackages = (EventTask)0x3;
             public const EventTask StartingPackageCopy = (EventTask)0x4;
             public const EventTask ExtendingJobLease = (EventTask)0x5;
+            public const EventTask SavingBackupState = (EventTask)0x6;
         }
     }
 }

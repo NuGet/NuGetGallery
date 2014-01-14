@@ -63,6 +63,7 @@ namespace NuGet.Services.Work
 
         protected virtual Task<bool> Extend(TimeSpan duration)
         {
+            InvocationEventSource.Log.Extending(DateTimeOffset.UtcNow + duration);
             return Context.Queue.Extend(Invocation, duration);
         }
 

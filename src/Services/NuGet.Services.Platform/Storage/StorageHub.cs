@@ -42,6 +42,12 @@ namespace NuGet.Services.Storage
 
         public StorageAccountHub GetAccount(AzureStorageReference reference)
         {
+            if (String.Equals(reference.AccountName, ".", StringComparison.OrdinalIgnoreCase))
+            {
+                // Emulator!
+                return new StorageAccountHub(CloudStorageAccount.DevelopmentStorageAccount);
+            }
+
             Func<StorageHub, StorageAccountHub> handler;
             if (!_knownAccounts.TryGetValue(reference.AccountName, out handler))
             {

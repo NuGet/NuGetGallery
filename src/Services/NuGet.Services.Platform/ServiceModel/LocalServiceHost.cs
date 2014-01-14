@@ -24,7 +24,7 @@ namespace NuGet.Services.ServiceModel
             _description = new ServiceHostDescription(name, Environment.MachineName);
             Services = new List<NuGetService>();
 
-            Configuration = configuration;
+            Configuration = configuration ?? new Dictionary<string, string>();
         }
 
         protected override void InitializeLocalLogging()
