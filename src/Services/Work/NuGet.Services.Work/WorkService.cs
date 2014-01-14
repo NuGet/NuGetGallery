@@ -25,6 +25,7 @@ using Autofac;
 using NuGet.Services.ServiceModel;
 using NuGet.Services.Work.Api.Models;
 using NuGet.Services.Configuration;
+using NuGet.Services.Work.Models;
 
 namespace NuGet.Services.Work
 {
@@ -34,12 +35,19 @@ namespace NuGet.Services.Work
         public static readonly string MyServiceName = "Work";
 
         private JobRunner _runner;
+        private InvocationQueue _queue;
 
         public IEnumerable<JobDescription> Jobs { get; private set; }
 
         public WorkService(ServiceHost host)
+            : this(host, null)
+        {
+        }
+
+        public WorkService(ServiceHost host, InvocationQueue queue)
             : base(MyServiceName, host)
         {
+            _queue = queue;
         }
 
         protected override async Task<bool> OnStart()
@@ -85,7 +93,7 @@ namespace NuGet.Services.Work
             var jobdefs = GetAllAvailableJobs();
             builder.RegisterInstance(jobdefs).As<IEnumerable<JobDescription>>();
 
-            builder.RegisterModule(new JobComponentsModule());
+            builder.RegisterModule(new JobComponentsModule(_queue));
         }
 
         public static IEnumerable<JobDescription> GetAllAvailableJobs()
@@ -111,6 +119,36 @@ namespace NuGet.Services.Work
         public override Task<object> Describe()
         {
             return Task.FromResult<object>(new WorkServiceModel(Jobs));
+        }
+
+        public IObservable<EventEntry> RunJob(string job, string payload)
+        {
+            ReplaySubject<EventEntry> buffer = new ReplaySubject<EventEntry>();
+            _runner.Dispatch(
+                new InvocationState(
+                    new InvocationState.InvocationRow() {
+                        Payload = payload,
+                        Status = (int)InvocationStatus.Executing,
+                        Result = (int)ExecutionResult.Incomplete,
+                        Source = Constants.Source_LocalJob,
+                        Id = Guid.NewGuid(),
+                        Job = job,
+                        UpdatedBy = Environment.MachineName,
+                        UpdatedAt = DateTime.UtcNow,
+                        QueuedAt = DateTime.UtcNow,
+                        NextVisibleAt = DateTime.UtcNow + TimeSpan.FromMinutes(5)
+                    })).ContinueWith(t => {
+                        if (t.IsFaulted)
+                        {
+                            buffer.OnError(t.Exception);
+                        }
+                        else
+                        {
+                            buffer.OnCompleted();
+                        }
+                        return t;
+                    });
+            return buffer;
         }
     }
 }

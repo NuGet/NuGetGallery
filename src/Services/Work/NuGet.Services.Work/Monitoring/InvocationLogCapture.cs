@@ -10,37 +10,76 @@ using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Formatters;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Services.Storage;
+using System.Reactive.Subjects;
 
 namespace NuGet.Services.Work.Monitoring
 {
-    public class InvocationLogCapture
+    public class InvocationLogCapture : IObservable<EventEntry>
     {
         private ObservableEventListener _listener;
         private IObservable<EventEntry> _eventStream;
 
-        private readonly string _tempDirectory;
-        private string _tempFile;
-        private IDisposable _eventSubscription;
-
         public InvocationState Invocation { get; private set; }
-        public StorageHub Storage { get; private set; }
         
-        public InvocationLogCapture(InvocationState invocation, StorageHub storage, string tempDirectory)
+        public InvocationLogCapture(InvocationState invocation)
         {
             Invocation = invocation;
-            Storage = storage;
-
-            _tempDirectory = tempDirectory;
         }
 
-        public async Task Start()
-        {
+        public virtual Task Start() {
             // Set up an event stream
             _listener = new ObservableEventListener();
             _eventStream = from events in _listener
                            where InvocationContext.GetCurrentInvocationId() == Invocation.Id
                            select events;
             _listener.EnableEvents(InvocationEventSource.Log, EventLevel.Informational);
+            return Task.FromResult<object>(null);
+        }
+
+        public virtual Task<Uri> End() 
+        {
+            return Task.FromResult<Uri>(null);
+        }
+
+        public virtual void SetJob(JobDescription jobdef, JobHandlerBase job)
+        {
+            var eventSource = job.GetEventSource();
+            if (eventSource == null)
+            {
+                InvocationEventSource.Log.NoEventSource(jobdef.Name);
+            }
+            else
+            {
+                _listener.EnableEvents(eventSource, EventLevel.Informational);
+            }
+        }
+    
+        public IDisposable Subscribe(IObserver<EventEntry> observer)
+        {
+ 	        return _eventStream.Subscribe(observer);
+        }
+    }
+
+    public class BlobInvocationLogCapture : InvocationLogCapture
+    {
+        private IDisposable _eventSubscription;
+
+        private readonly string _tempDirectory;
+        private string _tempFile;
+        
+        public StorageHub Storage { get; private set; }
+
+        public BlobInvocationLogCapture(InvocationState invocation, StorageHub storage)
+            : base(invocation)
+        {
+            Storage = storage;
+
+            _tempDirectory = Path.Combine(Path.GetTempPath(), "InvocationLogs");
+        }
+
+        public override async Task Start()
+        {
+            await base.Start();
 
             // Calculate paths
             if (!Directory.Exists(_tempDirectory))
@@ -61,10 +100,10 @@ namespace NuGet.Services.Work.Monitoring
             }
 
             // Capture the events into a JSON file and a plain text file
-            _eventSubscription = _eventStream.LogToFlatFile(_tempFile, new JsonEventTextFormatter(EventTextFormatting.Indented, dateTimeFormat: "O"));
+            _eventSubscription = this.LogToFlatFile(_tempFile, new JsonEventTextFormatter(EventTextFormatting.Indented, dateTimeFormat: "O"));
         }
 
-        public async Task<CloudBlockBlob> End()
+        public override async Task<Uri> End()
         {
             // Disconnect the listener
             _eventSubscription.Dispose();
@@ -75,20 +114,7 @@ namespace NuGet.Services.Work.Monitoring
             // Delete the temp files
             File.Delete(_tempFile);
 
-            return logBlob;
-        }
-
-        public void SetJob(JobDescription jobdef, JobHandlerBase job)
-        {
-            var eventSource = job.GetEventSource();
-            if (eventSource == null)
-            {
-                InvocationEventSource.Log.NoEventSource(jobdef.Name);
-            }
-            else
-            {
-                _listener.EnableEvents(eventSource, EventLevel.Informational);
-            }
+            return logBlob.Uri;
         }
     }
 }

@@ -131,6 +131,7 @@
     <Compile Include="Http\EnumConstraint.cs" />
     <Compile Include="Http\TransferBlobResult.cs" />
     <Compile Include="Roles.cs" />
+    <Compile Include="ServiceModel\LocalServiceHost.cs" />
     <Compile Include="Storage\AssemblyInformationPropertySerializer.cs" />
     <Compile Include="Storage\DefaultTablePropertySerializer.cs" />
     <Compile Include="Storage\TablePropertySerializer.cs" />

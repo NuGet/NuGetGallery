@@ -32,6 +32,7 @@ namespace NuGet.Services.Work
         protected InvocationQueue Queue { get; set; }
         protected JobDispatcher Dispatcher { get; set; }
         protected StorageHub Storage { get; set; }
+        protected InvocationLogCaptureFactory CaptureFactory { get; set; }
 
         public RunnerStatus Status
         {
@@ -47,13 +48,14 @@ namespace NuGet.Services.Work
             _pollInterval = pollInterval;
         }
 
-        public JobRunner(JobDispatcher dispatcher, InvocationQueue queue, ConfigurationHub config, StorageHub storage, Clock clock)
+        public JobRunner(JobDispatcher dispatcher, InvocationQueue queue, ConfigurationHub config, StorageHub storage, Clock clock, InvocationLogCaptureFactory captureFactory)
             : this(config.GetSection<QueueConfiguration>().PollInterval)
         {
             Dispatcher = dispatcher;
             Queue = queue;
             Clock = clock;
             Storage = storage;
+            CaptureFactory = captureFactory;
         }
 
         public Task<object> GetCurrentStatus()
@@ -191,8 +193,11 @@ namespace NuGet.Services.Work
             string logUrl = null;
             if (capture != null)
             {
-                var logBlob = await capture.End();
-                logUrl = logBlob.Uri.AbsoluteUri;
+                var logUri = await capture.End();
+                if (logUri != null)
+                {
+                    logUrl = logUri.AbsoluteUri;
+                }
             }
 
             if (result.Result != ExecutionResult.Incomplete)
@@ -218,7 +223,7 @@ namespace NuGet.Services.Work
 
         protected virtual async Task<InvocationLogCapture> StartCapture(InvocationState invocation)
         {
-            var capture = new InvocationLogCapture(invocation, Storage, Path.Combine(Path.GetTempPath(), "InvocationLogs"));
+            var capture = CaptureFactory.CreateCapture(invocation);
             await capture.Start();
             return capture;
         }

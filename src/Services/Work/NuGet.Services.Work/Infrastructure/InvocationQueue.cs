@@ -23,6 +23,8 @@ namespace NuGet.Services.Work
 {
     public class InvocationQueue
     {
+        public static readonly InvocationQueue Null = new NullInvocationQueue();
+
         public static readonly string ArchiveContainer = "work-archive";
 
         private SqlConnectionStringBuilder _connectionString;
@@ -431,6 +433,99 @@ namespace NuGet.Services.Work
                 p.Direction = ParameterDirection.Input;
                 p.TypeName = "[work].IdList";
                 p.Value = number_list;
+            }
+        }
+
+        private class NullInvocationQueue : InvocationQueue
+        {
+            public override Task<bool> Complete(InvocationState invocation, ExecutionResult result, string resultMessage, string logUrl)
+            {
+                return Task.FromResult(true);
+            }
+
+            public override Task<InvocationState> Dequeue(TimeSpan invisibleFor, CancellationToken token)
+            {
+                return Task.FromResult<InvocationState>(null);
+            }
+
+            public override Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload)
+            {
+                throw new NotSupportedException();
+            }
+
+            public override Task<InvocationState> Enqueue(string job, string source)
+            {
+                throw new NotSupportedException();
+            }
+
+            public override Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload, TimeSpan invisibleFor)
+            {
+                throw new NotSupportedException();
+            }
+
+            public override Task<bool> Extend(InvocationState invocation, TimeSpan duration)
+            {
+                return Task.FromResult(true);
+            }
+
+            public override Task<InvocationState> Get(Guid id)
+            {
+                return Task.FromResult<InvocationState>(null);
+            }
+
+            public override Task<IEnumerable<InvocationState>> GetAll(InvocationListCriteria criteria)
+            {
+                return Task.FromResult<IEnumerable<InvocationState>>(Enumerable.Empty<InvocationState>());
+            }
+
+            public override Task<IEnumerable<InvocationState>> GetAll(InvocationListCriteria criteria, int? limit)
+            {
+                return Task.FromResult<IEnumerable<InvocationState>>(Enumerable.Empty<InvocationState>());
+            }
+
+            public override Task<IEnumerable<InvocationStatisticsRecord>> GetInstanceStatistics()
+            {
+                return Task.FromResult<IEnumerable<InvocationStatisticsRecord>>(Enumerable.Empty<InvocationStatisticsRecord>());
+            }
+
+            public override Task<IEnumerable<InvocationStatisticsRecord>> GetJobStatistics()
+            {
+                return Task.FromResult<IEnumerable<InvocationStatisticsRecord>>(Enumerable.Empty<InvocationStatisticsRecord>());
+            }
+
+            public override Task<IEnumerable<InvocationState>> GetPurgable()
+            {
+                return Task.FromResult<IEnumerable<InvocationState>>(Enumerable.Empty<InvocationState>());
+            }
+
+            public override Task<IEnumerable<InvocationState>> GetPurgable(DateTimeOffset before)
+            {
+                return Task.FromResult<IEnumerable<InvocationState>>(Enumerable.Empty<InvocationState>());
+            }
+
+            public override Task<InvocationStatisticsRecord> GetStatistics()
+            {
+                return Task.FromResult<InvocationStatisticsRecord>(null);
+            }
+
+            public override Task Purge(Guid id)
+            {
+                return Task.FromResult<object>(null);
+            }
+
+            public override Task Purge(IEnumerable<Guid> ids)
+            {
+                return Task.FromResult<object>(null);
+            }
+
+            public override Task<bool> Suspend(InvocationState invocation, Dictionary<string, string> newPayload, TimeSpan suspendFor, string logUrl)
+            {
+                return Task.FromResult(true);
+            }
+
+            public override Task<bool> UpdateStatus(InvocationState invocation, InvocationStatus status, ExecutionResult result)
+            {
+                return Task.FromResult(true);
             }
         }
     }

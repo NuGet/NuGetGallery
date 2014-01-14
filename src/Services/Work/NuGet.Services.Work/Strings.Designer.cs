@@ -151,6 +151,15 @@ namespace NuGet.Services.Work {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to LocalServiceHost failed to start..
+        /// </summary>
+        internal static string LocalWorker_FailedToStart {
+            get {
+                return ResourceManager.GetString("LocalWorker_FailedToStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unknown job: {0}.
         /// </summary>
         internal static string UnknownJobException_Message {

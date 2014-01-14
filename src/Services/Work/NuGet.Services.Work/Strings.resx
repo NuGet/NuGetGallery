@@ -147,6 +147,9 @@
   <data name="JobDispatcher_AsyncContinuationOfNonAsyncJob" xml:space="preserve">
     <value>Attempted to invoke continuation of non-async job: {0}.</value>
   </data>
+  <data name="LocalWorker_FailedToStart" xml:space="preserve">
+    <value>LocalServiceHost failed to start.</value>
+  </data>
   <data name="UnknownJobException_Message" xml:space="preserve">
     <value>Unknown job: {0}</value>
   </data>

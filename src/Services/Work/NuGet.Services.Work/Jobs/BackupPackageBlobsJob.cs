@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.SqlClient;
 using System.Diagnostics.Tracing;
 using System.Globalization;
@@ -15,6 +16,7 @@ using NuGet.Services.Work.Jobs.Models;
 
 namespace NuGet.Services.Work.Jobs
 {
+    [Description("Creates copies of Package Blobs based on information in the NuGet API v2 Database.")]
     public class BackupPackageBlobsJob : JobHandler<BackupPackageBlobsEventSource>
     {
         public static readonly string DefaultSourceContainer = "packages";
