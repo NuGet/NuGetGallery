@@ -134,7 +134,6 @@
     <Compile Include="Helpers\DateTimeOffsetExtensions.cs" />
     <Compile Include="Helpers\EventSourceInstanceManager.cs" />
     <Compile Include="Infrastructure\InvalidJobRequestException.cs" />
-    <Compile Include="Monitoring\InvocationLogCaptureFactory.cs" />
     <Compile Include="Infrastructure\InvocationState.cs" />
     <Compile Include="Infrastructure\InvocationQueue.cs" />
     <Compile Include="Infrastructure\InvocationResult.cs" />

@@ -32,7 +32,6 @@ namespace NuGet.Services.Work
         protected InvocationQueue Queue { get; set; }
         protected JobDispatcher Dispatcher { get; set; }
         protected StorageHub Storage { get; set; }
-        protected InvocationLogCaptureFactory CaptureFactory { get; set; }
 
         public RunnerStatus Status
         {
@@ -48,14 +47,13 @@ namespace NuGet.Services.Work
             _pollInterval = pollInterval;
         }
 
-        public JobRunner(JobDispatcher dispatcher, InvocationQueue queue, ConfigurationHub config, StorageHub storage, Clock clock, InvocationLogCaptureFactory captureFactory)
+        public JobRunner(JobDispatcher dispatcher, InvocationQueue queue, ConfigurationHub config, StorageHub storage, Clock clock)
             : this(config.GetSection<QueueConfiguration>().PollInterval)
         {
             Dispatcher = dispatcher;
             Queue = queue;
             Clock = clock;
             Storage = storage;
-            CaptureFactory = captureFactory;
         }
 
         public Task<object> GetCurrentStatus()
@@ -132,7 +130,12 @@ namespace NuGet.Services.Work
             }
         }
 
-        protected internal virtual async Task Dispatch(InvocationState invocation, CancellationToken cancelToken)
+        protected internal virtual Task Dispatch(InvocationState invocation, CancellationToken cancelToken)
+        {
+            return Dispatch(invocation, new BlobInvocationLogCapture(invocation, Storage), cancelToken);
+        }
+
+        protected internal virtual async Task Dispatch(InvocationState invocation, InvocationLogCapture capture, CancellationToken cancelToken)
         {
             InvocationContext.SetCurrentInvocationId(invocation.Id);
             
@@ -153,7 +156,7 @@ namespace NuGet.Services.Work
             }
 
             // Create the request.Invocation context and start capturing the logs
-            var capture = await StartCapture(invocation);
+            await capture.Start();
             var context = new InvocationContext(invocation, Queue, cancelToken, capture);
 
             InvocationResult result = null;
@@ -219,13 +222,6 @@ namespace NuGet.Services.Work
                 // Suspend the job until the continuation is ready to run
                 await Queue.Suspend(invocation, result.Continuation.Parameters, result.Continuation.WaitPeriod, logUrl);
             }
-        }
-
-        protected virtual async Task<InvocationLogCapture> StartCapture(InvocationState invocation)
-        {
-            var capture = CaptureFactory.CreateCapture(invocation);
-            await capture.Start();
-            return capture;
         }
 
         private Task<InvocationState> EnqueueRepeat(InvocationState repeat, InvocationResult result)

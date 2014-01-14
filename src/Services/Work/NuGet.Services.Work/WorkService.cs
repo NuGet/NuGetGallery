@@ -26,6 +26,7 @@ using NuGet.Services.ServiceModel;
 using NuGet.Services.Work.Api.Models;
 using NuGet.Services.Configuration;
 using NuGet.Services.Work.Models;
+using System.Threading;
 
 namespace NuGet.Services.Work
 {
@@ -123,8 +124,7 @@ namespace NuGet.Services.Work
 
         public IObservable<EventEntry> RunJob(string job, string payload)
         {
-            ReplaySubject<EventEntry> buffer = new ReplaySubject<EventEntry>();
-            _runner.Dispatch(
+            var invocation = 
                 new InvocationState(
                     new InvocationState.InvocationRow() {
                         Payload = payload,
@@ -137,17 +137,21 @@ namespace NuGet.Services.Work
                         UpdatedAt = DateTime.UtcNow,
                         QueuedAt = DateTime.UtcNow,
                         NextVisibleAt = DateTime.UtcNow + TimeSpan.FromMinutes(5)
-                    })).ContinueWith(t => {
-                        if (t.IsFaulted)
-                        {
-                            buffer.OnError(t.Exception);
-                        }
-                        else
-                        {
-                            buffer.OnCompleted();
-                        }
-                        return t;
                     });
+            var buffer = new ReplaySubject<EventEntry>();
+            var capture = new InvocationLogCapture(invocation);
+            capture.Subscribe(buffer.OnNext, buffer.OnError);
+            _runner.Dispatch(invocation, capture, CancellationToken.None).ContinueWith(t => {
+                if (t.IsFaulted)
+                {
+                    buffer.OnError(t.Exception);
+                }
+                else
+                {
+                    buffer.OnCompleted();
+                }
+                return t;
+            });
             return buffer;
         }
     }

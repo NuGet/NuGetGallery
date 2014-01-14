@@ -7,7 +7,6 @@ using Autofac;
 using NuGet.Services.Configuration;
 using NuGet.Services.ServiceModel;
 using NuGet.Services.Storage;
-using NuGet.Services.Work.Infrastructure;
 using NuGet.Services.Work.Monitoring;
 
 namespace NuGet.Services.Work
@@ -15,13 +14,11 @@ namespace NuGet.Services.Work
     public class JobComponentsModule : Module
     {
         private InvocationQueue _queue;
-        private InvocationLogCaptureFactory _captureFactory;
-
-        public JobComponentsModule() : this(null, null) { }
-        public JobComponentsModule(InvocationQueue queue, InvocationLogCaptureFactory captureFactory)
+        
+        public JobComponentsModule() : this(null) { }
+        public JobComponentsModule(InvocationQueue queue)
         {
             _queue = queue;
-            _captureFactory = captureFactory;
         }
 
         protected override void Load(ContainerBuilder builder)
@@ -37,15 +34,6 @@ namespace NuGet.Services.Work
                     typeof(ServiceInstanceName),
                     typeof(StorageHub),
                     typeof(ConfigurationHub));
-            }
-
-            if (_captureFactory != null)
-            {
-                builder.RegisterInstance(_captureFactory).As<InvocationLogCaptureFactory>();
-            }
-            else
-            {
-                builder.RegisterType<BlobInvocationLogCaptureFactory>().As<InvocationLogCaptureFactory>();
             }
         }
     }
