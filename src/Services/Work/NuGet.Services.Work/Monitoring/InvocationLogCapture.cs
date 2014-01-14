@@ -24,14 +24,15 @@ namespace NuGet.Services.Work.Monitoring
         public InvocationLogCapture(InvocationState invocation)
         {
             Invocation = invocation;
-        }
 
-        public virtual Task Start() {
             // Set up an event stream
             _listener = new ObservableEventListener();
             _eventStream = from events in _listener
                            where InvocationContext.GetCurrentInvocationId() == Invocation.Id
                            select events;
+        }
+
+        public virtual Task Start() {
             _listener.EnableEvents(InvocationEventSource.Log, EventLevel.Informational);
             return Task.FromResult<object>(null);
         }

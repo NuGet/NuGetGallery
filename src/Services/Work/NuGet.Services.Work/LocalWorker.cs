@@ -17,6 +17,7 @@ namespace NuGet.Services.Work
                     "work"));
             var service = new WorkService(host, InvocationQueue.Null);
             host.Services.Add(service);
+            await host.Initialize();
             if (!await host.Start())
             {
                 throw new InvalidOperationException(Strings.LocalWorker_FailedToStart);

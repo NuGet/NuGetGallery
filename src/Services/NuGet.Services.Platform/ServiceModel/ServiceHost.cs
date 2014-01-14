@@ -153,7 +153,10 @@ namespace NuGet.Services.ServiceModel
                 entry.InstancePort = instanceEp.Port;
             }
 
-            await Storage.Primary.Tables.Table<ServiceHostEntry>().InsertOrReplace(entry);
+            if (Storage != null && Storage.Primary != null)
+            {
+                await Storage.Primary.Tables.Table<ServiceHostEntry>().InsertOrReplace(entry);
+            }
         }
 
         /// <summary>
@@ -230,7 +233,7 @@ namespace NuGet.Services.ServiceModel
 
             // Report that we're starting the service
             var entry = new ServiceInstanceEntry(service.InstanceName, service.GetType().GetAssemblyInfo());
-            await Storage.Primary.Tables.Table<ServiceInstanceEntry>().InsertOrReplace(entry);
+            await UpdateServiceInstanceEntry(entry);
             
             // Start the service and return it if the start succeeds.
             ServicePlatformEventSource.Log.ServiceStarting(service.InstanceName);
@@ -247,7 +250,7 @@ namespace NuGet.Services.ServiceModel
 
             // Update the status entry
             entry.StartedAt = entry.LastHeartbeat = DateTimeOffset.UtcNow;
-            await Storage.Primary.Tables.Table<ServiceInstanceEntry>().InsertOrReplace(entry);
+            await UpdateServiceInstanceEntry(entry);
             
             // Because of the "throw" in the catch block, we won't arrive here unless successful
             ServicePlatformEventSource.Log.ServiceStarted(service.InstanceName);
@@ -257,6 +260,14 @@ namespace NuGet.Services.ServiceModel
                 return service;
             }
             return null;
+        }
+
+        private async Task UpdateServiceInstanceEntry(ServiceInstanceEntry entry)
+        {
+            if (Storage != null && Storage.Primary != null)
+            {
+                await Storage.Primary.Tables.Table<ServiceInstanceEntry>().InsertOrReplace(entry);
+            }
         }
     }
 }

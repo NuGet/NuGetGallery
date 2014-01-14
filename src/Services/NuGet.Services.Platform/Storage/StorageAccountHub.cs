@@ -9,13 +9,13 @@ namespace NuGet.Services.Storage
 {
     public class StorageAccountHub
     {
-        public CloudStorageAccount Account { get; private set; }
-        public string ConnectionString { get; private set; }
+        public virtual CloudStorageAccount Account { get; private set; }
+        public virtual string ConnectionString { get; private set; }
 
-        public TableStorageHub Tables { get; private set; }
-        public BlobStorageHub Blobs { get; private set; }
-        public QueueStorageHub Queues { get; private set; }
-        public string Name { get { return Account.Credentials.AccountName; } }
+        public virtual TableStorageHub Tables { get; private set; }
+        public virtual BlobStorageHub Blobs { get; private set; }
+        public virtual QueueStorageHub Queues { get; private set; }
+        public virtual string Name { get { return Account.Credentials.AccountName; } }
 
         public StorageAccountHub(CloudStorageAccount account)
         {

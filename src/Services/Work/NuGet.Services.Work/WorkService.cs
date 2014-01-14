@@ -69,7 +69,6 @@ namespace NuGet.Services.Work
 
         protected override Task OnRun()
         {
-            var queueConfig = Configuration.GetSection<QueueConfiguration>();
             _runner = Container.Resolve<JobRunner>();
             _runner.Heartbeat += (_, __) => Heartbeat();
 
@@ -124,6 +123,8 @@ namespace NuGet.Services.Work
 
         public IObservable<EventEntry> RunJob(string job, string payload)
         {
+            var runner = Container.Resolve<JobRunner>();
+            
             var invocation = 
                 new InvocationState(
                     new InvocationState.InvocationRow() {
@@ -141,7 +142,7 @@ namespace NuGet.Services.Work
             var buffer = new ReplaySubject<EventEntry>();
             var capture = new InvocationLogCapture(invocation);
             capture.Subscribe(buffer.OnNext, buffer.OnError);
-            _runner.Dispatch(invocation, capture, CancellationToken.None).ContinueWith(t => {
+            runner.Dispatch(invocation, capture, CancellationToken.None).ContinueWith(t => {
                 if (t.IsFaulted)
                 {
                     buffer.OnError(t.Exception);
