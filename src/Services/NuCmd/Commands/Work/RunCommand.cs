@@ -15,6 +15,7 @@ namespace NuCmd.Commands.Work
     public class RunCommand : Command
     {
         [ArgRequired()]
+        [ArgPosition(0)]
         [ArgShortcut("j")]
         [ArgDescription("The job to invoke")]
         public string Job { get; set; }
@@ -27,6 +28,14 @@ namespace NuCmd.Commands.Work
         [ArgDescription("A base64-encoded UTF8 payload string to use. Designed for command-line piping")]
         public string EncodedPayload { get; set; }
 
+        [ArgShortcut("c")]
+        [ArgDescription("The JSON dictionary configuration to provide to the job")]
+        public string Configuration { get; set; }
+
+        [ArgShortcut("ec")]
+        [ArgDescription("A base64-encoded UTF8 configuration string to use. Designed for command-line piping")]
+        public string EncodedConfiguration { get; set; }
+
         protected override async Task OnExecute()
         {
             if (!String.IsNullOrEmpty(EncodedPayload))
@@ -34,7 +43,14 @@ namespace NuCmd.Commands.Work
                 Payload = Encoding.UTF8.GetString(Convert.FromBase64String(EncodedPayload));
             }
 
-            var service = await LocalWorker.Create();
+            if (!String.IsNullOrEmpty(EncodedConfiguration))
+            {
+                Configuration = Encoding.UTF8.GetString(Convert.FromBase64String(EncodedConfiguration));
+            }
+
+            var configuration = InvocationPayloadSerializer.Deserialize(Configuration);
+
+            var service = await LocalWorker.Create(configuration);
 
             var tcs = new TaskCompletionSource<object>();
 
@@ -42,11 +58,28 @@ namespace NuCmd.Commands.Work
             await Console.WriteInfoLine(message);
             await Console.WriteInfoLine(new String('-', message.Length));
 
-            var observable = service.RunJob(Job, Payload);
-            observable.Subscribe(
-                evt => RenderEvent(evt).Wait(),
-                () => tcs.SetResult(null));
-            await tcs.Task;
+            Exception thrown = null;
+            try
+            {
+                var observable = service.RunJob(Job, Payload);
+                observable.Subscribe(
+                    evt => RenderEvent(evt).Wait(),
+                    ex => tcs.SetException(ex),
+                    () => tcs.SetResult(null));
+                await tcs.Task;
+            }
+            catch (AggregateException aex)
+            {
+                thrown = aex.InnerException;
+            }
+            catch (Exception ex)
+            {
+                thrown = ex;
+            }
+            if (thrown != null)
+            {
+                await Console.WriteErrorLine(thrown.ToString());
+            }
 
             message = String.Format(Strings.Work_RunCommand_Invoked, Job);
             await Console.WriteInfoLine(new String('-', message.Length));

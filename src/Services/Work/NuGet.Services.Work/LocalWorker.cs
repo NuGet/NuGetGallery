@@ -9,12 +9,18 @@ namespace NuGet.Services.Work
 {
     public static class LocalWorker
     {
-        public static async Task<WorkService> Create()
+        public static Task<WorkService> Create()
+        {
+            return Create(new Dictionary<string, string>());
+        }
+
+        public static async Task<WorkService> Create(IDictionary<string, string> configuration)
         {
             var host = new LocalServiceHost(
                 new ServiceHostName(
                     new DatacenterName("local", 0),
-                    "work"));
+                    "work"),
+                configuration);
             var service = new WorkService(host, InvocationQueue.Null);
             host.Services.Add(service);
             await host.Initialize();

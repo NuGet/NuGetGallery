@@ -166,7 +166,10 @@ namespace NuGet.Services.Work.Jobs
             {
                 // Start the copy
                 Log.StartingCopy(sourceBlob.Name, destBlob.Name);
-                var copyId = await destBlob.StartCopyFromBlobAsync(sourceBlob);
+                if (!WhatIf)
+                {
+                    await destBlob.StartCopyFromBlobAsync(sourceBlob);
+                }
                 Log.StartedCopy(sourceBlob.Name, destBlob.Name);
                 return destBlob;
             }
