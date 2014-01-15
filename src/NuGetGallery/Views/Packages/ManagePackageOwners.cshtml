@@ -55,9 +55,14 @@
                 addOwner: function () {
                     var newUsername = viewModel.newOwnerUsername();
 
+                    if (!newUsername) {
+                        viewModel.message("Please enter a valid user name.");
+                        return;
+                    }
+
                     var existingOwner = ko.utils.arrayFirst(
                         viewModel.owners(),
-                        function (owner) { return owner.name().toUpperCase() == newUsername.toUpperCase() });
+                        function (owner) { return owner.name().toUpperCase() == newUsername.toUpperCase() });                    
 
                     if (existingOwner) {
                         viewModel.message("The user '" + newUsername + "' is already an owner or pending owner of this package.");

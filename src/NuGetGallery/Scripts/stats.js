@@ -57,3 +57,11 @@ function animateEl(el, v) {
         $(this).html(v).css({ top: -0.8 * parseInt(parent.height()) }).animate({ top: 0 }, 350, 'linear');
     });
 }
+
+$(document).ready(function () {
+    var elem = document.getElementsByClassName("aggstats");
+    if (elem != null) {
+        getStats();
+    }
+
+});

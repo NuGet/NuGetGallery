@@ -62,6 +62,11 @@
             @Html.TextAreaFor(m => m.Message, 10, 50, null)
             @Html.ValidationMessageFor(m => m.Message, null, new { id = "report-abuse-message" })
         </div>
+        <div class="form-field" >
+            @Html.CheckBoxFor(m => m.CopySender)
+            @Html.LabelFor(m => m.CopySender, new { @class = "checkbox" })
+        </div>
+        <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
         @Html.SpamPreventionFields()
         <input id="form-submit" type="submit" value="Report" title="Report '@Model.PackageId' for abuse" />
     </fieldset>
@@ -77,7 +82,7 @@
                 $form.validate().element($('#Reason'));
             }
 
-            if (val === 'HasABug') {
+            if (val === 'HasABugOrFailedToInstall') {
                 $form.find("input, textarea, select").not('#form-field-reason *').attr('disabled', 'disabled');
             } else {
                 $form.find("input, textarea, select").not('#form-field-reason').removeAttr('disabled');

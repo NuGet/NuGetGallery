@@ -189,7 +189,7 @@
                         </div>
                     }
 
-                    <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
+                    <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
 
                     <input type="submit" value="Save" title="Change email address" />
                 </fieldset>
@@ -313,7 +313,7 @@
                     }
                 </text>,
                 content: @<p>
-                    You can use this Microsoft Account to sign in to NuGet.org
+                    You can use this Microsoft account to sign in to NuGet.org
                 </p>)
         }
     }
@@ -335,9 +335,9 @@
                     using (Html.BeginForm("RemovePassword", "Users", FormMethod.Post, new { @class = "form-inline" }))
                     {
                         <fieldset class="form">
-                            <legend>Remove Password</legend>
+                            <legend>Disable Password Login</legend>
                             @Html.AntiForgeryToken()
-                            <button class="btn btn-inline s-confirm" type="submit" data-confirm="Are you sure you want to remove your password? This is an irreversable action!">Remove</button>
+                            <button class="btn btn-inline s-confirm" type="submit" data-confirm="Are you sure you want to disable password login and remove your password? This is an irreversable action!">Disable</button>
                         </fieldset>
                     }
                 }
@@ -347,7 +347,7 @@
                 using (Html.BeginForm("ChangePassword", "Users", FormMethod.Post, new { @class = "form-inline" }))
                 {
                     <fieldset class="form">
-                        <legend>Enable Password</legend>
+                        <legend>Enable Password Login</legend>
                         @Html.AntiForgeryToken()
                         <button class="btn btn-inline" type="submit">Enable</button>
                     </fieldset>
@@ -374,7 +374,7 @@
                         @Html.ValidationMessageFor(m => m.ChangePassword.NewPassword)
                     </div>
 
-                    <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
+                    <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
 
                     <input type="submit" value="Change" title="Change password" />
                 </fieldset>

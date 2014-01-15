@@ -7,6 +7,7 @@ using System.Web;
 using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using NuGetGallery.Authentication;
+using Glimpse.AspNet.AlternateType;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
@@ -30,8 +31,7 @@ namespace NuGetGallery
         {
             string subject = "[{GalleryOwnerName}] Support Request for '{Id}' version {Version} (Reason: {Reason})";
             subject = request.FillIn(subject, Config);
-
-            const string bodyTemplateUnauthenticated = @"
+            const string bodyTemplate = @"
 **Email:** {Name} ({Address})
 
 **Package:** {Id}
@@ -39,9 +39,7 @@ namespace NuGetGallery
 
 **Version:** {Version}
 {VersionUrl}
-
-**Owners:**
-{OwnerList}
+{User}
 
 **Reason:**
 {Reason}
@@ -53,34 +51,6 @@ namespace NuGetGallery
 {Message}
 ";
 
-            const string bodyTemplateAuthenticated = @"
-**Email:** {Name} ({Address})
-
-**Package:** {Id}
-{PackageUrl}
-
-**Version:** {Version}
-{VersionUrl}
-
-**Owners:**
-{OwnerList}
-
-**User:** {Username} ({UserAddress})
-{UserUrl}
-
-**Reason:**
-{Reason}
-
-**Has the package owner been contacted?:**
-{AlreadyContactedOwners}
-
-**Message:**
-{Message}
-";
-
-            string bodyTemplate = request.RequestingUser != null ?
-                bodyTemplateAuthenticated :
-                bodyTemplateUnauthenticated;
 
             var body = new StringBuilder("");
             body.Append(request.FillIn(bodyTemplate, Config));
@@ -94,7 +64,14 @@ namespace NuGetGallery
                 mailMessage.Body = body.ToString();
                 mailMessage.From = Config.GalleryOwner;
                 mailMessage.ReplyToList.Add(request.FromAddress);
-                mailMessage.To.Add(mailMessage.From);
+                mailMessage.To.Add(Config.GalleryOwner);
+                if (request.CopySender)
+                {
+                    // Normally we use a second email to copy the sender to avoid disclosing the receiver's address
+                    // but here, the receiver is the gallery operators who already disclose their address
+                    // CCing helps to create a thread of email that can be augmented by the sending user
+                    mailMessage.CC.Add(request.FromAddress);
+                }
                 SendMessage(mailMessage);
             }
         }
@@ -112,12 +89,7 @@ namespace NuGetGallery
 
 **Version:** {Version}
 {VersionUrl}
-
-**Owners:**
-{OwnerList}
-
-**User:** {Username} ({UserAddress})
-{UserUrl}
+{User}
 
 **Reason:**
 {Reason}
@@ -139,11 +111,18 @@ namespace NuGetGallery
                 mailMessage.From = Config.GalleryOwner;
                 mailMessage.ReplyToList.Add(request.FromAddress);
                 mailMessage.To.Add(Config.GalleryOwner);
+                if (request.CopySender)
+                {
+                    // Normally we use a second email to copy the sender to avoid disclosing the receiver's address
+                    // but here, the receiver is the gallery operators who already disclose their address
+                    // CCing helps to create a thread of email that can be augmented by the sending user
+                    mailMessage.CC.Add(request.FromAddress);
+                }
                 SendMessage(mailMessage);
             }
         }
 
-        public void SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl)
+        public void SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl, bool copySender)
         {
             string subject = "[{0}] Message for owners of the package '{1}'";
             string body = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '{2}'._
@@ -176,9 +155,10 @@ namespace NuGetGallery
                 mailMessage.ReplyToList.Add(fromAddress);
 
                 AddOwnersToMailMessage(packageRegistration, mailMessage);
+
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage);
+                    SendMessage(mailMessage, copySender);
                 }
             }
         }
@@ -377,11 +357,27 @@ The {3} Team";
             }
         }
 
-        private void SendMessage(MailMessage mailMessage)
+        private void SendMessage(MailMessage mailMessage, bool copySender = false)
         {
             try
             {
                 MailSender.Send(mailMessage);
+                if (copySender)
+                {
+                    var senderCopy = new MailMessage(
+                        Config.GalleryOwner,
+                        mailMessage.ReplyToList.First()) {
+                        Subject = mailMessage.Subject + " [Sender Copy]",
+                        Body = String.Format(
+                            CultureInfo.CurrentCulture,
+                            "You sent the following message via {0}: {1}{1}{2}",
+                            Config.GalleryOwner.DisplayName, 
+                            Environment.NewLine, 
+                            mailMessage.Body),
+                    };
+                    senderCopy.ReplyToList.Add(mailMessage.ReplyToList.First());
+                    MailSender.Send(senderCopy);
+                }
             }
             catch (SmtpException ex)
             {
