@@ -23,9 +23,7 @@ namespace NuGetGallery
             if (String.IsNullOrWhiteSpace(Url) ||
                 !context.RequestContext.HttpContext.Request.IsUrlLocalToHost(Url) ||
                 Url.Length <= 1 ||
-                !Url.StartsWith("/", StringComparison.Ordinal) ||
-                !Url.StartsWith("//", StringComparison.Ordinal) ||
-                !Url.StartsWith("/\\", StringComparison.Ordinal))
+                IsValidLocalUrl(Url))
             {
                 // Redirect to the safe url
                 new RedirectResult(SafeUrl).ExecuteResult(context);
@@ -35,5 +33,21 @@ namespace NuGetGallery
                 new RedirectResult(Url).ExecuteResult(context);
             }
         }
+
+        private static bool IsValidLocalUrl(string Url)
+        {
+            if (!(Url.StartsWith("/", StringComparison.Ordinal) ||
+                Url.StartsWith("//", StringComparison.Ordinal) ||
+                Url.StartsWith("/\\", StringComparison.Ordinal)))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }
+
+
