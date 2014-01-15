@@ -155,6 +155,7 @@
     <Compile Include="Infrastructure\InvocationContext.cs" />
     <Compile Include="Infrastructure\UnknownJobException.cs" />
     <Compile Include="JobComponentsModule.cs" />
+    <Compile Include="Jobs\AggregateStatisticsJob.cs" />
     <Compile Include="Jobs\BackupPackageBlobsJob.cs" />
     <Compile Include="Jobs\CleanOnlineDatabaseBackupsJob.cs" />
     <Compile Include="Jobs\Bases\DatabaseJobHandlerBase.cs" />
