@@ -109,6 +109,7 @@
 /* Messages on package page (Display Package) */
 
 .pending-edit-message,
+.failed-edit-message,
 .prerelease-message,
 .not-latest-message {
     -moz-border-radius: 5px 5px 5px 5px;
