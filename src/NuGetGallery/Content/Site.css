@@ -497,6 +497,10 @@ fieldset.search {
     padding: 0;
 }
 
+#owners-subheader {
+    font-size: 1em;
+}
+
 /* List Package */
 
 section.package {
