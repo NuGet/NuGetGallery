@@ -86,7 +86,7 @@ namespace NuGetGallery
             if (linkingAccount)
             {
                 // Link with an external account
-                user = await AssociateCredential(user, returnUrl);
+                user = await AssociateCredential(user);
                 if (user == null)
                 {
                     return ExternalLinkExpired();
@@ -250,7 +250,7 @@ namespace NuGetGallery
             return RedirectToAction(MVC.Users.Thanks());
         }
 
-        private async Task<AuthenticatedUser> AssociateCredential(AuthenticatedUser user, string returnUrl)
+        private async Task<AuthenticatedUser> AssociateCredential(AuthenticatedUser user)
         {
             var result = await AuthService.ReadExternalLoginCredential(OwinContext);
             if (result.ExternalIdentity == null)

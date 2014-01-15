@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
+using System.Net.Mail;
 using System.Reflection;
 using System.Security.Principal;
 using System.Text;
@@ -10,6 +11,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
+using NuGet;
 
 namespace NuGetGallery
 {

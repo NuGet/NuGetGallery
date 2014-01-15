@@ -344,6 +344,7 @@ namespace NuGetGallery
                 ReasonChoices = ReportOtherPackageReasons,
                 PackageId = id,
                 PackageVersion = package.Version,
+                CopySender = true,
             };
 
             if (Request.IsAuthenticated)
@@ -399,6 +400,7 @@ namespace NuGetGallery
                 ConfirmedUser = user.Confirmed,
                 PackageId = id,
                 PackageVersion = package.Version,
+                CopySender = true,
             };
 
             return View(model);
@@ -443,7 +445,8 @@ namespace NuGetGallery
                 Package = package,
                 Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
                 RequestingUser = user,
-                Url = Url
+                Url = Url,
+                CopySender = reportForm.CopySender
             };
             _messageService.ReportAbuse(request
                 );
@@ -484,7 +487,8 @@ namespace NuGetGallery
                     Package = package,
                     Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
                     RequestingUser = user,
-                    Url = Url
+                    Url = Url,
+                    CopySender = reportForm.CopySender
                 });
 
             TempData["Message"] = "Your support request has been sent to the gallery operators.";
@@ -505,7 +509,8 @@ namespace NuGetGallery
             var model = new ContactOwnersViewModel
             {
                 PackageId = package.Id,
-                Owners = package.Owners.Where(u => u.EmailAllowed)
+                Owners = package.Owners.Where(u => u.EmailAllowed),
+                CopySender = true,
             };
 
             return View(model);
@@ -534,7 +539,7 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);
             _messageService.SendContactOwnersMessage(
-                fromAddress, package, contactForm.Message, Url.Action(MVC.Users.Account(), protocol: Request.Url.Scheme));
+                fromAddress, package, contactForm.Message, Url.Action(MVC.Users.Account(), protocol: Request.Url.Scheme), contactForm.CopySender);
 
             string message = String.Format(CultureInfo.CurrentCulture, "Your message has been sent to the owners of {0}.", id);
             TempData["Message"] = message;
