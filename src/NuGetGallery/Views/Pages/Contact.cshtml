@@ -35,4 +35,19 @@
     <p>
         For support and general discussions we have the NuGet <a href="http://nuget.codeplex.com/discussions">discussion boards</a>.
     </p>
+    <p>
+        Need help with your NuGet.org account? Please feel free to <span id="emailUs"></span>
+    </p>
 </article>
+
+@section BottomScripts {
+    <script type="text/javascript">
+        $(function () {
+            var part1 = "support";
+            var part2 = "nuget.org";
+            var part3 = "email us";
+            var link = $("<a>").attr("href", "mailto:" + part1 + "@@" + part2).text(part3);
+            $("#emailUs").append(link);
+        });
+    </script>
+}
