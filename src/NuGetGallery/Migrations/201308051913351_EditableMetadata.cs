@@ -8,7 +8,7 @@ namespace NuGetGallery.Migrations
         public override void Up()
         {
             CreateTable(
-                "PackageEdits",
+                "dbo.PackageEdits",
                 c => new
                     {
                         Key = c.Int(nullable: false, identity: true),
@@ -35,7 +35,7 @@ namespace NuGetGallery.Migrations
                 .Index(t => t.UserKey);
             
             CreateTable(
-                "PackageHistories",
+                "dbo.PackageHistories",
                 c => new
                     {
                         Key = c.Int(nullable: false, identity: true),
