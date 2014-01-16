@@ -163,7 +163,7 @@
             </fieldset>
         }
     }
-    @if (Model.HasEditFailures)
+    @if (Model.IsLastEditFailed)
     {
         <p class="failed-edit-message">
             Your last edit to this package was not successfully applied. 
