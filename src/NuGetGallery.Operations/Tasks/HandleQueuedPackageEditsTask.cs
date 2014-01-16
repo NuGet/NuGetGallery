@@ -27,12 +27,10 @@ namespace NuGetGallery.Operations.Tasks
             // 1) Backup all old NUPKGS
             // 2) Generate all new NUPKGs (in place), and tell gallery the edit is completed
             var connectionString = ConnectionString.ConnectionString;
-            var storageAccount = StorageAccount;
-
+            
             // We group edits together by their package key and process them together - this is a read-only operation
             var entitiesContext = new EntitiesContext(connectionString, readOnly: true);
             var editsPerPackage = entitiesContext.Set<PackageEdit>()
-                .Where(pe => pe.TriedCount < 3)
                 .GroupBy(pe => pe.PackageKey);
 
             // Now that we have our list of packages with pending edits, we'll process the pending edits for each
@@ -41,32 +39,32 @@ namespace NuGetGallery.Operations.Tasks
             // b) we don't want multithreaded usage of the entitiesContext (and its implied transactions)!
             foreach (IGrouping<int, PackageEdit> editsGroup in editsPerPackage)
             {
-                ProcessPackageEdits(editsGroup.Key);
+                if (editsGroup.Any((pe => pe.TriedCount < 3)))
+                {
+                    ProcessPackageEdits(editsGroup.Key, editsGroup);
+                }
             }
         }
 
-        private void ProcessPackageEdits(int packageKey)
+        private void ProcessPackageEdits(int packageKey, IEnumerable<PackageEdit> editsToDelete)
         {
             // Create a fresh entities context so that we work in isolation
             var entitiesContext = new EntitiesContext(ConnectionString.ConnectionString, readOnly: false);
 
-            // Get the list of edits for this package
-            // Do edit with a 'most recent edit to this package wins - other edits are deleted' strategy.
-            var editsForThisPackage = entitiesContext.Set<PackageEdit>()
+            // Get the most recent edit for this package
+            var edit = entitiesContext.Set<PackageEdit>()
                 .Where(pe => pe.PackageKey == packageKey && pe.TriedCount < 3)
                 .Include(pe => pe.Package)
                 .Include(pe => pe.Package.PackageRegistration)
                 .Include(pe => pe.User)
                 .OrderByDescending(pe => pe.Timestamp)
-                .ToList();
+                .First();
 
             // List of Work to do:
             // 1) Backup old blob, if the original has not been backed up yet
             // 2) Downloads blob, create new NUPKG locally
             // 3) Upload blob
             // 4) Update the database
-            PackageEdit edit = editsForThisPackage.First();
-
             var blobClient = StorageAccount.CreateCloudBlobClient();
             var packagesContainer = Util.GetPackagesBlobContainer(blobClient);
 
@@ -104,7 +102,7 @@ namespace NuGetGallery.Operations.Tasks
                 int nr = entitiesContext.SaveChanges();
                 if (nr != 1)
                 {
-                    throw new ApplicationException(
+                    throw new Exception(
                         String.Format("Something went terribly wrong, only one entity should be updated but actually {0} entities were updated", nr));
                 }
             }
@@ -137,7 +135,7 @@ namespace NuGetGallery.Operations.Tasks
 
                         // Build up the changes in the entities context
                         edit.Apply(hashAlgorithm: "SHA512", hash: newHash, packageFileSize: newPackageFileSize);
-                        foreach (var eachEdit in editsForThisPackage)
+                        foreach (var eachEdit in editsToDelete)
                         {
                             entitiesContext.DeleteOnCommit(eachEdit);
                         }

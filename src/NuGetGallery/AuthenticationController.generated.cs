@@ -41,6 +41,11 @@ namespace NuGetGallery {
         public System.Web.Mvc.ActionResult LogOff() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.LogOff);
         }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult Authenticate() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.Authenticate);
+        }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public AuthenticationController Actions { get { return MVC.Authentication; } }
@@ -56,6 +61,7 @@ namespace NuGetGallery {
         public class ActionNamesClass {
             public readonly string LogOn = "LogOn";
             public readonly string LogOff = "LogOff";
+            public readonly string Authenticate = "Authenticate";
         }
 
 
@@ -64,6 +70,8 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
+            public readonly string _Register = "~/Views/Authentication/_Register.cshtml";
+            public readonly string _SignIn = "~/Views/Authentication/_SignIn.cshtml";
             public readonly string LogOn = "~/Views/Authentication/LogOn.cshtml";
         }
     }
@@ -78,16 +86,16 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult LogOn(NuGetGallery.SignInRequest request, string returnUrl) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LogOn);
-            callInfo.RouteValueDictionary.Add("request", request);
+        public override System.Web.Mvc.ActionResult LogOff(string returnUrl) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LogOff);
             callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult LogOff(string returnUrl) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LogOff);
+        public override System.Web.Mvc.ActionResult Authenticate(string returnUrl, string provider) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Authenticate);
             callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
+            callInfo.RouteValueDictionary.Add("provider", provider);
             return callInfo;
         }
 

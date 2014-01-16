@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Data.Entity;
+using Xunit;
 
 namespace NuGetGallery
 {
     public class FakeEntitiesContext : IEntitiesContext
     {
-        Dictionary<Type, object> dbSets = new Dictionary<Type,object>();
+        private Dictionary<Type, object> dbSets = new Dictionary<Type,object>();
+        private bool areChangesSaved;
 
         public IDbSet<CuratedFeed> CuratedFeeds
         {
@@ -45,6 +47,30 @@ namespace NuGetGallery
             }
         }
 
+        public IDbSet<Package> Packages
+        {
+            get
+            {
+                return Set<Package>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        public IDbSet<Credential> Credentials
+        {
+            get
+            {
+                return Set<Credential>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public IDbSet<User> Users
         {
             get
@@ -59,6 +85,7 @@ namespace NuGetGallery
 
         public int SaveChanges()
         {
+            areChangesSaved = true;
             return 0;
         }
 
@@ -76,5 +103,11 @@ namespace NuGetGallery
         {
             ((FakeDbSet<T>)(Set<T>())).Remove(entity);
         }
+
+        public void VerifyCommitChanges()
+        {
+            Assert.True(areChangesSaved, "SaveChanges() has not been called on the entity context.");
+        }
     }
 }
+

@@ -31,7 +31,8 @@ namespace NuGetGallery.DataServices
                 var actual = projected.Single();
                 Assert.Equal("Hitchhikers.Guide", actual.Id);
                 Assert.Equal(420000, actual.DownloadCount);
-                Assert.Equal("4.2.0-harmless", actual.Version);
+                Assert.Equal("04.02-harmless", actual.Version);
+                Assert.Equal("4.2.0-harmless", actual.NormalizedVersion);
                 Assert.Equal("Life, The Universe, Everything", actual.Authors);
                 Assert.Equal("Megadodo Publications", actual.Copyright);
                 Assert.Equal(new DateTime(1971, 4, 2), actual.Created);
@@ -137,7 +138,8 @@ namespace NuGetGallery.DataServices
                     Id = "Hitchhikers.Guide",
                     DownloadCount = 420000
                 },
-                Version = "4.2.0-harmless",
+                Version = "04.02-harmless",
+                NormalizedVersion = "4.2.0-harmless",
                 FlattenedAuthors = "Life, The Universe, Everything",
                 Copyright = "Megadodo Publications",
                 Created = new DateTime(1971, 4, 2),

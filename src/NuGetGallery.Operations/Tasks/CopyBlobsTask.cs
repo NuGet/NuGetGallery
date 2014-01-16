@@ -65,7 +65,7 @@ namespace NuGetGallery.Operations
                 Log, 
                 sourceContainer, 
                 Prefix ?? String.Empty, 
-                condition: b => (!PackageBlobsOnly || (!b.Name.StartsWith("/") && String.Equals(b.Name.ToLowerInvariant(), b.Name, StringComparison.Ordinal))),
+                condition: b => (!PackageBlobsOnly || (!b.Name.StartsWith("/", StringComparison.Ordinal) && String.Equals(b.Name.ToLowerInvariant(), b.Name, StringComparison.Ordinal))),
                 countEstimate: 140000);
             var count = blobs.Count;
             int index = 0;

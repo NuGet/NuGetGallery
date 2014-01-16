@@ -33,8 +33,13 @@ namespace NuGetGallery {
 
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult Confirm() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.Confirm);
+        public System.Web.Mvc.ActionResult ChangeEmailSubscription() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.ChangeEmailSubscription);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult ResetPassword() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.ResetPassword);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
@@ -54,19 +59,16 @@ namespace NuGetGallery {
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
+            public readonly string ConfirmationRequired = "ConfirmationRequired";
+            public readonly string ConfirmationRequiredPost = "ConfirmationRequired";
             public readonly string Account = "Account";
-            public readonly string Edit = "Edit";
-            public readonly string Register = "Register";
+            public readonly string ChangeEmailSubscription = "ChangeEmailSubscription";
             public readonly string Thanks = "Thanks";
             public readonly string Packages = "Packages";
-            public readonly string GenerateApiKey = "GenerateApiKey";
             public readonly string ForgotPassword = "ForgotPassword";
-            public readonly string ResendConfirmation = "ResendConfirmation";
             public readonly string PasswordSent = "PasswordSent";
             public readonly string ResetPassword = "ResetPassword";
-            public readonly string Confirm = "Confirm";
             public readonly string Profiles = "Profiles";
-            public readonly string ChangePassword = "ChangePassword";
             public readonly string PasswordChanged = "PasswordChanged";
         }
 
@@ -77,16 +79,13 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
             public readonly string Account = "~/Views/Users/Account.cshtml";
-            public readonly string ChangePassword = "~/Views/Users/ChangePassword.cshtml";
             public readonly string Confirm = "~/Views/Users/Confirm.cshtml";
-            public readonly string Edit = "~/Views/Users/Edit.cshtml";
+            public readonly string ConfirmationRequired = "~/Views/Users/ConfirmationRequired.cshtml";
             public readonly string ForgotPassword = "~/Views/Users/ForgotPassword.cshtml";
             public readonly string Packages = "~/Views/Users/Packages.cshtml";
             public readonly string PasswordChanged = "~/Views/Users/PasswordChanged.cshtml";
             public readonly string PasswordSent = "~/Views/Users/PasswordSent.cshtml";
             public readonly string Profiles = "~/Views/Users/Profiles.cshtml";
-            public readonly string Register = "~/Views/Users/Register.cshtml";
-            public readonly string ResendConfirmation = "~/Views/Users/ResendConfirmation.cshtml";
             public readonly string ResetPassword = "~/Views/Users/ResetPassword.cshtml";
             public readonly string Thanks = "~/Views/Users/Thanks.cshtml";
         }
@@ -96,30 +95,24 @@ namespace NuGetGallery {
     public class T4MVC_UsersController: NuGetGallery.UsersController {
         public T4MVC_UsersController() : base(Dummy.Instance) { }
 
+        public override System.Web.Mvc.ActionResult ConfirmationRequired() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmationRequired);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult ConfirmationRequiredPost() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmationRequiredPost);
+            return callInfo;
+        }
+
         public override System.Web.Mvc.ActionResult Account() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Account);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult Edit() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Edit(NuGetGallery.EditProfileViewModel profile) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
-            callInfo.RouteValueDictionary.Add("profile", profile);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Register() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Register);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Register(NuGetGallery.RegisterRequest request) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Register);
-            callInfo.RouteValueDictionary.Add("request", request);
+        public override System.Web.Mvc.ActionResult ChangeEmailSubscription(bool subscribe) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ChangeEmailSubscription);
+            callInfo.RouteValueDictionary.Add("subscribe", subscribe);
             return callInfo;
         }
 
@@ -133,30 +126,8 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult GenerateApiKey() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.GenerateApiKey);
-            return callInfo;
-        }
-
         public override System.Web.Mvc.ActionResult ForgotPassword() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ForgotPassword);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult ForgotPassword(NuGetGallery.ForgotPasswordViewModel model) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ForgotPassword);
-            callInfo.RouteValueDictionary.Add("model", model);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult ResendConfirmation() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ResendConfirmation);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult ResendConfirmation(NuGetGallery.ResendConfirmationEmailViewModel model) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ResendConfirmation);
-            callInfo.RouteValueDictionary.Add("model", model);
             return callInfo;
         }
 
@@ -165,40 +136,15 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ResetPassword() {
+        public override System.Web.Mvc.ActionResult ResetPassword(bool forgot) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ResetPassword);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult ResetPassword(string username, string token, NuGetGallery.PasswordResetViewModel model) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ResetPassword);
-            callInfo.RouteValueDictionary.Add("username", username);
-            callInfo.RouteValueDictionary.Add("token", token);
-            callInfo.RouteValueDictionary.Add("model", model);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Confirm(string username, string token) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Confirm);
-            callInfo.RouteValueDictionary.Add("username", username);
-            callInfo.RouteValueDictionary.Add("token", token);
+            callInfo.RouteValueDictionary.Add("forgot", forgot);
             return callInfo;
         }
 
         public override System.Web.Mvc.ActionResult Profiles(string username) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Profiles);
             callInfo.RouteValueDictionary.Add("username", username);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult ChangePassword() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ChangePassword);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult ChangePassword(NuGetGallery.PasswordChangeViewModel model) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ChangePassword);
-            callInfo.RouteValueDictionary.Add("model", model);
             return callInfo;
         }
 

@@ -9,6 +9,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery.Operations.Common;
 using NuGetGallery.Infrastructure;
+using Dapper;
 
 namespace NuGetGallery.Operations
 {
@@ -59,10 +60,21 @@ namespace NuGetGallery.Operations
         }
     }
 
+    public abstract class DiagnosticsStorageTask : StorageTaskBase
+    {
+        protected override CloudStorageAccount GetStorageAccountFromEnvironment(DeploymentEnvironment environment)
+        {
+            return environment.DiagnosticsStorage;
+        }
+    }
+
     public abstract class DatabaseTaskBase : OpsTask
     {
         [Option("Connection string to the relevant database server", AltName = "db")]
         public SqlConnectionStringBuilder ConnectionString { get; set; }
+
+        [Option("Instead of -db, use this parameter to connect to a SQL LocalDb database of the specified name", AltName="ldb")]
+        public string LocalDbName { get; set; }
 
         protected string ServerName { get { return Util.GetDatabaseServerName(ConnectionString); } }
 
@@ -72,9 +84,23 @@ namespace NuGetGallery.Operations
             base.ValidateArguments();
 
             // Load defaults from environment
-            if (CurrentEnvironment != null && ConnectionString == null)
+            if(ConnectionString == null) {
+                if (CurrentEnvironment != null)
+                {
+                    ConnectionString = GetConnectionFromEnvironment(CurrentEnvironment);
+                }
+            }
+            
+            // Local Db Name overrides others
+            if (!String.IsNullOrEmpty(LocalDbName))
             {
-                ConnectionString = GetConnectionFromEnvironment(CurrentEnvironment);
+                ConnectionString = new SqlConnectionStringBuilder()
+                {
+                    DataSource = @"(LocalDB)\v11.0",
+                    IntegratedSecurity = true,
+                    InitialCatalog = LocalDbName
+                };
+                Log.Info("Using LocalDB connection: {0}", ConnectionString.ConnectionString);
             }
 
             ArgCheck.RequiredOrConfig(ConnectionString, "ConnectionString");
@@ -116,6 +142,42 @@ namespace NuGetGallery.Operations
             {
                 return act(c, e);
             }
+        }
+
+        protected static void WithTableType(SqlConnection connection, string name, string definition, Action act)
+        {
+            try
+            {
+                // Create the table-valued parameter type
+                connection.Execute(String.Format(@"
+                        IF EXISTS (
+                            SELECT * 
+                            FROM sys.types 
+                            WHERE is_table_type = 1 
+                            AND name = '{0}'
+                        )
+                        BEGIN
+                            DROP TYPE {0}
+                        END
+                        CREATE TYPE {0} AS TABLE ({1})", name, definition));
+
+                act();
+            }
+            finally
+            {
+                // Clean up the table-valued parameter type
+                connection.Execute(String.Format(@"
+                        IF EXISTS (
+                            SELECT * 
+                            FROM sys.types 
+                            WHERE is_table_type = 1 
+                            AND name = '{0}'
+                        )
+                        BEGIN
+                            DROP TYPE {0}
+                        END", name));
+            }
+
         }
 
         protected SqlConnection OpenConnection()
@@ -169,22 +231,30 @@ namespace NuGetGallery.Operations
         protected abstract void ExecuteCommandCore(MigratorBase migrator);
     }
 
-    public abstract class DatabaseAndStorageTask : StorageTask
+    public abstract class DatabaseAndStorageTask : DatabaseTask
     {
-        [Option("Connection string to the database server", AltName = "db")]
-        public SqlConnectionStringBuilder ConnectionString { get; set; }
+        [Option("The connection string to the storage server", AltName = "st")]
+        public CloudStorageAccount StorageAccount { get; set; }
+
+        protected string StorageAccountName
+        {
+            get { return StorageAccount.Credentials.AccountName; }
+        }
+
+        protected CloudBlobClient CreateBlobClient()
+        {
+            return StorageAccount.CreateCloudBlobClient();
+        }
 
         public override void ValidateArguments()
         {
             base.ValidateArguments();
 
-            // Load defaults from environment
-            if (CurrentEnvironment != null && ConnectionString == null)
+            if (CurrentEnvironment != null && StorageAccount == null)
             {
-                ConnectionString = CurrentEnvironment.MainDatabase;
+                StorageAccount = CurrentEnvironment.MainStorage;
             }
-
-            ArgCheck.RequiredOrConfig(ConnectionString, "ConnectionString");
+            ArgCheck.RequiredOrConfig(StorageAccount, "StorageAccount");
         }
     }
 

@@ -270,7 +270,7 @@ namespace NuGetGallery.Operations.Tasks
 
                 DataTable licensesNames = new DataTable();
                 licensesNames.Columns.Add("Name", typeof(string));
-                foreach (string license in report.Licenses)
+                foreach (string license in report.Licenses.Select(l => l.Trim()).Distinct(StringComparer.OrdinalIgnoreCase))
                 {
                     licensesNames.Rows.Add(license);
                 }

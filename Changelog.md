@@ -1,3 +1,59 @@
+#January 2, 2014
+
+Improved our detection algorithm for packages in the WebMatrix custom feed, included additional validation for package upload using the Gallery website, and made the experience for validation errors in the contact pages more consistent.  This iteration also included a number of other small user interface changes; see [I6 -12/06 QA - 01/02 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=38&page=1&state=closed) for details.
+
+
+
+#Dec 6, 2013
+
+Added support for Microsoft account login.  Also fixes a number of UI issues.  See [I5 -11/14 QA - 12/06 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=37&page=1&state=closed) for details.
+
+
+#Nov 14, 2013
+
+Bug fixes in a number of UI components, removing offensive terms, and removing the FriendlyLicenseNames configuration setting. Also fixes endless cycle of re-prompting for credentials in the client.  [I4 -11/1 QA - 11/14 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=36&page=1&state=closed)
+
+#Nov 1,2013
+
+Bug fixes in new user registration, stats, search indexing and "Manage my packages" page. Complete list can be found here: [I3 -10/18 QA - 11/1 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=35&page=1&state=closed)
+
+#Oct 19,2013
+
+### OAuth Phase 1
+
+The back end changes to support OAuth in NuGet Gallery.
+
+### Other bug fixes
+
+Complete list can be found here: [10/04 - QA (10/18 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=34&page=1&state=closed)
+
+#Oct 9,2013
+
+### Friendly License Names
+
+NuGet Gallery will now display the list of license names for a package in addition to simply providing a link to the license text. The big idea behind this feature is that it will aid in the decision making process over whether or not to use a package.
+More details [here.](http://blog.nuget.org/20131011/friendly-license-names.html)
+
+### Simplified user registration
+
+New user registration workflow has been simplified with this deployment. Going forward, users don't have to confirm email for signing in. Email comfirmation can be done anytime before uploading a package.
+
+### Normalized package versions
+
+The package versions will be normalized in the package display page. For example, for a package with version "1.0", the version will be displayed as "1.0.0".
+The normalized version will be displayed in the "Verify package details" page while uploading a new package. This avoids the issue where packages with version "1.1" and "1.1.0" co-exists in the Gallery.
+
+### Other bug fixes
+
+Other bug fixes in Glimpse integration and OData feed.Complete list can be found here: [09/20 - QA (10/09 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=33&state=closed)
+
+
+#Sep 19, 2013
+
+### Edit package and other bug fixes
+
+A bunch of fixes around Edit package and expandable search box. Complete list can be found here: [09/6 - QA (09/19 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=32&page=1&state=closed)
+
 #Sep 3, 2013
 
 ### Edit Package

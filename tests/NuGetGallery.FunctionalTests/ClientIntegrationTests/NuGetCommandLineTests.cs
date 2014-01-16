@@ -68,7 +68,7 @@ namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
                 File.Delete(packageFullPath);
                 Directory.Delete(Path.GetFullPath(Path.GetDirectoryName(packageFullPath)), true);
             }
-
+            System.Threading.Thread.Sleep(30000);
             AssertAndValidationHelper.DownloadPackageAndVerify(packageId);
         }
 

@@ -64,7 +64,7 @@ function Set-Environment {
         throw "Unknown Parameter Set: $($PsCmdlet.ParameterSetName)"
     }
 
-    Write-Host "Downloading Configuration for $($CurrentEnvironment.Name) environment"
+    Write-Host "Setting Current Environment to $($CurrentEnvironment.Name)"
 
     # Check for the subscription
     $subName = $CurrentEnvironment.Subscription
@@ -72,44 +72,18 @@ function Set-Environment {
         $subName = $subName.Name;
     }
 
-    try {
-        Get-AzureSubscription $subName | Out-Null
-    } catch {
-        throw "You need to register the subscription: $subName. Use New-PublishSettingsFile to generate a publish settings file, or Import-PublishSettingsFile if you already have one for this subscription"
+    Select-AzureSubscription $subName;
+
+    if(_IsProduction) {
+        $Global:OldBgColor = $Host.UI.RawUI.BackgroundColor
+        $Host.UI.RawUI.BackgroundColor = "DarkRed"
+        _RefreshGitColors
+        Write-Warning "You are attached to the PRODUCTION Environment. Use caution!"
+    } else {
+        if($Global:OldBgColor) {
+            $Host.UI.RawUI.BackgroundColor = $Global:OldBgColor
+            del variable:\OldBgColor
+        }
+        _RefreshGitColors
     }
-
-    RunInSubscription $CurrentEnvironment.Subscription.Name {
-        
-        Write-Host "Downloading Configuration for Frontend..."
-        $frontend = $null;
-        if($CurrentEnvironment.Type -eq "website") {
-            $frontend = Get-AzureWebsite -Name $CurrentEnvironment.Frontend
-        } elseif($CurrentEnvironment.Type -eq "webrole") {
-            $frontend = Get-AzureDeployment -ServiceName $CurrentEnvironment.Frontend -Slot "production"
-        } else {
-            Write-Warning "Unknown Service Type: $($CurrentEnvironment.Type)"
-        }
-        
-        Write-Host "Downloading Configuration for Backend..."
-        $backend = Get-AzureDeployment -ServiceName $CurrentEnvironment.Backend -Slot "production"
-
-        $Global:CurrentDeployment = @{
-            "Frontend" = $frontend;
-            "Backend" = $backend;
-        }
-
-        if(_IsProduction) {
-            $Global:OldBgColor = $Host.UI.RawUI.BackgroundColor
-            $Host.UI.RawUI.BackgroundColor = "DarkRed"
-            _RefreshGitColors
-            Write-Warning "You are attached to the PRODUCTION Environment. Use caution!"
-        } else {
-            if($Global:OldBgColor) {
-                $Host.UI.RawUI.BackgroundColor = $Global:OldBgColor
-                del variable:\OldBgColor
-            }
-            _RefreshGitColors
-        }
-    }
-
 }

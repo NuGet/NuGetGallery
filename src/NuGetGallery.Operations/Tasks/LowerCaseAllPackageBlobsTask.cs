@@ -15,7 +15,7 @@ namespace NuGetGallery.Operations.Tasks
                 int p = blob.Uri.AbsolutePath.LastIndexOf('/');
                 string blobName = blob.Uri.AbsolutePath.Substring(p);
                 string lowerCaseName = blobName.ToLowerInvariant();
-                if (string.Equals(blobName, lowerCaseName, StringComparison.InvariantCulture))
+                if (string.Equals(blobName, lowerCaseName, StringComparison.Ordinal))
                 {
                     Log.Info("already lower case: " + blobName);
                 }

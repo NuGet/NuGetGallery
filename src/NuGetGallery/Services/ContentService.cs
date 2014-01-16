@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -17,20 +18,21 @@ namespace NuGetGallery
         // Each entry should _always_ have a value. Values never expire, they just need to be updated. Updates use the existing data,
         // so we don't want data just vanishing from a cache.
         private ConcurrentDictionary<string, ContentItem> _contentCache = new ConcurrentDictionary<string, ContentItem>(StringComparer.OrdinalIgnoreCase);
-        private static readonly Markdown MarkdownProcessor = new Markdown();
 
         private IDiagnosticsSource Trace { get; set; }
 
-        public static readonly string ContentFileExtension = ".md";
+        public static readonly string HtmlContentFileExtension = ".html";
+        public static readonly string MarkdownContentFileExtension = ".md";
 
         public IFileStorageService FileStorage { get; protected set; }
 
         protected ConcurrentDictionary<string, ContentItem> ContentCache { get { return _contentCache; } }
 
-        protected ContentService() {
-            Trace = new NullDiagnosticsSource();
+        protected ContentService()
+        {
+            Trace = NullDiagnosticsSource.Instance;
         }
-        
+
         public ContentService(IFileStorageService fileStorage, IDiagnosticsService diagnosticsService)
         {
             if (fileStorage == null)
@@ -47,7 +49,7 @@ namespace NuGetGallery
             Trace = diagnosticsService.GetSource("ContentService");
         }
 
-        public Task<HtmlString> GetContentItemAsync(string name, TimeSpan expiresIn)
+        public Task<IHtmlString> GetContentItemAsync(string name, TimeSpan expiresIn)
         {
             if (String.IsNullOrEmpty(name))
             {
@@ -58,85 +60,124 @@ namespace NuGetGallery
         }
 
         // This NNNCore pattern allows arg checking to happen synchronously, before starting the async operation.
-        private async Task<HtmlString> GetContentItemCore(string name, TimeSpan expiresIn)
+        private async Task<IHtmlString> GetContentItemCore(string name, TimeSpan expiresIn)
         {
             using (Trace.Activity("GetContentItem " + name))
             {
-                ContentItem item = null;
-                if (ContentCache.TryGetValue(name, out item) && DateTime.UtcNow < item.ExpiryUtc)
+                ContentItem cachedItem = null;
+                if (ContentCache.TryGetValue(name, out cachedItem) && DateTime.UtcNow < cachedItem.ExpiryUtc)
                 {
-                    Trace.Information("Cache Valid. Expires at: " + item.ExpiryUtc.ToString());
-                    return item.Content;
+                    Trace.Verbose("Cache Valid. Expires at: " + cachedItem.ExpiryUtc.ToString());
+                    return cachedItem.Content;
                 }
-                Trace.Information("Cache Expired.");
+                Trace.Verbose("Cache Expired.");
 
                 // Get the file from the content service
-                string fileName = name + ContentFileExtension;
+                string htmlFileName = name + HtmlContentFileExtension;
+                string markdownFileName = name + MarkdownContentFileExtension;
 
-                IFileReference reference;
-                using (Trace.Activity("Downloading Content Item: " + fileName))
+                foreach (var filename in new[] { htmlFileName, markdownFileName })
                 {
-                    reference = await FileStorage.GetFileReferenceAsync(
-                        Constants.ContentFolderName,
-                        fileName,
-                        ifNoneMatch: item == null ? null : item.ContentId);
+                    ContentItem item = await RefreshContentFromFile(filename, cachedItem, expiresIn);
+                    if (item != null)
+                    {
+                        // Cache and return the result
+                        Debug.Assert(item.Content != null);
+                        ContentCache.AddOrSet(name, item);
+                        return item.Content;
+                    }
                 }
-                
-                HtmlString result = new HtmlString(String.Empty);
+
+                return new HtmlString(String.Empty);
+            }
+        }
+
+        private async Task<ContentItem> RefreshContentFromFile(string fileName, ContentItem cachedItem, TimeSpan expiresIn)
+        {
+            using (Trace.Activity("Downloading Content Item: " + fileName))
+            {
+                IFileReference reference = await FileStorage.GetFileReferenceAsync(
+                    Constants.ContentFolderName,
+                    fileName,
+                    ifNoneMatch: cachedItem == null ? null : cachedItem.ContentId);
+
                 if (reference == null)
                 {
                     Trace.Error("Requested Content File Not Found: " + fileName);
+                    return null;
                 }
-                else
+
+                // Check the content ID to see if it's different
+                if (cachedItem != null && String.Equals(cachedItem.ContentId, reference.ContentId, StringComparison.Ordinal))
                 {
-                    // Check the content ID to see if it's different
-                    if (item != null && String.Equals(item.ContentId, reference.ContentId, StringComparison.Ordinal))
+                    Trace.Verbose("No change to content item. Using Cache");
+
+                    // Update the expiry time
+                    cachedItem.ExpiryUtc = DateTime.UtcNow + expiresIn;
+                    Trace.Verbose(String.Format("Updating Cache: {0} expires at {1}", fileName, cachedItem.ExpiryUtc));
+                    return cachedItem;
+                }
+
+                // Retrieve the content
+                Trace.Verbose("Content Item changed. Trying to update...");
+                try
+                {
+                    using (var stream = reference.OpenRead())
                     {
-                        Trace.Information("No change to content item. Using Cache");
-                        // No change, just use the cache.
-                        result = item.Content;
-                    }
-                    else
-                    {
-                        // Process the file
-                        Trace.Information("Content Item changed. Updating...");
-                        using (var stream = reference.OpenRead())
+                        if (stream == null)
                         {
-                            if (stream == null)
+                            Trace.Error("Requested Content File Not Found: " + fileName);
+                            return null;
+                        }
+                        else
+                        {
+                            using (Trace.Activity("Reading Content File: " + fileName))
                             {
-                                Trace.Error("Requested Content File Not Found: " + fileName);
-                                reference = null;
-                            }
-                            else
-                            {
-                                using (Trace.Activity("Reading Content File: " + fileName))
                                 using (var reader = new StreamReader(stream))
                                 {
-                                    result = new HtmlString(MarkdownProcessor.Transform(await reader.ReadToEndAsync()).Trim());
+                                    string text = await reader.ReadToEndAsync();
+                                    string looseHtml;
+
+                                    if (fileName.EndsWith(".html"))
+                                    {
+                                        looseHtml = text;
+                                    }
+                                    else if (fileName.EndsWith(".md"))
+                                    {
+                                        looseHtml = new Markdown().Transform(text);
+                                    }
+                                    else
+                                    {
+                                        looseHtml = "Unknown Content File Type";
+                                    }
+
+                                    IHtmlString html = new HtmlString(looseHtml.Trim());
+
+                                    // Prep the new item for the cache
+                                    var expiryTime = DateTime.UtcNow + expiresIn;
+                                    return new ContentItem(html, expiryTime, reference.ContentId, DateTime.UtcNow);
                                 }
                             }
                         }
                     }
                 }
-
-                // Prep the new item for the cache
-                item = new ContentItem(result, DateTime.UtcNow + expiresIn, reference == null ? null : reference.ContentId, DateTime.UtcNow);
-                Trace.Information(String.Format("Updating Cache: {0} expires at {1}", name, item.ExpiryUtc));
-                ContentCache.AddOrSet(name, item);
-
-                // Return the result
-                return result;
+                catch (Exception)
+                {
+                    Debug.Assert(false, "owchy oochy - reading content failed");
+                    Trace.Error("Reading updated content failed. Returning cached content instead.");
+                    return cachedItem;
+                }
             }
         }
 
         public class ContentItem
         {
-            public HtmlString Content { get; private set; }
+            public IHtmlString Content { get; private set; }
             public string ContentId { get; private set; }
             public DateTime RetrievedUtc { get; private set; }
-            public DateTime ExpiryUtc { get; private set; }
+            public DateTime ExpiryUtc { get; set; }
 
-            public ContentItem(HtmlString content, DateTime expiryUtc, string contentId, DateTime retrievedUtc)
+            public ContentItem(IHtmlString content, DateTime expiryUtc, string contentId, DateTime retrievedUtc)
             {
                 Content = content;
                 ExpiryUtc = expiryUtc;

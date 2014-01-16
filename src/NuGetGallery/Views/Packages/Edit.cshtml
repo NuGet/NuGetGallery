@@ -6,8 +6,6 @@
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
 
-@Styles.Render("~/Content/font-awesome.css")
-
 @section BottomScripts {
     @Scripts.Render("~/Scripts/jquery-ui-1.10.3.js")
     <script>
@@ -208,7 +206,6 @@
 
 @helper EditableField(string name, Expression<Func<EditPackageRequest, object>> func, bool link = false, bool pre = false, bool multiline = false)
 {
-    var formName = Html.EditorForModel();
     var formid = ExpressionHelper.GetExpressionText(func).Replace(".", "_");
     object temp = func.Compile().Invoke(Model);
     string value = temp == null ? null : temp.ToString();
@@ -230,7 +227,7 @@
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true)
 
-        <ul id="packageDetails" style="border-bottom: 1px solid gray; margin-bottom: 1em;">
+        <ul style="border-bottom: 1px solid gray; margin-bottom: 1em;">
         @if (Model.Edit != null)
         {
             <li>@EditableField(EditPackageVersionRequest.TitleStr, m => m.Edit.VersionTitle)</li>

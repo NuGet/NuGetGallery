@@ -1,0 +1,50 @@
+﻿@model LogOnViewModel
+
+<div id="register-form">
+    @using (Html.BeginForm("Register", "Authentication"))
+    {
+        <fieldset class="form">
+            <legend>Register Form</legend>
+
+            @Html.AntiForgeryToken()
+            @Html.Hidden("ReturnUrl", ViewData[Constants.ReturnUrlViewDataKey])
+            @Html.Hidden("LinkingAccount", Model.External != null)
+            @if (Model.External != null)
+            {
+                @Html.HiddenFor(m => m.External.ProviderAccountNoun)
+                @Html.HiddenFor(m => m.External.AccountName)
+            }
+            @Html.ValidationSummaryFor("Register")
+
+            <div class="form-field form-field-full">
+                @Html.LabelFor(m => m.Register.Username)
+                @Html.EditorFor(m => m.Register.Username)
+                @Html.ValidationMessageFor(m => m.Register.Username)
+            </div>
+
+            @if (Model.External == null)
+            {
+                <div class="form-field form-field-full">
+                    @Html.LabelFor(m => m.Register.Password)
+                    @Html.EditorFor(m => m.Register.Password)
+                    @Html.ValidationMessageFor(m => m.Register.Password)
+                </div>
+            }
+
+            <div class="form-field form-field-full">
+                <label for="EmailAddress">Email (<a href="http://www.gravatar.com">Gravatar</a>, notifications, and password recovery)</label>
+                @Html.EditorFor(m => m.Register.EmailAddress)
+                @Html.ValidationMessageFor(m => m.Register.EmailAddress)
+            </div>
+
+            <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
+
+            <p id="register-policies">
+                By clicking Register you agree that you have read and accept our
+                <a href="@Url.Action("Terms", "Pages")">Terms of Use</a> and <a href="@Url.Action("Privacy", "Pages")">Privacy Policy</a>
+            </p>
+
+            <input class="btn btn-big" type="submit" value="Register" title="Register" />
+        </fieldset>
+    }
+</div>

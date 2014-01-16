@@ -5,7 +5,7 @@ using NuGetGallery.FunctionTests.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO;    
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using NuGet;
@@ -77,6 +77,15 @@ namespace NuGetGallery.FunctionalTests
         }
 
         /// <summary>
+        /// Returns the GET WebRequest for logon.
+        /// </summary>
+        /// <returns></returns>
+        public static WebTestRequest GetEditGetRequestForPackage(string packageId, string version)
+        {
+            return GetHttpRequestForUrl(String.Format(UrlHelper.EditPageUrl, packageId, version));
+        }
+
+        /// <summary>
         /// Returns the GET WebRequest for Log Off.
         /// </summary>
         /// <returns></returns>
@@ -101,15 +110,39 @@ namespace NuGetGallery.FunctionalTests
                 accountName = EnvironmentSettings.TestAccountPassword;
             }
 
-            WebTestRequest logonPostRequest = new WebTestRequest(UrlHelper.LogonPageUrl);
+            WebTestRequest logonPostRequest = new WebTestRequest(UrlHelper.SignInPageUrl);
             logonPostRequest.Method = "POST";
             logonPostRequest.ExpectedResponseUrl = UrlHelper.BaseUrl;
             FormPostHttpBody logonRequestFormPostBody = new FormPostHttpBody();
             logonRequestFormPostBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
+            logonRequestFormPostBody.FormPostParameters.Add("ReturnUrl", "/");
+            logonRequestFormPostBody.FormPostParameters.Add("LinkingAccount", "false");
             logonRequestFormPostBody.FormPostParameters.Add(Constants.UserNameOrEmailFormField, EnvironmentSettings.TestAccountName);
             logonRequestFormPostBody.FormPostParameters.Add(Constants.PasswordFormField, EnvironmentSettings.TestAccountPassword);
             logonPostRequest.Body = logonRequestFormPostBody;
             return logonPostRequest;
+        }
+
+        public static WebTestRequest GetEditPackagePostRequest(WebTest test, string packageId, string version, string title = null, string description = null, string summary = null, string iconUrl = null, string projectUrl = null, string authors = null, string copyright = null, string tags = null, string releaseNotes = null)
+        {
+            WebTestRequest editPackagePostRequest = new WebTestRequest(String.Format(UrlHelper.EditPageUrl, packageId, version));
+            editPackagePostRequest.Method = "POST";
+            editPackagePostRequest.ExpectedResponseUrl = UrlHelper.GetPackagePageUrl(packageId, version);
+            Assert.Fail("ExpectedResponseUrl is " + editPackagePostRequest.ExpectedResponseUrl);
+            FormPostHttpBody logonRequestFormPostBody = new FormPostHttpBody();
+            logonRequestFormPostBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.VersionTitle", title);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.Description", description);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.Summary", summary);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.IconUrl", iconUrl);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.ProjectUrl", projectUrl);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.Authors", authors);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.Copyright", copyright);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.Tags", tags);
+            logonRequestFormPostBody.FormPostParameters.Add("Edit.ReleaseNotes", releaseNotes);
+
+            editPackagePostRequest.Body = logonRequestFormPostBody;
+            return editPackagePostRequest;
         }
 
         /// <summary>
@@ -117,7 +150,7 @@ namespace NuGetGallery.FunctionalTests
         /// Individual WebTests can use this.
         /// </summary>
         /// <returns></returns>
-        public static WebTestRequest GetUploadPostRequestForPackage(WebTest test,string packageFullPath)
+        public static WebTestRequest GetUploadPostRequestForPackage(WebTest test, string packageFullPath)
         {
             WebTestRequest uploadPostRequest = new WebTestRequest(UrlHelper.UploadPageUrl);
             uploadPostRequest.Method = "POST";
@@ -138,11 +171,21 @@ namespace NuGetGallery.FunctionalTests
         {
             WebTestRequest verifyUploadPostRequest = new WebTestRequest(UrlHelper.VerifyUploadPageUrl);
             verifyUploadPostRequest.Method = "POST";
-            verifyUploadPostRequest.ExpectedResponseUrl = UrlHelper.GetPackagePageUrl(packageId) + "/" + packageVersion;
+            verifyUploadPostRequest.ExpectedResponseUrl = UrlHelper.GetPackagePageUrl(packageId, packageVersion);
             FormPostHttpBody verifyUploadPostRequestBody = new FormPostHttpBody();
             verifyUploadPostRequestBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
-            verifyUploadPostRequestBody.FormPostParameters.Add("Listed", "true");
-            verifyUploadPostRequestBody.FormPostParameters.Add("Listed", test.Context["$HIDDEN1.Listed"].ToString());
+            verifyUploadPostRequestBody.FormPostParameters.Add("Id", packageId);
+            verifyUploadPostRequestBody.FormPostParameters.Add("Version", packageVersion);
+            verifyUploadPostRequestBody.FormPostParameters.Add("LicenseUrl", "");
+            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.VersionTitle", "");
+            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.Description", "Package description");
+            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.Summary", "");
+            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.IconUrl", "");
+            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.ProjectUrl", "");
+            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.Authors", "bhuvak");
+            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.CopyrightText", "Copyright 2013");
+            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.Tags", " windows8 ");
+            verifyUploadPostRequestBody.FormPostParameters.Add("Edit.ReleaseNotes", "");
             verifyUploadPostRequest.Body = verifyUploadPostRequestBody;
             return verifyUploadPostRequest;
         }
@@ -184,17 +227,20 @@ namespace NuGetGallery.FunctionalTests
         /// Downloads a package to local folder and see if the download is successful. Used to individual tests which extend the download scenarios.
         /// </summary>
         /// <param name="packageId"></param>
-        public static void DownloadPackageAndVerify(string packageId,string version="1.0.0")
+        public static void DownloadPackageAndVerify(string packageId, string version = "1.0.0")
         {
             ClientSDKHelper.ClearMachineCache();
             ClientSDKHelper.ClearLocalPackageFolder(packageId);
-            new PackageManager(PackageRepositoryFactory.Default.CreateRepository(UrlHelper.V2FeedRootUrl), Environment.CurrentDirectory).InstallPackage(packageId,new SemanticVersion(version));
-            Assert.IsTrue(ClientSDKHelper.CheckIfPackageVersionInstalled(packageId,version), "Package install failed. Either the file is not present on disk or it is corrupted. Check logs for details");
+            new PackageManager(PackageRepositoryFactory.Default.CreateRepository(UrlHelper.V2FeedRootUrl), Environment.CurrentDirectory).InstallPackage(packageId, new SemanticVersion(version));
+            Assert.IsTrue(ClientSDKHelper.CheckIfPackageVersionInstalled(packageId, version), "Package install failed. Either the file is not present on disk or it is corrupted. Check logs for details");
         }
-        
+
         #endregion AssertMethods
 
-
-
+        internal static WebTestRequest GetCancelGetRequest()
+        {
+            return GetHttpRequestForUrl(UrlHelper.CancelUrl);
+        }
     }
 }
+

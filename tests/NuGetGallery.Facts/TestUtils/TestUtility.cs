@@ -1,18 +1,28 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
+using System.Net.Mail;
 using System.Reflection;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
+using NuGet;
 
 namespace NuGetGallery
 {
     public static class TestUtility
     {
+        public static readonly string FakeUserName = "theUsername";
+        public static readonly string FakeAdminName = "theAdmin";
+
+        public static readonly User FakeUser = new User() { Username = FakeUserName, Key = 42 };
+        public static readonly User FakeAdminUser = new User() { Username = FakeAdminName, Roles = new List<Role>() { new Role() { Name = Constants.AdminRoleName } } };
+
         // We only need this method because testing URL generation is a pain.
         // Alternatively, we could write our own service for generating URLs.
         public static Mock<HttpContextBase> SetupHttpContextMockForUrlGeneration(Mock<HttpContextBase> httpContext, Controller controller)

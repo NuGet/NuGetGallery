@@ -9,7 +9,7 @@ using System.Web.UI;
 
 namespace NuGetGallery
 {
-    public partial class StatisticsController : Controller
+    public partial class StatisticsController : AppController
     {
         private readonly IStatisticsService _statisticsService;
         private readonly IAggregateStatsService _aggregateStatsService;
@@ -99,7 +99,7 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Index()
         {
-            if (_statisticsService == null)
+            if (_statisticsService == NullStatisticsService.Instance)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
@@ -141,7 +141,7 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Packages()
         {
-            if (_statisticsService == null)
+            if (_statisticsService == NullStatisticsService.Instance)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
@@ -164,7 +164,7 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> PackageVersions()
         {
-            if (_statisticsService == null)
+            if (_statisticsService == NullStatisticsService.Instance)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
@@ -187,7 +187,7 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> PackageDownloadsByVersion(string id, string[] groupby)
         {
-            if (_statisticsService == null)
+            if (_statisticsService == NullStatisticsService.Instance)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
@@ -215,7 +215,7 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> PackageDownloadsDetail(string id, string version, string[] groupby)
         {
-            if (_statisticsService == null)
+            if (_statisticsService == NullStatisticsService.Instance)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }

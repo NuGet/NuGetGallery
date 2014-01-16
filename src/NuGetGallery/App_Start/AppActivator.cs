@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Data.Entity;
-using System.Linq;
-using System.Web;
+using System.Diagnostics;
+using System.IO;
+using System.Security.Claims;
+using System.Web.Helpers;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
@@ -9,14 +11,15 @@ using System.Web.UI;
 using Elmah;
 using Elmah.Contrib.Mvc;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
+using Microsoft.WindowsAzure.Diagnostics;
+using Microsoft.WindowsAzure.ServiceRuntime;
 using Ninject;
-using Ninject.Web.Mvc;
+using Ninject.Web.Common;
 using NuGetGallery;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
-using NuGetGallery.Migrations;
 using WebActivator;
 using WebBackgrounder;
 
@@ -33,9 +36,26 @@ namespace NuGetGallery
 
         public static void PreStart()
         {
+            AntiForgeryConfig.UniqueClaimTypeIdentifier = ClaimTypes.NameIdentifier;
+
+            ViewEngines.Engines.Clear();
+            ViewEngines.Engines.Add(CreateViewEngine());
+
             NinjectPreStart();
             ElmahPreStart();
             GlimpsePreStart();
+
+            try
+            {
+                if (RoleEnvironment.IsAvailable)
+                {
+                    CloudPreStart();
+                }
+            }
+            catch (Exception)
+            {
+                // Azure SDK not available!
+            }
         }
 
         public static void PostStart()
@@ -54,9 +74,42 @@ namespace NuGetGallery
             NinjectStop();
         }
 
+        private static RazorViewEngine CreateViewEngine()
+        {
+            var ret = new RazorViewEngine();
+
+            ret.AreaMasterLocationFormats = 
+                ret.AreaViewLocationFormats =
+                ret.AreaPartialViewLocationFormats =
+                new string[]
+            {
+                "~/Areas/{2}/Views/{1}/{0}.cshtml",
+                "~/Branding/Views/Shared/{0}.cshtml",
+                "~/Areas/{2}/Views/Shared/{0}.cshtml",
+            };
+
+            ret.MasterLocationFormats = 
+                ret.ViewLocationFormats  =
+                ret.PartialViewLocationFormats =
+                new string[]
+            {
+                "~/Branding/Views/{1}/{0}.cshtml",
+                "~/Views/{1}/{0}.cshtml",
+                "~/Branding/Views/Shared/{0}.cshtml",
+                "~/Views/Shared/{0}.cshtml",
+            };
+
+            return ret;
+        }
+
         private static void GlimpsePreStart()
         {
             DynamicModuleUtility.RegisterModule(typeof(Glimpse.AspNet.HttpModule));
+        }
+
+        private static void CloudPreStart()
+        {
+            Trace.Listeners.Add(new DiagnosticMonitorTraceListener());
         }
 
         private static void BundlingPostStart()
@@ -75,7 +128,8 @@ namespace NuGetGallery
                 .Include("~/Scripts/jquery-{version}.js")
                 .Include("~/Scripts/jquery.validate.js")
                 .Include("~/Scripts/jquery.validate.unobtrusive.js")
-                .Include("~/Scripts/nugetgallery.js");
+                .Include("~/Scripts/nugetgallery.js")
+                .Include("~/Scripts/stats.js");
             BundleTable.Bundles.Add(scriptBundle);
 
             // Modernizr needs to be delivered at the top of the page but putting it in a bundle gets us a cache-buster.
@@ -84,10 +138,25 @@ namespace NuGetGallery
                 .Include("~/Scripts/modernizr-{version}.js");
             BundleTable.Bundles.Add(modernizrBundle);
 
-            var stylesBundle = new StyleBundle("~/Content/css")
-                .Include("~/Content/site.css");
+            Bundle stylesBundle = new StyleBundle("~/Content/css");
+            foreach (string filename in new[] {
+                    "Site.css",
+                    "Layout.css",
+                    "PageStylings.css"
+                })
+            {
+                stylesBundle
+                    .Include("~/Content/" + filename)
+                    .Include("~/Branding/Content/" + filename);
+            }
+
             BundleTable.Bundles.Add(stylesBundle);
 
+            // Needs a) a separate bundle because of relative pathing in the @font-face directive
+            // b) To be a bundle for auto-selection of ".min.css"
+            var fontAwesomeBundle = new StyleBundle("~/Content/font-awesome/css");
+            fontAwesomeBundle.Include("~/Content/font-awesome/font-awesome.css");
+            BundleTable.Bundles.Add(fontAwesomeBundle);
         }
 
         private static void ElmahPreStart()
@@ -104,7 +173,6 @@ namespace NuGetGallery
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new AntiForgeryErrorFilter());
-            GlobalFilters.Filters.Add(new RequireRemoteHttpsAttribute() { OnlyWhenAuthenticated = true });
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 
@@ -154,8 +222,8 @@ namespace NuGetGallery
 
         private static void NinjectPreStart()
         {
-            DynamicModuleUtility.RegisterModule(typeof(OnePerRequestModule));
-            DynamicModuleUtility.RegisterModule(typeof(HttpApplicationInitializationModule));
+            DynamicModuleUtility.RegisterModule(typeof(OnePerRequestHttpModule));
+            DynamicModuleUtility.RegisterModule(typeof(NinjectHttpModule));
             NinjectBootstrapper.Initialize(() => Container.Kernel);
         }
 

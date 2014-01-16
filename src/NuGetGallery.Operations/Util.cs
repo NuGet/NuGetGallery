@@ -5,11 +5,15 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using System.Web;
 using AnglicanGeek.DbExecutor;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using NLog;
+using NuGetGallery.Auditing;
 using NuGetGallery.Operations.Model;
 
 namespace NuGetGallery.Operations
@@ -19,6 +23,18 @@ namespace NuGetGallery.Operations
         public const byte CopyingState = 7;
         public const byte OnlineState = 0;
 
+        private static JsonSerializerSettings _auditRecordSerializerSettings = new JsonSerializerSettings()
+        {
+            DateFormatHandling = DateFormatHandling.IsoDateFormat,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            DefaultValueHandling = DefaultValueHandling.Include,
+            Formatting = Formatting.Indented,
+            MaxDepth = 10,
+            MissingMemberHandling = MissingMemberHandling.Ignore,
+            NullValueHandling = NullValueHandling.Include,
+            TypeNameHandling = TypeNameHandling.None
+        };
+        
         public static bool BackupIsInProgress(SqlExecutor dbExecutor, string backupPrefix)
         {
             return dbExecutor.Query<Db>(
@@ -202,7 +218,7 @@ namespace NuGetGallery.Operations
                 version.ToLowerInvariant());
         }
 
-        internal static ICloudBlob GetPackageFileBlob(
+        internal static CloudBlockBlob GetPackageFileBlob(
             CloudBlobContainer packagesBlobContainer,
             string id,
             string version)
@@ -219,7 +235,7 @@ namespace NuGetGallery.Operations
             string version)
         {
             return dbExecutor.Query<Package>(
-                "SELECT p.[Key], pr.Id, p.Version, p.Hash FROM Packages p JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey WHERE pr.Id = @id AND p.Version = @version",
+                "SELECT p.[Key], pr.Id, p.Version, p.NormalizedVersion, p.Hash FROM Packages p JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey WHERE pr.Id = @id AND p.Version = @version",
                 new { id, version }).SingleOrDefault();
         }
 
@@ -275,7 +291,7 @@ namespace NuGetGallery.Operations
         public static string GetDatabaseServerName(SqlConnectionStringBuilder connectionStringBuilder)
         {
             var dataSource = connectionStringBuilder.DataSource;
-            if (dataSource.StartsWith("tcp:"))
+            if (dataSource.StartsWith("tcp:", StringComparison.OrdinalIgnoreCase))
                 dataSource = dataSource.Substring(4);
             var indexOfFirstPeriod = dataSource.IndexOf(".", StringComparison.Ordinal);
 
@@ -357,6 +373,34 @@ namespace NuGetGallery.Operations
 
                 token = segment.ContinuationToken;
             } while (token != null);
+        }
+
+        internal static string GetPackageAuditBlobName(string id, string version, PackageAuditAction action)
+        {
+            // Audit Blob Name:
+            //  /auditing/package/[id]/[version]/[action]-at-[datetime]
+            return String.Format("package/{0}/{1}/{3}-{2}.json",
+                id, version, action.ToString(), DateTime.UtcNow.ToString("O"));
+        }
+
+        internal static async Task<Uri> SaveAuditRecord(CloudStorageAccount storage, AuditRecord auditRecord)
+        {
+            string localIP = await AuditActor.GetLocalIP();
+            CloudAuditingService audit = new CloudAuditingService(
+                Environment.MachineName,
+                localIP,
+                storage.CreateCloudBlobClient().GetContainerReference("auditing"),
+                onBehalfOfThunk: null);
+            return await audit.SaveAuditRecord(auditRecord);
+        }
+
+        public static string GenerateStatusString(int total, ref int counter)
+        {
+            return String.Format(
+                "{0:000000}/{1:000000} {2:00.0}%",
+                ++counter,
+                total,
+                (((double)counter / (double)total) * 100.0));
         }
     }
 }

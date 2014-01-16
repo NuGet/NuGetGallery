@@ -8,18 +8,21 @@
 <h1 class="page-heading">Report Abuse</h1>
 
 <p class="message">
-    Important: This form is for reporting <em>abusive</em> packages such as 
+    <strong>Important: Please do not use this form to report a bug in a package you are using!</strong><br />
+    This form is for reporting <em>abusive</em> packages such as 
     packages containing <em>malicious code</em> or spam. If "@Model.PackageId" simply doesn't 
-    appear to work or work correctly, please 
-    <a href="@Url.Action(MVC.Packages.ContactOwners(Model.PackageId))" title="contact the owners">contact the owners of "@Model.PackageId".</a> 
+    work, or if you need help getting the package installed, please 
+    <a href="@Url.Action(MVC.Packages.ContactOwners(Model.PackageId))" title="contact the owners">contact the owners instead.</a> 
 </p>
 
-<p>Please provide a detailed abuse report. Include exactly what the package did.</p>
+<p>Please provide a detailed abuse report. Include exactly what the package did, for example if you are reporting a package with a virus or malicious code, 
+    <em>please provide evidence to support your claim!</em> We cannot delete packages without evidence that they exhibit malicious behavior.</p>
 
 @if (!Model.ConfirmedUser)
 {
     <p>Note: if you are the owner of @Model.PackageId, please 
-        @Html.ActionLink("log on now before you complete this form.", "LogOn", "Authentication", new { returnUrl = returnUrl }, null)</p>
+        <a href="@Url.LogOn(returnUrl)">sign in now before you complete this form.</a>
+    </p>
 }
 
 @using (Html.BeginForm())
@@ -55,10 +58,15 @@
         </div>
         <div class="form-field">
             @Html.LabelFor(m => m.Message, "Abuse Report")
-            <p>In addition to selecting the reason for reporting the package, you <em>must</em> provide details of the problem.</p>
+            <p>In addition to selecting the reason for reporting the package, you must provide details of the problem here.</p>
             @Html.TextAreaFor(m => m.Message, 10, 50, null)
             @Html.ValidationMessageFor(m => m.Message, null, new { id = "report-abuse-message" })
         </div>
+        <div class="form-field" >
+            @Html.CheckBoxFor(m => m.CopySender)
+            @Html.LabelFor(m => m.CopySender, new { @class = "checkbox" })
+        </div>
+        <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
         @Html.SpamPreventionFields()
         <input id="form-submit" type="submit" value="Report" title="Report '@Model.PackageId' for abuse" />
     </fieldset>
@@ -74,7 +82,7 @@
                 $form.validate().element($('#Reason'));
             }
 
-            if (val === 'HasABug') {
+            if (val === 'HasABugOrFailedToInstall') {
                 $form.find("input, textarea, select").not('#form-field-reason *').attr('disabled', 'disabled');
             } else {
                 $form.find("input, textarea, select").not('#form-field-reason').removeAttr('disabled');

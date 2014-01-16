@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Web.Mvc;
 using MvcHaack.Ajax;
+using System.Globalization;
 
 namespace NuGetGallery
 {
@@ -56,7 +57,7 @@ namespace NuGetGallery
             var package = _packageService.FindPackageRegistrationById(id);
             if (package == null)
             {
-                return new { success = false, message = "Package not found" };
+                return new { success = false, message = "Package not found." };
             }
             if (!package.IsOwner(HttpContext.User))
             {
@@ -65,14 +66,22 @@ namespace NuGetGallery
             var user = _userService.FindByUsername(username);
             if (user == null)
             {
-                return new { success = false, message = "Owner not found" };
+                return new { success = false, message = "Owner not found." };
+            }
+            if (!user.Confirmed)
+            {
+                return new { success = false, message = string.Format(CultureInfo.InvariantCulture, "Sorry, {0} hasn't verified his email account yet and we cannot proceed with the request.",username) };
             }
 
             var currentUser = _userService.FindByUsername(HttpContext.User.Identity.Name);
             var ownerRequest = _packageService.CreatePackageOwnerRequest(package, currentUser, user);
 
             var confirmationUrl = Url.ConfirmationUrl(
-                MVC.Packages.ConfirmOwner().AddRouteValue("id", package.Id), user.Username, ownerRequest.ConfirmationCode, Request.Url.Scheme);
+                "ConfirmOwner", 
+                "Packages",
+                user.Username,
+                ownerRequest.ConfirmationCode,
+                new { id = package.Id });
             _messageService.SendPackageOwnerRequest(currentUser, user, package, confirmationUrl);
 
             return new { success = true, name = user.Username, pending = true };

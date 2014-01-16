@@ -1,0 +1,43 @@
+﻿@model LogOnViewModel
+
+@using (Html.BeginForm("SignIn", "Authentication"))
+{
+    <fieldset class="form">
+        <legend>Sign In Form</legend>
+
+        @Html.AntiForgeryToken()
+        @Html.Hidden("ReturnUrl", ViewData[Constants.ReturnUrlViewDataKey])
+        @Html.Hidden("LinkingAccount", Model.External != null)
+        @if (Model.External != null)
+        {
+            @Html.HiddenFor(m => m.External.ProviderAccountNoun)
+            @Html.HiddenFor(m => m.External.AccountName)
+            @Html.HiddenFor(m => m.External.FoundExistingUser)
+        }
+        @Html.ValidationSummaryFor("SignIn")
+
+        <div class="form-field form-field-full">
+            @Html.LabelFor(m => m.SignIn.UserNameOrEmail)
+            @Html.EditorFor(m => m.SignIn.UserNameOrEmail)
+            @Html.ValidationMessageFor(m => m.SignIn.UserNameOrEmail)
+        </div>
+
+        <div class="form-field form-field-full">
+            @Html.LabelFor(m => m.SignIn.Password)
+            @Html.EditorFor(m => m.SignIn.Password)
+            @Html.ValidationMessageFor(m => m.SignIn.Password)
+        </div>
+
+        <p id="signIn-lostpassword">
+            @Html.ActionLink("Lost your Password?", "ForgotPassword", "Users")
+        </p>
+
+        <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
+
+
+        <button id="signin-link" class="btn btn-big" type="submit" title="Sign in with a NuGet.org Account">
+            <i class="signin-authprovider-icon nucon-nuget-w"></i>
+            Sign in with a NuGet.org account
+        </button>
+    </fieldset>
+}

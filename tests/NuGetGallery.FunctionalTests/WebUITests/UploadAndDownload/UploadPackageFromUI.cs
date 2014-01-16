@@ -1,6 +1,7 @@
 ﻿
 namespace NuGetGallery.FunctionalTests
 {
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Microsoft.VisualStudio.TestTools.WebTesting;
     using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
     using NuGetGallery.FunctionalTests.TestBase;
@@ -31,10 +32,18 @@ namespace NuGetGallery.FunctionalTests
 
             WebTestRequest logonPost = AssertAndValidationHelper.GetLogonPostRequest(this);
             yield return logonPost;
-            logonPost = null;            
+            logonPost = null;
 
-            WebTestRequest uploadRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);       
+            WebTestRequest uploadRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
             yield return uploadRequest;
+            if (this.LastResponse.ResponseUri.ToString().Contains("verify-upload"))
+            {
+                WebTestRequest cancelGet = AssertAndValidationHelper.GetCancelGetRequest();
+                yield return cancelGet;
+                cancelGet = null;
+                uploadRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
+                yield return uploadRequest;
+            }
             uploadRequest = null;
 
             // The API key is part of the nuget.config file that is present under the solution dir.

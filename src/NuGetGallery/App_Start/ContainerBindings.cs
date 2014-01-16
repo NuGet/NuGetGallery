@@ -9,9 +9,12 @@ using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Ninject;
+using Ninject.Web.Common;
 using Ninject.Modules;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
+using System.Diagnostics;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery
 {
@@ -52,7 +55,7 @@ namespace NuGetGallery
             Bind<ICacheService>()
                 .To<HttpContextCacheService>()
                 .InRequestScope();
-            
+
             Bind<IContentService>()
                 .To<ContentService>()
                 .InSingletonScope();
@@ -89,6 +92,10 @@ namespace NuGetGallery
                 .To<EntityRepository<PackageStatistics>>()
                 .InRequestScope();
 
+            Bind<IEntityRepository<Credential>>()
+                .To<EntityRepository<Credential>>()
+                .InRequestScope();
+
             Bind<ICuratedFeedService>()
                 .To<CuratedFeedService>()
                 .InRequestScope();
@@ -123,7 +130,7 @@ namespace NuGetGallery
                 () =>
                 {
                     var settings = Kernel.Get<ConfigurationService>();
-                    if (settings.Current.SmtpUri != null)
+                    if (settings.Current.SmtpUri != null && settings.Current.SmtpUri.IsAbsoluteUri)
                     {
                         var smtpUri = new SmtpUri(settings.Current.SmtpUri);
 
@@ -217,6 +224,13 @@ namespace NuGetGallery
             Bind<IFileStorageService>()
                 .To<FileSystemFileStorageService>()
                 .InSingletonScope();
+
+            // Ninject is doing some weird things with constructor selection without these.
+            // Anyone requesting an IReportService or IStatisticsService should be prepared
+            // to receive null anyway.
+            Bind<IReportService>().ToConstant(NullReportService.Instance);
+            Bind<IStatisticsService>().ToConstant(NullStatisticsService.Instance);
+            Bind<AuditingService>().ToConstant(AuditingService.None);
         }
 
         private void ConfigureForAzureStorage(ConfigurationService configuration)
@@ -235,6 +249,23 @@ namespace NuGetGallery
                 .InSingletonScope();
             Bind<IStatisticsService>()
                 .To<JsonStatisticsService>()
+                .InSingletonScope();
+
+            string instanceId;
+            try
+            {
+                instanceId = RoleEnvironment.CurrentRoleInstance.Id;
+            }
+            catch (Exception)
+            {
+                instanceId = Environment.MachineName;
+            }
+
+            var localIP = AuditActor.GetLocalIP().Result;
+
+            Bind<AuditingService>()
+                .ToMethod(_ => new CloudAuditingService(
+                    instanceId, localIP, configuration.Current.AzureStorageConnectionString, CloudAuditingService.AspNetActorThunk))
                 .InSingletonScope();
         }
     }

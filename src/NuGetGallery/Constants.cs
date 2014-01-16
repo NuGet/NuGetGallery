@@ -1,4 +1,5 @@
-﻿namespace NuGetGallery
+﻿using System.Collections.Generic;
+namespace NuGetGallery
 {
     public static class Constants
     {
@@ -32,18 +33,19 @@
 
         public static readonly string ReturnUrlViewDataKey = "ReturnUrl";
 
+        public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";
+        public const string UrlValidationErrorMessage = "This doesn't appear to be a valid HTTP/HTTPS URL";
+
+        internal const string ApiKeyHeaderName = "X-NuGet-ApiKey";
+        public static readonly string ReturnUrlParameterName = "ReturnUrl";
+        public static readonly string CurrentUserOwinEnvironmentKey = "nuget.user";
+
         public static class ContentNames
         {
-            public static readonly string FrontPageAnnouncement = "FrontPage-Announcement";
-            public static readonly string FrontPageAbout = "FrontPage-About";
-
+            public static readonly string Home = "Home";
             public static readonly string Alert = "Alert";
-
             public static readonly string TermsOfUse = "Terms-Of-Use";
             public static readonly string PrivacyPolicy = "Privacy-Policy";
         }
-
-        public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";
-        public const string UrlValidationErrorMessage = "This doesn't appear to be a valid HTTP/HTTPS URL";
     }
 }

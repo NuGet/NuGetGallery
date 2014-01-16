@@ -89,25 +89,22 @@ namespace NuGetGallery {
     public class T4MVC_ApiController: NuGetGallery.ApiController {
         public T4MVC_ApiController() : base(Dummy.Instance) { }
 
-        public override System.Web.Mvc.ActionResult VerifyPackageKey(string apiKey, string id, string version) {
+        public override System.Web.Mvc.ActionResult VerifyPackageKey(string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.VerifyPackageKey);
-            callInfo.RouteValueDictionary.Add("apiKey", apiKey);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult DeletePackage(string apiKey, string id, string version) {
+        public override System.Web.Mvc.ActionResult DeletePackage(string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.DeletePackage);
-            callInfo.RouteValueDictionary.Add("apiKey", apiKey);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult PublishPackage(string apiKey, string id, string version) {
+        public override System.Web.Mvc.ActionResult PublishPackage(string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.PublishPackage);
-            callInfo.RouteValueDictionary.Add("apiKey", apiKey);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;

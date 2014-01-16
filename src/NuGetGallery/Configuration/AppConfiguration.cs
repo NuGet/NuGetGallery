@@ -59,6 +59,11 @@ namespace NuGetGallery.Configuration
         public LuceneIndexLocation LuceneIndexLocation { get; set; }
 
         /// <summary>
+        /// Gets the site brand name i.e. 'NuGet Gallery' by default. Cobranding feature.
+        /// </summary>
+        public string Brand { get; set; }
+
+        /// <summary>
         /// Gets the gallery owner name and email address
         /// </summary>
         [TypeConverter(typeof(MailAddressConverter))]
@@ -81,6 +86,7 @@ namespace NuGetGallery.Configuration
         /// </summary>
         [Required]
         [DisplayName("SqlServer")]
+        [DefaultValue("NuGetGallery")]
         public string SqlConnectionString { get; set; }
 
         /// <summary>

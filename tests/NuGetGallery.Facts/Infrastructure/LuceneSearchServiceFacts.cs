@@ -46,6 +46,79 @@ namespace NuGetGallery.Infrastructure
             Assert.Equal(1, results[0].PackageRegistrationKey);
         }
 
+        [Fact]
+        public void ResultsIncludeVersionAndNormalizedVersion()
+        {
+            var packages = new List<Package>
+            {
+                new Package
+                {
+                    Key = 3,
+                    PackageRegistrationKey = 1,
+                    Version = "01.02.03",
+                    NormalizedVersion = "1.2.3",
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "Package #1",
+                    },
+                    Title = "Package #1 4.2.0",
+                    Description = "Package #1 is an awesome package",
+                    Listed = true,
+                    IsLatestStable = true,
+                    IsLatest = true,
+                    IsPrerelease = true,
+                    DownloadCount = 100,
+                    FlattenedAuthors = "",
+                    SupportedFrameworks =
+                    {
+                        new PackageFramework { TargetFramework = "net45" },
+                    }
+                }
+            };
+
+            var results = IndexAndSearch(packages, "awesome");
+
+            Assert.Single(results);
+            Assert.Equal("01.02.03", results[0].Version);
+            Assert.Equal("1.2.3", results[0].NormalizedVersion);
+        }
+
+        [Fact]
+        public void ResultsIncludeVersionAndNormalizedVersionEvenIfNormalizedVersionColumnNull()
+        {
+            var packages = new List<Package>
+            {
+                new Package
+                {
+                    Key = 3,
+                    PackageRegistrationKey = 1,
+                    Version = "01.02.03",
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "Package #1",
+                    },
+                    Title = "Package #1 4.2.0",
+                    Description = "Package #1 is an awesome package",
+                    Listed = true,
+                    IsLatestStable = true,
+                    IsLatest = true,
+                    IsPrerelease = true,
+                    DownloadCount = 100,
+                    FlattenedAuthors = "",
+                    SupportedFrameworks =
+                    {
+                        new PackageFramework { TargetFramework = "net45" },
+                    }
+                }
+            };
+
+            var results = IndexAndSearch(packages, "awesome");
+
+            Assert.Single(results);
+            Assert.Equal("01.02.03", results[0].Version);
+            Assert.Equal("1.2.3", results[0].NormalizedVersion);
+        }
+
         // This works because we do some wildcard magic in our searches.
         [Fact]
         public void IndexAndSearchDavid123For12()

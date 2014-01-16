@@ -65,9 +65,10 @@
             {
                 <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
             }
+            <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))" title="Ask the package owners a question">Contact Owners</a></li>
             @if (Model.IsOwner(User))
             {
-                <li><a href="@Url.Action(MVC.Packages.ReportMyPackage(Model.Id, Model.Version))" title="Contact support for help with your package">
+                <li><a href="@Url.Action(MVC.Packages.ReportMyPackage(Model.Id, Model.Version))" title="Contact the NuGet team for help with your package">
                         Contact Support</a></li>
             }
             else
@@ -75,7 +76,6 @@
                 <li><a href="@Url.Action(MVC.Packages.ReportAbuse(Model.Id, Model.Version))" title="Report the package as abusive">
                         Report Abuse</a></li>
             }
-            <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))">Contact Owners</a></li>
             @if (User.Identity.IsAuthenticated)
             {
                 <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file.">Download</a></li>
@@ -163,23 +163,30 @@
             </fieldset>
         }
     }
+    @if (Model.HasEditFailures)
+    {
+        <p class="failed-edit-message">
+            Your last edit to this package was not successfully applied. 
+            You can <a href="@Url.EditPackage(Model.Id, Model.Version)>edit</a> 
+            the package and submit the edit again to retry the edit.
+        </p>
+    }
     @if (Model.Prerelease)
     {
         <p class="prerelease-message">
             This is a prerelease version of @Model.Title.
         </p>
     }
-    else if (!Model.IsLatestVersionAvailable)
+    @if (Model.LatestStableVersion && Model.HasNewerPrerelease)
     {
         <p class="not-latest-message">
-            This is not the <a href="@Url.Package(Model.Id)" title="View the latest version">latest
-                                version</a> of @Model.Title available.
+            There is a newer prerelease version of this package available. See the version list below for details.
         </p>
     }
-    <hgroup class="page-heading">
+    <div class="package-page-heading">
         <h1>@Model.Title</h1>
         <h2>@Model.Version</h2>
-    </hgroup>
+    </div>
     @foreach (var line in Model.Description.ToStringSafe().Split('\n'))
     {
         <p>@line</p>
@@ -213,8 +220,10 @@
     { 
         <p>Requires NuGet @Model.MinClientVersion or higher.</p>
     }
-    <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>
-    <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
+    <div id="socialbuttons" style="height: 60px; display: block;">
+        <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>
+        <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
+    </div>
 
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
     {
@@ -249,7 +258,8 @@
     }
     @if (Model.Dependencies.DependencySets == null)
     {
-        if(Model.IsOwner(User)) {
+        if (Model.IsOwner(User))
+        {
             <h3>Dependencies</h3>
             <p>
                 An error occurred processing dependencies. 
@@ -259,7 +269,8 @@
                 <strong>Note: This message is only visible to you and any other package owners.</strong></p>
         }
     }
-    else {
+    else
+    {
         <h3>Dependencies</h3>
         @Html.Partial("_PackageDependencies", Model.Dependencies)
     }
@@ -287,23 +298,25 @@
         <tbody>
             @foreach (var packageVersion in Model.PackageVersions)
             {
+                var rowClass = packageVersion.LatestStableVersion ? "recommended" : null;
+                var cellTitle = packageVersion.LatestStableVersion ? "Latest Stable Version" : null;
                 if (packageVersion.Listed || Model.IsOwner(User))
                 {
-                    <tr class="versionTableRow @if (packageVersion.LatestVersion)
-                                               {
-                                                   <text>recommended </text>
-                                               }">
-                        <td class="version" @if (packageVersion.LatestVersion)
-                                            {
-                                                <text>title="Latest Version"</text>
-                                            }>
+                    <tr class="versionTableRow @rowClass">
+                        <td class="version" title="@cellTitle">
                             @if (!packageVersion.IsCurrent(Model))
                             {
-                                <a href="@Url.Package(packageVersion)">@packageVersion.Title @packageVersion.Version</a>
+                                <a href="@Url.Package(packageVersion)">
+                                    @packageVersion.Title 
+                                    @packageVersion.Version
+                                    @if(packageVersion.LatestStableVersion) {
+                                        @:(latest stable)
+                                    }
+                                </a>
                             }
                             else
                             {
-                                <span>@packageVersion.Title @packageVersion.Version</span>
+                                <span>@packageVersion.Title @packageVersion.Version (this version)</span>
                             }
                         </td>
                         <td>@packageVersion.DownloadCount

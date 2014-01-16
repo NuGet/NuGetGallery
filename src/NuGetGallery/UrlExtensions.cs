@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Web.Mvc;
+using System.Web.Routing;
 
 namespace NuGetGallery
 {
@@ -104,7 +105,7 @@ namespace NuGetGallery
             return version == null ? EnsureTrailingSlash(result) : result;
         }
 
-        public static string PackageDeafultIcon(this UrlHelper url)
+        public static string PackageDefaultIcon(this UrlHelper url)
         {
             string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
             string result = url.RouteUrl(RouteName.Home, null, protocol: protocol);
@@ -127,6 +128,16 @@ namespace NuGetGallery
             return url.RouteUrl(RouteName.Authentication, new { action = "LogOn" });
         }
 
+        public static string LogOn(this UrlHelper url, string returnUrl)
+        {
+            return url.RouteUrl(RouteName.Authentication, new { action = "LogOn", returnUrl = returnUrl });
+        }
+
+        public static string ConfirmationRequired(this UrlHelper url)
+        {
+            return url.Action("ConfirmationRequired", controllerName: "Users");
+        }
+
         public static string LogOff(this UrlHelper url)
         {
             string returnUrl = url.Current();
@@ -142,6 +153,11 @@ namespace NuGetGallery
             result.RouteValueDictionary["area"] = "";
 
             return url.Action(originalResult);
+        }
+
+        public static string Register(this UrlHelper url)
+        {
+            return url.Action(MVC.Authentication.LogOn());
         }
 
         public static string Search(this UrlHelper url, string searchTerm)
@@ -180,9 +196,22 @@ namespace NuGetGallery
             return url.Action(MVC.Packages.ManagePackageOwners(package.Id, package.Version));
         }
 
-        public static string ConfirmationUrl(this UrlHelper url, ActionResult actionResult, string username, string token, string protocol)
+        public static string ConfirmationUrl(this UrlHelper url, string action, string controller, string username, string token)
         {
-            return url.Action(actionResult.AddRouteValue("username", username).AddRouteValue("token", token), protocol: protocol);
+            return ConfirmationUrl(url, action, controller, username, token, null);
+        }
+
+        public static string ConfirmationUrl(this UrlHelper url, string action, string controller, string username, string token, object routeValues)
+        {
+            var rvd = routeValues == null ? new RouteValueDictionary() : new RouteValueDictionary(routeValues);
+            rvd["username"] = username;
+            rvd["token"] = token;
+            return url.Action(
+                action, 
+                controller, 
+                rvd,
+                url.RequestContext.HttpContext.Request.Url.Scheme,
+                url.RequestContext.HttpContext.Request.Url.Host);
         }
 
         public static string VerifyPackage(this UrlHelper url)

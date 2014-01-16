@@ -1,58 +1,63 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>2.1</ProductVersion>
-    <ProjectGuid>0ea1cbe8-defb-4d97-86e2-33657204c764</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGetGallery.Operations.Worker.Emulator</RootNamespace>
-    <AssemblyName>NuGetGallery.Operations.Worker.Emulator</AssemblyName>
-    <StartDevelopmentStorage>True</StartDevelopmentStorage>
-    <Name>NuGetGallery.Backend.Cloud</Name>
-    <TargetProfile>Build</TargetProfile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <!-- Items for the project -->
-  <ItemGroup>
-    <ServiceDefinition Include="ServiceDefinition.csdef" />
-    <ServiceConfiguration Include="ServiceConfiguration.Build.cscfg" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="NuGetGallery.BackendContent\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\NuGetGallery.Backend\NuGetGallery.Backend.csproj">
-      <Name>NuGetGallery.Backend</Name>
-      <Project>{7f92c174-5310-4090-a6a3-3cc7c67c19d6}</Project>
-      <Private>True</Private>
-      <RoleType>Worker</RoleType>
-      <RoleName>NuGetGallery.Backend</RoleName>
-      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
-    </ProjectReference>
-  </ItemGroup>
-  <!-- Import the target files for this project template -->
-  <PropertyGroup>
-    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
-    <CloudExtensionsDir Condition=" '$(CloudExtensionsDir)' == '' ">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Windows Azure Tools\2.1\</CloudExtensionsDir>
-  </PropertyGroup>
-  <Import Project="$(CloudExtensionsDir)Microsoft.WindowsAzure.targets" />
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProductVersion>2.2</ProductVersion>
+        <ProjectGuid>1d0164b6-92d4-455a-ac68-c30b61733748</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>NuGetGallery.Backend.Cloud</RootNamespace>
+        <AssemblyName>NuGetGallery.Backend.Cloud</AssemblyName>
+        <StartDevelopmentStorage>True</StartDevelopmentStorage>
+        <Name>NuGetGallery.Backend.Cloud</Name>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\NuGetGallery.Backend\NuGetGallery.Backend.csproj">
+            <Name>NuGetGallery.Backend</Name>
+            <Project>{7F92C174-5310-4090-A6A3-3CC7C67C19D6}</Project>
+            <Private>True</Private>
+            <RoleType>Worker</RoleType>
+            <RoleName>NuGetGallery.Backend</RoleName>
+            <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
+        </ProjectReference>
+    </ItemGroup>
+    <!-- Items for the project -->
+    <ItemGroup>
+        <ServiceDefinition Include="ServiceDefinition.csdef" />
+        <ServiceConfiguration Include="ServiceConfiguration.Local.cscfg" />
+    </ItemGroup>
+    <ItemGroup>
+        <Folder Include="NuGetGallery.BackendContent\" />
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="NuGetGallery.BackendContent\diagnostics.wadcfg">
+            <SubType>Content</SubType>
+        </Content>
+    </ItemGroup>
+    <!-- Import the target files for this project template -->
+    <PropertyGroup>
+        <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+        <CloudExtensionsDir Condition=" '$(CloudExtensionsDir)' == '' ">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Windows Azure Tools\2.2\</CloudExtensionsDir>
+    </PropertyGroup>
+    <Import Project="$(CloudExtensionsDir)Microsoft.WindowsAzure.targets" />
+    <Import Project="$(MSBuildProjectDirectory)\..\..\build\NuGetGallery.Cloud.targets" />
 </Project>

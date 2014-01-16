@@ -46,7 +46,6 @@ namespace NuGetGallery.Operations
                 Interlocked.Increment(ref index);
                 if (blob.CopyState.Status != CopyStatus.Pending)
                 {
-                    DateTime start = DateTime.UtcNow;
                     int counter = 0;
                     while (blob.CopyState.Status == CopyStatus.Pending)
                     {
@@ -68,16 +67,6 @@ namespace NuGetGallery.Operations
             });
 
             Log.Info("{0} Copies Complete!", index);
-        }
-
-        private bool ReportStatus(CloudBlockBlob blob)
-        {
-            if (blob.CopyState.Status != CopyStatus.Success)
-            {
-                var percentComplete = (int)(((double)blob.CopyState.BytesCopied / (double)blob.CopyState.TotalBytes) * 100);
-                Log.Info("Copy of {0} is {1}% complete", blob.Name, percentComplete);
-            }
-            return blob.CopyState.Status == CopyStatus.Success;
         }
     }
 }

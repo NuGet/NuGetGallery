@@ -5,7 +5,6 @@
     ViewBag.Tab = "Upload";
 }
 
-@Styles.Render("~/Content/font-awesome.css")
 <h1 class="page-heading">Verify Details &amp; Submit</h1>
 
 @ViewHelpers.UploadSequence(2)
@@ -67,7 +66,7 @@
                 <p>@value</p>
             }
         </div>
-        <div id="@(formid +"Field")" style="display: none">
+        <div id="@(formid + "Field")" style="display: none">
             @Html.EditorFor(func)
             @Html.ValidationMessageFor(func)
         </div>
@@ -93,7 +92,7 @@
         <li>@EditableField("Tags", m => m.Edit.Tags)</li>
         <li>@EditableField("Release Notes", m => m.Edit.ReleaseNotes, pre: true)</li>
 
-        @if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
+        @if (!String.IsNullOrEmpty(Model.LicenseUrl))
         {
             <li>
                 <h4>Requires License Acceptance
@@ -109,7 +108,7 @@
                     </div>
                     <div id="Edit_RequiresLicenseAcceptanceField" style="display: none; width: 100%">
                         <div class="form-field" style="display: inline">
-                            @Html.DropDownList("Edit.RequiresLicenseAcceptance", 
+                            @Html.DropDownList("Edit.RequiresLicenseAcceptance",
                                 new List<SelectListItem>
                                 {
                                     new SelectListItem { Text = "Yes", Value = "true" },
@@ -125,7 +124,7 @@
         <li>
             <h4>Listed in Search Results</h4>
                 <div class="form-field">
-                   @Html.DropDownList("Listed", 
+                   @Html.DropDownList("Listed",
                             new List<SelectListItem>
                             {
                                 new SelectListItem { Text = "Yes", Value = "true", Selected = true },

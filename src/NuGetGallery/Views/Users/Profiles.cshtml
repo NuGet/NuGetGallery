@@ -7,7 +7,10 @@
 
 
 @section SideColumn {
-    @ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 128)
+    @if (String.IsNullOrEmpty(Model.EmailAddress))
+    {
+        ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 128);
+    }
     <div id="stats">
         <div class="stat">
             <p class="stat-number">@Model.Packages.Count.ToString("n0")</p>
@@ -20,7 +23,7 @@
     </div>
 }
 
-<h1>@Model.Username's Profile</h1>
+<h1 class="page-heading">@Model.Username's Profile</h1>
 
 <h2>Packages</h2>
 <ul id="searchResults">

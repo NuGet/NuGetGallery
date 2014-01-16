@@ -1,3 +1,5 @@
+. "$PsScriptRoot\_EnvironmentLoaders.ps1"
+
 $Global:RepoRoot = (Convert-Path "$PsScriptRoot\..\..\..")
 $Global:OpsRoot = (Convert-Path "$PsScriptRoot\..\..")
 $Global:NuGetOpsDefinition = $env:NUGET_OPS_DEFINITION
@@ -28,60 +30,18 @@ if(!$AzureSDKRoot) {
 	Write-Host "Using Azure SDK at: $AzureSDKRoot"
 }
 
-# Check for v0.2 level environment scripts
-$Global:Environments = @{}
-if($NuGetOpsDefinition -and (Test-Path $NuGetOpsDefinition)) {
-	$EnvironmentsList = Join-Path $NuGetOpsDefinition "Environments.xml"
-	if(Test-Path $EnvironmentsList) {
-		$x = [xml](cat $EnvironmentsList)
-		$Global:Environments = @{};
-		$x.environments.environment | ForEach-Object {
-			$Environments[$_.name] = New-Object PSCustomObject
-			Add-Member -NotePropertyMembers @{
-				Version = $NuGetOpsVersion;
-				Name = $_.name;
-				Protected = $_.protected -and ([String]::Equals($_.protected, "true", "OrdinalIgnoreCase"));
-				Frontend = $_.frontend;
-				Backend = $_.backend;
-				Subscription = $_.subscription
-				Type = $_.type
-			} -InputObject $Environments[$_.name]
-		}
-	} else {
-		Write-Warning "Environments list not found at $EnvironmentsList. No Environments will be available."
-	}
-
-	$SubscriptionsList = Join-Path $NuGetOpsDefinition "Subscriptions.xml"
-	if(Test-Path $SubscriptionsList) {
-		$x = [xml](cat $SubscriptionsList)
-		$Global:Subscriptions = @{};
-		$x.subscriptions.subscription | ForEach-Object {
-			$Subscriptions[$_.name] = New-Object PSCustomObject
-			Add-Member -NotePropertyMembers @{
-				Version = $NuGetOpsVersion;
-				Id = $_.id;
-				Name = $_.name
-			} -InputObject $Subscriptions[$_.name]
-		}
-
-		$Environments.Keys | foreach {
-			$sub = $Environments[$_].Subscription
-			if($Subscriptions[$sub] -ne $null) {
-				$Environments[$_].Subscription = $Subscriptions[$sub];
-			}
-		}
-	} else {
-		Write-Warning "Subscriptions list not found at $SubscriptionsList. No Subscriptions will be available."
-	}
+$accounts = @(Get-AzureAccount)
+if($accounts.Length -eq 0) {
+	Write-Warning "No Azure Accounts found. Run Add-AzureAccount to configure your Azure account."
 }
 
-try {
-	if(@(Get-AzureSubscription).Length -eq 0) {
-		Write-Warning "No Azure Subscriptions registered with the Azure Management Tools! Use the 'New-AzureManagementCertificate' function to generate a cert, and then the 'Enable-AzurePowerShell' script to configure it (both have '-?' help parameters if you need further info)"
-	}
-} catch {
-	
+# Try to load V3 Environments
+$Global:ServiceModel = Get-V3Environments -NuGetOpsDefinition $NuGetOpsDefinition
+if(!$Global:ServiceModel) {
+	$Global:ServiceModel = Get-V2Environments -NuGetOpsDefinition $NuGetOpsDefinition
 }
+$Global:Environments = $ServiceModel.Environments
+$Global:Subscriptions = $ServiceModel.Subscriptions
 
 function Get-Environment([switch]$ListAvailable) {
 	if($ListAvailable) {
