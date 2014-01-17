@@ -88,6 +88,42 @@ namespace NuGet.Services {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The zip entry&apos;s claimed decompressed size is incorrect..
+        /// </summary>
+        internal static string SafeZipPackage_EntryDecompressedSizeIncorrect {
+            get {
+                return ResourceManager.GetString("SafeZipPackage_EntryDecompressedSizeIncorrect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The zip entry size is invalid..
+        /// </summary>
+        internal static string SafeZipPackage_EntryLengthInvalid {
+            get {
+                return ResourceManager.GetString("SafeZipPackage_EntryLengthInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The zip entry is larger than the allowed size..
+        /// </summary>
+        internal static string SafeZipPackage_EntryTooLong {
+            get {
+                return ResourceManager.GetString("SafeZipPackage_EntryTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package does not contain a manifest..
+        /// </summary>
+        internal static string SafeZipPackage_MissingManifest {
+            get {
+                return ResourceManager.GetString("SafeZipPackage_MissingManifest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unknown Sql Server: {0}.
         /// </summary>
         internal static string ServiceConfiguration_UnknownSqlServer {

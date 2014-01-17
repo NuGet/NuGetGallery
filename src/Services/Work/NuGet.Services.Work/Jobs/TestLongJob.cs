@@ -12,7 +12,7 @@ namespace NuGet.Services.Work.Jobs
     /// Job used to confirm the worker is responding to requests
     /// </summary>
     [Description("A simple long-running job for testing")]
-    public class TestLongJob : JobHandler<LongEventSource>
+    public class TestLongJob : JobHandler<TestLongEventSource>
     {
         protected internal override async Task Execute()
         {
@@ -29,10 +29,10 @@ namespace NuGet.Services.Work.Jobs
     }
 
     [EventSource(Name = "NuGet-Jobs-Long")]
-    public class LongEventSource : EventSource
+    public class TestLongEventSource : EventSource
     {
-        public static LongEventSource Log = new LongEventSource();
-        private LongEventSource() { }
+        public static readonly TestLongEventSource Log = new TestLongEventSource();
+        private TestLongEventSource() { }
 
         [Event(
             eventId: 1,

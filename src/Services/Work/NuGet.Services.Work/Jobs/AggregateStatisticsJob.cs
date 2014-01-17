@@ -1,20 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.SqlClient;
 using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
+using NuGet.Services.Configuration;
 
 namespace NuGet.Services.Work.Jobs
 {
+    [Description("Aggregates individual package download statistics by Version, Id and Total")]
     public class AggregateStatisticsJob : JobHandler<AggregateStatisticsEventSource>
     {
         /// <summary>
         /// Gets or sets a connection string to the database containing package data.
         /// </summary>
         public SqlConnectionStringBuilder PackageDatabase { get; set; }
+
+        protected ConfigurationHub Config { get; set; }
+
+        public AggregateStatisticsJob(ConfigurationHub config)
+        {
+            Config = config;
+        }
 
         protected internal override async Task Execute()
         {
@@ -109,6 +119,9 @@ COMMIT TRANSACTION
 
     public class AggregateStatisticsEventSource : EventSource 
     {
+        public static readonly AggregateStatisticsEventSource Log = new AggregateStatisticsEventSource();
+        private AggregateStatisticsEventSource() { }
+
         [Event(
             eventId: 1,
             Task = Tasks.AggregatingStatistics,

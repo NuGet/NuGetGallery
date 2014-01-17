@@ -12,7 +12,7 @@ namespace NuGet.Services.Work.Jobs
     /// Job used to confirm that the worker remains active
     /// </summary>
     [Description("A simple heart-beat job for testing")]
-    public class TestHeartBeatJob : RepeatingJobHandler<HeartBeatEventSource>
+    public class TestHeartBeatJob : RepeatingJobHandler<TestHeartBeatEventSource>
     {
         public override TimeSpan WaitPeriod
         {
@@ -27,10 +27,10 @@ namespace NuGet.Services.Work.Jobs
     }
 
     [EventSource(Name = "NuGet-Jobs-HeartBeat")]
-    public class HeartBeatEventSource : EventSource
+    public class TestHeartBeatEventSource : EventSource
     {
-        public static HeartBeatEventSource Log = new HeartBeatEventSource();
-        private HeartBeatEventSource() { }
+        public static readonly TestHeartBeatEventSource Log = new TestHeartBeatEventSource();
+        private TestHeartBeatEventSource() { }
 
         [Event(
             eventId: 1,

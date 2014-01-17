@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace NuGet.Services.Work.Jobs
 {
     [Description("A simple async job for testing")]
-    public class TestAsyncJob : AsyncJobHandler<AsyncEventSource>
+    public class TestAsyncJob : AsyncJobHandler<TestAsyncEventSource>
     {
         public string Message { get; set; }
 
@@ -31,10 +31,10 @@ namespace NuGet.Services.Work.Jobs
     }
 
     [EventSource(Name = "NuGet-Jobs-Async")]
-    public class AsyncEventSource : EventSource
+    public class TestAsyncEventSource : EventSource
     {
-        public static AsyncEventSource Log = new AsyncEventSource();
-        private AsyncEventSource() { }
+        public static readonly TestAsyncEventSource Log = new TestAsyncEventSource();
+        private TestAsyncEventSource() { }
 
         [Event(
             eventId: 1,

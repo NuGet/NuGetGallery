@@ -12,7 +12,7 @@ namespace NuGet.Services.Work.Jobs
     /// Job used to confirm the worker is responding to requests
     /// </summary>
     [Description("A simple one-time job for testing")]
-    public class TestPingJob : JobHandler<PingEventSource>
+    public class TestPingJob : JobHandler<TestPingEventSource>
     {
         protected internal override Task Execute()
         {
@@ -22,10 +22,10 @@ namespace NuGet.Services.Work.Jobs
     }
 
     [EventSource(Name = "NuGet-Jobs-Ping")]
-    public class PingEventSource : EventSource
+    public class TestPingEventSource : EventSource
     {
-        public static PingEventSource Log = new PingEventSource();
-        private PingEventSource() { }
+        public static readonly TestPingEventSource Log = new TestPingEventSource();
+        private TestPingEventSource() { }
 
         [Event(
             eventId: 1,

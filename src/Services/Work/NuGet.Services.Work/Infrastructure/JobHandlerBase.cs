@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using NuGet.Services.Work.Monitoring;
 using System.Diagnostics;
 using System.Data.SqlClient;
+using System.IO;
 
 namespace NuGet.Services.Work
 {
@@ -20,6 +21,8 @@ namespace NuGet.Services.Work
         public InvocationState Invocation { get { return Context.Invocation; } }
 
         public bool WhatIf { get; set; }
+
+        protected string TempDirectory { get; private set; }
         
         public virtual async Task<InvocationResult> Invoke(InvocationContext context)
         {
@@ -46,19 +49,35 @@ namespace NuGet.Services.Work
         public abstract EventSource GetEventSource();
         protected internal abstract Task<InvocationResult> Invoke();
 
-        public virtual Task<InvocationState> Enqueue(string job, string source)
+        public virtual Task<InvocationState> Enqueue(Type job)
         {
-            return Context.Queue.Enqueue(job, source);
+            return Enqueue(JobAttribute.Get(job).Name, new Dictionary<string, string>(), TimeSpan.Zero);
         }
 
-        public virtual Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload)
+        public virtual Task<InvocationState> Enqueue(string job)
         {
-            return Context.Queue.Enqueue(job, source, payload);
+            return Enqueue(job, new Dictionary<string, string>(), TimeSpan.Zero);
         }
 
-        public virtual Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload, TimeSpan invisibleFor)
+        public virtual Task<InvocationState> Enqueue(Type job, Dictionary<string, string> payload)
         {
-            return Context.Queue.Enqueue(job, source, payload, invisibleFor);
+            return Enqueue(JobAttribute.Get(job).Name, payload, TimeSpan.Zero);
+        }
+
+        public virtual Task<InvocationState> Enqueue(string job, Dictionary<string, string> payload)
+        {
+            return Enqueue(job, payload, TimeSpan.Zero);
+        }
+
+        public virtual Task<InvocationState> Enqueue(Type job, Dictionary<string, string> payload, TimeSpan delayFor)
+        {
+            return Enqueue(JobAttribute.Get(job).Name, payload, delayFor);
+        }
+
+        public virtual Task<InvocationState> Enqueue(string job, Dictionary<string, string> payload, TimeSpan delayFor)
+        {
+            string source = Context.Invocation.Id.ToString("N");
+            return Context.Queue.Enqueue(job, source, payload, delayFor);
         }
 
         protected virtual Task<bool> Extend(TimeSpan duration)
@@ -71,6 +90,11 @@ namespace NuGet.Services.Work
         {
             // Bind invocation information
             Context = context;
+            TempDirectory = Path.Combine(
+                Path.GetTempPath(),
+                "NuGetService",
+                "InvocationTemp",
+                context.Invocation.Id.ToString("N").ToLowerInvariant());
             try
             {
                 BindProperties(Invocation.Payload);

@@ -126,6 +126,18 @@
   <data name="NuGetService_HostNotSet" xml:space="preserve">
     <value>Host must be set using SetHost before invoking this method.</value>
   </data>
+  <data name="SafeZipPackage_EntryDecompressedSizeIncorrect" xml:space="preserve">
+    <value>The zip entry's claimed decompressed size is incorrect.</value>
+  </data>
+  <data name="SafeZipPackage_EntryLengthInvalid" xml:space="preserve">
+    <value>The zip entry size is invalid.</value>
+  </data>
+  <data name="SafeZipPackage_EntryTooLong" xml:space="preserve">
+    <value>The zip entry is larger than the allowed size.</value>
+  </data>
+  <data name="SafeZipPackage_MissingManifest" xml:space="preserve">
+    <value>The package does not contain a manifest.</value>
+  </data>
   <data name="ServiceConfiguration_UnknownSqlServer" xml:space="preserve">
     <value>Unknown Sql Server: {0}</value>
   </data>

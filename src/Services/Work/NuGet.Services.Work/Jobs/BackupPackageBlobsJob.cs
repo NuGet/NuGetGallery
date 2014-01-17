@@ -20,13 +20,9 @@ namespace NuGet.Services.Work.Jobs
     [Description("Creates copies of Package Blobs based on information in the NuGet API v2 Database.")]
     public class BackupPackageBlobsJob : JobHandler<BackupPackageBlobsEventSource>
     {
-        public static readonly string DefaultSourceContainer = "packages";
-        public static readonly string DefaultDestinationContainer = "ng-backups";
         public static readonly string BackupStateBlobName = "__backupstate";
 
-        private const string SourceBlobFormat = "{0}.{1}.nupkg";
-        private const string DestinationBlobFormat = "packages/{0}/{1}/{2}.nupkg";
-
+        
         // AzCopy uses this, so it seems good.
         private const int TaskPerCoreFactor = 8;
 
@@ -75,9 +71,9 @@ namespace NuGet.Services.Work.Jobs
                 Storage.Backup :
                 Storage.GetAccount(Destination);
             SourceContainer = sourceAccount.Blobs.Client.GetContainerReference(
-                Source == null ? DefaultSourceContainer : Source.Container);
+                Source == null ? PackageHelpers.PackageBlobContainer : Source.Container);
             DestinationContainer = destAccount.Blobs.Client.GetContainerReference(
-                Destination == null ? DefaultDestinationContainer : Destination.Container);
+                Destination == null ? PackageHelpers.BackupsBlobContainer : Destination.Container);
             Log.PreparingToBackup(sourceAccount.Name, SourceContainer.Name, destAccount.Name, DestinationContainer.Name, PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
 
             // Load package state if we aren't doing a full rescan
@@ -152,18 +148,9 @@ namespace NuGet.Services.Work.Jobs
         {
             // Identify the source and destination blobs
             var sourceBlob = SourceContainer.GetBlockBlobReference(
-                String.Format(
-                    CultureInfo.InvariantCulture, 
-                    SourceBlobFormat, 
-                    package.Id, 
-                    package.Version).ToLowerInvariant());
+                PackageHelpers.GetPackageBlobName(package));
             var destBlob = DestinationContainer.GetBlockBlobReference(
-                String.Format(
-                    CultureInfo.InvariantCulture,
-                    DestinationBlobFormat,
-                    package.Id,
-                    package.Version,
-                    WebUtility.UrlEncode(package.Hash)).ToLowerInvariant());
+                PackageHelpers.GetPackageBackupBlobName(package));
 
             if (await destBlob.ExistsAsync())
             {

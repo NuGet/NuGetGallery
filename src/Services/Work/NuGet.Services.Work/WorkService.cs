@@ -32,7 +32,7 @@ namespace NuGet.Services.Work
 {
     public class WorkService : NuGetService
     {
-        internal const string InvocationLogsContainerBaseName = "work-invocations";
+        internal const string InvocationLogsContainerBaseName = "ng-work-invocations";
         public static readonly string MyServiceName = "Work";
 
         private JobRunner _runner;

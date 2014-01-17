@@ -40,6 +40,30 @@ namespace NuGet.Services
             return parsed;
         }
 
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append(AzureStorageScheme);
+            builder.Append("://");
+            if (!String.IsNullOrEmpty(AccountKey))
+            {
+                builder.Append(AccountKey);
+                builder.Append("@");
+            }
+            builder.Append(AccountName);
+            if (!String.IsNullOrEmpty(Container))
+            {
+                builder.Append("/");
+                builder.Append(Container);
+                if (!String.IsNullOrEmpty(Path))
+                {
+                    builder.Append("/");
+                    builder.Append(Path);
+                }
+            }
+            return builder.ToString();
+        }
+
         private static readonly Regex PathParser = new Regex("^/(?<container>[^/]*)(/(?<path>.*))?$");
         private static bool TryCreateCore(Uri sourceUri, bool throwOnError, out AzureStorageReference parsed)
         {
