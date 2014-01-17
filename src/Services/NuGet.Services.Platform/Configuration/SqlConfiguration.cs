@@ -12,6 +12,10 @@ namespace NuGet.Services.Configuration
         public Dictionary<KnownSqlServer, SqlConnectionStringBuilder> Connections { get; private set; }
         public Dictionary<KnownSqlServer, SqlConnectionStringBuilder> AdminConnections { get; private set; }
 
+        public SqlConnectionStringBuilder Primary { get { return GetConnectionString(KnownSqlServer.Primary); } }
+        public SqlConnectionStringBuilder Legacy { get { return GetConnectionString(KnownSqlServer.Legacy); } }
+        public SqlConnectionStringBuilder Warehouse { get { return GetConnectionString(KnownSqlServer.Warehouse); } }
+
         public SqlConnectionStringBuilder GetConnectionString(KnownSqlServer account)
         {
             return GetConnectionString(account, admin: false);
