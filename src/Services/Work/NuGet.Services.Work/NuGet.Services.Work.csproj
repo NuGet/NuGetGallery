@@ -173,6 +173,7 @@
     <Compile Include="Jobs\Models\PackageEdit.cs" />
     <Compile Include="Jobs\Models\PackageRef.cs" />
     <Compile Include="Jobs\PurgeCompletedInvocationsJob.cs" />
+    <Compile Include="Jobs\PurgePackageStatisticsJob.cs" />
     <Compile Include="Jobs\ReplicatePackageStatisticsJob.cs" />
     <Compile Include="Jobs\TestAsyncJob.cs" />
     <Compile Include="Jobs\CreateOnlineDatabaseBackupJob.cs" />

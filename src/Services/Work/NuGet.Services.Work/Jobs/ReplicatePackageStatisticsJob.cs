@@ -34,12 +34,9 @@ namespace NuGet.Services.Work.Jobs
 
         protected internal override async Task Execute()
         {
-            // Load default
+            // Load defaults
             Source = Source ?? Config.Sql.Legacy;
             Destination = Destination ?? Config.Sql.Primary;
-
-            var source = Source.DataSource;
-            var destination = Destination.DataSource;
 
             Log.ReplicatingStatistics(Source.DataSource, Source.InitialCatalog, Destination.DataSource, Destination.InitialCatalog);
 
@@ -47,13 +44,13 @@ namespace NuGet.Services.Work.Jobs
             const int ExpectedSourceMaxQueryTime = 5;   //  if the query from the source database takes longer than this we must be busy
             const int PauseDuration = 10;               //  pause applied when the queries to the source are taking a long time 
 
-            var count = await Replicate(Source, Destination, BatchSize, ExpectedSourceMaxQueryTime, PauseDuration);
+            var count = await Replicate(BatchSize, ExpectedSourceMaxQueryTime, PauseDuration);
             Log.ReplicatedStatistics(Source.DataSource, Source.InitialCatalog, Destination.DataSource, Destination.InitialCatalog, count);
         }
 
-        public async Task<int> GetLastOriginalKey()
+        public static async Task<int> GetLastOriginalKey(SqlConnectionStringBuilder connectionString)
         {
-            using (var connection = await Destination.ConnectTo())
+            using (var connection = await connectionString.ConnectTo())
             {
                 SqlCommand command = new SqlCommand("GetLastOriginalKey", connection);
                 command.CommandType = CommandType.StoredProcedure;
@@ -135,7 +132,7 @@ namespace NuGet.Services.Work.Jobs
             }
         }
 
-        private async Task<int> Replicate(SqlConnectionStringBuilder source, SqlConnectionStringBuilder destination, int batchSize, int expectedSourceMaxQueryTime, int pauseDuration)
+        private async Task<int> Replicate(int batchSize, int expectedSourceMaxQueryTime, int pauseDuration)
         {
             int total = 0;
 
@@ -143,29 +140,29 @@ namespace NuGet.Services.Work.Jobs
             int lastKey = -1;
             do
             {
-                Log.GettingLastReplicatedKey(destination.DataSource, destination.InitialCatalog);
-                var originalKey = await GetLastOriginalKey();
-                Log.GotLastReplicatedKey(destination.DataSource, destination.InitialCatalog, originalKey);
+                Log.GettingLastReplicatedKey(Destination.DataSource, Destination.InitialCatalog);
+                var originalKey = await GetLastOriginalKey(Destination);
+                Log.GotLastReplicatedKey(Destination.DataSource, Destination.InitialCatalog, originalKey);
                 if (lastKey != -1 && lastKey == originalKey)
                 {
                     Log.LastReplicatedKeyNotChanged();
                     return total;
                 }
                 lastKey = originalKey;
-                
-                Log.FetchingStatisticsChunk(source.DataSource, source.InitialCatalog, batchSize);
+
+                Log.FetchingStatisticsChunk(Source.DataSource, Source.InitialCatalog, batchSize);
                 var batch = await GetDownloadRecords(originalKey, batchSize);
-                Log.FetchedStatisticsChunk(source.DataSource, source.InitialCatalog, batch.Count);
+                Log.FetchedStatisticsChunk(Source.DataSource, Source.InitialCatalog, batch.Count);
                 
                 if (batch.Count > 0)
                 {
                     hasWork = true;
-                    Log.SavingDownloadFacts(destination.InitialCatalog, destination.DataSource, batch.Count);
+                    Log.SavingDownloadFacts(Destination.InitialCatalog, Destination.DataSource, batch.Count);
                     if (!WhatIf)
                     {
                         await PutDownloadRecords(batch);
                     }
-                    Log.SavedDownloadFacts(destination.InitialCatalog, destination.DataSource, batch.Count);
+                    Log.SavedDownloadFacts(Destination.InitialCatalog, Destination.DataSource, batch.Count);
 
                     total += batch.Count;
                 }
