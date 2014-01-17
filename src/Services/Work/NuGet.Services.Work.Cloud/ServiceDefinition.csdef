@@ -30,6 +30,10 @@
             
             <Setting name="Queue.PollInterval" />
             <Setting name="Http.AdminKey" />
+            
+            <Setting name="LicenseReport.Service" />
+            <Setting name="LicenseReport.User" />
+            <Setting name="LicenseReport.Password" />
         </ConfigurationSettings>
         <Certificates>
             <Certificate name="SSL" permissionLevel="limitedOrElevated" storeLocation="LocalMachine" storeName="My" />

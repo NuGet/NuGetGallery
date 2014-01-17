@@ -146,6 +146,7 @@
     <Compile Include="Api\ModelConverters.cs" />
     <Compile Include="Api\Models\WorkServiceModel.cs" />
     <Compile Include="Api\Routes.cs" />
+    <Compile Include="Configuration\LicenseReportConfiguration.cs" />
     <Compile Include="Configuration\QueueConfiguration.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Helpers\DapperExtensions.cs" />
@@ -178,6 +179,7 @@
     <Compile Include="Jobs\TestLongJob.cs" />
     <Compile Include="Jobs\Models\Database.cs" />
     <Compile Include="Jobs\TestPingJob.cs" />
+    <Compile Include="Jobs\UpdateLicenseReportsJob.cs" />
     <Compile Include="LocalWorker.cs" />
     <Compile Include="WorkServiceStatus.cs" />
     <Compile Include="WorkManagementService.cs" />

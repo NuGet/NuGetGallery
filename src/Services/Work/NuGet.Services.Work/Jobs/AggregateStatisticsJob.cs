@@ -34,7 +34,10 @@ namespace NuGet.Services.Work.Jobs
             using (var connection = await PackageDatabase.ConnectTo())
             {
                 Log.AggregatingStatistics(PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
-                await connection.ExecuteAsync(AggregateStatsSql);
+                if (!WhatIf)
+                {
+                    await connection.ExecuteAsync(AggregateStatsSql);
+                }
                 Log.AggregatedStatistics(PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
             }
         }

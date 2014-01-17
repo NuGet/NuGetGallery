@@ -185,5 +185,14 @@ namespace NuGet.Services.Work {
                 return ResourceManager.GetString("UnknownJobException_Message", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JSON data does not match schema..
+        /// </summary>
+        internal static string UpdateLicenseReportsJob_JsonDoesNotMatchSchema {
+            get {
+                return ResourceManager.GetString("UpdateLicenseReportsJob_JsonDoesNotMatchSchema", resourceCulture);
+            }
+        }
     }
 }

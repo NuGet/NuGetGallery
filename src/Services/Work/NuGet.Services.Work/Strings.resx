@@ -159,4 +159,7 @@
   <data name="UnknownJobException_Message" xml:space="preserve">
     <value>Unknown job: {0}</value>
   </data>
+  <data name="UpdateLicenseReportsJob_JsonDoesNotMatchSchema" xml:space="preserve">
+    <value>JSON data does not match schema.</value>
+  </data>
 </root>

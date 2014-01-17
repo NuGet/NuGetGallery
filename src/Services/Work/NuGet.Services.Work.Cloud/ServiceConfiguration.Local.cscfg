@@ -22,6 +22,10 @@
             
             <Setting name="Queue.PollInterval" value="00:00:15" />
             <Setting name="Http.AdminKey" value="password" />
+            <Setting name="LicenseReport.Service" value="" />
+            <Setting name="LicenseReport.User" value="" />
+            <Setting name="LicenseReport.Password" value="" />
+            
             <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="" />
             <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="" />
             <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="" />
