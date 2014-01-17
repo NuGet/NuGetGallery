@@ -7,13 +7,13 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Services.Configuration;
-using NuGet.Services.IO;
 using NuGet.Services.Storage;
 using NuGet.Services.Work.Jobs.Models;
 
@@ -22,6 +22,7 @@ namespace NuGet.Services.Work.Jobs
     [Description("Handles pending package edits")]
     public class HandlePackageEditsJob : JobHandler<QueuePackageEditsEventSource>
     {
+        private const string HashAlgorithmName = "SHA512";
         public static readonly long DefaultMaxAllowedManifestBytes = 10 /* Mb */ * 1024 /* Kb */ * 1024; /* b */
 
         public static readonly string GetEditsBaseSql = @"
@@ -55,11 +56,13 @@ namespace NuGet.Services.Work.Jobs
         protected CloudBlobContainer SourceContainer { get; set; }
         protected CloudBlobContainer BackupsContainer { get; set; }
 
+        protected StorageHub Storage { get; set; }
         protected ConfigurationHub Config { get; set; }
         protected long MaxManifestSize { get; set; }
-        
-        public HandlePackageEditsJob(ConfigurationHub config)
+
+        public HandlePackageEditsJob(StorageHub storage, ConfigurationHub config)
         {
+            Storage = storage;
             Config = config;
         }
 
@@ -71,14 +74,14 @@ namespace NuGet.Services.Work.Jobs
             var sourceAccount = Source == null ?
                 Storage.Legacy :
                 Storage.GetAccount(Source);
-            var backupsAccount = Backups== null ?
+            var backupsAccount = Backups == null ?
                 Storage.Backup :
                 Storage.GetAccount(Backups);
             SourceContainer = sourceAccount.Blobs.Client.GetContainerReference(
                 Source == null ? PackageHelpers.PackageBlobContainer : Source.Container);
             BackupsContainer = backupsAccount.Blobs.Client.GetContainerReference(
                 Backups == null ? PackageHelpers.BackupsBlobContainer : Backups.Container);
-            
+
             // Grab package edits
             IList<PackageEdit> edits;
             Log.FetchingQueuedEdits(PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
@@ -131,27 +134,32 @@ namespace NuGet.Services.Work.Jobs
 
             // Check that a backup exists
             var backupBlob = BackupsContainer.GetBlockBlobReference(
-                PackageHelpers.GetPackageBlobName(edit.Id, edit.Version, edit.Hash));
-            if (!await backupBlob.ExistsAsync())
+                PackageHelpers.GetPackageBackupBlobName(edit.Id, edit.Version, edit.Hash));
+            if (!WhatIf && !await backupBlob.ExistsAsync())
             {
+                Log.BackingUpOriginal(edit.Id, edit.Version);
                 await backupBlob.UploadFromFileAsync(originalPath, FileMode.Open);
+                Log.BackedUpOriginal(edit.Id, edit.Version);
             }
 
             // Load the zip file and find the manifest
             using (var originalStream = File.Open(originalPath, FileMode.Open, FileAccess.ReadWrite))
             {
                 ZipArchive archive = new ZipArchive(originalStream);
-                
+
                 // Find the nuspec
                 var nuspecEntries = archive.Entries.Where(e => ManifestSelector.IsMatch(e.FullName)).ToArray();
-                if(nuspecEntries.Count == 0) {
+                if (nuspecEntries.Length == 0)
+                {
                     throw new InvalidDataException(String.Format(
                         CultureInfo.CurrentCulture,
                         Strings.HandlePackageEditsJob_MissingManifest,
                         edit.Id,
                         edit.Version,
                         backupBlob.Uri.AbsoluteUri));
-                } else if(nuspecEntries.Count > 1) {
+                }
+                else if (nuspecEntries.Length > 1)
+                {
                     throw new InvalidDataException(String.Format(
                         CultureInfo.CurrentCulture,
                         Strings.HandlePackageEditsJob_MultipleManifests,
@@ -164,18 +172,138 @@ namespace NuGet.Services.Work.Jobs
                 var manifestEntry = nuspecEntries.Single();
 
                 // Load the manifest with a constrained stream
-                using(var manifestStream = new MaxSizeStream(manifestEntry.Open(), Math.Min(manifestEntry.Length, MaxAllowedManifestBytes))) {
-                Manifest manifest = Manifest.ReadFrom(manifestStream, validateSchema: false);
+                Log.RewritingPackage(edit.Id, edit.Version);
+                using (var manifestStream = manifestEntry.Open())
+                {
+                    Manifest manifest = Manifest.ReadFrom(manifestStream, validateSchema: false);
 
-                // Modify the manifest as per the edit
-                edit.ApplyTo(manifest.Metadata);
+                    // Modify the manifest as per the edit
+                    edit.ApplyTo(manifest.Metadata);
 
-                // Save the manifest back
+                    // Save the manifest back
                     manifestStream.Seek(0, SeekOrigin.Begin);
                     manifestStream.SetLength(0);
                     manifest.Save(manifestStream);
                 }
+                Log.RewrotePackage(edit.Id, edit.Version);
             }
+
+            // Snapshot the original blob
+            Log.SnapshottingBlob(edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri);
+            var sourceSnapshot = await sourceBlob.CreateSnapshotAsync();
+            Log.SnapshottedBlob(edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri, sourceSnapshot.Uri.AbsoluteUri);
+
+            // Upload the updated file
+            Log.UploadingModifiedPackage(edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri);
+            await sourceBlob.UploadFromFileAsync(originalPath, FileMode.Open);
+            Log.UploadedModifiedPackage(edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri);
+
+            // Calculate new size and hash
+            string hash;
+            long size;
+            using (var originalStream = File.OpenRead(originalPath))
+            {
+                size = originalStream.Length;
+
+                var hashAlgorithm = HashAlgorithm.Create(HashAlgorithmName);
+                hash = Convert.ToBase64String(
+                    hashAlgorithm.ComputeHash(originalStream));
+            }
+            
+            // Update the database
+            try
+            {
+                Log.UpdatingDatabase(edit.Id, edit.Version);
+                using (var connection = await PackageDatabase.ConnectTo())
+                {
+                    await connection.QueryAsync<int>(@"
+                        BEGIN TRANSACTION
+                            -- Copy packages data to package history table
+                            INSERT INTO [PackageHistories]
+                            SELECT      PackageKey,
+                                        @UserKey AS UserKey,
+                                        GETUTCDATE() AS Timestamp,
+                                        Title,
+                                        Authors,
+                                        Copyright,
+                                        Description,
+                                        IconUrl,
+                                        LicenseUrl,
+                                        ProjectUrl,
+                                        ReleaseNotes,
+                                        RequiresLicenseAcceptance,
+                                        Summary,
+                                        Tags,
+                                        Hash,
+                                        HashAlgorithm,
+                                        PackageFileSize,
+                                        LastUpdated,
+                                        Published
+                            FROM        [Packages]
+                            WHERE       [PackageKey] = @PackageKey
+
+                            -- Update the packages table
+                            UPDATE  [Packages]
+                            SET     Authors = @Authors,
+                                    Copyright = @Copyright,
+                                    Description = @Description,
+                                    IconUrl = @IconUrl,
+                                    LicenseUrl = @LicenseUrl,
+                                    ProjectUrl = @ProjectUrl,
+                                    ReleaseNotes = @ReleaseNotes,
+                                    RequiresLicenseAcceptance = @RequiresLicenseAcceptance,
+                                    Summary = @Summary,
+                                    Title = @Title,
+                                    Tags = @Tags,
+                                    LastEdited = GETUTCDATE(),
+                                    LastUpdated = GETUTCDATE(),
+                                    UserKey = @UserKey,
+                                    Hash = @Hash,
+                                    HashAlgorithm = @HashAlgorithm,
+                                    PackageFileSize = @PackageFileSize
+                            WHERE   PackageKey = @PackageKey
+
+                            -- Clean this edit and all previous edits.
+                            DELETE FROM [PackageEdits]
+                            WHERE [PackageKey] = @PackageKey
+                            AND [Key] <= @Key
+                        COMMIT TRANSACTION
+                    ", new
+                        {
+                            edit.Authors,
+                            edit.Copyright,
+                            edit.Description,
+                            edit.IconUrl,
+                            edit.LicenseUrl,
+                            edit.ProjectUrl,
+                            edit.ReleaseNotes,
+                            edit.RequiresLicenseAcceptance,
+                            edit.Summary,
+                            edit.Title,
+                            edit.Tags,
+                            edit.Key,
+                            edit.PackageKey,
+                            edit.UserKey,
+                            PackageFileSize = size,
+                            Hash = hash,
+                            HashAlgorithm = HashAlgorithmName
+                        });
+                }
+                Log.UpdatedDatabase(edit.Id, edit.Version);
+            }
+            catch (Exception)
+            {
+                // Error occurred while updaing database, roll back the blob to the snapshot
+                // Can't do "await" in a catch block, but this should be pretty quick since it just starts the copy
+                Log.RollingBackBlob(edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri, sourceBlob.Uri.AbsoluteUri);
+                sourceBlob.StartCopyFromBlob(sourceSnapshot);
+                Log.RolledBackBlob(edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri, sourceBlob.Uri.AbsoluteUri);
+                throw;
+            }
+
+            Log.DeletingSnapshot(edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri);
+            await sourceSnapshot.DeleteAsync();
+            Log.DeletedSnapshot(edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri);
         }
     }
 
@@ -214,7 +342,7 @@ namespace NuGet.Services.Work.Jobs
             Task = Tasks.EditingPackage,
             Opcode = EventOpcode.Stop,
             Message = "Edited {0} {1}")]
-        public void EditedPackage(string id, string version) { WriteEvent(4, id, version, invocation); }
+        public void EditedPackage(string id, string version) { WriteEvent(4, id, version); }
 
         [Event(
             eventId: 5,
@@ -248,12 +376,114 @@ namespace NuGet.Services.Work.Jobs
             Message = "Backed up original copy of {0} {1}")]
         public void BackedUpOriginal(string id, string version) { WriteEvent(8, id, version); }
 
+        [Event(
+            eventId: 9,
+            Level = EventLevel.Informational,
+            Task = Tasks.RewritingPackageFile,
+            Opcode = EventOpcode.Start,
+            Message = "Rewriting package file for {0} {1}")]
+        public void RewritingPackage(string id, string version) { WriteEvent(9, id, version); }
+
+        [Event(
+            eventId: 10,
+            Level = EventLevel.Informational,
+            Task = Tasks.RewritingPackageFile,
+            Opcode = EventOpcode.Stop,
+            Message = "Rewrote package file for {0} {1}")]
+        public void RewrotePackage(string id, string version) { WriteEvent(10, id, version); }
+
+        [Event(
+            eventId: 11,
+            Level = EventLevel.Informational,
+            Task = Tasks.UploadingPackageFile,
+            Opcode = EventOpcode.Start,
+            Message = "Uploading modified package file for {0} {1} to {2}")]
+        public void UploadingModifiedPackage(string id, string version, string url) { WriteEvent(11, id, version, url); }
+
+        [Event(
+            eventId: 12,
+            Level = EventLevel.Informational,
+            Task = Tasks.UploadingPackageFile,
+            Opcode = EventOpcode.Stop,
+            Message = "Uploaded modified package file for {0} {1} to {2}")]
+        public void UploadedModifiedPackage(string id, string version, string url) { WriteEvent(12, id, version, url); }
+
+        [Event(
+            eventId: 13,
+            Level = EventLevel.Informational,
+            Task = Tasks.UpdatingDatabase,
+            Opcode = EventOpcode.Start,
+            Message = "Updating package record for {0} {1}")]
+        public void UpdatingDatabase(string id, string version) { WriteEvent(13, id, version); }
+
+        [Event(
+            eventId: 14,
+            Level = EventLevel.Informational,
+            Task = Tasks.UpdatingDatabase,
+            Opcode = EventOpcode.Stop,
+            Message = "Updated package record for {0} {1}")]
+        public void UpdatedDatabase(string id, string version) { WriteEvent(14, id, version); }
+
+        [Event(
+            eventId: 15,
+            Level = EventLevel.Informational,
+            Task = Tasks.RollingBackBlob,
+            Opcode = EventOpcode.Start,
+            Message = "Rolling back updated blob for {0} {1}. Copying snapshot {2} to {3}")]
+        public void RollingBackBlob(string id, string version, string snapshotUrl, string url) { WriteEvent(15, id, version, snapshotUrl, url); }
+
+        [Event(
+            eventId: 16,
+            Level = EventLevel.Informational,
+            Task = Tasks.RollingBackBlob,
+            Opcode = EventOpcode.Stop,
+            Message = "Rolled back updated blob for {0} {1}. Copied snapshot {2} to {3}")]
+        public void RolledBackBlob(string id, string version, string snapshotUrl, string url) { WriteEvent(16, id, version, snapshotUrl, url); }
+
+        [Event(
+            eventId: 17,
+            Level = EventLevel.Informational,
+            Task = Tasks.SnapshottingBlob,
+            Opcode = EventOpcode.Start,
+            Message = "Snapshotting original blob for {0} {1} ({2}).")]
+        public void SnapshottingBlob(string id, string version, string url) { WriteEvent(17, id, version, url); }
+
+        [Event(
+            eventId: 18,
+            Level = EventLevel.Informational,
+            Task = Tasks.SnapshottingBlob,
+            Opcode = EventOpcode.Stop,
+            Message = "Snapshotting original blob for {0} {1}. Made snapshot of {2} at {3}")]
+        public void SnapshottedBlob(string id, string version, string url, string snapshotUrl) { WriteEvent(18, id, version, url, snapshotUrl); }
+
+        [Event(
+            eventId: 19,
+            Level = EventLevel.Informational,
+            Task = Tasks.DeletingSnapshot,
+            Opcode = EventOpcode.Start,
+            Message = "Deleting snapshot blob {2} for {0} {1}.")]
+        public void DeletingSnapshot(string id, string version, string snapshotUrl) { WriteEvent(19, id, version, snapshotUrl); }
+
+        [Event(
+            eventId: 20,
+            Level = EventLevel.Informational,
+            Task = Tasks.DeletingSnapshot,
+            Opcode = EventOpcode.Stop,
+            Message = "Deleted snapshot blob {2} for {0} {1}.")]
+        public void DeletedSnapshot(string id, string version, string snapshotUrl) { WriteEvent(20, id, version, snapshotUrl); }
+
         public static class Tasks
         {
             public const EventTask FetchingQueuedEdits = (EventTask)0x1;
             public const EventTask EditingPackage = (EventTask)0x2;
             public const EventTask DownloadingOriginal = (EventTask)0x3;
             public const EventTask BackingUpOriginal = (EventTask)0x4;
+            public const EventTask RewritingPackageFile = (EventTask)0x5;
+            public const EventTask UploadingPackageFile = (EventTask)0x6;
+            public const EventTask UpdatingDatabase = (EventTask)0x7;
+            public const EventTask RollingBackBlob = (EventTask)0x8;
+            public const EventTask SnapshottingBlob = (EventTask)0x9;
+            public const EventTask DeletingSnapshot = (EventTask)0xA;
         }
     }
 }

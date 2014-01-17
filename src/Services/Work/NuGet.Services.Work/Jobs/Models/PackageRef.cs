@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Work.Jobs.Models
 {
-    public class PackageReference
+    public class PackageRef
     {
         public string Id { get; set; }
         public string Version { get; set; }

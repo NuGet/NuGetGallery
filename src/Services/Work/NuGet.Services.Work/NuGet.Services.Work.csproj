@@ -170,7 +170,7 @@
     <Compile Include="Jobs\Bases\DatabaseJobHandlerBase.cs" />
     <Compile Include="Jobs\HandlePackageEditsJob.cs" />
     <Compile Include="Jobs\Models\PackageEdit.cs" />
-    <Compile Include="Jobs\Models\PackageReference.cs" />
+    <Compile Include="Jobs\Models\PackageRef.cs" />
     <Compile Include="Jobs\PurgeCompletedInvocationsJob.cs" />
     <Compile Include="Jobs\TestAsyncJob.cs" />
     <Compile Include="Jobs\CreateOnlineDatabaseBackupJob.cs" />

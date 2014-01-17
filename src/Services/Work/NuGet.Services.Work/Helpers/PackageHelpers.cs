@@ -17,7 +17,7 @@ namespace NuGet.Services.Work
         private const string PackageBlobNameFormat = "{0}.{1}.nupkg";
         private const string PackageBackupBlobNameFormat = "packages/{0}/{1}/{2}.nupkg";
 
-        public static string GetPackageBlobName(PackageReference package)
+        public static string GetPackageBlobName(PackageRef package)
         {
             return GetPackageBlobName(package.Id, package.Version);
         }
@@ -31,7 +31,7 @@ namespace NuGet.Services.Work
                 version).ToLowerInvariant();
         }
 
-        public static string GetPackageBackupBlobName(PackageReference package)
+        public static string GetPackageBackupBlobName(PackageRef package)
         {
             return GetPackageBackupBlobName(package.Id, package.Version, package.Hash);
         }

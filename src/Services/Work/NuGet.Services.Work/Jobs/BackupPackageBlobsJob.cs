@@ -85,9 +85,9 @@ namespace NuGet.Services.Work.Jobs
 
             // Gather packages
             Log.GatheringListOfPackages(PackageDatabase.DataSource, PackageDatabase.InitialCatalog, lastBackup);
-            IList<PackageReference> packages;
+            IList<PackageRef> packages;
             using(var connection = await PackageDatabase.ConnectTo()) {
-                packages = (await connection.QueryAsync<PackageReference>(@"
+                packages = (await connection.QueryAsync<PackageRef>(@"
                     SELECT pr.Id, p.NormalizedVersion AS Version, p.Hash
                     FROM Packages p
                     INNER JOIN PackageRegistrations pr ON p.PackageRegistrationKey = pr.[Key]
@@ -105,7 +105,7 @@ namespace NuGet.Services.Work.Jobs
             }
 
             // Start a dataflow to parallelize the transfer
-            var action = new TransformBlock<PackageReference, CloudBlockBlob>(
+            var action = new TransformBlock<PackageRef, CloudBlockBlob>(
                 package => BackupPackage(package),
                 new ExecutionDataflowBlockOptions()
                 {
@@ -144,7 +144,7 @@ namespace NuGet.Services.Work.Jobs
             // TODO: Can we find a way to monitor the copies? It could be a lot of copies...
         }
 
-        private async Task<CloudBlockBlob> BackupPackage(PackageReference package)
+        private async Task<CloudBlockBlob> BackupPackage(PackageRef package)
         {
             // Identify the source and destination blobs
             var sourceBlob = SourceContainer.GetBlockBlobReference(
