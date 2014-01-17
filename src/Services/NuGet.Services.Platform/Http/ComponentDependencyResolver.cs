@@ -37,7 +37,7 @@ namespace NuGet.Services.Http
         }
     }
 
-    internal class ComponentDependencyResolver : ComponentDependencyScope, IDependencyResolver
+    internal class ComponentDependencyResolver : ComponentDependencyScope, System.Web.Http.Dependencies.IDependencyResolver
     {
         public ComponentDependencyResolver(IComponentContainer container)
             : base(container)

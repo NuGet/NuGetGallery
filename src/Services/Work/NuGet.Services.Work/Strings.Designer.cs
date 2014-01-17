@@ -70,6 +70,24 @@ namespace NuGet.Services.Work {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Package has no manifest: {0} {1} (URL: {2}).
+        /// </summary>
+        internal static string HandlePackageEditsJob_MissingManifest {
+            get {
+                return ResourceManager.GetString("HandlePackageEditsJob_MissingManifest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package has multiple manifests: {0} {1} (URL: {2}).
+        /// </summary>
+        internal static string HandlePackageEditsJob_MultipleManifests {
+            get {
+                return ResourceManager.GetString("HandlePackageEditsJob_MultipleManifests", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An invocation result cannot be incomplete!.
         /// </summary>
         internal static string InvocationResult_CannotBeIncomplete {

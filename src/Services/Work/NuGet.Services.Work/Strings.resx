@@ -120,6 +120,12 @@
   <data name="EventSourceInstanceManager_EventSourceDoesNotHaveLogField" xml:space="preserve">
     <value>The Event Source '{0}' does not have a public static field "Log" containing an instance of it. Event Sources must implement this pattern for all jobs.</value>
   </data>
+  <data name="HandlePackageEditsJob_MissingManifest" xml:space="preserve">
+    <value>Package has no manifest: {0} {1} (URL: {2})</value>
+  </data>
+  <data name="HandlePackageEditsJob_MultipleManifests" xml:space="preserve">
+    <value>Package has multiple manifests: {0} {1} (URL: {2})</value>
+  </data>
   <data name="InvocationResult_CannotBeIncomplete" xml:space="preserve">
     <value>An invocation result cannot be incomplete!</value>
   </data>

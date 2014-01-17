@@ -123,6 +123,9 @@
   <data name="Datacenter_InvalidName" xml:space="preserve">
     <value>Expected a name in the format: '&lt;index&gt;-&lt;id&gt;'</value>
   </data>
+  <data name="MaxSizeStream_PositionIsPastMaximumAllowedLength" xml:space="preserve">
+    <value>Operation would cause current position to move beyond the maximum allowed read length of {1}</value>
+  </data>
   <data name="NuGetService_HostNotSet" xml:space="preserve">
     <value>Host must be set using SetHost before invoking this method.</value>
   </data>

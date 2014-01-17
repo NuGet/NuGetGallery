@@ -42,5 +42,20 @@ namespace NuGet.Services.Work.Jobs.Models
         public bool RequiresLicenseAcceptance { get; set; }
         public string Summary { get; set; }
         public string Tags { get; set; }
+
+        public virtual void ApplyTo(ManifestMetadata metadata)
+        {
+            metadata.Title = Title;
+            metadata.Authors = Authors;
+            metadata.Copyright = Copyright;
+            metadata.Description = Description;
+            metadata.IconUrl = IconUrl;
+            metadata.LicenseUrl = LicenseUrl;
+            metadata.ProjectUrl = ProjectUrl;
+            metadata.ReleaseNotes = ReleaseNotes;
+            metadata.RequireLicenseAcceptance = RequiresLicenseAcceptance;
+            metadata.Summary = Summary;
+            metadata.Tags = Tags;
+        }
     }
 }

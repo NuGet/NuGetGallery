@@ -79,6 +79,15 @@ namespace NuGet.Services {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Operation would cause current position to move beyond the maximum allowed read length of {1}.
+        /// </summary>
+        internal static string MaxSizeStream_PositionIsPastMaximumAllowedLength {
+            get {
+                return ResourceManager.GetString("MaxSizeStream_PositionIsPastMaximumAllowedLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Host must be set using SetHost before invoking this method..
         /// </summary>
         internal static string NuGetService_HostNotSet {

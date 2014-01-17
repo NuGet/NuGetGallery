@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlClient;
 using System.Diagnostics.Tracing;
+using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Services.Configuration;
+using NuGet.Services.IO;
 using NuGet.Services.Storage;
 using NuGet.Services.Work.Jobs.Models;
 
@@ -18,6 +22,8 @@ namespace NuGet.Services.Work.Jobs
     [Description("Handles pending package edits")]
     public class HandlePackageEditsJob : JobHandler<QueuePackageEditsEventSource>
     {
+        public static readonly long DefaultMaxAllowedManifestBytes = 10 /* Mb */ * 1024 /* Kb */ * 1024; /* b */
+
         public static readonly string GetEditsBaseSql = @"
             SELECT pr.Id, p.NormalizedVersion AS Version, p.Hash, e.*
             FROM PackageEdits e
@@ -44,10 +50,13 @@ namespace NuGet.Services.Work.Jobs
         /// </summary>
         public int? MaxTryCount { get; set; }
 
+        public long? MaxAllowedManifestBytes { get; set; }
+
         protected CloudBlobContainer SourceContainer { get; set; }
         protected CloudBlobContainer BackupsContainer { get; set; }
 
         protected ConfigurationHub Config { get; set; }
+        protected long MaxManifestSize { get; set; }
         
         public HandlePackageEditsJob(ConfigurationHub config)
         {
@@ -57,6 +66,7 @@ namespace NuGet.Services.Work.Jobs
         protected internal override async Task Execute()
         {
             // Load defaults
+            MaxManifestSize = MaxAllowedManifestBytes ?? DefaultMaxAllowedManifestBytes;
             PackageDatabase = PackageDatabase ?? Config.Sql.GetConnectionString(KnownSqlServer.Primary);
             var sourceAccount = Source == null ?
                 Storage.Legacy :
@@ -108,6 +118,7 @@ namespace NuGet.Services.Work.Jobs
             }
         }
 
+        private static readonly Regex ManifestSelector = new Regex(@"^[^/]*\.nuspec$", RegexOptions.IgnoreCase);
         private async Task ApplyEdit(PackageEdit edit)
         {
             // Download the original file
@@ -123,7 +134,47 @@ namespace NuGet.Services.Work.Jobs
                 PackageHelpers.GetPackageBlobName(edit.Id, edit.Version, edit.Hash));
             if (!await backupBlob.ExistsAsync())
             {
-                await
+                await backupBlob.UploadFromFileAsync(originalPath, FileMode.Open);
+            }
+
+            // Load the zip file and find the manifest
+            using (var originalStream = File.Open(originalPath, FileMode.Open, FileAccess.ReadWrite))
+            {
+                ZipArchive archive = new ZipArchive(originalStream);
+                
+                // Find the nuspec
+                var nuspecEntries = archive.Entries.Where(e => ManifestSelector.IsMatch(e.FullName)).ToArray();
+                if(nuspecEntries.Count == 0) {
+                    throw new InvalidDataException(String.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.HandlePackageEditsJob_MissingManifest,
+                        edit.Id,
+                        edit.Version,
+                        backupBlob.Uri.AbsoluteUri));
+                } else if(nuspecEntries.Count > 1) {
+                    throw new InvalidDataException(String.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.HandlePackageEditsJob_MultipleManifests,
+                        edit.Id,
+                        edit.Version,
+                        backupBlob.Uri.AbsoluteUri));
+                }
+
+                // We now have the nuspec
+                var manifestEntry = nuspecEntries.Single();
+
+                // Load the manifest with a constrained stream
+                using(var manifestStream = new MaxSizeStream(manifestEntry.Open(), Math.Min(manifestEntry.Length, MaxAllowedManifestBytes))) {
+                Manifest manifest = Manifest.ReadFrom(manifestStream, validateSchema: false);
+
+                // Modify the manifest as per the edit
+                edit.ApplyTo(manifest.Metadata);
+
+                // Save the manifest back
+                    manifestStream.Seek(0, SeekOrigin.Begin);
+                    manifestStream.SetLength(0);
+                    manifest.Save(manifestStream);
+                }
             }
         }
     }

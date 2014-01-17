@@ -62,6 +62,9 @@
     <Reference Include="Microsoft.Practices.EnterpriseLibrary.SemanticLogging.WindowsAzure">
       <HintPath>..\..\..\..\packages\EnterpriseLibrary.SemanticLogging.WindowsAzure.1.0.1304.1\lib\NET45\Microsoft.Practices.EnterpriseLibrary.SemanticLogging.WindowsAzure.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Web.XmlTransform">
+      <HintPath>..\..\..\..\packages\Microsoft.Web.Xdt.1.0.0\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.WindowsAzure.Configuration, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\..\..\packages\Microsoft.WindowsAzure.ConfigurationManager.2.0.1.0\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
     </Reference>
@@ -78,6 +81,10 @@
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\..\..\packages\Newtonsoft.Json.5.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="NuGet.Core, Version=2.7.41101.299, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\NuGet.Core.2.7.2\lib\net40-Client\NuGet.Core.dll</HintPath>
+    </Reference>
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
@@ -86,6 +93,7 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Services.Client" />
+    <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.Extensions">
       <HintPath>..\..\..\..\packages\Microsoft.Net.Http.2.2.18\lib\net45\System.Net.Http.Extensions.dll</HintPath>
