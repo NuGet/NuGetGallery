@@ -125,9 +125,9 @@ namespace NuGetGallery.Operations
             }
 
             return new DeploymentEnvironment(
-                Environment.GetEnvironmentVariable("NUGET_ENVIRONMENT_NAME"),
-                Environment.GetEnvironmentVariable("NUGET_SUBSCRIPTION_ID"),
-                Environment.GetEnvironmentVariable("NUGET_SUBSCRIPTION_NAME"),
+                Environment.GetEnvironmentVariable("NUCMD_ENVIRONMENT_NAME"),
+                Environment.GetEnvironmentVariable("NUCMD_SUBSCRIPTION_ID"),
+                Environment.GetEnvironmentVariable("NUCMD_SUBSCRIPTION_NAME"),
                 settings ?? new Dictionary<string, string>());
         }
     }

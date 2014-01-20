@@ -20,7 +20,8 @@ function Invoke-GalleryOperations() {
     }
     $env:NUGET_SERVICE_CONFIG = $tmpfile
 
-    & $GalOpsExe @args
+    Write-Host $env:NUGET_SERVICE_CONFIG
+    #& $GalOpsExe @args
     
     if($tmpfile -and (Test-Path $tmpfile)) {
         del $tmpfile

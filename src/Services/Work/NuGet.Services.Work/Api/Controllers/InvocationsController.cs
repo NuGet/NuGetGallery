@@ -63,7 +63,7 @@ namespace NuGet.Services.Work.Api.Controllers
         }
 
         [Route("{criteria:invocationListCriteria}", Name = Routes.GetInvocations)]
-        public async Task<IHttpActionResult> Get(InvocationListCriteria criteria, int? limit)
+        public async Task<IHttpActionResult> Get(InvocationListCriteria criteria, int? limit = null)
         {
             if (!Enum.IsDefined(typeof(InvocationListCriteria), criteria))
             {
@@ -91,10 +91,11 @@ namespace NuGet.Services.Work.Api.Controllers
                 request.Job, 
                 request.Source ?? Constants.Source_Unknown, 
                 request.Payload, 
-                request.VisibilityDelay ?? TimeSpan.Zero);
+                request.VisibilityDelay ?? TimeSpan.Zero,
+                request.UnlessAlreadyRunning);
             if (invocation == null)
             {
-                return StatusCode(HttpStatusCode.ServiceUnavailable);
+                return StatusCode(HttpStatusCode.NoContent);
             }
             else
             {

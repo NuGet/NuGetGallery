@@ -56,7 +56,8 @@ namespace NuCmd.Commands
             await Console.WriteErrorLine(
                 Strings.Commands_HttpError,
                 (int)response.StatusCode,
-                response.ReasonPhrase);
+                response.ReasonPhrase,
+                await response.HttpResponse.Content.ReadAsStringAsync());
             return false;
         }
 

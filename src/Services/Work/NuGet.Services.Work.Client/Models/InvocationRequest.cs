@@ -10,6 +10,7 @@ namespace NuGet.Services.Work.Models
     {
         public string Job { get; set; }
         public string Source { get; set; }
+        public bool UnlessAlreadyRunning { get; set; }
         public Dictionary<string, string> Payload { get; set; }
         public TimeSpan? VisibilityDelay { get; set; }
 

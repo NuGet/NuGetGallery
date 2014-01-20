@@ -48,15 +48,30 @@ namespace NuGet.Services.Work
 
         public virtual Task<InvocationState> Enqueue(string job, string source)
         {
-            return Enqueue(job, source, null, TimeSpan.Zero);
+            return Enqueue(job, source, null, TimeSpan.Zero, unlessAlreadyRunning: false);
+        }
+
+        public virtual Task<InvocationState> Enqueue(string job, string source, bool unlessAlreadyRunning)
+        {
+            return Enqueue(job, source, null, TimeSpan.Zero, unlessAlreadyRunning);
         }
 
         public virtual Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload)
         {
-            return Enqueue(job, source, payload, TimeSpan.Zero);
+            return Enqueue(job, source, payload, TimeSpan.Zero, unlessAlreadyRunning: false);
         }
 
-        public virtual async Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload, TimeSpan invisibleFor)
+        public virtual Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload, bool unlessAlreadyRunning)
+        {
+            return Enqueue(job, source, payload, TimeSpan.Zero, unlessAlreadyRunning);
+        }
+
+        public virtual Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload, TimeSpan invisibleFor)
+        {
+            return Enqueue(job, source, payload, invisibleFor, unlessAlreadyRunning: false);
+        }
+
+        public virtual async Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload, TimeSpan invisibleFor, bool unlessAlreadyRunning)
         {
             var invisibleUntil = _clock.UtcNow + invisibleFor;
 
@@ -74,7 +89,8 @@ namespace NuGet.Services.Work
                     Source = source,
                     Payload = payloadString,
                     NextVisibleAt = invisibleUntil.UtcDateTime,
-                    InstanceName = _instanceName.ToString()
+                    InstanceName = _instanceName.ToString(),
+                    UnlessAlreadyRunning = unlessAlreadyRunning
                 });
             if (row == null)
             {
@@ -183,6 +199,15 @@ namespace NuGet.Services.Work
                     InstanceName = _instanceName.ToString()
                 });
             return ProcessResult(invocation, newVersion);
+        }
+
+        public virtual Task<InvocationState> GetMostRecentState(string jobName)
+        {
+            return ConnectAndQuerySingle(@"
+                SELECT TOP 1 *
+                FROM work.Invocations WHERE [Job] = @jobName
+                ORDER BY [UpdatedAt] DESC",
+                new { jobName });
         }
 
         public virtual Task<IEnumerable<InvocationState>> GetAll(InvocationListCriteria criteria)

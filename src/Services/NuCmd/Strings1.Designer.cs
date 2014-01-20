@@ -70,7 +70,9 @@ namespace NuCmd {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Received &apos;{0} {1}&apos; response from server. TODO: Decode error details.
+        ///   Looks up a localized string similar to Received &apos;{0} {1}&apos; response from server.
+        ///Details:
+        ///{2}.
         /// </summary>
         internal static string Commands_HttpError {
             get {
@@ -330,6 +332,15 @@ namespace NuCmd {
         internal static string Usage {
             get {
                 return ResourceManager.GetString("Usage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An invocation of this job is already in progress..
+        /// </summary>
+        internal static string Work_InvokeCommand_AlreadyRunning {
+            get {
+                return ResourceManager.GetString("Work_InvokeCommand_AlreadyRunning", resourceCulture);
             }
         }
         

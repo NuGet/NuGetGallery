@@ -3,9 +3,10 @@
 	@Source nvarchar(50),
 	@Payload nvarchar(MAX) = NULL,
 	@NextVisibleAt datetime2,
-	@InstanceName nvarchar(100)
+	@InstanceName nvarchar(100),
+    @UnlessAlreadyRunning bit = 0
 AS
-	-- Insert a row with a completely new Id
+    -- Insert a row with a completely new Id
 	INSERT INTO [private].InvocationsStore(
             [Id],
             [Job],
@@ -26,22 +27,24 @@ AS
             [NextVisibleAt],
             [UpdatedAt])
 	OUTPUT  inserted.*
-	VALUES(
-		    NEWID(),			-- Id
-		    @Job,				-- Job
-		    @Source,			-- Source
-		    @Payload,			-- Payload
-		    1,			        -- Status (Queued)
-		    0,		            -- Result (Incomplete)
-            NULL,               -- Result Message
-		    @InstanceName,		-- UpdatedBy
-            NULL,               -- LogUrl
-		    0,					-- DequeueCount
-		    0,					-- IsContinuation
-		    0,					-- Complete
-            NULL,               -- LastDequeuedAt
-            NULL,               -- LastSuspendedAt
-            NULL,               -- CompletedAt
-		    SYSUTCDATETIME(),	-- QueuedAt
-		    @NextVisibleAt,		-- NextVisibleAt
-		    SYSUTCDATETIME())	-- UpdatedAt
+    SELECT TOP 1
+		    NEWID() AS [Id],
+		    @Job AS [Job],
+		    @Source AS [Source],
+		    @Payload AS [Payload],
+		    1 AS Status,
+		    0 AS Result,
+		    NULL AS ResultMessage,
+		    @InstanceName AS UpdatedBy,
+		    NULL AS LogUrl,
+		    0 AS DequeueCount,
+		    0 AS IsContinuation,
+		    0 AS Complete,
+		    NULL AS LastDequeuedAt,
+		    NULL AS LastSuspendedAt,
+		    NULL AS CompletedAt,
+		    SYSUTCDATETIME() AS QueuedAt,
+		    @NextVisibleAt AS NextVisibleAt,
+		    SYSUTCDATETIME() AS UpdatedAt
+    WHERE	(@UnlessAlreadyRunning = 0)
+    OR		NOT EXISTS (SELECT Id, Job FROM work.ActiveInvocations WHERE Job = @Job AND Payload = @Payload AND Result = 0)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using NuGet.Services.Work;
@@ -30,6 +31,10 @@ namespace NuCmd.Commands.Work
         [ArgShortcut("ep")]
         [ArgDescription("A base64-encoded UTF8 payload string to use. Designed for command-line piping")]
         public string EncodedPayload { get; set; }
+
+        [ArgShortcut("u")]
+        [ArgDescription("Set this flag to queue this invocation only if the job is not already running with the same payload.")]
+        public bool UnlessAlreadyRunning { get; set; }
 
         protected override async Task OnExecute()
         {
@@ -72,13 +77,21 @@ namespace NuCmd.Commands.Work
             {
                 var response = await client.Invocations.Put(new InvocationRequest(Job, Source)
                 {
-                    Payload = payload
+                    Payload = payload,
+                    UnlessAlreadyRunning = UnlessAlreadyRunning
                 });
 
                 if (await ReportHttpStatus(response))
                 {
-                    var invocation = await response.ReadContent();
-                    await Console.WriteInfoLine(Strings.Work_InvokeCommand_CreatedInvocation, invocation.Id.ToString("N").ToLowerInvariant());
+                    if (response.StatusCode == HttpStatusCode.NoContent)
+                    {
+                        await Console.WriteInfoLine(Strings.Work_InvokeCommand_AlreadyRunning);
+                    }
+                    else
+                    {
+                        var invocation = await response.ReadContent();
+                        await Console.WriteInfoLine(Strings.Work_InvokeCommand_CreatedInvocation, invocation.Id.ToString("N").ToLowerInvariant());
+                    }
                 }
             }
         }

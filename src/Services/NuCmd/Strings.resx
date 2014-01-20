@@ -118,7 +118,9 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Commands_HttpError" xml:space="preserve">
-    <value>Received '{0} {1}' response from server. TODO: Decode error details</value>
+    <value>Received '{0} {1}' response from server.
+Details:
+{2}</value>
   </data>
   <data name="Commands_UsingServiceUri" xml:space="preserve">
     <value>Using service at: {0}</value>
@@ -248,5 +250,8 @@
   </data>
   <data name="Work_RunCommand_UnknownJob" xml:space="preserve">
     <value>Unknown job: {0}.</value>
+  </data>
+  <data name="Work_InvokeCommand_AlreadyRunning" xml:space="preserve">
+    <value>An invocation of this job is already in progress.</value>
   </data>
 </root>
