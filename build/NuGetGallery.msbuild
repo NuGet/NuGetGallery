@@ -50,7 +50,7 @@
   </Target>
 
   <Target Name="Clean">
-    <MSBuild Projects="..\NuGetGallery.v2.sln" Targets="Clean" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
+    <MSBuild Projects="..\NuGetGallery.sln" Targets="Clean" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
     <MSBuild Projects="..\NuGetGallery.v3.sln" Targets="Clean" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
   </Target>
   
@@ -62,7 +62,7 @@
      <PropertyGroup>
         <NuGetExePath>$(MsBuildThisFileDirectory)\nuget.exe</NuGetExePath>
         <RestoreCommandV2>$(NuGetExePath) restore -source "$(PackageSources)" $(MsBuildThisFileDirectory)..\NuGetGallery.sln -NonInteractive -Verbosity Quiet</RestoreCommandV2>
-        <RestoreCommandV3>$(NuGetExePath) restore -source "$(PackageSources)" $(MsBuildThisFileDirectory)..\NuGetGallery.v2.sln -NonInteractive -Verbosity Quiet</RestoreCommandV3>
+        <RestoreCommandV3>$(NuGetExePath) restore -source "$(PackageSources)" $(MsBuildThisFileDirectory)..\NuGetGallery.v3.sln -NonInteractive -Verbosity Quiet</RestoreCommandV3>
     </PropertyGroup>
     
     <Message Text="Restoring packages ... " Importance="high" />
@@ -75,7 +75,7 @@
     <Message Text="*************" Importance="high" />
     <Message Text="Building ... " Importance="high" />
     <Message Text="*************" Importance="high" />
-    <MSBuild Projects="..\NuGetGallery.v2.sln" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);RunFacts=true;TargetProfile=Local" />
+    <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);RunFacts=true;TargetProfile=Local" />
     <MSBuild Projects="..\NuGetGallery.v3.sln" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);RunFacts=true;TargetProfile=Local" />
     
     <Message Text="**************" Importance="high" />
