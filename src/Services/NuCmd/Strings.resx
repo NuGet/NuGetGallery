@@ -1,0 +1,252 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Commands_HttpError" xml:space="preserve">
+    <value>Received '{0} {1}' response from server. TODO: Decode error details</value>
+  </data>
+  <data name="Commands_UsingServiceUri" xml:space="preserve">
+    <value>Using service at: {0}</value>
+  </data>
+  <data name="Command_RequiresManagementCert" xml:space="preserve">
+    <value>This command must be run from the NuGet Ops console with a current environment that has a Management Certificate</value>
+  </data>
+  <data name="CredentialProvider_Message" xml:space="preserve">
+    <value>Enter the admin password for {0}.</value>
+  </data>
+  <data name="Help_CommandGroupsHeader" xml:space="preserve">
+    <value>Command groups. Type 'nucmd help &lt;group&gt;' to see a list of commands available in that group</value>
+  </data>
+  <data name="Help_GlobalCommandsHeader" xml:space="preserve">
+    <value>Global commands. Type 'nucmd help &lt;command&gt;' to see detailed command help information</value>
+  </data>
+  <data name="Help_GroupCommandsHeader" xml:space="preserve">
+    <value>Commands in the '{0}' group. Type 'nucmd help {0} &lt;command&gt;' to see detailed command help information</value>
+  </data>
+  <data name="Help_UnknownCommand" xml:space="preserve">
+    <value>'{0} {1}' is not a nucmd command.</value>
+  </data>
+  <data name="Help_UnknownGroup" xml:space="preserve">
+    <value>'{0}' is not a nucmd group or command.</value>
+  </data>
+  <data name="ParameterRequired" xml:space="preserve">
+    <value>The '{0}' parameter is required</value>
+  </data>
+  <data name="Program_CommandNotConvertible" xml:space="preserve">
+    <value>Fatal Error: Command type '{0}' is not convertable to '{1}'.</value>
+  </data>
+  <data name="Program_MissingCommand" xml:space="preserve">
+    <value>Missing command.</value>
+  </data>
+  <data name="Program_NoSuchCommand" xml:space="preserve">
+    <value>Command not found: '{0}'. Use 'nucmd help' to list available commands.</value>
+  </data>
+  <data name="Program_NoSuchCommandInGroup" xml:space="preserve">
+    <value>Command '{0}' not found in '{1}' group. Use 'nucmd help {1}' to list available commands.</value>
+  </data>
+  <data name="Scheduler_ColDeleteCommand_DeletingCollection" xml:space="preserve">
+    <value>Deleting Job Collection '{1}' in scheduler service '{0}'.</value>
+  </data>
+  <data name="Scheduler_CollectionsCommand_GettingCollection" xml:space="preserve">
+    <value>Getting Job Collection '{0}' in service '{1}'.</value>
+  </data>
+  <data name="Scheduler_CollectionsCommand_ListingCollections" xml:space="preserve">
+    <value>Listing available scheduler job collections in the service '{0}'.</value>
+  </data>
+  <data name="Scheduler_ColNewCommand_CreatedCollection" xml:space="preserve">
+    <value>Created Job Collection '{0}' in scheduler service '{1}'.</value>
+  </data>
+  <data name="Scheduler_ColNewCommand_CreatingCollection" xml:space="preserve">
+    <value>Creating Job Collection '{0}' in scheduler service '{1}'.</value>
+  </data>
+  <data name="Scheduler_ColNewCommand_MaxRecurrenceIncomplete" xml:space="preserve">
+    <value>Both MaxRecurrenceFrequency and MaxRecurrenceInterval must be specified if one is specified.</value>
+  </data>
+  <data name="Scheduler_CsDeleteCommand_DeletedService" xml:space="preserve">
+    <value>Deleted scheduler service: {0}.</value>
+  </data>
+  <data name="Scheduler_CsDeleteCommand_DeletingService" xml:space="preserve">
+    <value>Deleting scheduler service: {0}.</value>
+  </data>
+  <data name="Scheduler_CsListCommand_ListingAvailableServices" xml:space="preserve">
+    <value>Listing available scheduler services.</value>
+  </data>
+  <data name="Scheduler_CsNewCommand_CreatedService" xml:space="preserve">
+    <value>Created scheduler service: {0}.</value>
+  </data>
+  <data name="Scheduler_CsNewCommand_CreatingService" xml:space="preserve">
+    <value>Creating scheduler service: {0}.</value>
+  </data>
+  <data name="Scheduler_JobsCommand_ListingJobs" xml:space="preserve">
+    <value>Listing Jobs in Job Collection '{0}/{1}'.</value>
+  </data>
+  <data name="Scheduler_NewJobCommand_CreatedJob" xml:space="preserve">
+    <value>Created Job '{0}' in Job Collection '{1}/{2}'.</value>
+  </data>
+  <data name="Scheduler_NewJobCommand_CreatingJob" xml:space="preserve">
+    <value>Creating Job '{0}' in Job Collection '{1}/{2}'.</value>
+  </data>
+  <data name="Scheduler_NewJobCommand_WouldCreateJob" xml:space="preserve">
+    <value>Would create job with the following definition:
+{0}</value>
+  </data>
+  <data name="Usage" xml:space="preserve">
+    <value>NuCmd Usage:
+  nucmd &lt;command&gt;
+  nucmd &lt;group&gt; &lt;command&gt;</value>
+  </data>
+  <data name="Work_InvokeCommand_CreatedInvocation" xml:space="preserve">
+    <value>Created Invocation: {0}</value>
+  </data>
+  <data name="Work_InvokeCommand_CreatingInvocation_NoPayload" xml:space="preserve">
+    <value>Creating Invocation of {0} with no payload</value>
+  </data>
+  <data name="Work_InvokeCommand_CreatingInvocation_WithPayload" xml:space="preserve">
+    <value>Creating Invocation of {0} with the following payload:</value>
+  </data>
+  <data name="Work_InvokeCommand_PayloadInvalid" xml:space="preserve">
+    <value>Error deserializing payload: {0}</value>
+  </data>
+  <data name="Work_PurgeCommand_PurgingAllInvocations" xml:space="preserve">
+    <value>Purging all invocations...</value>
+  </data>
+  <data name="Work_PurgeCommand_PurgingInvocationsBefore" xml:space="preserve">
+    <value>Purging invocations completed before {0} UTC...</value>
+  </data>
+  <data name="Work_StatsCommand_UnknownStatsType" xml:space="preserve">
+    <value>Unknown stats type: {0}</value>
+  </data>
+  <data name="Work_LogCommand_FetchingLog" xml:space="preserve">
+    <value>Fetching log data for Invocation {0}...</value>
+  </data>
+  <data name="Work_LogCommand_RenderedLog" xml:space="preserve">
+    <value>End of log for Invocation {0}</value>
+  </data>
+  <data name="Work_LogCommand_RenderingLog" xml:space="preserve">
+    <value>Log entries for Invocation {0}</value>
+  </data>
+  <data name="Work_RunCommand_Invoked" xml:space="preserve">
+    <value>Completed invocation of job {0}</value>
+  </data>
+  <data name="Work_RunCommand_Invoking" xml:space="preserve">
+    <value>Invoking job: {0}</value>
+  </data>
+  <data name="Work_RunCommand_UnknownJob" xml:space="preserve">
+    <value>Unknown job: {0}.</value>
+  </data>
+</root>

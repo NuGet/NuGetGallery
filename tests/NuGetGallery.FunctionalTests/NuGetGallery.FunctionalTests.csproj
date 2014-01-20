@@ -114,10 +114,9 @@
       <Project>{1dacf781-5cd0-4123-8bac-cd385d864be5}</Project>
       <Name>NuGetGallery</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NuGetGallery.Frontend.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj" />
     <ProjectReference Include="..\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj">
       <Project>{8fb56455-c688-44ae-95f1-48ffcb199bfe}</Project>
-      <Name>NuGetGallery.Frontend.FunctionalTests.Helpers</Name>
+      <Name>NuGetGallery.FunctionalTests.Helpers</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

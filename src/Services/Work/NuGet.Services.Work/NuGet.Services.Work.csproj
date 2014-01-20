@@ -1,0 +1,247 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'NuGetGallery.v3.sln'))\build\NuGet.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{7F92C174-5310-4090-A6A3-3CC7C67C19D6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NuGet.Services.Work</RootNamespace>
+    <AssemblyName>NuGet.Services.Work</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <RoleType>Worker</RoleType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Autofac">
+      <HintPath>..\..\..\..\packages\Autofac.3.1.5\lib\net40\Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="Dapper">
+      <HintPath>..\..\..\..\packages\Dapper.1.13\lib\net45\Dapper.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.Edm, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\packages\Microsoft.Data.Edm.5.6.0\lib\net40\Microsoft.Data.Edm.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.OData, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\packages\Microsoft.Data.OData.5.6.0\lib\net40\Microsoft.Data.OData.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.Services.Client, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\packages\Microsoft.Data.Services.Client.5.6.0\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\Microsoft.Owin.2.1.0-rc1\lib\net45\Microsoft.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Host.HttpListener">
+      <HintPath>..\..\..\..\packages\Microsoft.Owin.Host.HttpListener.2.0.2\lib\net45\Microsoft.Owin.Host.HttpListener.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.SemanticLogging">
+      <HintPath>..\..\..\..\packages\EnterpriseLibrary.SemanticLogging.1.0.1304.0\lib\NET45\Microsoft.Practices.EnterpriseLibrary.SemanticLogging.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.SemanticLogging.WindowsAzure">
+      <HintPath>..\..\..\..\packages\EnterpriseLibrary.SemanticLogging.WindowsAzure.1.0.1304.1\lib\NET45\Microsoft.Practices.EnterpriseLibrary.SemanticLogging.WindowsAzure.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Web.XmlTransform">
+      <HintPath>..\..\..\..\packages\Microsoft.Web.Xdt.1.0.0\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Configuration, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\packages\Microsoft.WindowsAzure.ConfigurationManager.2.0.1.0\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Diagnostics, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.ServiceRuntime, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=3.0.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\WindowsAzure.Storage.3.0.2.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\packages\Newtonsoft.Json.5.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Core, Version=2.7.41101.299, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\NuGet.Core.2.7.2\lib\net40-Client\NuGet.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Services.Client" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.Extensions">
+      <HintPath>..\..\..\..\packages\Microsoft.Net.Http.2.2.18\lib\net45\System.Net.Http.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Formatting, Version=5.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\Microsoft.AspNet.WebApi.Client.5.1.0-rc1\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Primitives">
+      <HintPath>..\..\..\..\packages\Microsoft.Net.Http.2.2.18\lib\net45\System.Net.Http.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.Reactive.Core">
+      <HintPath>..\..\..\..\packages\Rx-Core.2.1.30214.0\lib\Net45\System.Reactive.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Interfaces">
+      <HintPath>..\..\..\..\packages\Rx-Interfaces.2.1.30214.0\lib\Net45\System.Reactive.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Linq">
+      <HintPath>..\..\..\..\packages\Rx-Linq.2.1.30214.0\lib\Net45\System.Reactive.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Spatial, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\packages\System.Spatial.5.6.0\lib\net40\System.Spatial.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Dataflow, Version=4.5.14.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\Microsoft.Tpl.Dataflow.4.5.14\lib\portable-net45+win8\System.Threading.Tasks.Dataflow.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http, Version=5.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\Microsoft.AspNet.WebApi.Core.5.1.0-rc1\lib\net45\System.Web.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http.Owin, Version=5.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\Microsoft.AspNet.WebApi.Owin.5.1.0-rc1\lib\net45\System.Web.Http.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\CommonAssemblyInfo.cs">
+      <Link>Properties\CommonAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="Api\Controllers\InstancesController.cs" />
+    <Compile Include="Api\Controllers\JobsController.cs" />
+    <Compile Include="Api\Controllers\InvocationsController.cs" />
+    <Compile Include="Api\ModelConverters.cs" />
+    <Compile Include="Api\Models\WorkServiceModel.cs" />
+    <Compile Include="Api\Routes.cs" />
+    <Compile Include="Configuration\LicenseReportConfiguration.cs" />
+    <Compile Include="Configuration\QueueConfiguration.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="Helpers\DapperExtensions.cs" />
+    <Compile Include="Helpers\DateTimeOffsetExtensions.cs" />
+    <Compile Include="Helpers\EventSourceInstanceManager.cs" />
+    <Compile Include="Helpers\PackageHelpers.cs" />
+    <Compile Include="Infrastructure\InvalidJobRequestException.cs" />
+    <Compile Include="Infrastructure\InvocationState.cs" />
+    <Compile Include="Infrastructure\InvocationQueue.cs" />
+    <Compile Include="Infrastructure\InvocationResult.cs" />
+    <Compile Include="Infrastructure\InvocationStatisticsRecord.cs" />
+    <Compile Include="Infrastructure\JobHandler.cs" />
+    <Compile Include="Infrastructure\JobAttribute.cs" />
+    <Compile Include="Infrastructure\JobContinuation.cs" />
+    <Compile Include="Infrastructure\JobDescription.cs" />
+    <Compile Include="Infrastructure\InvocationContext.cs" />
+    <Compile Include="Infrastructure\UnknownJobException.cs" />
+    <Compile Include="JobComponentsModule.cs" />
+    <Compile Include="Jobs\AggregateStatisticsJob.cs" />
+    <Compile Include="Jobs\BackupPackageBlobsJob.cs" />
+    <Compile Include="Jobs\CleanOnlineDatabaseBackupsJob.cs" />
+    <Compile Include="Jobs\Bases\DatabaseJobHandlerBase.cs" />
+    <Compile Include="Jobs\HandlePackageEditsJob.cs" />
+    <Compile Include="Jobs\Models\PackageEdit.cs" />
+    <Compile Include="Jobs\Models\PackageRef.cs" />
+    <Compile Include="Jobs\PurgeCompletedInvocationsJob.cs" />
+    <Compile Include="Jobs\PurgePackageStatisticsJob.cs" />
+    <Compile Include="Jobs\ReplicatePackageStatisticsJob.cs" />
+    <Compile Include="Jobs\TestAsyncJob.cs" />
+    <Compile Include="Jobs\CreateOnlineDatabaseBackupJob.cs" />
+    <Compile Include="Jobs\TestHeartBeatJob.cs" />
+    <Compile Include="Jobs\TestLongJob.cs" />
+    <Compile Include="Jobs\Models\Database.cs" />
+    <Compile Include="Jobs\TestPingJob.cs" />
+    <Compile Include="Jobs\UpdateLicenseReportsJob.cs" />
+    <Compile Include="LocalWorker.cs" />
+    <Compile Include="WorkServiceStatus.cs" />
+    <Compile Include="WorkManagementService.cs" />
+    <Compile Include="Helpers\SqlConnectionStringBuilderExtensions.cs" />
+    <Compile Include="Infrastructure\JobHandlerBase.cs" />
+    <Compile Include="Infrastructure\JobDispatcher.cs" />
+    <Compile Include="Infrastructure\JobRunner.cs" />
+    <Compile Include="Monitoring\InvocationEventSource.cs" />
+    <Compile Include="Monitoring\InvocationLogCapture.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Strings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+    <Compile Include="WorkService.cs" />
+    <Compile Include="Monitoring\WorkServiceEventSource.cs" />
+    <Compile Include="WorkWorkerRole.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\NuGet.Services.Platform.Client\NuGet.Services.Platform.Client.csproj">
+      <Project>{3be823f7-53aa-4263-a953-06bf643f0e43}</Project>
+      <Name>NuGet.Services.Platform.Client</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\NuGet.Services.Platform\NuGet.Services.Platform.csproj">
+      <Project>{ef86883e-a1b4-4052-9222-51a01c6c41cd}</Project>
+      <Name>NuGet.Services.Platform</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Work.Client\NuGet.Services.Work.Client.csproj">
+      <Project>{19324b97-1c22-49e2-8c1a-e4eab682a974}</Project>
+      <Name>NuGet.Services.Work.Client</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'NuGetGallery.v3.sln'))\build\NuGet.targets" />
+  <Import Project="..\..\..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets" Condition="Exists('..\..\..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets')" />
+  <Target Name="EnsureBclBuildImported" BeforeTargets="BeforeBuild" Condition="'$(BclBuildImported)' == ''">
+    <Error Condition="!Exists('..\..\..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets')" Text="This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=317567." HelpKeyword="BCLBUILD2001" />
+    <Error Condition="Exists('..\..\..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build. For more information, see http://go.microsoft.com/fwlink/?LinkID=317568." HelpKeyword="BCLBUILD2002" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

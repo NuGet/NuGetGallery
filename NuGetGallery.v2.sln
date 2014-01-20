@@ -1,0 +1,86 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{96E4AFF8-D3A1-4102-ADCF-05F186F916A9}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{05998089-58F5-4A84-8C11-C5C6244A6F89}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Operations", "Operations", "{2ECA1159-9B9D-4D65-95AF-F14337FD3DA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery", "src\NuGetGallery\NuGetGallery.csproj", "{1DACF781-5CD0-4123-8BAC-CD385D864BE5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Facts", "tests\NuGetGallery.Facts\NuGetGallery.Facts.csproj", "{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Operations", "src\NuGetGallery.Operations\NuGetGallery.Operations.csproj", "{DBECF66B-8F2F-4B32-9143-E243BAFF12DF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "galops", "src\galops\galops.csproj", "{F240D1BC-BBFB-4F22-9DF8-3FDE36BFD665}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Core", "src\NuGetGallery.Core\NuGetGallery.Core.csproj", "{097B2CDD-9623-4C34-93C2-D373D51F5B4E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Core.Facts", "tests\NuGetGallery.Core.Facts\NuGetGallery.Core.Facts.csproj", "{8AC9E39E-366C-47E5-80AE-38E71CD31386}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.FunctionalTests", "tests\NuGetGallery.FunctionalTests\NuGetGallery.FunctionalTests.csproj", "{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.FunctionalTests.Helpers", "tests\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj", "{8FB56455-C688-44AE-95F1-48FFCB199BFE}"
+EndProject
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGetGallery.Cloud", "src\NuGetGallery.Cloud\NuGetGallery.Cloud.ccproj", "{0041ACA0-30EC-4554-8C7C-0AF810F3086F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1DACF781-5CD0-4123-8BAC-CD385D864BE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DACF781-5CD0-4123-8BAC-CD385D864BE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DACF781-5CD0-4123-8BAC-CD385D864BE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DACF781-5CD0-4123-8BAC-CD385D864BE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBECF66B-8F2F-4B32-9143-E243BAFF12DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBECF66B-8F2F-4B32-9143-E243BAFF12DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBECF66B-8F2F-4B32-9143-E243BAFF12DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBECF66B-8F2F-4B32-9143-E243BAFF12DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F240D1BC-BBFB-4F22-9DF8-3FDE36BFD665}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F240D1BC-BBFB-4F22-9DF8-3FDE36BFD665}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F240D1BC-BBFB-4F22-9DF8-3FDE36BFD665}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F240D1BC-BBFB-4F22-9DF8-3FDE36BFD665}.Release|Any CPU.Build.0 = Release|Any CPU
+		{097B2CDD-9623-4C34-93C2-D373D51F5B4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{097B2CDD-9623-4C34-93C2-D373D51F5B4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{097B2CDD-9623-4C34-93C2-D373D51F5B4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{097B2CDD-9623-4C34-93C2-D373D51F5B4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AC9E39E-366C-47E5-80AE-38E71CD31386}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AC9E39E-366C-47E5-80AE-38E71CD31386}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AC9E39E-366C-47E5-80AE-38E71CD31386}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AC9E39E-366C-47E5-80AE-38E71CD31386}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FB56455-C688-44AE-95F1-48FFCB199BFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FB56455-C688-44AE-95F1-48FFCB199BFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FB56455-C688-44AE-95F1-48FFCB199BFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FB56455-C688-44AE-95F1-48FFCB199BFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0041ACA0-30EC-4554-8C7C-0AF810F3086F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0041ACA0-30EC-4554-8C7C-0AF810F3086F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0041ACA0-30EC-4554-8C7C-0AF810F3086F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0041ACA0-30EC-4554-8C7C-0AF810F3086F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1DACF781-5CD0-4123-8BAC-CD385D864BE5} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
+		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
+		{0041ACA0-30EC-4554-8C7C-0AF810F3086F} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
+		{DBECF66B-8F2F-4B32-9143-E243BAFF12DF} = {2ECA1159-9B9D-4D65-95AF-F14337FD3DA6}
+		{F240D1BC-BBFB-4F22-9DF8-3FDE36BFD665} = {2ECA1159-9B9D-4D65-95AF-F14337FD3DA6}
+	EndGlobalSection
+EndGlobal

@@ -41,7 +41,7 @@ namespace NuGetGallery.Operations.Tasks
 
         public override void ExecuteCommand()
         {
-            if (CurrentEnvironment == null)
+            if (CurrentEnvironment == null || String.IsNullOrEmpty(CurrentEnvironment.EnvironmentName))
             {
                 Log.Warn("No current environment!");
             }
@@ -70,6 +70,7 @@ namespace NuGetGallery.Operations.Tasks
             else if (!All)
             {
                 Log.Info("Environment: {0}", EnvironmentName);
+                Log.Info(" Subscription: {0} ({1})", CurrentEnvironment.SubscriptionName, CurrentEnvironment.SubscriptionId);
                 Log.Info(" Main SQL: {0}", CurrentEnvironment.MainDatabase == null ? "<unknown>" : CurrentEnvironment.MainDatabase.DataSource);
                 Log.Info(" Warehouse SQL: {0}", CurrentEnvironment.WarehouseDatabase == null ? "<unknown>" : CurrentEnvironment.WarehouseDatabase.DataSource);
                 Log.Info(" Main Storage: {0}", CurrentEnvironment.MainStorage == null ? "<unknown>" : CurrentEnvironment.MainStorage.Credentials.AccountName);

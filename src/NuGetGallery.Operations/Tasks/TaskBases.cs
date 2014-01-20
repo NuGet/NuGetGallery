@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Migrations;
 using System.Data.Entity.Migrations.Infrastructure;
@@ -10,6 +12,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery.Operations.Common;
 using NuGetGallery.Infrastructure;
 using Dapper;
+using System.Security.Cryptography.X509Certificates;
 
 namespace NuGetGallery.Operations
 {
@@ -291,6 +294,56 @@ namespace NuGetGallery.Operations
             base.ValidateArguments();
             ArgCheck.Required(PackageId, "PackageId");
             ArgCheck.Required(PackageVersion, "PackageVersion");
+        }
+    }
+
+    public abstract class SubscriptionTask : OpsTask
+    {
+        [Option("The subscription ID to use", AltName = "s")]
+        public string SubscriptionId { get; set; }
+
+        [Option("The management certificate thumbprint to use for authentication", AltName = "t")]
+        public string Thumbprint { get; set; }
+
+        public X509Certificate2 ManagementCertificate { get; private set; }
+
+        public override void ValidateArguments()
+        {
+            base.ValidateArguments();
+
+            if (CurrentEnvironment != null)
+            {
+                if (String.IsNullOrEmpty(SubscriptionId))
+                {
+                    SubscriptionId = CurrentEnvironment.SubscriptionId;
+                }
+            }
+            ArgCheck.RequiredOrConfig(SubscriptionId, "SubscriptionId");
+
+            var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+            store.Open(OpenFlags.ReadOnly);
+            if (String.IsNullOrEmpty(Thumbprint))
+            {
+                ManagementCertificate = store.Certificates
+                    .Find(X509FindType.FindBySubjectName, SubscriptionId, validOnly: false)
+                    .OfType<X509Certificate2>()
+                    .FirstOrDefault();
+                if (ManagementCertificate == null)
+                {
+                    throw new CommandLineException("Could not find the default management certificate for the subscription. Specify the -Thumbprint argument to select a certificate");
+                }
+            }
+            else
+            {
+                ManagementCertificate = store.Certificates
+                    .Find(X509FindType.FindByThumbprint, Thumbprint, validOnly: false)
+                    .OfType<X509Certificate2>()
+                    .FirstOrDefault();
+                if (ManagementCertificate == null)
+                {
+                    throw new CommandLineException("Could not find a management certificate with the provided thumbprint.");
+                }
+            }
         }
     }
 }
