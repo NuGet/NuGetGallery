@@ -61,7 +61,7 @@
      </ItemGroup>
      <PropertyGroup>
         <NuGetExePath>$(MsBuildThisFileDirectory)\nuget.exe</NuGetExePath>
-        <RestoreCommandV2>$(NuGetExePath) restore -source "$(PackageSources)" $(MsBuildThisFileDirectory)..\NuGetGallery.v2.sln -NonInteractive -Verbosity Quiet</RestoreCommandV2>
+        <RestoreCommandV2>$(NuGetExePath) restore -source "$(PackageSources)" $(MsBuildThisFileDirectory)..\NuGetGallery.sln -NonInteractive -Verbosity Quiet</RestoreCommandV2>
         <RestoreCommandV3>$(NuGetExePath) restore -source "$(PackageSources)" $(MsBuildThisFileDirectory)..\NuGetGallery.v2.sln -NonInteractive -Verbosity Quiet</RestoreCommandV3>
     </PropertyGroup>
     
