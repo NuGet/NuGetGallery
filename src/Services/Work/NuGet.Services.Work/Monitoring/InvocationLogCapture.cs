@@ -100,9 +100,10 @@ namespace NuGet.Services.Work.Monitoring
             {
                 await Storage.Primary.Blobs.DownloadBlob(WorkService.InvocationLogsContainerBaseName, "invocations/" + Path.GetFileName(_tempFile), _tempFile);
             }
-
+            
             // Capture the events into a JSON file and a plain text file
-            _eventSubscription = this.LogToFlatFile(_tempFile, new JsonEventTextFormatter(EventTextFormatting.Indented, dateTimeFormat: "O"), isAsync: true);
+            _eventSubscription = this
+                .LogToFlatFile(_tempFile, new JsonEventTextFormatter(EventTextFormatting.Indented, dateTimeFormat: "O"), isAsync: true);
         }
 
         public override async Task<Uri> End()
