@@ -22,7 +22,7 @@ namespace NuGet.Services.Work.Jobs
     {
         public static readonly string BackupStateBlobName = "__backupstate";
 
-        
+
         // AzCopy uses this, so it seems good.
         private const int TaskPerCoreFactor = 8;
 
@@ -104,27 +104,21 @@ namespace NuGet.Services.Work.Jobs
                 await DestinationContainer.CreateIfNotExistsAsync();
             }
 
-            // Start a dataflow to parallelize the transfer
-            var action = new TransformBlock<PackageRef, CloudBlockBlob>(
-                package => BackupPackage(package),
-                new ExecutionDataflowBlockOptions()
-                {
-                    MaxDegreeOfParallelism = Environment.ProcessorCount * TaskPerCoreFactor
-                });
+            var action = new ActionBlock<PackageRef>(package => {
+                InvocationContext.SetCurrentInvocationId(Invocation.Id);
+                return BackupPackage(package);
+            }, new ExecutionDataflowBlockOptions() {
+                MaxDegreeOfParallelism = 1 //TaskPerCoreFactor * Environment.ProcessorCount
+            });
             
-            // Create an action block that is single-threaded to receive completed backups for a heartbeat
-            var completed = new ActionBlock<CloudBlockBlob>(blob => BackupCompleted(blob));
-            action.LinkTo(completed);
-
             Log.StartingBackup(packages.Count);
             foreach (var package in packages)
             {
                 action.Post(package);
             }
             action.Complete();
-            
-            await completed.Completion;
             Log.StartedBackup();
+            await action.Completion;
 
             // Write backup state
             Log.SavingBackupState(destAccount.Name, DestinationContainer.Name);
@@ -132,19 +126,7 @@ namespace NuGet.Services.Work.Jobs
             Log.SavedBackupState(destAccount.Name, DestinationContainer.Name);
         }
 
-        private async Task BackupCompleted(CloudBlockBlob backupBlob)
-        {
-            if (Invocation.NextVisibleAt - DateTimeOffset.UtcNow < TimeSpan.FromMinutes(1))
-            {
-                // Running out of time! Extend the job
-                Log.ExtendingJobLeaseWhileBackupProgresses();
-                await Extend(TimeSpan.FromMinutes(5));
-                Log.ExtendedJobLease();
-            }
-            // TODO: Can we find a way to monitor the copies? It could be a lot of copies...
-        }
-
-        private async Task<CloudBlockBlob> BackupPackage(PackageRef package)
+        private async Task BackupPackage(PackageRef package)
         {
             // Identify the source and destination blobs
             var sourceBlob = SourceContainer.GetBlockBlobReference(
@@ -155,13 +137,11 @@ namespace NuGet.Services.Work.Jobs
             if (await destBlob.ExistsAsync())
             {
                 Log.BackupExists(destBlob.Name);
-                return null; // Package does not need waiting
             }
-            else if(!await sourceBlob.ExistsAsync())
+            else if (!await sourceBlob.ExistsAsync())
             {
                 Log.SourceBlobMissing(sourceBlob.Name);
-                return null;
-            } 
+            }
             else
             {
                 // Start the copy
@@ -171,7 +151,29 @@ namespace NuGet.Services.Work.Jobs
                     await destBlob.StartCopyFromBlobAsync(sourceBlob);
                 }
                 Log.StartedCopy(sourceBlob.Name, destBlob.Name);
-                return destBlob;
+            }
+
+            // Double-check locking :)
+            if ((Invocation.NextVisibleAt - DateTimeOffset.UtcNow) < TimeSpan.FromMinutes(1))
+            {
+                await WithJobLock(async () =>
+                {
+                    if ((Invocation.NextVisibleAt - DateTimeOffset.UtcNow) < TimeSpan.FromMinutes(1))
+                    {
+                        // Running out of time! Extend the job
+                        Log.ExtendingJobLeaseWhileBackupProgresses();
+                        await Extend(TimeSpan.FromMinutes(5));
+                        Log.ExtendedJobLease();
+                    }
+                    else
+                    {
+                        Log.JobLeaseOk();
+                    }
+                });
+            }
+            else
+            {
+                Log.JobLeaseOk();
             }
         }
 
@@ -322,7 +324,14 @@ namespace NuGet.Services.Work.Jobs
             Message = "Saved backup stage to {0}/{1}")]
         public void SavedBackupState(string destAccount, string destContainer) { WriteEvent(15, destAccount, destContainer); }
 
-        public static class Tasks {
+        [Event(
+            eventId: 16,
+            Level = EventLevel.Informational,
+            Message = "Job lease OK")]
+        public void JobLeaseOk() { WriteEvent(16); }
+
+        public static class Tasks
+        {
             public const EventTask LoadingBackupState = (EventTask)0x1;
             public const EventTask GatheringPackages = (EventTask)0x2;
             public const EventTask BackingUpPackages = (EventTask)0x3;

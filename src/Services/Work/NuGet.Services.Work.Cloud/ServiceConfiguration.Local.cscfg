@@ -20,7 +20,8 @@
             <Setting name="Sql.Legacy.Admin" value="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetGallery;Integrated Security=SSPI" />
             <Setting name="Sql.Warehouse.Admin" value="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetWarehouse;Integrated Security=SSPI" />
             
-            <Setting name="Queue.PollInterval" value="00:00:15" />
+            <Setting name="Work.PollInterval" value="00:00:15" />
+            <Setting name="Work.WorkersPerCore" value="2" />
             <Setting name="Http.AdminKey" value="password" />
             <Setting name="LicenseReport.Service" value="" />
             <Setting name="LicenseReport.User" value="" />

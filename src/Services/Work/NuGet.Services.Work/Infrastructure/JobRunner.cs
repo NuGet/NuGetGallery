@@ -48,7 +48,7 @@ namespace NuGet.Services.Work
         }
 
         public JobRunner(JobDispatcher dispatcher, InvocationQueue queue, ConfigurationHub config, StorageHub storage, Clock clock)
-            : this(config.GetSection<QueueConfiguration>().PollInterval)
+            : this(config.GetSection<WorkConfiguration>().PollInterval)
         {
             Dispatcher = dispatcher;
             Queue = queue;

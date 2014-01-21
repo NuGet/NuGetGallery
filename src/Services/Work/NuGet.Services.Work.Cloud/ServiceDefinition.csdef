@@ -28,7 +28,9 @@
             <Setting name="Sql.Legacy.Admin" />
             <Setting name="Sql.Warehouse.Admin" />
             
-            <Setting name="Queue.PollInterval" />
+            <Setting name="Work.PollInterval" />
+            <Setting name="Work.WorkersPerCore" />
+            
             <Setting name="Http.AdminKey" />
             
             <Setting name="LicenseReport.Service" />

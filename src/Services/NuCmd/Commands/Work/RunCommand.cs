@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.Tracing;
+using System.Reactive.Linq;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
 using NuGet.Services.Work;
 using PowerArgs;
+using System.Reactive;
 
 namespace NuCmd.Commands.Work
 {
@@ -62,10 +64,11 @@ namespace NuCmd.Commands.Work
             try
             {
                 var observable = service.RunJob(Job, Payload);
-                observable.Subscribe(
-                    evt => RenderEvent(evt).Wait(),
-                    ex => tcs.SetException(ex),
-                    () => tcs.SetResult(null));
+                observable
+                    .Subscribe(
+                        evt => RenderEvent(evt).Wait(),
+                        ex => tcs.SetException(ex),
+                        () => tcs.SetResult(null));
                 await tcs.Task;
             }
             catch (AggregateException aex)

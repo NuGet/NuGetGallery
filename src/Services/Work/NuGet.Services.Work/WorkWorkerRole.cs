@@ -17,6 +17,7 @@ using NuGet.Services.Azure;
 using NuGet.Services.Http;
 using NuGet.Services.Work.Monitoring;
 using NuGet.Services.ServiceModel;
+using NuGet.Services.Work.Configuration;
 
 namespace NuGet.Services.Work
 {
@@ -24,7 +25,14 @@ namespace NuGet.Services.Work
     {
         protected override IEnumerable<NuGetService> GetServices(ServiceHost host)
         {
-            for (int i = 0; i < Environment.ProcessorCount; i++)
+            var workConfig = host.Config.GetSection<WorkConfiguration>();
+            int workersPerCore = 2;
+            if (workConfig != null)
+            {
+                workersPerCore = workConfig.WorkersPerCore;
+            }
+
+            for (int i = 0; i < (Environment.ProcessorCount * workersPerCore); i++)
             {
                 yield return new WorkService(host);
             }

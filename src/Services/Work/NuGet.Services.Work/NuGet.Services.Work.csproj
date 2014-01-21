@@ -147,7 +147,7 @@
     <Compile Include="Api\Models\WorkServiceModel.cs" />
     <Compile Include="Api\Routes.cs" />
     <Compile Include="Configuration\LicenseReportConfiguration.cs" />
-    <Compile Include="Configuration\QueueConfiguration.cs" />
+    <Compile Include="Configuration\WorkConfiguration.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Helpers\DapperExtensions.cs" />
     <Compile Include="Helpers\DateTimeOffsetExtensions.cs" />

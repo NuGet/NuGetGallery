@@ -47,4 +47,10 @@ AS
 		    @NextVisibleAt AS NextVisibleAt,
 		    SYSUTCDATETIME() AS UpdatedAt
     WHERE	(@UnlessAlreadyRunning = 0)
-    OR		NOT EXISTS (SELECT Id, Job FROM work.ActiveInvocations WHERE Job = @Job AND Payload = @Payload AND Result = 0)
+    OR		NOT EXISTS (
+        SELECT Id, Job 
+        FROM work.ActiveInvocations 
+        WHERE Job = @Job 
+        AND (Payload = @Payload OR ((Payload IS NULL) AND (@Payload IS NULL)))
+        AND Result = 0
+    )

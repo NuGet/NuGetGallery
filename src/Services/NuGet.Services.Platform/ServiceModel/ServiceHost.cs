@@ -31,6 +31,7 @@ namespace NuGet.Services.ServiceModel
         public CancellationToken ShutdownToken { get { return _shutdownTokenSource.Token; } }
 
         public StorageHub Storage { get; private set; }
+        public ConfigurationHub Config { get; private set; }
         public IReadOnlyList<NuGetService> Instances { get; private set; }
 
         public AssemblyInformation RuntimeInformation { get { return _runtimeInformation; } }
@@ -95,6 +96,7 @@ namespace NuGet.Services.ServiceModel
 
                 // Manually resolve components the host uses
                 Storage = _container.Resolve<StorageHub>();
+                Config = _container.Resolve<ConfigurationHub>();
 
                 // Now get the services
                 var list = GetServices().ToList();

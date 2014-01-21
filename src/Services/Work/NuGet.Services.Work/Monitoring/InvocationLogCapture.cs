@@ -11,6 +11,7 @@ using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Formatters;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Services.Storage;
 using System.Reactive.Subjects;
+using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Sinks;
 
 namespace NuGet.Services.Work.Monitoring
 {
@@ -63,7 +64,7 @@ namespace NuGet.Services.Work.Monitoring
 
     public class BlobInvocationLogCapture : InvocationLogCapture
     {
-        private IDisposable _eventSubscription;
+        private SinkSubscription<FlatFileSink> _eventSubscription;
 
         private readonly string _tempDirectory;
         private string _tempFile;
@@ -101,11 +102,14 @@ namespace NuGet.Services.Work.Monitoring
             }
 
             // Capture the events into a JSON file and a plain text file
-            _eventSubscription = this.LogToFlatFile(_tempFile, new JsonEventTextFormatter(EventTextFormatting.Indented, dateTimeFormat: "O"));
+            _eventSubscription = this.LogToFlatFile(_tempFile, new JsonEventTextFormatter(EventTextFormatting.Indented, dateTimeFormat: "O"), isAsync: true);
         }
 
         public override async Task<Uri> End()
         {
+            // Flush the listener
+            await _eventSubscription.Sink.FlushAsync();
+
             // Disconnect the listener
             _eventSubscription.Dispose();
 

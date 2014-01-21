@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NuGet.Services.Client;
 using NuGet.Services.Work.Models;
 using PowerArgs;
 
@@ -17,6 +18,10 @@ namespace NuCmd.Commands.Work
         [ArgPosition(0)]
         [ArgDescription("The ID of the invocation to get more information on. Or a criteria value, one of 'all', 'active', 'completed', 'executing', 'pending', 'hidden', 'suspended'")]
         public string CriteriaOrId { get; set; }
+
+        [ArgShortcut("l")]
+        [ArgDescription("A maximum number of invocations to download")]
+        public int? Limit { get; set; }
 
         protected override Task OnExecute()
         {
@@ -50,7 +55,12 @@ namespace NuCmd.Commands.Work
             var client = await OpenClient();
             if (client == null) { return; }
 
-            var response = await client.Invocations.Get(criteria);
+            ServiceResponse<IEnumerable<Invocation>> response;
+            if(Limit.HasValue) {
+                response = await client.Invocations.Get(criteria, Limit.Value);
+            } else {
+                response = await client.Invocations.Get(criteria);
+            }
 
             if (await ReportHttpStatus(response))
             {
