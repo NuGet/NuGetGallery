@@ -50,5 +50,6 @@ AS
             [CompletedAt],
 			QueuedAt,
 			@HideUntil AS [NextVisibleAt],
-			SYSUTCDATETIME() AS [UpdatedAt]
+			SYSUTCDATETIME() AS [UpdatedAt],
+            [JobInstanceName]
 	FROM cte

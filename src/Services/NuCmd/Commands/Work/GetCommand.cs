@@ -67,6 +67,7 @@ namespace NuCmd.Commands.Work
                 var invocations = await response.ReadContent();
                 await Console.WriteTable(invocations.OrderByDescending(i => i.UpdatedAt), i => new {
                     i.Job,
+                    i.JobInstanceName,
                     i.Status,
                     i.Result,
                     i.Id,

@@ -44,6 +44,7 @@ AS
             [CompletedAt],
 			QueuedAt,
 			@SuspendUntil AS [NextVisibleAt],
-			SYSUTCDATETIME() AS [UpdatedAt]
+			SYSUTCDATETIME() AS [UpdatedAt],
+            [JobInstanceName]
 	FROM	[work].ActiveInvocations
 	WHERE	[Id] = @Id AND [Version] = @Version

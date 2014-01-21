@@ -4,6 +4,7 @@
 	@Payload nvarchar(MAX) = NULL,
 	@NextVisibleAt datetime2,
 	@InstanceName nvarchar(100),
+    @JobInstanceName nvarchar(50) = NULL,
     @UnlessAlreadyRunning bit = 0
 AS
     -- Insert a row with a completely new Id
@@ -25,7 +26,8 @@ AS
             [CompletedAt],
             [QueuedAt],
             [NextVisibleAt],
-            [UpdatedAt])
+            [UpdatedAt],
+            [JobInstanceName])
 	OUTPUT  inserted.*
     SELECT TOP 1
 		    NEWID() AS [Id],
@@ -45,12 +47,13 @@ AS
 		    NULL AS CompletedAt,
 		    SYSUTCDATETIME() AS QueuedAt,
 		    @NextVisibleAt AS NextVisibleAt,
-		    SYSUTCDATETIME() AS UpdatedAt
+		    SYSUTCDATETIME() AS UpdatedAt,
+            @JobInstanceName AS JobInstanceName
     WHERE	(@UnlessAlreadyRunning = 0)
     OR		NOT EXISTS (
         SELECT Id, Job 
         FROM work.ActiveInvocations 
         WHERE Job = @Job 
-        AND (Payload = @Payload OR ((Payload IS NULL) AND (@Payload IS NULL)))
+        AND (@JobInstanceName = @JobInstanceName OR ((@JobInstanceName IS NULL) AND (@JobInstanceName IS NULL)))
         AND Result = 0
     )

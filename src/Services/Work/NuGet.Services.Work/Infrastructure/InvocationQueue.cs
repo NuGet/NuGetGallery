@@ -48,30 +48,30 @@ namespace NuGet.Services.Work
 
         public virtual Task<InvocationState> Enqueue(string job, string source)
         {
-            return Enqueue(job, source, null, TimeSpan.Zero, unlessAlreadyRunning: false);
+            return Enqueue(job, source, null, TimeSpan.Zero, jobInstanceName: null, unlessAlreadyRunning: false);
         }
 
         public virtual Task<InvocationState> Enqueue(string job, string source, bool unlessAlreadyRunning)
         {
-            return Enqueue(job, source, null, TimeSpan.Zero, unlessAlreadyRunning);
+            return Enqueue(job, source, null, TimeSpan.Zero, jobInstanceName: null, unlessAlreadyRunning: unlessAlreadyRunning);
         }
 
         public virtual Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload)
         {
-            return Enqueue(job, source, payload, TimeSpan.Zero, unlessAlreadyRunning: false);
+            return Enqueue(job, source, payload, TimeSpan.Zero, jobInstanceName: null, unlessAlreadyRunning: false);
         }
 
         public virtual Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload, bool unlessAlreadyRunning)
         {
-            return Enqueue(job, source, payload, TimeSpan.Zero, unlessAlreadyRunning);
+            return Enqueue(job, source, payload, TimeSpan.Zero, jobInstanceName: null, unlessAlreadyRunning: unlessAlreadyRunning);
         }
 
         public virtual Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload, TimeSpan invisibleFor)
         {
-            return Enqueue(job, source, payload, invisibleFor, unlessAlreadyRunning: false);
+            return Enqueue(job, source, payload, invisibleFor, jobInstanceName: null, unlessAlreadyRunning: false);
         }
 
-        public virtual async Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload, TimeSpan invisibleFor, bool unlessAlreadyRunning)
+        public virtual async Task<InvocationState> Enqueue(string job, string source, Dictionary<string, string> payload, TimeSpan invisibleFor, string jobInstanceName, bool unlessAlreadyRunning)
         {
             var invisibleUntil = _clock.UtcNow + invisibleFor;
 
@@ -90,6 +90,7 @@ namespace NuGet.Services.Work
                     Payload = payloadString,
                     NextVisibleAt = invisibleUntil.UtcDateTime,
                     InstanceName = _instanceName.ToString(),
+                    JobInstanceName = jobInstanceName,
                     UnlessAlreadyRunning = unlessAlreadyRunning
                 });
             if (row == null)

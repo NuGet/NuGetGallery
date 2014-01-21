@@ -32,6 +32,10 @@ namespace NuCmd.Commands.Work
         [ArgDescription("A base64-encoded UTF8 payload string to use. Designed for command-line piping")]
         public string EncodedPayload { get; set; }
 
+        [ArgShortcut("i")]
+        [ArgDescription("A unique name that will be used with UnlessAlreadyRunning to determine if an instance of this job is already running")]
+        public string JobInstanceName { get; set; }
+
         [ArgShortcut("u")]
         [ArgDescription("Set this flag to queue this invocation only if the job is not already running with the same payload.")]
         public bool UnlessAlreadyRunning { get; set; }

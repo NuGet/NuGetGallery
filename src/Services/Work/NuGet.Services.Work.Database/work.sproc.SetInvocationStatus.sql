@@ -43,6 +43,7 @@ AS
             [CompletedAt],
 			QueuedAt,
 			[NextVisibleAt],
-			SYSUTCDATETIME() AS [UpdatedAt]
+			SYSUTCDATETIME() AS [UpdatedAt],
+            [JobInstanceName]
 	FROM	[work].ActiveInvocations
 	WHERE	[Id] = @Id AND [Version] = @Version

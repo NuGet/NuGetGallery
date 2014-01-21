@@ -90,8 +90,9 @@ namespace NuGet.Services.Work.Api.Controllers
             var invocation = await Queue.Enqueue(
                 request.Job, 
                 request.Source ?? Constants.Source_Unknown, 
-                request.Payload, 
+                request.Payload,
                 request.VisibilityDelay ?? TimeSpan.Zero,
+                request.JobInstanceName,
                 request.UnlessAlreadyRunning);
             if (invocation == null)
             {

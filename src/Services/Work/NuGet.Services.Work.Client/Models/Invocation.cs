@@ -10,6 +10,7 @@ namespace NuGet.Services.Work.Models
     {
         public Guid Id { get; set; }
         public string Job { get; set; }
+        public string JobInstanceName { get; set; }
         public string Source { get; set; }
 
         public Dictionary<string, string> Payload { get; set; }

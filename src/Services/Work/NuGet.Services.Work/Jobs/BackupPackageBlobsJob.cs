@@ -108,7 +108,7 @@ namespace NuGet.Services.Work.Jobs
                 InvocationContext.SetCurrentInvocationId(Invocation.Id);
                 return BackupPackage(package);
             }, new ExecutionDataflowBlockOptions() {
-                MaxDegreeOfParallelism = 1 //TaskPerCoreFactor * Environment.ProcessorCount
+                MaxDegreeOfParallelism = TaskPerCoreFactor * Environment.ProcessorCount
             });
             
             Log.StartingBackup(packages.Count);

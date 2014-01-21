@@ -38,6 +38,7 @@ namespace NuCmd.Commands.Scheduler
         [ArgRequired]
         [ArgPosition(2)]
         [ArgShortcut("i")]
+        [ArgRegex("[A-Za-z-_]{,50}")]
         [ArgDescription("The name of the job instance to create")]
         public string InstanceName { get; set; }
 
@@ -117,6 +118,7 @@ namespace NuCmd.Commands.Scheduler
                     "Scheduler",
                     payload)
                     {
+                        JobInstanceName = InstanceName,
                         UnlessAlreadyRunning = Singleton
                     };
                 var body = JsonConvert.SerializeObject(bodyValue);

@@ -30,6 +30,7 @@ namespace NuGet.Services.Work
         public string ResultMessage { get { return CurrentRow.ResultMessage; } }
         public string LastUpdatedBy { get { return CurrentRow.UpdatedBy; } }
         public string LogUrl { get { return CurrentRow.LogUrl; } }
+        public string JobInstanceName { get { return CurrentRow.JobInstanceName; } }
 
         public int DequeueCount { get { return CurrentRow.DequeueCount; } }
         public bool IsContinuation { get { return CurrentRow.IsContinuation; } }
@@ -93,6 +94,7 @@ namespace NuGet.Services.Work
             public string UpdatedBy { get; set; }
             public string ResultMessage { get; set; }
             public string LogUrl { get; set; }
+            public string JobInstanceName { get; set; }
             public int DequeueCount { get; set; }
 
             public bool IsContinuation { get; set; }

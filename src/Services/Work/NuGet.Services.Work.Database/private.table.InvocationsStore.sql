@@ -24,5 +24,6 @@ CREATE TABLE [private].[InvocationsStore]
     [CompletedAt] DATETIME2 NULL,
     [QueuedAt] DATETIME2 NOT NULL,
     [NextVisibleAt] DATETIME2 NOT NULL, 
-    [UpdatedAt] DATETIME2 NOT NULL
+    [UpdatedAt] DATETIME2 NOT NULL, 
+    [JobInstanceName] NVARCHAR(50) NULL
 )

@@ -22,6 +22,7 @@ namespace NuGet.Services.Work.Api
             {
                 Id = self.Id,
                 Job = self.Job,
+                JobInstanceName = self.JobInstanceName,
                 Source = self.Source,
 
                 Payload = self.Payload,
