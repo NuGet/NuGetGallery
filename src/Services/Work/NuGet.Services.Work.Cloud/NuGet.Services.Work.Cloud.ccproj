@@ -62,7 +62,7 @@
     <CloudExtensionsDir Condition=" '$(CloudExtensionsDir)' == '' ">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Windows Azure Tools\2.2\</CloudExtensionsDir>
   </PropertyGroup>
   <Target Name="CopyWorkerRoleConfigurations" BeforeTargets="AfterPackageComputeService">
-    <Copy SourceFiles="..\%(ProjectReference.Name)\bin\$(Configuration)\%(ProjectReference.RoleName).dll.config" DestinationFolder="$(IntermediateOutputPath)NuGet.Services.Gateway.Role" OverwriteReadOnlyFiles="true" Condition="Exists('..\%(ProjectReference.Name)\bin\$(Configuration)\%(ProjectReference.RoleName).dll.config')" />
+    <Copy SourceFiles="..\%(ProjectReference.Name)\bin\$(Configuration)\%(ProjectReference.RoleName).dll.config" DestinationFolder="$(IntermediateOutputPath)%(ProjectReference.RoleName)" OverwriteReadOnlyFiles="true" Condition="Exists('..\%(ProjectReference.Name)\bin\$(Configuration)\%(ProjectReference.RoleName).dll.config')" />
   </Target>
   <Import Project="$(CloudExtensionsDir)Microsoft.WindowsAzure.targets" />
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'NuGetGallery.v3.sln'))\build\NuGet.Cloud.targets" />
