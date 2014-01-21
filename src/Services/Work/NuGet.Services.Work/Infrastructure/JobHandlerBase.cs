@@ -17,8 +17,6 @@ namespace NuGet.Services.Work
 {
     public abstract class JobHandlerBase
     {
-        private object _jobLock = new object();
-
         public InvocationContext Context { get; protected set; }
 
         public InvocationState Invocation { get { return Context.Invocation; } }
@@ -87,13 +85,6 @@ namespace NuGet.Services.Work
         {
             InvocationEventSource.Log.Extending(DateTimeOffset.UtcNow + duration);
             return Context.Queue.Extend(Invocation, duration);
-        }
-
-        protected virtual async Task WithJobLock(Func<Task> action)
-        {
-            Monitor.Enter(_jobLock);
-            await action();
-            Monitor.Exit(_jobLock);
         }
 
         protected virtual InvocationResult BindContext(InvocationContext context)

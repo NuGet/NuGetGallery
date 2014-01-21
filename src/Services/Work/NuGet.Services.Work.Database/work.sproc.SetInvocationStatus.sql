@@ -24,7 +24,8 @@ AS
             [CompletedAt],
             [QueuedAt],
             [NextVisibleAt],
-            [UpdatedAt])
+            [UpdatedAt],
+            [JobInstanceName])
 	OUTPUT	inserted.*
 	SELECT	Id,
 			Job, 

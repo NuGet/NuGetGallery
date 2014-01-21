@@ -82,6 +82,7 @@ namespace NuCmd.Commands.Work
                 var response = await client.Invocations.Put(new InvocationRequest(Job, Source)
                 {
                     Payload = payload,
+                    JobInstanceName = JobInstanceName,
                     UnlessAlreadyRunning = UnlessAlreadyRunning
                 });
 

@@ -104,12 +104,33 @@ namespace NuGet.Services.Work.Jobs
                 await DestinationContainer.CreateIfNotExistsAsync();
             }
 
-            var action = new ActionBlock<PackageRef>(package => {
+            var action = new TransformBlock<PackageRef, object>(package =>
+            {
                 InvocationContext.SetCurrentInvocationId(Invocation.Id);
                 return BackupPackage(package);
             }, new ExecutionDataflowBlockOptions() {
-                MaxDegreeOfParallelism = TaskPerCoreFactor * Environment.ProcessorCount
+                MaxDegreeOfParallelism = TaskPerCoreFactor * Environment.ProcessorCount,
+                MaxMessagesPerTask = 1,
             });
+            var extendIfNecessary = new ActionBlock<object>(async blob =>
+            {
+                InvocationContext.SetCurrentInvocationId(Invocation.Id);
+                if ((Invocation.NextVisibleAt - DateTimeOffset.UtcNow) < TimeSpan.FromMinutes(1))
+                {
+                    // Running out of time! Extend the job
+                    Log.ExtendingJobLeaseWhileBackupProgresses();
+                    await Extend(TimeSpan.FromMinutes(5));
+                    Log.ExtendedJobLease();
+                }
+                else
+                {
+                    Log.JobLeaseOk();
+                }
+            }, new ExecutionDataflowBlockOptions()
+            {
+                MaxDegreeOfParallelism = 1,
+            });
+            action.LinkTo(extendIfNecessary);
             
             Log.StartingBackup(packages.Count);
             foreach (var package in packages)
@@ -118,7 +139,7 @@ namespace NuGet.Services.Work.Jobs
             }
             action.Complete();
             Log.StartedBackup();
-            await action.Completion;
+            await extendIfNecessary.Completion;
 
             // Write backup state
             Log.SavingBackupState(destAccount.Name, DestinationContainer.Name);
@@ -126,7 +147,8 @@ namespace NuGet.Services.Work.Jobs
             Log.SavedBackupState(destAccount.Name, DestinationContainer.Name);
         }
 
-        private async Task BackupPackage(PackageRef package)
+        private static readonly object Unit = new object();
+        private async Task<object> BackupPackage(PackageRef package)
         {
             // Identify the source and destination blobs
             var sourceBlob = SourceContainer.GetBlockBlobReference(
@@ -137,10 +159,12 @@ namespace NuGet.Services.Work.Jobs
             if (await destBlob.ExistsAsync())
             {
                 Log.BackupExists(destBlob.Name);
+                return Unit;
             }
             else if (!await sourceBlob.ExistsAsync())
             {
                 Log.SourceBlobMissing(sourceBlob.Name);
+                return Unit;
             }
             else
             {
@@ -151,29 +175,7 @@ namespace NuGet.Services.Work.Jobs
                     await destBlob.StartCopyFromBlobAsync(sourceBlob);
                 }
                 Log.StartedCopy(sourceBlob.Name, destBlob.Name);
-            }
-
-            // Double-check locking :)
-            if ((Invocation.NextVisibleAt - DateTimeOffset.UtcNow) < TimeSpan.FromMinutes(1))
-            {
-                await WithJobLock(async () =>
-                {
-                    if ((Invocation.NextVisibleAt - DateTimeOffset.UtcNow) < TimeSpan.FromMinutes(1))
-                    {
-                        // Running out of time! Extend the job
-                        Log.ExtendingJobLeaseWhileBackupProgresses();
-                        await Extend(TimeSpan.FromMinutes(5));
-                        Log.ExtendedJobLease();
-                    }
-                    else
-                    {
-                        Log.JobLeaseOk();
-                    }
-                });
-            }
-            else
-            {
-                Log.JobLeaseOk();
+                return Unit;
             }
         }
 

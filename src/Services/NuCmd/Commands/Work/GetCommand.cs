@@ -68,6 +68,7 @@ namespace NuCmd.Commands.Work
                 await Console.WriteTable(invocations.OrderByDescending(i => i.UpdatedAt), i => new {
                     i.Job,
                     i.JobInstanceName,
+                    D = i.DequeueCount,
                     i.Status,
                     i.Result,
                     i.Id,
