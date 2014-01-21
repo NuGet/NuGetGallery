@@ -106,7 +106,24 @@ namespace NuGet.Services.Work
                     {
                         Status = RunnerStatus.Dispatching;
                         Interlocked.Exchange(ref _currentInvocationId, invocation.Id.ToByteArray());
-                        await Dispatch(invocation, cancelToken);
+                        
+                        Exception dispatchError = null;
+                        try
+                        {
+                            await Dispatch(invocation, cancelToken);
+                        }
+                        catch (Exception ex)
+                        {
+                            dispatchError = ex;
+                        }
+                        if (dispatchError != null)
+                        {
+                            await Queue.Complete(
+                                invocation,
+                                ExecutionResult.Crashed,
+                                dispatchError.ToString(),
+                                null);
+                        }
                         Interlocked.Exchange(ref _currentInvocationId, Guid.Empty.ToByteArray());
                         Status = RunnerStatus.Working;
                     }

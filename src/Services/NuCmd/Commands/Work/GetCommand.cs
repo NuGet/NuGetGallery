@@ -72,7 +72,8 @@ namespace NuCmd.Commands.Work
                     i.Id,
                     QueuedAt = i.QueuedAt.LocalDateTime,
                     UpdatedAt = i.UpdatedAt.LocalDateTime,
-                    CompletedAt = i.CompletedAt.HasValue ? i.CompletedAt.Value.LocalDateTime : (DateTimeOffset?)null
+                    CompletedAt = i.CompletedAt.HasValue ? i.CompletedAt.Value.LocalDateTime : (DateTimeOffset?)null,
+                    i.LastUpdatedBy
                 });
             }
         }
