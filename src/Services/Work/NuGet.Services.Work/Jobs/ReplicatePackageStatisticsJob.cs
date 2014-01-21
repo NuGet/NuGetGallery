@@ -36,7 +36,7 @@ namespace NuGet.Services.Work.Jobs
         {
             // Load defaults
             Source = Source ?? Config.Sql.Legacy;
-            Destination = Destination ?? Config.Sql.Primary;
+            Destination = Destination ?? Config.Sql.Warehouse;
 
             Log.ReplicatingStatistics(Source.DataSource, Source.InitialCatalog, Destination.DataSource, Destination.InitialCatalog);
 
