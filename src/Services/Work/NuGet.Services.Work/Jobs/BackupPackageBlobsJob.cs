@@ -63,7 +63,7 @@ namespace NuGet.Services.Work.Jobs
             var now = DateTimeOffset.UtcNow;
 
             // Load default data if not provided
-            PackageDatabase = PackageDatabase ?? Config.Sql.GetConnectionString(KnownSqlServer.Primary);
+            PackageDatabase = PackageDatabase ?? Config.Sql.GetConnectionString(KnownSqlServer.Legacy);
             var sourceAccount = Source == null ?
                 Storage.Legacy :
                 Storage.GetAccount(Source);
