@@ -427,6 +427,11 @@ namespace NuGet.Services.Work.Infrastructure
 
             protected internal override Task Dispatch(InvocationState invocation, CancellationToken cancelToken)
             {
+                return Dispatch(invocation, new InvocationLogCapture(invocation), cancelToken);
+            }
+
+            protected internal override Task Dispatch(InvocationState invocation, InvocationLogCapture capture, CancellationToken cancelToken)
+            {
                 LastDispatched = invocation;
                 if (_skipDispatch)
                 {
@@ -434,7 +439,7 @@ namespace NuGet.Services.Work.Infrastructure
                 }
                 else
                 {
-                    return base.Dispatch(invocation, cancelToken);
+                    return base.Dispatch(invocation, capture, cancelToken);
                 }
             }
         }
