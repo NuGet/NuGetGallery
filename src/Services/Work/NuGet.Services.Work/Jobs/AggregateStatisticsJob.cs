@@ -114,7 +114,7 @@ BEGIN TRANSACTION
     INNER JOIN  PackageRegistrations ON PackageRegistrations.[Key] = AffectedPackageRegistrations.PackageRegistrationKey
 
 	UPDATE		GallerySettings
-	SET			GallerySettings.TotalDownloadCount = GallerySettings.TotalDownloadCount + (SELECT SUM(DownloadCount) FROM @DownloadStats)
+	SET			GallerySettings.TotalDownloadCount = GallerySettings.TotalDownloadCount + (SELECT ISNULL(SUM(DownloadCount), 0) FROM @DownloadStats)
 
 COMMIT TRANSACTION
 ";

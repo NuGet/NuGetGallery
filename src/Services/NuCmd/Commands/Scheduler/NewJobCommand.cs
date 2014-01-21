@@ -80,6 +80,10 @@ namespace NuCmd.Commands.Scheduler
         [ArgDescription("The time at which the first invocation should occur. Defaults to now.")]
         public DateTime? StartTime { get; set; }
 
+        [ArgShortcut("sing")]
+        [ArgDescription("Set this flag and the job invocation will only be queued if there is no invocation already in progress")]
+        public bool Singleton { get; set; }
+
         protected override async Task OnExecute()
         {
             CloudService = String.IsNullOrEmpty(CloudService) ?
@@ -109,9 +113,12 @@ namespace NuCmd.Commands.Scheduler
                 }
 
                 var bodyValue = new InvocationRequest(
-                    Job, 
+                    Job,
                     "Scheduler",
-                    payload);
+                    payload)
+                    {
+                        UnlessAlreadyRunning = Singleton
+                    };
                 var body = JsonConvert.SerializeObject(bodyValue);
 
                 var request = new JobCreateOrUpdateParameters()
