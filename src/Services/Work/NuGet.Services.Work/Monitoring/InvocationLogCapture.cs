@@ -102,15 +102,11 @@ namespace NuGet.Services.Work.Monitoring
             }
             
             // Capture the events into a JSON file and a plain text file
-            _eventSubscription = this
-                .LogToFlatFile(_tempFile, new JsonEventTextFormatter(EventTextFormatting.Indented, dateTimeFormat: "O"), isAsync: true);
+            _eventSubscription = this.LogToFlatFile(_tempFile, new JsonEventTextFormatter(EventTextFormatting.Indented, dateTimeFormat: "O"));
         }
 
         public override async Task<Uri> End()
         {
-            // Flush the listener
-            await _eventSubscription.Sink.FlushAsync();
-
             // Disconnect the listener
             _eventSubscription.Dispose();
 
