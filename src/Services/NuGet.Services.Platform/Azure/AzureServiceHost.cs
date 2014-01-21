@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
@@ -18,6 +19,8 @@ namespace NuGet.Services.Azure
 {
     public class AzureServiceHost : ServiceHost
     {
+        private static readonly Regex RoleIdMatch = new Regex(@"^(.*)_IN_(?<id>\d+)$");
+
         private NuGetWorkerRole _worker;
         private ServiceHostDescription _description;
         private ObservableEventListener _platformEventStream;
@@ -34,12 +37,21 @@ namespace NuGet.Services.Azure
 
             _worker = worker;
 
+            var hostName = GetConfigurationSetting("Host.Name");
+
+            // Try to parse out the instance index from the role instance ID
+            var match = RoleIdMatch.Match(RoleEnvironment.CurrentRoleInstance.Id);
+            if(match.Success) 
+            {
+                hostName += match.Groups["id"].Value;
+            }
+
             _description = new ServiceHostDescription(
                 new ServiceHostName(
                     new DatacenterName(
                         GetConfigurationSetting("Host.Environment"),
                         Int32.Parse(GetConfigurationSetting("Host.Datacenter"))),
-                    GetConfigurationSetting("Host.Name")),
+                    hostName),
                 RoleEnvironment.CurrentRoleInstance.Id);
         }
 
