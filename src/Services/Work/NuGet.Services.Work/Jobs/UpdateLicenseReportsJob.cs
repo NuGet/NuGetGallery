@@ -272,6 +272,7 @@ namespace NuGet.Services.Work.Jobs
         private void LoadDefaults()
         {
             RetryCount = RetryCount ?? DefaultRetryCount;
+            PackageDatabase = PackageDatabase ?? Config.Sql.Legacy;
 
             var licenseConfig = Config.GetSection<LicenseReportConfiguration>();
             if (licenseConfig != null)
