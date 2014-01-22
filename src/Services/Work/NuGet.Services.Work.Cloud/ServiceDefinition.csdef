@@ -42,6 +42,7 @@
         </Certificates>
         <LocalResources>
             <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="2048" />
+            <LocalStorage name="Temp" cleanOnRoleRecycle="true" sizeInMB="2048" />
         </LocalResources>
         <Endpoints>
             <InputEndpoint name="https" protocol="https" port="443" localPort="443" certificate="SSL" />

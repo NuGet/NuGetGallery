@@ -60,6 +60,21 @@ namespace NuGet.Services.Azure
         {
             try
             {
+                // Set up temp directory
+                try
+                {
+                    var tempResource = RoleEnvironment.GetLocalResource("Temp");
+                    if (tempResource != null)
+                    {
+                        Environment.SetEnvironmentVariable("TMP", tempResource.RootPath);
+                        Environment.SetEnvironmentVariable("TEMP", tempResource.RootPath);
+                    }
+                }
+                catch
+                {
+                    // Just ignore this. Use the default temp directory
+                }
+
                 // Set the maximum number of concurrent connections 
                 ServicePointManager.DefaultConnectionLimit = 12;
 
