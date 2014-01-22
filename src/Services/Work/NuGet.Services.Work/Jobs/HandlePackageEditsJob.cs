@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics.Tracing;
 using System.Globalization;
@@ -70,7 +71,7 @@ namespace NuGet.Services.Work.Jobs
         {
             // Load defaults
             MaxManifestSize = MaxAllowedManifestBytes ?? DefaultMaxAllowedManifestBytes;
-            PackageDatabase = PackageDatabase ?? Config.Sql.GetConnectionString(KnownSqlServer.Primary);
+            PackageDatabase = PackageDatabase ?? Config.Sql.GetConnectionString(KnownSqlServer.Legacy);
             var sourceAccount = Source == null ?
                 Storage.Legacy :
                 Storage.GetAccount(Source);
@@ -116,7 +117,35 @@ namespace NuGet.Services.Work.Jobs
             foreach (var edit in edits)
             {
                 Log.EditingPackage(edit.Id, edit.Version);
-                await ApplyEdit(edit);
+                Exception thrown = null;
+                try
+                {
+                    await ApplyEdit(edit);
+                }
+                catch (Exception ex)
+                {
+                    thrown = ex;
+                }
+                if (thrown != null)
+                {
+                    Log.ErrorEditingPackage(edit.Id, edit.Version, thrown.ToString());
+                    if (!WhatIf)
+                    {
+                        using (var connection = await PackageDatabase.ConnectTo())
+                        {
+                            await connection.QueryAsync<int>(@"
+                            UPDATE  PackageEdits
+                            SET
+                                    TriedCount = TriedCount + 1,
+                                    LastError = @error
+                            WHERE   [Key] = @key", new
+                                {
+                                    error = thrown.ToString(),
+                                    key = edit.Key
+                                });
+                        }
+                    }
+                }
                 Log.EditedPackage(edit.Id, edit.Version);
             }
         }
@@ -125,99 +154,148 @@ namespace NuGet.Services.Work.Jobs
         private async Task ApplyEdit(PackageEdit edit)
         {
             // Download the original file
-            string originalPath = Path.Combine(TempDirectory, "original.nupkg");
-            var sourceBlob = SourceContainer.GetBlockBlobReference(
-                PackageHelpers.GetPackageBlobName(edit.Id, edit.Version));
-            Log.DownloadingOriginal(edit.Id, edit.Version);
-            await sourceBlob.DownloadToFileAsync(originalPath, FileMode.Create);
-            Log.DownloadedOriginal(edit.Id, edit.Version);
-
-            // Check that a backup exists
-            var backupBlob = BackupsContainer.GetBlockBlobReference(
-                PackageHelpers.GetPackageBackupBlobName(edit.Id, edit.Version, edit.Hash));
-            if (!WhatIf && !await backupBlob.ExistsAsync())
-            {
-                Log.BackingUpOriginal(edit.Id, edit.Version);
-                await backupBlob.UploadFromFileAsync(originalPath, FileMode.Open);
-                Log.BackedUpOriginal(edit.Id, edit.Version);
-            }
-
-            // Load the zip file and find the manifest
-            using (var originalStream = File.Open(originalPath, FileMode.Open, FileAccess.ReadWrite))
-            {
-                ZipArchive archive = new ZipArchive(originalStream);
-
-                // Find the nuspec
-                var nuspecEntries = archive.Entries.Where(e => ManifestSelector.IsMatch(e.FullName)).ToArray();
-                if (nuspecEntries.Length == 0)
-                {
-                    throw new InvalidDataException(String.Format(
-                        CultureInfo.CurrentCulture,
-                        Strings.HandlePackageEditsJob_MissingManifest,
-                        edit.Id,
-                        edit.Version,
-                        backupBlob.Uri.AbsoluteUri));
-                }
-                else if (nuspecEntries.Length > 1)
-                {
-                    throw new InvalidDataException(String.Format(
-                        CultureInfo.CurrentCulture,
-                        Strings.HandlePackageEditsJob_MultipleManifests,
-                        edit.Id,
-                        edit.Version,
-                        backupBlob.Uri.AbsoluteUri));
-                }
-
-                // We now have the nuspec
-                var manifestEntry = nuspecEntries.Single();
-
-                // Load the manifest with a constrained stream
-                Log.RewritingPackage(edit.Id, edit.Version);
-                using (var manifestStream = manifestEntry.Open())
-                {
-                    Manifest manifest = Manifest.ReadFrom(manifestStream, validateSchema: false);
-
-                    // Modify the manifest as per the edit
-                    edit.ApplyTo(manifest.Metadata);
-
-                    // Save the manifest back
-                    manifestStream.Seek(0, SeekOrigin.Begin);
-                    manifestStream.SetLength(0);
-                    manifest.Save(manifestStream);
-                }
-                Log.RewrotePackage(edit.Id, edit.Version);
-            }
-
-            // Snapshot the original blob
-            Log.SnapshottingBlob(edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri);
-            var sourceSnapshot = await sourceBlob.CreateSnapshotAsync();
-            Log.SnapshottedBlob(edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri, sourceSnapshot.Uri.AbsoluteUri);
-
-            // Upload the updated file
-            Log.UploadingModifiedPackage(edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri);
-            await sourceBlob.UploadFromFileAsync(originalPath, FileMode.Open);
-            Log.UploadedModifiedPackage(edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri);
-
-            // Calculate new size and hash
-            string hash;
-            long size;
-            using (var originalStream = File.OpenRead(originalPath))
-            {
-                size = originalStream.Length;
-
-                var hashAlgorithm = HashAlgorithm.Create(HashAlgorithmName);
-                hash = Convert.ToBase64String(
-                    hashAlgorithm.ComputeHash(originalStream));
-            }
-            
-            // Update the database
+            string originalPath = null;
             try
             {
-                Log.UpdatingDatabase(edit.Id, edit.Version);
-                using (var connection = await PackageDatabase.ConnectTo())
+                string directory = Path.Combine(TempDirectory, edit.Id, edit.Version);
+                if (!Directory.Exists(directory))
                 {
-                    await connection.QueryAsync<int>(@"
+                    Directory.CreateDirectory(directory);
+                }
+                originalPath = Path.Combine(directory, "original.nupkg");
+                var sourceBlob = SourceContainer.GetBlockBlobReference(
+                    PackageHelpers.GetPackageBlobName(edit.Id, edit.Version));
+                Log.DownloadingOriginal(edit.Id, edit.Version);
+                await sourceBlob.DownloadToFileAsync(originalPath, FileMode.Create);
+                Log.DownloadedOriginal(edit.Id, edit.Version);
+
+                // Check that a backup exists
+                var backupBlob = BackupsContainer.GetBlockBlobReference(
+                    PackageHelpers.GetPackageBackupBlobName(edit.Id, edit.Version, edit.Hash));
+                if (!WhatIf && !await backupBlob.ExistsAsync())
+                {
+                    Log.BackingUpOriginal(edit.Id, edit.Version);
+                    await backupBlob.UploadFromFileAsync(originalPath, FileMode.Open);
+                    Log.BackedUpOriginal(edit.Id, edit.Version);
+                }
+
+                // Load the zip file and find the manifest
+                using (var originalStream = File.Open(originalPath, FileMode.Open, FileAccess.ReadWrite))
+                {
+                    ZipArchive archive = new ZipArchive(originalStream, ZipArchiveMode.Update);
+
+                    // Find the nuspec
+                    var nuspecEntries = archive.Entries.Where(e => ManifestSelector.IsMatch(e.FullName)).ToArray();
+                    if (nuspecEntries.Length == 0)
+                    {
+                        throw new InvalidDataException(String.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.HandlePackageEditsJob_MissingManifest,
+                            edit.Id,
+                            edit.Version,
+                            backupBlob.Uri.AbsoluteUri));
+                    }
+                    else if (nuspecEntries.Length > 1)
+                    {
+                        throw new InvalidDataException(String.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.HandlePackageEditsJob_MultipleManifests,
+                            edit.Id,
+                            edit.Version,
+                            backupBlob.Uri.AbsoluteUri));
+                    }
+
+                    // We now have the nuspec
+                    var manifestEntry = nuspecEntries.Single();
+
+                    // Load the manifest with a constrained stream
+                    Log.RewritingPackage(edit.Id, edit.Version);
+                    Manifest manifest;
+                    using (var manifestStream = manifestEntry.Open())
+                    {
+                        manifest = Manifest.ReadFrom(manifestStream, validateSchema: false);
+                        // Modify the manifest as per the edit
+                        edit.ApplyTo(manifest.Metadata);
+                    }
+
+                    using (var manifestStream = manifestEntry.Open())
+                    {
+                        // Save the manifest back
+                        manifestStream.SetLength(0);
+                        manifest.Save(manifestStream);
+                    }
+                    Log.RewrotePackage(edit.Id, edit.Version);
+                }
+
+                // Snapshot the original blob
+                Log.SnapshottingBlob(edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri);
+                var sourceSnapshot = await sourceBlob.CreateSnapshotAsync();
+                Log.SnapshottedBlob(edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri, sourceSnapshot.Uri.AbsoluteUri);
+
+                // Upload the updated file
+                Log.UploadingModifiedPackage(edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri);
+                await sourceBlob.UploadFromFileAsync(originalPath, FileMode.Open);
+                Log.UploadedModifiedPackage(edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri);
+
+                // Calculate new size and hash
+                string hash;
+                long size;
+                using (var originalStream = File.OpenRead(originalPath))
+                {
+                    size = originalStream.Length;
+
+                    var hashAlgorithm = HashAlgorithm.Create(HashAlgorithmName);
+                    hash = Convert.ToBase64String(
+                        hashAlgorithm.ComputeHash(originalStream));
+                }
+
+                // Update the database
+                try
+                {
+                    Log.UpdatingDatabase(edit.Id, edit.Version);
+                    using (var connection = await PackageDatabase.ConnectTo())
+                    {
+                        var parameters = new DynamicParameters(new
+                        {
+                            edit.Authors,
+                            edit.Copyright,
+                            edit.Description,
+                            edit.IconUrl,
+                            edit.LicenseUrl,
+                            edit.ProjectUrl,
+                            edit.ReleaseNotes,
+                            edit.RequiresLicenseAcceptance,
+                            edit.Summary,
+                            edit.Title,
+                            edit.Tags,
+                            edit.Key,
+                            edit.PackageKey,
+                            edit.UserKey,
+                            PackageFileSize = size,
+                            Hash = hash,
+                            HashAlgorithm = HashAlgorithmName
+                        });
+
+                        // Prep SQL for merging in authors
+                        StringBuilder loadAuthorsSql = new StringBuilder();
+                        var authors = edit.Authors.Split(',');
+                        for(int i = 0; i < authors.Length; i++)
+                        {
+                            loadAuthorsSql.Append("INSERT INTO @authors([PackageKey],[Name]) VALUES(@PackageKey, @Author" + i.ToString() + ")");
+                            parameters.Add("Author" + i.ToString(), authors[i]);
+                        }
+
+                        this is not done yet :)
+
+                        await connection.QueryAsync<int>(@"
                         BEGIN TRANSACTION
+                            DECLARE @authors TABLE (
+                                [PackageKey] int NOT NULL,
+                                [Name] nvarchar(MAX) NULL
+                            )
+
+                            " + loadAuthorsSql.ToString() + @"
+
                             -- Copy packages data to package history table
                             INSERT INTO [PackageHistories]
                             SELECT      PackageKey,
@@ -244,8 +322,7 @@ namespace NuGet.Services.Work.Jobs
 
                             -- Update the packages table
                             UPDATE  [Packages]
-                            SET     Authors = @Authors,
-                                    Copyright = @Copyright,
+                            SET     Copyright = @Copyright,
                                     Description = @Description,
                                     IconUrl = @IconUrl,
                                     LicenseUrl = @LicenseUrl,
@@ -261,49 +338,45 @@ namespace NuGet.Services.Work.Jobs
                                     Hash = @Hash,
                                     HashAlgorithm = @HashAlgorithm,
                                     PackageFileSize = @PackageFileSize
-                            WHERE   PackageKey = @PackageKey
+                            WHERE   [Key] = @PackageKey
+
+                            -- Update Authors
+                            DELETE FROM [PackageAuthors] 
+                            WHERE PackageKey = @PackageKey
+
+                            INSERT INTO [PackageAuthors]([PackageKey],[Name])
+                            SELECT [PackageKey], [Name] FROM @authors
 
                             -- Clean this edit and all previous edits.
                             DELETE FROM [PackageEdits]
                             WHERE [PackageKey] = @PackageKey
                             AND [Key] <= @Key
                         COMMIT TRANSACTION
-                    ", new
-                        {
-                            edit.Authors,
-                            edit.Copyright,
-                            edit.Description,
-                            edit.IconUrl,
-                            edit.LicenseUrl,
-                            edit.ProjectUrl,
-                            edit.ReleaseNotes,
-                            edit.RequiresLicenseAcceptance,
-                            edit.Summary,
-                            edit.Title,
-                            edit.Tags,
-                            edit.Key,
-                            edit.PackageKey,
-                            edit.UserKey,
-                            PackageFileSize = size,
-                            Hash = hash,
-                            HashAlgorithm = HashAlgorithmName
-                        });
+                    ", parameters);
+                    }
+                    Log.UpdatedDatabase(edit.Id, edit.Version);
                 }
-                Log.UpdatedDatabase(edit.Id, edit.Version);
-            }
-            catch (Exception)
-            {
-                // Error occurred while updaing database, roll back the blob to the snapshot
-                // Can't do "await" in a catch block, but this should be pretty quick since it just starts the copy
-                Log.RollingBackBlob(edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri, sourceBlob.Uri.AbsoluteUri);
-                sourceBlob.StartCopyFromBlob(sourceSnapshot);
-                Log.RolledBackBlob(edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri, sourceBlob.Uri.AbsoluteUri);
-                throw;
-            }
+                catch (Exception)
+                {
+                    // Error occurred while updaing database, roll back the blob to the snapshot
+                    // Can't do "await" in a catch block, but this should be pretty quick since it just starts the copy
+                    Log.RollingBackBlob(edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri, sourceBlob.Uri.AbsoluteUri);
+                    sourceBlob.StartCopyFromBlob(sourceSnapshot);
+                    Log.RolledBackBlob(edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri, sourceBlob.Uri.AbsoluteUri);
+                    throw;
+                }
 
-            Log.DeletingSnapshot(edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri);
-            await sourceSnapshot.DeleteAsync();
-            Log.DeletedSnapshot(edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri);
+                Log.DeletingSnapshot(edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri);
+                await sourceSnapshot.DeleteAsync();
+                Log.DeletedSnapshot(edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri);
+            }
+            finally
+            {
+                if (!String.IsNullOrEmpty(originalPath) && File.Exists(originalPath))
+                {
+                    File.Delete(originalPath);
+                }
+            }
         }
     }
 
@@ -471,6 +544,13 @@ namespace NuGet.Services.Work.Jobs
             Opcode = EventOpcode.Stop,
             Message = "Deleted snapshot blob {2} for {0} {1}.")]
         public void DeletedSnapshot(string id, string version, string snapshotUrl) { WriteEvent(20, id, version, snapshotUrl); }
+
+        [Event(
+            eventId: 21,
+            Level = EventLevel.Error,
+            Task = Tasks.EditingPackage,
+            Message = "Error editing package {0} {1}: {2}")]
+        public void ErrorEditingPackage(string id, string version, string error) { WriteEvent(21, id, version, error); }
 
         public static class Tasks
         {

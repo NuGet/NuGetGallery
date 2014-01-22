@@ -109,6 +109,7 @@ namespace NuGet.Services.Work.Jobs
                 InvocationContext.SetCurrentInvocationId(Invocation.Id);
                 return BackupPackage(package);
             }, new ExecutionDataflowBlockOptions() {
+                CancellationToken = Context.CancelToken,
                 MaxDegreeOfParallelism = TaskPerCoreFactor * Environment.ProcessorCount,
                 MaxMessagesPerTask = 1,
             });
@@ -128,6 +129,7 @@ namespace NuGet.Services.Work.Jobs
                 }
             }, new ExecutionDataflowBlockOptions()
             {
+                CancellationToken = Context.CancelToken,
                 MaxDegreeOfParallelism = 1,
             });
             action.LinkTo(extendIfNecessary);
@@ -142,9 +144,12 @@ namespace NuGet.Services.Work.Jobs
             await extendIfNecessary.Completion;
 
             // Write backup state
-            Log.SavingBackupState(destAccount.Name, DestinationContainer.Name);
-            await WriteBackupState(destAccount, DestinationContainer, now);
-            Log.SavedBackupState(destAccount.Name, DestinationContainer.Name);
+            if (!Context.CancelToken.IsCancellationRequested)
+            {
+                Log.SavingBackupState(destAccount.Name, DestinationContainer.Name);
+                await WriteBackupState(destAccount, DestinationContainer, now);
+                Log.SavedBackupState(destAccount.Name, DestinationContainer.Name);
+            }
         }
 
         private static readonly object Unit = new object();
