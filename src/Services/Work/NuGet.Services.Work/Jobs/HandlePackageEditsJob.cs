@@ -181,9 +181,8 @@ namespace NuGet.Services.Work.Jobs
 
                 // Load the zip file and find the manifest
                 using (var originalStream = File.Open(originalPath, FileMode.Open, FileAccess.ReadWrite))
+                using (var archive = new ZipArchive(originalStream, ZipArchiveMode.Update))
                 {
-                    ZipArchive archive = new ZipArchive(originalStream, ZipArchiveMode.Update);
-
                     // Find the nuspec
                     var nuspecEntries = archive.Entries.Where(e => ManifestSelector.IsMatch(e.FullName)).ToArray();
                     if (nuspecEntries.Length == 0)
@@ -214,13 +213,12 @@ namespace NuGet.Services.Work.Jobs
                     using (var manifestStream = manifestEntry.Open())
                     {
                         manifest = Manifest.ReadFrom(manifestStream, validateSchema: false);
+                        
                         // Modify the manifest as per the edit
                         edit.ApplyTo(manifest.Metadata);
-                    }
-
-                    using (var manifestStream = manifestEntry.Open())
-                    {
+                    
                         // Save the manifest back
+                        manifestStream.Seek(0, SeekOrigin.Begin);
                         manifestStream.SetLength(0);
                         manifest.Save(manifestStream);
                     }
@@ -281,78 +279,75 @@ namespace NuGet.Services.Work.Jobs
                         var authors = edit.Authors.Split(',');
                         for(int i = 0; i < authors.Length; i++)
                         {
-                            loadAuthorsSql.Append("INSERT INTO @authors([PackageKey],[Name]) VALUES(@PackageKey, @Author" + i.ToString() + ")");
+                            loadAuthorsSql.Append("INSERT INTO [PackageAuthors]([PackageKey],[Name]) VALUES(@PackageKey, @Author" + i.ToString() + ")");
                             parameters.Add("Author" + i.ToString(), authors[i]);
                         }
 
-                        this is not done yet :)
-
                         await connection.QueryAsync<int>(@"
-                        BEGIN TRANSACTION
-                            DECLARE @authors TABLE (
-                                [PackageKey] int NOT NULL,
-                                [Name] nvarchar(MAX) NULL
-                            )
+                            BEGIN TRANSACTION
+                                -- Form a comma-separated list of authors
+                                DECLARE @existingAuthors nvarchar(MAX)
+                                SELECT @existingAuthors = COALESCE(@existingAuthors + ',', '') + Name
+                                FROM PackageAuthors
+                                WHERE PackageKey = @PackageKey
 
-                            " + loadAuthorsSql.ToString() + @"
+                                -- Copy packages data to package history table
+                                INSERT INTO [PackageHistories]
+                                SELECT      [Key] AS PackageKey,
+                                            @UserKey AS UserKey,
+                                            GETUTCDATE() AS Timestamp,
+                                            Title,
+                                            @existingAuthors AS Authors,
+                                            Copyright,
+                                            Description,
+                                            IconUrl,
+                                            LicenseUrl,
+                                            ProjectUrl,
+                                            ReleaseNotes,
+                                            RequiresLicenseAcceptance,
+                                            Summary,
+                                            Tags,
+                                            Hash,
+                                            HashAlgorithm,
+                                            PackageFileSize,
+                                            LastUpdated,
+                                            Published
+                                FROM        [Packages]
+                                WHERE       [Key] = @PackageKey
 
-                            -- Copy packages data to package history table
-                            INSERT INTO [PackageHistories]
-                            SELECT      PackageKey,
-                                        @UserKey AS UserKey,
-                                        GETUTCDATE() AS Timestamp,
-                                        Title,
-                                        Authors,
-                                        Copyright,
-                                        Description,
-                                        IconUrl,
-                                        LicenseUrl,
-                                        ProjectUrl,
-                                        ReleaseNotes,
-                                        RequiresLicenseAcceptance,
-                                        Summary,
-                                        Tags,
-                                        Hash,
-                                        HashAlgorithm,
-                                        PackageFileSize,
-                                        LastUpdated,
-                                        Published
-                            FROM        [Packages]
-                            WHERE       [PackageKey] = @PackageKey
+                                -- Update the packages table
+                                UPDATE  [Packages]
+                                SET     Copyright = @Copyright,
+                                        Description = @Description,
+                                        IconUrl = @IconUrl,
+                                        LicenseUrl = @LicenseUrl,
+                                        ProjectUrl = @ProjectUrl,
+                                        ReleaseNotes = @ReleaseNotes,
+                                        RequiresLicenseAcceptance = @RequiresLicenseAcceptance,
+                                        Summary = @Summary,
+                                        Title = @Title,
+                                        Tags = @Tags,
+                                        LastEdited = GETUTCDATE(),
+                                        LastUpdated = GETUTCDATE(),
+                                        UserKey = @UserKey,
+                                        Hash = @Hash,
+                                        HashAlgorithm = @HashAlgorithm,
+                                        PackageFileSize = @PackageFileSize,
+                                        FlattenedAuthors = @Authors
+                                WHERE   [Key] = @PackageKey
 
-                            -- Update the packages table
-                            UPDATE  [Packages]
-                            SET     Copyright = @Copyright,
-                                    Description = @Description,
-                                    IconUrl = @IconUrl,
-                                    LicenseUrl = @LicenseUrl,
-                                    ProjectUrl = @ProjectUrl,
-                                    ReleaseNotes = @ReleaseNotes,
-                                    RequiresLicenseAcceptance = @RequiresLicenseAcceptance,
-                                    Summary = @Summary,
-                                    Title = @Title,
-                                    Tags = @Tags,
-                                    LastEdited = GETUTCDATE(),
-                                    LastUpdated = GETUTCDATE(),
-                                    UserKey = @UserKey,
-                                    Hash = @Hash,
-                                    HashAlgorithm = @HashAlgorithm,
-                                    PackageFileSize = @PackageFileSize
-                            WHERE   [Key] = @PackageKey
+                                -- Update Authors
+                                DELETE FROM [PackageAuthors] 
+                                WHERE PackageKey = @PackageKey
 
-                            -- Update Authors
-                            DELETE FROM [PackageAuthors] 
-                            WHERE PackageKey = @PackageKey
-
-                            INSERT INTO [PackageAuthors]([PackageKey],[Name])
-                            SELECT [PackageKey], [Name] FROM @authors
-
-                            -- Clean this edit and all previous edits.
-                            DELETE FROM [PackageEdits]
-                            WHERE [PackageKey] = @PackageKey
-                            AND [Key] <= @Key
-                        COMMIT TRANSACTION
-                    ", parameters);
+                                " + loadAuthorsSql.ToString() + @"
+                            
+                                -- Clean this edit and all previous edits.
+                                DELETE FROM [PackageEdits]
+                                WHERE [PackageKey] = @PackageKey
+                                AND [Key] <= @Key
+                            " + (WhatIf ? "ROLLBACK TRANSACTION" : "COMMIT TRANSACTION"), 
+                            parameters);
                     }
                     Log.UpdatedDatabase(edit.Id, edit.Version);
                 }
