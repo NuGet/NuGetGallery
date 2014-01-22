@@ -3,7 +3,7 @@
 -- Use SPROCS!
 CREATE TABLE [private].[InvocationsStore]
 (
-    [Version] int NOT NULL PRIMARY KEY IDENTITY,
+    [Version] BIGINT NOT NULL PRIMARY KEY IDENTITY,
     [Id] uniqueidentifier NOT NULL,
     [Job] nvarchar(50) NOT NULL,
     [Source] nvarchar(50) NOT NULL,

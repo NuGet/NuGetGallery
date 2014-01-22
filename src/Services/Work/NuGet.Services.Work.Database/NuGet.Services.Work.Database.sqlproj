@@ -82,6 +82,7 @@
     <Build Include="work.view.InstanceStatistics.sql" />
     <Build Include="work.JobStatistics.sql" />
     <Build Include="work.type.IdList.sql" />
+    <Build Include="work.view.InvocationsByJobInstance.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LocalDb.publish.xml" />
