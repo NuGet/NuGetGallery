@@ -39,7 +39,7 @@ namespace NuGet.Services.Work.Jobs
         {
             // Load defaults
             Source = Source ?? Config.Sql.Legacy;
-            Destination = Destination ?? Config.Sql.Primary;
+            Destination = Destination ?? Config.Sql.Warehouse;
             BatchSize = BatchSize ?? DefaultBatchSize;
 
             Log.GettingLastReplicatedKey(Destination.DataSource, Destination.InitialCatalog);
