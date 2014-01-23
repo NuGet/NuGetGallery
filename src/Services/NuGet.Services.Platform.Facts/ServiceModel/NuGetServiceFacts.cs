@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Moq;
-using NuGet.Services.Models;
 using NuGet.Services.TestInfrastructure;
 using Xunit;
 
@@ -14,35 +13,6 @@ namespace NuGet.Services.ServiceModel
 {
     public class NuGetServiceFacts
     {
-        public class TheConstructor
-        {
-            [Fact]
-            public async Task ItAssignsAUniqueNameToTheServiceInstance()
-            {
-                // Arrange
-                var host = new TestServiceHost();
-
-                // Act
-                string[] names = new string[2];
-                await Task.WhenAll(
-                    Task.Factory.StartNew(() =>
-                    {
-                        var instanceOne = new TestService(host);
-                        names[0] = instanceOne.InstanceName.ToString();
-                    }),
-                    Task.Factory.StartNew(() =>
-                    {
-                        var instanceTwo = new TestService(host);
-                        names[1] = instanceTwo.InstanceName.ToString();
-                    }));
-
-                // Assert
-                Assert.NotEqual(names[0], names[1]);
-                Assert.Contains("local_dc42_testhost_TestService_IN0", names);
-                Assert.Contains("local_dc42_testhost_TestService_IN1", names);
-            }
-        }
-
         public class TheStartMethod
         {
             public async Task ItInjectsPropertiesWithPublicSetters()
@@ -53,7 +23,7 @@ namespace NuGet.Services.ServiceModel
                 var service = new TestServiceWithComponents(host);
 
                 // Act
-                await service.Start(container, ServiceInstanceEntry.FromService(service));
+                await service.Start(container);
 
                 // Assert
                 Assert.Same(service.Something, container.Resolve<SomeComponent>());
@@ -68,7 +38,7 @@ namespace NuGet.Services.ServiceModel
                 var service = new TestService(host);
 
                 // Act
-                await service.Start(container, ServiceInstanceEntry.FromService(service));
+                await service.Start(container);
 
                 // Assert
                 Assert.True(service.WasStarted);
@@ -80,7 +50,7 @@ namespace NuGet.Services.ServiceModel
                 var host = new TestServiceHost();
                 var container = CreateTestContainer();
                 var service = new TestService(host);
-                await service.Start(container, ServiceInstanceEntry.FromService(service));
+                await service.Start(container);
 
                 // Act
                 host.Shutdown();
@@ -98,7 +68,7 @@ namespace NuGet.Services.ServiceModel
                 var host = new TestServiceHost();
                 var container = CreateTestContainer();
                 var service = new TestService(host);
-                await service.Start(container, ServiceInstanceEntry.FromService(service));
+                await service.Start(container);
 
                 // Act
                 await service.Run();

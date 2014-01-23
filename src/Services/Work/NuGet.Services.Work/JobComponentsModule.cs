@@ -31,7 +31,7 @@ namespace NuGet.Services.Work
             {
                 builder.RegisterType<InvocationQueue>().AsSelf().UsingConstructor(
                     typeof(Clock),
-                    typeof(ServiceInstanceName),
+                    typeof(ServiceName),
                     typeof(StorageHub),
                     typeof(ConfigurationHub));
             }

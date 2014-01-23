@@ -32,11 +32,11 @@ namespace NuGet.Services.ServiceModel
         {
             get
             {
-                yield return new object[] { "qa_DC0_flarg", new ServiceHostName(new DatacenterName("qa", 0), "flarg") };
-                yield return new object[] { "qa_dc0_flarg", new ServiceHostName(new DatacenterName("qa", 0), "flarg") };
-                yield return new object[] { "qa_Dc0_flarg", new ServiceHostName(new DatacenterName("qa", 0), "flarg") };
-                yield return new object[] { "qa_dC0_flarg", new ServiceHostName(new DatacenterName("qa", 0), "flarg") };
-                yield return new object[] { "bloog-barg_DC124_flarg", new ServiceHostName(new DatacenterName("bloog-barg", 124), "flarg") };
+                yield return new object[] { "qa-0-flarg_IN0", new ServiceHostName(new DatacenterName("qa", 0), "flarg", 0) };
+                yield return new object[] { "qa-0-flarg_IN1", new ServiceHostName(new DatacenterName("qa", 0), "flarg", 1) };
+                yield return new object[] { "qa-0-flarg_IN2", new ServiceHostName(new DatacenterName("qa", 0), "flarg", 2) };
+                yield return new object[] { "qa-0-flarg_IN3", new ServiceHostName(new DatacenterName("qa", 0), "flarg", 3) };
+                
             }
         }
 
@@ -44,6 +44,7 @@ namespace NuGet.Services.ServiceModel
         {
             get
             {
+                yield return new object[] { "qa_DC0_flarg" };
                 yield return new object[] { "qa DC 0" };
                 yield return new object[] { "qa" };
                 yield return new object[] { "qa_DC0" };

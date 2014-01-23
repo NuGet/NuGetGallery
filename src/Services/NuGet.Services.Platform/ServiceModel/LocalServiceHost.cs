@@ -44,11 +44,6 @@ namespace NuGet.Services.ServiceModel
             return Services;
         }
 
-        protected override NuGetService GetManagementService()
-        {
-            return null;
-        }
-
         public override string GetConfigurationSetting(string fullName)
         {
             string str;

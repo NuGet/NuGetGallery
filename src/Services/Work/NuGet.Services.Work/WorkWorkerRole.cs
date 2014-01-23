@@ -31,16 +31,7 @@ namespace NuGet.Services.Work
             {
                 workersPerCore = workConfig.WorkersPerCore;
             }
-
-            for (int i = 0; i < (Environment.ProcessorCount * workersPerCore); i++)
-            {
-                yield return new WorkService(host);
-            }
-        }
-
-        protected override NuGetHttpService GetManagementService(ServiceHost host)
-        {
-            return new WorkManagementService(host);
+            yield return new WorkService(host);
         }
     }
 }

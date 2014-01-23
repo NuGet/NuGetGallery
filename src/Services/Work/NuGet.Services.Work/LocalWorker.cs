@@ -19,11 +19,12 @@ namespace NuGet.Services.Work
             var host = new LocalServiceHost(
                 new ServiceHostName(
                     new DatacenterName("local", 0),
-                    "work"),
+                    "work",
+                    0),
                 configuration);
             var service = new WorkService(host, InvocationQueue.Null);
             host.Services.Add(service);
-            await host.Initialize();
+            host.Initialize();
             if (!await host.Start())
             {
                 throw new InvalidOperationException(Strings.LocalWorker_FailedToStart);

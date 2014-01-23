@@ -18,19 +18,19 @@ using System.Security.Principal;
 
 namespace NuGet.Services.Work
 {
-    public class WorkManagementService : NuGetApiService
+    public class WorkManagementService
     {
         private object _apiModel = null;
 
-        public WorkManagementService(ServiceHost host) : base("WorkManagement", host) { }
+        public WorkManagementService(ServiceHost host) { }
 
-        public override void RegisterComponents(Autofac.ContainerBuilder builder)
+        public void RegisterComponents(Autofac.ContainerBuilder builder)
         {
-            base.RegisterComponents(builder);
+            //base.RegisterComponents(builder);
             builder.RegisterModule(new JobComponentsModule());
         }
 
-        public override Task<object> GetApiModel(NuGetApiController controller, IPrincipal requestor)
+        public Task<object> GetApiModel(NuGetApiController controller, IPrincipal requestor)
         {
             // This is an admin-only API
             if (requestor == null || !requestor.IsInRole(Roles.Admin))
@@ -61,7 +61,7 @@ namespace NuGet.Services.Work
             return Task.FromResult<object>(_apiModel);
         }
 
-        protected override void ConfigureAttributeRouting(System.Web.Http.Routing.DefaultInlineConstraintResolver resolver)
+        protected void ConfigureAttributeRouting(System.Web.Http.Routing.DefaultInlineConstraintResolver resolver)
         {
             resolver.ConstraintMap.Add("invocationListCriteria", typeof(EnumConstraint<InvocationListCriteria>));
         }

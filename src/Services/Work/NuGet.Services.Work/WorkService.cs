@@ -38,6 +38,7 @@ namespace NuGet.Services.Work
         private JobRunner _runner;
         private InvocationQueue _queue;
 
+        public override string ServiceName { get { return MyServiceName; } }
         public IEnumerable<JobDescription> Jobs { get; private set; }
 
         public WorkService(ServiceHost host)
@@ -46,7 +47,7 @@ namespace NuGet.Services.Work
         }
 
         public WorkService(ServiceHost host, InvocationQueue queue)
-            : base(MyServiceName, host)
+            : base(host)
         {
             _queue = queue;
         }

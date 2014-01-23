@@ -22,7 +22,7 @@ namespace NuGet.Services.Work
             {
                 // Arrange
                 var host = new TestServiceHost();
-                await host.Initialize();
+                host.Initialize();
 
                 var dispatcher = new JobDispatcher(Enumerable.Empty<JobDescription>(), host.Container);
                 var invocation = TestHelpers.CreateInvocation(Guid.NewGuid(), "flarg", "test", new Dictionary<string, string>());
@@ -38,7 +38,7 @@ namespace NuGet.Services.Work
             {
                 // Arrange
                 var host = new TestServiceHost();
-                await host.Initialize();
+                host.Initialize();
 
                 var job = new JobDescription("test", typeof(TestJob));
 
@@ -64,7 +64,7 @@ namespace NuGet.Services.Work
                     componentRegistrations: b => {
                         b.RegisterInstance(expected).As<SomeService>();
                     });
-                await host.Initialize();
+                host.Initialize();
 
                 var job = new JobDescription("test", typeof(TestJobWithService));
 
@@ -86,7 +86,7 @@ namespace NuGet.Services.Work
             {
                 // Arrange
                 var host = new TestServiceHost();
-                await host.Initialize();
+                host.Initialize();
 
                 var job = new JobDescription("test", typeof(TestAsyncJob));
 
@@ -106,7 +106,7 @@ namespace NuGet.Services.Work
             {
                 // Arrange
                 var host = new TestServiceHost();
-                await host.Initialize();
+                 host.Initialize();
 
                 var job = new JobDescription("test", typeof(TestJob));
 

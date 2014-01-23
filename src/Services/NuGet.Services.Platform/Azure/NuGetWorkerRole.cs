@@ -79,7 +79,7 @@ namespace NuGet.Services.Azure
                 ServicePointManager.DefaultConnectionLimit = 12;
 
                 // Initialize the host
-                _host.Initialize().Wait();
+                _host.Initialize();
 
                 return _host.StartAndWait();
             }
@@ -91,6 +91,5 @@ namespace NuGet.Services.Azure
         }
 
         protected internal abstract IEnumerable<NuGetService> GetServices(ServiceHost host);
-        protected internal abstract NuGetHttpService GetManagementService(ServiceHost host);
     }
 }

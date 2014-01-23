@@ -28,7 +28,7 @@ namespace NuGet.Services.Http
 {
     public abstract class NuGetApiService : NuGetHttpService
     {
-        public NuGetApiService(string name, ServiceHost host) : base(name, host) { }
+        public NuGetApiService(ServiceHost host) : base(host) { }
 
         protected override void Configure(IAppBuilder app)
         {

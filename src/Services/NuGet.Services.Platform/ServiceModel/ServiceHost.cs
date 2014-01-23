@@ -81,7 +81,7 @@ namespace NuGet.Services.ServiceModel
             return ConfigurationManager.AppSettings[fullName];
         }
         
-        public virtual async Task Initialize()
+        public virtual void Initialize()
         {
             // Initialize the very very basic platform logging system (just logs service platform events to a single host-specific log file)
             // This way, if the below code fails, we can see some kind of log as to why.
@@ -100,15 +100,10 @@ namespace NuGet.Services.ServiceModel
 
                 // Now get the services
                 var list = GetServices().ToList();
-                var management = GetManagementService();
-                if (management != null)
-                {
-                    list.Add(management);
-                }
                 Instances = list.AsReadOnly();
 
                 // Report status
-                await ReportHostInitialized();
+                ReportHostInitialized();
 
                 // Start full cloud logging
                 InitializeCloudLogging();
@@ -144,21 +139,8 @@ namespace NuGet.Services.ServiceModel
             return builder.Build();
         }
 
-        protected virtual async Task ReportHostInitialized()
+        protected virtual void ReportHostInitialized()
         {
-            var entry = new ServiceHostEntry(Description);
-            
-            // Get the http-instance endpoint if it exists
-            var instanceEp = GetEndpoint(Constants.HttpInstanceEndpoint);
-            if (instanceEp != null)
-            {
-                entry.InstancePort = instanceEp.Port;
-            }
-
-            if (Storage != null && Storage.Primary != null)
-            {
-                await Storage.Primary.Tables.Table<ServiceHostEntry>().InsertOrReplace(entry);
-            }
         }
 
         /// <summary>
@@ -172,13 +154,7 @@ namespace NuGet.Services.ServiceModel
         /// <summary>
         /// Gets instances of the services to host
         /// </summary>
-        /// <returns></returns>
         protected abstract IEnumerable<NuGetService> GetServices();
-        /// <summary>
-        /// Gets the instance of the HTTP management service for this host
-        /// </summary>
-        /// <returns></returns>
-        protected abstract NuGetService GetManagementService();
 
         private async Task RunService(NuGetService service)
         {
@@ -209,7 +185,7 @@ namespace NuGet.Services.ServiceModel
                      .As<NuGetService>()
                      .As(service.GetType());
                     builder.Register(c => c.Resolve<NuGetService>().InstanceName)
-                        .As<ServiceInstanceName>();
+                        .As<ServiceName>();
 
                     // Add the container itself to the container
                     builder.Register(c => scope)
@@ -233,16 +209,12 @@ namespace NuGet.Services.ServiceModel
             // Because of the "throw" in the catch block, we won't arrive here unless successful
             ServicePlatformEventSource.Log.ServiceInitialized(service.InstanceName);
 
-            // Report that we're starting the service
-            var entry = new ServiceInstanceEntry(service.InstanceName, service.GetType().GetAssemblyInfo());
-            await UpdateServiceInstanceEntry(entry);
-            
             // Start the service and return it if the start succeeds.
             ServicePlatformEventSource.Log.ServiceStarting(service.InstanceName);
             bool result = false;
             try
             {
-                result = await service.Start(scope, entry);
+                result = await service.Start(scope);
             }
             catch (Exception ex)
             {
@@ -250,10 +222,6 @@ namespace NuGet.Services.ServiceModel
                 throw;
             }
 
-            // Update the status entry
-            entry.StartedAt = entry.LastHeartbeat = DateTimeOffset.UtcNow;
-            await UpdateServiceInstanceEntry(entry);
-            
             // Because of the "throw" in the catch block, we won't arrive here unless successful
             ServicePlatformEventSource.Log.ServiceStarted(service.InstanceName);
 
@@ -262,14 +230,6 @@ namespace NuGet.Services.ServiceModel
                 return service;
             }
             return null;
-        }
-
-        private async Task UpdateServiceInstanceEntry(ServiceInstanceEntry entry)
-        {
-            if (Storage != null && Storage.Primary != null)
-            {
-                await Storage.Primary.Tables.Table<ServiceInstanceEntry>().InsertOrReplace(entry);
-            }
         }
     }
 }

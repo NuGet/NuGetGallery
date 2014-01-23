@@ -10,8 +10,8 @@ namespace NuGet.Services.ServiceModel
 {
     public class DatacenterName : IEquatable<DatacenterName>
     {
-        private static readonly Regex ParseRegex = new Regex("^(?<env>.*)_dc(?<dc>.*)$", RegexOptions.IgnoreCase);
-        private static readonly string ToStringFormat = "{0}_dc{1}";
+        private static readonly Regex ParseRegex = new Regex("^(?<env>.*)-(?<dc>.*)$", RegexOptions.IgnoreCase);
+        private static readonly string ToStringFormat = "{0}-{1}";
         
         public string Environment { get; private set; }
         public int Id { get; private set; }

@@ -28,16 +28,16 @@ namespace NuGet.Services.Work
         public static readonly string ArchiveContainer = "work-archive";
 
         private SqlConnectionStringBuilder _connectionString;
-        private ServiceInstanceName _instanceName;
+        private string _instanceName;
         private Clock _clock;
         private StorageHub _storage;
 
         protected InvocationQueue() { }
 
-        public InvocationQueue(Clock clock, ServiceInstanceName instanceName, StorageHub storage, ConfigurationHub config)
+        public InvocationQueue(Clock clock, string instanceName, StorageHub storage, ConfigurationHub config)
             : this(clock, instanceName, storage, config.Sql.GetConnectionString(KnownSqlServer.Primary)) { }
 
-        public InvocationQueue(Clock clock, ServiceInstanceName instanceName, StorageHub storage, SqlConnectionStringBuilder connectionString)
+        public InvocationQueue(Clock clock, string instanceName, StorageHub storage, SqlConnectionStringBuilder connectionString)
             : this()
         {
             _clock = clock;

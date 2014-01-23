@@ -14,8 +14,12 @@ namespace NuGet.Services.TestInfrastructure
         public bool WasShutdown { get; private set; }
 
         public Func<Task> CustomOnRun { get; set; }
+        public override string ServiceName
+        {
+            get { return "Test"; }
+        }
 
-        public TestService(ServiceHost host) : base("TestService", host) { }
+        public TestService(ServiceHost host) : base(host) { }
 
         protected override Task OnRun()
         {

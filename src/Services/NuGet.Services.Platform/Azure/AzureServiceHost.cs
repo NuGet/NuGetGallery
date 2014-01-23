@@ -41,9 +41,10 @@ namespace NuGet.Services.Azure
 
             // Try to parse out the instance index from the role instance ID
             var match = RoleIdMatch.Match(RoleEnvironment.CurrentRoleInstance.Id);
-            if(match.Success) 
+            int instanceId;
+            if (!match.Success || !Int32.TryParse(match.Groups["id"].Value, out instanceId))
             {
-                hostName += match.Groups["id"].Value;
+                instanceId = 0;
             }
 
             _description = new ServiceHostDescription(
@@ -51,7 +52,8 @@ namespace NuGet.Services.Azure
                     new DatacenterName(
                         GetConfigurationSetting("Host.Environment"),
                         Int32.Parse(GetConfigurationSetting("Host.Datacenter"))),
-                    hostName),
+                    hostName,
+                    instanceId),
                 RoleEnvironment.CurrentRoleInstance.Id);
         }
 
@@ -80,11 +82,6 @@ namespace NuGet.Services.Azure
         protected override IEnumerable<NuGetService> GetServices()
         {
             return _worker.GetServices(this);
-        }
-
-        protected override NuGetService GetManagementService()
-        {
-            return _worker.GetManagementService(this);
         }
 
         protected override void InitializeLocalLogging()

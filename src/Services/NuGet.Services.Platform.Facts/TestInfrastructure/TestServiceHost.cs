@@ -33,7 +33,8 @@ namespace NuGet.Services.TestInfrastructure
                         new DatacenterName(
                             "local",
                             42),
-                        "testhost"),
+                        "testhost",
+                        0),
                     "testmachine");
             }
         }
@@ -65,19 +66,12 @@ namespace NuGet.Services.TestInfrastructure
             return container;
         }
 
-        protected override Task ReportHostInitialized()
+        protected override void ReportHostInitialized()
         {
-            // Don't have storage or monitoring in tests.
-            return Task.FromResult<object>(null);
         }
 
         protected override void InitializeCloudLogging()
         {
-        }
-
-        protected override NuGetService GetManagementService()
-        {
-            return null;
         }
     }
 }

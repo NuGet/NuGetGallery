@@ -177,8 +177,6 @@
     <Compile Include="Http\Routes.cs" />
     <Compile Include="Http\WebApiExtensions.cs" />
     <Compile Include="KnownServers.cs" />
-    <Compile Include="Models\ServiceHostEntry.cs" />
-    <Compile Include="Models\ServiceInstanceEntry.cs" />
     <Compile Include="NuGetCoreModule.cs" />
     <Compile Include="ServiceModel\NuGetService.cs" />
     <Compile Include="ServiceModel\ServiceHost.cs" />
@@ -186,7 +184,7 @@
     <Compile Include="ServiceModel\ServiceHostDescription.cs" />
     <Compile Include="ServiceModel\DatacenterName.cs" />
     <Compile Include="ServiceModel\ServiceHostName.cs" />
-    <Compile Include="ServiceModel\ServiceInstanceName.cs" />
+    <Compile Include="ServiceModel\ServiceName.cs" />
     <Compile Include="ServicePlatformEventSource.cs" />
     <Compile Include="Composition\ComponentContainerExtensions.cs" />
     <Compile Include="Storage\AzureQueue.cs" />

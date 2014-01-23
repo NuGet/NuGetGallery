@@ -26,11 +26,10 @@ namespace NuGet.Services.ServiceModel
         private const string TraceTableBaseName = "Trace";
         private long _lastHeartbeatTicks = 0;
         
-        private ServiceInstanceEntry _instanceEntry;
+        public abstract string ServiceName { get; }
 
-        public string ServiceName { get; private set; }
         public ServiceHost Host { get; private set; }
-        public ServiceInstanceName InstanceName { get; private set; }
+        public ServiceName InstanceName { get; private set; }
 
         public StorageHub Storage { get; set; }
         public ConfigurationHub Configuration { get; set; }
@@ -43,25 +42,23 @@ namespace NuGet.Services.ServiceModel
 
         public string TempDirectory { get; protected set; }
 
-        protected NuGetService(string serviceName, ServiceHost host)
+        protected NuGetService(ServiceHost host)
         {
-            ServiceName = serviceName;
             Host = host;
 
-            TempDirectory = Path.Combine(Path.GetTempPath(), "NuGetServices", serviceName);
+            TempDirectory = Path.Combine(Path.GetTempPath(), "NuGetServices", ServiceName);
 
             // Assign a unique id to this service (it'll be global across this host, but that's OK)
             int id = host.AssignInstanceId();
 
             // Build an instance name
-            InstanceName = new ServiceInstanceName(host.Description.ServiceHostName, serviceName, id);
+            InstanceName = new ServiceName(host.Description.ServiceHostName, ServiceName);
         }
 
-        public virtual async Task<bool> Start(ILifetimeScope scope, ServiceInstanceEntry instanceEntry)
+        public virtual async Task<bool> Start(ILifetimeScope scope)
         {
             Container = scope;
-            _instanceEntry = instanceEntry;
-
+            
             Storage = scope.Resolve<StorageHub>();
             Configuration = scope.Resolve<ConfigurationHub>();
 
@@ -93,14 +90,10 @@ namespace NuGet.Services.ServiceModel
             }
         }
 
-        public virtual Task Heartbeat()
+        public virtual void Heartbeat()
         {
             var beatTime = DateTimeOffset.UtcNow;
             Interlocked.Exchange(ref _lastHeartbeatTicks, beatTime.Ticks);
-            
-            // TODO: PERF: This part won't be able to be synchronous for long...
-            _instanceEntry.LastHeartbeat = beatTime;
-            return Storage.Primary.Tables.Table<ServiceInstanceEntry>().InsertOrReplace(_instanceEntry);
         }
 
         protected virtual Task<bool> OnStart() { return Task.FromResult(true); }

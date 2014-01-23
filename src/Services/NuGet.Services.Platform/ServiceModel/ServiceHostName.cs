@@ -10,16 +10,18 @@ namespace NuGet.Services.ServiceModel
 {
     public class ServiceHostName : IEquatable<ServiceHostName>
     {
-        private static readonly Regex ParseRegex = new Regex("^(?<env>.*)_DC(?<dc>.*)_(?<host>.*)$", RegexOptions.IgnoreCase);
-        private static readonly string ToStringFormat = "{0}_{1}";
+        private static readonly Regex ParseRegex = new Regex("^(?<env>.*)-(?<dc>.*)-(?<host>.*)_IN(?<instance>.*)$", RegexOptions.IgnoreCase);
+        private static readonly string ToStringFormat = "{0}-{1}_IN{2}";
         
         public DatacenterName Datacenter { get; private set; }
         public string Name { get; private set; }
+        public int InstanceId { get; private set; }
 
-        public ServiceHostName(DatacenterName datacenter, string name)
+        public ServiceHostName(DatacenterName datacenter, string name, int instanceId)
         {
             Datacenter = datacenter;
             Name = name;
+            InstanceId = instanceId;
         }
 
         public static bool TryParse(string name, out ServiceHostName parsed)
@@ -36,11 +38,17 @@ namespace NuGet.Services.ServiceModel
             {
                 return false;
             }
+            int instanceId;
+            if (!Int32.TryParse(match.Groups["instance"].Value, out instanceId))
+            {
+                return false;
+            }
             parsed = new ServiceHostName(
                 new DatacenterName(
                     match.Groups["env"].Value,
                     dc),
-                match.Groups["host"].Value);
+                match.Groups["host"].Value,
+                instanceId);
             return true;
         }
 
@@ -59,7 +67,8 @@ namespace NuGet.Services.ServiceModel
             return String.Format(CultureInfo.InvariantCulture,
                 ToStringFormat,
                 Datacenter,
-                Name);
+                Name,
+                InstanceId);
         }
 
         public override bool Equals(object obj)
