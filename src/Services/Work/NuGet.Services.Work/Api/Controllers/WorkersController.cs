@@ -10,18 +10,18 @@ using NuGet.Services.Work.Api.Models;
 
 namespace NuGet.Services.Work.Api.Controllers
 {
-    [RoutePrefix("instances")]
+    [RoutePrefix("workers")]
     [Authorize(Roles = Roles.Admin)]
-    public class InstancesController : NuGetApiController
+    public class WorkersController : NuGetApiController
     {
         public InvocationQueue Queue { get; private set; }
 
-        public InstancesController(InvocationQueue queue)
+        public WorkersController(InvocationQueue queue)
         {
             Queue = queue;
         }
 
-        [Route("stats", Name = Routes.GetInstanceStatistics)]
+        [Route("stats", Name = Routes.GetWorkerStatistics)]
         public async Task<IHttpActionResult> GetStatistics()
         {
             var stats = await Queue.GetInstanceStatistics();

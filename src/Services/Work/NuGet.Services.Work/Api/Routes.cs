@@ -19,7 +19,7 @@ namespace NuGet.Services.Work.Api
         public const string PutInvocation = "Work-Invocations-Put";
         public const string GetJobs = "Work-Jobs-GetAll";
         public const string GetInvocationStatistics = "Work-Invocations-GetStatistics";
-        public const string GetInstanceStatistics = "Work-Instances-GetInstanceStatistics";
+        public const string GetWorkerStatistics = "Work-Worker-GetStatistics";
         public const string GetJobStatistics = "Work-Jobs-GetJobStatistics";
     }
 }

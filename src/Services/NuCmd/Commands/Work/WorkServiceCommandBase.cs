@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using NuGet.Services;
@@ -47,10 +48,19 @@ namespace NuCmd.Commands.Work
             }
             else
             {
-                return new WorkClient(ServiceUri,
-                    String.IsNullOrEmpty(Password) ?
-                    null :
-                    new NetworkCredential("admin", Password));
+                // Create a client
+                var httpClient = new HttpClient(
+                    new ConsoleHttpTraceHandler(
+                        Console,
+                        new WebRequestHandler()
+                        {
+                            Credentials = String.IsNullOrEmpty(Password) ? null : new NetworkCredential("admin", Password)
+                        }))
+                        {
+                            BaseAddress = ServiceUri
+                        };
+
+                return new WorkClient(httpClient);
             }
         }
     }

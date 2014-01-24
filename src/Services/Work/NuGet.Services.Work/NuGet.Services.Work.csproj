@@ -140,7 +140,7 @@
     <Compile Include="..\..\..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Api\Controllers\InstancesController.cs" />
+    <Compile Include="Api\Controllers\WorkersController.cs" />
     <Compile Include="Api\Controllers\JobsController.cs" />
     <Compile Include="Api\Controllers\InvocationsController.cs" />
     <Compile Include="Api\Controllers\RootController.cs" />

@@ -45,7 +45,7 @@ namespace NuCmd.Commands.Work
             var client = await OpenClient();
             if (client == null) { return; }
 
-            var response = await client.Instances.GetStatistics();
+            var response = await client.Workers.GetStatistics();
 
             if (await ReportHttpStatus(response))
             {

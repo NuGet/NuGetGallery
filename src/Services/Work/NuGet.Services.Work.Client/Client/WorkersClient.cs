@@ -9,18 +9,18 @@ using NuGet.Services.Work.Models;
 
 namespace NuGet.Services.Work.Client
 {
-    public class InstancesClient
+    public class WorkersClient
     {
         private HttpClient _client;
 
-        public InstancesClient(HttpClient client)
+        public WorkersClient(HttpClient client)
         {
             _client = client;
         }
 
         public Task<ServiceResponse<IEnumerable<InstanceStatistics>>> GetStatistics()
         {
-            return _client.GetAsync("instances/stats").AsServiceResponse<IEnumerable<InstanceStatistics>>();
+            return _client.GetAsync("work/workers/stats").AsServiceResponse<IEnumerable<InstanceStatistics>>();
         }
     }
 }

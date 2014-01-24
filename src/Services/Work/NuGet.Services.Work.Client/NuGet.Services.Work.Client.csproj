@@ -40,7 +40,7 @@
       <Link>Common\HashCodeCombiner.cs</Link>
     </Compile>
     <Compile Include="Client\InvocationsClient.cs" />
-    <Compile Include="Client\InstancesClient.cs" />
+    <Compile Include="Client\WorkersClient.cs" />
     <Compile Include="Client\JobsClient.cs" />
     <Compile Include="Client\WorkClient.cs" />
     <Compile Include="Extensions.cs" />

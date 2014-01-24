@@ -23,7 +23,7 @@ namespace NuGet.Services.Work.Client
         public Task<ServiceResponse<Invocation>> Put(InvocationRequest request)
         {
             return _client.PutAsync(
-                "invocations",
+                "work/invocations",
                 new ObjectContent<InvocationRequest>(
                     request,
                     JsonFormat.Formatter))
@@ -33,7 +33,7 @@ namespace NuGet.Services.Work.Client
         public Task<ServiceResponse> GetLog(string id)
         {
             return _client.GetAsync(
-                "invocations/" + id.ToLowerInvariant() + "/log")
+                "work/invocations/" + id.ToLowerInvariant() + "/log")
                 .AsServiceResponse();
         }
 
@@ -51,7 +51,7 @@ namespace NuGet.Services.Work.Client
         {
             string beforeValue = RenderBeforeQueryStringValue(before);
             return _client.GetAsync(
-                "invocations/purgable" + beforeValue)
+                "work/invocations/purgable" + beforeValue)
                 .AsServiceResponse<IEnumerable<Invocation>>();
         }
 
@@ -59,24 +59,24 @@ namespace NuGet.Services.Work.Client
         {
             string beforeValue = RenderBeforeQueryStringValue(before);
             return _client.DeleteAsync(
-                "invocations/purgable" + beforeValue)
+                "work/invocations/purgable" + beforeValue)
                 .AsServiceResponse<IEnumerable<Invocation>>();
         }
 
         public Task<ServiceResponse<Invocation>> Get(string id)
         {
-            return _client.GetAsync("invocations/" + id).AsServiceResponse<Invocation>();
+            return _client.GetAsync("work/invocations/" + id).AsServiceResponse<Invocation>();
         }
 
         public Task<ServiceResponse<InvocationStatistics>> GetStatistics()
         {
-            return _client.GetAsync("invocations/stats").AsServiceResponse<InvocationStatistics>();
+            return _client.GetAsync("work/invocations/stats").AsServiceResponse<InvocationStatistics>();
         }
 
         private Task<ServiceResponse<IEnumerable<Invocation>>> GetInvocations(InvocationListCriteria criteria, string queryString)
         {
             return _client.GetAsync(
-                "invocations/" + criteria.ToString().ToLowerInvariant() + queryString)
+                "work/invocations/" + criteria.ToString().ToLowerInvariant() + queryString)
                 .AsServiceResponse<IEnumerable<Invocation>>();
         }
 

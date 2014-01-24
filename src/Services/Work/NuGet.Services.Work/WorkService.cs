@@ -31,6 +31,7 @@ using System.Diagnostics;
 using Autofac.Features.ResolveAnything;
 using NuGet.Services.Http;
 using Microsoft.Owin;
+using System.Web.Http.Routing;
 
 namespace NuGet.Services.Work
 {
@@ -77,7 +78,7 @@ namespace NuGet.Services.Work
                 {
                     workerCount = Math.Min(workerCount, MaxWorkers.Value);
                 }
-                
+
                 // Create the workers
                 Workers = Enumerable.Range(0, workerCount).Select(CreateWorker);
 
@@ -143,6 +144,26 @@ namespace NuGet.Services.Work
 
             var jobdefs = GetAllAvailableJobs();
             builder.RegisterInstance(jobdefs).As<IEnumerable<JobDescription>>();
+
+            // Register an invocation queue for the API to use. The workers will register
+            // their own in a sub scope
+            if (Queue == null)
+            {
+                builder
+                    .RegisterType<InvocationQueue>()
+                    .AsSelf()
+                    .UsingConstructor(
+                        typeof(Clock),
+                        typeof(string),
+                        typeof(StorageHub),
+                        typeof(ConfigurationHub))
+                    .WithParameter(
+                        new NamedParameter("instanceName", Name.ToString() + "#api"));
+            }
+            else
+            {
+                builder.RegisterInstance(Queue).As<InvocationQueue>();
+            }
         }
 
         public static IEnumerable<JobDescription> GetAllAvailableJobs()
@@ -166,10 +187,11 @@ namespace NuGet.Services.Work
         public IObservable<EventEntry> RunJob(string job, string payload)
         {
             var runner = Container.Resolve<JobRunner>();
-            
-            var invocation = 
+
+            var invocation =
                 new InvocationState(
-                    new InvocationState.InvocationRow() {
+                    new InvocationState.InvocationRow()
+                    {
                         Payload = payload,
                         Status = (int)InvocationStatus.Executing,
                         Result = (int)ExecutionResult.Incomplete,
@@ -184,7 +206,8 @@ namespace NuGet.Services.Work
             var buffer = new ReplaySubject<EventEntry>(bufferSize: 1);
             var capture = new InvocationLogCapture(invocation);
             capture.Subscribe(buffer.OnNext, buffer.OnError);
-            runner.Dispatch(invocation, capture, CancellationToken.None).ContinueWith(t => {
+            runner.Dispatch(invocation, capture, CancellationToken.None).ContinueWith(t =>
+            {
                 if (t.IsFaulted)
                 {
                     buffer.OnError(t.Exception);
@@ -196,6 +219,12 @@ namespace NuGet.Services.Work
                 return t;
             });
             return buffer;
+        }
+
+        protected override void ConfigureAttributeRouting(DefaultInlineConstraintResolver resolver)
+        {
+            base.ConfigureAttributeRouting(resolver);
+            resolver.ConstraintMap.Add("invocationListCriteria", typeof(EnumConstraint<InvocationListCriteria>));
         }
     }
 }
