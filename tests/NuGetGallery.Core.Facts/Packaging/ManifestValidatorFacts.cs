@@ -164,6 +164,32 @@ namespace NuGetGallery.Packaging
         }
 
         [Fact]
+        public void NoErrorIfDependencySetContainsEmptyTargetFramework()
+        {
+            Manifest m = new Manifest()
+            {
+                Metadata = new ManifestMetadata()
+                {
+                    Id = "valid",
+                    Version = "1.0.0",
+                    DependencySets = new List<ManifestDependencySet>()
+                    {
+                        new ManifestDependencySet() {
+                            TargetFramework = "",
+                            Dependencies = new List<ManifestDependency>() {
+                                new ManifestDependency() {
+                                    Id = "a.b.c",
+                                    Version = "1.0-alpha"
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            Assert.Equal(GetErrors(m).Length, 0);
+        }
+
+        [Fact]
         public void ReturnsErrorIfDependencySetContainsInvalidTargetFramework()
         {
             Manifest m = new Manifest()
@@ -187,6 +213,27 @@ namespace NuGetGallery.Packaging
                 }
             };
             Assert.Equal(new[] { String.Format(Strings.Manifest_InvalidTargetFramework, "net40-client-full-awesome-unicorns") }, GetErrors(m));
+        }
+
+        [Fact]
+        public void NoErrorIfFrameworkAssemblyReferenceContainsEmptyTargetFramework()
+        {
+            Manifest m = new Manifest()
+            {
+                Metadata = new ManifestMetadata()
+                {
+                    Id = "valid",
+                    Version = "1.0.0",
+                    FrameworkAssemblies = new List<ManifestFrameworkAssembly>()
+                    {
+                        new ManifestFrameworkAssembly() {
+                            TargetFramework = "",
+                            AssemblyName = "System.Awesome"
+                        }
+                    }
+                }
+            };
+            Assert.Equal(GetErrors(m).Length, 0);
         }
 
         [Fact]
