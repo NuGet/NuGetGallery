@@ -17,12 +17,12 @@ namespace NuGet.Services.ServiceModel
         private static readonly string ToStringFormat = "{0}-{1}";
         
         public ServiceHostName Host { get; private set; }
-        public string Name { get; private set; }
+        public string Service { get; private set; }
 
-        public ServiceName(ServiceHostName host, string name)
+        public ServiceName(ServiceHostName host, string service)
         {
             Host = host;
-            Name = name;
+            Service = service;
         }
 
         public static bool TryParse(string name, out ServiceName parsed)
@@ -70,7 +70,7 @@ namespace NuGet.Services.ServiceModel
             return String.Format(CultureInfo.InvariantCulture,
                 ToStringFormat,
                 Host,
-                Name);
+                Service);
         }
 
         public override bool Equals(object obj)
@@ -82,14 +82,14 @@ namespace NuGet.Services.ServiceModel
         {
             return other != null &&
                 Equals(Host, other.Host) &&
-                String.Equals(Name, other.Name, StringComparison.OrdinalIgnoreCase);
+                String.Equals(Service, other.Service, StringComparison.OrdinalIgnoreCase);
         }
 
         public override int GetHashCode()
         {
             return HashCodeCombiner.Start()
                 .Add(Host)
-                .Add(Name)
+                .Add(Service)
                 .CombinedHash;
         }
     }

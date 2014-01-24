@@ -26,11 +26,11 @@ namespace NuGet.Services.Client
         {
             _serializerSettings = new JsonSerializerSettings()
             {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                ContractResolver = new NuGetContractResolver(),
                 DateFormatHandling = DateFormatHandling.IsoDateFormat,
                 DateParseHandling = DateParseHandling.DateTimeOffset,
                 DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                DefaultValueHandling = DefaultValueHandling.Ignore,
+                DefaultValueHandling = DefaultValueHandling.Include,
                 Formatting = Formatting.Indented,
                 MissingMemberHandling = MissingMemberHandling.Ignore,
                 NullValueHandling = NullValueHandling.Ignore,
@@ -55,6 +55,27 @@ namespace NuGet.Services.Client
         public static string Serialize(object data)
         {
             return JsonConvert.SerializeObject(data, _serializerSettings);
+        }
+
+        public static Task<T> DeserializeAsync<T>(string content)
+        {
+            return JsonConvert.DeserializeObjectAsync<T>(content, _serializerSettings);
+        }
+
+        public static Task<string> SerializeAsync(object data)
+        {
+            return JsonConvert.SerializeObjectAsync(data, _serializerSettings.Formatting, _serializerSettings);
+        }
+    }
+
+    public class NuGetContractResolver : CamelCasePropertyNamesContractResolver
+    {
+        protected override JsonDictionaryContract CreateDictionaryContract(Type objectType)
+        {
+            // Don't camel case dictionary keys
+            JsonDictionaryContract contract = base.CreateDictionaryContract(objectType);
+            contract.PropertyNameResolver = new Func<string, string>(s => s);
+            return contract;
         }
     }
 }

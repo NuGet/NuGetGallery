@@ -147,6 +147,15 @@
   <data name="ServiceConfiguration_UnknownStorageAccount" xml:space="preserve">
     <value>Unknown Storage Account: {0}</value>
   </data>
+  <data name="ServiceDefinition_TypeMustBeClass" xml:space="preserve">
+    <value>The service type must be a class</value>
+  </data>
+  <data name="ServiceDefinition_TypeMustBeNonAbstract" xml:space="preserve">
+    <value>The service type must be non-abstract</value>
+  </data>
+  <data name="ServiceDefinition_TypeMustInheritFromNuGetService" xml:space="preserve">
+    <value>The service type must inherit from NuGetService</value>
+  </data>
   <data name="ServiceHostName_InvalidName" xml:space="preserve">
     <value>Expected a name in the format: "&lt;environment&gt;_DC&lt;datacenter id&gt;_&lt;name&gt;"</value>
   </data>

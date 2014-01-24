@@ -151,6 +151,33 @@ namespace NuGet.Services {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The service type must be a class.
+        /// </summary>
+        internal static string ServiceDefinition_TypeMustBeClass {
+            get {
+                return ResourceManager.GetString("ServiceDefinition_TypeMustBeClass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The service type must be non-abstract.
+        /// </summary>
+        internal static string ServiceDefinition_TypeMustBeNonAbstract {
+            get {
+                return ResourceManager.GetString("ServiceDefinition_TypeMustBeNonAbstract", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The service type must inherit from NuGetService.
+        /// </summary>
+        internal static string ServiceDefinition_TypeMustInheritFromNuGetService {
+            get {
+                return ResourceManager.GetString("ServiceDefinition_TypeMustInheritFromNuGetService", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This host does not support IP endpoints.
         /// </summary>
         internal static string ServiceHost_DoesNotSupportEndpoints {

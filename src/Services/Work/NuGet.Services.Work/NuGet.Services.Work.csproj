@@ -143,6 +143,7 @@
     <Compile Include="Api\Controllers\InstancesController.cs" />
     <Compile Include="Api\Controllers\JobsController.cs" />
     <Compile Include="Api\Controllers\InvocationsController.cs" />
+    <Compile Include="Api\Controllers\RootController.cs" />
     <Compile Include="Api\ModelConverters.cs" />
     <Compile Include="Api\Models\WorkServiceModel.cs" />
     <Compile Include="Api\Routes.cs" />
@@ -182,9 +183,9 @@
     <Compile Include="Jobs\Models\Database.cs" />
     <Compile Include="Jobs\TestPingJob.cs" />
     <Compile Include="Jobs\UpdateLicenseReportsJob.cs" />
-    <Compile Include="LocalWorker.cs" />
+    <Compile Include="LocalWorkService.cs" />
+    <Compile Include="Worker.cs" />
     <Compile Include="WorkServiceStatus.cs" />
-    <Compile Include="WorkManagementService.cs" />
     <Compile Include="Helpers\SqlConnectionStringBuilderExtensions.cs" />
     <Compile Include="Infrastructure\JobHandlerBase.cs" />
     <Compile Include="Infrastructure\JobDispatcher.cs" />

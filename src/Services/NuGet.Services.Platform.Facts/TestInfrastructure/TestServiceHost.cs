@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Autofac;
-using Autofac.Features.ResolveAnything;
-using NuGet.Services.Composition;
 using NuGet.Services.Configuration;
 using NuGet.Services.ServiceModel;
 using NuGet.Services.Storage;
@@ -16,7 +14,7 @@ namespace NuGet.Services.TestInfrastructure
     {
         private Action<ContainerBuilder> _componentRegistrations;
 
-        public IComponentContainer Container { get; private set; }
+        public IContainer Container { get; private set; }
 
         public TestServiceHost() : this(null) { }
         public TestServiceHost(Action<ContainerBuilder> componentRegistrations)
@@ -43,15 +41,14 @@ namespace NuGet.Services.TestInfrastructure
         {
         }
 
-        protected override IEnumerable<NuGetService> GetServices()
+        protected override IEnumerable<ServiceDefinition> GetServices()
         {
-            return Enumerable.Empty<NuGetService>();
+            return Enumerable.Empty<ServiceDefinition>();
         }
 
         protected override IContainer Compose()
         {
             ContainerBuilder builder = new ContainerBuilder();
-            builder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource());
             builder.RegisterInstance(this).As<ServiceHost>();
             builder.RegisterType<ConfigurationHub>().UsingConstructor(typeof(ServiceHost));
             builder.RegisterType<StorageHub>().UsingConstructor(typeof(ConfigurationHub));
@@ -61,9 +58,8 @@ namespace NuGet.Services.TestInfrastructure
                 _componentRegistrations(builder);
             }
 
-            var container = builder.Build();
-            Container = new AutofacComponentContainer(container);
-            return container;
+            Container = builder.Build();
+            return Container;
         }
 
         protected override void ReportHostInitialized()

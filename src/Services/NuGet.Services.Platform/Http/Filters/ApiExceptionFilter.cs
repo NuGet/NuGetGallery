@@ -5,7 +5,7 @@ using System.Text;
 using System.Net.Http;
 using System.Web.Http.Filters;
 
-namespace NuGet.Services.Http
+namespace NuGet.Services.Http.Filters
 {
     public class ApiExceptionFilter : ExceptionFilterAttribute
     {

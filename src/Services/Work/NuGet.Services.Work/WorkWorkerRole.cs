@@ -21,17 +21,5 @@ using NuGet.Services.Work.Configuration;
 
 namespace NuGet.Services.Work
 {
-    public class WorkWorkerRole : NuGetWorkerRole
-    {
-        protected override IEnumerable<NuGetService> GetServices(ServiceHost host)
-        {
-            var workConfig = host.Config.GetSection<WorkConfiguration>();
-            int workersPerCore = 2;
-            if (workConfig != null)
-            {
-                workersPerCore = workConfig.WorkersPerCore;
-            }
-            yield return new WorkService(host);
-        }
-    }
+    public class WorkWorkerRole : SingleServiceWorkerRole<WorkService> {}
 }

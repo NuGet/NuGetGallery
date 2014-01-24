@@ -52,7 +52,7 @@ namespace NuCmd.Commands.Work
 
             var configuration = InvocationPayloadSerializer.Deserialize(Configuration);
 
-            var service = await LocalWorker.Create(configuration);
+            var service = await LocalWorkService.Create(configuration);
 
             var tcs = new TaskCompletionSource<object>();
 

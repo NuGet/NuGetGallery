@@ -12,6 +12,9 @@ namespace NuGet.Services.Work.Configuration
         public TimeSpan PollInterval { get; set; }
 
         [Description("The number of workers to run per CPU core")]
-        public int WorkersPerCore { get; set; }
+        public int? WorkersPerCore { get; set; }
+
+        [Description("The maximum number of workers to run")]
+        public int? MaxWorkers{ get; set; }
     }
 }

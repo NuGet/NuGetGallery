@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Infrastructure;
+using Owin;
 
 namespace NuGet.Services.Http.Authentication
 {
@@ -17,16 +18,13 @@ namespace NuGet.Services.Http.Authentication
             return new AdminKeyAuthenticationHandler();
         }
     }
-}
 
-namespace Owin
-{
     public static class AdminKeyAuthenticationMiddlewareExtensions
     {
         public static void UseAdminKeyAuthentication(this IAppBuilder self, NuGet.Services.Http.Authentication.AdminKeyAuthenticationOptions options)
         {
             self.Use(
-                typeof(NuGet.Services.Http.Authentication.AdminKeyAuthenticationMiddleware),
+                typeof(AdminKeyAuthenticationMiddleware),
                 options);
         }
     }

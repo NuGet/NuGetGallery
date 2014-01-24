@@ -27,8 +27,8 @@ namespace NuGet.Services.Work.Api.Controllers
         [Route("", Name = Routes.GetJobs)]
         public IHttpActionResult Get()
         {
-            // Find an instance of the work service
-            var workService = Host.Instances.OfType<WorkService>().FirstOrDefault();
+            // Find the work service
+            var workService = Host.GetInstance<WorkService>();
             if (workService == null)
             {
                 return Content(HttpStatusCode.OK, new object[0]);

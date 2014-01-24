@@ -75,9 +75,6 @@ namespace NuGet.Services.Azure
                     // Just ignore this. Use the default temp directory
                 }
 
-                // Set the maximum number of concurrent connections 
-                ServicePointManager.DefaultConnectionLimit = 12;
-
                 // Initialize the host
                 _host.Initialize();
 
@@ -90,6 +87,15 @@ namespace NuGet.Services.Azure
             }
         }
 
-        protected internal abstract IEnumerable<NuGetService> GetServices(ServiceHost host);
+        protected internal abstract IEnumerable<ServiceDefinition> GetServices();
+    }
+
+    public abstract class SingleServiceWorkerRole<T> : NuGetWorkerRole
+        where T : NuGetService
+    {
+        protected internal override IEnumerable<ServiceDefinition> GetServices()
+        {
+            yield return ServiceDefinition.FromType<T>();
+        }
     }
 }

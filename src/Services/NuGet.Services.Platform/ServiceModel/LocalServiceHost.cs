@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics.Tracing;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
+using Autofac;
 
 namespace NuGet.Services.ServiceModel
 {
@@ -12,7 +13,7 @@ namespace NuGet.Services.ServiceModel
     {
         private ServiceHostDescription _description;
 
-        public IList<NuGetService> Services { get; private set; }
+        public IList<ServiceDefinition> LocalServices { get; private set; }
         public override ServiceHostDescription Description { get { return _description; } }
         public IDictionary<string, string> Configuration { get; private set; }
 
@@ -22,7 +23,7 @@ namespace NuGet.Services.ServiceModel
         public LocalServiceHost(ServiceHostName name, IDictionary<string, string> configuration)
         {
             _description = new ServiceHostDescription(name, Environment.MachineName);
-            Services = new List<NuGetService>();
+            LocalServices = new List<ServiceDefinition>();
 
             Configuration = configuration ?? new Dictionary<string, string>();
         }
@@ -39,9 +40,9 @@ namespace NuGet.Services.ServiceModel
         {
         }
 
-        protected override IEnumerable<NuGetService> GetServices()
+        protected override IEnumerable<ServiceDefinition> GetServices()
         {
-            return Services;
+            return LocalServices;
         }
 
         public override string GetConfigurationSetting(string fullName)

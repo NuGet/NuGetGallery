@@ -79,9 +79,9 @@ namespace NuGet.Services.Azure
             }
         }
 
-        protected override IEnumerable<NuGetService> GetServices()
+        protected override IEnumerable<ServiceDefinition> GetServices()
         {
-            return _worker.GetServices(this);
+            return _worker.GetServices();
         }
 
         protected override void InitializeLocalLogging()

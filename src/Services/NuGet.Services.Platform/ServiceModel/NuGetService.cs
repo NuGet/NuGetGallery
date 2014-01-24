@@ -16,7 +16,6 @@ using NuGet.Services.Configuration;
 using Autofac;
 using Autofac.Core;
 using NuGet.Services.Models;
-using NuGet.Services.Composition;
 using NuGet.Services.Http.Models;
 
 namespace NuGet.Services.ServiceModel
@@ -26,10 +25,8 @@ namespace NuGet.Services.ServiceModel
         private const string TraceTableBaseName = "Trace";
         private long _lastHeartbeatTicks = 0;
         
-        public abstract string ServiceName { get; }
-
         public ServiceHost Host { get; private set; }
-        public ServiceName InstanceName { get; private set; }
+        public ServiceName Name { get; private set; }
 
         public StorageHub Storage { get; set; }
         public ConfigurationHub Configuration { get; set; }
@@ -42,17 +39,12 @@ namespace NuGet.Services.ServiceModel
 
         public string TempDirectory { get; protected set; }
 
-        protected NuGetService(ServiceHost host)
+        protected NuGetService(ServiceName name, ServiceHost host)
         {
             Host = host;
+            Name = name;
 
-            TempDirectory = Path.Combine(Path.GetTempPath(), "NuGetServices", ServiceName);
-
-            // Assign a unique id to this service (it'll be global across this host, but that's OK)
-            int id = host.AssignInstanceId();
-
-            // Build an instance name
-            InstanceName = new ServiceName(host.Description.ServiceHostName, ServiceName);
+            TempDirectory = Path.Combine(Path.GetTempPath(), "NuGetServices", name.Service);
         }
 
         public virtual async Task<bool> Start(ILifetimeScope scope)
@@ -83,11 +75,7 @@ namespace NuGet.Services.ServiceModel
 
         public void Dispose()
         {
-            var dispContainer = Container as IDisposable;
-            if (dispContainer != null)
-            {
-                dispContainer.Dispose();
-            }
+            Container.Dispose();
         }
 
         public virtual void Heartbeat()

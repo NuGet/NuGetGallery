@@ -17,9 +17,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using NuGet.Services.Client;
-using NuGet.Services.Composition;
 using NuGet.Services.Http.Authentication;
-using NuGet.Services.Http.Controllers;
+using NuGet.Services.Http.Filters;
 using NuGet.Services.Http.Models;
 using NuGet.Services.ServiceModel;
 using Owin;
@@ -28,20 +27,12 @@ namespace NuGet.Services.Http
 {
     public abstract class NuGetApiService : NuGetHttpService
     {
-        public NuGetApiService(ServiceHost host) : base(host) { }
+        public NuGetApiService(ServiceName name, ServiceHost host) : base(name, host) { }
 
         protected override void Configure(IAppBuilder app)
         {
             var config = Container.Resolve<HttpConfiguration>();
             config.DependencyResolver = new AutofacWebApiDependencyResolver(Container);
-            if (!String.IsNullOrEmpty(Configuration.Http.AdminKey))
-            {
-                app.UseAdminKeyAuthentication(new AdminKeyAuthenticationOptions()
-                {
-                    Key = Configuration.Http.AdminKey,
-                    GrantedRole = Roles.Admin
-                });
-            }
             app.UseWebApi(config);
         }
 
@@ -61,21 +52,19 @@ namespace NuGet.Services.Http
                     var nugetController = e.Instance as NuGetApiController;
                     if (nugetController != null)
                     {
-                        nugetController.Host = e.Context.Resolve<ServiceHost>();
-                        nugetController.Service = e.Context.Resolve<NuGetApiService>();
-                        nugetController.Container = e.Context.Resolve<IComponentContainer>();
+                        nugetController.Host = Host;
+                        nugetController.Service = this;
+                        nugetController.Container = Container;
                     }
                 })
                 .InstancePerApiRequest();
 
-            //builder.RegisterWebApiFilterProvider(config);
-            //builder.RegisterWebApiModelBinderProvider();
+            builder.RegisterWebApiFilterProvider(config);
+            builder.RegisterWebApiModelBinderProvider();
         }
 
         protected virtual IEnumerable<Assembly> GetControllerAssemblies()
         {
-            yield return typeof(NuGetApiService).Assembly;
-            
             if (GetType().Assembly != typeof(NuGetApiService).Assembly)
             {
                 yield return GetType().Assembly;
@@ -117,8 +106,6 @@ namespace NuGet.Services.Http
         protected virtual void ConfigureAttributeRouting(DefaultInlineConstraintResolver resolver)
         {
         }
-
-        public abstract Task<object> GetApiModel(NuGetApiController controller, IPrincipal requestor);
 
 #if DEBUG
         // Debug services so we can step in to them.

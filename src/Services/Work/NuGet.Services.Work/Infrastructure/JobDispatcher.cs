@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
-using NuGet.Services.Composition;
 using NuGet.Services.Work.Monitoring;
 
 namespace NuGet.Services.Work
@@ -15,7 +14,7 @@ namespace NuGet.Services.Work
     {
         private Dictionary<string, JobDescription> _jobMap;
         private List<JobDescription> _jobs;
-        private IComponentContainer _container;
+        private ILifetimeScope _container;
 
         private JobDescription _currentJob = null;
 
@@ -23,7 +22,7 @@ namespace NuGet.Services.Work
 
         protected JobDispatcher() { }
 
-        public JobDispatcher(IEnumerable<JobDescription> jobs, IComponentContainer container)
+        public JobDispatcher(IEnumerable<JobDescription> jobs, ILifetimeScope container)
             : this()
         {
             _jobs = jobs.ToList();
@@ -40,46 +39,48 @@ namespace NuGet.Services.Work
             }
             Interlocked.Exchange(ref _currentJob, jobdef);
 
-            IComponentContainer scope = null;
-            scope = _container.BeginScope(b =>
+            ILifetimeScope scope = null;
+            using (scope = _container.BeginLifetimeScope(b =>
             {
                 b.RegisterType(jobdef.Implementation).As(jobdef.Implementation);
                 b.RegisterInstance(context).As<InvocationContext>();
                 b.Register(ctx => scope)
-                    .As<IComponentContainer>();
-            });
-            var job = scope.GetService<JobHandlerBase>(jobdef.Implementation);
-
-            Func<Task<InvocationResult>> invocationThunk = () => job.Invoke(context);
-            if (context.Invocation.IsContinuation)
+                    .As<ILifetimeScope>();
+            }))
             {
-                IAsyncJob asyncJob = job as IAsyncJob;
-                if (asyncJob == null)
+                var job = (JobHandlerBase)scope.Resolve(jobdef.Implementation);
+
+                Func<Task<InvocationResult>> invocationThunk = () => job.Invoke(context);
+                if (context.Invocation.IsContinuation)
                 {
-                    // Just going to be caught below, but that's what we want :).
-                    throw new InvalidOperationException(String.Format(
-                        CultureInfo.CurrentCulture,
-                        Strings.JobDispatcher_AsyncContinuationOfNonAsyncJob,
-                        jobdef.Name));
+                    IAsyncJob asyncJob = job as IAsyncJob;
+                    if (asyncJob == null)
+                    {
+                        // Just going to be caught below, but that's what we want :).
+                        throw new InvalidOperationException(String.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.JobDispatcher_AsyncContinuationOfNonAsyncJob,
+                            jobdef.Name));
+                    }
+                    invocationThunk = () => asyncJob.InvokeContinuation(context);
                 }
-                invocationThunk = () => asyncJob.InvokeContinuation(context);
-            }
 
-            InvocationEventSource.Log.Invoking(jobdef);
-            InvocationResult result = null;
+                InvocationEventSource.Log.Invoking(jobdef);
+                InvocationResult result = null;
 
-            try
-            {
-                context.SetJob(jobdef, job);
+                try
+                {
+                    context.SetJob(jobdef, job);
 
-                result = await invocationThunk();
+                    result = await invocationThunk();
+                }
+                catch (Exception ex)
+                {
+                    result = InvocationResult.Faulted(ex);
+                }
+                Interlocked.Exchange(ref _currentJob, null);
+                return result;
             }
-            catch (Exception ex)
-            {
-                result = InvocationResult.Faulted(ex);
-            }
-            Interlocked.Exchange(ref _currentJob, null);
-            return result;
         }
 
         public JobDescription GetCurrentJob()

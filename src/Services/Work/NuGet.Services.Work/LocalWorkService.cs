@@ -3,12 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Autofac;
 using NuGet.Services.ServiceModel;
 
 namespace NuGet.Services.Work
 {
-    public static class LocalWorker
+    [Service("Work")]
+    public class LocalWorkService : WorkService
     {
+        [Obsolete("Do not use, use LocalWorkService.Create instead")]
+        public LocalWorkService(ServiceName name, ServiceHost host)
+            : base(name, host)
+        {
+            Queue = InvocationQueue.Null;
+        }
+
         public static Task<WorkService> Create()
         {
             return Create(new Dictionary<string, string>());
@@ -22,14 +31,14 @@ namespace NuGet.Services.Work
                     "work",
                     0),
                 configuration);
-            var service = new WorkService(host, InvocationQueue.Null);
-            host.Services.Add(service);
+            var name = new ServiceName(host.Description.ServiceHostName, ServiceDefinition.FromType<WorkService>().Name);
+            host.LocalServices.Add(ServiceDefinition.FromType<LocalWorkService>());
             host.Initialize();
             if (!await host.Start())
             {
                 throw new InvalidOperationException(Strings.LocalWorker_FailedToStart);
             }
-            return service;
+            return host.GetInstance<LocalWorkService>();
         }
     }
 }

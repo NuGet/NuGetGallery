@@ -89,7 +89,7 @@ namespace NuGet.Services.Work
                     Source = source,
                     Payload = payloadString,
                     NextVisibleAt = invisibleUntil.UtcDateTime,
-                    InstanceName = _instanceName.ToString(),
+                    InstanceName = _instanceName,
                     JobInstanceName = jobInstanceName,
                     UnlessAlreadyRunning = unlessAlreadyRunning
                 });
@@ -111,7 +111,7 @@ namespace NuGet.Services.Work
                 "work.DequeueInvocation",
                 new
                 {
-                    InstanceName = _instanceName.ToString(),
+                    InstanceName = _instanceName,
                     HideUntil = invisibleUntil.UtcDateTime
                 });
 
@@ -142,7 +142,7 @@ namespace NuGet.Services.Work
                     Result = (int)result,
                     ResultMessage = resultMessage,
                     LogUrl = logUrl,
-                    InstanceName = _instanceName.ToString()
+                    InstanceName = _instanceName
                 });
             return ProcessResult(invocation, newVersion);
         }
@@ -163,7 +163,7 @@ namespace NuGet.Services.Work
                     Id = invocation.Id,
                     Version = invocation.CurrentVersion,
                     ExtendTo = invisibleUntil.UtcDateTime,
-                    InstanceName = _instanceName.ToString()
+                    InstanceName = _instanceName
                 });
 
             return ProcessResult(invocation, newVersion);
@@ -182,7 +182,7 @@ namespace NuGet.Services.Work
                     Payload = serializedPayload,
                     SuspendUntil = suspendUntil.UtcDateTime,
                     LogUrl = logUrl,
-                    InstanceName = _instanceName.ToString()
+                    InstanceName = _instanceName
                 });
             return ProcessResult(invocation, newVersion);
         }
@@ -197,7 +197,7 @@ namespace NuGet.Services.Work
                     Version = invocation.CurrentVersion,
                     Status = status,
                     Result = result,
-                    InstanceName = _instanceName.ToString()
+                    InstanceName = _instanceName
                 });
             return ProcessResult(invocation, newVersion);
         }
