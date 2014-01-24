@@ -91,6 +91,9 @@ namespace NuGetGallery.Packaging
                     (metadata.DependencySets.Select(s => s.TargetFramework)));
             foreach (var fx in fxes)
             {
+                //if target framework is not specified, then continue. Validate only for wrong specification.
+                if (string.IsNullOrEmpty(fx))
+                    continue;
                 ValidationResult result = null;
                 try
                 {
