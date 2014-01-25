@@ -9,12 +9,13 @@
             <Import moduleName="RemoteForwarder" />
         </Imports>
         <ConfigurationSettings>
-            <Setting name="Host.Datacenter" />
             <!-- The index of the datacenter, because we can't easily get that from Azure :( -->
-            <Setting name="Host.Environment" />
+            <Setting name="Host.Datacenter" />
+            <Setting name="Host.DatacenterSecondary" />
             <!-- The name of the environment (i.e. int, prod, etc.) -->
-            <Setting name="Host.Name" />
+            <Setting name="Host.Environment" />
             <!-- The name of the service host -->
+            <Setting name="Host.Name" />            
             <Setting name="Storage.Primary" />
             <Setting name="Storage.Legacy" />
             <Setting name="Storage.Backup" />

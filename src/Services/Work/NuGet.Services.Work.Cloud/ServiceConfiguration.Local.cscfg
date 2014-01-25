@@ -4,6 +4,7 @@
         <Instances count="1" />
         <ConfigurationSettings>
             <Setting name="Host.Datacenter" value="0" />
+            <Setting name="Host.DatacenterSecondary" value="1" />
             <Setting name="Host.Environment" value="local" />
             <Setting name="Host.Name" value="work" />
             <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />

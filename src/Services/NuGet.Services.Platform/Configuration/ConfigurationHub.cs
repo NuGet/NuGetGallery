@@ -25,6 +25,36 @@ namespace NuGet.Services.Configuration
         public SqlConfiguration Sql { get { return GetSection<SqlConfiguration>(); } }
         public HttpConfiguration Http { get { return GetSection<HttpConfiguration>(); } }
 
+        private DatacenterName _PrimaryDatacenter;
+        public DatacenterName PrimaryDatacenter
+        { 
+            get 
+            {
+                if (_PrimaryDatacenter != null)
+                {
+                    _PrimaryDatacenter = new DatacenterName(
+                            GetSetting("Host.Environment"),
+                            Int32.Parse(GetSetting("Host.Datacenter")));
+                }
+                return _PrimaryDatacenter;
+            }
+        }
+
+        private DatacenterName _SecondaryDatacenter;
+        public DatacenterName SecondaryDatacenter
+        {
+            get
+            {
+                if (_SecondaryDatacenter != null)
+                {
+                    _SecondaryDatacenter = new DatacenterName(
+                            GetSetting("Host.Environment"),
+                            Int32.Parse(GetSetting("Host.DatacenterSecondary")));
+                }
+                return _SecondaryDatacenter;
+            }
+        }
+
         public ConfigurationHub(ServiceHost host)
         {
             _getSettingThunk = host.GetConfigurationSetting;
