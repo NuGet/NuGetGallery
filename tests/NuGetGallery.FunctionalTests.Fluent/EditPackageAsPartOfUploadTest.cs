@@ -14,58 +14,67 @@ namespace NuGetGallery.FunctionalTests.Fluent
 {
 
     [TestClass]
-    public class EditPackageTest : FluentAutomation.FluentTest
+    public class EditPackageAsPartOfUploadTest : FluentAutomation.FluentTest
     {
-        public EditPackageTest()
+        public EditPackageAsPartOfUploadTest()
         {
             FluentAutomation.SeleniumWebDriver.Bootstrap();
         }
 
         [TestMethod]
-        [Description("Edit every possible metadata field of an uploaded package.")]
-        public void EditPackage()
+        [Description("Edit every possible metadata field of the package as part of upload.")]
+        public void EditPackageAsPartOfUpload()
         {
-            string packageName = "NuGetGallery.FunctionalTests.Fluent.EditPackageTest";
-            string version = "1.0.0";
-
-            CommonMethods.UploadPackageIfNecessary(packageName, version);
+            // Use the same package name, but force the version to be unique.
+            string packageName = "NuGetGallery.FunctionalTests.Fluent.EditPackageAsPartOfUploadTest";
+            string ticks = DateTime.Now.Ticks.ToString();
+            string version = new System.Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
+            string newPackageLocation = PackageCreationHelper.CreatePackage(packageName, version);
 
             // Log on using the test account.
             CommonMethods.LogOn(I, EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
 
-            // Navigate to the package's edit page. 
-            I.Open(String.Format(UrlHelper.EditPageUrl, packageName, version));
-            I.Expect.Url(x => x.AbsoluteUri.Contains("nuget"));
+            // Navigate to the upload page. 
+            CommonMethods.UploadPackageUsingUI(I, newPackageLocation);
 
             // Edit the package.
+            I.Click("#Edit_VersionTitleButton");
             string newTitle = String.Format("This title is accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newTitle).In("#Edit_VersionTitle");
 
+            I.Click("#Edit_DescriptionButton");
             string newDescription = String.Format("This description is accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newDescription).In("#Edit_Description");
 
+            I.Click("#Edit_SummaryButton");
             string newSummary = String.Format("This summary is accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newSummary).In("#Edit_Summary");
 
+            I.Click("#Edit_IconUrlButton");
             string newIconUrl = String.Format("http://microsoft.com/IconUrl/{0}", DateTime.Now.ToString("FFFFFFF"));
             I.Enter(newIconUrl).In("#Edit_IconUrl");
 
+            I.Click("#Edit_ProjectUrlButton");
             string newHomePageUrl = String.Format("http://microsoft.com/HomePageUrl/{0}", DateTime.Now.ToString("FFFFFFF"));
             I.Enter(newHomePageUrl).In("#Edit_ProjectUrl");
 
+            I.Click("#Edit_AuthorsButton");
             string newAuthors = String.Format("These authors are accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newAuthors).In("#Edit_Authors");
 
+            I.Click("#Edit_CopyrightButton");
             string newCopyright = String.Format("Copyright {0}.", DateTime.Now.ToString("F"));
             I.Enter(newCopyright).In("#Edit_Copyright");
 
+            I.Click("#Edit_TagsButton");
             string newTags = String.Format("These tags are accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newTags).In("#Edit_Tags");
 
+            I.Click("#Edit_ReleaseNotesButton");
             string newReleaseNotes = String.Format("These release notes are accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newReleaseNotes).In("#Edit_ReleaseNotes");
 
-            I.Click("input[value=Save]");
+            I.Click("input[value='Submit']");
 
             // Validate that the edit is queued.
             I.Expect.Url(UrlHelper.BaseUrl + @"packages/" + packageName + "/" + version);
