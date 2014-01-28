@@ -22,6 +22,7 @@
             
             <Setting name="Work.PollInterval" value="00:00:15" />
             <Setting name="Work.WorkersPerCore" value="2" />
+            <Setting name="Work.MaxWorkers" value="" />
             
             <Setting name="Http.BasePath" value="" />
             <Setting name="Http.AdminKey" value="password" />

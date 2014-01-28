@@ -30,6 +30,7 @@
             
             <Setting name="Work.PollInterval" />
             <Setting name="Work.WorkersPerCore" />
+            <Setting name="Work.MaxWorkers" />
 
             <Setting name="Http.BasePath" />
             <Setting name="Http.AdminKey" />
