@@ -5,7 +5,7 @@ using System.Text;
 
 namespace NuGet.Services.Operations.Model
 {
-    public class Resource : DatacenterComponentBase
+    public class Resource : NuOpsComponentBase
     {
     }
 }

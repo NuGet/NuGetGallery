@@ -5,7 +5,11 @@ using System.Text;
 
 namespace NuGet.Services.Operations.Model
 {
-    public class PackageSource : DatacenterComponentBase
+    public class PackageSource : NuOpsComponentBase
     {
+        public virtual IEnumerable<DeploymentPackage> GetPackages(string service, int? limit)
+        {
+            return Enumerable.Empty<DeploymentPackage>();
+        }
     }
 }

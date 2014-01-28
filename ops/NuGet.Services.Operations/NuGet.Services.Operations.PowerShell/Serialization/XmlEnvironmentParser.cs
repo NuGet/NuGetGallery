@@ -53,6 +53,10 @@ namespace NuGet.Services.Operations.Serialization
             
             env.Version = root.AttributeValueAs<Version>("version", Version.Parse, new Version(2, 0));
             env.Subscription = root.AttributeValueAs<Subscription>("subscription", s => new Subscription() { Name = s });
+
+            // Load components
+            LoadList(env.PackageSources, x => LoadComponent<PackageSource>(x), root.Element("packageSources"));
+            LoadList(env.SecretStores, x => LoadComponent<SecretStore>(x), root.Element("secretStores"));
             
             // Load datacenters
             foreach (var dcXml in root.Elements("datacenter"))
@@ -71,16 +75,14 @@ namespace NuGet.Services.Operations.Serialization
             dc.Region = root.AttributeValue("region");
             dc.AffinityGroup = root.AttributeValue("affinityGroup");
 
-            LoadList(dc.PackageSources, x => LoadDatacenterComponent<PackageSource>(x), root.Element("packageSources"));
-            LoadList(dc.SecretStores, x => LoadDatacenterComponent<SecretStore>(x), root.Element("secretStores"));
-            LoadList(dc.Resources, x => LoadDatacenterComponent<Resource>(x), root.Element("resources"));
-            LoadList(dc.Services, x => LoadDatacenterComponent<Service>(x), root.Element("services"));
+            LoadList(dc.Resources, x => LoadComponent<Resource>(x), root.Element("resources"));
+            LoadList(dc.Services, x => LoadComponent<Service>(x), root.Element("services"));
 
             return dc;
         }
 
-        private static T LoadDatacenterComponent<T>(XElement element)
-            where T : DatacenterComponentBase, new()
+        private static T LoadComponent<T>(XElement element)
+            where T : NuOpsComponentBase, new()
         {
             // Find the parser
             string parserName = typeof(IParser<T>).Namespace + "." + element.Name.LocalName + typeof(T).Name + "Parser";
@@ -99,7 +101,7 @@ namespace NuGet.Services.Operations.Serialization
         }
 
         private static void LoadList<T>(IList<T> list, Func<XElement, T> loader, XElement element)
-            where T : DatacenterComponentBase
+            where T : NuOpsComponentBase
         {
             if (element != null)
             {

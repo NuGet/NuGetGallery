@@ -7,7 +7,7 @@ using NuGet.Services.Operations.Model;
 
 namespace NuGet.Services.Operations.Serialization
 {
-    public interface IParser<out T> where T : DatacenterComponentBase
+    public interface IParser<out T> where T : NuOpsComponentBase
     {
         T Parse(XElement element);
     }
