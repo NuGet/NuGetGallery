@@ -20,14 +20,15 @@ if($EnvironmentList) {
 	$env:NUGET_OPS_DEFINITION = $EnvironmentList;
 }
 
-if(!$env:NUGET_OPS_DEFINITION) {
+if(!$env:NUOPS_DEFINITION) {
 	$msftNuGetShare = "\\nuget\nuget\Share\Environments"
+
 	# Defaults for Microsoft CorpNet. If you're outside CorpNet, you'll have to VPN in. Of course, if you're hosting your own gallery, you have to build your own scripts :P
 	if([Environment]::UserDomainName -and ($MsftDomainNames -contains [Environment]::UserDomainName) -and (Test-Path $msftNuGetShare)) {
-		$env:NUGET_OPS_DEFINITION = $msftNuGetShare
+		$env:NUOPS_DEFINITION = $msftNuGetShare
 	}
 	else {
-		Write-Warning "NUGET_OPS_DEFINITION is not set. Set it to a path containing an Environments.xml and a Subscriptions.xml file"
+		Write-Warning "NUOPS_DEFINITION is not set. Set it to a path containing an Environments,v3.xml and a Subscriptions.xml file"
 	}
 }
 
@@ -64,11 +65,11 @@ if(($azMod -eq $null) -or ($azMod.Version -lt (New-Object Version "0.7.0"))) {
 }
 
 LoadOrReloadModule Azure
-LoadOrReloadModule NuGetOps
+LoadOrReloadModule NuOps
 
 $Global:_OldPrompt = $function:prompt;
 function Global:prompt {
-	if(Get-Module NuGetOps) {
+	if(Get-Module NuOps) {
 		return Write-NuGetOpsPrompt
 	} else {
 		return $oldprompt.InvokeReturnAsIs()

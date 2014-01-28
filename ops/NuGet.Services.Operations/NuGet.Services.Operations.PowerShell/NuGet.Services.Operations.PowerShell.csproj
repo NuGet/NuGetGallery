@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{EE580082-8E92-4542-B7AE-5AF7A0904743}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NuGet.Services.Operations</RootNamespace>
+    <AssemblyName>NuGet.Services.Operations.PowerShell</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\Modules\NuOps\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\WindowsPowerShell\3.0\System.Management.Automation.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Commands\GetNuOpsEnvironmentCommand.cs" />
+    <Compile Include="Commands\NewNuOpsSessionCommand.cs" />
+    <Compile Include="Commands\OpsSessionCmdlet.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="Model\AzureRoleService.cs" />
+    <Compile Include="Model\AzureStorageResource.cs" />
+    <Compile Include="Model\Datacenter.cs" />
+    <Compile Include="Model\DatacenterComponentBase.cs" />
+    <Compile Include="Model\NuOpsEnvironment.cs" />
+    <Compile Include="Model\PackageSource.cs" />
+    <Compile Include="Model\Resource.cs" />
+    <Compile Include="Model\SecretStore.cs" />
+    <Compile Include="Model\Service.cs" />
+    <Compile Include="Model\SharepointSecretStore.cs" />
+    <Compile Include="Model\SqlDBResource.cs" />
+    <Compile Include="Model\Subscription.cs" />
+    <Compile Include="Model\TeamCityPackageSource.cs" />
+    <Compile Include="Model\UriResource.cs" />
+    <Compile Include="OperationsSession.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Serialization\AzureRoleServiceParser.cs" />
+    <Compile Include="Serialization\UriResourceParser.cs" />
+    <Compile Include="Serialization\AzureStorageResourceParser.cs" />
+    <Compile Include="Serialization\IParser.cs" />
+    <Compile Include="Serialization\SharepointSecretStoreParser.cs" />
+    <Compile Include="Serialization\SqlDBResourceParser.cs" />
+    <Compile Include="Serialization\TeamCityPackageSourceParser.cs" />
+    <Compile Include="Serialization\XmlSubscriptionParser.cs" />
+    <Compile Include="XLinqExtensions.cs" />
+    <Compile Include="Serialization\XmlEnvironmentParser.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="NuOps.psd1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="NuOps.psm1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
