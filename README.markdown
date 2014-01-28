@@ -37,14 +37,9 @@ website for the NuGet client. For information about the NuGet clients, visit htt
     ```
 If this fails, you are likely to get more useful output by passing -Debug than -Verbose.
 
-6. Set up the website in IIS Express!
- 1. We highly recommend using IIS Express. Use the [Web Platform Installer](microsoft.com/web) to install it if you don't have it already (it comes with recent versions of VS and WebMatrix though)
- 2. In an ADMIN powershell prompt, run the .\build\Enable-LocalTestMe.ps1 file. It allows non-admins to host websites at: http://nuget.localtest.me, it configures an IIS Express site at that URL and creates a self-signed SSL certificate. For more information on localtest.me, check out [readme.localtest.me](readme.localtest.me)
- 3. If you're having trouble, go to the Project Properties for the Website project, click on the Web tab and change the URL to localhost:port where _port_ is some port number above 1024.
+6. Change the value of Gallery.ConfirmEmailAddresses to false in Web.Config file under src\NuGetGallery, this is required to upload the packages after registration.
 
-7. Change the value of Gallery.ConfirmEmailAddresses to false in Web.Config file under src\NuGetGallery, this is required to upload the packages after registration.
-
-8. Ensure the 'NuGetGallery' project (under the Frontend folder) is set to the Startup Project
+7. Ensure the 'NuGetGallery' project (under the Frontend folder) is set to the Startup Project
   
 
 That's it! You should now be able to press Ctrl-F5 to run the site!
