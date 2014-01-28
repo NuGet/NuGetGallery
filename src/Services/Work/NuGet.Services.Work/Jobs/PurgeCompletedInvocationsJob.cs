@@ -40,7 +40,9 @@ namespace NuGet.Services.Work.Jobs
         }
     }
 
-    public class PurgeCompletedInvocationsEventSource : EventSource {
+    [EventSource("Outercurve-NuGet-Jobs-PurgeCompletedInvocations")]
+    public class PurgeCompletedInvocationsEventSource : EventSource
+    {
         public static readonly PurgeCompletedInvocationsEventSource Log = new PurgeCompletedInvocationsEventSource();
 
         private PurgeCompletedInvocationsEventSource() { }

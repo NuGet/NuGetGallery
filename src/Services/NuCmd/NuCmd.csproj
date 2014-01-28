@@ -133,6 +133,7 @@
     <Compile Include="Commands\Scheduler\CollectionsCommand.cs" />
     <Compile Include="Commands\Scheduler\NewServiceCommand.cs" />
     <Compile Include="Commands\Scheduler\NewJobCommand.cs" />
+    <Compile Include="Commands\Scheduler\RefreshJobCommand.cs" />
     <Compile Include="Commands\Scheduler\SchedulerCommandBase.cs" />
     <Compile Include="Commands\Scheduler\DeleteServiceCommand.cs" />
     <Compile Include="Commands\Scheduler\ServicesCommand.cs" />

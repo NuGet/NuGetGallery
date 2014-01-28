@@ -210,6 +210,7 @@ namespace NuGet.Services.Work.Jobs
         }
     }
 
+    [EventSource("Outercurve-NuGet-Jobs-BackupPackageBlobs")]
     public class BackupPackageBlobsEventSource : EventSource
     {
         public static readonly BackupPackageBlobsEventSource Log = new BackupPackageBlobsEventSource();

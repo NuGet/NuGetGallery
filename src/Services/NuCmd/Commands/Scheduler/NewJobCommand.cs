@@ -10,6 +10,7 @@ using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.Scheduler.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using NuGet.Services.Client;
 using NuGet.Services.Work;
 using NuGet.Services.Work.Models;
 using PowerArgs;
@@ -23,20 +24,18 @@ namespace NuCmd.Commands.Scheduler
         [ArgDescription("Specifies the scheduler service for the collection. Defaults to the standard one for this environment (nuget-[environment]-0-scheduler)")]
         public string CloudService { get; set; }
 
-        [ArgRequired]
-        [ArgPosition(0)]
         [ArgShortcut("c")]
         [ArgDescription("The collection in which to put the job")]
         public string Collection { get; set; }
 
         [ArgRequired]
-        [ArgPosition(1)]
+        [ArgPosition(0)]
         [ArgShortcut("j")]
         [ArgDescription("The job to invoke")]
         public string Job { get; set; }
 
         [ArgRequired]
-        [ArgPosition(2)]
+        [ArgPosition(1)]
         [ArgShortcut("i")]
         [ArgDescription("The name of the job instance to create")]
         public string InstanceName { get; set; }
@@ -89,6 +88,9 @@ namespace NuCmd.Commands.Scheduler
             CloudService = String.IsNullOrEmpty(CloudService) ?
                 String.Format("nuget-{0}-0-scheduler", TargetEnvironment.Name) :
                 CloudService;
+            Collection = String.IsNullOrEmpty(Collection) ?
+                String.Format("nuget-{0}-0-scheduler-0", TargetEnvironment.Name) :
+                Collection;
 
             if (!String.IsNullOrEmpty(EncodedPayload))
             {
@@ -120,7 +122,7 @@ namespace NuCmd.Commands.Scheduler
                         JobInstanceName = InstanceName,
                         UnlessAlreadyRunning = Singleton
                     };
-                var body = JsonConvert.SerializeObject(bodyValue);
+                var body = await JsonFormat.SerializeAsync(bodyValue);
 
                 var request = new JobCreateOrUpdateParameters()
                 {
@@ -130,7 +132,7 @@ namespace NuCmd.Commands.Scheduler
                         Type = JobActionType.Https,
                         Request = new JobHttpRequest()
                         {
-                            Uri = new Uri(ServiceUri, "invocations"),
+                            Uri = new Uri(ServiceUri, "work/invocations"),
                             Method = "PUT",
                             Body = body,
                             Headers = new Dictionary<string, string>()

@@ -21,7 +21,7 @@ using NuGet.Services.Work.Jobs.Models;
 namespace NuGet.Services.Work.Jobs
 {
     [Description("Handles pending package edits")]
-    public class HandlePackageEditsJob : JobHandler<QueuePackageEditsEventSource>
+    public class HandlePackageEditsJob : JobHandler<HandlePackageEditsEventSource>
     {
         private const string HashAlgorithmName = "SHA512";
         public static readonly long DefaultMaxAllowedManifestBytes = 10 /* Mb */ * 1024 /* Kb */ * 1024; /* b */
@@ -375,10 +375,11 @@ namespace NuGet.Services.Work.Jobs
         }
     }
 
-    public class QueuePackageEditsEventSource : EventSource
+    [EventSource("Outercurve-NuGet-Jobs-HandlePackageEdits")]
+    public class HandlePackageEditsEventSource : EventSource
     {
-        public static readonly QueuePackageEditsEventSource Log = new QueuePackageEditsEventSource();
-        private QueuePackageEditsEventSource() { }
+        public static readonly HandlePackageEditsEventSource Log = new HandlePackageEditsEventSource();
+        private HandlePackageEditsEventSource() { }
 
         [Event(
             eventId: 1,
