@@ -325,6 +325,33 @@ namespace NuCmd {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No such job: {0}..
+        /// </summary>
+        internal static string Scheduler_RefreshJobCommand_NoSuchJob {
+            get {
+                return ResourceManager.GetString("Scheduler_RefreshJobCommand_NoSuchJob", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The job &apos;{0}&apos; is not a work service invocation..
+        /// </summary>
+        internal static string Scheduler_RefreshJobCommand_NotAWorkServiceJob {
+            get {
+                return ResourceManager.GetString("Scheduler_RefreshJobCommand_NotAWorkServiceJob", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating target url for job &apos;{0}&apos; from &apos;{1}&apos; to &apos;{2}&apos;.
+        /// </summary>
+        internal static string Scheduler_RefreshJobCommand_UpdatingUrl {
+            get {
+                return ResourceManager.GetString("Scheduler_RefreshJobCommand_UpdatingUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to NuCmd Usage:
         ///  nucmd &lt;command&gt;
         ///  nucmd &lt;group&gt; &lt;command&gt;.
@@ -345,7 +372,7 @@ namespace NuCmd {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Created Invocation: {0}.
+        ///   Looks up a localized string similar to Created Invocation: {0}..
         /// </summary>
         internal static string Work_InvokeCommand_CreatedInvocation {
             get {
@@ -354,7 +381,7 @@ namespace NuCmd {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Creating Invocation of {0} with no payload.
+        ///   Looks up a localized string similar to Creating Invocation of {0} with no payload..
         /// </summary>
         internal static string Work_InvokeCommand_CreatingInvocation_NoPayload {
             get {
@@ -372,7 +399,7 @@ namespace NuCmd {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error deserializing payload: {0}.
+        ///   Looks up a localized string similar to Error deserializing payload: {0}..
         /// </summary>
         internal static string Work_InvokeCommand_PayloadInvalid {
             get {
@@ -390,7 +417,7 @@ namespace NuCmd {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to End of log for Invocation {0}.
+        ///   Looks up a localized string similar to End of log for Invocation {0}..
         /// </summary>
         internal static string Work_LogCommand_RenderedLog {
             get {
@@ -399,7 +426,7 @@ namespace NuCmd {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Log entries for Invocation {0}.
+        ///   Looks up a localized string similar to Log entries for Invocation {0}..
         /// </summary>
         internal static string Work_LogCommand_RenderingLog {
             get {
@@ -426,7 +453,7 @@ namespace NuCmd {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Completed invocation of job {0}.
+        ///   Looks up a localized string similar to Completed invocation of job {0}..
         /// </summary>
         internal static string Work_RunCommand_Invoked {
             get {
@@ -435,7 +462,7 @@ namespace NuCmd {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invoking job: {0}.
+        ///   Looks up a localized string similar to Invoking job: {0}..
         /// </summary>
         internal static string Work_RunCommand_Invoking {
             get {
@@ -453,7 +480,7 @@ namespace NuCmd {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unknown stats type: {0}.
+        ///   Looks up a localized string similar to Unknown stats type: {0}..
         /// </summary>
         internal static string Work_StatsCommand_UnknownStatsType {
             get {

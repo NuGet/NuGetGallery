@@ -232,6 +232,7 @@ namespace NuGet.Services.Work.Jobs
         }
     }
 
+    [EventSource("Outercurve-NuGet-Jobs-ReplicatePackageStatistics")]
     public class ReplicatePackageStatisticsEventSource : EventSource
     {
         public static readonly ReplicatePackageStatisticsEventSource Log = new ReplicatePackageStatisticsEventSource();

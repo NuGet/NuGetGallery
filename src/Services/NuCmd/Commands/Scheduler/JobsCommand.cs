@@ -19,7 +19,6 @@ namespace NuCmd.Commands.Scheduler
         [ArgDescription("Specifies the scheduler service for the collection. Defaults to the standard one for this environment (nuget-[environment]-0-scheduler)")]
         public string CloudService { get; set; }
 
-        [ArgRequired]
         [ArgShortcut("c")]
         [ArgDescription("The job collection to list jobs from")]
         public string Collection { get; set; }
@@ -34,6 +33,9 @@ namespace NuCmd.Commands.Scheduler
             CloudService = String.IsNullOrEmpty(CloudService) ?
                 String.Format("nuget-{0}-0-scheduler", TargetEnvironment.Name) :
                 CloudService;
+            Collection = String.IsNullOrEmpty(Collection) ?
+                String.Format("nuget-{0}-0-scheduler-0", TargetEnvironment.Name) :
+                Collection;
 
             using (var client = CloudContext.Clients.CreateSchedulerClient(Credentials, CloudService, Collection))
             {

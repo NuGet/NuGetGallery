@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Work.Monitoring
 {
-    [EventSource(Name = "NuGet-Services-Work")]
+    [EventSource("Outercurve-NuGet-Work-Service")]
     public class WorkServiceEventSource : EventSource
     {
         public static readonly WorkServiceEventSource Log = new WorkServiceEventSource();

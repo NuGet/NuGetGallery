@@ -162,7 +162,7 @@ namespace NuGet.Services.Work.Jobs
         }
     }
 
-    [EventSource(Name = "NuGet-Jobs-CreateOnlineDatabaseBackup")]
+    [EventSource("Outercurve-NuGet-Jobs-CreateOnlineDatabaseBackup")]
     public class CreateOnlineDatabaseBackupEventSource : EventSource
     {
         public static readonly CreateOnlineDatabaseBackupEventSource Log = new CreateOnlineDatabaseBackupEventSource();

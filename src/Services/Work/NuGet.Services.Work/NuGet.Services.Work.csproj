@@ -170,6 +170,7 @@
     <Compile Include="Jobs\BackupPackageBlobsJob.cs" />
     <Compile Include="Jobs\CleanOnlineDatabaseBackupsJob.cs" />
     <Compile Include="Jobs\Bases\DatabaseJobHandlerBase.cs" />
+    <Compile Include="Jobs\CreateWarehouseReportsJob.cs" />
     <Compile Include="Jobs\HandlePackageEditsJob.cs" />
     <Compile Include="Jobs\Models\PackageEdit.cs" />
     <Compile Include="Jobs\Models\PackageRef.cs" />
@@ -179,7 +180,7 @@
     <Compile Include="Jobs\TestAsyncJob.cs" />
     <Compile Include="Jobs\CreateOnlineDatabaseBackupJob.cs" />
     <Compile Include="Jobs\TestHeartBeatJob.cs" />
-    <Compile Include="Jobs\TestLongJob.cs" />
+    <Compile Include="Jobs\TestLongRunningJob.cs" />
     <Compile Include="Jobs\Models\Database.cs" />
     <Compile Include="Jobs\TestPingJob.cs" />
     <Compile Include="Jobs\UpdateLicenseReportsJob.cs" />
@@ -230,6 +231,15 @@
       <Project>{19324b97-1c22-49e2-8c1a-e4eab682a974}</Project>
       <Name>NuGet.Services.Work.Client</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Jobs\Sql\DownloadReport_Last6Months.sql" />
+    <EmbeddedResource Include="Jobs\Sql\DownloadReport_ListInactive.sql" />
+    <EmbeddedResource Include="Jobs\Sql\DownloadReport_NuGetClientVersion.sql" />
+    <EmbeddedResource Include="Jobs\Sql\DownloadReport_RecentPopularity.sql" />
+    <EmbeddedResource Include="Jobs\Sql\DownloadReport_RecentPopularityByPackage.sql" />
+    <EmbeddedResource Include="Jobs\Sql\DownloadReport_RecentPopularityDetail.sql" />
+    <EmbeddedResource Include="Jobs\Sql\DownloadReport_RecentPopularityDetailByPackage.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'NuGetGallery.v3.sln'))\build\NuGet.targets" />

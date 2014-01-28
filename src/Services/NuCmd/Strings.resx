@@ -213,16 +213,16 @@ Details:
   nucmd &lt;group&gt; &lt;command&gt;</value>
   </data>
   <data name="Work_InvokeCommand_CreatedInvocation" xml:space="preserve">
-    <value>Created Invocation: {0}</value>
+    <value>Created Invocation: {0}.</value>
   </data>
   <data name="Work_InvokeCommand_CreatingInvocation_NoPayload" xml:space="preserve">
-    <value>Creating Invocation of {0} with no payload</value>
+    <value>Creating Invocation of {0} with no payload.</value>
   </data>
   <data name="Work_InvokeCommand_CreatingInvocation_WithPayload" xml:space="preserve">
     <value>Creating Invocation of {0} with the following payload:</value>
   </data>
   <data name="Work_InvokeCommand_PayloadInvalid" xml:space="preserve">
-    <value>Error deserializing payload: {0}</value>
+    <value>Error deserializing payload: {0}.</value>
   </data>
   <data name="Work_PurgeCommand_PurgingAllInvocations" xml:space="preserve">
     <value>Purging all invocations...</value>
@@ -231,27 +231,36 @@ Details:
     <value>Purging invocations completed before {0} UTC...</value>
   </data>
   <data name="Work_StatsCommand_UnknownStatsType" xml:space="preserve">
-    <value>Unknown stats type: {0}</value>
+    <value>Unknown stats type: {0}.</value>
   </data>
   <data name="Work_LogCommand_FetchingLog" xml:space="preserve">
     <value>Fetching log data for Invocation {0}...</value>
   </data>
   <data name="Work_LogCommand_RenderedLog" xml:space="preserve">
-    <value>End of log for Invocation {0}</value>
+    <value>End of log for Invocation {0}.</value>
   </data>
   <data name="Work_LogCommand_RenderingLog" xml:space="preserve">
-    <value>Log entries for Invocation {0}</value>
+    <value>Log entries for Invocation {0}.</value>
   </data>
   <data name="Work_RunCommand_Invoked" xml:space="preserve">
-    <value>Completed invocation of job {0}</value>
+    <value>Completed invocation of job {0}.</value>
   </data>
   <data name="Work_RunCommand_Invoking" xml:space="preserve">
-    <value>Invoking job: {0}</value>
+    <value>Invoking job: {0}.</value>
   </data>
   <data name="Work_RunCommand_UnknownJob" xml:space="preserve">
     <value>Unknown job: {0}.</value>
   </data>
   <data name="Work_InvokeCommand_AlreadyRunning" xml:space="preserve">
     <value>An invocation of this job is already in progress.</value>
+  </data>
+  <data name="Scheduler_RefreshJobCommand_NoSuchJob" xml:space="preserve">
+    <value>No such job: {0}.</value>
+  </data>
+  <data name="Scheduler_RefreshJobCommand_NotAWorkServiceJob" xml:space="preserve">
+    <value>The job '{0}' is not a work service invocation.</value>
+  </data>
+  <data name="Scheduler_RefreshJobCommand_UpdatingUrl" xml:space="preserve">
+    <value>Updating target url for job '{0}' from '{1}' to '{2}'</value>
   </data>
 </root>

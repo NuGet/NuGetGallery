@@ -26,7 +26,7 @@ namespace NuGet.Services.Work.Jobs
         }
     }
 
-    [EventSource(Name = "NuGet-Jobs-HeartBeat")]
+    [EventSource("Outercurve-NuGet-Jobs-TestHeartBeat")]
     public class TestHeartBeatEventSource : EventSource
     {
         public static readonly TestHeartBeatEventSource Log = new TestHeartBeatEventSource();

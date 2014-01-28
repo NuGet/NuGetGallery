@@ -18,7 +18,7 @@ using NuGet.Services.Work.Configuration;
 namespace NuGet.Services.Work.Jobs
 {
     [Description("Updates friendly license data from the license report service")]
-    public class UpdateLicenseReportsJob : AsyncJobHandler<UpdateLicenseReportsEventSource>
+    public class UpdateLicenseReportsJob : JobHandler<UpdateLicenseReportsEventSource>
     {
         public static readonly int DefaultRetryCount = 4;
 
@@ -85,17 +85,23 @@ namespace NuGet.Services.Work.Jobs
             return report;
         }
 
-        protected internal override Task<JobContinuation> Execute()
-        {
-            return Resume();
-        }
-
-        protected internal override async Task<JobContinuation> Resume()
+        protected internal override async Task Execute()
         {
             // Load defaults
             LoadDefaults();
 
             // Fetch next report url
+            Uri nextLicenseReport = await FetchNextReportUrl();
+
+            // Process that report
+            while (nextLicenseReport != null && await ProcessReports(nextLicenseReport))
+            {
+                nextLicenseReport = await FetchNextReportUrl();
+            }
+        }
+
+        private async Task<Uri> FetchNextReportUrl()
+        {
             Log.FetchingNextReportUrl(PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
             Uri nextLicenseReport = null;
             using (var connection = await PackageDatabase.ConnectTo())
@@ -113,34 +119,7 @@ namespace NuGet.Services.Work.Jobs
                 nextLicenseReport = nextLicenseReport ?? LicenseReportService;
             }
             Log.FetchedNextReportUrl(PackageDatabase.DataSource, PackageDatabase.InitialCatalog, (nextLicenseReport == null ? String.Empty : nextLicenseReport.AbsoluteUri));
-
-            // Process that report
-            if (await ProcessReports(nextLicenseReport))
-            {
-                // Suspend and reschedule
-                var parameters = new Dictionary<string,string>();
-                if(LicenseReportService != null) {
-                    parameters["LicenseReportService"] = LicenseReportService.AbsoluteUri;
-                }
-                if(!String.IsNullOrEmpty(LicenseReportUser)) {
-                    parameters["LicenseReportUser"] = LicenseReportUser;
-                }
-                if(!String.IsNullOrEmpty(LicenseReportPassword)) {
-                    parameters["LicenseReportPassword"] = LicenseReportPassword;
-                }
-                if(PackageDatabase != null) {
-                    parameters["PackageDatabase"] = PackageDatabase.ConnectionString;
-                }
-                if(RetryCount != null) {
-                    parameters["RetryCount"] = RetryCount.Value.ToString();
-                }
-                return Suspend(TimeSpan.FromSeconds(10), parameters);
-            }
-            else
-            {
-                // No result for this report, we're done.
-                return Complete();
-            }
+            return nextLicenseReport;
         }
 
         private async Task<bool> ProcessReports(Uri nextLicenseReport)
@@ -360,6 +339,7 @@ namespace NuGet.Services.Work.Jobs
         }
     }
 
+    [EventSource("Outercurve-NuGet-Jobs-UpdateLicenseReports")]
     public class UpdateLicenseReportsEventSource : EventSource
     {
         public static readonly UpdateLicenseReportsEventSource Log = new UpdateLicenseReportsEventSource();
