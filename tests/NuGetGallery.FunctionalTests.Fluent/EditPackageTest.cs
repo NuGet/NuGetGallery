@@ -14,7 +14,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 {
 
     [TestClass]
-    public class EditPackageTest : FluentAutomation.FluentTest
+    public class EditPackageTest : NuGetFluentTest
     {
         public EditPackageTest()
         {
@@ -28,10 +28,10 @@ namespace NuGetGallery.FunctionalTests.Fluent
             string packageName = "NuGetGallery.FunctionalTests.Fluent.EditPackageTest";
             string version = "1.0.0";
 
-            CommonMethods.UploadPackageIfNecessary(packageName, version);
+            UploadPackageIfNecessary(packageName, version);
 
             // Log on using the test account.
-            CommonMethods.LogOn(I, EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
+            I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
 
             // Navigate to the package's edit page. 
             I.Open(String.Format(UrlHelper.EditPageUrl, packageName, version));

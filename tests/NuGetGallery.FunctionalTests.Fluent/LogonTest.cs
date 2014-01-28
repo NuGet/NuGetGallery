@@ -14,7 +14,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 {
 
     [TestClass]
-    public class LogonTest : FluentAutomation.FluentTest
+    public class LogonTest : NuGetFluentTest
     {
         public LogonTest()
         {

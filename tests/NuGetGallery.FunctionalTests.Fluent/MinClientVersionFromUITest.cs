@@ -14,7 +14,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 {
 
     [TestClass]
-    public class MinClientVersionFromUITest : FluentAutomation.FluentTest
+    public class MinClientVersionFromUITest : NuGetFluentTest
     {
         public MinClientVersionFromUITest()
         {
@@ -32,10 +32,10 @@ namespace NuGetGallery.FunctionalTests.Fluent
             string newPackageLocation = PackageCreationHelper.CreatePackage(packageName, version, "2.7");
 
             // Log on using the test account.
-            CommonMethods.LogOn(I, EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
+            I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
 
             // Navigate to the upload page. 
-            CommonMethods.UploadPackageUsingUI(I, newPackageLocation);
+            I.UploadPackageUsingUI(newPackageLocation);
 
             // Submit on the validate upload page.
             I.Click("input[value='Submit']");

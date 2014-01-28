@@ -11,35 +11,10 @@ using FluentAutomation.Interfaces;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
-    public static class CommonMethods
+    public static class ExtensionMethods 
     {
 
-        public static void UploadPackageIfNecessary(string packageName, string version)
-        {
-            if (!PackageExists(packageName, version))
-            {
-                AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version);
-            }
-        }
-
-        public static bool PackageExists(string packageName, string version)
-        {
-            HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(UrlHelper.BaseUrl + @"Packages/" + packageName + "/" + version);
-            HttpWebResponse packagePageResponse;
-            try
-            {
-                packagePageResponse = (HttpWebResponse)packagePageRequest.GetResponse();
-            }
-            catch (WebException e)
-            {
-                if (((HttpWebResponse)e.Response).StatusCode == HttpStatusCode.NotFound) return false;
-            }
-
-            // If we didn't get an exception, that means thew resource exists.
-            return true;
-        }
-
-        public static void LogOn(INativeActionSyntaxProvider I, string userName, string password)
+        public static void LogOn(this INativeActionSyntaxProvider I, string userName, string password)
         {
             I.Open(UrlHelper.BaseUrl + "users/account/LogOn");
             I.Expect.Url(x => x.LocalPath.Contains("LogOn"));
@@ -48,7 +23,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             I.Click("#signin-link");
         }
 
-        public static void UploadPackageUsingUI(INativeActionSyntaxProvider I, string fullPackagePath)
+        public static void UploadPackageUsingUI(this INativeActionSyntaxProvider I, string fullPackagePath)
         {
             // Navigate to the Upload Package page.  This will fail if the user never uploaded the previous package, hence the error handling.
             I.Open(String.Format(UrlHelper.UploadPageUrl));

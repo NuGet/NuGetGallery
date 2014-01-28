@@ -14,7 +14,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 {
 
     [TestClass]
-    public class StatisticsPageTest : FluentAutomation.FluentTest
+    public class StatisticsPageTest : NuGetFluentTest
     {
         public StatisticsPageTest()
         {
@@ -32,7 +32,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             StreamReader sr = new StreamReader(response.GetResponseStream());
             string responseText = sr.ReadToEnd();
 
-            // Grab the top 10 package names in the feed.
+            // Grab the top 10 package ids in the feed.
             string[] packageName = new string[10];
             responseText = packageName[0] = responseText.Substring(responseText.IndexOf(@"""PackageId"": """) + 14);
             packageName[0] = packageName[0].Substring(0, responseText.IndexOf(@""""));

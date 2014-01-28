@@ -14,7 +14,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 {
 
     [TestClass]
-    public class EditPackageAsPartOfUploadTest : FluentAutomation.FluentTest
+    public class EditPackageAsPartOfUploadTest : NuGetFluentTest
     {
         public EditPackageAsPartOfUploadTest()
         {
@@ -32,10 +32,10 @@ namespace NuGetGallery.FunctionalTests.Fluent
             string newPackageLocation = PackageCreationHelper.CreatePackage(packageName, version);
 
             // Log on using the test account.
-            CommonMethods.LogOn(I, EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
+            I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
 
             // Navigate to the upload page. 
-            CommonMethods.UploadPackageUsingUI(I, newPackageLocation);
+            I.UploadPackageUsingUI(newPackageLocation);
 
             // Edit the package.
             I.Click("#Edit_VersionTitleButton");
