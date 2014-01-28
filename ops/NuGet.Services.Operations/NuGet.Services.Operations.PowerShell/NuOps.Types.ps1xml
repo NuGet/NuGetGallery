@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Types>
+    <Type>
+        <Name>NuGet.Services.Operations.Model.NuOpsEnvironment</Name>
+        <Members>
+            <MemberSet>
+                <Name>PSStandardMembers</Name>
+                <Members>
+                    <NoteProperty>
+                        <Name>DefaultDisplayProperty</Name>
+                        <Value>Name</Value>
+                    </NoteProperty>
+                </Members>
+            </MemberSet>
+            <ScriptProperty>
+                <Name>Active</Name>
+                <GetScriptBlock>
+                    if($NuOps) {
+                        $this -eq $NuOps.CurrentEnvironment
+                    } else {
+                        $null
+                    }
+                </GetScriptBlock>
+            </ScriptProperty>
+        </Members>
+    </Type>
+    <Type>
+        <Name>NuGet.Services.Operations.Model.Subscription</Name>
+        <Members>
+            <MemberSet>
+                <Name>PSStandardMembers</Name>
+                <Members>
+                    <NoteProperty>
+                        <Name>DefaultDisplayProperty</Name>
+                        <Value>Name</Value>
+                    </NoteProperty>
+                </Members>
+            </MemberSet>
+        </Members>
+    </Type>
+</Types>

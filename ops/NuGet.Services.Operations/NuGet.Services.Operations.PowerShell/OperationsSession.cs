@@ -78,5 +78,25 @@ namespace NuGet.Services.Operations
                 store.Close();
             }
         }
+
+        public void SetCurrentEnvironment(string name)
+        {
+            NuOpsEnvironment env;
+            if (!Environments.TryGetValue(name, out env))
+            {
+                throw new KeyNotFoundException("Environment not found: " + name);
+            }
+            CurrentEnvironment = env;
+        }
+
+        public NuOpsEnvironment GetEnvironment(string name)
+        {
+            NuOpsEnvironment env;
+            if (!Environments.TryGetValue(name, out env))
+            {
+                return null;
+            }
+            return env;
+        }
     }
 }

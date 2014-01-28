@@ -37,7 +37,7 @@ if(!(Test-Path "$env:ProgramFiles\Microsoft SDKs\Windows Azure\.NET SDK\")) {
 
 function Write-NuGetOpsPrompt() {
 	$env = "<NONE>"
-	if($NuOpsSession -and $NuOpsSession.CurrentEnvironment) { $env = $NuOpsSession.CurrentEnvironment.Name; }
+	if($NuOps -and $NuOps.CurrentEnvironment) { $env = $NuOps.CurrentEnvironment.Name; }
 	$host.UI.RawUI.WindowTitle = "NuGet Operations Console v$NuGetOpsVersion [Environment: $env]"
 
 	Write-Host -noNewLine "$(Get-Location)"
@@ -57,13 +57,29 @@ function Write-NuGetOpsPrompt() {
 }
 Export-ModuleMember -Function Write-NuGetOpsPrompt
 
-function Reload-NuOpsSession() {
-    $NuOps = $null;
-    $NuOps = New-NuOpsSession
+<#
+.SYNOPSIS
+Lists available environments OR sets the current environment
+
+.PARAMETER Name
+If specified, the current environment will be set to this value. If not specified, available environments will be listed
+#>
+function env(
+    [Parameter(Position=0,Mandatory=$false)][string]$Name) {
+    if($Name) {
+        Set-NuOpsEnvironment $Name
+    }
+    else {
+        Get-NuOpsEnvironment
+    }
 }
-Export-ModuleMember Reload-NuOpsSession
+Export-ModuleMember -Function env
 
-Export-ModuleMember -Cmdlet *
-
-$NuOps = New-NuOpsSession
+Enter-NuOpsSession
 Export-ModuleMember -Variable NuOps
+
+# Aliases
+Set-Alias -Name dc -Value Get-NuOpsDatacenter
+
+# Export all aliases and cmdlets
+Export-ModuleMember -Alias * -Cmdlet *

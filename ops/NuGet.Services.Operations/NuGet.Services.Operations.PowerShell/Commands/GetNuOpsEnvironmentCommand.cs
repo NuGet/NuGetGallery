@@ -14,17 +14,28 @@ namespace NuGet.Services.Operations.Commands
         [Parameter(Position=0, Mandatory=false, ValueFromPipeline=true)]
         public string Name { get; set; }
 
+        [Parameter(Mandatory=false)]
+        public bool ListAvailable { get; set; }
+
         protected override void ProcessRecord()
         {
             var session = GetSession();
 
-            IEnumerable<NuOpsEnvironment> envs = session.Environments.Values;
-            if (!String.IsNullOrEmpty(Name))
+            if (!String.IsNullOrEmpty(Name) && !ListAvailable)
             {
-                var pattern = new WildcardPattern(Name, WildcardOptions.IgnoreCase);
-                envs = envs.Where(e => pattern.IsMatch(e.Name));
+                // Get the current environment
+                WriteObject(session.CurrentEnvironment);
             }
-            WriteObject(envs, enumerateCollection: true);
+            else
+            {
+                IEnumerable<NuOpsEnvironment> envs = session.Environments.Values;
+                if (!String.IsNullOrEmpty(Name))
+                {
+                    var pattern = new WildcardPattern(Name, WildcardOptions.IgnoreCase);
+                    envs = envs.Where(e => pattern.IsMatch(e.Name));
+                }
+                WriteObject(envs, enumerateCollection: true);
+            }
         }
     }
 }

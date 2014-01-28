@@ -43,9 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\EnterNuOpsSessionCommand.cs" />
+    <Compile Include="Commands\GetNuOpsDatacenter.cs" />
     <Compile Include="Commands\GetNuOpsEnvironmentCommand.cs" />
     <Compile Include="Commands\NewNuOpsSessionCommand.cs" />
     <Compile Include="Commands\OpsSessionCmdlet.cs" />
+    <Compile Include="Commands\SetNuOpsEnvironmentCommand.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Model\AzureRoleService.cs" />
     <Compile Include="Model\AzureStorageResource.cs" />
@@ -82,7 +85,14 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="NuOps.Format.ps1xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="NuOps.Types.ps1xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

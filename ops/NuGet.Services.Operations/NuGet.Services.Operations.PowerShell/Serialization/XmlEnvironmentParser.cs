@@ -32,7 +32,7 @@ namespace NuGet.Services.Operations.Serialization
                 {
                     return LoadEnvironment(x);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     if (strict)
                     {
@@ -51,13 +51,14 @@ namespace NuGet.Services.Operations.Serialization
             NuOpsEnvironment env = new NuOpsEnvironment();
             env.Name = root.AttributeValue("name");
             
-            env.Version = root.AttributeValueAs<Version>("id", Version.Parse, new Version(2, 0));
+            env.Version = root.AttributeValueAs<Version>("version", Version.Parse, new Version(2, 0));
             env.Subscription = root.AttributeValueAs<Subscription>("subscription", s => new Subscription() { Name = s });
             
             // Load datacenters
-            foreach (var dc in root.Elements("datacenter"))
+            foreach (var dcXml in root.Elements("datacenter"))
             {
-                env.Datacenters.Add(LoadDatacenter(dc));
+                var dc = LoadDatacenter(dcXml);
+                env.Datacenters.Add(dc.Id, dc);
             }
             return env;
         }

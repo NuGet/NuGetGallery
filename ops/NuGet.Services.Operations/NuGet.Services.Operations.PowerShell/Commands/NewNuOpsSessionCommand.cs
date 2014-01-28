@@ -11,7 +11,7 @@ namespace NuGet.Services.Operations.Commands
     {
         protected override void ProcessRecord()
         {
-            WriteObject(GetSession());
+            WriteObject(CreateSession());
         }
     }
 }
