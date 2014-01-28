@@ -336,7 +336,8 @@ namespace NuGetGallery
                 var actionResult = new EmptyResult();
                 var controller = new TestableApiController(MockBehavior.Strict);
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(PackageId, "1.0.1", false)).Returns(package);
-                controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
+                //Disable it temporarily as AddDownloadStats is not being invoked currently
+                // controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
                 controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, PackageId, package.NormalizedVersion))
                               .Returns(Task.FromResult<ActionResult>(actionResult))
                               .Verifiable();
@@ -410,7 +411,8 @@ namespace NuGetGallery
                 var actionResult = new EmptyResult();
                 var controller = new TestableApiController(MockBehavior.Strict);
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(PackageId, "", false)).Returns(package);
-                controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
+                //Disable it temporarily as AddDownloadStats is not being invoked currently
+               // controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
 
                 controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, PackageId, package.NormalizedVersion))
                               .Returns(Task.FromResult<ActionResult>(actionResult))

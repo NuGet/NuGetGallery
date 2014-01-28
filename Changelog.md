@@ -1,3 +1,18 @@
+#January 2, 2014
+
+Improved our detection algorithm for packages in the WebMatrix custom feed, included additional validation for package upload using the Gallery website, and made the experience for validation errors in the contact pages more consistent.  This iteration also included a number of other small user interface changes; see [I6 -12/06 QA - 01/02 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=38&page=1&state=closed) for details.
+
+
+
+#Dec 6, 2013
+
+Added support for Microsoft account login.  Also fixes a number of UI issues.  See [I5 -11/14 QA - 12/06 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=37&page=1&state=closed) for details.
+
+
+#Nov 14, 2013
+
+Bug fixes in a number of UI components, removing offensive terms, and removing the FriendlyLicenseNames configuration setting. Also fixes endless cycle of re-prompting for credentials in the client.  [I4 -11/1 QA - 11/14 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=36&page=1&state=closed)
+
 #Nov 1,2013
 
 Bug fixes in new user registration, stats, search indexing and "Manage my packages" page. Complete list can be found here: [I3 -10/18 QA - 11/1 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=35&page=1&state=closed)
