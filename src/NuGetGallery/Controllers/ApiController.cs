@@ -106,7 +106,6 @@ namespace NuGetGallery
                 {
                     var stats = new PackageStatistics
                     {
-                        // IMPORTANT: Timestamp is managed by the database.
                         IPAddress = Request.UserHostAddress,
                         UserAgent = Request.UserAgent,
                         Package = package,
@@ -114,6 +113,9 @@ namespace NuGetGallery
                         DependentPackage = Request.Headers["NuGet-DependentPackage"],
                         ProjectGuids = Request.Headers["NuGet-ProjectGuids"],
                     };
+
+                    // Only allow this to take up to 5 seconds.  Any longer and we just lose the data; oh well.
+                    EntitiesContext.SetCommandTimeout(5);
 
                     PackageService.AddDownloadStatistics(stats);
                 }
