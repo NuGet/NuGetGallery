@@ -128,7 +128,7 @@ namespace NuGetGallery.FunctionalTests
             WebTestRequest editPackagePostRequest = new WebTestRequest(String.Format(UrlHelper.EditPageUrl, packageId, version));
             editPackagePostRequest.Method = "POST";
             editPackagePostRequest.ExpectedResponseUrl = UrlHelper.GetPackagePageUrl(packageId, version);
-            Assert.Fail("ExpectedResponseUrl is " + editPackagePostRequest.ExpectedResponseUrl);
+            //Assert.Fail("ExpectedResponseUrl is " + editPackagePostRequest.ExpectedResponseUrl);
             FormPostHttpBody logonRequestFormPostBody = new FormPostHttpBody();
             logonRequestFormPostBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
             logonRequestFormPostBody.FormPostParameters.Add("Edit.VersionTitle", title);

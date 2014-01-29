@@ -118,8 +118,8 @@ namespace NuGetGallery
                         DependentPackage = Request.Headers["NuGet-DependentPackage"],
                         ProjectGuids = Request.Headers["NuGet-ProjectGuids"],
                     };
-
-                    PackageService.AddDownloadStatistics(stats);
+                   //Temporarily disable stats.
+                   // PackageService.AddDownloadStatistics(stats);
                 }
                 catch (ReadOnlyModeException)
                 {

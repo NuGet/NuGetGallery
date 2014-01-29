@@ -24,6 +24,25 @@ if(Test-Path $SDKParent) {
 	$AzureSDKRoot = (dir $SDKParent | sort Name -desc | select -first 1).FullName
 }
 
+# Find the NuGet Internal repo
+$Global:ConfigRoot = $env:NUGET_CONFIG_ROOT
+$guessedRoot = Join-Path (Split-Path -Parent $Global:RepoRoot) "NuGetMicrosoft\NuGetInternal\Config"
+if(!$Global:ConfigRoot) {
+	Write-Host "NUGET_CONFIG_ROOT not set, searching for repo..."
+	$Global:ConfigRoot = $guessedRoot
+}
+
+if(!(Test-Path $Global:ConfigRoot)) {
+	$Global:ConfigRoot = $null;
+	Write-Warning "Could not find NuGet Configuration Files Path."
+	Write-Warning "If you put it in $guessedRoot, we'll find it automatically"
+	Write-Warning "Otherwise, set the NUGET_CONFIG_ROOT environment variable to the root path"
+	Write-Warning "If you are not deploying NuGet.org, set NUGET_CONFIG_ROOT to a path that contains CSCFG files for your service"
+}
+if($Global:ConfigRoot -and (@(dir "$Global:ConfigRoot\*.cscfg").Length -eq 0)) {
+	Write-Warning "Found no CSCFG files in $($Global:ConfigRoot)"
+}
+
 if(!$AzureSDKRoot) {
 	Write-Warning "Couldn't find the Azure SDK. Some commands may not work."
 } else {

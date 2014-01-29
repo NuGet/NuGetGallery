@@ -32,7 +32,7 @@ namespace NuGetGallery.FunctionTests.Helpers
             string filePath = Path.Combine(packageDir, packageName + ".nuspec");
             RemoveSampleNuspecValues(filePath);
             UpdateNuspecFile(filePath, "1.0.0", version);
-
+            UpdateNuspecFile(filePath, "Package description", "This is a test package created by the NuGet team.");
             // Apply the minClientVersion to the spec only if it's defined.
             if (minClientVersion != null)
             {
