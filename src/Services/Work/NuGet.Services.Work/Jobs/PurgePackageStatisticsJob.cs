@@ -87,7 +87,7 @@ namespace NuGet.Services.Work.Jobs
         }
     }
 
-    [EventSource("Outercurve-NuGet-Jobs-PurgePackageStatistics")]
+    [EventSource(Name="Outercurve-NuGet-Jobs-PurgePackageStatistics")]
     public class PurgePackageStatisticsEventSource : EventSource
     {
         public static readonly PurgePackageStatisticsEventSource Log = new PurgePackageStatisticsEventSource();

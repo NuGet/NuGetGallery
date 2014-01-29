@@ -30,7 +30,7 @@ namespace NuGet.Services.Work.Jobs
         }
     }
 
-    [EventSource("Outercurve-NuGet-Jobs-TestAsync")]
+    [EventSource(Name="Outercurve-NuGet-Jobs-TestAsync")]
     public class TestAsyncEventSource : EventSource
     {
         public static readonly TestAsyncEventSource Log = new TestAsyncEventSource();

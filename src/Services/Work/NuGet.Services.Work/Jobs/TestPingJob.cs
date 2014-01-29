@@ -21,7 +21,7 @@ namespace NuGet.Services.Work.Jobs
         }
     }
 
-    [EventSource("Outercurve-NuGet-Jobs-TestPing")]
+    [EventSource(Name="Outercurve-NuGet-Jobs-TestPing")]
     public class TestPingEventSource : EventSource
     {
         public static readonly TestPingEventSource Log = new TestPingEventSource();

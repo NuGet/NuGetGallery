@@ -9,7 +9,7 @@ using NuGet.Services.ServiceModel;
 
 namespace NuGet.Services
 {
-    [EventSource("Outercurve-NuGet-Services")]
+    [EventSource(Name="Outercurve-NuGet-Services")]
     public class ServicePlatformEventSource : EventSource
     {
         public static readonly ServicePlatformEventSource Log = new ServicePlatformEventSource();

@@ -28,7 +28,7 @@ namespace NuGet.Services.Work.Jobs
         }
     }
 
-    [EventSource("Outercurve-NuGet-Jobs-TestLongRunning")]
+    [EventSource(Name="Outercurve-NuGet-Jobs-TestLongRunning")]
     public class TestLongRunningEventSource : EventSource
     {
         public static readonly TestLongRunningEventSource Log = new TestLongRunningEventSource();

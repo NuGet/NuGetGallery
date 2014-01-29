@@ -186,7 +186,14 @@ namespace NuGet.Services.Work
 
         public IObservable<EventEntry> RunJob(string job, string payload)
         {
-            var runner = Container.Resolve<JobRunner>();
+            var runner = new JobRunner(
+                new JobDispatcher(
+                    GetAllAvailableJobs(),
+                    Container),
+                InvocationQueue.Null,
+                Container.Resolve<ConfigurationHub>(),
+                Container.Resolve<StorageHub>(),
+                Clock.RealClock);
 
             var invocation =
                 new InvocationState(
@@ -203,7 +210,7 @@ namespace NuGet.Services.Work
                         QueuedAt = DateTime.UtcNow,
                         NextVisibleAt = DateTime.UtcNow + TimeSpan.FromMinutes(5)
                     });
-            var buffer = new ReplaySubject<EventEntry>(bufferSize: 1);
+            var buffer = new ReplaySubject<EventEntry>();
             var capture = new InvocationLogCapture(invocation);
             capture.Subscribe(buffer.OnNext, buffer.OnError);
             runner.Dispatch(invocation, capture, CancellationToken.None).ContinueWith(t =>

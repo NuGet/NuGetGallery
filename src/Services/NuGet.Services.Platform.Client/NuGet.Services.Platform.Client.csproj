@@ -33,9 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AzureStorageReference.cs" />
     <Compile Include="Client\JsonFormat.cs" />
     <Compile Include="Client\ServiceResponse.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="CredentialProviderHandler.cs" />
     <Compile Include="ICredentialProvider.cs" />
     <Compile Include="Models\AssemblyFullNameConverter.cs" />
