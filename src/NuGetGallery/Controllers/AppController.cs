@@ -54,7 +54,7 @@ namespace NuGetGallery
     {
         private Lazy<User> _currentUser;
         
-        public ConfigurationService Config { get; private set; }
+        public ConfigurationService Config { get; internal set; }
         public User CurrentUser { get { return _currentUser.Value; } }
 
         public NuGetContext(AppController ctrl)

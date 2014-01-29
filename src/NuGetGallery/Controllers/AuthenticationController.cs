@@ -135,8 +135,8 @@ namespace NuGetGallery
                     }
 
                     user = await AuthService.Register(
-                        model.Register.Username, 
-                        model.Register.EmailAddress, 
+                        model.Register.Username,
+                        model.Register.EmailAddress,
                         result.Credential);
                 }
                 else
@@ -154,13 +154,16 @@ namespace NuGetGallery
             }
 
             // Send a new account email
-            MessageService.SendNewAccountEmail(
-                new MailAddress(user.User.UnconfirmedEmailAddress, user.User.Username),
-                Url.ConfirmationUrl(
-                    "Confirm", 
-                    "Users", 
-                    user.User.Username, 
-                    user.User.EmailConfirmationToken));
+            if(NuGetContext.Config.Current.ConfirmEmailAddresses && !String.IsNullOrEmpty(user.User.UnconfirmedEmailAddress))
+            {
+                MessageService.SendNewAccountEmail(
+                    new MailAddress(user.User.UnconfirmedEmailAddress, user.User.Username),
+                    Url.ConfirmationUrl(
+                        "Confirm",
+                        "Users",
+                        user.User.Username,
+                        user.User.EmailConfirmationToken));
+            }
 
             // We're logging in!
             AuthService.CreateSession(OwinContext, user.User);
