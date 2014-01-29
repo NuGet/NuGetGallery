@@ -62,7 +62,6 @@ namespace NuGetGallery
         {
             // Get configuration from the kernel
             var config = Container.Kernel.Get<IAppConfiguration>();
-            DbMigratorPostStart();
             BackgroundJobsPostStart(config);
             AppPostStart();
             BundlingPostStart();
@@ -212,12 +211,6 @@ namespace NuGetGallery
         private static void BackgroundJobsStop()
         {
             _jobManager.Dispose();
-        }
-
-        private static void DbMigratorPostStart()
-        {
-            // Don't run migrations, ever!
-            Database.SetInitializer<EntitiesContext>(null);
         }
 
         private static void NinjectPreStart()
