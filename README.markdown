@@ -6,7 +6,7 @@ website for the NuGet client. For information about the NuGet clients, visit htt
 ## Build and Run the Gallery in (arbitrary number) easy steps
 
 1. Prerequisites. Install these if you don't already have them:
- 1. Visual Studio 2012
+ 1. Visual Studio 2013
  2. PowerShell 2.0 (comes with Windows 7+)
  3. [NuGet](http://docs.nuget.org/docs/start-here/installing-nuget)
  4. [Windows Azure SDK v2.2](http://www.microsoft.com/windowsazure/sdk/) - Note that later versions may be supported, but will require you to manually upgrade the ".Cloud" projects in the solution.

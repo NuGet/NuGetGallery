@@ -5,6 +5,10 @@
     <Configuration>Debug</Configuration>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <VisualStudioVersion>12.0</VisualStudioVersion>
+  </PropertyGroup>
+
   <Target Name="PatchAssemblyVersion" Condition="'$(SetVersion)' != 'false'">
     <ItemGroup>
       <_RegexReplace Include="$(MSBuildThisFileDirectory)\..\src\CommonAssemblyInfo.cs" />
@@ -75,15 +79,15 @@
     <Message Text="*************" Importance="high" />
     <Message Text="Building ... " Importance="high" />
     <Message Text="*************" Importance="high" />
-    <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);RunFacts=true;TargetProfile=Local" />
-    <MSBuild Projects="..\NuGetGallery.v3.sln" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);RunFacts=true;TargetProfile=Local" />
+    <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="VisualStudioVersion=12.0;Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);RunFacts=true;TargetProfile=Local" />
+    <MSBuild Projects="..\NuGetGallery.v3.sln" Targets="Build" Properties="VisualStudioVersion=12.0;Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);RunFacts=true;TargetProfile=Local" />
     
     <Message Text="**************" Importance="high" />
     <Message Text="Packaging ... " Importance="high" />
     <Message Text="**************" Importance="high" />
-    <MSBuild Projects="..\src\NuGetGallery.Cloud\NuGetGallery.Cloud.ccproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=AnyCPU;VMSize=$(Frontend_VMSize);TargetProfile=Local" BuildInParallel="false" />
-    <MSBuild Projects="..\src\Services\Work\NuGet.Services.Work.Cloud\NuGet.Services.Work.Cloud.ccproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=AnyCPU;VMSize=$(Work_VMSize);TargetProfile=Local" BuildInParallel="false" />
-    <MSBuild Projects="..\src\NuGetGallery\NuGetGallery.csproj" Targets="Package" Properties="Configuration=$(Configuration);Platform=AnyCPU;" BuildInParallel="false" />
+    <MSBuild Projects="..\src\NuGetGallery.Cloud\NuGetGallery.Cloud.ccproj" Targets="Publish" Properties="VisualStudioVersion=12.0;Configuration=$(Configuration);Platform=AnyCPU;VMSize=$(Frontend_VMSize);TargetProfile=Local" BuildInParallel="false" ToolsVersion="12.0" />
+    <MSBuild Projects="..\src\Services\Work\NuGet.Services.Work.Cloud\NuGet.Services.Work.Cloud.ccproj" Targets="Publish" Properties="VisualStudioVersion=12.0;Configuration=$(Configuration);Platform=AnyCPU;VMSize=$(Work_VMSize);TargetProfile=Local" BuildInParallel="false" />
+    <MSBuild Projects="..\src\NuGetGallery\NuGetGallery.csproj" Targets="Package" Properties="VisualStudioVersion=12.0;Configuration=$(Configuration);Platform=AnyCPU;" BuildInParallel="false" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="Clean;RestorePackages;PatchAssemblyVersion;CoreBuild" />
