@@ -88,7 +88,8 @@
             @GravatarImage(owner.EmailAddress, owner.Username, size)
         }
         @if (showName)
-        {<text>@owner.Username</text>
+        {
+            <span class="owner-name">@owner.Username</span>
         }
     </a>
 }
