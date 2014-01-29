@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CreateWarehouseReportsJob_NoDestinationAvailable" xml:space="preserve">
+    <value>One of Destination or OutputDirectory must be specified or available from the environment</value>
+  </data>
   <data name="EventSourceInstanceManager_EventSourceDoesNotHaveLogField" xml:space="preserve">
     <value>The Event Source '{0}' does not have a public static field "Log" containing an instance of it. Event Sources must implement this pattern for all jobs.</value>
   </data>

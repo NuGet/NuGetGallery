@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dapper;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Services.Configuration;
 using NuGet.Services.Storage;
@@ -35,7 +36,8 @@ namespace NuGet.Services.Work.Jobs
         /// <summary>
         /// Gets or sets an Azure Storage Uri referring to a container to use as the source for package blobs
         /// </summary>
-        public AzureStorageReference Source { get; set; }
+        public CloudStorageAccount Source { get; set; }
+        public string SourceContainerName { get; set; }
 
         /// <summary>
         /// Gets or sets a connection string to the database containing package data.
@@ -45,7 +47,8 @@ namespace NuGet.Services.Work.Jobs
         /// <summary>
         /// Gets or sets an Azure Storage Uri referring to a container to use as the backup storage for package blobs
         /// </summary>
-        public AzureStorageReference Backups { get; set; }
+        public CloudStorageAccount Backups { get; set; }
+        public string BackupsContainerName { get; set; }
 
         /// <summary>
         /// Gets or sets the maximum number of tries that are allowed before considering an edit failed.
@@ -72,16 +75,12 @@ namespace NuGet.Services.Work.Jobs
             // Load defaults
             MaxManifestSize = MaxAllowedManifestBytes ?? DefaultMaxAllowedManifestBytes;
             PackageDatabase = PackageDatabase ?? Config.Sql.GetConnectionString(KnownSqlServer.Legacy);
-            var sourceAccount = Source == null ?
-                Storage.Legacy :
-                Storage.GetAccount(Source);
-            var backupsAccount = Backups == null ?
-                Storage.Backup :
-                Storage.GetAccount(Backups);
-            SourceContainer = sourceAccount.Blobs.Client.GetContainerReference(
-                Source == null ? PackageHelpers.PackageBlobContainer : Source.Container);
-            BackupsContainer = backupsAccount.Blobs.Client.GetContainerReference(
-                Backups == null ? PackageHelpers.BackupsBlobContainer : Backups.Container);
+            Source = Source ?? Storage.Legacy.Account;
+            Backups = Backups ?? Storage.Backup.Account;
+            SourceContainer = Source.CreateCloudBlobClient().GetContainerReference(
+                String.IsNullOrEmpty(SourceContainerName) ? BlobContainerNames.LegacyPackages : SourceContainerName);
+            BackupsContainer = Backups.CreateCloudBlobClient().GetContainerReference(
+                String.IsNullOrEmpty(BackupsContainerName) ? BlobContainerNames.Backups : BackupsContainerName);
 
             // Grab package edits
             IList<PackageEdit> edits;
@@ -375,7 +374,7 @@ namespace NuGet.Services.Work.Jobs
         }
     }
 
-    [EventSource("Outercurve-NuGet-Jobs-HandlePackageEdits")]
+    [EventSource(Name="Outercurve-NuGet-Jobs-HandlePackageEdits")]
     public class HandlePackageEditsEventSource : EventSource
     {
         public static readonly HandlePackageEditsEventSource Log = new HandlePackageEditsEventSource();

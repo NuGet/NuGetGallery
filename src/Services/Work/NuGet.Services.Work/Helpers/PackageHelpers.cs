@@ -11,9 +11,6 @@ namespace NuGet.Services.Work
 {
     public static class PackageHelpers
     {
-        public static readonly string PackageBlobContainer = "packages";
-        public static readonly string BackupsBlobContainer = "ng-backups";
-
         private const string PackageBlobNameFormat = "{0}.{1}.nupkg";
         private const string PackageBackupBlobNameFormat = "packages/{0}/{1}/{2}.nupkg";
 

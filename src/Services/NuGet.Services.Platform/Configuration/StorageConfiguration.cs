@@ -11,6 +11,10 @@ namespace NuGet.Services.Configuration
     {
         public Dictionary<KnownStorageAccount, CloudStorageAccount> Accounts { get; private set; }
 
+        public CloudStorageAccount Primary { get { return GetAccount(KnownStorageAccount.Primary); } }
+        public CloudStorageAccount Legacy { get { return GetAccount(KnownStorageAccount.Legacy); } }
+        public CloudStorageAccount Backup { get { return GetAccount(KnownStorageAccount.Backup); } }
+
         public CloudStorageAccount GetAccount(KnownStorageAccount account)
         {
             CloudStorageAccount connectionString;

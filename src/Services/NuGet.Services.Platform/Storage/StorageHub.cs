@@ -40,37 +40,6 @@ namespace NuGet.Services.Storage
             Legacy = legacy;
         }
 
-        public StorageAccountHub GetAccount(AzureStorageReference reference)
-        {
-            if (String.Equals(reference.AccountName, ".", StringComparison.OrdinalIgnoreCase))
-            {
-                // Emulator!
-                return new StorageAccountHub(CloudStorageAccount.DevelopmentStorageAccount);
-            }
-
-            Func<StorageHub, StorageAccountHub> handler;
-            if (!_knownAccounts.TryGetValue(reference.AccountName, out handler))
-            {
-                return new StorageAccountHub(
-                    new CloudStorageAccount(
-                        new StorageCredentials(
-                            reference.AccountName, 
-                            reference.AccountKey),
-                        useHttps: true));
-            }
-            return handler(this);
-        }
-
-        public CloudBlobContainer GetContainer(AzureStorageReference reference)
-        {
-            var account = GetAccount(reference);
-            if (account == null)
-            {
-                return null;
-            }
-            return account.Blobs.Client.GetContainerReference(reference.Container);
-        }
-
         private static StorageAccountHub TryLoadAccount(ConfigurationHub configuration, KnownStorageAccount account)
         {
             var connectionString = configuration.Storage.GetAccount(account);

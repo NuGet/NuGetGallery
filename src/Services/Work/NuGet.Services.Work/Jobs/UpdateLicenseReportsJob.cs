@@ -339,7 +339,7 @@ namespace NuGet.Services.Work.Jobs
         }
     }
 
-    [EventSource("Outercurve-NuGet-Jobs-UpdateLicenseReports")]
+    [EventSource(Name="Outercurve-NuGet-Jobs-UpdateLicenseReports")]
     public class UpdateLicenseReportsEventSource : EventSource
     {
         public static readonly UpdateLicenseReportsEventSource Log = new UpdateLicenseReportsEventSource();

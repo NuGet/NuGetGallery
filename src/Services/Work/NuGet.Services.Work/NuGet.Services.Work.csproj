@@ -154,6 +154,7 @@
     <Compile Include="Helpers\DateTimeOffsetExtensions.cs" />
     <Compile Include="Helpers\EventSourceInstanceManager.cs" />
     <Compile Include="Helpers\PackageHelpers.cs" />
+    <Compile Include="Helpers\ResourceHelpers.cs" />
     <Compile Include="Infrastructure\InvalidJobRequestException.cs" />
     <Compile Include="Infrastructure\InvocationState.cs" />
     <Compile Include="Infrastructure\InvocationQueue.cs" />
@@ -233,13 +234,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Jobs\Sql\DownloadReport_Last6Months.sql" />
-    <EmbeddedResource Include="Jobs\Sql\DownloadReport_ListInactive.sql" />
-    <EmbeddedResource Include="Jobs\Sql\DownloadReport_NuGetClientVersion.sql" />
-    <EmbeddedResource Include="Jobs\Sql\DownloadReport_RecentPopularity.sql" />
-    <EmbeddedResource Include="Jobs\Sql\DownloadReport_RecentPopularityByPackage.sql" />
-    <EmbeddedResource Include="Jobs\Sql\DownloadReport_RecentPopularityDetail.sql" />
-    <EmbeddedResource Include="Jobs\Sql\DownloadReport_RecentPopularityDetailByPackage.sql" />
+    <EmbeddedResource Include="Jobs\Scripts\DownloadReport_Last6Months.sql" />
+    <EmbeddedResource Include="Jobs\Scripts\DownloadReport_ListInactive.sql" />
+    <EmbeddedResource Include="Jobs\Scripts\DownloadReport_NuGetClientVersion.sql" />
+    <EmbeddedResource Include="Jobs\Scripts\DownloadReport_RecentPopularity.sql" />
+    <EmbeddedResource Include="Jobs\Scripts\DownloadReport_RecentPopularityByPackage.sql" />
+    <EmbeddedResource Include="Jobs\Scripts\DownloadReport_RecentPopularityDetail.sql" />
+    <EmbeddedResource Include="Jobs\Scripts\DownloadReport_RecentPopularityDetailByPackage.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'NuGetGallery.v3.sln'))\build\NuGet.targets" />

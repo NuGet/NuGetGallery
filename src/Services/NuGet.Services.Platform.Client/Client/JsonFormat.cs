@@ -17,6 +17,7 @@ namespace NuGet.Services.Client
     public static class JsonFormat
     {
         private static JsonSerializerSettings _serializerSettings;
+        private static JsonSerializerSettings _nonCamelCasedSettings;
         private static JsonMediaTypeFormatter _formatter;
 
         public static JsonSerializerSettings SerializerSettings { get { return _serializerSettings; } }
@@ -38,6 +39,22 @@ namespace NuGet.Services.Client
                 TypeNameHandling = TypeNameHandling.None
             };
             _serializerSettings.Converters.Add(new StringEnumConverter());
+
+            _nonCamelCasedSettings = new JsonSerializerSettings()
+            {
+                // ContractResolver = ...
+                DateFormatHandling = _serializerSettings.DateFormatHandling,
+                DateParseHandling = _serializerSettings.DateParseHandling,
+                DateTimeZoneHandling = _serializerSettings.DateTimeZoneHandling,
+                DefaultValueHandling = _serializerSettings.DefaultValueHandling,
+                Formatting = _serializerSettings.Formatting,
+                MissingMemberHandling = _serializerSettings.MissingMemberHandling,
+                NullValueHandling = _serializerSettings.NullValueHandling,
+                ReferenceLoopHandling = _serializerSettings.ReferenceLoopHandling,
+                TypeNameHandling = _serializerSettings.TypeNameHandling
+            };
+            _serializerSettings.Converters.Add(new StringEnumConverter());
+
             _formatter = new JsonMediaTypeFormatter()
             {
                 SerializerSettings = _serializerSettings
@@ -52,8 +69,10 @@ namespace NuGet.Services.Client
             return JsonConvert.DeserializeObject<T>(content, _serializerSettings);
         }
 
-        public static string Serialize(object data)
+        public static string Serialize(object data) { return Serialize(data, camelCase: true); }
+        public static string Serialize(object data, bool camelCase)
         {
+            var settings = camelCase ? _serializerSettings : _nonCamelCasedSettings;
             return JsonConvert.SerializeObject(data, _serializerSettings);
         }
 
@@ -62,9 +81,11 @@ namespace NuGet.Services.Client
             return JsonConvert.DeserializeObjectAsync<T>(content, _serializerSettings);
         }
 
-        public static Task<string> SerializeAsync(object data)
+        public static Task<string> SerializeAsync(object data) { return SerializeAsync(data, camelCase: true); }
+        public static Task<string> SerializeAsync(object data, bool camelCase)
         {
-            return JsonConvert.SerializeObjectAsync(data, _serializerSettings.Formatting, _serializerSettings);
+            var settings = camelCase ? _serializerSettings : _nonCamelCasedSettings;
+            return JsonConvert.SerializeObjectAsync(data, settings.Formatting, settings);
         }
     }
 
@@ -76,6 +97,11 @@ namespace NuGet.Services.Client
             JsonDictionaryContract contract = base.CreateDictionaryContract(objectType);
             contract.PropertyNameResolver = new Func<string, string>(s => s);
             return contract;
+        }
+
+        protected override JsonObjectContract CreateObjectContract(Type objectType)
+        {
+            return base.CreateObjectContract(objectType);
         }
     }
 }

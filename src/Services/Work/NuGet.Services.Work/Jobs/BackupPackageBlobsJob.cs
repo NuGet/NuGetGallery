@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Dapper;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Services.Configuration;
 using NuGet.Services.Storage;
@@ -29,12 +30,14 @@ namespace NuGet.Services.Work.Jobs
         /// <summary>
         /// Gets or sets an Azure Storage Uri referring to a container to use as the source for package blobs
         /// </summary>
-        public AzureStorageReference Source { get; set; }
+        public CloudStorageAccount Source { get; set; }
+        public string SourceContainerName { get; set; }
 
         /// <summary>
         /// Gets or sets an Azure Storage Uri referring to a container to use as the destination
         /// </summary>
-        public AzureStorageReference Destination { get; set; }
+        public CloudStorageAccount Destination { get; set; }
+        public string DestinationContainerName { get; set; }
 
         /// <summary>
         /// Gets or sets a connection string to the database containing package data.
@@ -64,24 +67,20 @@ namespace NuGet.Services.Work.Jobs
 
             // Load default data if not provided
             PackageDatabase = PackageDatabase ?? Config.Sql.GetConnectionString(KnownSqlServer.Legacy);
-            var sourceAccount = Source == null ?
-                Storage.Legacy :
-                Storage.GetAccount(Source);
-            var destAccount = Destination == null ?
-                Storage.Backup :
-                Storage.GetAccount(Destination);
-            SourceContainer = sourceAccount.Blobs.Client.GetContainerReference(
-                Source == null ? PackageHelpers.PackageBlobContainer : Source.Container);
-            DestinationContainer = destAccount.Blobs.Client.GetContainerReference(
-                Destination == null ? PackageHelpers.BackupsBlobContainer : Destination.Container);
-            Log.PreparingToBackup(sourceAccount.Name, SourceContainer.Name, destAccount.Name, DestinationContainer.Name, PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
+            Source = Source ?? Config.Storage.Legacy;
+            Destination = Destination ?? Config.Storage.Backup;
+            SourceContainer = Source.CreateCloudBlobClient().GetContainerReference(
+                String.IsNullOrEmpty(SourceContainerName) ? BlobContainerNames.LegacyPackages : SourceContainerName);
+            DestinationContainer = Destination.CreateCloudBlobClient().GetContainerReference(
+                String.IsNullOrEmpty(DestinationContainerName) ? BlobContainerNames.Backups : DestinationContainerName);
+            Log.PreparingToBackup(Source.Credentials.AccountName, SourceContainer.Name, Destination.Credentials.AccountName, DestinationContainer.Name, PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
 
             // Load package state if we aren't doing a full rescan
-            Log.LoadingBackupState(destAccount.Name, DestinationContainer.Name);
+            Log.LoadingBackupState(Destination.Credentials.AccountName, DestinationContainer.Name);
             var lastBackup = FullRescan ? 
                 (DateTimeOffset?)null :
-                await LoadBackupState(destAccount, DestinationContainer);
-            Log.LoadedBackupState(destAccount.Name, DestinationContainer.Name);
+                await LoadBackupState(DestinationContainer);
+            Log.LoadedBackupState(Destination.Credentials.AccountName, DestinationContainer.Name);
 
             // Gather packages
             Log.GatheringListOfPackages(PackageDatabase.DataSource, PackageDatabase.InitialCatalog, lastBackup);
@@ -146,9 +145,9 @@ namespace NuGet.Services.Work.Jobs
             // Write backup state
             if (!Context.CancelToken.IsCancellationRequested)
             {
-                Log.SavingBackupState(destAccount.Name, DestinationContainer.Name);
-                await WriteBackupState(destAccount, DestinationContainer, now);
-                Log.SavedBackupState(destAccount.Name, DestinationContainer.Name);
+                Log.SavingBackupState(Destination.Credentials.AccountName, DestinationContainer.Name);
+                await WriteBackupState(DestinationContainer, now);
+                Log.SavedBackupState(Destination.Credentials.AccountName, DestinationContainer.Name);
             }
         }
 
@@ -184,7 +183,7 @@ namespace NuGet.Services.Work.Jobs
             }
         }
 
-        private async Task WriteBackupState(StorageAccountHub destAccount, CloudBlobContainer container, DateTimeOffset now)
+        private async Task WriteBackupState(CloudBlobContainer container, DateTimeOffset now)
         {
             if (!WhatIf)
             {
@@ -194,7 +193,7 @@ namespace NuGet.Services.Work.Jobs
             }
         }
 
-        private async Task<DateTimeOffset?> LoadBackupState(StorageAccountHub account, CloudBlobContainer container)
+        private async Task<DateTimeOffset?> LoadBackupState(CloudBlobContainer container)
         {
             if (!await container.ExistsAsync())
             {
@@ -210,7 +209,7 @@ namespace NuGet.Services.Work.Jobs
         }
     }
 
-    [EventSource("Outercurve-NuGet-Jobs-BackupPackageBlobs")]
+    [EventSource(Name="Outercurve-NuGet-Jobs-BackupPackageBlobs")]
     public class BackupPackageBlobsEventSource : EventSource
     {
         public static readonly BackupPackageBlobsEventSource Log = new BackupPackageBlobsEventSource();

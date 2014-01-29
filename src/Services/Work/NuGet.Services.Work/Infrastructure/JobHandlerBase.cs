@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Data.SqlClient;
 using System.IO;
 using System.Threading;
+using Microsoft.WindowsAzure.Storage;
 
 namespace NuGet.Services.Work
 {
@@ -135,7 +136,7 @@ namespace NuGet.Services.Work
 
         private IList<TypeConverter> _converters = new List<TypeConverter>() {
             new SqlConnectionStringBuilderConverter(),
-            new AzureStorageAccountConverter()
+            new CloudStorageAccountConverter()
         };
 
         protected virtual object ConvertPropertyValue(PropertyDescriptor prop, string value)
@@ -171,31 +172,26 @@ namespace NuGet.Services.Work
             }
         }
 
-        private class AzureStorageAccountConverter : TypeConverter
+        private class CloudStorageAccountConverter : TypeConverter
         {
             public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
             {
-                return sourceType == typeof(string) || sourceType == typeof(Uri);
+                return sourceType == typeof(string);
             }
 
             public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
             {
-                return destinationType == typeof(AzureStorageReference);
+                return destinationType == typeof(CloudStorageAccount);
             }
 
             public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
             {
-                Uri url = value as Uri;
-                if (url == null)
+                string strVal = value as string;
+                if (strVal == null)
                 {
-                    string strVal = value as string;
-                    if (strVal == null)
-                    {
-                        return null;
-                    }
-                    url = new Uri(strVal);
+                    return null;
                 }
-                return AzureStorageReference.Create(url);
+                return CloudStorageAccount.Parse(strVal);
             }
         }
     }

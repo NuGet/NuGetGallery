@@ -120,7 +120,7 @@ COMMIT TRANSACTION
 ";
     }
 
-    [EventSource("Outercurve-NuGet-Jobs-AggregateStatistics")]
+    [EventSource(Name="Outercurve-NuGet-Jobs-AggregateStatistics")]
     public class AggregateStatisticsEventSource : EventSource 
     {
         public static readonly AggregateStatisticsEventSource Log = new AggregateStatisticsEventSource();
