@@ -64,6 +64,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CSExtensionTest.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="EditPackageAsPartOfUploadTest.cs" />
     <Compile Include="EditPackageTest.cs" />

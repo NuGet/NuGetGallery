@@ -16,10 +16,6 @@ namespace NuGetGallery.FunctionalTests.Fluent
     [TestClass]
     public class StatisticsPageTest : NuGetFluentTest
     {
-        public StatisticsPageTest()
-        {
-            FluentAutomation.SeleniumWebDriver.Bootstrap();
-        }
 
         [TestMethod]
         [Description("Cross-check the contents of the Statistics page against the last6weeks API endpoint.")]

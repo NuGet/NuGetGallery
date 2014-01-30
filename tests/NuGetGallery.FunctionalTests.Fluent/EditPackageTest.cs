@@ -16,10 +16,6 @@ namespace NuGetGallery.FunctionalTests.Fluent
     [TestClass]
     public class EditPackageTest : NuGetFluentTest
     {
-        public EditPackageTest()
-        {
-            FluentAutomation.SeleniumWebDriver.Bootstrap();
-        }
 
         [TestMethod]
         [Description("Edit every possible metadata field of an uploaded package.")]
