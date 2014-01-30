@@ -11,6 +11,31 @@ namespace NuGetGallery.FunctionalTests.ODataTests
     public partial class V2FeedTest : GalleryTestBase
     {
 
+
+        [TestMethod]
+        public void ApiV2BaseUrlTest()
+        {
+            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl);
+            // Get the response.          
+            WebResponse response = request.GetResponse();
+            StreamReader sr = new StreamReader(response.GetResponseStream());
+            string responseText = sr.ReadToEnd();
+            //Just check for presence of defined tag.
+            Assert.IsTrue(responseText.Contains(@"<atom:title>Packages</atom:title>"));
+        }
+
+        [TestMethod]
+        public void ApiV2MetadataTest()
+        {
+            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"$metadata");
+            // Get the response.          
+            WebResponse response = request.GetResponse();
+            StreamReader sr = new StreamReader(response.GetResponseStream());
+            string responseText = sr.ReadToEnd();
+            //Just check for presence of defined tag.
+            Assert.IsTrue(responseText.Contains(@"<EntityType Name=" + @"""" + "V2FeedPackage" +@"""" +  "m:HasStream=" + @"""" + "true" +@"""" + ">"));
+        }
+
         [TestMethod]
         public void Top30PackagesFeedTest()
         {
@@ -38,6 +63,8 @@ namespace NuGetGallery.FunctionalTests.ODataTests
             Assert.IsTrue(responseText.Contains(@"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='2.0.0')</id>"));
            
         }
+
+      
 
         /// <summary>
         ///     Double-checks whether feed and stats page rankings are the same.
