@@ -62,7 +62,6 @@ namespace NuGetGallery
         {
             // Get configuration from the kernel
             var config = Container.Kernel.Get<IAppConfiguration>();
-            DbMigratorPostStart();
             BackgroundJobsPostStart(config);
             AppPostStart();
             BundlingPostStart();
@@ -169,8 +168,8 @@ namespace NuGetGallery
             Routes.RegisterRoutes(RouteTable.Routes);
             Routes.RegisterServiceRoutes(RouteTable.Routes);
             AreaRegistration.RegisterAllAreas();
-            
-            GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
+
+            GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute() { View = "~/Views/Errors/InternalError.cshtml" });
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new AntiForgeryErrorFilter());
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
@@ -212,12 +211,6 @@ namespace NuGetGallery
         private static void BackgroundJobsStop()
         {
             _jobManager.Dispose();
-        }
-
-        private static void DbMigratorPostStart()
-        {
-            // Don't run migrations, ever!
-            Database.SetInitializer<EntitiesContext>(null);
         }
 
         private static void NinjectPreStart()

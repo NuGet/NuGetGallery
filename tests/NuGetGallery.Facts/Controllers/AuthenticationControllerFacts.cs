@@ -373,6 +373,51 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
+            public async Task WillNotSendConfirmationEmailWhenConfirmEmailAddressesIsOff()
+            {
+                // Arrange
+                var authUser = new AuthenticatedUser(
+                    new User("theUsername")
+                    {
+                        UnconfirmedEmailAddress = "unconfirmed@example.com",
+                        EmailConfirmationToken = "t0k3n"
+                    },
+                    new Credential());
+                var config = Get<ConfigurationService>();
+                config.Current = new AppConfiguration()
+                {
+                    ConfirmEmailAddresses = false
+                };
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>()))
+                    .CompletesWith(authUser);
+
+                var controller = GetController<AuthenticationController>();
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.CreateSession(controller.OwinContext, authUser.User))
+                    .Verifiable();
+
+                // Act
+                var result = await controller.Register(
+                    new LogOnViewModel()
+                    {
+                        Register = new RegisterViewModel
+                        {
+                            Username = "theUsername",
+                            Password = "thePassword",
+                            EmailAddress = "unconfirmed@example.com",
+                        }
+                    }, "/theReturnUrl", linkingAccount: false);
+
+                // Assert
+                GetMock<IMessageService>()
+                    .Verify(x => x.SendNewAccountEmail(
+                        It.IsAny<MailAddress>(),
+                        It.IsAny<string>()), Times.Never());
+            }
+
+            [Fact]
             public async Task GivenExpiredExternalAuth_ItRedirectsBackToLogOnWithExternalAuthExpiredMessage()
             {
                 // Arrange

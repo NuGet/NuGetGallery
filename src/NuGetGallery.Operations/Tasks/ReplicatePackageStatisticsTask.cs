@@ -104,7 +104,8 @@ namespace NuGetGallery.Operations
                         FROM PackageStatistics 
                         INNER JOIN Packages ON PackageStatistics.PackageKey = Packages.[Key] 
                         INNER JOIN PackageRegistrations ON PackageRegistrations.[Key] = Packages.PackageRegistrationKey 
-                        WHERE PackageStatistics.[Key] > @originalKey 
+                        WHERE PackageStatistics.[Key] > @originalKey
+                        ORDER BY PackageStatistics.[Key] 
                     ";
 
                     SqlCommand command = new SqlCommand(sql, connection);

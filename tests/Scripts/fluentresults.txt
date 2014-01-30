@@ -1,0 +1,2482 @@
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_05_11.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_06_28.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_06_48.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_07_09.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_07_29.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_07_50.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_08_22.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_08_43.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_09_03.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_09_24.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_09_45.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_10_05.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_10_27.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_10_47.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_11_07.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_11_29.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_11_50.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_12_10.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_12_31.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_12_52.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_13_13.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_13_34.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_13_53.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_14_14.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_14_34.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_14_55.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_15_16.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_15_36.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_15_57.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_16_17.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_16_38.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_16_59.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_17_20.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_17_41.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_18_01.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_18_21.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_18_42.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_19_02.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_19_22.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_19_42.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_20_02.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_20_23.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_20_56.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_21_16.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_21_37.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_21_58.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_22_18.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_22_39.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_22_59.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_23_20.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_23_41.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_24_02.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_24_23.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_24_43.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_25_04.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_25_24.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_25_46.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_26_06.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_26_27.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_26_47.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_27_07.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_27_28.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_27_49.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_28_09.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_28_30.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_28_50.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_29_10.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_29_31.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_29_51.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_30_11.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_30_31.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_30_52.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_31_12.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_31_32.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_31_53.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_32_13.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_32_33.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_32_53.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_33_13.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_33_33.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_33_54.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_34_14.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_34_35.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_34_55.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_35_15.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_35_35.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_35_55.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_36_15.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_36_35.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_36_56.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_37_16.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_37_36.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_37_57.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_38_17.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_38_38.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_38_58.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_39_19.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_39_40.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_40_00.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_40_21.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-13 18_40_41.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-14 13_16_23.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+
+Results               Top Level Tests
+-------               ---------------
+Passed                NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage
+1/1 test(s) Passed
+
+Summary
+-------
+Test Run Warning.
+  Passed  1
+  ---------
+  Total   1
+Results file:  D:\github.com\NuGetGallery\tests\Scripts\TestResults\clayco_CLAYCO7 2014-01-14 13_16_49.trx
+Test Settings: Default Test Settings
+
+Run has the following issue(s):
+Warning: Test Run deployment issue: The assembly or module 'MySql.Data' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'Npgsql' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Warning: Test Run deployment issue: The assembly or module 'System.Data.SQLite' directly or indirectly referenced by the test container 'd:\github.com\nugetgallery\tests\nugetgallery.functionaltests.fluent\bin\debug\nugetgallery.functionaltests.fluent.dll' was not found.
+Microsoft (R) Test Execution Command Line Tool Version 11.0.50727.1
+Copyright (c) Microsoft Corporation. All rights reserved.
+    
+Loading D:\github.com\NuGetGallery\tests\NuGetGallery.FunctionalTests.Fluent\bin\Debug\NuGetGallery.FunctionalTests.Fluent.dll...
+Starting execution...
+Aborting test run...
+
+Results               Top Level Tests
+-------               ---------------
+Aborted               NuGetGallery.FunctionalTests.Fluent.EditPackageTest.EditPackage

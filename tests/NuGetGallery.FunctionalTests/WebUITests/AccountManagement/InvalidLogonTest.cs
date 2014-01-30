@@ -24,9 +24,9 @@
             yield return registerPageRequest;
             registerPageRequest = null;
 
-            WebTestRequest registerPagePostRequest = new WebTestRequest(UrlHelper.RegisterPageUrl);
+            WebTestRequest registerPagePostRequest = new WebTestRequest(UrlHelper.SignInPageUrl);
             registerPagePostRequest.Method = "POST";
-            registerPagePostRequest.ExpectedResponseUrl = UrlHelper.RegistrationPendingPageUrl;
+            registerPagePostRequest.ExpectedResponseUrl = UrlHelper.SignInPageUrl;
             //create a form and set the UserName, Email and password as form post parameters.
             //We just need to set some unique user name and Email.
             FormPostHttpBody registerNewUserFormPost = new FormPostHttpBody();
@@ -37,8 +37,8 @@
             registerNewUserFormPost.FormPostParameters.Add(Constants.PasswordFormField, EnvironmentSettings.TestAccountPassword);
 
             registerPagePostRequest.Body = registerNewUserFormPost;
-            //Validate the response to make sure that it has the pending confirmation text in it.           
-            ValidationRuleFindText PendingConfirmationTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.RegisterNewUserPendingConfirmationText);
+            //Validate the response to make sure that it doesn't have the pending confirmation text in it.           
+            ValidationRuleFindText PendingConfirmationTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.RegisterNewUserPendingConfirmationText, false);
             registerPagePostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(PendingConfirmationTextRule.Validate);
             yield return registerPagePostRequest;
             registerPagePostRequest = null;

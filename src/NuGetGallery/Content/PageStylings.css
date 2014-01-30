@@ -174,7 +174,8 @@ button.undo-button {
 
 .edit-root {
     display: inline-block;
-    word-break: break-all;
+    -ms-word-wrap: break-word;
+    word-wrap: break-word;
     font-size: 1.3em;
 }
 
