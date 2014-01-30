@@ -11,7 +11,7 @@ using FluentAutomation.Interfaces;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
-    public static class ExtensionMethods 
+    public static class ExtensionMethods  
     {
 
         public static void LogOn(this INativeActionSyntaxProvider I, string userName, string password)

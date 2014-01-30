@@ -12,7 +12,7 @@ using FluentAutomation;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
-    public class NuGetFluentTest : FluentTest
+    public class NuGetFluentTest : FluentTest 
     {
         public NuGetFluentTest()
         {

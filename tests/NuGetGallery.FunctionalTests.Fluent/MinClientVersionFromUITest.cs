@@ -14,7 +14,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 {
 
     [TestClass]
-    public class MinClientVersionFromUITest : NuGetFluentTest
+    public class MinClientVersionFromUITest : NuGetFluentTest 
     {
 
         [TestMethod]

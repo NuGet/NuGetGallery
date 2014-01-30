@@ -13,7 +13,7 @@ using FluentAutomation;
 namespace NuGetGallery.FunctionalTests.Fluent
 {
 
-    [TestClass]
+    [TestClass] 
     public class CSExtensionTest : NuGetFluentTest
     {
 
