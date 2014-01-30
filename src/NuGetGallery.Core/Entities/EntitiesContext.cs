@@ -59,6 +59,11 @@ namespace NuGetGallery
             Set<T>().Remove(entity);
         }
 
+        public void SetCommandTimeout(int? seconds)
+        {
+            ((IObjectContextAdapter)this).ObjectContext.CommandTimeout = seconds;
+        }
+
 #pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -207,5 +212,6 @@ namespace NuGetGallery
                 .HasRequired(cp => cp.PackageRegistration);
         }
 #pragma warning restore 618
+
     }
 }
