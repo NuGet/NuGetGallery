@@ -124,6 +124,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\packages\Microsoft.Tpl.Dataflow.4.5.14\lib\portable-net45+win8\System.Threading.Tasks.Dataflow.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Web.Http, Version=5.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\packages\Microsoft.AspNet.WebApi.Core.5.1.0-rc1\lib\net45\System.Web.Http.dll</HintPath>
@@ -155,6 +156,7 @@
     <Compile Include="Helpers\DateTimeOffsetExtensions.cs" />
     <Compile Include="Helpers\EventSourceInstanceManager.cs" />
     <Compile Include="Helpers\PackageHelpers.cs" />
+    <Compile Include="Infrastructure\ImportExportHelper.cs" />
     <Compile Include="Infrastructure\InvalidJobRequestException.cs" />
     <Compile Include="Infrastructure\InvocationState.cs" />
     <Compile Include="Infrastructure\InvocationQueue.cs" />
