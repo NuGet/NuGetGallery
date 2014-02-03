@@ -126,7 +126,7 @@ namespace NuGetGallery.Packaging
                 return Manifest.ReadFrom(
                     safeStream,
                     NullPropertyProvider.Instance,
-                    validateSchema: false); // Validating schema hopefully helps ensure quality of packages on the gallery
+                    validateSchema: true); // Validating schema hopefully helps ensure quality of packages on the gallery
             }
         }
 
