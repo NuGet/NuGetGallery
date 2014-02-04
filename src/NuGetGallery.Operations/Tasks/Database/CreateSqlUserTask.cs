@@ -26,7 +26,7 @@ namespace NuGetGallery.Operations.Tasks
 
             if (String.IsNullOrEmpty(UserName) && CurrentEnvironment != null)
             {
-                UserName = String.Format("{0}-site-{1}", CurrentEnvironment.Name, DateTime.UtcNow.ToString("MMMdd-yyyy"));
+                UserName = String.Format("{0}-site-{1}", CurrentEnvironment.EnvironmentName, DateTime.UtcNow.ToString("MMMdd-yyyy"));
             }
 
             ArgCheck.RequiredOrConfig(UserName, "UserName");

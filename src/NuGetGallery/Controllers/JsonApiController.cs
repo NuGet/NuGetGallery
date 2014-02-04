@@ -70,7 +70,7 @@ namespace NuGetGallery
             }
             if (!user.Confirmed)
             {
-                return new { success = false, message = string.Format(CultureInfo.InvariantCulture, "Sorry, {0} hasn't verified his email account yet and we cannot proceed with the request.",username) };
+                return new { success = false, message = string.Format(CultureInfo.InvariantCulture, "Sorry, {0} hasn't verified their email account yet and we cannot proceed with the request.", username) };
             }
 
             var currentUser = _userService.FindByUsername(HttpContext.User.Identity.Name);

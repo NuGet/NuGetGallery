@@ -86,4 +86,24 @@ function Set-Environment {
         }
         _RefreshGitColors
     }
+
+    del env:\NUCMD_*
+
+    # Load environment variables
+    $env:NUCMD_ENVIRONMENT = $CurrentEnvironment.Name;
+    $env:NUCMD_SUBSCRIPTION_ID = $CurrentEnvironment.Subscription.Id
+    $env:NUCMD_SUBSCRIPTION_NAME = $CurrentEnvironment.Subscription.Name
+
+    # Search for a certificate
+    $cert = Get-AzureManagementCertificate $CurrentEnvironment.Subscription.Name
+    if($cert) {
+        $env:NUCMD_SUBSCRIPTION_THUMBPRINT = $cert.Thumbprint
+    }
+
+    # Build a service map
+    $str = "";
+    $CurrentEnvironment.Services.Values | where { $_.Datacenter -eq 0 } | foreach {
+        $str += "$($_.Kind)|$($_.Uri);"
+    }
+    $env:NUCMD_SERVICE_MAP = $str
 }

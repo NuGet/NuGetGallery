@@ -1,0 +1,23 @@
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Import Project="$(MSBuildThisFileDirectory)\NuGet.tasks.targets" />
+  	<Target Name="GetGitMetadata">
+  		<GetGitMetadata RepositoryRoot="$(MSBuildThisFileDirectory)\..">
+	      <Output TaskParameter="Branch" PropertyName="Branch" />
+	      <Output TaskParameter="CommitId" PropertyName="CommitId" />
+	      <Output TaskParameter="RepositoryUrl" PropertyName="RepositoryUrl" />
+	    </GetGitMetadata>
+	</Target>
+
+	<Target Name="CreateVersionInfoFile" DependsOnTargets="GetGitMetadata" BeforeTargets="CoreCompile">
+		<WriteVersionInfo Version="$(Version)" Branch="$(Branch)" CommitId="$(CommitId)" RepositoryUrl="$(RepositoryUrl)" BuildDateUtc="$(BuildDateUtc)" InformationalVersion="$(SemanticVersion)" BuiltBy="$(BuildUser)" BuiltOn="$(BuildMachine)">
+			<Output TaskParameter="OutputFilename" PropertyName="VersionInfoFilePath" />
+		</WriteVersionInfo>
+		<ItemGroup>
+			<Compile Include="$(VersionInfoFilePath)" />
+		</ItemGroup>
+	</Target>
+
+	<Target Name="CleanVersionInfoFile" AfterTargets="CoreCompile">
+		<Delete Files="$(VersionInfoFilePath)" Condition="('$(VersionInfoFilePath)' != '') And (Exists('$(VersionInfoFilePath)'))" />
+	</Target>
+</Project>

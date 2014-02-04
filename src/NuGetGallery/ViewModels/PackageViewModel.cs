@@ -35,7 +35,6 @@ namespace NuGetGallery
                 LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
             }
         }
-
         public string Description { get; set; }
         public string ReleaseNotes { get; set; }
         public string IconUrl { get; set; }

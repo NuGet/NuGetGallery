@@ -189,8 +189,9 @@ namespace NuGetGallery
                 {
                     nuGetPackage = CreatePackage(uploadStream);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    QuietLog.LogHandledException(ex);
                     ModelState.AddModelError(String.Empty, Strings.FailedToReadUploadFile);
                     return View();
                 }
