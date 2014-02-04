@@ -96,6 +96,9 @@ namespace NuGetGallery
             // The allow prerelease flag is ignored if both partialId and version are specified.
             // In general we want to try to add download statistics for any package regardless of whether a version was specified.
 
+            // Only allow database requests to take up to 5 seconds.  Any longer and we just lose the data; oh well.
+            EntitiesContext.SetCommandTimeout(5);
+
             Package package = null;
             try
             {
@@ -117,9 +120,6 @@ namespace NuGetGallery
                         DependentPackage = Request.Headers["NuGet-DependentPackage"],
                         ProjectGuids = Request.Headers["NuGet-ProjectGuids"],
                     };
-
-                    // Only allow this to take up to 5 seconds.  Any longer and we just lose the data; oh well.
-                    EntitiesContext.SetCommandTimeout(5);
 
                     PackageService.AddDownloadStatistics(stats);
                 }
