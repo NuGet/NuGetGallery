@@ -20,9 +20,6 @@ namespace NuGetGallery.Operations.Tasks
     {
         static int[] SleepTimes = { 50, 750, 1500, 2500, 3750, 5250, 7000, 9000 };
 
-        [Option("Set this option to ignore the tried count and process ALL edits", AltName = "a")]
-        public bool IncludePreviouslyFailedEdits { get; set; }
-
         public override void ExecuteCommand()
         {
             // Work to do:
@@ -33,11 +30,8 @@ namespace NuGetGallery.Operations.Tasks
             
             // We group edits together by their package key and process them together - this is a read-only operation
             var entitiesContext = new EntitiesContext(connectionString, readOnly: true);
-            IQueryable<PackageEdit> allEdits = entitiesContext.Set<PackageEdit>();
-            if(!IncludePreviouslyFailedEdits) {
-                allEdits = allEdits.Where(pe => pe.TriedCount < 3);
-            }
-            var editsPerPackage = allEdits.GroupBy(pe => pe.PackageKey);
+            var editsPerPackage = entitiesContext.Set<PackageEdit>()
+                .GroupBy(pe => pe.PackageKey);
 
             // Now that we have our list of packages with pending edits, we'll process the pending edits for each
             // Note that we're not doing editing in parallel because
@@ -45,46 +39,37 @@ namespace NuGetGallery.Operations.Tasks
             // b) we don't want multithreaded usage of the entitiesContext (and its implied transactions)!
             foreach (IGrouping<int, PackageEdit> editsGroup in editsPerPackage)
             {
-                ProcessPackageEdits(editsGroup.Key);
+                if (editsGroup.Any((pe => pe.TriedCount < 3)))
+                {
+                    ProcessPackageEdits(editsGroup.Key, editsGroup);
+                }
             }
         }
 
-        private void ProcessPackageEdits(int packageKey)
+        private void ProcessPackageEdits(int packageKey, IEnumerable<PackageEdit> editsToDelete)
         {
             // Create a fresh entities context so that we work in isolation
             var entitiesContext = new EntitiesContext(ConnectionString.ConnectionString, readOnly: false);
 
-            // Get the list of edits for this package
-            // Do edit with a 'most recent edit to this package wins - other edits are deleted' strategy.
-            IQueryable<PackageEdit> editSet = entitiesContext.Set<PackageEdit>();
-            if (IncludePreviouslyFailedEdits)
-            {
-                editSet = editSet.Where(pe => pe.PackageKey == packageKey);
-            }
-            else
-            {
-                editSet = editSet.Where(pe => pe.PackageKey == packageKey && pe.TriedCount < 3);
-            }
-
-            var editsForThisPackage = editSet
+            // Get the most recent edit for this package
+            var edit = entitiesContext.Set<PackageEdit>()
+                .Where(pe => pe.PackageKey == packageKey && pe.TriedCount < 3)
                 .Include(pe => pe.Package)
                 .Include(pe => pe.Package.PackageRegistration)
                 .Include(pe => pe.User)
                 .OrderByDescending(pe => pe.Timestamp)
-                .ToList();
+                .First();
 
             // List of Work to do:
             // 1) Backup old blob, if the original has not been backed up yet
             // 2) Downloads blob, create new NUPKG locally
             // 3) Upload blob
             // 4) Update the database
-            PackageEdit edit = editsForThisPackage.First();
-
             var blobClient = StorageAccount.CreateCloudBlobClient();
             var packagesContainer = Util.GetPackagesBlobContainer(blobClient);
 
-            var latestPackageFileName = Util.GetPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.NormalizedVersion);
-            var originalPackageFileName = Util.GetBackupOfOriginalPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.NormalizedVersion);
+            var latestPackageFileName = Util.GetPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
+            var originalPackageFileName = Util.GetBackupOfOriginalPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
 
             var originalPackageBackupBlob = packagesContainer.GetBlockBlobReference(originalPackageFileName);
             var latestPackageBlob = packagesContainer.GetBlockBlobReference(latestPackageFileName);
@@ -108,7 +93,7 @@ namespace NuGetGallery.Operations.Tasks
                 "Processing Edit Key={0}, PackageId={1}, Version={2}, User={3}",
                 edit.Key,
                 edit.Package.PackageRegistration.Id,
-                edit.Package.NormalizedVersion,
+                edit.Package.Version,
                 edit.User.Username);
 
             if (!WhatIf)
@@ -150,7 +135,7 @@ namespace NuGetGallery.Operations.Tasks
 
                         // Build up the changes in the entities context
                         edit.Apply(hashAlgorithm: "SHA512", hash: newHash, packageFileSize: newPackageFileSize);
-                        foreach (var eachEdit in editsForThisPackage)
+                        foreach (var eachEdit in editsToDelete)
                         {
                             entitiesContext.DeleteOnCommit(eachEdit);
                         }

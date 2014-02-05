@@ -10,6 +10,7 @@ using Microsoft.Owin;
 using Moq;
 using Ninject;
 using Ninject.Modules;
+using NuGetGallery.Configuration;
 using Xunit.Extensions;
 
 namespace NuGetGallery.Framework
@@ -43,6 +44,7 @@ namespace NuGetGallery.Framework
             if (appCtrl != null)
             {
                 appCtrl.OwinContext = Kernel.Get<IOwinContext>();
+                appCtrl.NuGetContext.Config = Kernel.Get<ConfigurationService>();
             }
             
             return c;

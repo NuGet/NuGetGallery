@@ -1,0 +1,3 @@
+[submodule "ext/Slab"]
+	path = ext/Slab
+	url = https://git01.codeplex.com/slab

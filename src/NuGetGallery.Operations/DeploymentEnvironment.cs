@@ -1,20 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.WindowsAzure.Storage;
+using NLog;
 
 namespace NuGetGallery.Operations
 {
     public class DeploymentEnvironment
     {
+        public static readonly Logger Log = LogManager.GetLogger("DeploymentEnvironment");
+
         public IDictionary<string, string> Settings { get; private set; }
 
-        public string Name { get; private set; }
+        public string EnvironmentName { get; private set; }
+        public string SubscriptionId { get; private set; }
+        public string SubscriptionName { get; private set; }
 
         public SqlConnectionStringBuilder MainDatabase { get; private set; }
 
@@ -32,11 +38,13 @@ namespace NuGetGallery.Operations
 
         public NetworkCredential LicenseReportServiceCredentials { get; private set; }
 
-        public DeploymentEnvironment(IDictionary<string, string> deploymentSettings)
+        public DeploymentEnvironment(string environmentName, string subscriptionId, string subscriptionName, IDictionary<string, string> deploymentSettings)
         {
             Settings = deploymentSettings;
 
-            Name = Get("Operations.EnvironmentName");
+            EnvironmentName = environmentName;
+            SubscriptionId = subscriptionId;
+            SubscriptionName = subscriptionName;
 
             MainDatabase = GetSqlConnectionStringBuilder("Operations.Sql.Primary");
             WarehouseDatabase = GetSqlConnectionStringBuilder("Operations.Sql.Warehouse");
@@ -55,18 +63,6 @@ namespace NuGetGallery.Operations
             {
                 LicenseReportServiceCredentials = new NetworkCredential(licenseReportUser, licenseReportPassword);
             }
-        }
-
-        public static DeploymentEnvironment FromConfigFile(string configFile)
-        {
-            // Load the file
-            var doc = XDocument.Load(configFile);
-
-            // Build a dictionary of settings
-            var settings = BuildSettingsDictionary(doc);
-
-            // Construct the deployment environment
-            return new DeploymentEnvironment(settings);
         }
 
         private string Get(string key)
@@ -106,6 +102,33 @@ namespace NuGetGallery.Operations
                         s.Attribute("name").Value,
                         s.Attribute("value").Value))
                     .ToDictionary(p => p.Key, p => p.Value);
+        }
+
+        public static DeploymentEnvironment FromEnvironment()
+        {
+            string serviceConfig = Environment.GetEnvironmentVariable("NUGET_SERVICE_CONFIG");
+            IDictionary<string, string> settings = null;
+            if (!String.IsNullOrEmpty(serviceConfig) && File.Exists(serviceConfig))
+            {
+                try
+                {
+                    // Load the file
+                    var doc = XDocument.Load(serviceConfig);
+
+                    // Build a dictionary of settings
+                    settings = BuildSettingsDictionary(doc);
+                }
+                catch(Exception ex)
+                {
+                    Log.ErrorException("Unable to load service config: " + serviceConfig, ex);
+                }
+            }
+
+            return new DeploymentEnvironment(
+                Environment.GetEnvironmentVariable("NUCMD_ENVIRONMENT_NAME"),
+                Environment.GetEnvironmentVariable("NUCMD_SUBSCRIPTION_ID"),
+                Environment.GetEnvironmentVariable("NUCMD_SUBSCRIPTION_NAME"),
+                settings ?? new Dictionary<string, string>());
         }
     }
 }

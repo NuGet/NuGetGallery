@@ -1,5 +1,5 @@
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-	<Import Project="$(MSBuildThisFileDirectory)\NuGetGallery.tasks.targets" />
+	<Import Project="$(MSBuildThisFileDirectory)\NuGet.tasks.targets" />
 	<Target Name="SetVMSize" BeforeTargets="PrepareForCsPack" DependsOnTargets="FindServiceDefinition" Condition="'$(VMSize)' != ''">
 		<Message Text="Patching @(TargetServiceDefinition) to set VMSize to $(VMSize)" />
 		<XPathSetAttribute 

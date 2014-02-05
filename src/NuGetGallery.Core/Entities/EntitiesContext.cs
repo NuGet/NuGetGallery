@@ -7,6 +7,12 @@ namespace NuGetGallery
 {
     public class EntitiesContext : DbContext, IEntitiesContext
     {
+        static EntitiesContext()
+        {
+            // Don't run migrations, ever!
+            Database.SetInitializer<EntitiesContext>(null);
+        }
+
         /// <summary>
         /// The NuGet Gallery code should usually use this constructor, in order to respect read only mode.
         /// </summary>
@@ -51,6 +57,11 @@ namespace NuGetGallery
         public void DeleteOnCommit<T>(T entity) where T : class
         {
             Set<T>().Remove(entity);
+        }
+
+        public void SetCommandTimeout(int? seconds)
+        {
+            ((IObjectContextAdapter)this).ObjectContext.CommandTimeout = seconds;
         }
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
@@ -201,5 +212,6 @@ namespace NuGetGallery
                 .HasRequired(cp => cp.PackageRegistration);
         }
 #pragma warning restore 618
+
     }
 }

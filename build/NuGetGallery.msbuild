@@ -1,14 +1,12 @@
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildThisFileDirectory)\NuGetGallery.tasks.targets" />
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildThisFileDirectory)\NuGet.tasks.targets" />
+  <Import Project="$(MsBuildThisFileDirectory)\NuGet.props" />
   <PropertyGroup Condition="'$(Configuration)' == ''">
     <Configuration>Debug</Configuration>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Platform>Any CPU</Platform>
-    <MajorVersion>2</MajorVersion>
-    <Version>$(MajorVersion).$([System.DateTime]::UtcNow.ToString("yyyy")).$([System.DateTime]::UtcNow.ToString("MMdd"))</Version>
-    <ProductionBranch>master</ProductionBranch>
+    <VisualStudioVersion>12.0</VisualStudioVersion>
   </PropertyGroup>
 
   <Target Name="PatchAssemblyVersion" Condition="'$(SetVersion)' != 'false'">
@@ -66,26 +64,25 @@
      </ItemGroup>
      <PropertyGroup>
         <NuGetExePath>$(MsBuildThisFileDirectory)\nuget.exe</NuGetExePath>
-        <RestoreCommand>$(NuGetExePath) restore -source "$(PackageSources)" $(MsBuildThisFileDirectory)..\NuGetGallery.sln -NonInteractive -Verbosity Quiet</RestoreCommand>
+        <RestoreCommandV2>$(NuGetExePath) restore -source "$(PackageSources)" $(MsBuildThisFileDirectory)..\NuGetGallery.sln -NonInteractive -Verbosity Quiet</RestoreCommandV2>
     </PropertyGroup>
     
     <Message Text="Restoring packages ... " Importance="high" />
     <DownloadNuGet OutputFilename="$(NuGetExePath)" Condition=" !Exists('$(NuGetExePath)')" />
-    <Exec Command="$(RestoreCommand)" LogStandardErrorAsError="true" />
+    <Exec Command="$(RestoreCommandV2)" LogStandardErrorAsError="true" />
   </Target>
   
   <Target Name="CoreBuild">
     <Message Text="*************" Importance="high" />
     <Message Text="Building ... " Importance="high" />
     <Message Text="*************" Importance="high" />
-    <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);RunFacts=true;TargetProfile=Local" />
+    <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="VisualStudioVersion=12.0;Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);RunFacts=true;TargetProfile=Local" />
     
     <Message Text="**************" Importance="high" />
     <Message Text="Packaging ... " Importance="high" />
     <Message Text="**************" Importance="high" />
-    <MSBuild Projects="..\src\NuGetGallery.Cloud\NuGetGallery.Cloud.ccproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=AnyCPU;VMSize=$(Frontend_VMSize);TargetProfile=Local" BuildInParallel="false" />
-    <MSBuild Projects="..\src\NuGetGallery.Backend.Cloud\NuGetGallery.Backend.Cloud.ccproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=AnyCPU;VMSize=$(Backend_VMSize);TargetProfile=Local" BuildInParallel="false" />
-    <MSBuild Projects="..\src\NuGetGallery\NuGetGallery.csproj" Targets="Package" Properties="Configuration=$(Configuration);Platform=AnyCPU;" BuildInParallel="false" />
+    <MSBuild Projects="..\src\NuGetGallery.Cloud\NuGetGallery.Cloud.ccproj" Targets="Publish" Properties="VisualStudioVersion=12.0;Configuration=$(Configuration);Platform=AnyCPU;VMSize=$(Frontend_VMSize);TargetProfile=Local" BuildInParallel="false" ToolsVersion="12.0" />
+    <MSBuild Projects="..\src\NuGetGallery\NuGetGallery.csproj" Targets="Package" Properties="VisualStudioVersion=12.0;Configuration=$(Configuration);Platform=AnyCPU;" BuildInParallel="false" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="Clean;RestorePackages;PatchAssemblyVersion;CoreBuild" />

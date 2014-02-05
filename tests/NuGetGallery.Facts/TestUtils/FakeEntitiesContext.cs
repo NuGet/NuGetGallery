@@ -108,6 +108,12 @@ namespace NuGetGallery
         {
             Assert.True(areChangesSaved, "SaveChanges() has not been called on the entity context.");
         }
+
+
+        public void SetCommandTimeout(int? seconds)
+        {
+            throw new NotSupportedException();
+        }
     }
 }
 
