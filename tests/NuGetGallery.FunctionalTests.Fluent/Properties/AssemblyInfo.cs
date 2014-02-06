@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("OpsAzureWorker.Facts")]
+[assembly: AssemblyTitle("NuGetGallery.FunctionalTests.Fluent")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("OpsAzureWorker.Facts")]
-[assembly: AssemblyCopyright("Copyright ©  2012")]
+[assembly: AssemblyProduct("NuGetGallery.FunctionalTests.Fluent")]
+[assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("6ff8941c-c728-49f8-bfa2-99244d67c422")]
+[assembly: Guid("15d5a219-f4fb-4c8a-869d-9c56f30c96c3")]
 
 // Version information for an assembly consists of the following four values:
 //

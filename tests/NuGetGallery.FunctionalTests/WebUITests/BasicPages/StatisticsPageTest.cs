@@ -1,6 +1,7 @@
 ﻿
 namespace NuGetGallery.FunctionalTests
 {
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Microsoft.VisualStudio.TestTools.WebTesting;
     using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
     using NuGetGallery.FunctionalTests.TestBase;

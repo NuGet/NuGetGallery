@@ -70,6 +70,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No handler for the {0} command is registered..
+        /// </summary>
+        internal static string CommandExecutor_UnhandledCommand {
+            get {
+                return ResourceManager.GetString("CommandExecutor_UnhandledCommand", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The package manifest contains an ID that is too long. Package IDs can be no longer than 100 characters..
         /// </summary>
         internal static string Manifest_IdTooLong {

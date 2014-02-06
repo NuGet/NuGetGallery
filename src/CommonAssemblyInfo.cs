@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyCompany("Outercurve Foundation")]
-[assembly: AssemblyProduct("NuGet Gallery")]
+[assembly: AssemblyProduct("NuGet Services")]
 [assembly: AssemblyCopyright("\x00a9 Outercurve Foundation. All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -19,10 +19,5 @@ using System.Runtime.InteropServices;
 [assembly: CLSCompliant(false)]
 [assembly: NeutralResourcesLanguage("en-us")]
 
-[assembly: AssemblyVersion("2.2013.1014")]
-[assembly: AssemblyFileVersion("2.2013.1014")]
-[assembly: AssemblyInformationalVersion("2.2013.1014")]
-[assembly: AssemblyMetadata("Branch", "")]
-[assembly: AssemblyMetadata("CommitId", "")]
-[assembly: AssemblyMetadata("BuildDateUtc", "")]
-[assembly: AssemblyMetadata("RepositoryUrl", "")]
+// The build will automatically inject the following attributes:
+// AssemblyVersion, AssemblyFileVersion, AssemblyInformationalVersion, AssemblyMetadata (for Branch, CommitId, BuildDateUtc and RepositoryUrl)

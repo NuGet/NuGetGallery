@@ -120,6 +120,9 @@
   <data name="CloudAuditingService_DuplicateAuditRecord" xml:space="preserve">
     <value>Unable to write audit record: '{0}'. Record already exists.</value>
   </data>
+  <data name="CommandExecutor_UnhandledCommand" xml:space="preserve">
+    <value>No handler for the {0} command is registered.</value>
+  </data>
   <data name="Manifest_IdTooLong" xml:space="preserve">
     <value>The package manifest contains an ID that is too long. Package IDs can be no longer than 100 characters.</value>
   </data>

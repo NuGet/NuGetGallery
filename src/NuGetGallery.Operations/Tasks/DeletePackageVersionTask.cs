@@ -125,7 +125,7 @@ namespace NuGetGallery.Operations
                         BackupStorage = BackupStorage,
                         StorageAccount = StorageAccount,
                         PackageId = package.Id,
-                        PackageVersion = package.Version,
+                        PackageVersion = package.NormalizedVersion,
                         PackageHash = package.Hash,
                         WhatIf = WhatIf
                     }.ExecuteCommand();

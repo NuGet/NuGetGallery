@@ -109,6 +109,7 @@
 /* Messages on package page (Display Package) */
 
 .pending-edit-message,
+.failed-edit-message,
 .prerelease-message,
 .not-latest-message {
     -moz-border-radius: 5px 5px 5px 5px;
@@ -173,7 +174,8 @@ button.undo-button {
 
 .edit-root {
     display: inline-block;
-    word-break: break-all;
+    -ms-word-wrap: break-word;
+    word-wrap: break-word;
     font-size: 1.3em;
 }
 

@@ -49,6 +49,9 @@ namespace NuGetGallery
         [Display(Name = "Reason")]
         public ReportPackageReason? Reason { get; set; }
 
+        [Display(Name = "Send me a copy")]
+        public bool CopySender { get; set; }
+
         [Required(ErrorMessage = "Please enter a message.")]
         [AllowHtml]
         [StringLength(4000)]

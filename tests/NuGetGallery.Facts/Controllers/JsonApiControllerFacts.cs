@@ -18,7 +18,7 @@ namespace NuGetGallery.Controllers
                 dynamic result = controller.AddPackageOwner("foo", "steve");
 
                 Assert.False(result.success);
-                Assert.Equal("Package not found", result.message);
+                Assert.Equal("Package not found.", result.message);
             }
 
             [Fact]
@@ -46,7 +46,7 @@ namespace NuGetGallery.Controllers
                 dynamic result = controller.AddPackageOwner(Fakes.Package.Id, "notARealUser");
 
                 Assert.False(TestUtility.GetAnonymousPropertyValue<bool>(result, "success"));
-                Assert.Equal("Owner not found", TestUtility.GetAnonymousPropertyValue<string>(result, "message"));
+                Assert.Equal("Owner not found.", TestUtility.GetAnonymousPropertyValue<string>(result, "message"));
             }
 
             [Fact]

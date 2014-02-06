@@ -1,5 +1,5 @@
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-   <UsingTask TaskName="RegexReplace" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+   <UsingTask TaskName="RegexReplace" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v$(MSBuildToolsVersion).dll">
        <ParameterGroup>
            <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
            <Find ParameterType="System.String" Required="true" />
@@ -46,7 +46,7 @@
    </UsingTask>
 
    <!-- Read Git information without invoking git itself! -->
-   <UsingTask TaskName="GetGitMetadata" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+   <UsingTask TaskName="GetGitMetadata" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v$(MSBuildToolsVersion).dll">
        <ParameterGroup>
            <RepositoryRoot ParameterType="System.String" Required="true" />
            <Branch ParameterType="System.String" Output="true" />
@@ -106,7 +106,7 @@
    </UsingTask>
 
    <!-- Read Git information without invoking git itself! -->
-   <UsingTask TaskName="XPathSetAttribute" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+   <UsingTask TaskName="XPathSetAttribute" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v$(MSBuildToolsVersion).dll">
        <ParameterGroup>
            <XmlFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
            <XPath ParameterType="System.String" Required="true" />
@@ -155,7 +155,7 @@
    <ItemGroup>
      <AzureStorageAssembly Include="$(MSBuildThisFileDirectory)\..\packages\WindowsAzure.Storage.*\lib\net40\Microsoft.WindowsAzure.Storage.dll" />
    </ItemGroup>
-   <UsingTask TaskName="UploadBlob" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+   <UsingTask TaskName="UploadBlob" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v$(MSBuildToolsVersion).dll">
        <ParameterGroup>
            <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
            <ConnectionString ParameterType="System.String" Required="true" />
@@ -197,7 +197,7 @@
    </UsingTask>
    
    <!-- Download NuGet.exe -->
-   <UsingTask TaskName="DownloadNuGet" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+   <UsingTask TaskName="DownloadNuGet" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v$(MSBuildToolsVersion).dll">
        <ParameterGroup>
            <OutputFilename ParameterType="System.String" Required="true" />
        </ParameterGroup>
@@ -226,5 +226,45 @@
            ]]>
            </Code>
        </Task>
+   </UsingTask>
+
+   <!-- Write VersionInfo.cs temp file -->
+   <UsingTask TaskName="WriteVersionInfo" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v$(MSBuildToolsVersion).dll">
+    <ParameterGroup>
+      <Version ParameterType="System.String" />
+      <InformationalVersion ParameterType="System.String" />
+      <Branch ParameterType="System.String" />
+      <CommitId ParameterType="System.String" />
+      <BuildDateUtc ParameterType="System.String" />
+      <BuiltBy ParameterType="System.String" />
+      <BuiltOn ParameterType="System.String" />
+      <RepositoryUrl ParameterType="System.String" />
+      <OutputFilename ParameterType="System.String" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Code>
+        <![CDATA[
+          Version = String.IsNullOrEmpty(Version) ? "3.0.0.0" : Version;
+          BuildDateUtc = String.IsNullOrEmpty(BuildDateUtc) ? (DateTimeOffset.UtcNow.ToString("O")) : BuildDateUtc;
+
+          var content = @"using System.Reflection;
+[assembly: AssemblyVersion(""" + Version + @""")]
+[assembly: AssemblyFileVersion(""" + Version + @""")]
+[assembly: AssemblyInformationalVersion(""" + InformationalVersion + @""")]
+[assembly: AssemblyMetadata(""Branch"", """ + Branch + @""")]
+[assembly: AssemblyMetadata(""CommitId"", """ + CommitId + @""")]
+[assembly: AssemblyMetadata(""BuildDateUtc"", """ + BuildDateUtc + @""")]
+[assembly: AssemblyMetadata(""BuiltBy"", """ + BuiltBy + @""")]
+[assembly: AssemblyMetadata(""BuiltOn"", """ + BuiltOn + @""")]
+[assembly: AssemblyMetadata(""RepositoryUrl"", """ + RepositoryUrl + @""")]";
+          var fileName = System.IO.Path.GetTempFileName();
+          var newFileName = System.IO.Path.ChangeExtension(fileName, ".cs");
+          System.IO.File.Move(fileName, newFileName);
+          OutputFilename = newFileName;
+
+          System.IO.File.WriteAllText(OutputFilename, content);
+        ]]>
+      </Code>
+    </Task>
    </UsingTask>
 </Project>

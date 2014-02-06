@@ -28,16 +28,24 @@ namespace NuGetGallery
 
         public void SetPendingMetadata(PackageEdit pendingMetadata)
         {
-            HasPendingMetadata = true;
-            Authors = pendingMetadata.Authors;
-            Copyright = pendingMetadata.Copyright;
-            Description = pendingMetadata.Description;
-            IconUrl = pendingMetadata.IconUrl;
-            LicenseUrl = pendingMetadata.LicenseUrl;
-            ProjectUrl = pendingMetadata.ProjectUrl;
-            ReleaseNotes = pendingMetadata.ReleaseNotes;
-            Tags = pendingMetadata.Tags.ToStringSafe().Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
-            Title = pendingMetadata.Title;
+            if (pendingMetadata.TriedCount < 3)
+            {
+                HasPendingMetadata = true;
+                Authors = pendingMetadata.Authors;
+                Copyright = pendingMetadata.Copyright;
+                Description = pendingMetadata.Description;
+                IconUrl = pendingMetadata.IconUrl;
+                LicenseUrl = pendingMetadata.LicenseUrl;
+                ProjectUrl = pendingMetadata.ProjectUrl;
+                ReleaseNotes = pendingMetadata.ReleaseNotes;
+                Tags = pendingMetadata.Tags.ToStringSafe().Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                Title = pendingMetadata.Title;
+            }
+            else
+            {
+                HasPendingMetadata = false;
+                IsLastEditFailed = true;
+            }
         }
 
         public DependencySetsViewModel Dependencies { get; set; }
@@ -45,6 +53,7 @@ namespace NuGetGallery
         public string Copyright { get; set; }
 
         public bool HasPendingMetadata { get; private set; }
+        public bool IsLastEditFailed { get; private set; }
 
         public bool HasNewerPrerelease
         {

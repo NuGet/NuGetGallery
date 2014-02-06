@@ -8,8 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Web.UI;
-using NuGetGallery.Infrastructure;
 using Elmah;
+using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery.FunctionalTests.TestBase
 {
@@ -69,8 +69,5 @@ namespace NuGetGallery.FunctionalTests.TestBase
             }  
 
         }
-     
-
-
     }
 }

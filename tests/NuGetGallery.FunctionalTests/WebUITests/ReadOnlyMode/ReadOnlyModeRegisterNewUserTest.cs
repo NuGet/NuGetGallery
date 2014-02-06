@@ -8,6 +8,7 @@ namespace NuGetGallery.FunctionalTests
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     /// <summary>
     /// Sends http POST request to register a new user and checks that a pending confirmation page is shown as response.

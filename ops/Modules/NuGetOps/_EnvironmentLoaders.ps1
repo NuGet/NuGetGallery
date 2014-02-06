@@ -44,22 +44,28 @@ function Get-V3Environments($NuGetOpsDefinition) {
         $x.environments.environment | ForEach-Object {
             $env = New-Object PSCustomObject
             $sub = $Subscriptions[$_.subscription]
+
+            $services = @{};
+            $_.service | ForEach-Object {
+                $svc = New-Object PSCustomObject
+                Add-Member -NotePropertyMembers @{
+                    Kind = $_.kind;
+                    Type = $_.type;
+                    Name = $_.name;
+                    ID = $_.InnerText;
+                    Environment = $env;
+                    Uri = $_.uri;
+                    Datacenter = $_.dc;
+                } -InputObject $svc
+                $services[$svc.Name] = $svc
+            };
+
             Add-Member -NotePropertyMembers @{
                 Version = 3;
                 Name = $_.name;
                 Subscription = $sub;
                 Protected = $_.protected -and ([String]::Equals($_.protected, "true", "OrdinalIgnoreCase"));
-                Services = $_.service | ForEach-Object {
-                    $svc = New-Object PSCustomObject
-                    Add-Member -NotePropertyMembers @{
-                        Kind = $_.kind;
-                        Type = $_.type;
-                        Name = $_.name;
-                        ID = $_.InnerText;
-                        Environment = $env;
-                    } -InputObject $svc
-                    $svc
-                };
+                Services = $services;
             } -InputObject $env
             $Environments[$_.name] = $env
         }
