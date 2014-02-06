@@ -120,10 +120,10 @@ namespace NuGetGallery.FunctionalTests.Features
 
         [TestMethod]
         [Description("Checks the WebMatrix curated feed for duplicate packages.")]
+        [Ignore] //This method is marked ignore as it takes a very long time to run. It can be run manually if required.
         public void CheckWebMatrixCuratedFeedForDuplicates()
         {
             WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/curated-feeds/webmatrix/Packages");
-            request.Timeout = 2000;
             ArrayList packages = new ArrayList();
 
             // Get the response.          
@@ -140,7 +140,6 @@ namespace NuGetGallery.FunctionalTests.Features
                 link = link.Substring(0, link.IndexOf(@""""));
 
                 request = WebRequest.Create(link);
-                request.Timeout = 2000;
 
                 // Get the response.          
                 try

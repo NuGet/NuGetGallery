@@ -74,6 +74,7 @@
     <Compile Include="NuGetFluentTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StatisticsPageTest.cs" />
+    <Compile Include="StatsInHomePageTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
