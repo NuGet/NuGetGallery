@@ -1081,6 +1081,7 @@
     <Content Include="App_Data\Files\Content\Terms-Of-Use.md" />
     <Content Include="Branding\Views\web.config" />
     <Compile Include="Views\NuGetViewBase.cs" />
+    <Content Include="Public\Blocked.html" />
     <Content Include="Views\Shared\LayoutFooter.cshtml" />
     <Content Include="Views\Shared\SiteMenu.cshtml">
       <SubType>Code</SubType>
