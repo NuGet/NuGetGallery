@@ -33,7 +33,8 @@ namespace NuGetGallery.FunctionalTests.ODataTests
             StreamReader sr = new StreamReader(response.GetResponseStream());
             string responseText = sr.ReadToEnd();
             //Just check for presence of defined tag.
-            Assert.IsTrue(responseText.Contains(@"<EntityType Name=" + @"""" + "V2FeedPackage" +@"""" +  "m:HasStream=" + @"""" + "true" +@"""" + ">"));
+            //Assert.IsTrue(responseText.Contains(@"<EntityType Name=" + @"""" + "V2FeedPackage" +@"""" +  "m:HasStream=" + @"""" + "true" +@"""" + ">"));
+            Assert.IsTrue(responseText.Contains(@"V2FeedPackage"));
         }
 
         [TestMethod]

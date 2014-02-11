@@ -81,7 +81,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
         public void PackagesApiTest()
         {
             string packageId = "newtonsoft.json";            
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/api/v2/Packages()?$filter=tolower(Id)'" + packageId + "'$orderby=Id" );
+            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/api/v2/Packages()?$filter=tolower(Id) eq '" + packageId + "'&$orderby=Id" );
             // Get the response.          
             WebResponse response = request.GetResponse();
             StreamReader sr = new StreamReader(response.GetResponseStream());
