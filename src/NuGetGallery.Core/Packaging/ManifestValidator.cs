@@ -71,7 +71,7 @@ namespace NuGetGallery.Packaging
                 foreach (var dependency in metadata.DependencySets.SelectMany(set => set.Dependencies))
                 {
                     IVersionSpec ___;
-                    if (!PackageIdValidator.IsValidPackageId(dependency.Id) || !VersionUtility.TryParseVersionSpec(dependency.Version, out ___))
+                    if (!PackageIdValidator.IsValidPackageId(dependency.Id) || ( !string.IsNullOrEmpty(dependency.Version) && !VersionUtility.TryParseVersionSpec(dependency.Version, out ___)))
                     {
                         yield return new ValidationResult(String.Format(
                             CultureInfo.CurrentCulture,
