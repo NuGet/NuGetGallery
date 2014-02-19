@@ -77,7 +77,7 @@ namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
         [Priority(1)]
         public void UploadAndDownLoadPackageWithDotCsNames()
         {
-            string packageId = DateTime.Now.Ticks.ToString() +  testContextInstance.TestName +".Cs";
+            string packageId = DateTime.Now.Ticks.ToString() +  "UploadAndDownLoadPackageWithDotCsNames.Cs";
             AssertAndValidationHelper.UploadNewPackageAndVerify(packageId);
             AssertAndValidationHelper.DownloadPackageAndVerify(packageId);
         }
