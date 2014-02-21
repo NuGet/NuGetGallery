@@ -20,7 +20,7 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// </summary>
         /// <param name="packageName"></param>
         /// <returns></returns>
-        public static string CreateDefaultNuspecFile(string packageName, string version = "1.0.0", string minClientVersion = null)
+        public static string CreateDefaultNuspecFile(string packageName, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null)
         {
             string standardOutput = string.Empty;
             string standardError = string.Empty;
@@ -37,6 +37,18 @@ namespace NuGetGallery.FunctionTests.Helpers
             if (minClientVersion != null)
             {
                 UpdateNuspecFile(filePath, "<metadata>", String.Format("<metadata minClientVersion=\"{0}\">", minClientVersion));
+            }
+            if (title != null)
+            {
+                UpdateNuspecFile(filePath, "</metadata>", String.Format("<title>{0}</title></metadata>", title));
+            }
+            if (tags != null)
+            {
+                UpdateNuspecFile(filePath, "Tag1 Tag2", tags);
+            }
+            if (description != null)
+            {
+                UpdateNuspecFile(filePath, "This is a test package created by the NuGet team.", description);
             }
             return filePath;
         }

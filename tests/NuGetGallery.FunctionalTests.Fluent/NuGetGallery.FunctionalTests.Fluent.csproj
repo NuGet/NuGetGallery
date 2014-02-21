@@ -73,6 +73,7 @@
     <Compile Include="MinClientVersionFromUITest.cs" />
     <Compile Include="NuGetFluentTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SearchSyntaxTest.cs" />
     <Compile Include="StatisticsPageTest.cs" />
     <Compile Include="StatsInHomePageTest.cs" />
   </ItemGroup>
