@@ -22,3 +22,33 @@ if(!(Test-Path $appcmd)) {
 &$appcmd set config -section:system.applicationHost/sites /siteDefaults.logFile.logFormat:"W3C" /commit:apphost
 &$appcmd set config -section:system.applicationHost/sites /siteDefaults.logFile.period:"Hourly" /commit:apphost
 &$appcmd set config -section:system.applicationHost/sites /siteDefaults.logFile.logExtFileFlags:"Date,Time,TimeTaken,BytesRecv,BytesSent,ComputerName,HttpStatus,HttpSubStatus,Win32Status,ProtocolVersion,ServerIP,ServerPort,Method,Host,UriStem,UriQuery,UserAgent"
+
+# Configure IP Restrictions
+
+#  Install the feature
+Import-Module ServerManager
+Add-WindowsFeature Web-IP-Security
+
+#  Clear them
+do {
+    $str = &$appcmd set config -section:system.webServer/security/ipSecurity /-"[@start]" /commit:apphost
+    $str
+} while(!$str.Contains("ERROR"))
+
+#  Read the new list
+[Reflection.Assembly]::LoadWithPartialName("Microsoft.WindowsAzure.ServiceRuntime");
+$setting = [Microsoft.WindowsAzure.ServiceRuntime.RoleEnvironment]::GetConfigurationSettingValue("Startup.BlockedIPs");
+$ips = $setting.Split(",");
+
+#  Save the new lists
+$ips | where { ![String]::IsNullOrEmpty($_) } | foreach { 
+    $parts = $_.Split(":")
+    $ip = $parts[0]
+    if($parts.Length -gt 1) {
+        $subnet = $parts[1]
+        &$appcmd set config -section:system.webServer/security/ipSecurity /+"[ipAddress='$ip',subnetMask='$subnet',allowed='False']" /commit:apphost
+    }
+    else {
+        &$appcmd set config -section:system.webServer/security/ipSecurity /+"[ipAddress='$ip',allowed='False']" /commit:apphost
+    }
+}

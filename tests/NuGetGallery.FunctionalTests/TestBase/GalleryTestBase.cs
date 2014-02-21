@@ -67,7 +67,6 @@ namespace NuGetGallery.FunctionalTests.TestBase
                     Assert.Inconclusive(String.Format("ELMAH log error found:  {0}, {1}, {2}", entity.Error.Message, entity.Error.Time.ToString(), entity.Error.StatusCode));  
                 }
             }  
-
         }
     }
 }
