@@ -184,7 +184,7 @@ namespace NuGetGallery
             }
 
             var mergedResults = new Dictionary<string, Package>(StringComparer.OrdinalIgnoreCase);
-            foreach (var package in latestPackageVersions)
+            foreach (var package in latestPackageVersions.Where(p => p != null))
             {
                 mergedResults.Add(package.PackageRegistration.Id, package);
             }
