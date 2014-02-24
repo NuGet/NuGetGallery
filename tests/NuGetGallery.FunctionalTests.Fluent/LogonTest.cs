@@ -14,12 +14,8 @@ namespace NuGetGallery.FunctionalTests.Fluent
 {
 
     [TestClass]
-    public class LogonTest : NuGetFluentTest
+    public class LogonTest : NuGetFluentTest 
     {
-        public LogonTest()
-        {
-            FluentAutomation.SeleniumWebDriver.Bootstrap();
-        }
 
         [TestMethod]
         public void Logon()

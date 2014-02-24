@@ -39,6 +39,61 @@ namespace NuGetGallery.FunctionalTests.ODataTests
            
         }
 
+        /// <summary>
+        ///     Regression test for #1052
+        /// </summary>
+        [TestMethod]
+        public void GetUpdates1052RegressionTest()
+        {
+            // Use the same package name, but force the version to be unique.
+            string packageName = "NuGetGallery.FunctionalTests.ODataTests.GetUpdates1052RegressionTest";
+            string ticks = DateTime.Now.Ticks.ToString();
+            string version1 = new System.Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
+            string version2 = new System.Version(Convert.ToInt32((ticks.Substring(0, 6)) + 1).ToString() + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
+            AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version1);
+            AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version2);
+
+            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/GetUpdates()?packageIds='NuGetGallery.FunctionalTests.ODataTests.GetUpdates1052RegressionTest%7CNuGetGallery.FunctionalTests.ODataTests.GetUpdates1052RegressionTest%7COwin%7CMicrosoft.Web.Infrastructure%7CMicrosoft.AspNet.Identity.Core%7CMicrosoft.AspNet.Identity.EntityFramework%7CMicrosoft.AspNet.Identity.Owin%7CMicrosoft.AspNet.Web.Optimization%7CRespond%7CWebGrease%7CjQuery%7CjQuery.Validation%7CMicrosoft.Owin.Security.Twitter%7CMicrosoft.Owin.Security.OAuth%7CMicrosoft.Owin.Security.MicrosoftAccount%7CMicrosoft.Owin.Security.Google%7CMicrosoft.Owin.Security.Facebook%7CMicrosoft.Owin.Security.Cookies%7CMicrosoft.Owin%7CMicrosoft.Owin.Host.SystemWeb%7CMicrosoft.Owin.Security%7CModernizr%7CMicrosoft.jQuery.Unobtrusive.Validation%7CMicrosoft.AspNet.WebPages%7CMicrosoft.AspNet.Razor%7Cbootstrap%7CAntlr%7CMicrosoft.AspNet.Mvc%7CNewtonsoft.Json%7CEntityFramework'&versions='" + version1 + "%7C" + version2 + "%7C1.0%7C1.0.0.0%7C1.0.0%7C1.0.0%7C1.0.0%7C1.1.1%7C1.2.0%7C1.5.2%7C1.10.2%7C1.11.1%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.6.2%7C3.0.0%7C3.0.0%7C3.0.0%7C3.0.0%7C3.4.1.9004%7C5.0.0%7C5.0.6%7C6.0.0'&includePrerelease=false&includeAllVersions=false&targetFrameworks='net45'&versionConstraints='%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C'");
+            // Get the response.          
+            WebResponse response = request.GetResponse();
+            StreamReader sr = new StreamReader(response.GetResponseStream());
+            string responseText = sr.ReadToEnd();
+
+            // Verify at least one package is in the output.
+            Assert.IsTrue(responseText.Contains(@"<title type=""text"">NuGetGallery.FunctionalTests.ODataTests.GetUpdates1052RegressionTest</title>"));
+            Assert.IsTrue(responseText.Contains(@"<d:Version>" + version2 + "</d:Version><d:NormalizedVersion>" + version2 + "</d:NormalizedVersion>"));
+        }
+
+        /// <summary>
+        ///     Regression test for #1199
+        /// </summary>
+        [TestMethod]
+        public void GetUpdates1199RegressionTest()
+        {
+            // Use the same package name, but force the version to be unique.
+            string packageName = "NuGetGallery.FunctionalTests.ODataTests.GetUpdates1199RegressionTest";
+            string ticks = DateTime.Now.Ticks.ToString();
+            string version1 = new System.Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
+            string version2 = new System.Version(Convert.ToInt32(ticks.Substring(0, 6) + 1).ToString() + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
+            string standardOutput = string.Empty;
+            string standardError = string.Empty;
+            string package1Location = PackageCreationHelper.CreatePackageWithTargetFramework(packageName, version1, "net45");
+            int exitCode = CmdLineHelper.UploadPackage(package1Location, UrlHelper.V2FeedPushSourceUrl, out standardOutput, out standardError);
+            Assert.IsTrue((exitCode == 0), "The package upload via Nuget.exe didnt suceed properly. Check the logs to see the process error and output stream.  Exit Code: " + exitCode + ". Error message: \"" + standardError + "\"");
+            string package2Location = PackageCreationHelper.CreatePackageWithTargetFramework(packageName, version2, "net40");
+            exitCode = CmdLineHelper.UploadPackage(package2Location, UrlHelper.V2FeedPushSourceUrl, out standardOutput, out standardError);
+            Assert.IsTrue((exitCode == 0), "The package upload via Nuget.exe didnt suceed properly. Check the logs to see the process error and output stream.  Exit Code: " + exitCode + ". Error message: \"" + standardError + "\"");
+            
+            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/GetUpdates()?packageIds='NuGetGallery.FunctionalTests.ODataTests.GetUpdates1199RegressionTest%7COwin%7CMicrosoft.Web.Infrastructure%7CMicrosoft.AspNet.Identity.Core%7CMicrosoft.AspNet.Identity.EntityFramework%7CMicrosoft.AspNet.Identity.Owin%7CMicrosoft.AspNet.Web.Optimization%7CRespond%7CWebGrease%7CjQuery%7CjQuery.Validation%7CMicrosoft.Owin.Security.Twitter%7CMicrosoft.Owin.Security.OAuth%7CMicrosoft.Owin.Security.MicrosoftAccount%7CMicrosoft.Owin.Security.Google%7CMicrosoft.Owin.Security.Facebook%7CMicrosoft.Owin.Security.Cookies%7CMicrosoft.Owin%7CMicrosoft.Owin.Host.SystemWeb%7CMicrosoft.Owin.Security%7CModernizr%7CMicrosoft.jQuery.Unobtrusive.Validation%7CMicrosoft.AspNet.WebPages%7CMicrosoft.AspNet.Razor%7Cbootstrap%7CAntlr%7CMicrosoft.AspNet.Mvc%7CNewtonsoft.Json%7CEntityFramework'&versions='" + version1 + "%7C1.0%7C1.0.0.0%7C1.0.0%7C1.0.0%7C1.0.0%7C1.1.1%7C1.2.0%7C1.5.2%7C1.10.2%7C1.11.1%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.6.2%7C3.0.0%7C3.0.0%7C3.0.0%7C3.0.0%7C3.4.1.9004%7C5.0.0%7C5.0.6%7C6.0.0'&includePrerelease=false&includeAllVersions=false&targetFrameworks='net45'&versionConstraints='%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C'");
+            // Get the response.          
+            WebResponse response = request.GetResponse();
+            StreamReader sr = new StreamReader(response.GetResponseStream());
+            string responseText = sr.ReadToEnd();
+
+            // Verify at least one package is in the output.
+            Assert.IsTrue(responseText.Contains(@"<title type=""text"">NuGetGallery.FunctionalTests.ODataTests.GetUpdates1199RegressionTest</title>"));
+            Assert.IsTrue(responseText.Contains(@"<d:Version>" + version2 + "</d:Version><d:NormalizedVersion>" + version2 + "</d:NormalizedVersion>"));
+        }
 
         [TestMethod]
         public void GetUpdatesTest()

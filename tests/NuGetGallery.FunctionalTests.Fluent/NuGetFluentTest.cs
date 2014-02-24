@@ -12,7 +12,7 @@ using FluentAutomation;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
-    public class NuGetFluentTest : FluentTest
+    public class NuGetFluentTest : FluentTest 
     {
         public NuGetFluentTest()
         {
@@ -24,6 +24,14 @@ namespace NuGetGallery.FunctionalTests.Fluent
             if (!PackageExists(packageName, version))
             {
                 AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version);
+            }
+        }
+
+        public void UploadPackageIfNecessary(string packageName, string version, string minClientVersion, string title, string tags, string description)
+        {
+            if (!PackageExists(packageName, version))
+            {
+                AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version, minClientVersion, title, tags, description);
             }
         }
 

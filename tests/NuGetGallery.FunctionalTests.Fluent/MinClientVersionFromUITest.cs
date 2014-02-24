@@ -14,12 +14,8 @@ namespace NuGetGallery.FunctionalTests.Fluent
 {
 
     [TestClass]
-    public class MinClientVersionFromUITest : NuGetFluentTest
+    public class MinClientVersionFromUITest : NuGetFluentTest 
     {
-        public MinClientVersionFromUITest()
-        {
-            FluentAutomation.SeleniumWebDriver.Bootstrap();
-        }
 
         [TestMethod]
         [Description("Upload a package with a MinClientVersion and validate the min client version number in the package page.")]

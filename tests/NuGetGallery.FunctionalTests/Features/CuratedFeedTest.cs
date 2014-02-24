@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionTests.Helpers;
 using System.Net;
 using System.IO;
+using System.Collections;
 
 namespace NuGetGallery.FunctionalTests.Features
 {
@@ -78,6 +79,146 @@ namespace NuGetGallery.FunctionalTests.Features
         }
 
         [TestMethod]
+        [Description("Checks the MicrosoftDotNet curated feed for duplicate packages.")]
+        public void CheckMicrosoftDotNetCuratedFeedForDuplicates()
+        {
+            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/curated-feeds/microsoftdotnet/Packages");
+            request.Timeout = 2000;
+            ArrayList packages = new ArrayList();
+
+            // Get the response.          
+            WebResponse response = request.GetResponse();
+            StreamReader sr = new StreamReader(response.GetResponseStream());
+            string responseText = sr.ReadToEnd();
+            responseText = responseText.Substring(responseText.IndexOf("<entry>"));
+            CheckPageForDuplicates(packages, responseText);
+
+            while (responseText.Contains(@"<link rel=""next"" href=""")) 
+            { 
+                // Get the link to the next page.
+                string link = responseText.Split(new string[] { @"<link rel=""next"" href=""" }, StringSplitOptions.RemoveEmptyEntries)[1];
+                link = link.Substring(0, link.IndexOf(@""""));
+
+                request = WebRequest.Create(link);
+                request.Timeout = 2000;
+
+                // Get the response.          
+                try
+                {
+                    response = (HttpWebResponse)request.GetResponse();
+                    sr = new StreamReader(response.GetResponseStream());
+                    responseText = sr.ReadToEnd();
+                    responseText = responseText.Substring(responseText.IndexOf("<entry>"));
+                    CheckPageForDuplicates(packages, responseText);
+                }
+                catch (WebException e)
+                {
+                    if (((HttpWebResponse)e.Response).StatusCode != HttpStatusCode.OK) Assert.Fail("Next page link is broken.  Expected 200, got " + ((HttpWebResponse)e.Response).StatusCode);
+                }
+            }
+        }
+
+        [TestMethod]
+        [Description("Checks the WebMatrix curated feed for duplicate packages.")]
+        [Ignore] //This method is marked ignore as it takes a very long time to run. It can be run manually if required.
+        public void CheckWebMatrixCuratedFeedForDuplicates()
+        {
+            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/curated-feeds/webmatrix/Packages");
+            ArrayList packages = new ArrayList();
+
+            // Get the response.          
+            WebResponse response = request.GetResponse();
+            StreamReader sr = new StreamReader(response.GetResponseStream());
+            string responseText = sr.ReadToEnd();
+            responseText = responseText.Substring(responseText.IndexOf("<entry>"));
+            CheckPageForDuplicates(packages, responseText);
+
+            while (responseText.Contains(@"<link rel=""next"" href="""))
+            {
+                // Get the link to the next page.
+                string link = responseText.Split(new string[] { @"<link rel=""next"" href=""" }, StringSplitOptions.RemoveEmptyEntries)[1];
+                link = link.Substring(0, link.IndexOf(@""""));
+
+                request = WebRequest.Create(link);
+
+                // Get the response.          
+                try
+                {
+                    response = (HttpWebResponse)request.GetResponse();
+                    sr = new StreamReader(response.GetResponseStream());
+                    responseText = sr.ReadToEnd();
+                    responseText = responseText.Substring(responseText.IndexOf("<entry>"));
+                    CheckPageForDuplicates(packages, responseText);
+                }
+                catch (WebException e)
+                {
+                    if (((HttpWebResponse)e.Response).StatusCode != HttpStatusCode.OK) Assert.Fail("Next page link is broken.  Expected 200, got " + ((HttpWebResponse)e.Response).StatusCode);
+                }
+            }
+        }
+
+        [TestMethod]
+        [Description("Checks the MicrosoftDotNet curated feed for duplicate packages.")]
+        public void CheckWindows8CuratedFeedForDuplicates()
+        {
+            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/curated-feeds/windows8-packages/Packages");
+            request.Timeout = 2000;
+            ArrayList packages = new ArrayList();
+
+            // Get the response.          
+            WebResponse response = request.GetResponse();
+            StreamReader sr = new StreamReader(response.GetResponseStream());
+            string responseText = sr.ReadToEnd();
+            responseText = responseText.Substring(responseText.IndexOf("<entry>"));
+            CheckPageForDuplicates(packages, responseText);
+
+            while (responseText.Contains(@"<link rel=""next"" href="""))
+            {
+                // Get the link to the next page.
+                string link = responseText.Split(new string[] { @"<link rel=""next"" href=""" }, StringSplitOptions.RemoveEmptyEntries)[1];
+                link = link.Substring(0, link.IndexOf(@""""));
+
+                request = WebRequest.Create(link);
+                request.Timeout = 2000;
+
+                // Get the response.          
+                try
+                {
+                    response = (HttpWebResponse)request.GetResponse();
+                    sr = new StreamReader(response.GetResponseStream());
+                    responseText = sr.ReadToEnd();
+                    responseText = responseText.Substring(responseText.IndexOf("<entry>"));
+                    CheckPageForDuplicates(packages, responseText);
+                }
+                catch (WebException e)
+                {
+                    if (((HttpWebResponse)e.Response).StatusCode != HttpStatusCode.OK) Assert.Fail("Next page link is broken.  Expected 200, got " + ((HttpWebResponse)e.Response).StatusCode);
+                }
+            }
+        }
+
+        private static string CheckPageForDuplicates(ArrayList packages, string responseText)
+        {
+            string unreadPortion = responseText;
+
+            while (unreadPortion.Contains("<id>"))
+            {
+                unreadPortion = unreadPortion.Substring(unreadPortion.IndexOf("<id>") + 4);
+                string packageIdString = unreadPortion.Substring(0, unreadPortion.IndexOf("</id>"));
+                if (packages.Contains(packageIdString))
+                {
+                    Assert.Fail("A package appeared twice in the WebMatrix feed: " + packageIdString);
+                }
+                else
+                {
+                    packages.Add(packageIdString);
+                }
+                unreadPortion = unreadPortion.Substring(1);
+            }
+            return unreadPortion;
+        }
+
+        [TestMethod]
         [Description("Validates the microsoftdotnet feed, including the next page link")]
         public void ValidateMicrosoftDotNetCuratedFeed()
         {
@@ -96,7 +237,7 @@ namespace NuGetGallery.FunctionalTests.Features
             string link = responseText.Split(new string [] { @"<link rel=""next"" href=""" }, StringSplitOptions.RemoveEmptyEntries)[1];
             link = link.Substring(0, link.IndexOf(@""""));
 
-            request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/curated-feeds/microsoftdotnet/Packages");
+            request = WebRequest.Create(link);
 
             // Get the response.          
             try
