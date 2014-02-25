@@ -17,8 +17,8 @@
             <legend>Contact Owners</legend>
             @Html.AntiForgeryToken()
             <div class="form-field">
-                <label for="NotUsed">To</label>
-                <input name="NotUsed" type="text" value="@owners" disabled="disabled" />
+                <label>To</label>
+                <p class="authors"><strong>@owners</strong></p>
             </div>
             <div class="form-field">
                 @Html.LabelFor(m => m.Message)
