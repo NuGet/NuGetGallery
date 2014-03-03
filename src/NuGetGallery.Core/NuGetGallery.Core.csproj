@@ -127,6 +127,7 @@
     <Compile Include="Unit.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="NuGetGallery.Core.nuspec" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
