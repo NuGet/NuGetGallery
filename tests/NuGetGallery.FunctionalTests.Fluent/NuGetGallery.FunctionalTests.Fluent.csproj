@@ -74,6 +74,7 @@
     <Compile Include="LogonTest.cs" />
     <Compile Include="MinClientVersionFromUITest.cs" />
     <Compile Include="NuGetFluentTest.cs" />
+    <Compile Include="PackageStatsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SearchSyntaxTest.cs" />
     <Compile Include="StatisticsPageTest.cs" />

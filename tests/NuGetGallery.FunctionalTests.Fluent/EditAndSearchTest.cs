@@ -44,6 +44,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             {
                 I.Enter(newTitle).In("#searchBoxInput");
                 I.Click("#searchBoxSubmit");
+                I.Select("Recent").From("#sortOrder");
                 try
                 {
                     I.Expect.Count(2).Of("h1:contains('" + newTitle + "')");
