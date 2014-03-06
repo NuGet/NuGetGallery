@@ -1,8 +1,15 @@
+#February 21, 2014
+
+Changed the frequency of stats updates on the home page.  See [#1795](hhttps://github.com/NuGet/NuGetGallery/pull/1795) for details on the code change.
+
+
+#February 6, 2014
+
+Restored aggregate statistics to the home page, added an error message when package edits fail repeatedly, fixed a spurious error when uploading packages with dependencies that have no targetFramework assigned, and made a number of other fixes.  See [I7 - QA 1/6](https://github.com/NuGet/NuGetGallery/issues?milestone=39&page=1&state=closed) for details.
+
 #January 2, 2014
 
 Improved our detection algorithm for packages in the WebMatrix custom feed, included additional validation for package upload using the Gallery website, and made the experience for validation errors in the contact pages more consistent.  This iteration also included a number of other small user interface changes; see [I6 -12/06 QA - 01/02 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=38&page=1&state=closed) for details.
-
-
 
 #Dec 6, 2013
 
