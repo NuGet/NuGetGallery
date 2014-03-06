@@ -44,7 +44,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             UploadPackageIfNecessary(packageName2, "1.0.0", null, title2, tags2, description2);
 
             // Go to the front page.
-            I.Open(UrlHelper.BaseUrl );
+            I.Open(UrlHelper.BaseUrl);
 
             // 1.  Generic search for a keyword.  Should match both packages.
             I.Enter(word1).In("#searchBoxInput");

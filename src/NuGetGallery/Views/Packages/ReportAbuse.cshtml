@@ -77,7 +77,7 @@
     <script>
         function reasonSelected() {
             var $form = $('#Reason').parents('form');
-            var val = $(this).val();
+            var val = $('#Reason').val();
             if (val) {
                 $form.validate().element($('#Reason'));
             }
