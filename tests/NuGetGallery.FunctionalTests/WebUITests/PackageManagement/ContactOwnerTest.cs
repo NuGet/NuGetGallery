@@ -45,7 +45,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.PackageManagement
             conactOwnerPostRequest.Body = contactOwnerRequestBody;
 
             //Make sure that the package page shows the message saying that the mail has been sent.
-            ValidationRuleFindText findTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.ContactOwnersText + packageId);            
+            ValidationRuleFindText findTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.ContactOwnersText + " " + packageId);            
             conactOwnerPostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(findTextRule.Validate);
             yield return conactOwnerPostRequest;
             conactOwnerPostRequest = null;

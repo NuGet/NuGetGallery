@@ -1,4 +1,4 @@
-﻿
+﻿/*
 namespace NuGetGallery.FunctionalTests
 {
     using Microsoft.VisualStudio.TestTools.WebTesting;
@@ -46,4 +46,4 @@ namespace NuGetGallery.FunctionalTests
         }
     }
 }
-
+*/

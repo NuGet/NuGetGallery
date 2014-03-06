@@ -22,7 +22,7 @@
             this.PreAuthenticate = true;
         }
 
-
+        [Ignore] //This method is marked ignore as it's been superceded by NuGetGallery.FunctionalTests.Fluent.EditPackageTest.
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
             ExtractHiddenFields defaultExtractionRule = AssertAndValidationHelper.GetDefaultExtractHiddenFields();
@@ -80,15 +80,14 @@
             yield return verifyEditPostRequest;
             verifyEditPostRequest = null;
 
-            // wait a minute.
-            System.Threading.Thread.Sleep(60000);
+            // wait up to five minutes.
+            System.Threading.Thread.Sleep(300000);
             WebTestRequest verifyProcessedRequest = new WebTestRequest(UrlHelper.GetPackagePageUrl(packageId, "1.0.0"));
             ValidationRuleFindText noPendingEditValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(@"An edit is pending for this package version.", false);
             verifyProcessedRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(newDescriptionValidationRule.Validate);
             verifyProcessedRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(noPendingEditValidationRule.Validate);
             yield return verifyProcessedRequest;
             verifyProcessedRequest = null;
-
         }
     }
 }

@@ -65,16 +65,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CSExtensionTest.cs" />
+    <Compile Include="EditAndSearchTest.cs" />
     <Compile Include="ErrorPageTest.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="EditPackageAsPartOfUploadTest.cs" />
     <Compile Include="EditPackageTest.cs" />
+    <Compile Include="LanguageNameSearchTest.cs" />
     <Compile Include="LogonTest.cs" />
     <Compile Include="MinClientVersionFromUITest.cs" />
     <Compile Include="NuGetFluentTest.cs" />
+    <Compile Include="PackageStatsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SearchSyntaxTest.cs" />
     <Compile Include="StatisticsPageTest.cs" />
     <Compile Include="StatsInHomePageTest.cs" />
+    <Compile Include="TagSearchTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
