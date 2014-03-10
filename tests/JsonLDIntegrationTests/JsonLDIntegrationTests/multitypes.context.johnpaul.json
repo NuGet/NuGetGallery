@@ -1,0 +1,6 @@
+﻿{ 
+	"@context" : { 
+		"ns" : "http://tempuri.org/schema#"
+	},
+	"@type" : "ns:JohnPaul"
+}
