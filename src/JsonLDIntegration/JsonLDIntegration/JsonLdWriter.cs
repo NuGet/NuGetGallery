@@ -26,8 +26,6 @@ namespace JsonLDIntegration
         {
             JToken flattened = MakeExpandedForm(g);
 
-            System.Console.WriteLine(flattened);
-
             if (Frame == null)
             {
                 output.Write(flattened);
