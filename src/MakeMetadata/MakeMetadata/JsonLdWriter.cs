@@ -26,6 +26,8 @@ namespace MakeMetadata
         {
             JToken flattened = MakeExpandedForm(g);
 
+            System.Console.WriteLine(flattened);
+
             if (Frame == null)
             {
                 output.Write(flattened);
@@ -45,75 +47,116 @@ namespace MakeMetadata
 
         public event RdfWriterWarning Warning;
 
-        JToken MakeExpandedForm(IGraph g)
+        JToken MakeExpandedForm(IGraph graph)
         {
-            IDictionary<string, INode> subjects = new Dictionary<string, INode>();
+            IDictionary<string, JObject> subjects = new Dictionary<string, JObject>();
 
-            foreach (Triple triple in g.Triples)
+            foreach (Triple triple in graph.Triples)
             {
-                subjects[triple.Subject.ToString()] = triple.Subject;
+                string subject = triple.Subject.ToString();
+                string predicate = triple.Predicate.ToString();
+
+                if (predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+                {
+                    predicate = "@type";
+                }
+
+                JObject properties;
+                if (!subjects.TryGetValue(subject, out properties))
+                {
+                    properties = new JObject();
+                    properties.Add("@id", subject);
+                    subjects.Add(subject, properties);
+                }
+
+                JArray objects;
+                JToken o;
+                if (!properties.TryGetValue(predicate, out o))
+                {
+                    objects = new JArray();
+                    properties.Add(predicate, objects);
+                }
+                else
+                {
+                    objects = (JArray)o;
+                }
+
+                if (predicate == "@type")
+                {
+                    objects.Add(triple.Object.ToString());
+                }
+                else
+                {
+                    objects.Add(MakeObject(triple.Object));
+                }
             }
 
             JArray result = new JArray();
-
-            foreach (INode subject in subjects.Values)
+            foreach (JObject subject in subjects.Values)
             {
-                JObject subjectJson = new JObject();
-                subjectJson.Add("@id", subject.ToString());
-                foreach (Triple withSubject in g.GetTriplesWithSubject(subject))
-                {
-                    JArray objectArray = new JArray();
-
-                    foreach (Triple withSubjectPredicate in g.GetTriplesWithSubjectPredicate(subject, withSubject.Predicate))
-                    {
-                        JObject objectObject = new JObject();
-
-                        if (withSubjectPredicate.Object is IUriNode)
-                        {
-                            objectObject.Add("@id", withSubjectPredicate.Object.ToString());
-                        }
-                        else if (withSubjectPredicate.Object is IBlankNode)
-                        {
-                            objectObject.Add("@id", withSubjectPredicate.Object.ToString());
-                        }
-                        else if (withSubjectPredicate.Object is ILiteralNode)
-                        {
-                            objectObject.Add("@value", withSubjectPredicate.Object.ToString());
-                            if (((ILiteralNode)withSubjectPredicate.Object).DataType != null)
-                            {
-                                objectObject.Add("@type", ((ILiteralNode)withSubjectPredicate.Object).DataType.ToString());
-                            }
-                        }
-
-                        objectArray.Add(objectObject);
-                    }
-
-                    if (withSubject.Predicate.ToString() == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
-                    {
-                        subjectJson.Add("@type", objectArray[0]["@id"]);
-                    }
-                    else
-                    {
-                        string predicate = withSubject.Predicate.ToString();
-                        JToken a;
-                        if (subjectJson.TryGetValue(predicate, out a))
-                        {
-                            JArray array = (JArray)a;
-                            foreach (JToken t in objectArray)
-                            {
-                                array.Add(t);
-                            }
-                        }
-                        else
-                        {
-                            subjectJson.Add(predicate, objectArray);
-                        }
-                    }
-                }
-                result.Add(subjectJson);
+                result.Add(subject);
             }
 
             return result;
+        }
+
+        static JToken MakeObject(INode node)
+        {
+            if (node is IUriNode)
+            {
+                return new JObject { { "@id", node.ToString() } };
+            }
+            else if (node is IBlankNode)
+            {
+                return new JObject { { "@id", node.ToString() } };
+            }
+            else
+            {
+                return MakeLiteralObject((ILiteralNode)node);
+            }
+        }
+
+        static JObject MakeLiteralObject(ILiteralNode node)
+        {
+            if (node.DataType == null)
+            {
+                return new JObject { { "@value", node.Value } };
+            }
+            else
+            {
+                string dataType = node.DataType.ToString();
+
+                switch (dataType)
+                {
+                    case "http://www.w3.org/2001/XMLSchema#integer":
+                        return new JObject { { "@value", int.Parse(node.Value) } };
+                    
+                    case "http://www.w3.org/2001/XMLSchema#boolean":
+                        return new JObject { { "@value", bool.Parse(node.Value) } };
+                    
+                    case "http://www.w3.org/2001/XMLSchema#decimal":
+                        return new JObject { { "@value", decimal.Parse(node.Value) } };
+
+                    case "http://www.w3.org/2001/XMLSchema#long":
+                        return new JObject { { "@value", long.Parse(node.Value) } };
+
+                    case "http://www.w3.org/2001/XMLSchema#short":
+                        return new JObject { { "@value", short.Parse(node.Value) } };
+
+                    case "http://www.w3.org/2001/XMLSchema#float":
+                        return new JObject { { "@value", float.Parse(node.Value) } };
+
+                    case "http://www.w3.org/2001/XMLSchema#double":
+                        return new JObject { { "@value", double.Parse(node.Value) } };
+
+                    default:
+                        return new JObject 
+                        {
+                            { "@value", node.Value },
+                            { "@type", dataType }
+                        };
+                }
+            }
         }
     }
 }
