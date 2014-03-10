@@ -33,20 +33,17 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="dotNetRDF">
-      <HintPath>..\packages\dotNetRDF.1.0.3\lib\net40\dotNetRDF.dll</HintPath>
+      <HintPath>..\..\..\packages\dotNetRDF.1.0.3\lib\net40\dotNetRDF.dll</HintPath>
     </Reference>
     <Reference Include="HtmlAgilityPack">
-      <HintPath>..\packages\HtmlAgilityPack.1.4.6\lib\Net45\HtmlAgilityPack.dll</HintPath>
+      <HintPath>..\..\..\packages\HtmlAgilityPack.1.4.6\lib\Net45\HtmlAgilityPack.dll</HintPath>
     </Reference>
     <Reference Include="JsonLD">
-      <HintPath>..\packages\json-ld.net.1.0.0-rc3\lib\net45\JsonLD.dll</HintPath>
-    </Reference>
-    <Reference Include="JsonLDIntegration">
-      <HintPath>..\..\..\src\JsonLDIntegration\JsonLDIntegration\bin\Debug\JsonLDIntegration.dll</HintPath>
+      <HintPath>..\..\..\packages\json-ld.net.1.0.0-rc3\lib\net45\JsonLD.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.6.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\..\packages\Newtonsoft.Json.6.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -56,7 +53,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="VDS.Common">
-      <HintPath>..\packages\VDS.Common.1.2.0\lib\net40-client\VDS.Common.dll</HintPath>
+      <HintPath>..\..\..\packages\VDS.Common.1.2.0\lib\net40-client\VDS.Common.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -83,10 +80,16 @@
     <None Include="multitypes.data.ledzep.ttl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="packages.config" />
     <None Include="datatypes.test.ttl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\JsonLDIntegration\JsonLDIntegration\JsonLDIntegration.csproj">
+      <Project>{7019ecae-0c0d-4978-9e39-79aa276cd495}</Project>
+      <Name>JsonLDIntegration</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
