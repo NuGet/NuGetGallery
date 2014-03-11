@@ -67,7 +67,7 @@ namespace MakeMetadata
             return namespaceManager;
         }
 
-        public static void SavePlan(XDocument plan, string connectionString)
+        public static void SavePlan(XDocument plan, string connectionString, string publishContainer)
         {
             string planName = plan.Root.XPathSelectElement("/ng:ExecutionPlan", CreateNamespaceResolver()).Attribute("name").Value;
 
@@ -77,7 +77,7 @@ namespace MakeMetadata
             writer.Flush();
             stream.Seek(0, SeekOrigin.Begin);
 
-            Publish(stream, "plans/" + planName + ".xml", "application/xml", connectionString);
+            Publish(stream, "plans/" + planName + ".xml", "application/xml", connectionString, publishContainer);
         }
 
         public static XDocument CreateExecutionPlan(XDocument nuspec)
@@ -160,15 +160,15 @@ namespace MakeMetadata
             return documents;
         }
 
-        public static bool TryLoadGraph(string name, out IGraph graph, string connectionString)
+        public static bool TryLoadGraph(string name, out IGraph graph, string connectionString, string publishContainer)
         {
             CloudStorageAccount account = CloudStorageAccount.Parse(connectionString);
             CloudBlobClient client = account.CreateCloudBlobClient();
-            CloudBlobContainer container = client.GetContainerReference("pub");
+            CloudBlobContainer container = client.GetContainerReference(publishContainer);
 
             if (container.CreateIfNotExists())
             {
-                Console.WriteLine("Created 'pub' publish container");
+                Console.WriteLine("Created '{0}' publish container", publishContainer);
             }
 
             CloudBlockBlob blob = container.GetBlockBlobReference(name);
@@ -191,15 +191,15 @@ namespace MakeMetadata
             return false;
         }
 
-        public static void ProcessReceived(Action<Stream> process, string connectionString)
+        public static void ProcessReceived(Action<Stream, string, string> process, string connectionString, string receivedContainer, string publishContainer)
         {
             CloudStorageAccount account = CloudStorageAccount.Parse(connectionString);
             CloudBlobClient client = account.CreateCloudBlobClient();
-            CloudBlobContainer container = client.GetContainerReference("received");
+            CloudBlobContainer container = client.GetContainerReference(receivedContainer);
 
             if (container.CreateIfNotExists())
             {
-                Console.WriteLine("Created 'received' received container");
+                Console.WriteLine("Created '{0}' received container", receivedContainer);
             }
 
             foreach (IListBlobItem item in container.ListBlobs())
@@ -213,10 +213,10 @@ namespace MakeMetadata
                     blob.DownloadToStream(stream);
 
                     stream.Seek(0, SeekOrigin.Begin);
-                    process(stream);
+                    process(stream, connectionString, publishContainer);
 
                     stream.Seek(0, SeekOrigin.Begin);
-                    Publish(stream, "data/" + blob.Name, "application/octet-stream", connectionString);
+                    Publish(stream, "data/" + blob.Name, "application/octet-stream", connectionString, publishContainer);
 
                     blob.Delete(DeleteSnapshotsOption.None, new AccessCondition { LeaseId = leaseId });
                 }
@@ -255,7 +255,7 @@ namespace MakeMetadata
         }
         */
 
-        public static bool SaveGraph(Tuple<IGraph, string, string> graph, string connectionString)
+        public static bool SaveGraph(Tuple<IGraph, string, string> graph, string connectionString, string publishContainer)
         {
             JToken frame;
             using (JsonReader jsonReader = new JsonTextReader(new StreamReader(graph.Item2)))
@@ -272,30 +272,30 @@ namespace MakeMetadata
                 writer.Flush();
 
                 stream.Seek(0, SeekOrigin.Begin);
-                Publish(stream, graph.Item3, "application/json", connectionString);
+                Publish(stream, graph.Item3, "application/json", connectionString, publishContainer);
             }
 
             return true;
         }
 
-        public static void PublishMetadata(List<Tuple<IGraph, string, string>> newGraphs, string connectionString)
+        public static void PublishMetadata(List<Tuple<IGraph, string, string>> newGraphs, string connectionString, string publishContainer)
         {
             foreach (Tuple<IGraph, string, string> newGraph in newGraphs)
             {
                 IGraph existingGraph;
-                if (TryLoadGraph(newGraph.Item3, out existingGraph, connectionString))
+                if (TryLoadGraph(newGraph.Item3, out existingGraph, connectionString, publishContainer))
                 {
                     newGraph.Item1.Merge(existingGraph);
                 }
-               SaveGraph(newGraph, connectionString);
+               SaveGraph(newGraph, connectionString, publishContainer);
             }
         }
 
-        public static void Publish(Stream stream, string name, string contentType, string connectionString)
+        public static void Publish(Stream stream, string name, string contentType, string connectionString, string publishContainer)
         {
             CloudStorageAccount account = CloudStorageAccount.Parse(connectionString);
             CloudBlobClient client = account.CreateCloudBlobClient();
-            CloudBlobContainer container = client.GetContainerReference("pub");
+            CloudBlobContainer container = client.GetContainerReference(publishContainer);
 
             if (container.CreateIfNotExists())
             {
