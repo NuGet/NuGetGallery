@@ -443,7 +443,7 @@ namespace NuGetGallery
             {
                 SearchTerm = q, /* For typeahead we want wildcard matching */
                 IncludePrerelease = true,
-                Take = 3
+                Take = 5
             });
 
             // Return the results formatted as JSON
