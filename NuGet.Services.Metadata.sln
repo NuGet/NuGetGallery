@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonLDIntegrationTests", "t
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nu", "src\MetadataClient\Nu.csproj", "{1C9E8DFE-C6DD-45BA-976E-84AE1076756E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestNuspec", "tests\TestNuspec\TestNuspec\TestNuspec.csproj", "{8110AEB8-0A54-40B5-B8CE-C434A21C3993}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{1C9E8DFE-C6DD-45BA-976E-84AE1076756E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C9E8DFE-C6DD-45BA-976E-84AE1076756E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C9E8DFE-C6DD-45BA-976E-84AE1076756E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8110AEB8-0A54-40B5-B8CE-C434A21C3993}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8110AEB8-0A54-40B5-B8CE-C434A21C3993}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8110AEB8-0A54-40B5-B8CE-C434A21C3993}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8110AEB8-0A54-40B5-B8CE-C434A21C3993}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
