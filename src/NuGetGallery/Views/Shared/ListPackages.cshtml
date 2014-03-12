@@ -47,13 +47,3 @@
 
 @ViewHelpers.PreviousNextPager(Model.Pager)
 
-@section BottomScripts {
-    <script>
-        $(function() {
-            $("#sortOrder,#prerelease").change(function() {
-                this.form.submit();
-            });
-        });
-    </script>
-}
-
