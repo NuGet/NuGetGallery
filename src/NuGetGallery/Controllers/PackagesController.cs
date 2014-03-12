@@ -283,7 +283,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        public virtual async Task<ActionResult> ListPackages(string q, int page = 1, bool prerelease = false)
+        public virtual async Task<ActionResult> ListPackages(string q, int page = 1)
         {
             if (page < 1)
             {
@@ -292,7 +292,7 @@ namespace NuGetGallery
 
             q = (q ?? "").Trim();
 
-            var searchFilter = SearchAdaptor.GetSearchFilter(q, null, page, prerelease);
+            var searchFilter = SearchAdaptor.GetSearchFilter(q, page, sortOrder: null);
             var results = await _searchService.Search(searchFilter);
             int totalHits = results.Hits;
             if (page == 1 && !results.Data.Any())
@@ -307,8 +307,7 @@ namespace NuGetGallery
                 totalHits,
                 page - 1,
                 Constants.DefaultPackageListPageSize,
-                Url,
-                prerelease);
+                Url);
 
             ViewBag.SearchTerm = q;
 

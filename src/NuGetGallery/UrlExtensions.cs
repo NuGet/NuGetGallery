@@ -53,13 +53,12 @@ namespace NuGetGallery
             return result + "?groupby=ClientName";
         }
 
-        public static string PackageList(this UrlHelper url, int page, string q, bool prerelease)
+        public static string PackageList(this UrlHelper url, int page, string q)
         {
             return url.Action("ListPackages", "Packages", new
             {
                 q,
-                page,
-                prerelease
+                page
             });
         }
 

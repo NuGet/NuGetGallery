@@ -16,14 +16,14 @@ namespace NuGetGallery
         /// </summary>
         internal const int MaxPageSize = 40;
 
-        public static SearchFilter GetSearchFilter(string q, string sortOrder, int page, bool includePrerelease)
+        public static SearchFilter GetSearchFilter(string q, int page, string sortOrder)
         {
             var searchFilter = new SearchFilter
             {
                 SearchTerm = q,
                 Skip = (page - 1) * Constants.DefaultPackageListPageSize, // pages are 1-based. 
                 Take = Constants.DefaultPackageListPageSize,
-                IncludePrerelease = includePrerelease
+                IncludePrerelease = true
             };
 
             switch (sortOrder)
