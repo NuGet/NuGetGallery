@@ -55,7 +55,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        public virtual async Task<ActionResult> ListPackages(string curatedFeedName, string q, string sortOrder = null, int page = 1, bool prerelease = false)
+        public virtual async Task<ActionResult> ListPackages(string curatedFeedName, string q, int page = 1, bool prerelease = false)
         {
             if (page < 1)
             {
@@ -64,14 +64,7 @@ namespace NuGetGallery
 
             q = (q ?? "").Trim();
 
-            if (String.IsNullOrEmpty(sortOrder))
-            {
-                // Determine the default sort order. If no query string is specified, then the sortOrder is DownloadCount
-                // If we are searching for something, sort by relevance.
-                sortOrder = q.IsEmpty() ? Constants.PopularitySortOrder : Constants.RelevanceSortOrder;
-            }
-
-            var searchFilter = SearchAdaptor.GetSearchFilter(q, sortOrder, page, prerelease);
+            var searchFilter = SearchAdaptor.GetSearchFilter(q, null, page, prerelease);
             searchFilter.CuratedFeed = CuratedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
             if (searchFilter.CuratedFeed == null)
             {
@@ -89,13 +82,11 @@ namespace NuGetGallery
             var viewModel = new PackageListViewModel(
                 results.Data,
                 q,
-                sortOrder,
                 totalHits,
                 page - 1,
                 Constants.DefaultPackageListPageSize,
                 Url,
-                prerelease,
-                SearchService.SupportsSorting);
+                prerelease);
 
             ViewBag.SearchTerm = q;
 

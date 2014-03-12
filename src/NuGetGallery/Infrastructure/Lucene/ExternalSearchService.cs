@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Search.Client;
+using NuGet.Services.Search.Models;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
@@ -72,6 +73,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                 projectTypeFilter: null,
                 includePrerelease: filter.IncludePrerelease,
                 curatedFeed: filter.CuratedFeed == null ? null : filter.CuratedFeed.Name,
+                sortBy: filter.SortOrder,
                 skip: filter.Skip,
                 take: filter.Take,
                 isLuceneQuery: false,

@@ -8,6 +8,7 @@ using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Function;
+using NuGet.Services.Search.Models;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -57,7 +58,7 @@ namespace NuGetGallery
             var query = ParseQuery(searchFilter);
 
             // IF searching by relevance, boost scores by download count.
-            if (searchFilter.SortProperty == SortProperty.Relevance)
+            if (searchFilter.SortOrder == SortOrder.Relevance)
             {
                 var downloadCountBooster = new FieldScoreQuery("DownloadCount", FieldScoreQuery.Type.INT);
                 query = new CustomScoreQuery(query, downloadCountBooster);
@@ -352,15 +353,15 @@ namespace NuGetGallery
 
         private static SortField GetSortField(SearchFilter searchFilter)
         {
-            switch (searchFilter.SortProperty)
+            switch (searchFilter.SortOrder)
             {
-                case SortProperty.DisplayName:
-                    return new SortField("DisplayName", SortField.STRING, reverse: searchFilter.SortDirection == SortDirection.Descending);
-                case SortProperty.DownloadCount:
-                    return new SortField("DownloadCount", SortField.INT, reverse: true);
-                case SortProperty.Recent:
+                case SortOrder.TitleAscending:
+                    return new SortField("DisplayName", SortField.STRING, reverse: false);
+                case SortOrder.TitleDescending:
+                    return new SortField("DisplayName", SortField.STRING, reverse: false);
+                case SortOrder.Published:
                     return new SortField("PublishedDate", SortField.LONG, reverse: true);
-                case SortProperty.RecentlyEdited:
+                case SortOrder.LastEdited:
                     return new SortField("EditedDate", SortField.LONG, reverse: true);
             }
 

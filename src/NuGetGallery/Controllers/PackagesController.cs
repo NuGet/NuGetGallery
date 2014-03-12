@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
+using NuGet.Services.Search.Models;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
@@ -282,7 +283,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        public virtual async Task<ActionResult> ListPackages(string q, string sortOrder = null, int page = 1, bool prerelease = false)
+        public virtual async Task<ActionResult> ListPackages(string q, int page = 1, bool prerelease = false)
         {
             if (page < 1)
             {
@@ -291,14 +292,7 @@ namespace NuGetGallery
 
             q = (q ?? "").Trim();
 
-            if (String.IsNullOrEmpty(sortOrder))
-            {
-                // Determine the default sort order. If no query string is specified, then the sortOrder is DownloadCount
-                // If we are searching for something, sort by relevance.
-                sortOrder = q.IsEmpty() ? Constants.PopularitySortOrder : Constants.RelevanceSortOrder;
-            }
-
-            var searchFilter = SearchAdaptor.GetSearchFilter(q, sortOrder, page, prerelease);
+            var searchFilter = SearchAdaptor.GetSearchFilter(q, null, page, prerelease);
             var results = await _searchService.Search(searchFilter);
             int totalHits = results.Hits;
             if (page == 1 && !results.Data.Any())
@@ -310,13 +304,11 @@ namespace NuGetGallery
             var viewModel = new PackageListViewModel(
                 results.Data,
                 q,
-                sortOrder,
                 totalHits,
                 page - 1,
                 Constants.DefaultPackageListPageSize,
                 Url,
-                prerelease,
-                _searchService.SupportsSorting);
+                prerelease);
 
             ViewBag.SearchTerm = q;
 

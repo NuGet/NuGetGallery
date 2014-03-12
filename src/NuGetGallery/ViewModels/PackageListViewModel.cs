@@ -9,20 +9,17 @@ namespace NuGetGallery
         public PackageListViewModel(
             IQueryable<Package> packages,
             string searchTerm,
-            string sortOrder,
             int totalCount,
             int pageIndex,
             int pageSize,
             UrlHelper url,
-            bool includePrerelease,
-            bool supportsSorting)
+            bool includePrerelease)
         {
             // TODO: Implement actual sorting
             IEnumerable<ListPackageItemViewModel> items = packages.ToList().Select(pv => new ListPackageItemViewModel(pv));
             PageIndex = pageIndex;
             PageSize = pageSize;
             TotalCount = totalCount;
-            SortOrder = sortOrder;
             SearchTerm = searchTerm;
             int pageCount = (TotalCount + PageSize - 1) / PageSize;
 
@@ -30,14 +27,13 @@ namespace NuGetGallery
                 items,
                 PageIndex,
                 pageCount,
-                page => url.PackageList(page, sortOrder, searchTerm, includePrerelease)
+                page => url.PackageList(page, searchTerm, includePrerelease)
                 );
             Items = pager.Items;
             FirstResultIndex = 1 + (PageIndex * PageSize);
             LastResultIndex = FirstResultIndex + Items.Count() - 1;
             Pager = pager;
             IncludePrerelease = includePrerelease ? "true" : null;
-            SupportsSorting = supportsSorting;
         }
 
         public int FirstResultIndex { get; set; }
@@ -52,14 +48,10 @@ namespace NuGetGallery
 
         public string SearchTerm { get; private set; }
 
-        public string SortOrder { get; private set; }
-
         public int PageIndex { get; private set; }
 
         public int PageSize { get; private set; }
 
         public string IncludePrerelease { get; private set; }
-
-        public bool SupportsSorting { get; private set; }
     }
 }

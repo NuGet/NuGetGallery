@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using NuGet.Services.Search.Models;
 using QueryInterceptor;
 
 namespace NuGetGallery
@@ -28,20 +29,15 @@ namespace NuGetGallery
             switch (sortOrder)
             {
                 case Constants.AlphabeticSortOrder:
-                    searchFilter.SortProperty = SortProperty.DisplayName;
-                    searchFilter.SortDirection = SortDirection.Ascending;
+                    searchFilter.SortOrder = SortOrder.TitleAscending;
                     break;
 
                 case Constants.RecentSortOrder:
-                    searchFilter.SortProperty = SortProperty.Recent;
-                    break;
-
-                case Constants.PopularitySortOrder:
-                    searchFilter.SortProperty = SortProperty.DownloadCount;
+                    searchFilter.SortOrder = SortOrder.Published;
                     break;
 
                 default:
-                    searchFilter.SortProperty = SortProperty.Relevance;
+                    searchFilter.SortOrder = SortOrder.Relevance;
                     break;
             }
 
@@ -131,8 +127,7 @@ namespace NuGetGallery
                 // issues since we need to manage state over concurrent requests. This seems like an easier solution.
                 Take = MaxPageSize,
                 Skip = 0,
-                CountOnly = path.EndsWith("$count", StringComparison.Ordinal),
-                SortDirection = SortDirection.Ascending
+                CountOnly = path.EndsWith("$count", StringComparison.Ordinal)
             };
 
             string[] props = query.Split('&');
@@ -187,31 +182,31 @@ namespace NuGetGallery
 
                 if (string.IsNullOrEmpty(orderBy))
                 {
-                    searchFilter.SortProperty = SortProperty.Relevance;
+                    searchFilter.SortOrder = SortOrder.Relevance;
                 }
                 else if (orderBy.StartsWith("DownloadCount", StringComparison.Ordinal))
                 {
-                    searchFilter.SortProperty = SortProperty.DownloadCount;
+                    searchFilter.SortOrder = SortOrder.Relevance;
                 }
                 else if (orderBy.StartsWith("Published", StringComparison.Ordinal))
                 {
-                    searchFilter.SortProperty = SortProperty.Recent;
+                    searchFilter.SortOrder = SortOrder.Published;
                 }
                 else if (orderBy.StartsWith("LastEdited", StringComparison.Ordinal))
                 {
-                    searchFilter.SortProperty = SortProperty.RecentlyEdited;
+                    searchFilter.SortOrder = SortOrder.LastEdited;
                 }
                 else if (orderBy.StartsWith("Id", StringComparison.Ordinal))
                 {
-                    searchFilter.SortProperty = SortProperty.DisplayName;
+                    searchFilter.SortOrder = SortOrder.TitleAscending;
                 }
                 else if (orderBy.StartsWith("concat", StringComparison.Ordinal))
                 {
-                    searchFilter.SortProperty = SortProperty.DisplayName;
+                    searchFilter.SortOrder = SortOrder.TitleAscending;
 
                     if (orderBy.Contains("%20desc"))
                     {
-                        searchFilter.SortDirection = SortDirection.Descending;
+                        searchFilter.SortOrder = SortOrder.TitleDescending;
                     }
                 }
                 else
@@ -222,7 +217,7 @@ namespace NuGetGallery
             }
             else
             {
-                searchFilter.SortProperty = SortProperty.Relevance;
+                searchFilter.SortOrder = SortOrder.Relevance;
             }
 
             return true;
