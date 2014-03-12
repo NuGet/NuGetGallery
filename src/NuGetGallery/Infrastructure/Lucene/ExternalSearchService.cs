@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -90,9 +91,11 @@ namespace NuGetGallery.Infrastructure.Lucene
                 content.Data.Select(ReadPackage).AsQueryable());
         }
 
-        private string BuildLuceneQuery(string p)
+        private static string BuildLuceneQuery(string p)
         {
-            return String.Format("Id:{0}* Version:{0}* TokenizedId:{0}* ShingledId:{0}* Title:{0}* Tags:{0}* Description:{0}* Authors:{0}* Owners:{0}*",
+            return String.Format(
+                CultureInfo.InvariantCulture,
+                "Id:{0}* Version:{0}* TokenizedId:{0}* ShingledId:{0}* Title:{0}* Tags:{0}* Description:{0}* Authors:{0}* Owners:{0}*",
                 p.Replace(@" ", @"\ "));
         }
 
