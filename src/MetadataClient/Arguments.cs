@@ -8,6 +8,7 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using System.IO.Packaging;
 using System.Net.Mime;
+using System.Diagnostics;
 
 namespace MetadataClient
 {

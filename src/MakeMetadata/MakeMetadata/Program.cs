@@ -15,7 +15,14 @@ namespace MakeMetadata
         static void PublishPackage(Stream stream, string connectionString, string publishContainer)
         {
             CloudStorageAccount account = CloudStorageAccount.Parse(connectionString);
-            string baseAddress = String.Format("{0}{1}", account.BlobEndpoint, publishContainer);
+
+            UriBuilder uri = new UriBuilder();
+            uri.Scheme = "http";
+            uri.Host = account.BlobEndpoint.Host;
+            uri.Path = account.BlobEndpoint.AbsolutePath;
+
+            string baseAddress = String.Format("{0}{1}/", uri.Uri, publishContainer.TrimEnd('/'));
+
 
             // BEGIN
 
