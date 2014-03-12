@@ -1338,9 +1338,11 @@ ul.accordian {
 }
 
 span.sorted-by {
-    margin-left: 0.5em;
+    width: 100%;
+    text-align: right;
     color: #52a4ca;
-    display: inline;
+    display: block;
     font-size: 1.25em;
-    margin-bottom: 5px;
+    margin: 0.5em;
+    margin-left: 0;
 }

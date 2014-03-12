@@ -33,22 +33,7 @@
     }
 </div>
 
-<form method="get" action="">
-    <fieldset class="form search">
-        <legend>Sort Order</legend>
-        <input type="hidden" name="q" value="@Model.SearchTerm" />
-
-        <div class="form-field">
-            <select name="prerelease" id="prerelease">
-                @ViewHelpers.Option("", "Stable Only", Model.IncludePrerelease)
-                @ViewHelpers.Option("true", "Include Prerelease", Model.IncludePrerelease)
-            </select>
-            
-
-            <span class="sorted-by">Sorted by Recent Installs</span>
-        </div>
-    </fieldset>
-</form>
+<span class="sorted-by">Sorted by Recent Installs</span>
 
 <ul id="searchResults">
     @foreach (var package in Model.Items)

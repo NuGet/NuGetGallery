@@ -73,7 +73,7 @@ namespace NuGetGallery
             SearchFilter searchFilter;
             // We can only use Lucene if the client queries for the latest versions (IsLatest \ IsLatestStable) versions of a package
             // and specific sort orders that we have in the index.
-            if (TryReadSearchFilter(searchService.SupportsSorting, request.RawUrl, out searchFilter))
+            if (TryReadSearchFilter(request.RawUrl, out searchFilter))
             {
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = includePrerelease;
@@ -94,7 +94,7 @@ namespace NuGetGallery
             return packages.Search(searchTerm);
         }
 
-        private static bool TryReadSearchFilter(bool supportsSorting, string url, out SearchFilter searchFilter)
+        private static bool TryReadSearchFilter(string url, out SearchFilter searchFilter)
         {
             if (url == null)
             {
@@ -173,13 +173,6 @@ namespace NuGetGallery
             string orderBy;
             if (queryTerms.TryGetValue("$orderby", out orderBy))
             {
-                // If the service doesn't support sorting, this is useless
-                if (!supportsSorting)
-                {
-                    searchFilter = null;
-                    return false;
-                }
-
                 if (string.IsNullOrEmpty(orderBy))
                 {
                     searchFilter.SortOrder = SortOrder.Relevance;
