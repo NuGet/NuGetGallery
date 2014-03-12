@@ -128,6 +128,7 @@ namespace NuGetGallery
                 .Include("~/Scripts/jquery-{version}.js")
                 .Include("~/Scripts/jquery.validate.js")
                 .Include("~/Scripts/jquery.validate.unobtrusive.js")
+                .Include("~/Scripts/typeahead.bundle.js")
                 .Include("~/Scripts/nugetgallery.js")
                 .Include("~/Scripts/stats.js");
             BundleTable.Bundles.Add(scriptBundle);

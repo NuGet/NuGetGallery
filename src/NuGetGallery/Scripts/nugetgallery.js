@@ -80,6 +80,8 @@
         attachSearchBoxBehavior($('#searchBoxInput.expanding-search'), $('#menu.expanding-search'));
 
         attachPlugins();
+
+        attachTypeahead();
     });
 
 	// Add validator that ensures provided value is NOT equal to a specified value.
@@ -122,5 +124,37 @@
         if(!navigator.mimeTypes["application/x-shockwave-flash"]) {
             $('.s-reqflash').remove();
         }
+    }
+
+    function attachTypeahead() {
+        var engine = new Bloodhound({
+            name: 'packages',
+            remote: app.root + 'api/v2/typeahead?q=%QUERY',
+            datumTokenizer: function (d) {
+                return Bloodhound.tokenizers.whitespace(d.val);
+            },
+            queryTokenizer: Bloodhound.tokenizers.whitespace
+        });
+        engine.initialize()
+            .done(function () {
+                $('#searchBoxInput').typeahead({
+                    minLength: 3,
+                    highlight: true
+                }, {
+                    source: engine.ttAdapter(),
+                    displayKey: 'Id',
+                    templates: {
+                        suggestion: function (context) {
+                            var summary = context.Summary;
+                            if (summary.length > 45) {
+                                summary = summary.substring(0, 45) + "...";
+                            }
+                            return "<div class=\"typeahead-package-id\">" + (context.Title || context.Id) + "</div>" +
+                                "<div class=\"typeahead-package-summary\">" + summary + "</div>";
+                        },
+                        empty: "<div class=\"typeahead-empty\">No results!</div>"
+                    }
+                });
+            });
     }
 })(window, jQuery);

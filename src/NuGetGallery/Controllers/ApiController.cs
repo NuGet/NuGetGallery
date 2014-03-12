@@ -441,9 +441,9 @@ namespace NuGetGallery
             // Query the search service
             var results = await SearchService.Search(new SearchFilter()
             {
-                SearchTerm = q,
+                SearchTerm = q, /* For typeahead we want wildcard matching */
                 IncludePrerelease = true,
-                Take = 10
+                Take = 3
             });
 
             // Return the results formatted as JSON

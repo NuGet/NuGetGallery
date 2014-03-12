@@ -62,16 +62,19 @@ namespace NuGetGallery.Infrastructure.Lucene
 
         public async Task<SearchResults> Search(SearchFilter filter)
         {
+            // Convert the query
+            string query = BuildLuceneQuery(filter.SearchTerm);
+
             // Query!
             var result = await _client.Search(
-                filter.SearchTerm,
+                query,
                 projectTypeFilter: null,
                 includePrerelease: filter.IncludePrerelease,
                 curatedFeed: filter.CuratedFeed == null ? null : filter.CuratedFeed.Name,
                 sortBy: filter.SortOrder,
                 skip: filter.Skip,
                 take: filter.Take,
-                isLuceneQuery: false,
+                isLuceneQuery: true,
                 countOnly: filter.CountOnly,
                 explain: false,
                 getAllVersions: false);
@@ -85,6 +88,12 @@ namespace NuGetGallery.Infrastructure.Lucene
             return new SearchResults(
                 content.TotalHits, 
                 content.Data.Select(ReadPackage).AsQueryable());
+        }
+
+        private string BuildLuceneQuery(string p)
+        {
+            return String.Format("Id:{0}* Version:{0}* TokenizedId:{0}* ShingledId:{0}* Title:{0}* Tags:{0}* Description:{0}* Authors:{0}* Owners:{0}*",
+                p.Replace(@" ", @"\ "));
         }
 
         public async Task<DateTime?> GetLastWriteTime()
