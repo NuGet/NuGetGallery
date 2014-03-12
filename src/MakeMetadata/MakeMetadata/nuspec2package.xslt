@@ -22,6 +22,9 @@
         </xsl:attribute>
         
         <ng:registration>
+
+          <!-- this should probably use rdf:resource="" -->
+          
           <rdf:Description>
             <xsl:attribute name="rdf:about">
               <xsl:value-of select="translate(concat($base, nuget:id), $uppercase, $lowercase)"/>
@@ -31,27 +34,41 @@
         
         <xsl:for-each select="*">
           <xsl:choose>
-            
+
             <xsl:when test="self::nuget:dependencies">
-              <xsl:apply-templates select="nuget:group">
-                <xsl:with-param name="parent" select="$path" />
-                <xsl:with-param name="type" select="'dep'" />
-              </xsl:apply-templates>
-              <xsl:apply-templates select="nuget:dependency">
-                <xsl:with-param name="parent" select="$path" />
-              </xsl:apply-templates>
+              <ng:dependencies>
+                <rdf:Description>
+                  <xsl:attribute name="rdf:about">
+                    <xsl:value-of select="translate(concat($base, $path, '#dependencies'), $uppercase, $lowercase)"/>
+                  </xsl:attribute>
+                  <xsl:apply-templates select="nuget:group">
+                    <xsl:with-param name="parent" select="$path" />
+                    <xsl:with-param name="type" select="'dep'" />
+                  </xsl:apply-templates>
+                  <xsl:apply-templates select="nuget:dependency">
+                    <xsl:with-param name="parent" select="$path" />
+                  </xsl:apply-templates>
+                </rdf:Description>
+              </ng:dependencies>
             </xsl:when>
             
             <xsl:when test="self::nuget:references">
-              <xsl:apply-templates select="nuget:group">
-                <xsl:with-param name="parent" select="$path" />
-                <xsl:with-param name="type" select="'ref'" />
-              </xsl:apply-templates>
-              <xsl:apply-templates select="nuget:reference">
-                <xsl:with-param name="parent" select="$path" />
-              </xsl:apply-templates>
+              <ng:references>
+                <rdf:Description>
+                  <xsl:attribute name="rdf:about">
+                    <xsl:value-of select="translate(concat($base, $path, '#references'), $uppercase, $lowercase)"/>
+                  </xsl:attribute>
+                  <xsl:apply-templates select="nuget:group">
+                    <xsl:with-param name="parent" select="$path" />
+                    <xsl:with-param name="type" select="'ref'" />
+                  </xsl:apply-templates>
+                  <xsl:apply-templates select="nuget:reference">
+                    <xsl:with-param name="parent" select="$path" />
+                  </xsl:apply-templates>
+                </rdf:Description>
+              </ng:references>
             </xsl:when>
-
+            
             <xsl:otherwise>
               <xsl:element name="{concat('ng:', local-name())}">
                 <xsl:value-of select="."/>
