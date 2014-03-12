@@ -1095,6 +1095,9 @@
     <Content Include="Branding\Views\web.config" />
     <Compile Include="Views\NuGetViewBase.cs" />
     <Content Include="Public\Blocked.html" />
+    <None Include="Scripts\jquery-1.9.1.intellisense.js" />
+    <Content Include="Scripts\jquery-1.9.1.js" />
+    <Content Include="Scripts\jquery-1.9.1.min.js" />
     <Content Include="Views\Shared\LayoutFooter.cshtml" />
     <Content Include="Views\Shared\SiteMenu.cshtml">
       <SubType>Code</SubType>
@@ -1271,9 +1274,6 @@
     <Content Include="Content\font\fontawesome-webfont.woff" />
     <Content Include="Content\font\FontAwesome.otf" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
-    <None Include="Scripts\jquery-1.6.4-vsdoc.js" />
-    <Content Include="Scripts\jquery-1.6.4.js" />
-    <Content Include="Scripts\jquery-1.6.4.min.js" />
     <Content Include="Scripts\jquery-ui-1.10.3.js" />
     <Content Include="Scripts\jquery-ui-1.10.3.min.js" />
     <Content Include="Scripts\perpackagestatsgraphs.js" />
@@ -1413,6 +1413,7 @@
     </Content>
     <Content Include="Areas\Admin\Views\Config\Index.cshtml" />
     <Content Include="Views\Errors\CookieError.cshtml" />
+    <Content Include="Scripts\jquery-1.9.1.min.map" />
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>
