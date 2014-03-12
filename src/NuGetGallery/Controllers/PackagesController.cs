@@ -315,7 +315,8 @@ namespace NuGetGallery
                 page - 1,
                 Constants.DefaultPackageListPageSize,
                 Url,
-                prerelease);
+                prerelease,
+                _searchService.SupportsSorting);
 
             ViewBag.SearchTerm = q;
 

@@ -11,6 +11,8 @@ namespace NuGetGallery
         /// <param name="filter"> The filter to be used. </param>
         /// <returns>The number of hits in the search and, if the CountOnly flag in SearchFilter was false, the results themselves</returns>
         Task<SearchResults> Search(SearchFilter filter);
+
+        bool SupportsSorting { get; }
     }
 
     public class SearchResults

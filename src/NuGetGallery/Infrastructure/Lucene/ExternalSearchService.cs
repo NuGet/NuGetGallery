@@ -34,6 +34,11 @@ namespace NuGetGallery.Infrastructure.Lucene
             get { return false; }
         }
 
+        public bool SupportsSorting
+        {
+            get { return false; }
+        }
+
         public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics)
         {
             ServiceUri = config.SearchServiceUri;

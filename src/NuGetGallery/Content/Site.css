@@ -1336,3 +1336,11 @@ ul.accordian {
     display: inline-block;
     vertical-align: bottom;
 }
+
+span.sorted-by {
+    margin-left: 0.5em;
+    color: #52a4ca;
+    display: inline;
+    font-size: 1.25em;
+    margin-bottom: 5px;
+}

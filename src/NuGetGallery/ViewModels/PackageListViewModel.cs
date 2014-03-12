@@ -14,7 +14,8 @@ namespace NuGetGallery
             int pageIndex,
             int pageSize,
             UrlHelper url,
-            bool includePrerelease)
+            bool includePrerelease,
+            bool supportsSorting)
         {
             // TODO: Implement actual sorting
             IEnumerable<ListPackageItemViewModel> items = packages.ToList().Select(pv => new ListPackageItemViewModel(pv));
@@ -36,6 +37,7 @@ namespace NuGetGallery
             LastResultIndex = FirstResultIndex + Items.Count() - 1;
             Pager = pager;
             IncludePrerelease = includePrerelease ? "true" : null;
+            SupportsSorting = supportsSorting;
         }
 
         public int FirstResultIndex { get; set; }
@@ -57,5 +59,7 @@ namespace NuGetGallery
         public int PageSize { get; private set; }
 
         public string IncludePrerelease { get; private set; }
+
+        public bool SupportsSorting { get; private set; }
     }
 }
