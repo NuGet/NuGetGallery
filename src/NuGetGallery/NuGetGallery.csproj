@@ -1004,6 +1004,9 @@
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
     <Content Include="Eula.htm" />
     <Content Include="Readme.html" />
+    <None Include="Scripts\jquery-1.11.0.intellisense.js" />
+    <Content Include="Scripts\jquery-1.11.0.js" />
+    <Content Include="Scripts\jquery-1.11.0.min.js" />
     <Content Include="Scripts\typeahead.bundle.js" />
     <Content Include="Scripts\typeahead.bundle.min.js" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
@@ -1136,9 +1139,6 @@
     <Content Include="Branding\Views\web.config" />
     <Compile Include="Views\NuGetViewBase.cs" />
     <Content Include="Public\Blocked.html" />
-    <None Include="Scripts\jquery-1.9.1.intellisense.js" />
-    <Content Include="Scripts\jquery-1.9.1.js" />
-    <Content Include="Scripts\jquery-1.9.1.min.js" />
     <Content Include="Views\Shared\LayoutFooter.cshtml" />
     <Content Include="Views\Shared\SiteMenu.cshtml">
       <SubType>Code</SubType>
@@ -1454,7 +1454,7 @@
     </Content>
     <Content Include="Areas\Admin\Views\Config\Index.cshtml" />
     <Content Include="Views\Errors\CookieError.cshtml" />
-    <Content Include="Scripts\jquery-1.9.1.min.map" />
+    <Content Include="Scripts\jquery-1.11.0.min.map" />
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>
