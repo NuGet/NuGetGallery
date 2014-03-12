@@ -19,14 +19,29 @@ else
     </p>
     <p>
         There are @Model.DocumentCount documents in the index.<br />
-        The index consumes @Model.FormatIndexSize() of space and is stored in @Model.Directory (@Model.Location).
+        The index consumes @Model.FormatIndexSize() of space.<br />
+        The index is located on @Model.Directory
+        @if(Model.IsLocal) {
+            @:(@Model.Location)
+        } 
+        else 
+        {
+            @:(External)
+        }
     </p>
 }
 
-@using (Html.BeginForm(MVC.Admin.Lucene.Rebuild()))
+@if(Model.IsLocal) 
 {
-    <fieldset class="form">
-        <input type="submit" value="Rebuild Now" />
-        <p>NOTE: This will only affect the current instance!</p>
-    </fieldset>
+    using (Html.BeginForm(MVC.Admin.Lucene.Rebuild()))
+    {
+        <fieldset class="form">
+            <input type="submit" value="Rebuild Now" />
+            <p>NOTE: This will only affect the current instance!</p>
+        </fieldset>
+    }
+}
+else 
+{
+    <p>The Lucene Index is located on an external service and cannot be rebuilt.</p>
 }

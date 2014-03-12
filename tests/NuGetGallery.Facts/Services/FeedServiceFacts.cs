@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using Moq;
 using NuGetGallery.Configuration;
@@ -81,9 +82,8 @@ namespace NuGetGallery
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
-                    int total;
-                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>(), out total)).Returns
-                        <IQueryable<Package>, string>((_, __) => _);
+                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
+                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), _)));
                     var v1Service = new TestableV1Feed(repo.Object, configuration.Object, searchService.Object);
 
                     // Act

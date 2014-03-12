@@ -10,10 +10,11 @@ namespace NuGetGallery.Areas.Admin.Models
     public class LuceneInfoModel
     {
         public DateTime? LastUpdated { get; set; }
-        public LuceneIndexLocation Location { get; set; }
         public string Directory { get; set; }
         public int DocumentCount { get; set; }
         public long IndexSize { get; set; }
+        public bool IsLocal { get; set; }
+        public LuceneIndexLocation Location { get; set; }
 
         public string FormatIndexSize()
         {

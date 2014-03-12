@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
@@ -23,7 +24,7 @@ namespace NuGetGallery
             _directory = directory;
         }
 
-        public IQueryable<Package> Search(SearchFilter searchFilter, out int totalHits)
+        public Task<SearchResults> Search(SearchFilter searchFilter)
         {
             if (searchFilter == null)
             {
@@ -40,10 +41,10 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException("searchFilter");
             }
 
-            return SearchCore(searchFilter, out totalHits);
+            return Task.FromResult(SearchCore(searchFilter));
         }
 
-        private IQueryable<Package> SearchCore(SearchFilter searchFilter, out int totalHits)
+        private SearchResults SearchCore(SearchFilter searchFilter)
         {
             int numRecords = searchFilter.Skip + searchFilter.Take;
 
@@ -59,9 +60,9 @@ namespace NuGetGallery
 
             var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
             Query filterQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
-            if (searchFilter.CuratedFeedKey.HasValue)
+            if (searchFilter.CuratedFeed != null)
             {
-                var feedFilterQuery = new TermQuery(new Term("CuratedFeedKey", searchFilter.CuratedFeedKey.Value.ToString(CultureInfo.InvariantCulture)));
+                var feedFilterQuery = new TermQuery(new Term("CuratedFeedKey", searchFilter.CuratedFeed.Key.ToString(CultureInfo.InvariantCulture)));
                 BooleanQuery conjunctionQuery = new BooleanQuery();
                 conjunctionQuery.Add(filterQuery, Occur.MUST);
                 conjunctionQuery.Add(feedFilterQuery, Occur.MUST);
@@ -70,18 +71,19 @@ namespace NuGetGallery
 
             Filter filter = new QueryWrapperFilter(filterQuery);
             var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(GetSortField(searchFilter)));
-            totalHits = results.TotalHits;
-
+            
             if (results.TotalHits == 0 || searchFilter.CountOnly)
             {
-                return Enumerable.Empty<Package>().AsQueryable();
+                return new SearchResults(results.TotalHits);
             }
 
             var packages = results.ScoreDocs
                                   .Skip(searchFilter.Skip)
                                   .Select(sd => PackageFromDoc(searcher.Doc(sd.Doc)))
                                   .ToList();
-            return packages.AsQueryable();
+            return new SearchResults(
+                results.TotalHits,
+                packages.AsQueryable());
         }
 
         private static Package PackageFromDoc(Document doc)

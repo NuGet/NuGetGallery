@@ -10,7 +10,7 @@
 
         public bool IncludePrerelease { get; set; }
 
-        public int? CuratedFeedKey { get; set; }
+        public CuratedFeed CuratedFeed { get; set; }
 
         public SortProperty SortProperty { get; set; }
 

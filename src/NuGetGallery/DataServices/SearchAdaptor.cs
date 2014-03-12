@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using QueryInterceptor;
 
@@ -47,32 +48,31 @@ namespace NuGetGallery
             return searchFilter;
         }
 
-        public static IQueryable<Package> GetResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
+        public static async Task<IQueryable<Package>> GetResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
         {
-            int totalHits;
-            var result = searchService.Search(searchFilter, out totalHits);
+            var result = await searchService.Search(searchFilter);
 
             // For count queries, we can ask the SearchService to not filter the source results. This would avoid hitting the database and consequently make
             // it very fast.
             if (searchFilter.CountOnly)
             {
                 // At this point, we already know what the total count is. We can have it return this value very quickly without doing any SQL.
-                return result.InterceptWith(new CountInterceptor(totalHits));
+                return result.Data.InterceptWith(new CountInterceptor(result.Hits));
             }
 
             // For relevance search, Lucene returns us a paged\sorted list. OData tries to apply default ordering and Take \ Skip on top of this.
             // We avoid it by yanking these expressions out of out the tree.
-            return result.InterceptWith(new DisregardODataInterceptor());
+            return result.Data.InterceptWith(new DisregardODataInterceptor());
         }
 
-        public static IQueryable<Package> SearchCore(
+        public static async Task<IQueryable<Package>> SearchCore(
             ISearchService searchService,
             HttpRequestBase request,
             IQueryable<Package> packages, 
             string searchTerm, 
             string targetFramework, 
             bool includePrerelease,
-            int? curatedFeedKey)
+            CuratedFeed curatedFeed)
         {
             SearchFilter searchFilter;
             // We can only use Lucene if the client queries for the latest versions (IsLatest \ IsLatestStable) versions of a package
@@ -81,11 +81,11 @@ namespace NuGetGallery
             {
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = includePrerelease;
-                searchFilter.CuratedFeedKey = curatedFeedKey;
+                searchFilter.CuratedFeed = curatedFeed;
 
                 Trace.WriteLine("TODO: use target framework parameter - see #856" + targetFramework);
 
-                var results = GetResultsFromSearchService(searchService, searchFilter);
+                var results = await GetResultsFromSearchService(searchService, searchFilter);
 
                 return results;
             }

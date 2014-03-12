@@ -107,9 +107,8 @@ namespace NuGetGallery
         private static Mock<ISearchService> CreateSearchService()
         {
             var searchService = new Mock<ISearchService>();
-            int total;
-            searchService.Setup(s => s.Search(It.IsAny<SearchFilter>(), out total)).Returns(
-                (IQueryable<Package> p, string searchTerm) => p);
+            searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns(
+                (IQueryable<Package> p, string searchTerm) => Task.FromResult(new SearchResults(p.Count(), p)));
 
             return searchService;
         }
@@ -571,13 +570,15 @@ namespace NuGetGallery
         public class TheListPackagesMethod
         {
             [Fact]
-            public void TrimsSearchTerm()
+            public async Task TrimsSearchTerm()
             {
                 var searchService = new Mock<ISearchService>();
+                searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns(
+                    Task.FromResult(new SearchResults(0)));
                 var controller = CreateController(searchService: searchService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
-                var result = controller.ListPackages(" test ") as ViewResult;
+                var result = (await controller.ListPackages(" test ")) as ViewResult;
 
                 var model = result.Model as PackageListViewModel;
                 Assert.Equal("test", model.SearchTerm);

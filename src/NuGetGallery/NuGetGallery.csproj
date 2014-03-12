@@ -731,6 +731,7 @@
     <Compile Include="Infrastructure\Jobs\UpdateStatisticsJob.cs" />
     <Compile Include="Infrastructure\Lucene\PerFieldAnalyzer.cs" />
     <Compile Include="Infrastructure\Lucene\NuGetSearchTerm.cs" />
+    <Compile Include="Infrastructure\TracingHttpHandler.cs" />
     <Compile Include="JsonApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>

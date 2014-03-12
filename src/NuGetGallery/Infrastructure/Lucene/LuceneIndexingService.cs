@@ -8,7 +8,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Lucene.Net.Index;
+using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
+using WebBackgrounder;
 
 namespace NuGetGallery
 {
@@ -33,6 +35,11 @@ namespace NuGetGallery
             get { return LuceneCommon.GetDirectoryLocation(); }
         }
 
+        public bool IsLocal
+        {
+            get { return true; }
+        }
+
         public LuceneIndexingService(
             IEntityRepository<Package> packageSource,
             IEntityRepository<CuratedPackage> curatedPackageSource,
@@ -52,7 +59,7 @@ namespace NuGetGallery
 
         public void UpdateIndex(bool forceRefresh)
         {
-            DateTime? lastWriteTime = GetLastWriteTime();
+            DateTime? lastWriteTime = GetLastWriteTime().Result;
 
             if ((lastWriteTime == null) || IndexRequiresRefresh() || forceRefresh)
             {
@@ -175,14 +182,14 @@ namespace NuGetGallery
             _indexWriter.Commit();
         }
 
-        public virtual DateTime? GetLastWriteTime()
+        public virtual Task<DateTime?> GetLastWriteTime()
         {
             var metadataPath = LuceneCommon.GetIndexMetadataPath();
             if (!File.Exists(metadataPath))
             {
-                return null;
+                return Task.FromResult<DateTime?>(null);
             }
-            return File.GetLastWriteTimeUtc(metadataPath);
+            return Task.FromResult<DateTime?>(File.GetLastWriteTimeUtc(metadataPath));
         }
 
         private void AddPackage(PackageIndexEntity packageInfo)
@@ -260,19 +267,30 @@ namespace NuGetGallery
         }
 
 
-        public int GetDocumentCount()
+        public Task<int> GetDocumentCount()
         {
             using (IndexReader reader = IndexReader.Open(_directory, readOnly: true))
             {
-                return reader.NumDocs();
+                return Task.FromResult(reader.NumDocs());
             }
         }
 
 
-        public long GetIndexSizeInBytes()
+        public Task<long> GetIndexSizeInBytes()
         {
             var path = IndexPath;
-            return CalculateSize(new DirectoryInfo(path));
+            return Task.FromResult(CalculateSize(new DirectoryInfo(path)));
+        }
+
+
+        public void RegisterBackgroundJobs(IList<IJob> jobs, IAppConfiguration configuration)
+        {
+            jobs.Add(
+                new LuceneIndexingJob(
+                    TimeSpan.FromMinutes(10),
+                    () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true),
+                    timeout: TimeSpan.FromMinutes(2),
+                    location: configuration.LuceneIndexLocation));
         }
 
         private long CalculateSize(DirectoryInfo dir)
