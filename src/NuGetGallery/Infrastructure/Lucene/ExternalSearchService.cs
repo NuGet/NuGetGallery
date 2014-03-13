@@ -18,7 +18,6 @@ namespace NuGetGallery.Infrastructure.Lucene
 {
     public class ExternalSearchService : ISearchService, IIndexingService
     {
-        private ICredentials _credentials;
         private SearchClient _client;
         private JObject _diagCache;
 
@@ -43,6 +42,7 @@ namespace NuGetGallery.Infrastructure.Lucene
 
             // Extract credentials
             var userInfo = ServiceUri.UserInfo;
+            ICredentials credentials = null;
             if(!String.IsNullOrEmpty(userInfo)) {
                 var split = userInfo.Split(':');
                 if(split.Length != 2) {
@@ -50,7 +50,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                 }
 
                 // Split the credentials out
-                _credentials = new NetworkCredential(split[0], split[1]);
+                credentials = new NetworkCredential(split[0], split[1]);
                 ServiceUri = new UriBuilder(ServiceUri)
                 {
                     UserName = null,
@@ -58,7 +58,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                 }.Uri;
             }
 
-            _client = new SearchClient(ServiceUri, _credentials, new TracingHttpHandler(Trace));
+            _client = new SearchClient(ServiceUri, credentials, new TracingHttpHandler(Trace));
         }
 
         public async Task<SearchResults> Search(SearchFilter filter)
