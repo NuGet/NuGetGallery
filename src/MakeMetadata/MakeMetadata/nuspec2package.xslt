@@ -13,6 +13,19 @@
 
   <xsl:template match="/nuget:package/nuget:metadata">
     <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+
+      <ng:PackageRegistration>
+        <xsl:attribute name="rdf:about">
+          <xsl:value-of select="translate(concat($base, nuget:id), $uppercase, $lowercase)"/>
+        </xsl:attribute>
+        <ng:id>
+          <xsl:value-of select="nuget:id"/>
+        </ng:id>
+        <ng:owners>
+          <xsl:value-of select="nuget:owners"/>
+        </ng:owners>
+      </ng:PackageRegistration>
+
       <ng:Package>
 
         <xsl:variable name="path" select="concat(nuget:id, '/', nuget:version)" />
@@ -22,14 +35,9 @@
         </xsl:attribute>
         
         <ng:registration>
-
-          <!-- this should probably use rdf:resource="" -->
-          
-          <rdf:Description>
-            <xsl:attribute name="rdf:about">
+            <xsl:attribute name="rdf:resource">
               <xsl:value-of select="translate(concat($base, nuget:id), $uppercase, $lowercase)"/>
             </xsl:attribute>
-          </rdf:Description>
         </ng:registration>
         
         <xsl:for-each select="*">
@@ -43,7 +51,7 @@
                   </xsl:attribute>
                   <xsl:apply-templates select="nuget:group">
                     <xsl:with-param name="parent" select="$path" />
-                    <xsl:with-param name="type" select="'dep'" />
+                    <xsl:with-param name="type" select="'gpdep'" />
                   </xsl:apply-templates>
                   <xsl:apply-templates select="nuget:dependency">
                     <xsl:with-param name="parent" select="$path" />
@@ -60,7 +68,7 @@
                   </xsl:attribute>
                   <xsl:apply-templates select="nuget:group">
                     <xsl:with-param name="parent" select="$path" />
-                    <xsl:with-param name="type" select="'ref'" />
+                    <xsl:with-param name="type" select="'gpref'" />
                   </xsl:apply-templates>
                   <xsl:apply-templates select="nuget:reference">
                     <xsl:with-param name="parent" select="$path" />
@@ -128,6 +136,10 @@
           <xsl:with-param name="parent" select="$path" />
         </xsl:apply-templates>
 
+        <xsl:apply-templates select="nuget:property">
+          <xsl:with-param name="parent" select="$path" />
+        </xsl:apply-templates>
+
       </rdf:Description>
     </ng:group>
   </xsl:template>
@@ -137,7 +149,7 @@
     <ng:dependency>
       <rdf:Description>
 
-        <xsl:variable name="path" select="concat($parent, '_', @id)" />
+        <xsl:variable name="path" select="concat($parent, '_dep_', @id)" />
 
         <xsl:attribute name="rdf:about">
           <xsl:value-of select="translate(concat($base, $path), $uppercase, $lowercase)"/>
@@ -152,12 +164,14 @@
         </ng:range>
 
         <ng:registration>
-          <rdf:Description>
-            <xsl:attribute name="rdf:about">
-              <xsl:value-of select="translate(concat($base, @id), $uppercase, $lowercase)"/>
-            </xsl:attribute>
-          </rdf:Description>
+          <xsl:attribute name="rdf:resource">
+            <xsl:value-of select="translate(concat($base, @id), $uppercase, $lowercase)"/>
+          </xsl:attribute>
         </ng:registration>
+
+        <xsl:apply-templates select="nuget:property">
+          <xsl:with-param name="parent" select="$path" />
+        </xsl:apply-templates>
 
       </rdf:Description>
     </ng:dependency>
@@ -168,7 +182,7 @@
     <ng:reference>
       <rdf:Description>
 
-        <xsl:variable name="path" select="concat($parent, '_', @id)" />
+        <xsl:variable name="path" select="concat($parent, '_ref_', @file)" />
 
         <xsl:attribute name="rdf:about">
           <xsl:value-of select="translate(concat($base, $path), $uppercase, $lowercase)"/>
@@ -178,8 +192,36 @@
           <xsl:value-of select="@file"/>
         </ng:file>
 
+        <xsl:apply-templates select="nuget:property">
+          <xsl:with-param name="parent" select="$path" />
+        </xsl:apply-templates>
+
       </rdf:Description>
     </ng:reference>
   </xsl:template>
+
+  <xsl:template match="nuget:property">
+    <xsl:param name="parent" />
+    <ng:property>
+      <rdf:Description>
+
+        <xsl:variable name="path" select="concat($parent, '_prop_', @name)" />
+
+        <xsl:attribute name="rdf:about">
+          <xsl:value-of select="translate(concat($base, $path), $uppercase, $lowercase)"/>
+        </xsl:attribute>
+
+        <ng:name>
+          <xsl:value-of select="@name"/>
+        </ng:name>
+
+        <ng:value>
+          <xsl:value-of select="text()"/>
+        </ng:value>
+
+      </rdf:Description>
+    </ng:property>
+  </xsl:template>
+
 
 </xsl:stylesheet>
