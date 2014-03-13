@@ -14,7 +14,7 @@ namespace NuGetGallery
         public static readonly ApplicationVersion Empty = new ApplicationVersion();
 
         public bool Present { get; private set; }
-        public SemanticVersion Version { get; private set; }
+        public string Version { get; private set; }
         public string Branch { get; private set; }
         public string Commit { get; private set; }
         public DateTime BuildDateUtc { get; private set; }
@@ -27,13 +27,13 @@ namespace NuGetGallery
         private ApplicationVersion()
         {
             Present = false;
-            Version = new SemanticVersion("1.0");
+            Version = "1.0";
             Branch = String.Empty;
             Commit = String.Empty;
             BuildDateUtc = DateTime.UtcNow;
         }
 
-        public ApplicationVersion(Uri repositoryBase, SemanticVersion version, string branch, string commit, DateTime buildDateUtc)
+        public ApplicationVersion(Uri repositoryBase, string version, string branch, string commit, DateTime buildDateUtc)
         {
             Present = true;
             Version = version;
@@ -80,7 +80,6 @@ namespace NuGetGallery
 
         private static ApplicationVersion LoadVersion()
         {
-
             try
             {
                 var metadata = typeof(ApplicationVersionHelper)
@@ -111,7 +110,7 @@ namespace NuGetGallery
                 }
                 return new ApplicationVersion(
                     repoUri,
-                    new SemanticVersion(ver),
+                    ver,
                     branch,
                     commit,
                     buildDate);

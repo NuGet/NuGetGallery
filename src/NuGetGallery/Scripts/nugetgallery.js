@@ -91,6 +91,12 @@
     $.validator.unobtrusive.adapters.addBool("mandatory", "required");
     $.validator.unobtrusive.adapters.addSingleVal('notequal', 'disallowed');
 
+    function padInt(i, size) {
+        var s = i.toString();
+        while (s.length < size) s = "0" + s;
+        return s;
+    }
+
     // Attach script plugins
     function attachPlugins() {
         $('.s-toggle[data-show][data-hide]').delegate('', 'click', function (evt) {
@@ -122,5 +128,17 @@
         if(!navigator.mimeTypes["application/x-shockwave-flash"]) {
             $('.s-reqflash').remove();
         }
+        $('.s-localtime[data-utc]').each(function () {
+            var utc = new Date($(this).data().utc);
+            var hrs = utc.getHours();
+            var ampm = "AM";
+            if (hrs >= 12) {
+                if (hrs > 12) {
+                    hrs = hrs - 12;
+                }
+                ampm = "PM";
+            }
+            $(this).text(utc.getFullYear() + "-" + padInt(utc.getMonth(), 2) + "-" + padInt(utc.getDate(), 2) + " " + hrs + ":" + padInt(utc.getMinutes(), 2) + " " + ampm + " Local Time");
+        });
     }
 })(window, jQuery);
