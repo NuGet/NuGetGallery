@@ -87,6 +87,7 @@
     <Compile Include="StatisticsPageTest.cs" />
     <Compile Include="StatsInHomePageTest.cs" />
     <Compile Include="TagSearchTest.cs" />
+    <Compile Include="VersionNormalizationTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

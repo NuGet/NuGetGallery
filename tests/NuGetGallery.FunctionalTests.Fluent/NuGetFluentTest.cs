@@ -45,7 +45,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
         public bool PackageExists(string packageName, string version)
         {
-            HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(UrlHelper.BaseUrl + @"Packages/" + packageName + "/" + version);
+            HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(UrlHelper.BaseUrl + @"/packages/" + packageName + "/" + version);
             HttpWebResponse packagePageResponse;
             try
             {
@@ -53,10 +53,10 @@ namespace NuGetGallery.FunctionalTests.Fluent
             }
             catch (WebException e)
             {
-                if (((HttpWebResponse)e.Response).StatusCode == HttpStatusCode.NotFound) return false;
+                if (e.Response != null && (((HttpWebResponse)e.Response).StatusCode == HttpStatusCode.NotFound)) return false;
             }
 
-            // If we didn't get an exception, that means thew resource exists.
+            // If we didn't get an exception, that means the resource exists.
             return true;
         }
     }
