@@ -17,8 +17,6 @@ namespace NuGetGallery
     {
         private Lucene.Net.Store.Directory _directory;
 
-        public bool HasAllPackageData { get { return false; } }
-
         private static readonly string[] FieldAliases = new[] { "Id", "Title", "Tag", "Tags", "Description", "Author", "Authors", "Owner", "Owners" };
         private static readonly string[] Fields = new[] { "Id", "Title", "Tags", "Description", "Authors", "Owners" };
 

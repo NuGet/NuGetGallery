@@ -11,8 +11,16 @@ namespace NuGetGallery
         /// <param name="filter"> The filter to be used. </param>
         /// <returns>The number of hits in the search and, if the CountOnly flag in SearchFilter was false, the results themselves</returns>
         Task<SearchResults> Search(SearchFilter filter);
+    }
 
-        bool HasAllPackageData { get; }
+    public interface IRawSearchService
+    {
+        /// <summary>
+        /// Executes a raw lucene query against the search index
+        /// </summary>
+        /// <param name="luceneQuery">The query to execute</param>
+        /// <returns>The results of the query</returns>
+        Task<SearchResults> RawSearch(string luceneQuery);
     }
 
     public class SearchResults

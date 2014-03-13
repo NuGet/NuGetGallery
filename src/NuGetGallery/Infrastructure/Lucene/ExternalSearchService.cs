@@ -16,14 +16,13 @@ using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery.Infrastructure.Lucene
 {
-    public class ExternalSearchService : ISearchService, IIndexingService
+    public class ExternalSearchService : ISearchService, IIndexingService, IRawSearchService
     {
         private SearchClient _client;
         private JObject _diagCache;
 
         public Uri ServiceUri { get; private set; }
-        public bool HasAllPackageData { get { return true; } }
-
+        
         protected IDiagnosticsSource Trace { get; private set; }
 
         public string IndexPath
@@ -60,6 +59,11 @@ namespace NuGetGallery.Infrastructure.Lucene
             }
 
             _client = new SearchClient(ServiceUri, credentials, new TracingHttpHandler(Trace));
+        }
+
+        public Task<SearchResults> RawSearch(string luceneQuery)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<SearchResults> Search(SearchFilter filter)
