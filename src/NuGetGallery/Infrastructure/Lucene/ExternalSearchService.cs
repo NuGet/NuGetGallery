@@ -22,6 +22,7 @@ namespace NuGetGallery.Infrastructure.Lucene
         private JObject _diagCache;
 
         public Uri ServiceUri { get; private set; }
+        public bool HasAllPackageData { get { return true; } }
 
         protected IDiagnosticsSource Trace { get; private set; }
 
