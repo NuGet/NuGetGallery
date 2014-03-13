@@ -1,58 +1,6 @@
 ﻿// Global utility script for NuGetGallery
 /// <reference path="jquery-1.6.4.js" />
 (function (window, $, undefined) {
-    function attachSearchBoxBehavior($input, $menu) {
-        if ($input.length == 0 || $menu.length == 0) {
-            // If we were given nothing, just return.
-            return;
-        }
-
-        // Remember the previous state in order to perform smooth animation transforms
-        var prevstate = false;
-        function popit(assumeFocused) {
-            return function () {
-                // Calculate the new state
-                var state;
-                if ($input.val().length > 0 && ($input.is(":focus") || assumeFocused)) {
-                    state = true;
-                } else {
-                    state = false;
-                }
-
-                // If there's a change
-                if (state != prevstate) {
-                    // Record it and stop all current animations to avoid glitching
-                    prevstate = state;
-                    $input.stop();
-                    $menu.stop();
-
-                    // Start new ones to transition to the new state
-                    if (state) {
-                        $menu.animate({ opacity: 0 }, {
-                            duration: 200, queue: true, complete: function () {
-                                $menu.css({ position: 'absolute', top: -10000, left: -10000 });
-                                $input.animate({ width: '920px' }, { duration: 200, queue: true });
-                            }
-                        });
-                    } else {
-                        $input.animate({ width: '160px' }, {
-                            duration: 200, queue: true, complete: function () {
-                                $menu.css({ position: 'static', top: 'auto', left: 'auto' });
-                                $menu.animate({ opacity: 1 }, { duration: 200, queue: true });
-                                prevstate = state;
-                            }
-                        });
-                    }
-                }
-            }
-        }
-
-        // Bind handlers
-        $input.delegate('', 'keyup', popit(false));
-        $input.delegate('', 'blur', popit(false));
-        $input.delegate('', 'focus', popit(true));
-    }
-
     function checkServiceStatus() {
         $.get(app.root + 'api/v2/service-alert?cachebust=' + new Date().getTime())
             .done(function (data) {
@@ -77,9 +25,9 @@
         // Get the service status
         checkServiceStatus();
 
-        attachSearchBoxBehavior($('#searchBoxInput.expanding-search'), $('#menu.expanding-search'));
-
         attachPlugins();
+
+        attachTypeahead();
     });
 
 	// Add validator that ensures provided value is NOT equal to a specified value.
@@ -122,5 +70,33 @@
         if(!navigator.mimeTypes["application/x-shockwave-flash"]) {
             $('.s-reqflash').remove();
         }
+    }
+
+    function attachTypeahead() {
+        var engine = new Bloodhound({
+            name: 'packages',
+            remote: app.root + 'api/v2/typeahead?q=%QUERY',
+            datumTokenizer: function (d) {
+                return Bloodhound.tokenizers.whitespace(d.val);
+            },
+            queryTokenizer: Bloodhound.tokenizers.whitespace
+        });
+        engine.initialize()
+            .done(function () {
+                $('#searchBoxInput').typeahead({
+                    minLength: 3,
+                    highlight: true
+                }, {
+                    source: engine.ttAdapter(),
+                    displayKey: 'Id',
+                    templates: {
+                        suggestion: function (context) {
+                            return "<div class=\"typeahead-package-id\">" + context.Id + "</div>" +
+                                "<div class=\"typeahead-package-summary\">" + (context.Title || context.Summary) + "</div>";
+                        },
+                        empty: "<div class=\"typeahead-empty\">No results</div>"
+                    }
+                });
+            });
     }
 })(window, jQuery);

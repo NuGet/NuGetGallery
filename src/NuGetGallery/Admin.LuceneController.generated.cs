@@ -44,8 +44,6 @@ namespace NuGetGallery.Areas.Admin.Controllers {
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
-            public readonly string Index = "Index";
-            public readonly string Rebuild = "Rebuild";
         }
 
 
@@ -61,16 +59,6 @@ namespace NuGetGallery.Areas.Admin.Controllers {
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
     public class T4MVC_LuceneController: NuGetGallery.Areas.Admin.Controllers.LuceneController {
         public T4MVC_LuceneController() : base(Dummy.Instance) { }
-
-        public override System.Web.Mvc.ActionResult Index() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Index);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Rebuild() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Rebuild);
-            return callInfo;
-        }
 
     }
 }

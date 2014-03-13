@@ -27,6 +27,7 @@ namespace NuGetGallery
         public IUserService UserService { get; set; }
         public IStatisticsService StatisticsService { get; set; }
         public IContentService ContentService { get; set; }
+        public ISearchService SearchService { get; set; }
         public IIndexingService IndexingService { get; set; }
         public IAutomaticallyCuratePackageCommand AutoCuratePackage { get; set; }
         
@@ -40,6 +41,7 @@ namespace NuGetGallery
             INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
             IIndexingService indexingService,
+            ISearchService searchService,
             IAutomaticallyCuratePackageCommand autoCuratePackage)
         {
             EntitiesContext = entitiesContext;
@@ -50,6 +52,7 @@ namespace NuGetGallery
             ContentService = contentService;
             StatisticsService = null;
             IndexingService = indexingService;
+            SearchService = searchService;
             AutoCuratePackage = autoCuratePackage;
         }
 
@@ -61,9 +64,10 @@ namespace NuGetGallery
             INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
             IIndexingService indexingService,
+            ISearchService searchService,
             IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatisticsService statisticsService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, autoCuratePackage)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage)
         {
             StatisticsService = statisticsService;
         }
@@ -428,6 +432,37 @@ namespace NuGetGallery
             }
 
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+        }
+
+        [HttpGet]
+        [ActionName("GetTypeaheadApi")]
+        public virtual async Task<ActionResult> GetTypeahead(string q)
+        {
+            // Query the search service
+            var results = await SearchService.Search(new SearchFilter()
+            {
+                SearchTerm = q, /* For typeahead we want wildcard matching */
+                IncludePrerelease = true,
+                Take = 5
+            });
+
+            // Return the results formatted as JSON
+            return Json(results.Data.AsEnumerable().Select(p => {
+                var summary = p.Summary ?? p.Description;
+                // Truncate to a single line
+                summary = new StringReader(summary).ReadLine();
+                if (summary.Length > 350)
+                {
+                    summary = summary.Substring(0, 350) + "...";
+                }
+                return new {
+                    Key = p.Key,
+                    Id = p.PackageRegistration.Id,
+                    Title = p.Title,
+                    Version = p.NormalizedVersion,
+                    Summary = summary
+                };
+            }), JsonRequestBehavior.AllowGet);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
@@ -175,7 +176,7 @@ namespace NuGetGallery
         public class TheListPackagesAction
         {
             [Fact]
-            public void WillSearchForAPackage()
+            public async Task WillSearchForAPackage()
             {
                 var controller = new TestableCuratedFeedsController();
 
@@ -210,16 +211,15 @@ namespace NuGetGallery
                     .Setup(stub => stub.GetKey("TheMatrix"))
                     .Returns(2);
 
-                int totalHits;
                 controller.StubSearchService
-                    .Setup(stub => stub.Search(It.IsAny<SearchFilter>(), out totalHits))
-                    .Returns(mockPackages);
+                    .Setup(stub => stub.Search(It.IsAny<SearchFilter>()))
+                    .Returns(Task.FromResult(new SearchResults(mockPackages.Count(), mockPackages)));
 
                 var mockHttpContext = new Mock<HttpContextBase>();
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
 
                 // Act
-                var result = controller.ListPackages("TheMatrix", "");
+                var result = await controller.ListPackages("TheMatrix", "");
 
                 Assert.IsType<ViewResult>(result);
                 Assert.IsType<PackageListViewModel>(((ViewResult)result).Model);

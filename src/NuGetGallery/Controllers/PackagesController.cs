@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
+using NuGet.Services.Search.Models;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
@@ -282,7 +283,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        public virtual ActionResult ListPackages(string q, string sortOrder = null, int page = 1, bool prerelease = false)
+        public virtual async Task<ActionResult> ListPackages(string q, int page = 1)
         {
             if (page < 1)
             {
@@ -291,31 +292,22 @@ namespace NuGetGallery
 
             q = (q ?? "").Trim();
 
-            if (String.IsNullOrEmpty(sortOrder))
-            {
-                // Determine the default sort order. If no query string is specified, then the sortOrder is DownloadCount
-                // If we are searching for something, sort by relevance.
-                sortOrder = q.IsEmpty() ? Constants.PopularitySortOrder : Constants.RelevanceSortOrder;
-            }
-
-            var searchFilter = SearchAdaptor.GetSearchFilter(q, sortOrder, page, prerelease);
-            int totalHits;
-            IQueryable<Package> packageVersions = _searchService.Search(searchFilter, out totalHits);
-            if (page == 1 && !packageVersions.Any())
+            var searchFilter = SearchAdaptor.GetSearchFilter(q, page, sortOrder: null);
+            var results = await _searchService.Search(searchFilter);
+            int totalHits = results.Hits;
+            if (page == 1 && !results.Data.Any())
             {
                 // In the event the index wasn't updated, we may get an incorrect count. 
                 totalHits = 0;
             }
 
             var viewModel = new PackageListViewModel(
-                packageVersions,
+                results.Data,
                 q,
-                sortOrder,
                 totalHits,
                 page - 1,
                 Constants.DefaultPackageListPageSize,
-                Url,
-                prerelease);
+                Url);
 
             ViewBag.SearchTerm = q;
 

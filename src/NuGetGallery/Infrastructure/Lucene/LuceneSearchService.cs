@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Function;
+using NuGet.Services.Search.Models;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -23,7 +25,7 @@ namespace NuGetGallery
             _directory = directory;
         }
 
-        public IQueryable<Package> Search(SearchFilter searchFilter, out int totalHits)
+        public Task<SearchResults> Search(SearchFilter searchFilter)
         {
             if (searchFilter == null)
             {
@@ -40,10 +42,10 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException("searchFilter");
             }
 
-            return SearchCore(searchFilter, out totalHits);
+            return Task.FromResult(SearchCore(searchFilter));
         }
 
-        private IQueryable<Package> SearchCore(SearchFilter searchFilter, out int totalHits)
+        private SearchResults SearchCore(SearchFilter searchFilter)
         {
             int numRecords = searchFilter.Skip + searchFilter.Take;
 
@@ -51,7 +53,7 @@ namespace NuGetGallery
             var query = ParseQuery(searchFilter);
 
             // IF searching by relevance, boost scores by download count.
-            if (searchFilter.SortProperty == SortProperty.Relevance)
+            if (searchFilter.SortOrder == SortOrder.Relevance)
             {
                 var downloadCountBooster = new FieldScoreQuery("DownloadCount", FieldScoreQuery.Type.INT);
                 query = new CustomScoreQuery(query, downloadCountBooster);
@@ -59,9 +61,9 @@ namespace NuGetGallery
 
             var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
             Query filterQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
-            if (searchFilter.CuratedFeedKey.HasValue)
+            if (searchFilter.CuratedFeed != null)
             {
-                var feedFilterQuery = new TermQuery(new Term("CuratedFeedKey", searchFilter.CuratedFeedKey.Value.ToString(CultureInfo.InvariantCulture)));
+                var feedFilterQuery = new TermQuery(new Term("CuratedFeedKey", searchFilter.CuratedFeed.Key.ToString(CultureInfo.InvariantCulture)));
                 BooleanQuery conjunctionQuery = new BooleanQuery();
                 conjunctionQuery.Add(filterQuery, Occur.MUST);
                 conjunctionQuery.Add(feedFilterQuery, Occur.MUST);
@@ -70,18 +72,19 @@ namespace NuGetGallery
 
             Filter filter = new QueryWrapperFilter(filterQuery);
             var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(GetSortField(searchFilter)));
-            totalHits = results.TotalHits;
-
+            
             if (results.TotalHits == 0 || searchFilter.CountOnly)
             {
-                return Enumerable.Empty<Package>().AsQueryable();
+                return new SearchResults(results.TotalHits);
             }
 
             var packages = results.ScoreDocs
                                   .Skip(searchFilter.Skip)
                                   .Select(sd => PackageFromDoc(searcher.Doc(sd.Doc)))
                                   .ToList();
-            return packages.AsQueryable();
+            return new SearchResults(
+                results.TotalHits,
+                packages.AsQueryable());
         }
 
         private static Package PackageFromDoc(Document doc)
@@ -345,15 +348,15 @@ namespace NuGetGallery
 
         private static SortField GetSortField(SearchFilter searchFilter)
         {
-            switch (searchFilter.SortProperty)
+            switch (searchFilter.SortOrder)
             {
-                case SortProperty.DisplayName:
-                    return new SortField("DisplayName", SortField.STRING, reverse: searchFilter.SortDirection == SortDirection.Descending);
-                case SortProperty.DownloadCount:
-                    return new SortField("DownloadCount", SortField.INT, reverse: true);
-                case SortProperty.Recent:
+                case SortOrder.TitleAscending:
+                    return new SortField("DisplayName", SortField.STRING, reverse: false);
+                case SortOrder.TitleDescending:
+                    return new SortField("DisplayName", SortField.STRING, reverse: false);
+                case SortOrder.Published:
                     return new SortField("PublishedDate", SortField.LONG, reverse: true);
-                case SortProperty.RecentlyEdited:
+                case SortOrder.LastEdited:
                     return new SortField("EditedDate", SortField.LONG, reverse: true);
             }
 

@@ -43,11 +43,6 @@ namespace NuGetGallery {
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult ListPackages() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.ListPackages);
-        }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult ReportAbuse() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.ReportAbuse);
         }
@@ -102,7 +97,6 @@ namespace NuGetGallery {
             public readonly string UploadPackageProgress = "UploadPackageProgress";
             public readonly string UndoPendingEdits = "UndoPendingEdits";
             public readonly string DisplayPackage = "DisplayPackage";
-            public readonly string ListPackages = "ListPackages";
             public readonly string ReportAbuse = "ReportAbuse";
             public readonly string ReportMyPackage = "ReportMyPackage";
             public readonly string ContactOwners = "ContactOwners";
@@ -156,15 +150,6 @@ namespace NuGetGallery {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.DisplayPackage);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult ListPackages(string q, string sortOrder, int page, bool prerelease) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ListPackages);
-            callInfo.RouteValueDictionary.Add("q", q);
-            callInfo.RouteValueDictionary.Add("sortOrder", sortOrder);
-            callInfo.RouteValueDictionary.Add("page", page);
-            callInfo.RouteValueDictionary.Add("prerelease", prerelease);
             return callInfo;
         }
 

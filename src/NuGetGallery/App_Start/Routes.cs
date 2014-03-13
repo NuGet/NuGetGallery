@@ -69,7 +69,7 @@ namespace NuGetGallery
             var packageListRoute = routes.MapRoute(
                 RouteName.ListPackages,
                 "packages",
-                MVC.Packages.ListPackages());
+                new { controller = MVC.Packages.Name, action = "ListPackages" });
 
             var uploadPackageRoute = routes.MapRoute(
                 RouteName.UploadPackage,
@@ -207,27 +207,27 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.CuratedFeed,
                 "curated-feeds/{name}",
-                new { controller = CuratedFeedsController.ControllerName, action = "CuratedFeed" });
+                new { controller = MVC.CuratedFeeds.Name, action = "CuratedFeed" });
 
             routes.MapRoute(
                 RouteName.CuratedFeedListPackages,
                 "curated-feeds/{curatedFeedName}/packages",
-                MVC.CuratedFeeds.ListPackages());
+                new { controller = MVC.CuratedFeeds.Name, action = "ListPackages" });
 
             routes.MapRoute(
                 RouteName.CreateCuratedPackageForm,
                 "forms/add-package-to-curated-feed",
-                new { controller = CuratedPackagesController.ControllerName, action = "CreateCuratedPackageForm" });
+                new { controller = MVC.CuratedPackages.Name, action = "CreateCuratedPackageForm" });
 
             routes.MapRoute(
                 RouteName.CuratedPackage,
                 "curated-feeds/{curatedFeedName}/curated-packages/{curatedPackageId}",
-                new { controller = CuratedPackagesController.ControllerName, action = "CuratedPackage" });
+                new { controller = MVC.CuratedPackages.Name, action = "CuratedPackage" });
 
             routes.MapRoute(
                 RouteName.CuratedPackages,
                 "curated-feeds/{curatedFeedName}/curated-packages",
-                new { controller = CuratedPackagesController.ControllerName, action = "CuratedPackages" });
+                new { controller = MVC.CuratedPackages.Name, action = "CuratedPackages" });
 
             // TODO : Most of the routes are essentially of the format api/v{x}/*. We should refactor the code to vary them by the version.
             // V1 Routes
@@ -322,6 +322,12 @@ namespace NuGetGallery
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
+                RouteName.TypeaheadApi,
+                "api/v2/typeahead",
+                defaults: new { controller = MVC.Api.Name, action = "GetTypeaheadApi" },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
                 RouteName.DownloadNuGetExe,
                 "nuget.exe",
                 new { controller = MVC.Api.Name, action = "GetNuGetExeApi" });
@@ -350,7 +356,7 @@ namespace NuGetGallery
                 r => r.MapRoute(
                     RouteName.ListPackages,
                     "List/Packages",
-                    MVC.Packages.ListPackages()),
+                    new { controller = MVC.Packages.Name, action = "ListPackages" }),
                 permanent: true).To(packageListRoute);
 
             routes.Redirect(

@@ -60,5 +60,6 @@
         public const string UnsubscribeFromEmails = "UnsubscribeFromEmails";
         public const string Error500 = "Error500";
         public const string Error404 = "Error404";
+        public const string TypeaheadApi = "Typeahead";
     }
 }

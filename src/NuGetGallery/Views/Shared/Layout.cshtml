@@ -26,16 +26,18 @@
             <div id="content-wrapper">
                 <header class="main">
                     <div id="logo"><a href="@Url.Home()">@(Config.Current.Brand)</a></div>
-                    @Html.Partial("UserDisplay")
+                    <div id="header-sidebox">
+                        <div id="searchBox" role="search">
+                            <form action="@Url.PackageList()" method="get">
+                                <input name="q" id="searchBoxInput" class="expanding-search" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" autocomplete="off" />
+                                <input id="searchBoxSubmit" type="submit" value=" " />
+                            </form>
+                        </div>
+                        @Html.Partial("UserDisplay")
+                    </div>
                 </header>
                 <nav class="main">
                     @Html.Partial( "SiteMenu")
-                    <div id="searchBox" role="search">
-                        <form action="@Url.PackageList()" method="get">
-                            <input name="q" id="searchBoxInput" class="expanding-search" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" />
-                            <input id="searchBoxSubmit" type="submit" value=" " />
-                        </form>
-                    </div>
                 </nav>
                 <div id="body" role="main">
                     @if (TempData.ContainsKey("Message"))

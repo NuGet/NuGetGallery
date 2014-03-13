@@ -35,6 +35,11 @@ namespace NuGetGallery.Configuration
         string AzureStorageConnectionString { get; set; }
 
         /// <summary>
+        /// Gets the URI to the search service
+        /// </summary>
+        Uri SearchServiceUri { get; set; }
+
+        /// <summary>
         /// Gets a boolean indicating if the site requires that email addresses be confirmed
         /// </summary>
         bool ConfirmEmailAddresses { get; set; }

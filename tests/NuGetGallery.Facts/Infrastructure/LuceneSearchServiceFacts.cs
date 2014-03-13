@@ -612,8 +612,7 @@ namespace NuGetGallery.Infrastructure
                 SearchTerm = searchTerm,
             };
 
-            int totalHits;
-            var results = luceneSearchService.Search(searchFilter, out totalHits).ToList();
+            var results = luceneSearchService.Search(searchFilter).Result.Data.ToList();
 
             return results;
         }

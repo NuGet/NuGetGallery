@@ -59,7 +59,7 @@ header.main { height: 95px; }
     margin: 0;
     padding: 0;
     text-indent: -9999px;
-    width: 345px;
+    width: 225px;
 }
 
 /* Top Menu (Navigation) */
@@ -116,14 +116,19 @@ nav.main ul a:hover {
     text-decoration: none;
 }
 
-/* User Display (Sign-In Info) */
+/* User Display (Sign-In Info) and search box */
+
+#header-sidebox {
+    float: right;
+    margin-top: 40px;
+}
 
 .user-display {
+    text-align: right;
     color: #fff;
     font-weight: 600;
-    float: right;
-    margin-top: 80px;
-    padding-right: 7px;
+    padding-right: 1px;
+    margin-top: 6px;
 }
 
 .user-display a {
@@ -133,18 +138,13 @@ nav.main ul a:hover {
 
 .user-display a:hover { text-decoration: underline; }
 
-/* Header Search Box */
-
 #searchBox {
-    -moz-border-radius: 4px;
-    -webkit-border-radius: 4px;
     background-color: #fff;
-    border: 0px;
+    border: solid 1px #05005F;
     /*CSS3 properties*/
-    border-radius: 4px;
-    float: right;
     height: 32px;
-    margin-top: 7px;
+    margin-top: 1px;
+    width: 704px;
             
     padding-left: 5px;
     padding-right: 4px;
@@ -159,7 +159,7 @@ nav.main ul a:hover {
     line-height: 30px;
     outline: none;
     padding: 0;
-    width: 160px;
+    width: 673px;
 }
 
 #searchBoxSubmit {
@@ -168,15 +168,81 @@ nav.main ul a:hover {
     background-color: #fff;
     background-image: url("../Content/Images/searchbutton.png");
     border: none;
-    border-radius: 0 4px 4px 0;
     cursor: pointer;
-    height: 27px;
+    height: 30px;
     margin-left: 0;
     box-shadow: none;
+    margin-top: 1px;
     
     text-indent: -9999px;
     vertical-align: bottom;
     width: 27px;
+}
+
+#searchBoxInput:-ms-input-placeholder {
+    color: silver;
+}
+
+/* Typeahead */
+.twitter-typeahead .tt-dropdown-menu {
+    background-color: white;
+    width: 712px;
+    margin-top: 1em;
+    margin-left: -6px;
+    padding-top: 0.5em;
+    
+    border: solid 1px black;
+}
+
+.twitter-typeahead .tt-suggestion {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    padding-left: 1em;
+    padding-right: 1em;
+    padding-bottom: 0.25em;
+
+    overflow: hidden;
+}
+
+.twitter-typeahead .tt-cursor {
+    background-color: #54A4CB;
+    color: white;
+    cursor: pointer;
+}
+
+.twitter-typeahead .tt-hint {
+    color: silver;
+    font-size: 20px;
+    background: none;
+    padding: 0;
+    line-height: 30px;
+    height: 30px;
+    outline: none;
+    border: 0;
+    width: 300px;
+}
+
+.twitter-typeahead .typeahead-package-id {
+    font-size: 14pt;
+}
+
+.twitter-typeahead .typeahead-package-summary {
+    font-size: 10pt;
+    color: grey;
+    height: 1.25em;
+}
+
+.twitter-typeahead .tt-cursor .typeahead-package-summary {
+    color: black;
+}
+
+.twitter-typeahead .typeahead-empty {
+    font-size: 12pt;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    padding-left: 1em;
+    padding-right: 1em;
+    padding-bottom: 0.25em;
 }
 
 /* Body */

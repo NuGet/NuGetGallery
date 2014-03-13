@@ -200,7 +200,7 @@ namespace NuGetGallery.Diagnostics
                                            [CallerLineNumber] int line = 0)
         {
             var thisActivityId = Interlocked.Increment(ref _activityId);
-            var stopMessage = String.Format(CultureInfo.CurrentCulture, "Finished {0}", name);
+            var start = DateTime.UtcNow;
             self.TraceEvent(TraceEventType.Start,
                        id: thisActivityId,
                        message: String.Format(CultureInfo.CurrentCulture, "Starting {0}", name),
@@ -209,6 +209,8 @@ namespace NuGetGallery.Diagnostics
                        line: line);
             return new DisposableAction(() =>
             {
+                var diff = DateTime.UtcNow - start;
+                var stopMessage = String.Format(CultureInfo.CurrentCulture, "Finished {0}. Duration {1:0.00}ms", name, diff.TotalMilliseconds);
                 self.TraceEvent(TraceEventType.Stop,
                             id: thisActivityId,
                             message: stopMessage,

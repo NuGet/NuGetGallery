@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet;
 using NuGetGallery;
@@ -10,8 +11,6 @@ namespace NuGetGallery
     [Authorize]
     public partial class CuratedFeedsController : AppController
     {
-        public const string ControllerName = "CuratedFeeds";
-
         public ICuratedFeedService CuratedFeedService { get; protected set; }
         public ISearchService SearchService { get; protected set; }
 
@@ -56,7 +55,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        public virtual ActionResult ListPackages(string curatedFeedName, string q, string sortOrder = null, int page = 1, bool prerelease = false)
+        public virtual async Task<ActionResult> ListPackages(string curatedFeedName, string q, int page = 1)
         {
             if (page < 1)
             {
@@ -65,37 +64,28 @@ namespace NuGetGallery
 
             q = (q ?? "").Trim();
 
-            if (String.IsNullOrEmpty(sortOrder))
-            {
-                // Determine the default sort order. If no query string is specified, then the sortOrder is DownloadCount
-                // If we are searching for something, sort by relevance.
-                sortOrder = q.IsEmpty() ? Constants.PopularitySortOrder : Constants.RelevanceSortOrder;
-            }
-
-            var searchFilter = SearchAdaptor.GetSearchFilter(q, sortOrder, page, prerelease);
-            searchFilter.CuratedFeedKey = CuratedFeedService.GetKey(curatedFeedName);
-            if (searchFilter.CuratedFeedKey == 0)
+            var searchFilter = SearchAdaptor.GetSearchFilter(q, page, sortOrder: null);
+            searchFilter.CuratedFeed = CuratedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
+            if (searchFilter.CuratedFeed == null)
             {
                 return HttpNotFound();
             }
 
-            int totalHits;
-            IQueryable<Package> packageVersions = SearchService.Search(searchFilter, out totalHits);
-            if (page == 1 && !packageVersions.Any())
+            SearchResults results = await SearchService.Search(searchFilter);
+            int totalHits = results.Hits;
+            if (page == 1 && !results.Data.Any())
             {
                 // In the event the index wasn't updated, we may get an incorrect count. 
                 totalHits = 0;
             }
 
             var viewModel = new PackageListViewModel(
-                packageVersions,
+                results.Data,
                 q,
-                sortOrder,
                 totalHits,
                 page - 1,
                 Constants.DefaultPackageListPageSize,
-                Url,
-                prerelease);
+                Url);
 
             ViewBag.SearchTerm = q;
 
