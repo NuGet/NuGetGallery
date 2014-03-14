@@ -156,7 +156,7 @@ namespace NuGetGallery.DataServices
                     SearchTerm = BuildQuery(comparisons),
                     IncludePrerelease = true,
                     IncludeAllVersions = true,
-                    Take = 100,
+                    Take = 40,
                     CuratedFeed = new CuratedFeed() { Name = Feed },
                     SortOrder = SortOrder.Relevance
                 }).Result.Data.ToV2FeedPackageQuery(SiteRoot, IncludeLicenseReport);
