@@ -5,6 +5,11 @@
     <IISLogs container="wad-iis-requestlogs" directoryQuotaInMB="256" />
     <FailedRequestLogs container="wad-iis-failedrequestlogs" directoryQuotaInMB="256" />
     <CrashDumps container="wad-crash-dumps" directoryQuotaInMB="256" />
+    <DataSources>
+      <DirectoryConfiguration container="ng-v2gallery-logs" directoryQuotaInMB="1024">
+        <LocalResource name="Logs" relativePath="." />
+      </DirectoryConfiguration>
+    </DataSources>
   </Directories>
   <Logs bufferQuotaInMB="512" scheduledTransferPeriod="PT1M" scheduledTransferLogLevelFilter="Verbose" />
   <PerformanceCounters bufferQuotaInMB="512" scheduledTransferPeriod="PT1M">

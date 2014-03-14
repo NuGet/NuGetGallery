@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -81,6 +82,8 @@ namespace NuGetGallery.Infrastructure.Lucene
             }
 
             // Query!
+            var sw = new Stopwatch();
+            sw.Start();
             var result = await _client.Search(
                 query,
                 projectTypeFilter: null,
@@ -93,16 +96,36 @@ namespace NuGetGallery.Infrastructure.Lucene
                 countOnly: filter.CountOnly,
                 explain: false,
                 getAllVersions: filter.IncludeAllVersions);
+			sw.Stop();
+
+            SearchResults results = null;
+            if (result.IsSuccessStatusCode)
+            {
+                var content = await result.ReadContent();
+                if (filter.CountOnly || content.TotalHits == 0)
+                {
+                    results = new SearchResults(content.TotalHits);
+                }
+                else
+                {
+                    results = new SearchResults(
+                        content.TotalHits,
+                        content.Data.Select(ReadPackage).AsQueryable());
+                }
+            }
+
+            Trace.PerfEvent(
+                sw.Elapsed,
+                new Dictionary<string, object>() {
+                    {"Term", filter.SearchTerm},
+                    {"Hits", results == null ? -1 : results.Hits},
+                    {"StatusCode", (int)result.StatusCode},
+                    {"SortOrder", filter.SortOrder.ToString()},
+                    {"CuratedFeed", filter.CuratedFeed == null ? null : filter.CuratedFeed.Name}
+                });
 
             result.HttpResponse.EnsureSuccessStatusCode();
-            var content = await result.ReadContent();
-            if (filter.CountOnly || content.TotalHits == 0)
-            {
-                return new SearchResults(content.TotalHits);
-            }
-            return new SearchResults(
-                content.TotalHits, 
-                content.Data.Select(ReadPackage).AsQueryable());
+            return results;
         }
 
         private static string BuildLuceneQuery(string p)

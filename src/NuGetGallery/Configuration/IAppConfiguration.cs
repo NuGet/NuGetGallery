@@ -98,5 +98,10 @@ namespace NuGetGallery.Configuration
         /// Gets the Google Analytics Property ID being used, if any.
         /// </summary>
         string GoogleAnalyticsPropertyId { get; set; }
+
+        /// <summary>
+        /// Gets a boolean indicating if perf logs should be collected
+        /// </summary>
+        bool CollectPerfLogs { get; set; }
     }
 }

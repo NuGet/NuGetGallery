@@ -395,6 +395,7 @@
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Diagnostics\FlushLogs.cs" />
     <Compile Include="App_Start\OwinStartup.cs" />
     <Compile Include="Areas\Admin\DynamicData\OrderedFieldGenerator.cs" />
     <Compile Include="Areas\Admin\Controllers\LuceneController.cs" />
@@ -432,7 +433,10 @@
     <Compile Include="DataServices\SearchHijacker.cs" />
     <Compile Include="Diagnostics\AuthenticationGlimpseTab.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
+    <Compile Include="Diagnostics\DiagnosticsGlimpseTab.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
+    <Compile Include="Diagnostics\PerfEvent.cs" />
+    <Compile Include="Infrastructure\MessageQueue.cs" />
     <Compile Include="Diagnostics\NullDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\IDiagnosticsService.cs" />

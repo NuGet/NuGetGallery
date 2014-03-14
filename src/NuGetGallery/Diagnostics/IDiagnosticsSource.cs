@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -10,6 +11,8 @@ namespace NuGetGallery.Diagnostics
     public interface IDiagnosticsSource
     {
         void TraceEvent(TraceEventType type, int id, string message, [CallerMemberName] string member = null, [CallerFilePath] string file = null, [CallerLineNumber] int line = 0);
+
+        void PerfEvent(TimeSpan time, IEnumerable<KeyValuePair<string, object>> payload);
     }
 
     public static class DiagnosticsSourceExtensions
