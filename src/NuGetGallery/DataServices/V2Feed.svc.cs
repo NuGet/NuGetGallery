@@ -11,6 +11,7 @@ using NuGet;
 using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
 using QueryInterceptor;
+using NuGetGallery.DataServices;
 
 namespace NuGetGallery
 {
@@ -33,7 +34,9 @@ namespace NuGetGallery
         {
             return new V2FeedContext
                 {
-                    Packages = PackageRepository.GetAll()
+                    Packages = PackageRepository
+                        .GetAll()
+                        .UseSearchService(SearchService, null, Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
                         .WithoutVersionSort()
                         .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
                         .InterceptWith(new NormalizeVersionInterceptor())

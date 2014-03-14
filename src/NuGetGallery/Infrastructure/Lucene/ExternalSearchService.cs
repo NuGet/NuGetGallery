@@ -61,15 +61,24 @@ namespace NuGetGallery.Infrastructure.Lucene
             _client = new SearchClient(ServiceUri, credentials, new TracingHttpHandler(Trace));
         }
 
-        public Task<SearchResults> RawSearch(string luceneQuery)
+        public Task<SearchResults> RawSearch(SearchFilter filter)
         {
-            throw new NotImplementedException();
+            return SearchCore(filter, raw: true);
         }
 
-        public async Task<SearchResults> Search(SearchFilter filter)
+        public Task<SearchResults> Search(SearchFilter filter)
+        {
+            return SearchCore(filter, raw: false);
+        }
+
+        private async Task<SearchResults> SearchCore(SearchFilter filter, bool raw)
         {
             // Convert the query
-            string query = BuildLuceneQuery(filter.SearchTerm);
+            string query = filter.SearchTerm;
+            if (!raw && !String.IsNullOrEmpty(filter.SearchTerm))
+            {
+                query = BuildLuceneQuery(filter.SearchTerm);
+            }
 
             // Query!
             var result = await _client.Search(
@@ -83,7 +92,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                 isLuceneQuery: true,
                 countOnly: filter.CountOnly,
                 explain: false,
-                getAllVersions: false);
+                getAllVersions: filter.IncludeAllVersions);
 
             result.HttpResponse.EnsureSuccessStatusCode();
             var content = await result.ReadContent();

@@ -18,9 +18,9 @@ namespace NuGetGallery
         /// <summary>
         /// Executes a raw lucene query against the search index
         /// </summary>
-        /// <param name="luceneQuery">The query to execute</param>
+        /// <param name="filter">The query to execute, with the search term interpreted as a raw lucene query</param>
         /// <returns>The results of the query</returns>
-        Task<SearchResults> RawSearch(string luceneQuery);
+        Task<SearchResults> RawSearch(SearchFilter filter);
     }
 
     public class SearchResults

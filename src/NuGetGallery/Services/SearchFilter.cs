@@ -19,5 +19,7 @@ namespace NuGetGallery
         ///     Determines if only this is a count only query and does not process the source queryable.
         /// </summary>
         public bool CountOnly { get; set; }
+
+        public bool IncludeAllVersions { get; set; }
     }
 }
