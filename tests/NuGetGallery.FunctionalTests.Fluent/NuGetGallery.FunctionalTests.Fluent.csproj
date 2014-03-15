@@ -69,6 +69,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="1826RegressionTest.cs" />
+    <Compile Include="ContactEmailTest.cs" />
     <Compile Include="CSExtensionTest.cs" />
     <Compile Include="EditAndSearchTest.cs" />
     <Compile Include="ErrorPageTest.cs" />
@@ -80,6 +82,7 @@
     <Compile Include="LogonTest.cs" />
     <Compile Include="MinClientVersionFromUITest.cs" />
     <Compile Include="NuGetFluentTest.cs" />
+    <Compile Include="PackageManagementTest.cs" />
     <Compile Include="PackageStatsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SearchSyntaxTest.cs" />

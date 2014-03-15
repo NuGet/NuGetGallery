@@ -43,6 +43,14 @@ namespace NuGetGallery.FunctionalTests.Fluent
             }
         }
 
+        public void UploadPackageIfNecessary(string packageName, string version, string minClientVersion, string title, string tags, string description, string licenseUrl, string dependencies)
+        {
+            if (!PackageExists(packageName, version))
+            {
+                AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
+            }
+        }
+
         public bool PackageExists(string packageName, string version)
         {
             HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(UrlHelper.BaseUrl + @"/packages/" + packageName + "/" + version);

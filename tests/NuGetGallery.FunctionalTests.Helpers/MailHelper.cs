@@ -22,8 +22,9 @@ namespace NuGetGallery.FunctionTests.Helpers
         {
             try
             {
-                subject = GetLastMessageFromInBox(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword,"INBOX").Subject;              
-                return subject.Equals(ContactOwnerMailDefaultSubject + "'" + packageId + "'");
+                subject = GetLastMessageFromInBox(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword,"INBOX").Subject;
+                return (MatchRemoveWhitespace(subject, ContactOwnerMailDefaultSubject + " '" + packageId + "'") || 
+                        MatchRemoveWhitespace(subject, ContactOwnerMailDefaultSubject + " '" + packageId + "' [Sender Copy]" ));
             }
             catch (Exception e)
             {
@@ -44,6 +45,36 @@ namespace NuGetGallery.FunctionTests.Helpers
             {
                 subject = GetLastMessageFromInBox(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword, "INBOX").Subject;
                 return subject.Contains(AccountConfirmationMailSubject);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in checking the mails. Exception : {0}", e.Message);
+                subject = null;
+                return false;
+            }
+        }
+
+        public static bool IsMailSentForAbuseReport(string packageName, string version, string reason, out string subject)
+        {
+            try
+            {
+                subject = GetLastMessageFromInBox(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword, "INBOX").Subject;
+                return MatchRemoveWhitespace(subject, String.Format(AbuseReportMailDefaultSubject, packageName, version, reason));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in checking the mails. Exception : {0}", e.Message);
+                subject = null;
+                return false;
+            }
+        }
+
+        public static bool IsMailSentForContactSupport(string packageName, string version, string reason, out string subject)
+        {
+            try
+            {
+                subject = GetLastMessageFromInBox(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword, "INBOX").Subject;
+                return MatchRemoveWhitespace(subject, String.Format(ContactSupportMailDefaultSubject, packageName, version, reason));
             }
             catch (Exception e)
             {
@@ -79,6 +110,17 @@ namespace NuGetGallery.FunctionTests.Helpers
             }
         }
 
+        // Most of the subject headers we need to validate have line breaks and other extra whitespace.
+        // The library we use is bad at handling this, which is why we strip all whitespace before validating.
+        public static bool MatchRemoveWhitespace(string input1, string input2) {
+            for (int i = 0; i < 33; i++)
+            {
+                input1 = input1.Replace(Convert.ToChar(i).ToString(), String.Empty);
+                input2 = input2.Replace(Convert.ToChar(i).ToString(), String.Empty);
+            }
+            return (input1 == input2);
+        }
+
         #region PrivateMembers
 
         private static MailMessage GetLastMessageFromInBox(string testAccountName,string testAccountPassword,string folderName="INBOX")
@@ -99,6 +141,8 @@ namespace NuGetGallery.FunctionTests.Helpers
         }
 
         private const string ContactOwnerMailDefaultSubject = @"[NuGet Gallery] Message for owners of the package";
+        private const string AbuseReportMailDefaultSubject = @"[NuGet Gallery] Support Request for '{0}' version {1} (Reason: {2})";
+        private const string ContactSupportMailDefaultSubject = @"[NuGet Gallery] Owner Support Request for '{0}' version {1} (Reason: {2})";
         private const string AccountConfirmationMailSubject = @"[NuGet Gallery] Please verify your account";
         private const string GalleryTeamSignatureInMailBOdy = "Thanks, The NuGet Gallery Team";
         #endregion PrivateMembers
