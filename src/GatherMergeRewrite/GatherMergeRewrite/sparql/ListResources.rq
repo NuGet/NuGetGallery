@@ -1,0 +1,28 @@
+﻿PREFIX nuget: <http://nuget.org/schema#>
+
+SELECT ?resource ?transform ?frame
+WHERE
+{
+	{
+		?registration a nuget:PackageRegistration .
+		?registration nuget:package ?resource .
+
+		BIND ("Package.rq" AS ?transform)
+		BIND ("PackageFrame.json" AS ?frame)
+	}
+	UNION
+	{
+		?resource a nuget:PackageRegistration .
+
+		BIND ("PackageRegistration.rq" AS ?transform)
+		BIND ("PackageRegistrationFrame.json" AS ?frame)
+	}
+	UNION
+	{
+		?registration a nuget:PackageRegistration .
+		?registration nuget:owner ?resource .
+
+		BIND ("Owner.rq" AS ?transform)
+		BIND ("OwnerFrame.json" AS ?frame)
+	}
+}

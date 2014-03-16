@@ -1,0 +1,39 @@
+﻿PREFIX nuget: <http://nuget.org/schema#>
+
+CONSTRUCT
+{
+    @resource a nuget:Package ;
+              nuget:id ?id ;
+              nuget:version ?version ;
+              nuget:registration ?registration ;
+              nuget:description ?description ;
+			  nuget:published ?published ;
+		      nuget:dependencies ?dependencies .
+
+	?registration nuget:owner ?owner .
+
+	?dependencies nuget:group ?group .
+
+	?group nuget:dependency ?dependency .
+
+	?dependency nuget:id ?dependency_id ;
+	            nuget:version ?dependency_version .
+}
+WHERE
+{
+    @resource nuget:id ?id ;
+	          nuget:version ?version ;
+	          nuget:registration ?registration ;
+	          nuget:description ?description ;
+			  nuget:published ?published ;
+		      nuget:dependencies ?dependencies .
+
+	?registration nuget:owner ?owner .
+
+	?dependencies nuget:group ?group .
+
+	?group nuget:dependency ?dependency .
+
+	?dependency nuget:id ?dependency_id ;
+	            nuget:version ?dependency_version .
+}

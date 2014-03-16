@@ -1,0 +1,11 @@
+﻿PREFIX nuget: <http://nuget.org/schema#>
+
+CONSTRUCT
+{
+    @resource a nuget:Owner ;
+              nuget:registration ?registration .
+}
+WHERE
+{
+    @resource nuget:registration ?registration .
+}

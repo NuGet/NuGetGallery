@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MakeMetadata", "src\MakeMetadata\MakeMetadata\MakeMetadata.csproj", "{C205DA2B-243E-47B4-B222-D6C3F07A73BD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonLDIntegration", "src\JsonLDIntegration\JsonLDIntegration\JsonLDIntegration.csproj", "{7019ECAE-0C0D-4978-9E39-79AA276CD495}"
@@ -12,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nu", "src\MetadataClient\Nu.csproj", "{1C9E8DFE-C6DD-45BA-976E-84AE1076756E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestNuspec", "tests\TestNuspec\TestNuspec\TestNuspec.csproj", "{8110AEB8-0A54-40B5-B8CE-C434A21C3993}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GatherMergeRewrite", "src\GatherMergeRewrite\GatherMergeRewrite\GatherMergeRewrite.csproj", "{7A719289-888C-48A9-A2FF-72EB3DF12CD4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +39,10 @@ Global
 		{8110AEB8-0A54-40B5-B8CE-C434A21C3993}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8110AEB8-0A54-40B5-B8CE-C434A21C3993}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8110AEB8-0A54-40B5-B8CE-C434A21C3993}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A719289-888C-48A9-A2FF-72EB3DF12CD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A719289-888C-48A9-A2FF-72EB3DF12CD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A719289-888C-48A9-A2FF-72EB3DF12CD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A719289-888C-48A9-A2FF-72EB3DF12CD4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
