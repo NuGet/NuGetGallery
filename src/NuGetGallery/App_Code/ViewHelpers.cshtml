@@ -155,7 +155,7 @@
             }
             
             if(ver.BuildDateUtc != DateTime.MinValue) {
-                @: Built at <span class="s-localtime" data-utc="@ver.BuildDateUtc.ToString("O")">@ver.BuildDateUtc.ToShortDateString()</span>.
+                @: Built at <span class="s-localtime" data-utc="@ver.BuildDateUtc.ToString("O")">@ver.BuildDateUtc.ToNuGetShortDateString()</span>.
             }
         }
         
