@@ -71,9 +71,10 @@ namespace NuGetGallery
             CuratedFeed curatedFeed)
         {
             SearchFilter searchFilter;
-            // We can only use Lucene if the client queries for the latest versions (IsLatest \ IsLatestStable) versions of a package
-            // and specific sort orders that we have in the index.
-            if (TryReadSearchFilter(request.RawUrl, out searchFilter))
+            // We can only use Lucene if:
+            //  a) We are looking for the latest version of a package OR the Index contains all versions of each package
+            //  b) The sort order is something Lucene can handle
+            if (TryReadSearchFilter(searchService.ContainsAllVersions, request.RawUrl, out searchFilter))
             {
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = includePrerelease;
@@ -94,7 +95,7 @@ namespace NuGetGallery
             return packages.Search(searchTerm);
         }
 
-        private static bool TryReadSearchFilter(string url, out SearchFilter searchFilter)
+        private static bool TryReadSearchFilter(bool allVersionsInIndex, string url, out SearchFilter searchFilter)
         {
             if (url == null)
             {
@@ -144,6 +145,7 @@ namespace NuGetGallery
 
             // We'll only use the index if we the query searches for latest \ latest-stable packages
 
+            
             string filter;
             if (queryTerms.TryGetValue("$filter", out filter))
             {
@@ -153,7 +155,7 @@ namespace NuGetGallery
                     return false;
                 }
             }
-            else
+            else if(!allVersionsInIndex)
             {
                 searchFilter = null;
                 return false;

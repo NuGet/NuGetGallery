@@ -19,9 +19,11 @@ namespace NuGetGallery.Infrastructure.Lucene
 {
     public class ExternalSearchService : ISearchService, IIndexingService, IRawSearchService
     {
+        public static readonly string SearchRTTPerfCounter = "SearchRTT";
+        
         private SearchClient _client;
         private JObject _diagCache;
-
+        
         public Uri ServiceUri { get; private set; }
         
         protected IDiagnosticsSource Trace { get; private set; }
@@ -35,6 +37,8 @@ namespace NuGetGallery.Infrastructure.Lucene
         {
             get { return false; }
         }
+
+        public bool ContainsAllVersions { get { return true; } }
 
         public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics)
         {
@@ -115,17 +119,26 @@ namespace NuGetGallery.Infrastructure.Lucene
             }
 
             Trace.PerfEvent(
+                SearchRTTPerfCounter,
                 sw.Elapsed,
                 new Dictionary<string, object>() {
                     {"Term", filter.SearchTerm},
                     {"Hits", results == null ? -1 : results.Hits},
                     {"StatusCode", (int)result.StatusCode},
                     {"SortOrder", filter.SortOrder.ToString()},
-                    {"CuratedFeed", filter.CuratedFeed == null ? null : filter.CuratedFeed.Name}
+                    {"CuratedFeed", filter.CuratedFeed == null ? null : filter.CuratedFeed.Name},
+                    {"Url", TryGetUrl()}
                 });
 
             result.HttpResponse.EnsureSuccessStatusCode();
             return results;
+        }
+
+        private static string TryGetUrl()
+        {
+            return HttpContext.Current != null ?
+                HttpContext.Current.Request.Url.AbsoluteUri :
+                String.Empty;
         }
 
         private static string BuildLuceneQuery(string p)

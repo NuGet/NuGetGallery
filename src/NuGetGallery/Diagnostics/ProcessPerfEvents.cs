@@ -8,12 +8,12 @@ using WebBackgrounder;
 
 namespace NuGetGallery.Diagnostics
 {
-    public class FlushLogs: Job
+    public class ProcessPerfEvents: Job
     {
         public string LogDirectory { get; private set; }
-        public string[] Queues { get; private set; }
+        public IEnumerable<string> Queues { get; private set; }
 
-        public FlushLogs(TimeSpan interval, string logDirectory, string[] queues, TimeSpan timeout) 
+        public ProcessPerfEvents(TimeSpan interval, string logDirectory, IEnumerable<string> queues, TimeSpan timeout) 
             : base("FlushLogs", interval, timeout)
         {
             LogDirectory = logDirectory;
@@ -60,9 +60,10 @@ namespace NuGetGallery.Diagnostics
                                 if (strm.Length == 0)
                                 {
                                     await writer.WriteLineAsync(
-                                        "Timestamp,Duration," + String.Join(",", fields.Select(f => f.Key)));
+                                        "Source,Timestamp,Duration," + String.Join(",", fields.Select(f => f.Key)));
                                 }
                                 await writer.WriteLineAsync(
+                                    CsvEscape(evt.Source) + "," +
                                     CsvEscape(evt.TimestampUtc.ToString("O")) + "," + 
                                     CsvEscape(evt.Duration.TotalMilliseconds.ToString("0.00")) + "," + 
                                     String.Join(",", fields.Select(f => CsvEscape(f.Value == null ? String.Empty : f.Value.ToString()))));
@@ -77,7 +78,7 @@ namespace NuGetGallery.Diagnostics
             }
         }
 
-        private string CsvEscape(string p)
+        private static string CsvEscape(string p)
         {
             if (p.Contains(','))
             {

@@ -12,7 +12,7 @@ namespace NuGetGallery.Diagnostics
     {
         void TraceEvent(TraceEventType type, int id, string message, [CallerMemberName] string member = null, [CallerFilePath] string file = null, [CallerLineNumber] int line = 0);
 
-        void PerfEvent(TimeSpan time, IEnumerable<KeyValuePair<string, object>> payload);
+        void PerfEvent(string name, TimeSpan time, IEnumerable<KeyValuePair<string, object>> payload);
     }
 
     public static class DiagnosticsSourceExtensions

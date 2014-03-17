@@ -212,7 +212,7 @@ namespace NuGetGallery
             }
         }
 
-        private static FlushLogs CreateLogFlushJob()
+        private static ProcessPerfEvents CreateLogFlushJob()
         {
             var logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "Logs");
             try
@@ -230,7 +230,7 @@ namespace NuGetGallery
             {
                 // Meh, so Azure isn't available...
             }
-            return new FlushLogs(
+            return new ProcessPerfEvents(
                 TimeSpan.FromSeconds(10),
                 logDirectory,
                 new[] { "ExternalSearchService" },

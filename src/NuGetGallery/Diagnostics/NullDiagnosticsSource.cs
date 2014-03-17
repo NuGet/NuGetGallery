@@ -18,7 +18,7 @@ namespace NuGetGallery.Diagnostics
             // No-op!
         }
 
-        public void PerfEvent(TimeSpan time, IEnumerable<KeyValuePair<string, object>> payload)
+        public void PerfEvent(string name, TimeSpan time, IEnumerable<KeyValuePair<string, object>> payload)
         {
             // No-op!
         }

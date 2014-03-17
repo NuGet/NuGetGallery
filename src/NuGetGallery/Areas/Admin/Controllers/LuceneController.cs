@@ -6,6 +6,8 @@ using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
+using NuGetGallery.Infrastructure.Lucene;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -33,7 +35,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 IndexSize = await IndexingService.GetIndexSizeInBytes(),
                 Directory = IndexingService.IndexPath,
                 IsLocal = IndexingService.IsLocal,
-                Location = Config.LuceneIndexLocation
+                Location = Config.LuceneIndexLocation,
+                QueryStats = PerfCounters.GetStats(ExternalSearchService.SearchRTTPerfCounter)
             });
         }
 
