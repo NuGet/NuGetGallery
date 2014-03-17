@@ -166,7 +166,7 @@ namespace NuGetGallery.DataServices
                 }).Result.Data.ToV2FeedPackageQuery(SiteRoot, IncludeLicenseReport);
             }
 
-            private string BuildQuery(IList<Tuple<Target, string>> comparisons)
+            private static string BuildQuery(IList<Tuple<Target, string>> comparisons)
             {
                 StringBuilder query = new StringBuilder();
                 bool first = true;
@@ -232,7 +232,7 @@ namespace NuGetGallery.DataServices
                 return null;
             }
 
-            private Expression Unquote(Expression expression)
+            private static Expression Unquote(Expression expression)
             {
                 if (expression.NodeType == ExpressionType.Quote)
                 {
