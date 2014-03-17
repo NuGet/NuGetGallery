@@ -9,18 +9,18 @@ using NuGet.Services.Search.Models;
 
 namespace NuGetGallery.DataServices
 {
-    public class SearchHijacker<T> : IQueryable<T>
+    public class SearchHijacker : IQueryable<Package>
     {
         private SearchHijackerProvider _provider;
-        public IQueryable<T> Inner { get; private set; }
+        public IQueryable<Package> Inner { get; private set; }
 
-        public SearchHijacker(IQueryable<T> inner, ISearchService service, string feed, string siteRoot, bool includeLicenseReport)
+        public SearchHijacker(IQueryable<Package> inner, ISearchService service, string feed, string siteRoot, bool includeLicenseReport)
         {
             Inner = inner;
             _provider = new SearchHijackerProvider(inner.Provider, service as IRawSearchService, feed, siteRoot, includeLicenseReport);
         }
 
-        public IEnumerator<T> GetEnumerator()
+        public IEnumerator<Package> GetEnumerator()
         {
             return Inner.GetEnumerator();
         }
@@ -100,7 +100,7 @@ namespace NuGetGallery.DataServices
                     return false;
                 }
 
-                // Unwrap comparisons
+                // Unravel the comparisons into a list we can reason about
                 IList<Tuple<Target, string>> comparisons = new List<Tuple<Target, string>>();
                 Expression remnant = expression;
                 MethodCallExpression where;
@@ -113,6 +113,7 @@ namespace NuGetGallery.DataServices
                     }
                     else
                     {
+                        // We recognize this comparison, record it and keep iterating on the nested expression
                         comparisons.Add(comparison);
                         remnant = where.Arguments[0];
                     }
@@ -131,13 +132,15 @@ namespace NuGetGallery.DataServices
 
             private bool IsSelectV2FeedPackage(MethodCallExpression expr)
             {
+                // We expect:
+                //  Queryable.Select(<nested expression>, p => new V2FeedPackage() ...)
                 var isSelect = expr != null &&
                     expr.Method.DeclaringType == typeof(Queryable) &&
                     String.Equals(expr.Method.Name, "Select", StringComparison.Ordinal);
                 if (isSelect)
                 {
                     var arg = Unquote(expr.Arguments[1]);
-                    if (arg.NodeType == ExpressionType.Lambda)
+                    if (arg.NodeType == ExpressionType.Lambda) // p => new V2FeedPackage ...
                     {
                         var lambda = arg as LambdaExpression;
                         if (lambda.ReturnType == typeof(V2FeedPackage))
@@ -151,6 +154,7 @@ namespace NuGetGallery.DataServices
 
             private IQueryable Hijack(IList<Tuple<Target, string>> comparisons)
             {
+                // Perform the search using the search service and just return the result.
                 return SearchService.RawSearch(new SearchFilter()
                 {
                     SearchTerm = BuildQuery(comparisons),
@@ -186,18 +190,21 @@ namespace NuGetGallery.DataServices
 
             private Tuple<Target, string> ExtractComparison(MethodCallExpression outerWhere)
             {
+                // We expect to see an expression that looks like this:
+                //  Queryable.Where(<nested expression>, p => <constant> == p.<property>);
                 var arg = Unquote(outerWhere.Arguments[1]);
                 if (arg.NodeType != ExpressionType.Lambda)
                 {
                     return null;
                 }
-                var lambda = arg as LambdaExpression;
-                if (lambda.Body.NodeType != ExpressionType.Equal)
+                var lambda = arg as LambdaExpression; // p => <constant> == p.<property>
+                if (lambda.Body.NodeType != ExpressionType.Equal) 
                 {
                     return null;
                 }
-                var binExpr = lambda.Body as BinaryExpression;
+                var binExpr = lambda.Body as BinaryExpression; // <constant> == p.<property>
 
+                // Get the two sides, we don't care which side is left and which is right.
                 ConstantExpression constSide = (binExpr.Left as ConstantExpression) ?? (binExpr.Right as ConstantExpression);
                 if (constSide == null || constSide.Type != typeof(string))
                 {
@@ -209,6 +216,7 @@ namespace NuGetGallery.DataServices
                     return null;
                 }
 
+                // Check if it's a known member comparison
                 if (memberSide.Member == _normalizedVersionMember)
                 {
                     return Tuple.Create(Target.Version, (string)constSide.Value);
@@ -250,9 +258,9 @@ namespace NuGetGallery.DataServices
 
     public static class SearchHijackerExtensions
     {
-        public static IQueryable<T> UseSearchService<T>(this IQueryable<T> self, ISearchService searchService, string feed, string siteRoot, bool includeLicenseReport)
+        public static IQueryable<Package> UseSearchService(this IQueryable<Package> self, ISearchService searchService, string feed, string siteRoot, bool includeLicenseReport)
         {
-            return new SearchHijacker<T>(self, searchService, feed, siteRoot, includeLicenseReport);
+            return new SearchHijacker(self, searchService, feed, siteRoot, includeLicenseReport);
         }
     }
 }
