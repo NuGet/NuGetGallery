@@ -605,7 +605,7 @@ namespace NuGetGallery.Infrastructure
             luceneIndexingService.UpdateIndex(forceRefresh: true);
 
             var luceneSearchService = new LuceneSearchService(d);
-            var searchFilter = new SearchFilter
+            var searchFilter = new SearchFilter("Test")
             {
                 Skip = 0,
                 Take = 10,

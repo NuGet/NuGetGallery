@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Areas.Admin.Models
 {
@@ -15,6 +16,7 @@ namespace NuGetGallery.Areas.Admin.Models
         public long IndexSize { get; set; }
         public bool IsLocal { get; set; }
         public LuceneIndexLocation Location { get; set; }
+        public PerfCounters.PerfStats QueryStats { get; set; }
 
         public string FormatIndexSize()
         {

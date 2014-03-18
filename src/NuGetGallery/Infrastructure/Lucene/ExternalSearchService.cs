@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -18,9 +19,11 @@ namespace NuGetGallery.Infrastructure.Lucene
 {
     public class ExternalSearchService : ISearchService, IIndexingService, IRawSearchService
     {
+        public static readonly string SearchRTTPerfCounter = "SearchRTT";
+        
         private SearchClient _client;
         private JObject _diagCache;
-
+        
         public Uri ServiceUri { get; private set; }
         
         protected IDiagnosticsSource Trace { get; private set; }
@@ -34,6 +37,8 @@ namespace NuGetGallery.Infrastructure.Lucene
         {
             get { return false; }
         }
+
+        public bool ContainsAllVersions { get { return true; } }
 
         public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics)
         {
@@ -81,6 +86,8 @@ namespace NuGetGallery.Infrastructure.Lucene
             }
 
             // Query!
+            var sw = new Stopwatch();
+            sw.Start();
             var result = await _client.Search(
                 query,
                 projectTypeFilter: null,
@@ -93,16 +100,47 @@ namespace NuGetGallery.Infrastructure.Lucene
                 countOnly: filter.CountOnly,
                 explain: false,
                 getAllVersions: filter.IncludeAllVersions);
+			sw.Stop();
+
+            SearchResults results = null;
+            if (result.IsSuccessStatusCode)
+            {
+                var content = await result.ReadContent();
+                if (filter.CountOnly || content.TotalHits == 0)
+                {
+                    results = new SearchResults(content.TotalHits);
+                }
+                else
+                {
+                    results = new SearchResults(
+                        content.TotalHits,
+                        content.Data.Select(ReadPackage).AsQueryable());
+                }
+            }
+
+            Trace.PerfEvent(
+                SearchRTTPerfCounter,
+                sw.Elapsed,
+                new Dictionary<string, object>() {
+                    {"Term", filter.SearchTerm},
+                    {"Context", filter.Context},
+                    {"Raw", raw},
+                    {"Hits", results == null ? -1 : results.Hits},
+                    {"StatusCode", (int)result.StatusCode},
+                    {"SortOrder", filter.SortOrder.ToString()},
+                    {"CuratedFeed", filter.CuratedFeed == null ? null : filter.CuratedFeed.Name},
+                    {"Url", TryGetUrl()}
+                });
 
             result.HttpResponse.EnsureSuccessStatusCode();
-            var content = await result.ReadContent();
-            if (filter.CountOnly || content.TotalHits == 0)
-            {
-                return new SearchResults(content.TotalHits);
-            }
-            return new SearchResults(
-                content.TotalHits, 
-                content.Data.Select(ReadPackage).AsQueryable());
+            return results;
+        }
+
+        private static string TryGetUrl()
+        {
+            return HttpContext.Current != null ?
+                HttpContext.Current.Request.Url.AbsoluteUri :
+                String.Empty;
         }
 
         private static string BuildLuceneQuery(string p)

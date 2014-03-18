@@ -155,7 +155,7 @@ namespace NuGetGallery.DataServices
             private IQueryable Hijack(IList<Tuple<Target, string>> comparisons)
             {
                 // Perform the search using the search service and just return the result.
-                return SearchService.RawSearch(new SearchFilter()
+                return SearchService.RawSearch(new SearchFilter(SearchFilter.ODataInterceptContext)
                 {
                     SearchTerm = BuildQuery(comparisons),
                     IncludePrerelease = true,

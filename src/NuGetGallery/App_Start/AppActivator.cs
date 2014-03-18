@@ -18,6 +18,7 @@ using Ninject;
 using Ninject.Web.Common;
 using NuGetGallery;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
@@ -37,6 +38,8 @@ namespace NuGetGallery
 
         public static void PreStart()
         {
+            MessageQueue.Enable(maxPerQueue: 1000);
+
             AntiForgeryConfig.UniqueClaimTypeIdentifier = ClaimTypes.NameIdentifier;
 
             ViewEngines.Engines.Clear();
@@ -192,6 +195,10 @@ namespace NuGetGallery
                         () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false), 
                         timeout: TimeSpan.FromMinutes(5)));
             }
+            if (configuration.CollectPerfLogs)
+            {
+                jobs.Add(CreateLogFlushJob());
+            }
 
             if (jobs.AnySafe())
             {
@@ -203,6 +210,31 @@ namespace NuGetGallery
                 _jobManager.Fail(e => ErrorLog.GetDefault(null).Log(new Error(e)));
                 _jobManager.Start();
             }
+        }
+
+        private static ProcessPerfEvents CreateLogFlushJob()
+        {
+            var logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "Logs");
+            try
+            {
+                if (RoleEnvironment.IsAvailable)
+                {
+                    var resource = RoleEnvironment.GetLocalResource("Logs");
+                    if (resource != null)
+                    {
+                        logDirectory = Path.Combine(resource.RootPath);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Meh, so Azure isn't available...
+            }
+            return new ProcessPerfEvents(
+                TimeSpan.FromSeconds(10),
+                logDirectory,
+                new[] { "ExternalSearchService" },
+                timeout: TimeSpan.FromSeconds(10));
         }
 
         private static void BackgroundJobsStop()

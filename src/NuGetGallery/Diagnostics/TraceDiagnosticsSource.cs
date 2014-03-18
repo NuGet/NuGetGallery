@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.IO;
 using System.Globalization;
+using System.Collections.Generic;
 
 namespace NuGetGallery.Diagnostics
 {
@@ -37,6 +38,14 @@ namespace NuGetGallery.Diagnostics
             }
             
             _source.TraceEvent(type, id, FormatMessage(message, member, file, line));
+        }
+
+        public void PerfEvent(string name, TimeSpan time, IEnumerable<KeyValuePair<string,object>> payload)
+        {
+            PerfCounters.AddSample(name, 1000, time.TotalMilliseconds);
+
+            // Send the event to the queue
+            MessageQueue.Enqueue(Name, new PerfEvent(name, DateTime.UtcNow, time, payload));
         }
 
         // The "protected virtual Dispose(bool)" pattern is for objects with unmanaged resources. We have none, so a virtual Dispose is enough.

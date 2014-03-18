@@ -292,7 +292,7 @@ namespace NuGetGallery
 
             q = (q ?? "").Trim();
 
-            var searchFilter = SearchAdaptor.GetSearchFilter(q, page, sortOrder: null);
+            var searchFilter = SearchAdaptor.GetSearchFilter(q, page, sortOrder: null, context: SearchFilter.UISearchContext);
             var results = await _searchService.Search(searchFilter);
             int totalHits = results.Hits;
             if (page == 1 && !results.Data.Any())

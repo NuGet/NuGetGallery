@@ -16,9 +16,9 @@ namespace NuGetGallery
         /// </summary>
         internal const int MaxPageSize = 40;
 
-        public static SearchFilter GetSearchFilter(string q, int page, string sortOrder)
+        public static SearchFilter GetSearchFilter(string q, int page, string sortOrder, string context)
         {
-            var searchFilter = new SearchFilter
+            var searchFilter = new SearchFilter(context)
             {
                 SearchTerm = q,
                 Skip = (page - 1) * Constants.DefaultPackageListPageSize, // pages are 1-based. 
@@ -71,9 +71,10 @@ namespace NuGetGallery
             CuratedFeed curatedFeed)
         {
             SearchFilter searchFilter;
-            // We can only use Lucene if the client queries for the latest versions (IsLatest \ IsLatestStable) versions of a package
-            // and specific sort orders that we have in the index.
-            if (TryReadSearchFilter(request.RawUrl, out searchFilter))
+            // We can only use Lucene if:
+            //  a) We are looking for the latest version of a package OR the Index contains all versions of each package
+            //  b) The sort order is something Lucene can handle
+            if (TryReadSearchFilter(searchService.ContainsAllVersions, request.RawUrl, out searchFilter))
             {
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = includePrerelease;
@@ -94,7 +95,7 @@ namespace NuGetGallery
             return packages.Search(searchTerm);
         }
 
-        private static bool TryReadSearchFilter(string url, out SearchFilter searchFilter)
+        private static bool TryReadSearchFilter(bool allVersionsInIndex, string url, out SearchFilter searchFilter)
         {
             if (url == null)
             {
@@ -103,7 +104,6 @@ namespace NuGetGallery
             }
 
             int indexOfQuestionMark = url.IndexOf('?');
-
             if (indexOfQuestionMark == -1)
             {
                 searchFilter = null;
@@ -119,7 +119,7 @@ namespace NuGetGallery
                 return false;
             }
 
-            searchFilter = new SearchFilter
+            searchFilter = new SearchFilter(SearchFilter.ODataSearchContext)
             {
                 // The way the default paging works is WCF attempts to read up to the MaxPageSize elements. If it finds as many, it'll assume there 
                 // are more elements to be paged and generate a continuation link. Consequently we'll always ask to pull MaxPageSize elements so WCF generates the 
@@ -144,6 +144,7 @@ namespace NuGetGallery
 
             // We'll only use the index if we the query searches for latest \ latest-stable packages
 
+            
             string filter;
             if (queryTerms.TryGetValue("$filter", out filter))
             {
@@ -153,7 +154,7 @@ namespace NuGetGallery
                     return false;
                 }
             }
-            else
+            else if(!allVersionsInIndex)
             {
                 searchFilter = null;
                 return false;
