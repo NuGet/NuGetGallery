@@ -13,6 +13,16 @@ namespace NuGetGallery
         Task<SearchResults> Search(SearchFilter filter);
     }
 
+    public interface IRawSearchService
+    {
+        /// <summary>
+        /// Executes a raw lucene query against the search index
+        /// </summary>
+        /// <param name="filter">The query to execute, with the search term interpreted as a raw lucene query</param>
+        /// <returns>The results of the query</returns>
+        Task<SearchResults> RawSearch(SearchFilter filter);
+    }
+
     public class SearchResults
     {
         public int Hits { get; private set; }

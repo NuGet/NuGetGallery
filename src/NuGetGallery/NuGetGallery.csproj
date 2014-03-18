@@ -429,6 +429,7 @@
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="DataServices\NormalizeVersionInterceptor.cs" />
     <Compile Include="DataServices\RewriteBaseUrlMessageInspector.cs" />
+    <Compile Include="DataServices\SearchHijacker.cs" />
     <Compile Include="Diagnostics\AuthenticationGlimpseTab.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
