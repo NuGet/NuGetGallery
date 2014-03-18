@@ -123,6 +123,8 @@ namespace NuGetGallery.Infrastructure.Lucene
                 sw.Elapsed,
                 new Dictionary<string, object>() {
                     {"Term", filter.SearchTerm},
+                    {"Context", filter.Context},
+                    {"Raw", raw},
                     {"Hits", results == null ? -1 : results.Hits},
                     {"StatusCode", (int)result.StatusCode},
                     {"SortOrder", filter.SortOrder.ToString()},

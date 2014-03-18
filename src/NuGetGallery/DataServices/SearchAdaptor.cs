@@ -16,9 +16,9 @@ namespace NuGetGallery
         /// </summary>
         internal const int MaxPageSize = 40;
 
-        public static SearchFilter GetSearchFilter(string q, int page, string sortOrder)
+        public static SearchFilter GetSearchFilter(string q, int page, string sortOrder, string context)
         {
-            var searchFilter = new SearchFilter
+            var searchFilter = new SearchFilter(context)
             {
                 SearchTerm = q,
                 Skip = (page - 1) * Constants.DefaultPackageListPageSize, // pages are 1-based. 
@@ -104,7 +104,6 @@ namespace NuGetGallery
             }
 
             int indexOfQuestionMark = url.IndexOf('?');
-
             if (indexOfQuestionMark == -1)
             {
                 searchFilter = null;
@@ -120,7 +119,7 @@ namespace NuGetGallery
                 return false;
             }
 
-            searchFilter = new SearchFilter
+            searchFilter = new SearchFilter(SearchFilter.ODataSearchContext)
             {
                 // The way the default paging works is WCF attempts to read up to the MaxPageSize elements. If it finds as many, it'll assume there 
                 // are more elements to be paged and generate a continuation link. Consequently we'll always ask to pull MaxPageSize elements so WCF generates the 

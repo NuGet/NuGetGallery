@@ -3,6 +3,13 @@ namespace NuGetGallery
 {
     public class SearchFilter
     {
+        public static readonly string UITypeaheadContext = "UI.Typeahead";
+        public static readonly string UISearchContext = "UI.Search";
+        public static readonly string ODataInterceptContext = "OData.Intercept";
+        public static readonly string ODataSearchContext = "OData.Search";
+
+        public string Context { get; private set; }
+
         public string SearchTerm { get; set; }
 
         public int Skip { get; set; }
@@ -21,5 +28,10 @@ namespace NuGetGallery
         public bool CountOnly { get; set; }
 
         public bool IncludeAllVersions { get; set; }
+
+        public SearchFilter(string context)
+        {
+            Context = context;
+        }
     }
 }

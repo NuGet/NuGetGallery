@@ -61,6 +61,7 @@ namespace NuGetGallery.Diagnostics
                                 {
                                     await writer.WriteLineAsync(
                                         "Source,Timestamp,Duration," + String.Join(",", fields.Select(f => f.Key)));
+                                    await writer.FlushAsync();
                                 }
                                 await writer.WriteLineAsync(
                                     CsvEscape(evt.Source) + "," +

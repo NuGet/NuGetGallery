@@ -439,7 +439,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> GetTypeahead(string q)
         {
             // Query the search service
-            var results = await SearchService.Search(new SearchFilter()
+            var results = await SearchService.Search(new SearchFilter(SearchFilter.UITypeaheadContext)
             {
                 SearchTerm = q, /* For typeahead we want wildcard matching */
                 IncludePrerelease = true,

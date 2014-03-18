@@ -64,7 +64,7 @@ namespace NuGetGallery
 
             q = (q ?? "").Trim();
 
-            var searchFilter = SearchAdaptor.GetSearchFilter(q, page, sortOrder: null);
+            var searchFilter = SearchAdaptor.GetSearchFilter(q, page, sortOrder: null, context: SearchFilter.UISearchContext);
             searchFilter.CuratedFeed = CuratedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
             if (searchFilter.CuratedFeed == null)
             {
