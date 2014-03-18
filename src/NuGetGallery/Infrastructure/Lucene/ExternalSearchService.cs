@@ -19,7 +19,7 @@ namespace NuGetGallery.Infrastructure.Lucene
 {
     public class ExternalSearchService : ISearchService, IIndexingService, IRawSearchService
     {
-        public static readonly string SearchRTTPerfCounter = "SearchRTT";
+        public static readonly string SearchRoundtripTimePerfCounter = "SearchRoundtripTime";
         
         private SearchClient _client;
         private JObject _diagCache;
@@ -119,7 +119,7 @@ namespace NuGetGallery.Infrastructure.Lucene
             }
 
             Trace.PerfEvent(
-                SearchRTTPerfCounter,
+                SearchRoundtripTimePerfCounter,
                 sw.Elapsed,
                 new Dictionary<string, object>() {
                     {"Term", filter.SearchTerm},

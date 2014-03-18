@@ -42,7 +42,8 @@ namespace NuGetGallery.Diagnostics
 
         public void PerfEvent(string name, TimeSpan time, IEnumerable<KeyValuePair<string,object>> payload)
         {
-            PerfCounters.AddSample(name, 1000, time.TotalMilliseconds);
+            // For now, hard-code the number of samples we track to 1000.
+            PerfCounters.AddSample(name, sampleSize: 1000, value: time.TotalMilliseconds);
 
             // Send the event to the queue
             MessageQueue.Enqueue(Name, new PerfEvent(name, DateTime.UtcNow, time, payload));

@@ -36,7 +36,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 Directory = IndexingService.IndexPath,
                 IsLocal = IndexingService.IsLocal,
                 Location = Config.LuceneIndexLocation,
-                QueryStats = PerfCounters.GetStats(ExternalSearchService.SearchRTTPerfCounter)
+                QueryStats = PerfCounters.GetStats(ExternalSearchService.SearchRoundtripTimePerfCounter)
             });
         }
 
