@@ -31,6 +31,8 @@ namespace GatherMergeRewrite
 
             if (container.CreateIfNotExists())
             {
+                container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+
                 Console.WriteLine("Created '{0}' publish container", publishContainer);
             }
 
@@ -43,7 +45,6 @@ namespace GatherMergeRewrite
 
                 stream.Seek(0, SeekOrigin.Begin);
 
-                //RdfJsonParser rdfJsonParser = new RdfJsonParser();
                 JsonLdReader reader = new JsonLdReader();
                 graph = new Graph();
                 reader.Load(graph, new StreamReader(stream));
@@ -101,6 +102,8 @@ namespace GatherMergeRewrite
             if (container.CreateIfNotExists())
             {
                 container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+
+                Console.WriteLine("Created '{0}' publish container", publishContainer);
             }
 
             CloudBlockBlob blob = container.GetBlockBlobReference(name);
@@ -138,7 +141,7 @@ namespace GatherMergeRewrite
 
         public static IGraph Load(XDocument nuspec, string baseAddress)
         {
-            string path = @"C:\private\NuGet3\NuGet.Services.Metadata\src\MakeMetadata\MakeMetadata\nuspec2package.xslt";
+            string path = @"..\..\..\..\..\src\MakeMetadata\MakeMetadata\nuspec2package.xslt";
 
             XslCompiledTransform transform = CreateTransform(path);
 
@@ -207,7 +210,7 @@ namespace GatherMergeRewrite
 
         public static XDocument NormalizeNuspecNamespace(XDocument original)
         {
-            string path = @"\\\\src\MakeMetadata\MakeMetadata\normalizeNuspecNamespace.xslt";
+            string path = @"..\..\..\..\..\src\MakeMetadata\MakeMetadata\normalizeNuspecNamespace.xslt";
 
             XDocument result = new XDocument();
 

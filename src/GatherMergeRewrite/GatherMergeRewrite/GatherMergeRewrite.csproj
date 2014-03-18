@@ -89,15 +89,31 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="context\OwnerFrame.json" />
-    <None Include="context\PackageFrame.json" />
-    <None Include="context\PackageRegistrationFrame.json" />
+    <None Include="context\OwnerFrame.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="context\PackageFrame.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="context\PackageRegistrationFrame.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
-    <None Include="sparql\All.rq" />
-    <None Include="sparql\ListResources.rq" />
-    <None Include="sparql\Owner.rq" />
-    <None Include="sparql\Package.rq" />
-    <None Include="sparql\PackageRegistration.rq" />
+    <None Include="sparql\All.rq">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="sparql\ListResources.rq">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="sparql\Owner.rq">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="sparql\Package.rq">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="sparql\PackageRegistration.rq">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\JsonLDIntegration\JsonLDIntegration\JsonLDIntegration.csproj">

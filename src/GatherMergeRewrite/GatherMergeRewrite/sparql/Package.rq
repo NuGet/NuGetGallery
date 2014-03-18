@@ -6,7 +6,14 @@ CONSTRUCT
               nuget:id ?id ;
               nuget:version ?version ;
               nuget:registration ?registration ;
-              nuget:description ?description ;
+			  nuget:authors ?authors ;
+	          nuget:description ?description ;
+			  nuget:licenseUrl ?licenseUrl ;
+			  nuget:projectUrl ?projectUrl ;
+			  nuget:iconUrl ?iconUrl ;
+			  nuget:requireLicenseAcceptance ?requireLicenseAcceptance ;
+			  nuget:releaseNotes ?releaseNotes ;
+			  nuget:tags ?tags ;
 			  nuget:published ?published ;
 		      nuget:dependencies ?dependencies .
 
@@ -14,7 +21,8 @@ CONSTRUCT
 
 	?dependencies nuget:group ?group .
 
-	?group nuget:dependency ?dependency .
+	?group nuget:dependency ?dependency ;
+	       nuget:targetFramework ?targetFramework .
 
 	?dependency nuget:id ?dependency_id ;
 	            nuget:version ?dependency_version .
@@ -23,17 +31,28 @@ WHERE
 {
     @resource nuget:id ?id ;
 	          nuget:version ?version ;
-	          nuget:registration ?registration ;
-	          nuget:description ?description ;
-			  nuget:published ?published ;
-		      nuget:dependencies ?dependencies .
+	          nuget:registration ?registration .
+
+	OPTIONAL { @resource nuget:authors ?authors . }
+	OPTIONAL { @resource nuget:description ?description . }
+	OPTIONAL { @resource nuget:licenseUrl ?licenseUrl . }
+	OPTIONAL { @resource nuget:projectUrl ?projectUrl . }
+	OPTIONAL { @resource nuget:iconUrl ?iconUrl . }
+	OPTIONAL { @resource nuget:requireLicenseAcceptance ?requireLicenseAcceptance . }
+	OPTIONAL { @resource nuget:releaseNotes ?releaseNotes . }
+	OPTIONAL { @resource nuget:tags ?tags . }
+	OPTIONAL { @resource nuget:published ?published . }
 
 	?registration nuget:owner ?owner .
 
-	?dependencies nuget:group ?group .
-
-	?group nuget:dependency ?dependency .
-
-	?dependency nuget:id ?dependency_id ;
-	            nuget:version ?dependency_version .
+	OPTIONAL
+	{
+        @resource nuget:dependencies ?dependencies .
+		?dependencies nuget:group ?group .
+		?group nuget:dependency ?dependency .
+		OPTIONAL { ?group nuget:targetFramework ?targetFramework . }
+		?dependency nuget:id ?dependency_id ;
+					nuget:registration ?dependency_registration ;
+					nuget:range ?dependency_version .
+	}
 }
