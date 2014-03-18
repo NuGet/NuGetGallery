@@ -130,7 +130,7 @@ namespace NuGetGallery.DataServices
                 return false;
             }
 
-            private bool IsSelectV2FeedPackage(MethodCallExpression expr)
+            private static bool IsSelectV2FeedPackage(MethodCallExpression expr)
             {
                 // We expect:
                 //  Queryable.Select(<nested expression>, p => new V2FeedPackage() ...)
@@ -188,7 +188,7 @@ namespace NuGetGallery.DataServices
                 return query.ToString();
             }
 
-            private Tuple<Target, string> ExtractComparison(MethodCallExpression outerWhere)
+            private static Tuple<Target, string> ExtractComparison(MethodCallExpression outerWhere)
             {
                 // We expect to see an expression that looks like this:
                 //  Queryable.Where(<nested expression>, p => <constant> == p.<property>);
