@@ -33,6 +33,15 @@ namespace NuGetGallery.Diagnostics
 
         public RuntimePolicy Execute(HttpContextBase context)
         {
+            // Disable Glimpse for any static content
+            var path = context.Request.Path.TrimStart('/');
+            if(path.StartsWith("public", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("content", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("scripts", StringComparison.OrdinalIgnoreCase))
+            {
+                return RuntimePolicy.Off;
+            }
+
             // Policy is: Localhost collects data, admins always see Glimpse (even when remote) but only over SSL if SSL is required, everyone uses the setting in web config.
             if (context.Request.IsAuthenticated &&
                  (!Configuration.RequireSSL || context.Request.IsSecureConnection) &&
