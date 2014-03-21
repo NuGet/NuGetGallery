@@ -78,25 +78,18 @@ namespace NuGetGallery.Infrastructure.Lucene
 
         private async Task<SearchResults> SearchCore(SearchFilter filter, bool raw)
         {
-            // Convert the query
-            string query = filter.SearchTerm;
-            if (!raw && !String.IsNullOrEmpty(filter.SearchTerm))
-            {
-                query = BuildLuceneQuery(filter.SearchTerm);
-            }
-
             // Query!
             var sw = new Stopwatch();
             sw.Start();
             var result = await _client.Search(
-                query,
+                filter.SearchTerm,
                 projectTypeFilter: null,
                 includePrerelease: filter.IncludePrerelease,
                 curatedFeed: filter.CuratedFeed == null ? null : filter.CuratedFeed.Name,
                 sortBy: filter.SortOrder,
                 skip: filter.Skip,
                 take: filter.Take,
-                isLuceneQuery: true,
+                isLuceneQuery: raw,
                 countOnly: filter.CountOnly,
                 explain: false,
                 getAllVersions: filter.IncludeAllVersions);
