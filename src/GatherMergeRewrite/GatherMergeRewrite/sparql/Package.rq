@@ -13,7 +13,7 @@ CONSTRUCT
 			  nuget:iconUrl ?iconUrl ;
 			  nuget:requireLicenseAcceptance ?requireLicenseAcceptance ;
 			  nuget:releaseNotes ?releaseNotes ;
-			  nuget:tags ?tags ;
+			  nuget:tag ?tag ;
 			  nuget:published ?published ;
 		      nuget:dependencies ?dependencies .
 
@@ -40,7 +40,7 @@ WHERE
 	OPTIONAL { @resource nuget:iconUrl ?iconUrl . }
 	OPTIONAL { @resource nuget:requireLicenseAcceptance ?requireLicenseAcceptance . }
 	OPTIONAL { @resource nuget:releaseNotes ?releaseNotes . }
-	OPTIONAL { @resource nuget:tags ?tags . }
+	OPTIONAL { @resource nuget:tag ?tag . }
 	OPTIONAL { @resource nuget:published ?published . }
 
 	?registration nuget:owner ?owner .

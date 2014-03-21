@@ -141,12 +141,14 @@ namespace GatherMergeRewrite
 
         public static IGraph Load(XDocument nuspec, string baseAddress)
         {
-            string path = @"..\..\..\..\..\src\MakeMetadata\MakeMetadata\nuspec2package.xslt";
+            string path = "xslt\\nuspec.xslt";
 
             XslCompiledTransform transform = CreateTransform(path);
 
             XsltArgumentList arguments = new XsltArgumentList();
             arguments.AddParam("base", "", baseAddress);
+
+            arguments.AddExtensionObject("urn:helper", new XsltHelper());
 
             XDocument rdfxml = new XDocument();
             using (XmlWriter writer = rdfxml.CreateWriter())
@@ -210,7 +212,7 @@ namespace GatherMergeRewrite
 
         public static XDocument NormalizeNuspecNamespace(XDocument original)
         {
-            string path = @"..\..\..\..\..\src\MakeMetadata\MakeMetadata\normalizeNuspecNamespace.xslt";
+            string path = "xslt\\normalizeNuspecNamespace.xslt";
 
             XDocument result = new XDocument();
 
