@@ -67,6 +67,8 @@ namespace GatherMergeRewrite
 
             KeyValuePair<Uri, IGraph> newResource = CreateGraph(Utils.Extract(nupkg), address, ownerUri, published);
 
+            //Debug.DumpTurtle(Utils.GetName(newResource.Key, BaseAddress, Container) + "_pre.ttl", newResource.Value);
+
             // Phase #2 iterate loading potententially updated resources - stop when we have them all
 
             IDictionary<Uri, Tuple<string, string>> resources = new Dictionary<Uri, Tuple<string, string>>();
@@ -108,6 +110,10 @@ namespace GatherMergeRewrite
                 }
             }
 
+            //DEBUG DEBUG DEBUG
+            IGraph resourceAllGraph = Utils.Construct(store, new StreamReader("sparql\\All.rq").ReadToEnd());
+            Debug.DumpTurtle("all.ttl", resourceAllGraph);
+
             // Phase #3 save everything - the save is a query and save so recreates each blob with updated content
 
             foreach (KeyValuePair<Uri, Tuple<string, string>> resource in resources)
@@ -125,6 +131,9 @@ namespace GatherMergeRewrite
                 }
 
                 Utils.Save(resourceGraph, resourceFrame, ConnectionString, Container, Utils.GetName(resource.Key, BaseAddress, Container));
+
+                //DEBUG DEBUG DEBUG
+                Debug.DumpTurtle(Utils.GetName(resource.Key, BaseAddress, Container) + ".ttl", resourceGraph);
             }
         }
 

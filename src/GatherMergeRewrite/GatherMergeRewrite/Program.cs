@@ -19,6 +19,8 @@ namespace GatherMergeRewrite
             //Processor.Upload("microsoft", "entityframework", @"c:\data\nupkgs\entityframework.4.2.0.nupkg", DateTime.Now);
             //Processor.Upload("microsoft", "entityframework", @"c:\data\nupkgs\entityframework.4.3.1.nupkg", DateTime.Now);
 
+            Processor.Upload("microsoft", "dotnetrdf", @"c:\data\nupkgs\dotNetRDF.0.5.0.nupkg", DateTime.Now);
+            Processor.Upload("microsoft", "dotnetrdf", @"c:\data\nupkgs\dotNetRDF.0.8.0.nupkg", DateTime.Now);
             Processor.Upload("microsoft", "dotnetrdf", @"c:\data\nupkgs\dotNetRDF.1.0.3.nupkg", DateTime.Now);
         }
     }
