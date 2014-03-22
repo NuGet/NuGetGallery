@@ -19,13 +19,14 @@ CONSTRUCT
 
 	?registration nuget:owner ?owner .
 
-	?dependencies nuget:group ?group .
+    ?dependencies nuget:group ?dependency_group .
 
-	?group nuget:dependency ?dependency ;
-	       nuget:targetFramework ?targetFramework .
+    ?dependency_group nuget:dependency ?dependency ;
+                      nuget:targetFramework ?targetFramework .
 
 	?dependency nuget:id ?dependency_id ;
-	            nuget:version ?dependency_version .
+				nuget:registration ?dependency_registration ;
+				nuget:range ?dependency_version .
 }
 WHERE
 {
@@ -48,11 +49,14 @@ WHERE
 	OPTIONAL
 	{
         @resource nuget:dependencies ?dependencies .
-		?dependencies nuget:group ?group .
-		?group nuget:dependency ?dependency .
-		OPTIONAL { ?group nuget:targetFramework ?targetFramework . }
+		?dependencies nuget:group ?dependency_group .
+
+		?dependency_group nuget:dependency ?dependency .
+		OPTIONAL { ?dependency_group nuget:targetFramework ?targetFramework . }
+		
 		?dependency nuget:id ?dependency_id ;
-					nuget:registration ?dependency_registration ;
-					nuget:range ?dependency_version .
+					nuget:registration ?dependency_registration .
+
+		OPTIONAL { ?dependency nuget:range ?dependency_version . }
 	}
 }

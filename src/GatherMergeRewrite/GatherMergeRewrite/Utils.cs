@@ -23,98 +23,6 @@ namespace GatherMergeRewrite
 {
     class Utils
     {
-        public static bool TryLoadGraph(string name, out IGraph graph, string connectionString, string publishContainer)
-        {
-            CloudStorageAccount account = CloudStorageAccount.Parse(connectionString);
-            CloudBlobClient client = account.CreateCloudBlobClient();
-            CloudBlobContainer container = client.GetContainerReference(publishContainer);
-
-            if (container.CreateIfNotExists())
-            {
-                container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
-
-                Console.WriteLine("Created '{0}' publish container", publishContainer);
-            }
-
-            CloudBlockBlob blob = container.GetBlockBlobReference(name);
-
-            if (blob.Exists())
-            {
-                MemoryStream stream = new MemoryStream();
-                blob.DownloadToStream(stream);
-
-                stream.Seek(0, SeekOrigin.Begin);
-
-                JsonLdReader reader = new JsonLdReader();
-                graph = new Graph();
-                reader.Load(graph, new StreamReader(stream));
-                return true;
-            }
-
-            graph = null;
-            return false;
-        }
-
-        public static bool SaveGraph(Tuple<IGraph, string, string> graph, string connectionString, string publishContainer)
-        {
-            JToken frame;
-            using (JsonReader jsonReader = new JsonTextReader(new StreamReader(graph.Item2)))
-            {
-                frame = JToken.Load(jsonReader);
-            }
-
-            MemoryStream stream = new MemoryStream();
-            using (StreamWriter writer = new StreamWriter(stream))
-            {
-                IRdfWriter rdfWriter = new JsonLdWriter { Frame = frame };
-                rdfWriter.Save(graph.Item1, writer);
-
-                writer.Flush();
-
-                stream.Seek(0, SeekOrigin.Begin);
-                Publish(stream, graph.Item3, "application/json", connectionString, publishContainer);
-            }
-
-            return true;
-        }
-
-        public static void Save(IGraph graph, JToken frame, string connectionString, string container, string name)
-        {
-            MemoryStream stream = new MemoryStream();
-            using (StreamWriter writer = new StreamWriter(stream))
-            {
-                IRdfWriter rdfWriter = new JsonLdWriter { Frame = frame };
-                rdfWriter.Save(graph, writer);
-
-                writer.Flush();
-
-                stream.Seek(0, SeekOrigin.Begin);
-                Utils.Publish(stream, name, "application/json", connectionString, container);
-            }
-        }
-
-        public static void Publish(Stream stream, string name, string contentType, string connectionString, string publishContainer)
-        {
-            CloudStorageAccount account = CloudStorageAccount.Parse(connectionString);
-            CloudBlobClient client = account.CreateCloudBlobClient();
-            CloudBlobContainer container = client.GetContainerReference(publishContainer);
-
-            if (container.CreateIfNotExists())
-            {
-                container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
-
-                Console.WriteLine("Created '{0}' publish container", publishContainer);
-            }
-
-            CloudBlockBlob blob = container.GetBlockBlobReference(name);
-            blob.Properties.ContentType = contentType;
-            blob.Properties.CacheControl = "no-store";
-
-            blob.UploadFromStream(stream);
-
-            Console.WriteLine("published: {0}", name);
-        }
-
         public static IGraph Construct(TripleStore store, string sparql)
         {
             InMemoryDataset ds = new InMemoryDataset(store);
@@ -229,23 +137,27 @@ namespace GatherMergeRewrite
         public static string GetName(Uri uri, string baseAddress, string container)
         {
             string address = string.Format("{0}/{1}/", baseAddress, container);
-
             string s = uri.ToString();
-
             string name = s.Substring(address.Length);
-
             return name;
         }
 
-        public static IGraph LoadResourceGraph(string connectionString, string container, string name)
+        public static string CreateHtmlView(Uri resource)
         {
-            IGraph graph;
-            if (Utils.TryLoadGraph(name, out graph, connectionString, container))
-            {
-                return graph;
-            }
-            return null;
-        }
+            XDocument original = XDocument.Load(new StreamReader("html\\graph.html"));
+            XslCompiledTransform transform = CreateTransform("xslt\\graph.xslt");
+            XsltArgumentList arguments = new XsltArgumentList();
+            arguments.AddParam("resource", "", resource.ToString());
+            arguments.AddParam("base", "", Config.BaseAddress);
 
+            System.IO.StringWriter writer = new System.IO.StringWriter();
+            using (XmlTextWriter xmlWriter = new XmlHtmlWriter(writer))
+            {
+                xmlWriter.Formatting = System.Xml.Formatting.Indented;
+                transform.Transform(original.CreateReader(), arguments, xmlWriter);
+            }
+
+            return writer.ToString();
+        }
     }
 }
