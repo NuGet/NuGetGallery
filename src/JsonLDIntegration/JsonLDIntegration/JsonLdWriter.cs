@@ -38,6 +38,8 @@ namespace JsonLDIntegration
                 JObject compacted = JsonLdProcessor.Compact(framed, framed["@context"], new JsonLdOptions());
                 output.Write(compacted);
             }
+
+            output.Flush();
         }
 
         public void Save(IGraph g, string filename)
@@ -93,13 +95,19 @@ namespace JsonLDIntegration
             return lists;
         }
 
+        static bool IsListNode(INode subject)
+        {
+            INode rest = subject.Graph.CreateUriNode(new Uri(Rest));
+            return (subject.Graph.GetTriplesWithSubjectPredicate(subject, rest).Count() > 0);
+        }
+
         JToken MakeExpandedForm(IGraph graph)
         {
             IDictionary<INode, List<INode>> lists = GetLists(graph);
 
             IDictionary<string, JObject> subjects = new Dictionary<string, JObject>();
 
-            foreach (Triple triple in graph.Triples)
+            foreach (Triple triple in graph.Triples.Where((t) => { return !IsListNode(t.Subject); }))
             {
                 string subject = triple.Subject.ToString();
                 string predicate = triple.Predicate.ToString();

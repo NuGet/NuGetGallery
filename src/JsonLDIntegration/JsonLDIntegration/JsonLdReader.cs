@@ -109,7 +109,17 @@ namespace JsonLDIntegration
 
         void Assert(IGraph g, string subject, string predicate, object obj, string datatype)
         {
-            INode subjectNode = g.CreateUriNode(new Uri(subject));
+            INode subjectNode;
+            if (subject.StartsWith("_"))
+            {
+                string nodeId = subject.Substring(subject.IndexOf(":") + 1);
+                subjectNode = g.CreateBlankNode(nodeId);
+            }
+            else
+            {
+                subjectNode = g.CreateUriNode(new Uri(subject));
+            }
+
             INode predicateNode = g.CreateUriNode(new Uri(predicate));
             
             INode objNode;
