@@ -2,6 +2,8 @@
 	"@context" : { 
 		"@vocab" : "http://nuget.org/schema#",
 		"ng" : "http://nuget.org/schema#",
+        "group" : { "@container" : "@set" },
+        "dependency" : { "@container" : "@set" },
 		"url" : "@id"
 	},
 	"@type" : "ng:Package"

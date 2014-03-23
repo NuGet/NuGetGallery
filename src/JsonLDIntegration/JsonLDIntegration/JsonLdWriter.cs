@@ -95,10 +95,10 @@ namespace JsonLDIntegration
             return lists;
         }
 
-        static bool IsListNode(INode subject)
+        static bool IsListNode(INode subject, IGraph graph)
         {
-            INode rest = subject.Graph.CreateUriNode(new Uri(Rest));
-            return (subject.Graph.GetTriplesWithSubjectPredicate(subject, rest).Count() > 0);
+            INode rest = graph.CreateUriNode(new Uri(Rest));
+            return (graph.GetTriplesWithSubjectPredicate(subject, rest).Count() > 0);
         }
 
         JToken MakeExpandedForm(IGraph graph)
@@ -107,7 +107,7 @@ namespace JsonLDIntegration
 
             IDictionary<string, JObject> subjects = new Dictionary<string, JObject>();
 
-            foreach (Triple triple in graph.Triples.Where((t) => { return !IsListNode(t.Subject); }))
+            foreach (Triple triple in graph.Triples.Where((t) => { return !IsListNode(t.Subject, graph); }))
             {
                 string subject = triple.Subject.ToString();
                 string predicate = triple.Predicate.ToString();

@@ -109,6 +109,7 @@ namespace GatherMergeRewrite
                 string name = Utils.GetName(resource.Key, Config.BaseAddress, Config.Container);
 
                 Storage.SaveJson(name, resourceGraph, resourceFrame);
+                Storage.SaveJson(name + ".json", resourceGraph, null);
                 Storage.SaveHtml(name + ".html", Utils.CreateHtmlView(resource.Key));
             }
         }

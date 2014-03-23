@@ -9,7 +9,17 @@ CONSTRUCT
 
 	?package nuget:id ?packageId ;
 			 nuget:version ?packageVersion ;
-			 nuget:published ?published .
+			 nuget:published ?published ;
+             nuget:dependencies ?dependencies .
+
+    ?dependencies nuget:group ?dependency_group .
+
+    ?dependency_group nuget:dependency ?dependency ;
+                      nuget:targetFramework ?targetFramework .
+
+	?dependency nuget:id ?dependency_id ;
+				nuget:registration ?dependency_registration ;
+				nuget:range ?dependency_version .
 }
 WHERE
 {
@@ -23,4 +33,18 @@ WHERE
 	?package nuget:id ?packageId ;
 			 nuget:version ?packageVersion ;
 			 nuget:published ?published .
+
+	OPTIONAL
+	{
+        ?package nuget:dependencies ?dependencies .
+		?dependencies nuget:group ?dependency_group .
+
+		?dependency_group nuget:dependency ?dependency .
+		OPTIONAL { ?dependency_group nuget:targetFramework ?targetFramework . }
+		
+		?dependency nuget:id ?dependency_id ;
+					nuget:registration ?dependency_registration .
+
+		OPTIONAL { ?dependency nuget:range ?dependency_version . }
+	}
 }
