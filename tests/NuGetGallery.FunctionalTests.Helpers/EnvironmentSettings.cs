@@ -31,7 +31,7 @@ namespace NuGetGallery.FunctionTests.Helpers
                if (string.IsNullOrEmpty(runFunctionalTests))
                 {
                     if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RunFunctionalTests")))
-                        runFunctionalTests = "True";
+                        runFunctionalTests = "False";
                     else
                         runFunctionalTests = Environment.GetEnvironmentVariable("RunFunctionalTests");
                 }
@@ -51,7 +51,7 @@ namespace NuGetGallery.FunctionTests.Helpers
                 if (string.IsNullOrEmpty(_baseurl))
                 {
                     if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl")))
-                        _baseurl = "https://staging.nuget.org/";
+                        _baseurl = "https://int.nugettest.org/";
                     else
                         _baseurl = Environment.GetEnvironmentVariable("GalleryUrl");
                 }
