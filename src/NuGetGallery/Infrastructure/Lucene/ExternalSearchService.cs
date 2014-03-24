@@ -78,25 +78,18 @@ namespace NuGetGallery.Infrastructure.Lucene
 
         private async Task<SearchResults> SearchCore(SearchFilter filter, bool raw)
         {
-            // Convert the query
-            string query = filter.SearchTerm;
-            if (!raw && !String.IsNullOrEmpty(filter.SearchTerm))
-            {
-                query = BuildLuceneQuery(filter.SearchTerm);
-            }
-
             // Query!
             var sw = new Stopwatch();
             sw.Start();
             var result = await _client.Search(
-                query,
+                filter.SearchTerm,
                 projectTypeFilter: null,
                 includePrerelease: filter.IncludePrerelease,
                 curatedFeed: filter.CuratedFeed == null ? null : filter.CuratedFeed.Name,
                 sortBy: filter.SortOrder,
                 skip: filter.Skip,
                 take: filter.Take,
-                isLuceneQuery: true,
+                isLuceneQuery: raw,
                 countOnly: filter.CountOnly,
                 explain: false,
                 getAllVersions: filter.IncludeAllVersions);
@@ -141,14 +134,6 @@ namespace NuGetGallery.Infrastructure.Lucene
             return HttpContext.Current != null ?
                 HttpContext.Current.Request.Url.AbsoluteUri :
                 String.Empty;
-        }
-
-        private static string BuildLuceneQuery(string p)
-        {
-            return String.Format(
-                CultureInfo.InvariantCulture,
-                "Id:{0}* Version:{0}* TokenizedId:{0}* ShingledId:{0}* Title:{0}* Tags:{0}* Description:{0}* Authors:{0}* Owners:{0}*",
-                p.Replace(@" ", @"\ "));
         }
 
         public async Task<DateTime?> GetLastWriteTime()

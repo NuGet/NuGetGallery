@@ -183,68 +183,6 @@ nav.main ul a:hover {
     color: silver;
 }
 
-/* Typeahead */
-.twitter-typeahead .tt-dropdown-menu {
-    background-color: white;
-    width: 712px;
-    margin-top: 1em;
-    margin-left: -6px;
-    padding-top: 0.5em;
-    
-    border: solid 1px black;
-}
-
-.twitter-typeahead .tt-suggestion {
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-    padding-left: 1em;
-    padding-right: 1em;
-    padding-bottom: 0.25em;
-
-    overflow: hidden;
-}
-
-.twitter-typeahead .tt-cursor {
-    background-color: #54A4CB;
-    color: white;
-    cursor: pointer;
-}
-
-.twitter-typeahead .tt-hint {
-    color: silver;
-    font-size: 20px;
-    background: none;
-    padding: 0;
-    line-height: 30px;
-    height: 30px;
-    outline: none;
-    border: 0;
-    width: 300px;
-}
-
-.twitter-typeahead .typeahead-package-id {
-    font-size: 14pt;
-}
-
-.twitter-typeahead .typeahead-package-summary {
-    font-size: 10pt;
-    color: grey;
-    height: 1.25em;
-}
-
-.twitter-typeahead .tt-cursor .typeahead-package-summary {
-    color: black;
-}
-
-.twitter-typeahead .typeahead-empty {
-    font-size: 12pt;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-    padding-left: 1em;
-    padding-right: 1em;
-    padding-bottom: 0.25em;
-}
-
 /* Body */
 
 #body {

@@ -26,8 +26,6 @@
         checkServiceStatus();
 
         attachPlugins();
-
-        attachTypeahead();
     });
 
 	// Add validator that ensures provided value is NOT equal to a specified value.
@@ -88,33 +86,5 @@
             }
             $(this).text(utc.getFullYear() + "-" + padInt(utc.getMonth(), 2) + "-" + padInt(utc.getDate(), 2) + " " + hrs + ":" + padInt(utc.getMinutes(), 2) + " " + ampm + " Local Time");
         });
-    }
-
-    function attachTypeahead() {
-        var engine = new Bloodhound({
-            name: 'packages',
-            remote: app.root + 'api/v2/typeahead?q=%QUERY',
-            datumTokenizer: function (d) {
-                return Bloodhound.tokenizers.whitespace(d.val);
-            },
-            queryTokenizer: Bloodhound.tokenizers.whitespace
-        });
-        engine.initialize()
-            .done(function () {
-                $('#searchBoxInput').typeahead({
-                    minLength: 3,
-                    highlight: true
-                }, {
-                    source: engine.ttAdapter(),
-                    displayKey: 'Id',
-                    templates: {
-                        suggestion: function (context) {
-                            return "<div class=\"typeahead-package-id\">" + context.Id + "</div>" +
-                                "<div class=\"typeahead-package-summary\">" + (context.Title || context.Summary) + "</div>";
-                        },
-                        empty: "<div class=\"typeahead-empty\">No results</div>"
-                    }
-                });
-            });
     }
 })(window, jQuery);

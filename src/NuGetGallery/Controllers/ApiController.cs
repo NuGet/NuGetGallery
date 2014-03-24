@@ -433,36 +433,5 @@ namespace NuGetGallery
 
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
         }
-
-        [HttpGet]
-        [ActionName("GetTypeaheadApi")]
-        public virtual async Task<ActionResult> GetTypeahead(string q)
-        {
-            // Query the search service
-            var results = await SearchService.Search(new SearchFilter(SearchFilter.UITypeaheadContext)
-            {
-                SearchTerm = q, /* For typeahead we want wildcard matching */
-                IncludePrerelease = true,
-                Take = 5
-            });
-
-            // Return the results formatted as JSON
-            return Json(results.Data.AsEnumerable().Select(p => {
-                var summary = p.Summary ?? p.Description;
-                // Truncate to a single line
-                summary = new StringReader(summary).ReadLine();
-                if (summary.Length > 350)
-                {
-                    summary = summary.Substring(0, 350) + "...";
-                }
-                return new {
-                    Key = p.Key,
-                    Id = p.PackageRegistration.Id,
-                    Title = p.Title,
-                    Version = p.NormalizedVersion,
-                    Summary = summary
-                };
-            }), JsonRequestBehavior.AllowGet);
-        }
     }
 }

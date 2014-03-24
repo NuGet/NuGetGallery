@@ -29,6 +29,10 @@ namespace NuGetGallery
 
         public bool IncludeAllVersions { get; set; }
 
+        /// <summary>
+        /// Constructs a new search filter
+        /// </summary>
+        /// <param name="context">The context in which the search is being executed. See the Constants attached to this class for examples</param>
         public SearchFilter(string context)
         {
             Context = context;
