@@ -73,7 +73,7 @@ function Invoke-Netsh() {
 }
 
 # Enable access to the necessary URLs
-Invoke-Netsh http add urlacl "url=http://$Subdomain.localtest.me:81/" user=Everyone
+Invoke-Netsh http add urlacl "url=http://$Subdomain.localtest.me:80/" user=Everyone
 Invoke-Netsh http add urlacl "url=https://$Subdomain.localtest.me:443/" user=Everyone
 
 
@@ -84,7 +84,7 @@ if($sites.Length -gt 0) {
     &$AppCmdPath delete site "$SiteFullName"
 }
 
-&$AppCmdPath add site /name:"$SiteFullName" /bindings:"http://$Subdomain.localtest.me:81,https://$Subdomain.localtest.me:443" /physicalPath:$SitePhysicalPath
+&$AppCmdPath add site /name:"$SiteFullName" /bindings:"http://$Subdomain.localtest.me:80,https://$Subdomain.localtest.me:443" /physicalPath:$SitePhysicalPath
 
 # Check for a cert
 $cert = @(dir -l "Cert:\CurrentUser\Root" | where {$_.Subject -eq "CN=$Subdomain.localtest.me"})
