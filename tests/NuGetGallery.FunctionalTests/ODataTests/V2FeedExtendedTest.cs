@@ -39,7 +39,7 @@ namespace NuGetGallery.FunctionalTests.ODataTests
 
         [TestMethod]
         public void Top30PackagesFeedTest()
-        {
+        {            
             WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/Search()?$filter=IsAbsoluteLatestVersion&$orderby=DownloadCount%20desc,Id&$skip=0&$top=30&searchTerm=''&targetFramework='net45'&includePrerelease=true");
             // Get the response.          
             WebResponse response = request.GetResponse();

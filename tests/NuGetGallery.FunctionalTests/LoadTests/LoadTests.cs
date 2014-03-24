@@ -25,7 +25,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
         [Priority(0)]
         public void DownloadPackageSimulationTest()
         {           
-            string packageId = "EntityFramework"; //try to down load a pre-defined test package.   
+            string packageId = "EntityFramework"; //try to down load a pre-defined package.   
             string version = "5.0.0";
             //Just try download and not actual download. Since this will be used in load test, we don't to actually download the nupkg everytime.
             string redirectUrl = ODataHelper.TryDownloadPackageFromFeed(packageId, version).Result;
@@ -69,7 +69,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
         {
             string packageId = "Microsoft.Web.Infrastructure";
             string version = "1.0.0.0";
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/api/v2/Packages(Id='" + packageId + "',Version='" + version + "')");
+            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"Packages(Id='" + packageId + "',Version='" + version + "')");
             // Get the response.          
             WebResponse response = request.GetResponse();
             StreamReader sr = new StreamReader(response.GetResponseStream());
@@ -81,12 +81,23 @@ namespace NuGetGallery.FunctionalTests.LoadTests
         public void PackagesApiTest()
         {
             string packageId = "newtonsoft.json";            
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/api/v2/Packages()?$filter=tolower(Id) eq '" + packageId + "'&$orderby=Id" );
+            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"Packages()?$filter=tolower(Id) eq '" + packageId + "'&$orderby=Id" );
             // Get the response.          
             WebResponse response = request.GetResponse();
             StreamReader sr = new StreamReader(response.GetResponseStream());
             string responseText = sr.ReadToEnd();
             Assert.IsTrue(responseText.Contains(@"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId));
+        }
+
+        [TestMethod]
+        public void StatsTotalTest()
+        {           
+            WebRequest request = WebRequest.Create(UrlHelper.BaseUrl + @"/stats/totals");
+            // Get the response.          
+            WebResponse response = request.GetResponse();
+            StreamReader sr = new StreamReader(response.GetResponseStream());
+            string responseText = sr.ReadToEnd();
+            Assert.IsTrue(responseText.Contains(@"Downloads"));
         }
     }
 }
