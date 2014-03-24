@@ -95,7 +95,7 @@ if($cert.Length -eq 0) {
 if($cert.Length -eq 0) {
     Write-Host "Generating a Self-Signed SSL Certificate for $Subdomain.localtest.me"
     # Generate one
-    & $MakeCertPath -r -pe -n "CN=$Subdomain.localtest.me" -b `"$([DateTime]::Now.ToString("MM/dd/yyy"))`" -e `"$([DateTime]::Now.AddYears(10).ToString("MM/dd/yyy"))`" -eku 1.3.6.1.5.5.7.3.1 -ss root -sr localMachine -sky exchange -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12
+    & $MakeCertPath -r -pe -n "CN=$Subdomain.localtest.me" -b `"$([DateTime]::Now.ToString("MM\/dd\/yyy"))`" -e `"$([DateTime]::Now.AddYears(10).ToString("MM\/dd\/yyy"))`" -eku 1.3.6.1.5.5.7.3.1 -ss root -sr localMachine -sky exchange -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12
     $cert = @(dir -l "Cert:\LocalMachine\Root" | where {$_.Subject -eq "CN=$Subdomain.localtest.me"})
 }
 

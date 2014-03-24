@@ -1,58 +1,6 @@
 ﻿// Global utility script for NuGetGallery
 /// <reference path="jquery-1.6.4.js" />
 (function (window, $, undefined) {
-    function attachSearchBoxBehavior($input, $menu) {
-        if ($input.length == 0 || $menu.length == 0) {
-            // If we were given nothing, just return.
-            return;
-        }
-
-        // Remember the previous state in order to perform smooth animation transforms
-        var prevstate = false;
-        function popit(assumeFocused) {
-            return function () {
-                // Calculate the new state
-                var state;
-                if ($input.val().length > 0 && ($input.is(":focus") || assumeFocused)) {
-                    state = true;
-                } else {
-                    state = false;
-                }
-
-                // If there's a change
-                if (state != prevstate) {
-                    // Record it and stop all current animations to avoid glitching
-                    prevstate = state;
-                    $input.stop();
-                    $menu.stop();
-
-                    // Start new ones to transition to the new state
-                    if (state) {
-                        $menu.animate({ opacity: 0 }, {
-                            duration: 200, queue: true, complete: function () {
-                                $menu.css({ position: 'absolute', top: -10000, left: -10000 });
-                                $input.animate({ width: '920px' }, { duration: 200, queue: true });
-                            }
-                        });
-                    } else {
-                        $input.animate({ width: '160px' }, {
-                            duration: 200, queue: true, complete: function () {
-                                $menu.css({ position: 'static', top: 'auto', left: 'auto' });
-                                $menu.animate({ opacity: 1 }, { duration: 200, queue: true });
-                                prevstate = state;
-                            }
-                        });
-                    }
-                }
-            }
-        }
-
-        // Bind handlers
-        $input.delegate('', 'keyup', popit(false));
-        $input.delegate('', 'blur', popit(false));
-        $input.delegate('', 'focus', popit(true));
-    }
-
     function checkServiceStatus() {
         $.get(app.root + 'api/v2/service-alert?cachebust=' + new Date().getTime())
             .done(function (data) {
@@ -77,8 +25,6 @@
         // Get the service status
         checkServiceStatus();
 
-        attachSearchBoxBehavior($('#searchBoxInput.expanding-search'), $('#menu.expanding-search'));
-
         attachPlugins();
     });
 
@@ -90,6 +36,12 @@
     // Add unobtrusive adapters for mandatory checkboxes and notequal values
     $.validator.unobtrusive.adapters.addBool("mandatory", "required");
     $.validator.unobtrusive.adapters.addSingleVal('notequal', 'disallowed');
+
+    function padInt(i, size) {
+        var s = i.toString();
+        while (s.length < size) s = "0" + s;
+        return s;
+    }
 
     // Attach script plugins
     function attachPlugins() {
@@ -122,5 +74,17 @@
         if(!navigator.mimeTypes["application/x-shockwave-flash"]) {
             $('.s-reqflash').remove();
         }
+        $('.s-localtime[data-utc]').each(function () {
+            var utc = new Date($(this).data().utc);
+            var hrs = utc.getHours();
+            var ampm = "AM";
+            if (hrs >= 12) {
+                if (hrs > 12) {
+                    hrs = hrs - 12;
+                }
+                ampm = "PM";
+            }
+            $(this).text(utc.getFullYear() + "-" + padInt(utc.getMonth(), 2) + "-" + padInt(utc.getDate(), 2) + " " + hrs + ":" + padInt(utc.getMinutes(), 2) + " " + ampm + " Local Time");
+        });
     }
 })(window, jQuery);

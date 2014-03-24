@@ -1,3 +1,8 @@
+#March 7, 2014
+
+Fixed a bug that caused a limited number of users to see an error page when attempting to view the Manage My Packages page, as well as a couple other UI glitches. This release was coordinated with a new worker whose new jobs support our disaster recovery and failover plan. See [3.0.1](https://github.com/NuGet/NuGetGallery/issues?milestone=45&page=1&state=closed) for details.
+
+
 #February 21, 2014
 
 Changed the frequency of stats updates on the home page.  See [#1795](hhttps://github.com/NuGet/NuGetGallery/pull/1795) for details on the code change.

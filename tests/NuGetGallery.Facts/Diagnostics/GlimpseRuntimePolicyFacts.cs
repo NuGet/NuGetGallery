@@ -8,6 +8,7 @@ using Glimpse.Core.Extensibility;
 using Moq;
 using NuGetGallery.Configuration;
 using Xunit;
+using Xunit.Extensions;
 
 namespace NuGetGallery.Diagnostics
 {
@@ -22,6 +23,8 @@ namespace NuGetGallery.Diagnostics
                 var context = new Mock<HttpContextBase>();
                 context.Setup(c => c.Request.IsAuthenticated)
                        .Returns(false);
+                context.Setup(c => c.Request.Path)
+                       .Returns("/api");
                 var policy = new TestableGlimpseRuntimePolicy();
                 
                 // Act/Assert
@@ -37,6 +40,8 @@ namespace NuGetGallery.Diagnostics
                        .Returns(true);
                 context.Setup(c => c.Request.IsSecureConnection)
                        .Returns(false);
+                context.Setup(c => c.Request.Path)
+                       .Returns("/api");
                 var policy = new TestableGlimpseRuntimePolicy();
                 policy.MockConfiguration
                     .Setup(c => c.RequireSSL)
@@ -57,6 +62,8 @@ namespace NuGetGallery.Diagnostics
                        .Returns(true);
                 context.Setup(c => c.User.IsInRole(Constants.AdminRoleName))
                        .Returns(false);
+                context.Setup(c => c.Request.Path)
+                       .Returns("/api");
                 var policy = new TestableGlimpseRuntimePolicy();
                 policy.MockConfiguration
                     .Setup(c => c.RequireSSL)
@@ -77,6 +84,8 @@ namespace NuGetGallery.Diagnostics
                        .Returns(true);
                 context.Setup(c => c.User.IsInRole(Constants.AdminRoleName))
                        .Returns(true);
+                context.Setup(c => c.Request.Path)
+                       .Returns("/api");
                 var policy = new TestableGlimpseRuntimePolicy();
                 policy.MockConfiguration
                     .Setup(c => c.RequireSSL)
@@ -97,6 +106,8 @@ namespace NuGetGallery.Diagnostics
                        .Returns(false);
                 context.Setup(c => c.User.IsInRole(Constants.AdminRoleName))
                        .Returns(true);
+                context.Setup(c => c.Request.Path)
+                    .Returns("/api");
                 var policy = new TestableGlimpseRuntimePolicy();
                 policy.MockConfiguration
                     .Setup(c => c.RequireSSL)
@@ -119,6 +130,8 @@ namespace NuGetGallery.Diagnostics
                        .Returns(false);
                 context.Setup(c => c.User.IsInRole(Constants.AdminRoleName))
                        .Returns(false);
+                context.Setup(c => c.Request.Path)
+                    .Returns("/api");
                 var policy = new TestableGlimpseRuntimePolicy();
                 policy.MockConfiguration
                     .Setup(c => c.RequireSSL)
@@ -126,6 +139,36 @@ namespace NuGetGallery.Diagnostics
 
                 // Act/Assert
                 Assert.Equal(RuntimePolicy.PersistResults, policy.Execute(context.Object));
+            }
+
+            [Theory]
+            [InlineData("public")]
+            [InlineData("content")]
+            [InlineData("scripts")]
+            [InlineData("/public")]
+            [InlineData("/content")]
+            [InlineData("/scripts")]
+            public void DisablesGlimpseIfPathIsKnownToBeStaticContent(string path)
+            {
+                // Arrange
+                var context = new Mock<HttpContextBase>();
+                context.Setup(c => c.Request.IsLocal)
+                       .Returns(false);
+                context.Setup(c => c.Request.IsAuthenticated)
+                       .Returns(true);
+                context.Setup(c => c.Request.IsSecureConnection)
+                       .Returns(true);
+                context.Setup(c => c.User.IsInRole(Constants.AdminRoleName))
+                       .Returns(true);
+                context.Setup(c => c.Request.Path)
+                    .Returns(path);
+                var policy = new TestableGlimpseRuntimePolicy();
+                policy.MockConfiguration
+                    .Setup(c => c.RequireSSL)
+                    .Returns(true);
+
+                // Act/Assert
+                Assert.Equal(RuntimePolicy.Off, policy.Execute(context.Object));
             }
         }
 

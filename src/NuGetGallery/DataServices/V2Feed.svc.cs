@@ -9,7 +9,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using NuGet;
 using NuGetGallery.Configuration;
-using NuGetGallery.Helpers;
+using NuGetGallery.DataServices;
 using QueryInterceptor;
 
 namespace NuGetGallery
@@ -33,7 +33,9 @@ namespace NuGetGallery
         {
             return new V2FeedContext
                 {
-                    Packages = PackageRepository.GetAll()
+                    Packages = PackageRepository
+                        .GetAll()
+                        .UseSearchService(SearchService, null, Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
                         .WithoutVersionSort()
                         .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
                         .InterceptWith(new NormalizeVersionInterceptor())
@@ -53,7 +55,17 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Where(p => p.Listed);
-            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: null).ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
+            return SearchAdaptor.SearchCore(
+                SearchService, 
+                HttpContext.Request, 
+                packages, 
+                searchTerm, 
+                targetFramework, 
+                includePrerelease, 
+                curatedFeed: null)
+                // TODO: Async this when I can figure out OData async stuff...
+                .Result
+                .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
         }
 
         [WebGet]

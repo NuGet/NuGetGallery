@@ -36,6 +36,11 @@ namespace NuGetGallery.Configuration
         public string AzureStorageConnectionString { get; set; }
 
         /// <summary>
+        /// Gets the URI to the search service
+        /// </summary>
+        public Uri SearchServiceUri { get; set; }
+
+        /// <summary>
         /// Gets a boolean indicating if the site requires that email addresses be confirmed
         /// </summary>
         [DefaultValue(true)]
@@ -108,5 +113,10 @@ namespace NuGetGallery.Configuration
         /// Gets the Google Analytics Property ID being used, if any.
         /// </summary>
         public string GoogleAnalyticsPropertyId { get; set; }
+
+        /// <summary>
+        /// Gets a boolean indicating if perf logs should be collected
+        /// </summary>
+        public bool CollectPerfLogs { get; set; }
     }
 }

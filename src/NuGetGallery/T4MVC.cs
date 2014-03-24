@@ -390,43 +390,38 @@ namespace Links {
             public static readonly string FontAwesome_otf = Url("FontAwesome.otf");
         }
     
-        public static readonly string font_awesome_ie7_min_css = Url("font-awesome-ie7.min.css");
-        public static readonly string font_awesome_css = Url("font-awesome.css");
-        public static readonly string font_awesome_min_css = Url("font-awesome.min.css");
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public static class font_awesome {
+            private const string URLPATH = "~/Content/font-awesome";
+            public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+            public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+            public static readonly string font_awesome_ie7_min_css = Url("font-awesome-ie7.min.css");
+            public static readonly string font_awesome_css = Url("font-awesome.css");
+            public static readonly string font_awesome_min_css = Url("font-awesome.min.css");
+        }
+    
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public static class Images {
             private const string URLPATH = "~/Content/Images";
             public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
             public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
-            public static readonly string changePassword_png = Url("changePassword.png");
-            public static readonly string copy_png = Url("copy.png");
-            public static readonly string download_png = Url("download.png");
-            public static readonly string editIcon_png = Url("editIcon.png");
-            public static readonly string editProfile_png = Url("editProfile.png");
             public static readonly string errorPage_png = Url("errorPage.png");
-            public static readonly string greenArrow_png = Url("greenArrow.png");
             public static readonly string headerbackground_png = Url("headerbackground.png");
+            [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+            public static class icons {
+                private const string URLPATH = "~/Content/Images/icons";
+                public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+                public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+                public static readonly string nuget_32_mono_b_png = Url("nuget_32_mono_b.png");
+                public static readonly string nuget_32_mono_w_png = Url("nuget_32_mono_w.png");
+            }
+        
             public static readonly string inputBackground_png = Url("inputBackground.png");
-            public static readonly string invalidBG_png = Url("invalidBG.png");
-            public static readonly string managePackages_png = Url("managePackages.png");
-            public static readonly string mine_png = Url("mine.png");
-            public static readonly string navbackground_png = Url("navbackground.png");
-            public static readonly string newAccountGraphic_png = Url("newAccountGraphic.png");
             public static readonly string packageDefaultIcon_50x50_png = Url("packageDefaultIcon-50x50.png");
             public static readonly string packageDefaultIcon_png = Url("packageDefaultIcon.png");
             public static readonly string packageOwnerActionIcons_png = Url("packageOwnerActionIcons.png");
-            public static readonly string packagesDefaultIcon_png = Url("packagesDefaultIcon.png");
-            public static readonly string recommended_png = Url("recommended.png");
-            public static readonly string recommendedSmall_png = Url("recommendedSmall.png");
             public static readonly string required_png = Url("required.png");
             public static readonly string searchButton_png = Url("searchButton.png");
-            public static readonly string sendMessageGraphic_png = Url("sendMessageGraphic.png");
-            public static readonly string trash_png = Url("trash.png");
-            public static readonly string uploadPackage_png = Url("uploadPackage.png");
-            public static readonly string userGraphic_png = Url("userGraphic.png");
-            public static readonly string userIcon_png = Url("userIcon.png");
-            public static readonly string userIconWhite_png = Url("userIconWhite.png");
-            public static readonly string xmark_png = Url("xmark.png");
             public static readonly string YourPackage_png = Url("YourPackage.png");
         }
     

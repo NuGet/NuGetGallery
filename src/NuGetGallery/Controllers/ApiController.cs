@@ -27,6 +27,7 @@ namespace NuGetGallery
         public IUserService UserService { get; set; }
         public IStatisticsService StatisticsService { get; set; }
         public IContentService ContentService { get; set; }
+        public ISearchService SearchService { get; set; }
         public IIndexingService IndexingService { get; set; }
         public IAutomaticallyCuratePackageCommand AutoCuratePackage { get; set; }
         
@@ -40,6 +41,7 @@ namespace NuGetGallery
             INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
             IIndexingService indexingService,
+            ISearchService searchService,
             IAutomaticallyCuratePackageCommand autoCuratePackage)
         {
             EntitiesContext = entitiesContext;
@@ -50,6 +52,7 @@ namespace NuGetGallery
             ContentService = contentService;
             StatisticsService = null;
             IndexingService = indexingService;
+            SearchService = searchService;
             AutoCuratePackage = autoCuratePackage;
         }
 
@@ -61,9 +64,10 @@ namespace NuGetGallery
             INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
             IIndexingService indexingService,
+            ISearchService searchService,
             IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatisticsService statisticsService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, autoCuratePackage)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage)
         {
             StatisticsService = statisticsService;
         }

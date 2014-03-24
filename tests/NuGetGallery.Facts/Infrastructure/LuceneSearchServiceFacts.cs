@@ -605,15 +605,14 @@ namespace NuGetGallery.Infrastructure
             luceneIndexingService.UpdateIndex(forceRefresh: true);
 
             var luceneSearchService = new LuceneSearchService(d);
-            var searchFilter = new SearchFilter
+            var searchFilter = new SearchFilter("Test")
             {
                 Skip = 0,
                 Take = 10,
                 SearchTerm = searchTerm,
             };
 
-            int totalHits;
-            var results = luceneSearchService.Search(searchFilter, out totalHits).ToList();
+            var results = luceneSearchService.Search(searchFilter).Result.Data.ToList();
 
             return results;
         }

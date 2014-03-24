@@ -15,6 +15,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
 using System.Diagnostics;
 using NuGetGallery.Auditing;
+using NuGetGallery.Infrastructure.Lucene;
 
 namespace NuGetGallery
 {
@@ -35,9 +36,7 @@ namespace NuGetGallery
                 .ToMethod(_ => LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
                 .InSingletonScope();
 
-            Bind<ISearchService>()
-                .To<LuceneSearchService>()
-                .InRequestScope();
+            ConfigureSearch(configuration);
 
             if (!String.IsNullOrEmpty(configuration.Current.AzureStorageConnectionString))
             {
@@ -116,10 +115,6 @@ namespace NuGetGallery
 
             Bind<IControllerFactory>()
                 .To<NuGetControllerFactory>()
-                .InRequestScope();
-
-            Bind<IIndexingService>()
-                .To<LuceneIndexingService>()
                 .InRequestScope();
 
             Bind<INuGetExeDownloaderService>()
@@ -217,6 +212,28 @@ namespace NuGetGallery
             Bind<IPackageVersionsQuery>()
                 .To<PackageVersionsQuery>()
                 .InRequestScope();
+        }
+
+        private void ConfigureSearch(ConfigurationService configuration)
+        {
+            if (configuration.Current.SearchServiceUri == null)
+            {
+                Bind<ISearchService>()
+                    .To<LuceneSearchService>()
+                    .InRequestScope();
+                Bind<IIndexingService>()
+                    .To<LuceneIndexingService>()
+                    .InRequestScope();
+            }
+            else
+            {
+                Bind<ISearchService>()
+                    .To<ExternalSearchService>()
+                    .InRequestScope();
+                Bind<IIndexingService>()
+                    .To<ExternalSearchService>()
+                    .InRequestScope();
+            }
         }
 
         private void ConfigureForLocalFileSystem()

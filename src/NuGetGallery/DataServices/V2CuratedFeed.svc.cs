@@ -87,15 +87,24 @@ namespace NuGetGallery
         public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {
             var curatedFeedName = GetCuratedFeedName();
-            var curatedFeedKey = _curatedFeedService.GetKey(curatedFeedName);
-            if (curatedFeedKey == null)
+            var curatedFeed = _curatedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
+            if (curatedFeed == null)
             {
                 throw new DataServiceException(404, "Not Found");
             }
 
             var curatedPackages = _curatedFeedService.GetPackages(curatedFeedName);
 
-            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, curatedPackages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: curatedFeedKey)
+            return SearchAdaptor.SearchCore(
+                SearchService, 
+                HttpContext.Request, 
+                curatedPackages, 
+                searchTerm, 
+                targetFramework, 
+                includePrerelease, 
+                curatedFeed)
+                // TODO: Async this when I can figure out OData async stuff...
+                .Result
                 .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses);
         }
 

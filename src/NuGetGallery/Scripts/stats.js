@@ -60,7 +60,7 @@ function animateEl(el, v) {
 
 $(document).ready(function () {
     var elem = document.getElementsByClassName("aggstats");
-    if (elem != null) {
+    if (elem != null && elem.length > 0) {
         getStats();
     }
 

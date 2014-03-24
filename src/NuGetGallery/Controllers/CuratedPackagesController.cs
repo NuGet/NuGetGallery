@@ -7,7 +7,6 @@ namespace NuGetGallery
     [Authorize]
     public partial class CuratedPackagesController : AppController
     {
-        public const string ControllerName = "CuratedPackages";
         internal ICuratedFeedService CuratedFeedService { get; set; }
         internal IEntitiesContext EntitiesContext { get; set; }
 

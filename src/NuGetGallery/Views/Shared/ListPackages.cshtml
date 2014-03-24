@@ -33,30 +33,7 @@
     }
 </div>
 
-<form method="get" action="">
-    <fieldset class="form search">
-        <legend>Sort Order</legend>
-        <input type="hidden" name="q" value="@Model.SearchTerm" />
-
-        <div class="form-field">
-            <select name="prerelease" id="prerelease">
-                @ViewHelpers.Option("", "Stable Only", Model.IncludePrerelease)
-                @ViewHelpers.Option("true", "Include Prerelease", Model.IncludePrerelease)
-            </select>
-            
-            <label for="sortOrder">Sort By</label>
-            <select name="sortOrder" id="sortOrder">
-                @if (!Model.SearchTerm.IsEmpty())
-                {
-                    @ViewHelpers.Option(Constants.RelevanceSortOrder, "Relevance", Model.SortOrder)
-                }
-                @ViewHelpers.Option(Constants.PopularitySortOrder, "Popularity", Model.SortOrder)
-                @ViewHelpers.Option(Constants.AlphabeticSortOrder, "A-Z", Model.SortOrder)
-                @ViewHelpers.Option(Constants.RecentSortOrder, "Recent", Model.SortOrder)
-            </select>
-        </div>
-    </fieldset>
-</form>
+<span class="sorted-by">Sorted by Recent Installs</span>
 
 <ul id="searchResults">
     @foreach (var package in Model.Items)
@@ -69,14 +46,4 @@
 
 
 @ViewHelpers.PreviousNextPager(Model.Pager)
-
-@section BottomScripts {
-    <script>
-        $(function() {
-            $("#sortOrder,#prerelease").change(function() {
-                this.form.submit();
-            });
-        });
-    </script>
-}
 
