@@ -136,14 +136,6 @@ namespace NuGetGallery.Infrastructure.Lucene
                 String.Empty;
         }
 
-        private static string BuildLuceneQuery(string p)
-        {
-            return String.Format(
-                CultureInfo.InvariantCulture,
-                "Id:{0}* Version:{0}* TokenizedId:{0}* ShingledId:{0}* Title:{0}* Tags:{0}* Description:{0}* Authors:{0}* Owners:{0}*",
-                p.Replace(@" ", @"\ "));
-        }
-
         public async Task<DateTime?> GetLastWriteTime()
         {
             await EnsureDiagnostics();
