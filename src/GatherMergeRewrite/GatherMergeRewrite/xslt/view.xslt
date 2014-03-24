@@ -7,6 +7,7 @@
   <xsl:output method="xml"/>
 
   <xsl:param name="resource" />
+  <xsl:param name="frame" />
   <xsl:param name="base" />
 
   <xsl:template match="@* | node()">
@@ -19,6 +20,10 @@
     <xsl:attribute name="href">
       <xsl:value-of select="$resource" />
     </xsl:attribute>
+  </xsl:template>
+
+  <xsl:template match="xhtml:div[@id='frame']/text()">
+    <xsl:value-of select="$frame" />
   </xsl:template>
 
   <xsl:template match="xhtml:script[@src]/@src">

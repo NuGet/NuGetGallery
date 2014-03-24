@@ -25,6 +25,7 @@ namespace GatherMergeRewrite
         void Init()
         {
             fullEndElement.Add("script");
+            fullEndElement.Add("div");
         }
 
         public override void WriteEndElement()

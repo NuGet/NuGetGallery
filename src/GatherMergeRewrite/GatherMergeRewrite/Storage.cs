@@ -24,23 +24,23 @@ namespace GatherMergeRewrite
 
             if (frame == null)
             {
-                Publish(flattened.ToString(), name, "application/json");
+                Save(flattened.ToString(), name, "application/json");
             }
             else
             {
                 JObject framed = JsonLdProcessor.Frame(flattened, frame, new JsonLdOptions());
                 JObject compacted = JsonLdProcessor.Compact(framed, framed["@context"], new JsonLdOptions());
 
-                Publish(compacted.ToString(), name, "application/json");
+                Save(compacted.ToString(), name, "application/json");
             }
         }
 
         public static void SaveHtml(string name, string html)
         {
-            Publish(html, name, "text/html");
+            Save(html, name, "text/html");
         }
 
-        public static void Publish(string str, string name, string contentType)
+        public static void Save(string str, string name, string contentType)
         {
             MemoryStream stream = new MemoryStream();
             using (StreamWriter writer = new StreamWriter(stream))
@@ -48,11 +48,11 @@ namespace GatherMergeRewrite
                 writer.Write(str);
                 writer.Flush();
                 stream.Seek(0, SeekOrigin.Begin);
-                Publish(stream, name, contentType);
+                Save(stream, name, contentType);
             }
         }
 
-        public static void Publish(Stream stream, string name, string contentType)
+        public static void Save(Stream stream, string name, string contentType)
         {
             CloudStorageAccount account = CloudStorageAccount.Parse(Config.ConnectionString);
             CloudBlobClient client = account.CreateCloudBlobClient();
@@ -109,7 +109,7 @@ namespace GatherMergeRewrite
                 stream.Seek(0, SeekOrigin.Begin);
 
                 StreamReader reader = new StreamReader(stream);
-                JToken compacted = JToken.Parse(reader.ToString());
+                JToken compacted = JToken.Parse(reader.ReadToEnd());
                 JToken flattened = JsonLdProcessor.Flatten(compacted, new JsonLdOptions());
 
                 IRdfReader rdfReader = new JsonLdReader();

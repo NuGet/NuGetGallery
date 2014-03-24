@@ -63,7 +63,7 @@
                       <ng:group>
                         <rdf:Description>
                           <xsl:attribute name="rdf:about">
-                            <xsl:value-of select="translate(concat($base, $path, '#gpdep'), uppercase, $lowercase)"/>
+                            <xsl:value-of select="translate(concat($base, $path, '#gpdep'), $uppercase, $lowercase)"/>
                           </xsl:attribute>
                           <xsl:apply-templates select="nuget:dependency">
                             <xsl:with-param name="parent" select="concat($path, '#gpdep')" />
@@ -96,7 +96,7 @@
                       <ng:group>
                         <rdf:Description>
                           <xsl:attribute name="rdf:about">
-                            <xsl:value-of select="translate(concat($base, '#gpref'), uppercase, $lowercase)"/>
+                            <xsl:value-of select="translate(concat($base, '#gpref'), $uppercase, $lowercase)"/>
                           </xsl:attribute>
                           <xsl:apply-templates select="nuget:reference">
                             <xsl:with-param name="parent" select="$path" />
@@ -154,7 +154,7 @@
         <xsl:variable name="path" select="concat($parent, $group)" />
 
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, $path), uppercase, $lowercase)"/>
+          <xsl:value-of select="translate(concat($base, $path), $uppercase, $lowercase)"/>
         </xsl:attribute>
 
         <xsl:if test="@targetFramework">

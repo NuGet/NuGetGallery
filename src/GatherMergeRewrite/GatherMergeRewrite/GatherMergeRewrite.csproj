@@ -129,10 +129,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="content\further.js" />
+    <Content Include="html\view.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="html\graph.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="xslt\graph.xslt">
+    <Content Include="xslt\view.xslt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="xslt\normalizeNuspecNamespace.xslt">
