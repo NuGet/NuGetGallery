@@ -1,12 +1,7 @@
-﻿using JsonLD.Core;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VDS.RDF;
 
 namespace JsonLDIntegration
@@ -47,9 +42,8 @@ namespace JsonLDIntegration
             using (JsonReader jsonReader = new JsonTextReader(input))
             {
                 json = JToken.Load(jsonReader);
-                JArray flattened = (JArray)JsonLdProcessor.Flatten(json, new JsonLdOptions());
 
-                foreach (JObject subjectJObject in flattened)
+                foreach (JObject subjectJObject in json)
                 {
                     string subject = subjectJObject["@id"].ToString();
 

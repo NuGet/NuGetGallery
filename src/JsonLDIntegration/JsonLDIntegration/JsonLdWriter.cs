@@ -1,5 +1,4 @@
-﻿using JsonLD.Core;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,27 +17,11 @@ namespace JsonLDIntegration
             }
         }
 
-        public JToken Frame
-        {
-            get;
-            set;
-        }
-
         public void Save(IGraph g, TextWriter output)
         {
             JToken flattened = MakeExpandedForm(g);
 
-            if (Frame == null)
-            {
-                output.Write(flattened);
-            }
-            else
-            {
-                JObject framed = JsonLdProcessor.Frame(flattened, Frame, new JsonLdOptions());
-                JObject compacted = JsonLdProcessor.Compact(framed, framed["@context"], new JsonLdOptions());
-                output.Write(compacted);
-            }
-
+            output.Write(flattened);
             output.Flush();
         }
 

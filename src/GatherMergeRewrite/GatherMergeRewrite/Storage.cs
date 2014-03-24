@@ -1,13 +1,10 @@
-﻿using JsonLDIntegration;
+﻿using JsonLD.Core;
+using JsonLDIntegration;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VDS.RDF;
 
 namespace GatherMergeRewrite
@@ -18,26 +15,40 @@ namespace GatherMergeRewrite
 
         public static void SaveJson(string name, IGraph graph, JToken frame = null)
         {
-            MemoryStream stream = new MemoryStream();
-            using (StreamWriter writer = new StreamWriter(stream))
+            StringWriter writer = new StringWriter();
+            IRdfWriter rdfWriter = new JsonLdWriter();
+            rdfWriter.Save(graph, writer);
+            writer.Flush();
+
+            JToken flattened = JToken.Parse(writer.ToString());
+
+            if (frame == null)
             {
-                IRdfWriter rdfWriter = new JsonLdWriter { Frame = frame };
-                rdfWriter.Save(graph, writer);
-                writer.Flush();
-                stream.Seek(0, SeekOrigin.Begin);
-                Publish(stream, name, "application/json");
+                Publish(flattened.ToString(), name, "application/json");
+            }
+            else
+            {
+                JObject framed = JsonLdProcessor.Frame(flattened, frame, new JsonLdOptions());
+                JObject compacted = JsonLdProcessor.Compact(framed, framed["@context"], new JsonLdOptions());
+
+                Publish(compacted.ToString(), name, "application/json");
             }
         }
 
         public static void SaveHtml(string name, string html)
         {
+            Publish(html, name, "text/html");
+        }
+
+        public static void Publish(string str, string name, string contentType)
+        {
             MemoryStream stream = new MemoryStream();
             using (StreamWriter writer = new StreamWriter(stream))
             {
-                writer.Write(html);
+                writer.Write(str);
                 writer.Flush();
                 stream.Seek(0, SeekOrigin.Begin);
-                Publish(stream, name, "text/html");
+                Publish(stream, name, contentType);
             }
         }
 
@@ -56,7 +67,7 @@ namespace GatherMergeRewrite
 
             CloudBlockBlob blob = container.GetBlockBlobReference(name);
             blob.Properties.ContentType = contentType;
-            blob.Properties.CacheControl = "no-store";
+            blob.Properties.CacheControl = "no-store";  // no for production, just helps with debugging
 
             blob.UploadFromStream(stream);
 
@@ -97,9 +108,13 @@ namespace GatherMergeRewrite
 
                 stream.Seek(0, SeekOrigin.Begin);
 
-                JsonLdReader reader = new JsonLdReader();
+                StreamReader reader = new StreamReader(stream);
+                JToken compacted = JToken.Parse(reader.ToString());
+                JToken flattened = JsonLdProcessor.Flatten(compacted, new JsonLdOptions());
+
+                IRdfReader rdfReader = new JsonLdReader();
                 graph = new Graph();
-                reader.Load(graph, new StreamReader(stream));
+                rdfReader.Load(graph, new StringReader(flattened.ToString()));
                 return true;
             }
 

@@ -1,4 +1,5 @@
-﻿using JsonLDIntegration;
+﻿using JsonLD.Core;
+using JsonLDIntegration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -9,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VDS.RDF;
 using VDS.RDF.Parsing;
+using VDS.RDF.Writing;
 
 namespace JsonLDIntegrationTests
 {
@@ -21,7 +23,7 @@ namespace JsonLDIntegrationTests
             TurtleParser parser = new TurtleParser();
             parser.Load(g, "datatypes.test.ttl");
 
-            StringWriter stringWriter = new StringWriter();
+            System.IO.StringWriter stringWriter = new System.IO.StringWriter();
 
             JToken frame;
             using (JsonReader reader = new JsonTextReader(new StreamReader("datatypes.context.json")))
@@ -30,12 +32,26 @@ namespace JsonLDIntegrationTests
             }
 
             JsonLdWriter jsonLdWriter = new JsonLdWriter();
-            jsonLdWriter.Frame = frame;
             jsonLdWriter.Save(g, stringWriter);
 
-            JToken compacted = JToken.Parse(stringWriter.ToString());
+            JToken flattened = JToken.Parse(stringWriter.ToString());
+
+            JObject framed = JsonLdProcessor.Frame(flattened, frame, new JsonLdOptions());
+            JObject compacted = JsonLdProcessor.Compact(framed, framed["@context"], new JsonLdOptions());
 
             Console.WriteLine(compacted);
+
+            JToken flattened2 = JsonLdProcessor.Flatten(compacted, new JsonLdOptions());
+
+            IGraph g2 = new Graph();
+            JsonLdReader jsonLdReader = new JsonLdReader();
+            jsonLdReader.Load(g2, new StringReader(flattened2.ToString()));
+
+            CompressingTurtleWriter turtleWriter = new CompressingTurtleWriter();
+
+            turtleWriter.DefaultNamespaces.AddNamespace("ns", new Uri("http://tempuri.org/schema#"));
+
+            turtleWriter.Save(g2, Console.Out);
         }
 
         static JToken ApplyFrame(IGraph g, string frameName)
@@ -46,10 +62,9 @@ namespace JsonLDIntegrationTests
                 frame = JToken.Load(reader);
             }
 
-            StringWriter stringWriter = new StringWriter();
+            System.IO.StringWriter stringWriter = new System.IO.StringWriter();
 
             JsonLdWriter jsonLdWriter = new JsonLdWriter();
-            jsonLdWriter.Frame = frame;
             jsonLdWriter.Save(g, stringWriter);
 
             return JToken.Parse(stringWriter.ToString());
