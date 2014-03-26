@@ -17,7 +17,7 @@ namespace GatherMergeRewrite
 
         public static void Dump(State state, UploadData data)
         {
-            string name = data.RegistrationId + ".all";
+            string name = "debug/" + data.RegistrationId;
             IGraph graph = Utils.Construct(state.Store, new StreamReader("sparql\\All.rq").ReadToEnd());
 
             Storage.SaveJson(name, graph);

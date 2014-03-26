@@ -131,17 +131,28 @@ namespace GatherMergeRewrite
 
         static IDictionary<Uri, Tuple<string, string>> DetermineResourceList(TripleStore store)
         {
-            IDictionary<Uri, Tuple<string, string>> resources = new Dictionary<Uri, Tuple<string, string>>();
-
-            SparqlResultSet results = Utils.Select(store, (new StreamReader("sparql\\ListResources.rq")).ReadToEnd());
-            foreach (SparqlResult result in results)
+            try
             {
-                Tuple<string, string> metadata = new Tuple<string, string>(result["transform"].ToString(), result["frame"].ToString());
+                IDictionary<Uri, Tuple<string, string>> resources = new Dictionary<Uri, Tuple<string, string>>();
 
-                resources.Add(new Uri(result["resource"].ToString()), metadata);
+                SparqlResultSet results = Utils.Select(store, (new StreamReader("sparql\\ListResources.rq")).ReadToEnd());
+                foreach (SparqlResult result in results)
+                {
+                    Tuple<string, string> metadata = new Tuple<string, string>(result["transform"].ToString(), result["frame"].ToString());
+
+                    resources.Add(new Uri(result["resource"].ToString()), metadata);
+                }
+
+                return resources;
             }
-
-            return resources;
+            catch (Exception)
+            {
+                foreach (Triple triple in store.Triples)
+                {
+                    Console.WriteLine("{0} {1} {2}", triple.Subject, triple.Predicate, triple.Object);
+                }
+                throw;
+            }
         }
     }
 }
