@@ -53,22 +53,6 @@ namespace MetadataClient
         }
 
         [ArgActionMethod]
-        public void GenMetadata(MakeMetadataArgs args)
-        {
-            if (String.IsNullOrEmpty(args.ReceivedContainer))
-            {
-                args.ReceivedContainer = "received";
-            }
-
-            if (String.IsNullOrEmpty(args.PublishContainer))
-            {
-                args.PublishContainer = "pub";
-            }
-
-            MakeMetadata.Program.Run(args.StorageConnectionString, args.ReceivedContainer, args.PublishContainer);
-        }
-
-        [ArgActionMethod]
         public void RenameOwner(RenameOwnerArgs args)
         {
             throw new NotImplementedException();

@@ -83,12 +83,6 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\MakeMetadata\MakeMetadata\MakeMetadata.csproj">
-      <Project>{c205da2b-243e-47b4-b222-d6c3f07a73bd}</Project>
-      <Name>MakeMetadata</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
