@@ -27,15 +27,6 @@ namespace GatherMergeRewrite
             Config.BaseAddress = "http://nuget3.blob.core.windows.net";
             Config.ConnectionString = "";
 
-            //Upload("microsoft", "entityframework", @"c:\data\nupkgs\entityframework.4.1.10311.nupkg", DateTime.Now);
-            //Upload("microsoft", "entityframework", @"c:\data\nupkgs\entityframework.4.1.10715.nupkg", DateTime.Now);
-            //Upload("microsoft", "entityframework", @"c:\data\nupkgs\entityframework.4.2.0.nupkg", DateTime.Now);
-            //Upload("microsoft", "entityframework", @"c:\data\nupkgs\entityframework.4.3.1.nupkg", DateTime.Now);
-
-            //Upload("microsoft", "dotnetrdf", @"c:\data\nupkgs\dotNetRDF.0.5.0.nupkg", DateTime.Now);
-            //Upload("microsoft", "dotnetrdf", @"c:\data\nupkgs\dotNetRDF.0.8.0.nupkg", DateTime.Now);
-            //Upload("microsoft", "dotnetrdf", @"c:\data\nupkgs\dotNetRDF.1.0.3.nupkg", DateTime.Now);
-
             //Upload("microsoft", "dotnetrdf", @"c:\data\resolver\dotnetrdf.0.4.1.nupkg", DateTime.Now);
             //Upload("microsoft", "dotnetrdf", @"c:\data\resolver\dotnetrdf.0.5.0.nupkg", DateTime.Now);
             //Upload("microsoft", "dotnetrdf", @"c:\data\resolver\dotnetrdf.0.5.1.nupkg", DateTime.Now);
@@ -262,7 +253,7 @@ namespace GatherMergeRewrite
             //Upload("microsoft", "webapi.odata", @"c:\data\resolver\webapi.odata.0.5.0.nupkg", DateTime.Now);
             //Upload("microsoft", "webapi.odata", @"c:\data\resolver\webapi.odata.0.6.0.nupkg", DateTime.Now);
 
-            Upload("microsoft", "microsoft.web.infrastructure", @"c:\data\resolver\microsoft.web.infrastructure.1.0.0.nupkg", DateTime.Now);
+            //Upload("microsoft", "microsoft.web.infrastructure", @"c:\data\resolver\microsoft.web.infrastructure.1.0.0.nupkg", DateTime.Now);
         }
     }
 }
