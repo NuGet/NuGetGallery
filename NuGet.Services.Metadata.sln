@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestNuspec", "tests\TestNus
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GatherMergeRewrite", "src\GatherMergeRewrite\GatherMergeRewrite\GatherMergeRewrite.csproj", "{7A719289-888C-48A9-A2FF-72EB3DF12CD4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BulkUpload", "tests\BulkUpload\BulkUpload\BulkUpload.csproj", "{3BE654F7-4204-48DD-B1E5-F137DF34F497}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{7A719289-888C-48A9-A2FF-72EB3DF12CD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7A719289-888C-48A9-A2FF-72EB3DF12CD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7A719289-888C-48A9-A2FF-72EB3DF12CD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BE654F7-4204-48DD-B1E5-F137DF34F497}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BE654F7-4204-48DD-B1E5-F137DF34F497}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BE654F7-4204-48DD-B1E5-F137DF34F497}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BE654F7-4204-48DD-B1E5-F137DF34F497}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
