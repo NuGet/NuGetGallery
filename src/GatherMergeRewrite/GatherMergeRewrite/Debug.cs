@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.IO;
+using System.Threading.Tasks;
 using VDS.RDF;
 using VDS.RDF.Writing;
 
@@ -15,12 +16,12 @@ namespace GatherMergeRewrite
             writer.Save(graph, filename);
         }
 
-        public static void Dump(State state, UploadData data)
+        public static async Task Dump(State state, UploadData data)
         {
             string name = "debug/" + data.RegistrationId;
             IGraph graph = Utils.Construct(state.Store, new StreamReader("sparql\\All.rq").ReadToEnd());
 
-            Storage.SaveJson(name, graph);
+            await Storage.SaveJson(name, graph);
         }
     }
 }

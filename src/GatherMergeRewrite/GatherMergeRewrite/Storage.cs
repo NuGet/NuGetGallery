@@ -5,6 +5,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using VDS.RDF;
 
 namespace GatherMergeRewrite
@@ -13,7 +14,7 @@ namespace GatherMergeRewrite
     {
         //  save
 
-        public static void SaveJson(string name, IGraph graph, JToken frame = null)
+        public static async Task SaveJson(string name, IGraph graph, JToken frame = null)
         {
             StringWriter writer = new StringWriter();
             IRdfWriter rdfWriter = new JsonLdWriter();
@@ -24,23 +25,23 @@ namespace GatherMergeRewrite
 
             if (frame == null)
             {
-                Save(flattened.ToString(), name, "application/json");
+                await Save(flattened.ToString(), name, "application/json");
             }
             else
             {
                 JObject framed = JsonLdProcessor.Frame(flattened, frame, new JsonLdOptions());
                 JObject compacted = JsonLdProcessor.Compact(framed, framed["@context"], new JsonLdOptions());
 
-                Save(compacted.ToString(), name, "application/json");
+                await Save(compacted.ToString(), name, "application/json");
             }
         }
 
-        public static void SaveHtml(string name, string html)
+        public static async Task SaveHtml(string name, string html)
         {
-            Save(html, name, "text/html");
+            await Save(html, name, "text/html");
         }
 
-        public static void Save(string str, string name, string contentType)
+        public static async Task Save(string str, string name, string contentType)
         {
             MemoryStream stream = new MemoryStream();
             using (StreamWriter writer = new StreamWriter(stream))
@@ -48,11 +49,11 @@ namespace GatherMergeRewrite
                 writer.Write(str);
                 writer.Flush();
                 stream.Seek(0, SeekOrigin.Begin);
-                Save(stream, name, contentType);
+                await Save(stream, name, contentType);
             }
         }
 
-        public static void Save(Stream stream, string name, string contentType)
+        public static async Task Save(Stream stream, string name, string contentType)
         {
             CloudStorageAccount account = CloudStorageAccount.Parse(Config.ConnectionString);
             CloudBlobClient client = account.CreateCloudBlobClient();
@@ -69,24 +70,14 @@ namespace GatherMergeRewrite
             blob.Properties.ContentType = contentType;
             blob.Properties.CacheControl = "no-store";  // no for production, just helps with debugging
 
-            blob.UploadFromStream(stream);
+            await blob.UploadFromStreamAsync(stream);
 
             Console.WriteLine("published: {0}", name);
         }
 
         //  load
 
-        public static IGraph LoadResourceGraph(string name)
-        {
-            IGraph graph;
-            if (TryLoadGraph(name, out graph))
-            {
-                return graph;
-            }
-            return null;
-        }
-
-        public static bool TryLoadGraph(string name, out IGraph graph)
+        public static async Task<IGraph> LoadResourceGraph(string name)
         {
             CloudStorageAccount account = CloudStorageAccount.Parse(Config.ConnectionString);
             CloudBlobClient client = account.CreateCloudBlobClient();
@@ -104,7 +95,7 @@ namespace GatherMergeRewrite
             if (blob.Exists())
             {
                 MemoryStream stream = new MemoryStream();
-                blob.DownloadToStream(stream);
+                await blob.DownloadToStreamAsync(stream);
 
                 stream.Seek(0, SeekOrigin.Begin);
 
@@ -113,13 +104,12 @@ namespace GatherMergeRewrite
                 JToken flattened = JsonLdProcessor.Flatten(compacted, new JsonLdOptions());
 
                 IRdfReader rdfReader = new JsonLdReader();
-                graph = new Graph();
+                IGraph graph = new Graph();
                 rdfReader.Load(graph, new StringReader(flattened.ToString()));
-                return true;
+                return graph;
             }
 
-            graph = null;
-            return false;
+            return null;
         }
     }
 }

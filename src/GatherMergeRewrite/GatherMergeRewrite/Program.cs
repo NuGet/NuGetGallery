@@ -18,7 +18,7 @@ namespace GatherMergeRewrite
                 Published = published
             };
 
-            Processor.Upload(data);
+            Processor.Upload(data).Wait();
         }
 
         static void Main(string[] args)
@@ -254,6 +254,9 @@ namespace GatherMergeRewrite
             //Upload("microsoft", "webapi.odata", @"c:\data\resolver\webapi.odata.0.6.0.nupkg", DateTime.Now);
 
             //Upload("microsoft", "microsoft.web.infrastructure", @"c:\data\resolver\microsoft.web.infrastructure.1.0.0.nupkg", DateTime.Now);
+
+            string owner = "microsoft";
+            Upload(owner, "entityframework", @"c:\data\nupkgs\EntityFramework.5.0.0.nupkg", DateTime.Now);
         }
     }
 }

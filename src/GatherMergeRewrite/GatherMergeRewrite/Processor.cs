@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using VDS.RDF;
 using VDS.RDF.Query;
@@ -12,7 +13,7 @@ namespace GatherMergeRewrite
 {
     public class Processor
     {
-        public static void Upload(UploadData data)
+        public static async Task Upload(UploadData data)
         {
             State state = new State();
 
@@ -22,13 +23,13 @@ namespace GatherMergeRewrite
 
             //  (2)
 
-            LoadResources(state);
+            await LoadResources(state);
 
             //  (3)
 
-            SaveResources(state);
+            await SaveResources(state);
 
-            Debug.Dump(state, data);
+            //Debug.Dump(state, data);
         }
 
         static void CaptureData(State state, UploadData data)
@@ -56,7 +57,7 @@ namespace GatherMergeRewrite
             state.Resources.Add(newResource.Key, new Tuple<string, string>("Package.rq", "PackageFrame.json"));
         }
 
-        static void LoadResources(State state)
+        static async Task LoadResources(State state)
         {
             while (true)
             {
@@ -78,7 +79,7 @@ namespace GatherMergeRewrite
 
                 foreach (KeyValuePair<Uri, Tuple<string, string>> item in missing)
                 {
-                    IGraph resourceGraph = Storage.LoadResourceGraph(Utils.GetName(item.Key, Config.BaseAddress, Config.Container));
+                    IGraph resourceGraph = await Storage.LoadResourceGraph(Utils.GetName(item.Key, Config.BaseAddress, Config.Container));
 
                     if (resourceGraph != null)
                     {
@@ -90,7 +91,7 @@ namespace GatherMergeRewrite
             }
         }
 
-        static void SaveResources(State state)
+        static async Task SaveResources(State state)
         {
             foreach (KeyValuePair<Uri, Tuple<string, string>> resource in state.Resources)
             {
@@ -108,9 +109,11 @@ namespace GatherMergeRewrite
 
                 string name = Utils.GetName(resource.Key, Config.BaseAddress, Config.Container);
 
-                Storage.SaveJson(name, resourceGraph, resourceFrame);
-                Storage.SaveJson(name + ".flat", resourceGraph, null);
-                Storage.SaveHtml(name + ".html", Utils.CreateHtmlView(resource.Key, resourceFrame.ToString()));
+                Task t0 = Storage.SaveJson(name, resourceGraph, resourceFrame);
+                Task t1 = Storage.SaveHtml(name + ".html", Utils.CreateHtmlView(resource.Key, resourceFrame.ToString()));
+
+                await t0;
+                await t1;
             }
         }
 
