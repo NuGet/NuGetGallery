@@ -90,7 +90,7 @@ namespace JsonLDIntegration
 
             IDictionary<string, JObject> subjects = new Dictionary<string, JObject>();
 
-            foreach (Triple triple in graph.Triples.Where((t) => { return !IsListNode(t.Subject, graph); }))
+            foreach (Triple triple in graph.Triples.Where((t) => !IsListNode(t.Subject, graph)))
             {
                 string subject = triple.Subject.ToString();
                 string predicate = triple.Predicate.ToString();

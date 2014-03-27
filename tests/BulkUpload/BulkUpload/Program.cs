@@ -112,7 +112,7 @@ namespace BulkUpload
                 int count = 0;
 
                 DirectoryInfo directoryInfo = new DirectoryInfo(path);
-                foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles())
+                foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.nupkg"))
                 {
                     actionBlock.Post(fileInfo);
 
