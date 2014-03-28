@@ -1,15 +1,18 @@
-﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
-using Trigger = System.Collections.Generic.IDictionary<string, string>;
+using Dapper;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+
+using Trigger = System.Collections.Generic.Dictionary<string, string>;
 
 namespace MetadataClient
 {
-    public static class MetaDataTriggerConstants
+    public static class MDConstants
     {
         public const string Trigger = "Trigger";
 
@@ -23,19 +26,29 @@ namespace MetadataClient
 
         /// TRIGGER PARAMETER KEYS
         public const string PackageId = "PackageId";
+        public const string PackageVersion = "PackageVersion";
+        public const string Package = "Package";
         public const string OwnerName = "OwnerName";
         public const string OldOwnerName = "OldOwnerName";
         public const string NewOwnerName = "NewOwnerName";
     }
 
+    public class PackageRef
+    {
+        public int Key { get; set; }
+        public string Description { get; set; }
+        public string Version { get; set; }
+        public string Hash { get; set; }
+    }
+
     public static class MetadataTrigger
     {
-        private const string PackagesTable = "Packages";
-        private const string PackageRegistrationOwnersTable = "PackageRegistrationOwners";
-        private const string UsersTable = "Users";
-        private const string MDPackagesTable = "MDPackages";
-        private const string MDPackageRegOwnersTable = "MDPackageRegOwners";
-        private const string MDOwnersTable = "MDOwners";
+        public const string PackagesTable = "Packages";
+        public const string PackageRegistrationOwnersTable = "PackageRegistrationOwners";
+        public const string UsersTable = "Users";
+        public const string MDPackagesTable = "MDPackages";
+        public const string MDPackageRegOwnersTable = "MDPackageRegOwners";
+        public const string MDOwnersTable = "MDOwners";
         public static async Task Start(CloudStorageAccount blobAccount, CloudBlobContainer container, SqlConnectionStringBuilder sql)
         {
             Console.WriteLine("Started polling...");
@@ -68,7 +81,7 @@ namespace MetadataClient
                 using (var connection = await sql.ConnectTo())
                 {
                     Console.WriteLine("Connection to database in {0}/{1} obtained: {2}", connection.DataSource, connection.Database, connection.ClientConnectionId);
-                    triggers.AddRange(await DetectUploadPackages(sql));
+                    triggers.AddRange(await DetectUploadPackages(connection));
                 }
             }
             catch (Exception ex)
@@ -95,9 +108,43 @@ namespace MetadataClient
             }
         }
 
-        public static async Task<IList<Trigger>> DetectUploadPackages(SqlConnectionStringBuilder sql)
+        private static Task ExecuteAsync(SqlConnection connection, string sql)
         {
-            return null;
+            SqlCommand cmd = connection.CreateCommand();
+            cmd.CommandText = sql;
+            cmd.CommandType = CommandType.Text;
+            return cmd.ExecuteNonQueryAsync();
+        }
+
+        public static async Task<IList<Trigger>> DetectUploadPackages(SqlConnection connection)
+        {
+            Console.Write("Detecting Upload Packages");
+            var triggers = new List<Trigger>();
+
+            string sql = @"	SELECT [Key], Description, Version, [Hash] FROM dbo.Packages WHERE [Key] NOT IN 
+(SELECT PackageKey FROM dbo.MDPackages)";
+
+            Console.WriteLine("Querying for new packages...");
+
+            var newPackages = await connection.QueryAsync<PackageRef>(sql);
+
+            Console.WriteLine("New Packages have been identified");
+
+            int newPackageCount = 0;
+            foreach (var package in newPackages)
+            {
+                Trigger trigger = new Trigger();
+                trigger.Add(MDConstants.Trigger, MDConstants.UploadPackage);
+                trigger.Add(MDConstants.PackageId, package.Description);
+                trigger.Add(MDConstants.PackageVersion, package.Version);
+
+                triggers.Add(trigger);
+                newPackageCount++;
+            }
+
+            Console.WriteLine("{0} new package(s) were identified", newPackageCount);
+
+            return triggers;
         }
     }
 }
