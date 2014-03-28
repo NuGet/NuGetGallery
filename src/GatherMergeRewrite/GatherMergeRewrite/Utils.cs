@@ -1,4 +1,7 @@
-﻿using System;
+﻿using JsonLD.Core;
+using JsonLDIntegration;
+using Newtonsoft.Json.Linq;
+using System;
 using System.IO;
 using System.IO.Packaging;
 using System.Xml;
@@ -14,38 +17,17 @@ namespace GatherMergeRewrite
 {
     class Utils
     {
-        public static IGraph Construct(TripleStore store, string sparql)
+        public static IGraph CreateNuspecGraph(XDocument nuspec, string baseAddress)
         {
-            InMemoryDataset ds = new InMemoryDataset(store);
-            ISparqlQueryProcessor processor = new LeviathanQueryProcessor(ds);
-            SparqlQueryParser sparqlparser = new SparqlQueryParser();
-            SparqlQuery query = sparqlparser.ParseFromString(sparql);
-            return (IGraph)processor.ProcessQuery(query);
-        }
+            nuspec = NormalizeNuspecNamespace(nuspec);
 
-        public static SparqlResultSet Select(TripleStore store, string sparql)
-        {
-            InMemoryDataset ds = new InMemoryDataset(store);
-            ISparqlQueryProcessor processor = new LeviathanQueryProcessor(ds);
-            SparqlQueryParser sparqlparser = new SparqlQueryParser();
-            SparqlQuery query = sparqlparser.ParseFromString(sparql);
-            return (SparqlResultSet)processor.ProcessQuery(query);
-        }
-
-        public static IGraph Load(string filename, string baseAddress)
-        {
-            XDocument nuspec = XDocument.Load(new StreamReader(filename));
-            return Load(nuspec, baseAddress);
-        }
-
-        public static IGraph Load(XDocument nuspec, string baseAddress)
-        {
             string path = "xslt\\nuspec.xslt";
 
             XslCompiledTransform transform = CreateTransform(path);
 
             XsltArgumentList arguments = new XsltArgumentList();
             arguments.AddParam("base", "", baseAddress);
+            arguments.AddParam("extension", "", ".json");
 
             arguments.AddExtensionObject("urn:helper", new XsltHelper());
 
@@ -80,15 +62,6 @@ namespace GatherMergeRewrite
             turtleWriter.Save(graph, Console.Out);
         }
 
-        public static XDocument Extract(string filename)
-        {
-            Stream stream = new FileStream(filename, FileMode.Open);
-            Package package = GetPackage(stream);
-            XDocument awkwardNuspec = GetNuspec(package);
-            XDocument nuspec = NormalizeNuspecNamespace(awkwardNuspec);
-            return nuspec;
-        }
-
         public static XDocument GetNuspec(Package package)
         {
             foreach (PackagePart part in package.GetParts())
@@ -107,7 +80,6 @@ namespace GatherMergeRewrite
             Package package = Package.Open(stream);
             return package;
         }
-
 
         public static XDocument NormalizeNuspecNamespace(XDocument original)
         {
@@ -150,6 +122,39 @@ namespace GatherMergeRewrite
             }
 
             return writer.ToString();
+        }
+
+        public static string CreateJson(IGraph graph, JToken frame = null)
+        {
+            System.IO.StringWriter writer = new System.IO.StringWriter();
+            IRdfWriter rdfWriter = new JsonLdWriter();
+            rdfWriter.Save(graph, writer);
+            writer.Flush();
+
+            if (frame == null)
+            {
+                return writer.ToString();
+            }
+            else
+            {
+                JToken flattened = JToken.Parse(writer.ToString());
+                JObject framed = JsonLdProcessor.Frame(flattened, frame, new JsonLdOptions());
+                JObject compacted = JsonLdProcessor.Compact(framed, framed["@context"], new JsonLdOptions());
+
+                return compacted.ToString();
+            }
+        }
+
+        public static IGraph CreateGraph(string json)
+        {
+            JToken compacted = JToken.Parse(json);
+            JToken flattened = JsonLdProcessor.Flatten(compacted, new JsonLdOptions());
+
+            IRdfReader rdfReader = new JsonLdReader();
+            IGraph graph = new Graph();
+            rdfReader.Load(graph, new StringReader(flattened.ToString()));
+
+            return graph;
         }
     }
 }

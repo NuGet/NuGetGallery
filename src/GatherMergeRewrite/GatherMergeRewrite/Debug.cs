@@ -16,12 +16,12 @@ namespace GatherMergeRewrite
             writer.Save(graph, filename);
         }
 
-        public static async Task Dump(State state, UploadData data)
+        public static async Task Dump(State state, PackageData data, IStorage storage)
         {
             string name = "debug/" + data.RegistrationId;
-            IGraph graph = Utils.Construct(state.Store, new StreamReader("sparql\\All.rq").ReadToEnd());
+            IGraph graph = SparqlHelpers.Construct(state.Store, new StreamReader("sparql\\All.rq").ReadToEnd());
 
-            await Storage.SaveJson(name, graph);
+            await storage.Save("application/json", name, Utils.CreateJson(graph));
         }
     }
 }

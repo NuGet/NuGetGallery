@@ -9,6 +9,7 @@
   version="1.0">
 
   <xsl:param name="base" />
+  <xsl:param name="extension" />
 
   <xsl:variable name="lowercase" select="'abcdefghijklmnopqrstuvwxyz'" />
   <xsl:variable name="uppercase" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'" />
@@ -18,7 +19,7 @@
 
       <ng:PackageRegistration>
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, nuget:id), $uppercase, $lowercase)"/>
+          <xsl:value-of select="translate(concat($base, nuget:id, $extension), $uppercase, $lowercase)"/>
         </xsl:attribute>
         <ng:id>
           <xsl:value-of select="nuget:id"/>
@@ -30,12 +31,12 @@
         <xsl:variable name="path" select="concat(nuget:id, '/', nuget:version)" />
 
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, $path), $uppercase, $lowercase)"/>
+          <xsl:value-of select="translate(concat($base, $path, $extension), $uppercase, $lowercase)"/>
         </xsl:attribute>
 
         <ng:registration>
           <xsl:attribute name="rdf:resource">
-            <xsl:value-of select="translate(concat($base, nuget:id), $uppercase, $lowercase)"/>
+            <xsl:value-of select="translate(concat($base, nuget:id, $extension), $uppercase, $lowercase)"/>
           </xsl:attribute>
         </ng:registration>
 
@@ -47,7 +48,7 @@
                 <rdf:Description>
                   
                   <xsl:attribute name="rdf:about">
-                    <xsl:value-of select="translate(concat($base, $path, '#dependencies'), $uppercase, $lowercase)"/>
+                    <xsl:value-of select="translate(concat($base, $path, $extension, '#dependencies'), $uppercase, $lowercase)"/>
                   </xsl:attribute>
                   
                   <xsl:choose>
@@ -63,7 +64,7 @@
                       <ng:group>
                         <rdf:Description>
                           <xsl:attribute name="rdf:about">
-                            <xsl:value-of select="translate(concat($base, $path, '#gpdep'), $uppercase, $lowercase)"/>
+                            <xsl:value-of select="translate(concat($base, $path, $extension, '#gpdep'), $uppercase, $lowercase)"/>
                           </xsl:attribute>
                           <xsl:apply-templates select="nuget:dependency">
                             <xsl:with-param name="parent" select="concat($path, '#gpdep')" />
@@ -82,7 +83,7 @@
               <ng:references>
                 <rdf:Description>
                   <xsl:attribute name="rdf:about">
-                    <xsl:value-of select="translate(concat($base, $path, '#references'), $uppercase, $lowercase)"/>
+                    <xsl:value-of select="translate(concat($base, $path, $extension, '#references'), $uppercase, $lowercase)"/>
                   </xsl:attribute>
 
                   <xsl:choose>
@@ -96,7 +97,7 @@
                       <ng:group>
                         <rdf:Description>
                           <xsl:attribute name="rdf:about">
-                            <xsl:value-of select="translate(concat($base, '#gpref'), $uppercase, $lowercase)"/>
+                            <xsl:value-of select="translate(concat($base, $extension, '#gpref'), $uppercase, $lowercase)"/>
                           </xsl:attribute>
                           <xsl:apply-templates select="nuget:reference">
                             <xsl:with-param name="parent" select="$path" />
@@ -154,7 +155,7 @@
         <xsl:variable name="path" select="concat($parent, $group)" />
 
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, $path), $uppercase, $lowercase)"/>
+          <xsl:value-of select="translate(concat($base, $path, $extension), $uppercase, $lowercase)"/>
         </xsl:attribute>
 
         <xsl:if test="@targetFramework">
@@ -193,7 +194,7 @@
         <xsl:variable name="path" select="concat($parent, '_dep_', @id)" />
 
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, $path), $uppercase, $lowercase)"/>
+          <xsl:value-of select="translate(concat($base, $path, $extension), $uppercase, $lowercase)"/>
         </xsl:attribute>
 
         <ng:id>
@@ -206,7 +207,7 @@
 
         <ng:registration>
           <xsl:attribute name="rdf:resource">
-            <xsl:value-of select="translate(concat($base, @id), $uppercase, $lowercase)"/>
+            <xsl:value-of select="translate(concat($base, @id, $extension), $uppercase, $lowercase)"/>
           </xsl:attribute>
         </ng:registration>
 
@@ -226,7 +227,7 @@
         <xsl:variable name="path" select="concat($parent, '_ref_', @file)" />
 
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, $path), $uppercase, $lowercase)"/>
+          <xsl:value-of select="translate(concat($base, $path, $extension), $uppercase, $lowercase)"/>
         </xsl:attribute>
 
         <ng:file>
@@ -249,7 +250,7 @@
         <xsl:variable name="path" select="concat($parent, '_prop_', @name)" />
 
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, $path), $uppercase, $lowercase)"/>
+          <xsl:value-of select="translate(concat($base, $path, $extension), $uppercase, $lowercase)"/>
         </xsl:attribute>
 
         <ng:name>

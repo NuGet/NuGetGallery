@@ -13,30 +13,30 @@ namespace GatherMergeRewrite
 {
     public class Processor
     {
-        public static async Task Upload(UploadData data)
+        public static async Task UploadPackage(IPackageHandle handle, IStorage storage)
         {
             State state = new State();
 
             //  (1)
 
-            CaptureData(state, data);
+            await CaptureData(state, handle);
 
             //  (2)
 
-            await LoadResources(state);
+            await LoadResources(state, storage);
 
             //  (3)
 
-            await SaveResources(state);
-
-            //Debug.Dump(state, data);
+            await SaveResources(state, storage);
         }
 
-        static void CaptureData(State state, UploadData data)
+        static async Task CaptureData(State state, IPackageHandle handle)
         {
+            PackageData data = await handle.GetData();
+
             string address = string.Format("{0}/{1}/", Config.BaseAddress, Config.Container);
-            Uri ownerUri = new Uri(address + data.OwnerId);
-            Uri registrationUri = new Uri(address + data.RegistrationId);
+            Uri ownerUri = new Uri(address + data.OwnerId + ".json");
+            Uri registrationUri = new Uri(address + data.RegistrationId + ".json");
 
             IGraph graph = new Graph();
 
@@ -50,14 +50,14 @@ namespace GatherMergeRewrite
 
             state.Store.Add(graph, true);
 
-            KeyValuePair<Uri, IGraph> newResource = CreateGraph(Utils.Extract(data.Nupkg), address, ownerUri, data.Published);
+            KeyValuePair<Uri, IGraph> newResource = CreateGraph(data.Nuspec, address, ownerUri, data.Published);
 
             state.Store.Add(newResource.Value, true);
 
             state.Resources.Add(newResource.Key, new Tuple<string, string>("Package.rq", "PackageFrame.json"));
         }
 
-        static async Task LoadResources(State state)
+        static async Task LoadResources(State state, IStorage storage)
         {
             while (true)
             {
@@ -77,29 +77,44 @@ namespace GatherMergeRewrite
                     break;
                 }
 
+                List<Task> tasks = new List<Task>();
                 foreach (KeyValuePair<Uri, Tuple<string, string>> item in missing)
                 {
-                    IGraph resourceGraph = await Storage.LoadResourceGraph(Utils.GetName(item.Key, Config.BaseAddress, Config.Container));
+                    tasks.Add(storage.Load(Utils.GetName(item.Key, Config.BaseAddress, Config.Container)));
+                }
 
-                    if (resourceGraph != null)
+                await Task.Factory.ContinueWhenAll(tasks.ToArray(), (tgs) =>
+                {
+                    foreach (Task<string> tg in tgs)
                     {
-                        state.Store.Add(resourceGraph, true);
+                        string json = tg.Result;
+
+                        if (json != null)
+                        {
+                            IGraph graph = Utils.CreateGraph(json);
+                            state.Store.Add(graph, true);
+                        }
                     }
 
-                    state.Resources.Add(item);
-                }
+                    foreach (KeyValuePair<Uri, Tuple<string, string>> item in missing)
+                    {
+                        state.Resources.Add(item);
+                    }
+                });
             }
         }
 
-        static async Task SaveResources(State state)
+        static async Task SaveResources(State state, IStorage storage)
         {
+            List<Task> tasks = new List<Task>();
+
             foreach (KeyValuePair<Uri, Tuple<string, string>> resource in state.Resources)
             {
                 SparqlParameterizedString sparql = new SparqlParameterizedString();
                 sparql.CommandText = (new StreamReader("sparql\\" + resource.Value.Item1)).ReadToEnd();
                 sparql.SetUri("resource", resource.Key);
 
-                IGraph resourceGraph = Utils.Construct(state.Store, sparql.ToString());
+                IGraph resourceGraph = SparqlHelpers.Construct(state.Store, sparql.ToString());
 
                 JToken resourceFrame;
                 using (JsonReader jsonReader = new JsonTextReader(new StreamReader("context\\" + resource.Value.Item2)))
@@ -109,17 +124,24 @@ namespace GatherMergeRewrite
 
                 string name = Utils.GetName(resource.Key, Config.BaseAddress, Config.Container);
 
-                Task t0 = Storage.SaveJson(name, resourceGraph, resourceFrame);
-                Task t1 = Storage.SaveHtml(name + ".html", Utils.CreateHtmlView(resource.Key, resourceFrame.ToString()));
+                tasks.Add(storage.Save("application/json", name, Utils.CreateJson(resourceGraph, resourceFrame)));
 
-                await t0;
-                await t1;
+                string htmlName = name;
+                if (name.EndsWith(".json"))
+                {
+                    htmlName = name.Substring(0, name.Length - 5);
+                    htmlName = htmlName + ".html";
+                }
+
+                tasks.Add(storage.Save("text/html", htmlName, Utils.CreateHtmlView(resource.Key, resourceFrame.ToString())));
             }
+
+            await Task.Factory.ContinueWhenAll(tasks.ToArray(), (t) => { });
         }
 
         static KeyValuePair<Uri, IGraph> CreateGraph(XDocument nuspec, string baseAddress, Uri ownerUri, DateTime published)
         {
-            IGraph graph = Utils.Load(nuspec, baseAddress);
+            IGraph graph = Utils.CreateNuspecGraph(nuspec, baseAddress);
 
             graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
             graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
@@ -138,7 +160,7 @@ namespace GatherMergeRewrite
             {
                 IDictionary<Uri, Tuple<string, string>> resources = new Dictionary<Uri, Tuple<string, string>>();
 
-                SparqlResultSet results = Utils.Select(store, (new StreamReader("sparql\\ListResources.rq")).ReadToEnd());
+                SparqlResultSet results = SparqlHelpers.Select(store, (new StreamReader("sparql\\ListResources.rq")).ReadToEnd());
                 foreach (SparqlResult result in results)
                 {
                     Tuple<string, string> metadata = new Tuple<string, string>(result["transform"].ToString(), result["frame"].ToString());
