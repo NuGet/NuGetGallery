@@ -9,6 +9,7 @@ using System.Xml.XPath;
 using System.IO.Packaging;
 using System.Net.Mime;
 using System.Diagnostics;
+using System.Data.SqlClient;
 
 namespace MetadataClient
 {
@@ -84,6 +85,29 @@ namespace MetadataClient
                     nuspec.WriteTo(writer);
                 }
             }
+        }
+
+        [ArgActionMethod]
+        public void MDTrigger(MDTriggerArgs args)
+        {
+            if (String.IsNullOrEmpty(args.ContainerName))
+            {
+                args.ContainerName = "received";
+            }
+
+            CloudStorageAccount account = CloudStorageAccount.Parse(args.StorageConnectionString);
+            CloudBlobClient client = account.CreateCloudBlobClient();
+            CloudBlobContainer container = client.GetContainerReference(args.ContainerName);
+            if (container.CreateIfNotExists())
+            {
+                Console.WriteLine("Created '{0}' blob container", args.ContainerName);
+            }
+            SqlConnectionStringBuilder sql = new SqlConnectionStringBuilder(args.DBConnectionString);
+
+            Console.WriteLine("Trimming network protocol if any");
+            sql.TrimNetworkProtocol();
+
+            MetadataTrigger.Start(account, container, sql).Wait();
         }
 
         static string Nuget = "http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd";

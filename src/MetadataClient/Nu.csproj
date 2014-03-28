@@ -73,10 +73,13 @@
     <Compile Include="Arguments.cs" />
     <Compile Include="BlobStorageArgs.cs" />
     <Compile Include="MakeMetadataArgs.cs" />
+    <Compile Include="MetadataTrigger.cs" />
+    <Compile Include="MDTriggerArgs.cs" />
     <Compile Include="PackArgs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RenameOwnerArgs.cs" />
+    <Compile Include="SqlConnectionStringBuilderExtensions.cs" />
     <Compile Include="UploadPackageArgs.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -22,6 +22,10 @@ namespace MetadataClient
             {
                 Console.WriteLine(ex.Message);
             }
+            catch (InvalidArgDefinitionException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         private static void WriteUsage()
