@@ -45,6 +45,8 @@ namespace GatherMergeRewrite
 
                 Console.WriteLine(registrationId);
 
+                //if (registrationId != "dotnetrdf") continue;
+
                 foreach (FileInfo nupkg in registration.EnumerateFiles("*.nupkg"))
                 {
                     Upload(owner, registrationId, nupkg.FullName, DateTime.Now);

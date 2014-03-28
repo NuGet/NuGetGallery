@@ -55,8 +55,8 @@
                   
                     <xsl:when test="nuget:group">
                       <xsl:apply-templates select="nuget:group">
-                        <xsl:with-param name="parent" select="$path" />
-                        <xsl:with-param name="type" select="'gpdep'" />
+                        <xsl:with-param name="path" select="$path" />
+                        <xsl:with-param name="fragment" select="'#gpdep'" />
                       </xsl:apply-templates>
                     </xsl:when>
                     
@@ -67,7 +67,8 @@
                             <xsl:value-of select="translate(concat($base, $path, $extension, '#gpdep'), $uppercase, $lowercase)"/>
                           </xsl:attribute>
                           <xsl:apply-templates select="nuget:dependency">
-                            <xsl:with-param name="parent" select="concat($path, '#gpdep')" />
+                            <xsl:with-param name="path" select="$path" />
+                            <xsl:with-param name="fragment" select="'#gpdep'" />
                           </xsl:apply-templates>
                         </rdf:Description>
                       </ng:group>
@@ -89,8 +90,8 @@
                   <xsl:choose>
                     <xsl:when test="nuget:group">
                       <xsl:apply-templates select="nuget:group">
-                        <xsl:with-param name="parent" select="$path" />
-                        <xsl:with-param name="type" select="'gpref'" />
+                        <xsl:with-param name="path" select="$path" />
+                        <xsl:with-param name="fragment" select="'#gpref'" />
                       </xsl:apply-templates>
                     </xsl:when>
                     <xsl:otherwise>
@@ -100,7 +101,8 @@
                             <xsl:value-of select="translate(concat($base, $extension, '#gpref'), $uppercase, $lowercase)"/>
                           </xsl:attribute>
                           <xsl:apply-templates select="nuget:reference">
-                            <xsl:with-param name="parent" select="$path" />
+                            <xsl:with-param name="path" select="$path" />
+                            <xsl:with-param name="fragment" select="'#gpref'" />
                           </xsl:apply-templates>
                         </rdf:Description>
                       </ng:group>
@@ -133,29 +135,27 @@
   </xsl:template>
 
   <xsl:template match="nuget:group">
-    <xsl:param name="parent" />
-    <xsl:param name="type" />
+    <xsl:param name="path" />
+    <xsl:param name="fragment" />
     <ng:group>
       <rdf:Description>
 
-        <xsl:variable name="group">
+        <xsl:variable name="extended_fragment">
           <xsl:choose>
             <xsl:when test="@targetFramework">
-              <xsl:value-of select="concat('#', $type, '_', @targetFramework)"/>
+              <xsl:value-of select="concat($fragment, '_', @targetFramework)"/>
             </xsl:when>
             <xsl:when test="@name">
-              <xsl:value-of select="concat('#', $type, '_', @name)"/>
+              <xsl:value-of select="concat($fragment, '_', @name)"/>
             </xsl:when>
             <xsl:otherwise>
-              <xsl:value-of select="concat('#', $type)"/>
+              <xsl:value-of select="$fragment"/>
             </xsl:otherwise>
           </xsl:choose>
         </xsl:variable>
 
-        <xsl:variable name="path" select="concat($parent, $group)" />
-
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, $path, $extension), $uppercase, $lowercase)"/>
+          <xsl:value-of select="translate(concat($base, $path, $extension, $extended_fragment), $uppercase, $lowercase)"/>
         </xsl:attribute>
 
         <xsl:if test="@targetFramework">
@@ -171,15 +171,18 @@
         </xsl:if>
 
         <xsl:apply-templates select="nuget:dependency">
-          <xsl:with-param name="parent" select="$path" />
+          <xsl:with-param name="path" select="$path" />
+          <xsl:with-param name="fragment" select="$extended_fragment" />
         </xsl:apply-templates>
 
         <xsl:apply-templates select="nuget:reference">
-          <xsl:with-param name="parent" select="$path" />
+          <xsl:with-param name="path" select="$path" />
+          <xsl:with-param name="fragment" select="$extended_fragment" />
         </xsl:apply-templates>
 
         <xsl:apply-templates select="nuget:property">
-          <xsl:with-param name="parent" select="$path" />
+          <xsl:with-param name="path" select="$path" />
+          <xsl:with-param name="fragment" select="$extended_fragment" />
         </xsl:apply-templates>
 
       </rdf:Description>
@@ -187,14 +190,15 @@
   </xsl:template>
 
   <xsl:template match="nuget:dependency">
-    <xsl:param name="parent" />
+    <xsl:param name="path" />
+    <xsl:param name="fragment" />
     <ng:dependency>
       <rdf:Description>
 
-        <xsl:variable name="path" select="concat($parent, '_dep_', @id)" />
+        <xsl:variable name="extended_fragment" select="concat($fragment, '_dep_', @id)" />
 
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, $path, $extension), $uppercase, $lowercase)"/>
+          <xsl:value-of select="translate(concat($base, $path, $extension, $extended_fragment), $uppercase, $lowercase)"/>
         </xsl:attribute>
 
         <ng:id>
@@ -212,7 +216,8 @@
         </ng:registration>
 
         <xsl:apply-templates select="nuget:property">
-          <xsl:with-param name="parent" select="$path" />
+          <xsl:with-param name="path" select="$path" />
+          <xsl:with-param name="fragment" select="$extended_fragment" />
         </xsl:apply-templates>
 
       </rdf:Description>
@@ -220,14 +225,15 @@
   </xsl:template>
 
   <xsl:template match="nuget:reference">
-    <xsl:param name="parent" />
+    <xsl:param name="path" />
+    <xsl:param name="fragment" />
     <ng:reference>
       <rdf:Description>
 
-        <xsl:variable name="path" select="concat($parent, '_ref_', @file)" />
+        <xsl:variable name="extended_fragment" select="concat($fragment, '_ref_', @file)" />
 
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, $path, $extension), $uppercase, $lowercase)"/>
+          <xsl:value-of select="translate(concat($base, $path, $extension, $extended_fragment), $uppercase, $lowercase)"/>
         </xsl:attribute>
 
         <ng:file>
@@ -235,7 +241,8 @@
         </ng:file>
 
         <xsl:apply-templates select="nuget:property">
-          <xsl:with-param name="parent" select="$path" />
+          <xsl:with-param name="path" select="$path" />
+          <xsl:with-param name="fragment" select="$extended_fragment" />
         </xsl:apply-templates>
 
       </rdf:Description>
@@ -243,14 +250,15 @@
   </xsl:template>
 
   <xsl:template match="nuget:property">
-    <xsl:param name="parent" />
+    <xsl:param name="path" />
+    <xsl:param name="fragment" />
     <ng:property>
       <rdf:Description>
 
-        <xsl:variable name="path" select="concat($parent, '_prop_', @name)" />
+        <xsl:variable name="extended_fragment" select="concat($fragment, '_prop_', @name)" />
 
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, $path, $extension), $uppercase, $lowercase)"/>
+          <xsl:value-of select="translate(concat($base, $path, $extension, $extended_fragment), $uppercase, $lowercase)"/>
         </xsl:attribute>
 
         <ng:name>

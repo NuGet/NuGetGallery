@@ -68,7 +68,7 @@ namespace TestNuspec
 
         static XDocument LoadNuspec()
         {
-            XDocument nuspec = XDocument.Load(new StreamReader(@"C:\data\nupkgs\dotnetrdf.0.5.0.nuspec"));
+            XDocument nuspec = XDocument.Load(new StreamReader(@"C:\data\nupkgs\dotnetrdf\0.5.0.nuspec"));
             return nuspec;
         }
 
@@ -110,6 +110,7 @@ namespace TestNuspec
 
             XsltArgumentList arguments = new XsltArgumentList();
             arguments.AddParam("base", "", baseAddress);
+            arguments.AddParam("extension", "", ".json");
             arguments.AddExtensionObject("urn:helper", new XsltHelper());
 
             //foreach (KeyValuePair<string, string> arg in transformArgs)
@@ -118,7 +119,7 @@ namespace TestNuspec
             //}
 
             //XDocument nuspec = GetNuspecFromPackage(@"C:\data\nupkgs\dotnetrdf.0.5.0.nupkg");
-            XDocument nuspec = GetNuspecFromPackage(@"C:\data\nupkgs\dotnetrdf.0.8.0.nupkg");
+            XDocument nuspec = GetNuspecFromPackage(@"C:\data\nupkgs\dotnetrdf\dotnetrdf.0.8.0.nupkg");
             //XDocument nuspec = GetNuspecFromPackage(@"C:\data\nupkgs\dotnetrdf.1.0.3.nupkg");
 
             XDocument rdfxml = new XDocument();
