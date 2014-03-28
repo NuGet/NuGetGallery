@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using NuGetGallery.FunctionTests.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentAutomation;
+using NuGetGallery.Operations.Tasks;
+
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
@@ -53,19 +55,33 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
         public bool PackageExists(string packageName, string version)
         {
-            HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(UrlHelper.BaseUrl + @"/packages/" + packageName + "/" + version);
-            HttpWebResponse packagePageResponse;
-            try
+            bool found = false;
+            for (int i = 0; ((i < 30) && (!found)); i++)
             {
-                packagePageResponse = (HttpWebResponse)packagePageRequest.GetResponse();
+                HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(UrlHelper.V2FeedRootUrl + @"/package/" + packageName + "/" + version);
+                packagePageRequest.Timeout = 1000;
+                HttpWebResponse packagePageResponse;
+                try
+                {
+                    packagePageResponse = (HttpWebResponse)packagePageRequest.GetResponse();
+                    if (packagePageResponse != null && (((HttpWebResponse)packagePageResponse).StatusCode == HttpStatusCode.OK)) found = true;
+                }
+                catch (WebException e)
+                {
+                    return false;
+                }
             }
-            catch (WebException e)
-            {
-                if (e.Response != null && (((HttpWebResponse)e.Response).StatusCode == HttpStatusCode.NotFound)) return false;
-            }
+            return found;
+        }
 
-            // If we didn't get an exception, that means the resource exists.
-            return true;
+        public bool DeleteUser(string userName)
+        {
+            DeleteUserTask dut = new DeleteUserTask();
+
+            dut.Username = userName;
+            dut.ConnectionString = Environment.GetEnvironmentVariable("DBConnectionString");
+            dut.StorageAccount = Environment.GetEnvironmentVariable("StorageAccount");
+            dut.Execute();
         }
     }
 }

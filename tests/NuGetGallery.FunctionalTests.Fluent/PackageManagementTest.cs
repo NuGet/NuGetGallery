@@ -34,8 +34,10 @@ namespace NuGetGallery.FunctionalTests.Fluent
             if (!(listedCheckbox.Attributes.Get("checked") == "true"))
             {
                 I.Click("#Listed");
+                I.Wait(1);
             }
             I.Click("input[value='Save']");
+            I.Wait(1);
 
             // Unlist 2.0.0
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName + "/2.0.0/Delete");
@@ -43,8 +45,10 @@ namespace NuGetGallery.FunctionalTests.Fluent
             if (listedCheckbox.Attributes.Get("checked") == "true")
             {
                 I.Click("#Listed");
+                I.Wait(1);
             }
             I.Click("input[value='Save']");
+            I.Wait(1);
 
             // Unlist 3.0.0-rc
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName + "/3.0.0-rc/Delete");
@@ -52,8 +56,10 @@ namespace NuGetGallery.FunctionalTests.Fluent
             if (listedCheckbox.Attributes.Get("checked") == "true")
             {
                 I.Click("#Listed");
+                I.Wait(1);
             }
             I.Click("input[value='Save']");
+            I.Wait(1);
 
             // Go to package page, verify shown version is 1.0.0.
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName);
@@ -65,8 +71,10 @@ namespace NuGetGallery.FunctionalTests.Fluent
             if (listedCheckbox.Attributes.Get("checked") == "true")
             {
                 I.Click("#Listed");
+                I.Wait(1);
             }
             I.Click("input[value='Save']");
+            I.Wait(1);
 
             // List 3.0.0-rc.
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName + "/3.0.0-rc/Delete");
@@ -74,8 +82,10 @@ namespace NuGetGallery.FunctionalTests.Fluent
             if (!(listedCheckbox.Attributes.Get("checked") == "true"))
             {
                 I.Click("#Listed");
+                I.Wait(1);
             }
             I.Click("input[value='Save']");
+            I.Wait(1);
 
             // Go to package page again, verify shown version is 3.0.0-rc.
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName);
@@ -87,8 +97,10 @@ namespace NuGetGallery.FunctionalTests.Fluent
             if (!(listedCheckbox.Attributes.Get("checked") == "true"))
             {
                 I.Click("#Listed");
+                I.Wait(1);
             }
             I.Click("input[value='Save']");
+            I.Wait(1);
 
             // Go to package page again, verify shown version is 1.0.0.
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName);
