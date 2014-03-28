@@ -15,7 +15,7 @@ namespace GatherMergeRewrite
     {
         public static async Task UploadPackage(IPackageHandle handle, IStorage storage)
         {
-            State state = new State();
+            State state = new State(storage.Container, storage.BaseAddress);
 
             //  (1)
 
@@ -34,7 +34,7 @@ namespace GatherMergeRewrite
         {
             PackageData data = await handle.GetData();
 
-            string address = string.Format("{0}/{1}/", Config.BaseAddress, Config.Container);
+            string address = string.Format("{0}/{1}/", state.BaseAddress, state.Container);
             Uri ownerUri = new Uri(address + data.OwnerId + ".json");
             Uri registrationUri = new Uri(address + data.RegistrationId + ".json");
 
@@ -80,7 +80,7 @@ namespace GatherMergeRewrite
                 List<Task> tasks = new List<Task>();
                 foreach (KeyValuePair<Uri, Tuple<string, string>> item in missing)
                 {
-                    tasks.Add(storage.Load(Utils.GetName(item.Key, Config.BaseAddress, Config.Container)));
+                    tasks.Add(storage.Load(Utils.GetName(item.Key, state.BaseAddress, state.Container)));
                 }
 
                 await Task.Factory.ContinueWhenAll(tasks.ToArray(), (tgs) =>
@@ -122,7 +122,7 @@ namespace GatherMergeRewrite
                     resourceFrame = JToken.Load(jsonReader);
                 }
 
-                string name = Utils.GetName(resource.Key, Config.BaseAddress, Config.Container);
+                string name = Utils.GetName(resource.Key, state.BaseAddress, state.Container);
 
                 tasks.Add(storage.Save("application/json", name, Utils.CreateJson(resourceGraph, resourceFrame)));
 
@@ -133,7 +133,7 @@ namespace GatherMergeRewrite
                     htmlName = htmlName + ".html";
                 }
 
-                tasks.Add(storage.Save("text/html", htmlName, Utils.CreateHtmlView(resource.Key, resourceFrame.ToString())));
+                tasks.Add(storage.Save("text/html", htmlName, Utils.CreateHtmlView(resource.Key, resourceFrame.ToString(), state.BaseAddress)));
             }
 
             await Task.Factory.ContinueWhenAll(tasks.ToArray(), (t) => { });

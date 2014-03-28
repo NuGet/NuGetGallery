@@ -14,5 +14,7 @@ namespace GatherMergeRewrite
     {
         Task Save(string contentType, string name, string content);
         Task<string> Load(string name);
+        string Container { get; set; }
+        string BaseAddress { get; set; }
     }
 }

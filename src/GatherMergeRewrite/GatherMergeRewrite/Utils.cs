@@ -105,14 +105,14 @@ namespace GatherMergeRewrite
             return name;
         }
 
-        public static string CreateHtmlView(Uri resource, string frame)
+        public static string CreateHtmlView(Uri resource, string frame, string baseAddress)
         {
             XDocument original = XDocument.Load(new StreamReader("html\\view.html"));
             XslCompiledTransform transform = CreateTransform("xslt\\view.xslt");
             XsltArgumentList arguments = new XsltArgumentList();
             arguments.AddParam("resource", "", resource.ToString());
             arguments.AddParam("frame", "", frame);
-            arguments.AddParam("base", "", Config.BaseAddress);
+            arguments.AddParam("base", "", baseAddress);
 
             System.IO.StringWriter writer = new System.IO.StringWriter();
             using (XmlTextWriter xmlWriter = new XmlHtmlWriter(writer))

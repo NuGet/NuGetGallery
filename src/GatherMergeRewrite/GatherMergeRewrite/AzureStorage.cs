@@ -12,19 +12,47 @@ namespace GatherMergeRewrite
 {
     class AzureStorage : IStorage
     {
+        public AzureStorage()
+        {
+        }
+
+        public string ConnectionString
+        {
+            get;
+            set;
+        }
+
+        public string Container
+        {
+            get;
+            set;
+        }
+
+        public string BaseAddress
+        {
+            get;
+            set;
+        }
+
+        public bool Verbose
+        {
+            get;
+            set;
+        }
+
         //  save
        
         public async Task Save(string contentType, string name, string content)
         {
-            CloudStorageAccount account = CloudStorageAccount.Parse(Config.ConnectionString);
+            CloudStorageAccount account = CloudStorageAccount.Parse(ConnectionString);
             CloudBlobClient client = account.CreateCloudBlobClient();
-            CloudBlobContainer container = client.GetContainerReference(Config.Container);
+            CloudBlobContainer container = client.GetContainerReference(Container);
 
             if (container.CreateIfNotExists())
             {
                 container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
-                Console.WriteLine("Created '{0}' publish container", Config.Container);
+                Console.WriteLine("Created '{0}' publish container", Container);
             }
 
             CloudBlockBlob blob = container.GetBlockBlobReference(name);
@@ -40,15 +68,15 @@ namespace GatherMergeRewrite
 
         public async Task<string> Load(string name)
         {
-            CloudStorageAccount account = CloudStorageAccount.Parse(Config.ConnectionString);
+            CloudStorageAccount account = CloudStorageAccount.Parse(ConnectionString);
             CloudBlobClient client = account.CreateCloudBlobClient();
-            CloudBlobContainer container = client.GetContainerReference(Config.Container);
+            CloudBlobContainer container = client.GetContainerReference(Container);
 
             if (container.CreateIfNotExists())
             {
                 container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
-                Console.WriteLine("Created '{0}' publish container", Config.Container);
+                Console.WriteLine("Created '{0}' publish container", Container);
             }
 
             CloudBlockBlob blob = container.GetBlockBlobReference(name);

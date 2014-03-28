@@ -13,24 +13,26 @@ namespace GatherMergeRewrite
         {
             LocalPackageHandle handle = new LocalPackageHandle(ownerId, registrationId, nupkg, published);
 
-            //IStorage storage = new AzureStorage();
-            IStorage storage = new FileStorage(@"c:\data\site\pub");
+            //IStorage storage = new AzureStorage
+            //{
+            //    ConnectionString = "",
+            //    Container = "pub",
+            //    BaseAddress = "http://nuget3.blob.core.windows.net"
+            //};
+            
+            IStorage storage = new FileStorage
+            {
+                Path = @"c:\data\site\pub",
+                Container = "pub",
+                BaseAddress = "http://localhost:8000"
+            };
 
             Processor.UploadPackage(handle, storage).Wait();
-
-            //Console.WriteLine(nupkg);
         }
 
         static void Main(string[] args)
         {
-            //TODO: these should all be attributes of the store - with Container and BaseAddress being properties on IStorage
-            Config.Container = "pub";
-            //Config.BaseAddress = "http://nuget3.blob.core.windows.net";
-            Config.BaseAddress = "http://localhost:8000";
-            Config.ConnectionString = "";
-
             string owner = "microsoft";
-
             string path = @"c:\data\nupkgs\";
 
             DateTime before = DateTime.Now;

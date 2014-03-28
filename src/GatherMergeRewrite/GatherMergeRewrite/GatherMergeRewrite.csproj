@@ -83,7 +83,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FileStorage.cs" />
-    <Compile Include="Config.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="LocalPackageHandle.cs" />
     <Compile Include="Processor.cs" />

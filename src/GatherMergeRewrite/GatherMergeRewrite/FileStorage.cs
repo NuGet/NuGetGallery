@@ -12,16 +12,42 @@ namespace GatherMergeRewrite
 {
     class FileStorage : IStorage
     {
-        public string Path { get; private set; } 
-
-        public FileStorage(string path)
+        public FileStorage()
         {
-            Path = path.Trim('\\') + '\\';
         }
-       
+
+        public string Path
+        { 
+            get;
+            set;
+        } 
+
+        public string Container
+        {
+            get;
+            set; 
+        }
+        
+        public string BaseAddress
+        { 
+            get; 
+            set; 
+        }
+
+        public bool Verbose
+        {
+            get;
+            set;
+        }
+
         public async Task Save(string contentType, string name, string content)
         {
-            //Console.WriteLine("save {0}", name);
+            if (Verbose)
+            {
+                Console.WriteLine("save {0}", name);
+            }
+
+            string path = Path.Trim('\\') + '\\';
 
             string folder = string.Empty;
 
@@ -34,9 +60,9 @@ namespace GatherMergeRewrite
 
             if (folder != string.Empty)
             {
-                if (!(new DirectoryInfo(Path + folder)).Exists)
+                if (!(new DirectoryInfo(path + folder)).Exists)
                 {
-                    DirectoryInfo directoryInfo = new DirectoryInfo(Path);
+                    DirectoryInfo directoryInfo = new DirectoryInfo(path);
                     directoryInfo.CreateSubdirectory(folder);
                 }
 
@@ -45,7 +71,7 @@ namespace GatherMergeRewrite
 
             await Task.Factory.StartNew(() =>
             {
-                using (StreamWriter writer = new StreamWriter(Path + folder + name))
+                using (StreamWriter writer = new StreamWriter(path + folder + name))
                 {
                     writer.Write(content);
                 }
@@ -54,7 +80,12 @@ namespace GatherMergeRewrite
 
         public async Task<string> Load(string name)
         {
-            //Console.WriteLine("load {0}", name);
+            if (Verbose)
+            {
+                Console.WriteLine("load {0}", name);
+            }
+
+            string path = Path.Trim('\\') + '\\';
 
             string folder = string.Empty;
 
@@ -70,7 +101,7 @@ namespace GatherMergeRewrite
                 folder = folder + '\\';
             }
 
-            string filename = Path + folder + name;
+            string filename = path + folder + name;
 
             FileInfo fileInfo = new FileInfo(filename);
             if (fileInfo.Exists)
