@@ -13,13 +13,13 @@ namespace GatherMergeRewrite
 {
     public class Processor
     {
-        public static async Task UploadPackage(IPackageHandle handle, IStorage storage)
+        public static async Task UploadPackage(IPackageHandle[] handles, IStorage storage)
         {
             State state = new State(storage.Container, storage.BaseAddress);
 
             //  (1)
 
-            await CaptureData(state, handle);
+            await CaptureData(state, handles);
 
             //  (2)
 
@@ -30,31 +30,35 @@ namespace GatherMergeRewrite
             await SaveResources(state, storage);
         }
 
-        static async Task CaptureData(State state, IPackageHandle handle)
+        static async Task CaptureData(State state, IPackageHandle[] handles)
         {
-            PackageData data = await handle.GetData();
-
             string address = string.Format("{0}/{1}/", state.BaseAddress, state.Container);
-            Uri ownerUri = new Uri(address + data.OwnerId + ".json");
-            Uri registrationUri = new Uri(address + data.RegistrationId + ".json");
 
-            IGraph graph = new Graph();
+            foreach (IPackageHandle handle in handles)
+            {
+                PackageData data = await handle.GetData();
 
-            graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
-            graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
+                Uri ownerUri = new Uri(address + data.OwnerId + ".json");
+                Uri registrationUri = new Uri(address + data.RegistrationId + ".json");
 
-            graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:Owner"));
-            graph.Assert(graph.CreateUriNode(registrationUri), graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:PackageRegistration"));
-            graph.Assert(graph.CreateUriNode(registrationUri), graph.CreateUriNode("nuget:owner"), graph.CreateUriNode(ownerUri));
-            graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("nuget:registration"), graph.CreateUriNode(registrationUri));
+                IGraph graph = new Graph();
 
-            state.Store.Add(graph, true);
+                graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
+                graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
 
-            KeyValuePair<Uri, IGraph> newResource = CreateGraph(data.Nuspec, address, ownerUri, data.Published);
+                graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:Owner"));
+                graph.Assert(graph.CreateUriNode(registrationUri), graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:PackageRegistration"));
+                graph.Assert(graph.CreateUriNode(registrationUri), graph.CreateUriNode("nuget:owner"), graph.CreateUriNode(ownerUri));
+                graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("nuget:registration"), graph.CreateUriNode(registrationUri));
 
-            state.Store.Add(newResource.Value, true);
+                state.Store.Add(graph, true);
 
-            state.Resources.Add(newResource.Key, new Tuple<string, string>("Package.rq", "PackageFrame.json"));
+                KeyValuePair<Uri, IGraph> newResource = CreateGraph(data.Nuspec, address, ownerUri, data.Published);
+
+                state.Store.Add(newResource.Value, true);
+
+                state.Resources.Add(newResource.Key, new Tuple<string, string>("Package.rq", "PackageFrame.json"));
+            }
         }
 
         static async Task LoadResources(State state, IStorage storage)
@@ -165,7 +169,7 @@ namespace GatherMergeRewrite
                 {
                     Tuple<string, string> metadata = new Tuple<string, string>(result["transform"].ToString(), result["frame"].ToString());
 
-                    resources.Add(new Uri(result["resource"].ToString()), metadata);
+                    resources[new Uri(result["resource"].ToString())] = metadata;
                 }
 
                 return resources;

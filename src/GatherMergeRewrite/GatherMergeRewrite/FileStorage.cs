@@ -14,6 +14,7 @@ namespace GatherMergeRewrite
     {
         public FileStorage()
         {
+            ResetStatistics();
         }
 
         public string Path
@@ -40,8 +41,28 @@ namespace GatherMergeRewrite
             set;
         }
 
+        public int SaveCount
+        {
+            get;
+            private set;
+        }
+
+        public int LoadCount
+        {
+            get;
+            private set;
+        }
+
+        public void ResetStatistics()
+        {
+            SaveCount = 0;
+            LoadCount = 0;
+        }
+
         public async Task Save(string contentType, string name, string content)
         {
+            SaveCount++;
+
             if (Verbose)
             {
                 Console.WriteLine("save {0}", name);
@@ -80,6 +101,8 @@ namespace GatherMergeRewrite
 
         public async Task<string> Load(string name)
         {
+            LoadCount++;
+
             if (Verbose)
             {
                 Console.WriteLine("load {0}", name);
