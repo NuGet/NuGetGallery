@@ -20,7 +20,8 @@
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
             //send a request to home page and check for security headers.
-            WebTestRequest homePageRequest = new WebTestRequest(UrlHelper.BaseUrl);           
+            WebTestRequest homePageRequest = new WebTestRequest(UrlHelper.BaseUrl);
+            homePageRequest.ParseDependentRequests = false;
             ValidationRuleFindHeaderText homePageTextValidationRule = new ValidationRuleFindHeaderText(
 @"X-Frame-Options: deny
 X-XSS-Protection: 1; mode=block
@@ -32,6 +33,7 @@ Strict-Transport-Security: maxage=31536000; includeSubDomains");
 
             //send a request to Packages page and check for security headers.
             WebTestRequest packagesPageRequest = new WebTestRequest(UrlHelper.PackagesPageUrl);
+            packagesPageRequest.ParseDependentRequests = false;
             ValidationRuleFindHeaderText packagesPageTextValidationRule = new ValidationRuleFindHeaderText(
 @"X-Frame-Options: deny
 X-XSS-Protection: 1; mode=block

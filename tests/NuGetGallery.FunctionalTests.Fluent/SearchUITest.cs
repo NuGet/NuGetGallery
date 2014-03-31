@@ -16,23 +16,25 @@ namespace NuGetGallery.FunctionalTests.Fluent
     public class SearchUITest : NuGetFluentTest
     {
         [TestMethod]
-        [Description("Verify focus scenarios for expanding and contracting search box.")]
+        [Description("Verify focus scenarios for the search box.")]
         public void SearchUI()
         {
+            // This test made more sense back when our search box expanded and contracted.
+
             // Go to the front page.
             I.Open(UrlHelper.BaseUrl);
 
             // Click in the box
             I.Click("#searchBoxInput", 3, 3);
             I.Wait(1);
-            I.Expect.True(() => (I.Find("#searchBoxInput")().Width < 200));
+            I.Expect.True(() => (I.Find("#searchBoxInput")().Width > 200));
             I.Type("fred");
             I.Wait(1);
             I.Expect.True(() => (I.Find("#searchBoxInput")().Width > 200));
 
             // Click out of the box
             I.Click("img[alt='Manage NuGet Packages Dialog Window']", 3, 3);
-            I.Expect.True(() => (I.Find("#searchBoxInput")().Width < 200));
+            I.Expect.True(() => (I.Find("#searchBoxInput")().Width > 200));
             I.Wait(1);
         }
     }

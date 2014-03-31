@@ -47,9 +47,17 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\src\galops\bin\Debug\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGetGallery.Operations, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\School\NuGet.Operations\NuGetGallery.Operations.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -85,6 +93,7 @@
     <Compile Include="PackageManagementTest.cs" />
     <Compile Include="PackageStatsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResendConfirmationTest.cs" />
     <Compile Include="SearchSyntaxTest.cs" />
     <Compile Include="SearchUITest.cs" />
     <Compile Include="StatisticsPageTest.cs" />
@@ -100,10 +109,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\NuGetGallery.Operations\NuGetGallery.Operations.csproj">
-      <Project>{dbecf66b-8f2f-4b32-9143-e243baff12df}</Project>
-      <Name>NuGetGallery.Operations</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj">
       <Project>{8fb56455-c688-44ae-95f1-48ffcb199bfe}</Project>
       <Name>NuGetGallery.FunctionalTests.Helpers</Name>

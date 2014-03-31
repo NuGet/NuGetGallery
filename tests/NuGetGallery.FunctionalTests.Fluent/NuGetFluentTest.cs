@@ -79,9 +79,10 @@ namespace NuGetGallery.FunctionalTests.Fluent
             DeleteUserTask dut = new DeleteUserTask();
 
             dut.Username = userName;
-            dut.ConnectionString = Environment.GetEnvironmentVariable("DBConnectionString");
-            dut.StorageAccount = Environment.GetEnvironmentVariable("StorageAccount");
+            dut.ConnectionString = new System.Data.SqlClient.SqlConnectionStringBuilder(Environment.GetEnvironmentVariable("DBConnectionString"));
+            dut.StorageAccount = new Microsoft.WindowsAzure.Storage.CloudStorageAccount(new Microsoft.WindowsAzure.Storage.Auth.StorageCredentials(Environment.GetEnvironmentVariable("StorageAccount")), true);
             dut.Execute();
+            return true;
         }
     }
 }
