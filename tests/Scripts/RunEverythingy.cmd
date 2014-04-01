@@ -27,6 +27,7 @@ If Exist ""%VS110COMNTOOLS%"..\IDE\mstest.exe" (
    goto Run
 )
 
+:Error
 Echo The variable toolpath is not set correctly. check your visual studio install. Exiting without running tests... 
 goto End
 
