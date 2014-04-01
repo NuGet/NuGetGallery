@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using NuGetGallery.FunctionTests.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentAutomation;
-using NuGetGallery.Operations.Tasks;
 
 
 namespace NuGetGallery.FunctionalTests.Fluent
@@ -72,17 +71,6 @@ namespace NuGetGallery.FunctionalTests.Fluent
                 }
             }
             return found;
-        }
-
-        public bool DeleteUser(string userName)
-        {
-            DeleteUserTask dut = new DeleteUserTask();
-
-            dut.Username = userName;
-            dut.ConnectionString = new System.Data.SqlClient.SqlConnectionStringBuilder(Environment.GetEnvironmentVariable("DBConnectionString"));
-            dut.StorageAccount = new Microsoft.WindowsAzure.Storage.CloudStorageAccount(new Microsoft.WindowsAzure.Storage.Auth.StorageCredentials(Environment.GetEnvironmentVariable("StorageAccount")), true);
-            dut.Execute();
-            return true;
         }
     }
 }
