@@ -79,6 +79,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
             // Log out
             I.Click("a:contains('Sign out')");
+            I.Wait(1);
 
             // Go back to the package page.
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName);

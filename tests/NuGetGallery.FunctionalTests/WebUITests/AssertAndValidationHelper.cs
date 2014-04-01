@@ -200,13 +200,13 @@ namespace NuGetGallery.FunctionalTests
         /// </summary>
         /// <param name="packageId"></param>
         /// <param name="version"></param>
-        public static void UploadNewPackageAndVerify(string packageId, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null)
+        public static void UploadNewPackageAndVerify(string packageId, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null)
         {
             if (string.IsNullOrEmpty(packageId))
             {
                 packageId = DateTime.Now.Ticks.ToString();
             }
-            string packageFullPath = PackageCreationHelper.CreatePackage(packageId, version, minClientVersion, title, tags, description);
+            string packageFullPath = PackageCreationHelper.CreatePackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
             string standardOutput = string.Empty;
             string standardError = string.Empty;
             int exitCode = CmdLineHelper.UploadPackage(packageFullPath, UrlHelper.V2FeedPushSourceUrl, out standardOutput, out standardError);

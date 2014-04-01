@@ -20,7 +20,7 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// </summary>
         /// <param name="packageName"></param>
         /// <returns></returns>
-        public static string CreateDefaultNuspecFile(string packageName, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null)
+        public static string CreateDefaultNuspecFile(string packageName, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null)
         {
             string standardOutput = string.Empty;
             string standardError = string.Empty;
@@ -49,6 +49,14 @@ namespace NuGetGallery.FunctionTests.Helpers
             if (description != null)
             {
                 UpdateNuspecFile(filePath, "This is a test package created by the NuGet team.", description);
+            }
+            if (licenseUrl != null)
+            {
+                UpdateNuspecFile(filePath, "</metadata>", String.Format("<licenseUrl>{0}</licenseUrl></metadata>", licenseUrl));
+            }
+            if (dependencies != null)
+            {
+                UpdateNuspecFile(filePath, "</dependencies>", String.Format("{0}</dependencies>", dependencies));
             }
             return filePath;
         }

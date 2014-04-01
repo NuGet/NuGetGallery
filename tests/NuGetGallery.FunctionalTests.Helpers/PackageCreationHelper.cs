@@ -25,11 +25,11 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// <param name="packageName"></param>
         /// <param name="version"></param>
         /// <returns></returns>
-        public static string CreatePackage(string packageName, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null)
+        public static string CreatePackage(string packageName, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null)
         {
             string standardOutput = string.Empty;
             string standardError = string.Empty;
-            string nuspecFileFullPath = NuspecHelper.CreateDefaultNuspecFile(packageName, version, minClientVersion, title, tags, description);
+            string nuspecFileFullPath = NuspecHelper.CreateDefaultNuspecFile(packageName, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
             string nuspecDir = Path.GetDirectoryName(nuspecFileFullPath);
             return CreatePackageInternal(ref standardOutput, ref standardError, nuspecFileFullPath);
         }
