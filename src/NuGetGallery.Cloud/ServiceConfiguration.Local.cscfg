@@ -32,6 +32,7 @@
       <!-- *************** -->
       <!-- Depending on your policy, these likely do not need to vary -->
       <!-- SmtpUri is expected to be of the format: smtps://username:password@host:port. Note that if username contains an "@", you need to URI Encode it! -->
+      <Setting name="Gallery.CollectPerfLogs" value="true" />
       <Setting name="Gallery.Brand" value="NuGet Gallery" />
       <Setting name="Gallery.SmtpUri" value="" />
       <Setting name="Gallery.HasWorker" value="true" />
