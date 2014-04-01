@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>one</id>
+    <version>1.0.4</version>
+    <authors>Test</authors>
+    <owners>test</owners>
+    <description>This is a test package.</description>
+    <dependencies>
+      <group>
+        <property name="group_property">hello</property>
+        <property name="group_property">goodbye</property>
+        <dependency id="two" version="1.0.0">
+          <property name="dependency_property">world</property>
+        </dependency>
+        <dependency id="three" version="[1.2.0]" />
+      </group>
+      <group name="group_x">
+        <dependency id="two" version="1.0.0" />
+        <dependency id="three" version="[1.2.0]" />
+      </group>
+      <group name="group_y">
+        <dependency id="two" version="1.0.0" />
+        <dependency id="three" version="[1.2.0]" />
+      </group>
+      <group name="group_z">
+        <dependency id="two" version="1.0.0" />
+        <dependency id="three" version="[1.2.0]" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

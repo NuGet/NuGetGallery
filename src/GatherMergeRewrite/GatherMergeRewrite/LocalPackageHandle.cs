@@ -6,10 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using VDS.RDF;
 
 namespace GatherMergeRewrite
 {
-    public class LocalPackageHandle : IPackageHandle
+    public class LocalPackageHandle : PackageHandle
     {
         string _owner;
         string _registrationId;
@@ -24,7 +25,7 @@ namespace GatherMergeRewrite
             _published = published;
         }
 
-        public async Task<PackageData> GetData()
+        public override async Task<PackageData> GetData()
         {
             Stream stream = new FileStream(_filename, FileMode.Open);
             Package package = Utils.GetPackage(stream);

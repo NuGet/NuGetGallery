@@ -1,4 +1,9 @@
-﻿using System;
+﻿using GatherMergeRewrite;
+using JsonLD.Core;
+using JsonLDIntegration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Packaging;
@@ -15,32 +20,6 @@ using VDS.RDF.Writing;
 
 namespace TestNuspec
 {
-    public class XsltHelper
-    {
-        public XPathNavigator Split(string original)
-        {
-            char[] trimChar = { ',', ' ', '\t', '|', ';' };
-
-            IEnumerable<string> fields = original
-                .Split(trimChar)
-                .Select((w) => w.Trim(trimChar))
-                .Where((w) => w.Length > 0);
-
-            XmlDocument xmlDoc = new XmlDocument();
-            XmlElement root = xmlDoc.CreateElement("list");
-            xmlDoc.AppendChild(root);
-
-            foreach (string s in fields)
-            {
-                XmlElement element = xmlDoc.CreateElement("item");
-                element.InnerText = s;
-                root.AppendChild(element);
-            }
-
-            return xmlDoc.CreateNavigator();
-        }
-    }
-
     class Program
     {
         static XslCompiledTransform CreateTransform(string path)
@@ -100,6 +79,23 @@ namespace TestNuspec
             return nuspec;
         }
 
+        public static XDocument GetNuspecFromFile(string filename)
+        {
+            XDocument awkwardNuspec = XDocument.Load(new StreamReader(filename));
+            XDocument nuspec = NormalizeNuspecNamespace(awkwardNuspec);
+            return nuspec;
+        }
+
+        public static void DumpTurtle(IGraph graph)
+        {
+            CompressingTurtleWriter turtleWriter = new CompressingTurtleWriter();
+            turtleWriter.DefaultNamespaces.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
+
+            turtleWriter.PrettyPrintMode = true;
+            turtleWriter.CompressionLevel = 10;
+            turtleWriter.Save(graph, Console.Out);
+        }
+
         static void Main(string[] args)
         {
             string path = @"C:\private\NuGet3\NuGet.Services.Metadata\src\GatherMergeRewrite\GatherMergeRewrite\xslt\nuspec.xslt";
@@ -113,14 +109,11 @@ namespace TestNuspec
             arguments.AddParam("extension", "", ".json");
             arguments.AddExtensionObject("urn:helper", new XsltHelper());
 
-            //foreach (KeyValuePair<string, string> arg in transformArgs)
-            //{
-            //    arguments.AddParam(arg.Key, "", arg.Value);
-            //}
-
             //XDocument nuspec = GetNuspecFromPackage(@"C:\data\nupkgs\dotnetrdf.0.5.0.nupkg");
-            XDocument nuspec = GetNuspecFromPackage(@"C:\data\nupkgs\dotnetrdf\dotnetrdf.0.8.0.nupkg");
+            //XDocument nuspec = GetNuspecFromPackage(@"C:\data\nupkgs\dotnetrdf\dotnetrdf.0.8.0.nupkg");
             //XDocument nuspec = GetNuspecFromPackage(@"C:\data\nupkgs\dotnetrdf.1.0.3.nupkg");
+
+            XDocument nuspec = GetNuspecFromFile("one.nuspec");
 
             XDocument rdfxml = new XDocument();
             using (XmlWriter writer = rdfxml.CreateWriter())
@@ -128,30 +121,32 @@ namespace TestNuspec
                 transform.Transform(nuspec.CreateReader(), arguments, writer);
             }
 
-            Console.WriteLine(rdfxml);
-
+            //Console.WriteLine(rdfxml);
             //Console.WriteLine();
 
             RdfXmlParser rdfXmlParser = new RdfXmlParser();
             XmlDocument doc = new XmlDocument();
             doc.Load(rdfxml.CreateReader());
+
             IGraph graph = new Graph();
             rdfXmlParser.Load(graph, doc);
 
-            string subject = graph.GetTriplesWithPredicateObject(
-                    graph.CreateUriNode(new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")),
-                    graph.CreateUriNode(new Uri("http://nuget.org/schema#Package")))
-                .First()
-                .Subject
-                .ToString();
+            System.IO.StringWriter json = new System.IO.StringWriter();
+            JsonLdWriter jsonLdWriter = new JsonLdWriter();
+            jsonLdWriter.Save(graph, json);
+            json.Flush();
 
-            CompressingTurtleWriter turtleWriter = new CompressingTurtleWriter();
-            turtleWriter.DefaultNamespaces.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
-            turtleWriter.DefaultNamespaces.AddNamespace("package", new Uri(subject + "#"));
+            JToken frame;
+            using (JsonReader jsonReader = new JsonTextReader(new StreamReader(@"C:\private\NuGet3\NuGet.Services.Metadata\src\GatherMergeRewrite\GatherMergeRewrite\context\PackageFrame.json")))
+            {
+                frame = JToken.Load(jsonReader);
+            }
 
-            turtleWriter.PrettyPrintMode = true;
-            turtleWriter.CompressionLevel = 10;
-            turtleWriter.Save(graph, Console.Out);
+            JToken flattened = JToken.Parse(json.ToString());
+            JObject framed = JsonLdProcessor.Frame(flattened, frame, new JsonLdOptions());
+            JObject compacted = JsonLdProcessor.Compact(framed, framed["@context"], new JsonLdOptions());
+
+            Console.WriteLine(compacted);
         }
     }
 }

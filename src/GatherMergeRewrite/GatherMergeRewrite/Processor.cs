@@ -13,51 +13,38 @@ namespace GatherMergeRewrite
 {
     public class Processor
     {
-        public static async Task UploadPackage(IPackageHandle[] handles, IStorage storage)
+        public static async Task Upload(IInputDataHandle[] handles, IStorage storage)
         {
             State state = new State(storage.Container, storage.BaseAddress);
 
-            //  (1)
+            try
+            {
+                //  (1)
 
-            await CaptureData(state, handles);
+                await CaptureData(state, handles);
 
-            //  (2)
+                //  (2)
 
-            await LoadResources(state, storage);
+                await LoadResources(state, storage);
 
-            //  (3)
+                //  (3)
 
-            await SaveResources(state, storage);
+                await SaveResources(state, storage);
+            }
+            catch (Exception e)
+            {
+                throw new ProcessorException(state, "Exception in Upload", e);
+            }
         }
 
-        static async Task CaptureData(State state, IPackageHandle[] handles)
+        static async Task CaptureData(State state, IInputDataHandle[] handles)
         {
-            string address = string.Format("{0}/{1}/", state.BaseAddress, state.Container);
+            string baseAddress = string.Format("{0}/{1}/", state.BaseAddress, state.Container);
 
-            foreach (IPackageHandle handle in handles)
+            foreach (IInputDataHandle handle in handles)
             {
-                PackageData data = await handle.GetData();
-
-                Uri ownerUri = new Uri(address + data.OwnerId + ".json");
-                Uri registrationUri = new Uri(address + data.RegistrationId + ".json");
-
-                IGraph graph = new Graph();
-
-                graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
-                graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
-
-                graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:Owner"));
-                graph.Assert(graph.CreateUriNode(registrationUri), graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:PackageRegistration"));
-                graph.Assert(graph.CreateUriNode(registrationUri), graph.CreateUriNode("nuget:owner"), graph.CreateUriNode(ownerUri));
-                graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("nuget:registration"), graph.CreateUriNode(registrationUri));
-
+                IGraph graph = await handle.CreateGraph(baseAddress);
                 state.Store.Add(graph, true);
-
-                KeyValuePair<Uri, IGraph> newResource = CreateGraph(data.Nuspec, address, ownerUri, data.Published);
-
-                state.Store.Add(newResource.Value, true);
-
-                state.Resources.Add(newResource.Key, new Tuple<string, string>("Package.rq", "PackageFrame.json"));
             }
         }
 
@@ -143,45 +130,19 @@ namespace GatherMergeRewrite
             await Task.Factory.ContinueWhenAll(tasks.ToArray(), (t) => { });
         }
 
-        static KeyValuePair<Uri, IGraph> CreateGraph(XDocument nuspec, string baseAddress, Uri ownerUri, DateTime published)
-        {
-            IGraph graph = Utils.CreateNuspecGraph(nuspec, baseAddress);
-
-            graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
-            graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
-
-            Triple triple = graph.GetTriplesWithPredicateObject(graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:Package")).First();
-
-            graph.Assert(triple.Subject, graph.CreateUriNode("nuget:owner"), graph.CreateUriNode(ownerUri));
-            graph.Assert(triple.Subject, graph.CreateUriNode("nuget:published"), graph.CreateLiteralNode(published.ToString()));
-
-            return new KeyValuePair<Uri, IGraph>(((UriNode)triple.Subject).Uri, graph);
-        }
-
         static IDictionary<Uri, Tuple<string, string>> DetermineResourceList(TripleStore store)
         {
-            try
+            IDictionary<Uri, Tuple<string, string>> resources = new Dictionary<Uri, Tuple<string, string>>();
+
+            SparqlResultSet results = SparqlHelpers.Select(store, (new StreamReader("sparql\\ListResources.rq")).ReadToEnd());
+            foreach (SparqlResult result in results)
             {
-                IDictionary<Uri, Tuple<string, string>> resources = new Dictionary<Uri, Tuple<string, string>>();
+                Tuple<string, string> metadata = new Tuple<string, string>(result["transform"].ToString(), result["frame"].ToString());
 
-                SparqlResultSet results = SparqlHelpers.Select(store, (new StreamReader("sparql\\ListResources.rq")).ReadToEnd());
-                foreach (SparqlResult result in results)
-                {
-                    Tuple<string, string> metadata = new Tuple<string, string>(result["transform"].ToString(), result["frame"].ToString());
-
-                    resources[new Uri(result["resource"].ToString())] = metadata;
-                }
-
-                return resources;
+                resources[new Uri(result["resource"].ToString())] = metadata;
             }
-            catch (Exception)
-            {
-                foreach (Triple triple in store.Triples)
-                {
-                    Console.WriteLine("{0} {1} {2}", triple.Subject, triple.Predicate, triple.Object);
-                }
-                throw;
-            }
+
+            return resources;
         }
     }
 }

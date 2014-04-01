@@ -12,7 +12,7 @@ namespace GatherMergeRewrite
         static void Upload(IStorage storage, string ownerId, string registrationId, string nupkg, DateTime published)
         {
             LocalPackageHandle[] handles = new LocalPackageHandle[] { new LocalPackageHandle(ownerId, registrationId, nupkg, published) };
-            Processor.UploadPackage(handles, storage).Wait();
+            Processor.Upload(handles, storage).Wait();
         }
 
         static void Test0()
@@ -86,10 +86,10 @@ namespace GatherMergeRewrite
             LocalPackageHandle[] handles = new LocalPackageHandle[]
             { 
                 new LocalPackageHandle(ownerId, registrationId, path + "entityframework.4.1.10311.nupkg", DateTime.Now),
-                new LocalPackageHandle(ownerId, registrationId, path + "EntityFramework.5.0.0.nupkg", DateTime.Now),
+                //new LocalPackageHandle(ownerId, registrationId, path + "EntityFramework.5.0.0.nupkg", DateTime.Now),
             };
             
-            Processor.UploadPackage(handles, storage).Wait();
+            Processor.Upload(handles, storage).Wait();
 
             DateTime after = DateTime.Now;
 
@@ -107,7 +107,7 @@ namespace GatherMergeRewrite
 
             LocalPackageHandle[] handles = batch.Select((item) => new LocalPackageHandle(ownerId, item.Item1, item.Item2, published)).ToArray();
             
-            Processor.UploadPackage(handles, storage).Wait();
+            Processor.Upload(handles, storage).Wait();
         }
 
         static void Test2()
@@ -164,6 +164,15 @@ namespace GatherMergeRewrite
             Console.WriteLine("save: {0} load: {1}", ((FileStorage)storage).SaveCount, ((FileStorage)storage).LoadCount);
         }
 
+        static void PrintException(Exception e)
+        {
+            Console.WriteLine("{0} {1}", e.GetType().Name, e.Message);
+            if (e.InnerException != null)
+            {
+                PrintException(e.InnerException);
+            }
+        }
+
         static void Main(string[] args)
         {
             try
@@ -172,9 +181,16 @@ namespace GatherMergeRewrite
                 //Test1();
                 Test2();
             }
+            catch (AggregateException g)
+            {
+                foreach (Exception e in g.InnerExceptions)
+                {
+                    PrintException(e);
+                }
+            }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                PrintException(e);
             }
 
             //  the following packages are required by the resolver test case...

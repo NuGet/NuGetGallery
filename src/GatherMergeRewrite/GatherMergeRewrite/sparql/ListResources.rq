@@ -1,11 +1,10 @@
 ﻿PREFIX nuget: <http://nuget.org/schema#>
 
-SELECT ?resource ?transform ?frame
+SELECT DISTINCT ?resource ?transform ?frame
 WHERE
 {
 	{
-		?registration a nuget:PackageRegistration .
-		?registration nuget:package ?resource .
+		?resource a nuget:Package .
 
 		BIND ("Package.rq" AS ?transform)
 		BIND ("PackageFrame.json" AS ?frame)
@@ -16,6 +15,14 @@ WHERE
 
 		BIND ("PackageRegistration.rq" AS ?transform)
 		BIND ("PackageRegistrationFrame.json" AS ?frame)
+	}
+    UNION
+	{
+		?registration a nuget:PackageRegistration .
+		?registration nuget:package ?resource .
+
+		BIND ("Package.rq" AS ?transform)
+		BIND ("PackageFrame.json" AS ?frame)
 	}
 	UNION
 	{

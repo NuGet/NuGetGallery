@@ -84,8 +84,10 @@
   <ItemGroup>
     <Compile Include="FileStorage.cs" />
     <Compile Include="Debug.cs" />
+    <Compile Include="PackageHandle.cs" />
     <Compile Include="LocalPackageHandle.cs" />
     <Compile Include="Processor.cs" />
+    <Compile Include="ProcessorException.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SparqlHelpers.cs" />
@@ -93,7 +95,7 @@
     <Compile Include="IStorage.cs" />
     <Compile Include="AzureStorage.cs" />
     <Compile Include="PackageData.cs" />
-    <Compile Include="PackageHandle.cs" />
+    <Compile Include="InputDataHandle.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="XmlHtmlWriter.cs" />
     <Compile Include="XsltHelper.cs" />
