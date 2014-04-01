@@ -91,7 +91,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="SQLFiles\ResetMDPackageRegOwners.sql" />
-    <Content Include="SQLFiles\ResetMDPackages.sql" />
+    <Content Include="SQLFiles\ResetMDPackageState.sql" />
     <Content Include="SQLFiles\UpdateMDPackageRegOwners.sql" />
     <Content Include="SQLFiles\UpdateMDPackages.sql" />
   </ItemGroup>
