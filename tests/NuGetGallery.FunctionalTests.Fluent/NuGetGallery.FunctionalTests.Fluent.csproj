@@ -35,18 +35,29 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FluentAutomation.Core">
-      <HintPath>..\..\packages\FluentAutomation.Core.2.2.0.1\lib\net40\FluentAutomation.Core.dll</HintPath>
+    <Reference Include="FluentAutomation.Core, Version=2.3.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\FluentAutomation.Core.2.3.0.1\lib\net40\FluentAutomation.Core.dll</HintPath>
     </Reference>
-    <Reference Include="FluentAutomation.SeleniumWebDriver">
-      <HintPath>..\..\packages\FluentAutomation.SeleniumWebDriver.2.2.0.1\lib\net40\FluentAutomation.SeleniumWebDriver.dll</HintPath>
+    <Reference Include="FluentAutomation.SeleniumWebDriver, Version=2.3.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\FluentAutomation.SeleniumWebDriver.2.3.0.1\lib\net40\FluentAutomation.SeleniumWebDriver.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Newtonsoft.Json.5.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\src\galops\bin\Debug\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGetGallery.Operations, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\School\NuGet.Operations\NuGetGallery.Operations.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -56,14 +67,18 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="WebDriver">
-      <HintPath>..\..\packages\Selenium.WebDriver.2.37.0\lib\net40\WebDriver.dll</HintPath>
+    <Reference Include="WebDriver, Version=2.40.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Selenium.WebDriver.2.40.0\lib\net40\WebDriver.dll</HintPath>
     </Reference>
-    <Reference Include="WebDriver.Support">
-      <HintPath>..\..\packages\Selenium.Support.2.37.0\lib\net40\WebDriver.Support.dll</HintPath>
+    <Reference Include="WebDriver.Support, Version=2.40.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Selenium.Support.2.40.0\lib\net40\WebDriver.Support.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="1826RegressionTest.cs" />
+    <Compile Include="ContactEmailTest.cs" />
     <Compile Include="CSExtensionTest.cs" />
     <Compile Include="EditAndSearchTest.cs" />
     <Compile Include="ErrorPageTest.cs" />
@@ -71,15 +86,20 @@
     <Compile Include="EditPackageAsPartOfUploadTest.cs" />
     <Compile Include="EditPackageTest.cs" />
     <Compile Include="LanguageNameSearchTest.cs" />
+    <Compile Include="LicenseReportUITest.cs" />
     <Compile Include="LogonTest.cs" />
     <Compile Include="MinClientVersionFromUITest.cs" />
     <Compile Include="NuGetFluentTest.cs" />
+    <Compile Include="PackageManagementTest.cs" />
     <Compile Include="PackageStatsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResendConfirmationTest.cs" />
     <Compile Include="SearchSyntaxTest.cs" />
+    <Compile Include="SearchUITest.cs" />
     <Compile Include="StatisticsPageTest.cs" />
     <Compile Include="StatsInHomePageTest.cs" />
     <Compile Include="TagSearchTest.cs" />
+    <Compile Include="VersionNormalizationTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

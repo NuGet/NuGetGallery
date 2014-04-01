@@ -5,6 +5,7 @@ using System.Text;
 using NuGet;
 using System.Globalization;
 using System.IO;
+using System.Net;
 
 namespace NuGetGallery.FunctionTests.Helpers
 {
@@ -160,9 +161,23 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// <returns></returns>
         public static bool CheckIfPackageVersionExistsInSource(string packageId,string version,string sourceUrl)
         {
-            IPackageRepository repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl) as IPackageRepository;
-            IPackage package = repo.FindPackage(packageId, new SemanticVersion(version));
-            return (package != null);
+            bool found = false;
+            for (int i = 0; ((i < 6) && (!found)); i++)
+            {
+                HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(UrlHelper.V2FeedRootUrl + @"/package/" + packageId + "/" + version + "?t=" + DateTime.Now.Ticks);
+                packagePageRequest.Timeout = 5000;
+                HttpWebResponse packagePageResponse;
+                try
+                {
+                    packagePageResponse = (HttpWebResponse)packagePageRequest.GetResponse();
+                    if (packagePageResponse != null && (((HttpWebResponse)packagePageResponse).StatusCode == HttpStatusCode.OK)) found = true;
+                }
+                catch (WebException e)
+                {
+                    // Do nothing.  
+                }
+            }
+            return found;
         }
 
         /// <summary>

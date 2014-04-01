@@ -21,6 +21,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             I.Enter(EnvironmentSettings.TestAccountName).In("#SignIn_UserNameOrEmail");
             I.Enter(EnvironmentSettings.TestAccountPassword).In("#SignIn_Password");
             I.Click("#signin-link");
+            I.Wait(1);
         }
 
         public static void UploadPackageUsingUI(this INativeActionSyntaxProvider I, string fullPackagePath)

@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using NuGetGallery.FunctionTests.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentAutomation;
+using NuGetGallery.Operations.Tasks;
+
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
@@ -35,20 +37,51 @@ namespace NuGetGallery.FunctionalTests.Fluent
             }
         }
 
+        public void UploadPackageIfNecessary(string packageName, string version, string minClientVersion, string title, string tags, string description, string licenseUrl)
+        {
+            if (!PackageExists(packageName, version))
+            {
+                AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version, minClientVersion, title, tags, description, licenseUrl);
+            }
+        }
+
+        public void UploadPackageIfNecessary(string packageName, string version, string minClientVersion, string title, string tags, string description, string licenseUrl, string dependencies)
+        {
+            if (!PackageExists(packageName, version))
+            {
+                AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
+            }
+        }
+
         public bool PackageExists(string packageName, string version)
         {
-            HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(UrlHelper.BaseUrl + @"Packages/" + packageName + "/" + version);
-            HttpWebResponse packagePageResponse;
-            try
+            bool found = false;
+            for (int i = 0; ((i < 30) && (!found)); i++)
             {
-                packagePageResponse = (HttpWebResponse)packagePageRequest.GetResponse();
+                HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(UrlHelper.V2FeedRootUrl + @"/package/" + packageName + "/" + version);
+                packagePageRequest.Timeout = 1000;
+                HttpWebResponse packagePageResponse;
+                try
+                {
+                    packagePageResponse = (HttpWebResponse)packagePageRequest.GetResponse();
+                    if (packagePageResponse != null && (((HttpWebResponse)packagePageResponse).StatusCode == HttpStatusCode.OK)) found = true;
+                }
+                catch (WebException e)
+                {
+                    return false;
+                }
             }
-            catch (WebException e)
-            {
-                if (((HttpWebResponse)e.Response).StatusCode == HttpStatusCode.NotFound) return false;
-            }
+            return found;
+        }
 
-            // If we didn't get an exception, that means thew resource exists.
+        public bool DeleteUser(string userName)
+        {
+            DeleteUserTask dut = new DeleteUserTask();
+
+            dut.Username = userName;
+            dut.ConnectionString = new System.Data.SqlClient.SqlConnectionStringBuilder(Environment.GetEnvironmentVariable("DBConnectionString"));
+            dut.StorageAccount = new Microsoft.WindowsAzure.Storage.CloudStorageAccount(new Microsoft.WindowsAzure.Storage.Auth.StorageCredentials(Environment.GetEnvironmentVariable("StorageAccount")), true);
+            dut.Execute();
             return true;
         }
     }
