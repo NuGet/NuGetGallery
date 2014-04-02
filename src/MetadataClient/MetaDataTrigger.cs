@@ -49,7 +49,7 @@ WHERE (T1.[Key] IS NULL) OR (T2.[PackageKey] IS NULL)
 OR (T1.LastEdited IS NOT NULL AND T2.LastEdited IS NULL
 OR T1.LastEdited != T2.LastEdited)";
 
-        public const string PackageRecordsFromdboPackages = @"SELECT T1.[Key], PackageRegistrationKey, Id, [Version]
+        public const string PackageRecordsFromdboPackages = @"SELECT T1.[Key] as PackageKey, PackageRegistrationKey, Id, [Version]
 FROM dbo.Packages T1
 INNER JOIN dbo.PackageRegistrations T2
 ON T1.[PackageRegistrationKey] = T2.[Key]
@@ -62,12 +62,18 @@ ON T1.UserKey = T2.[Key]
 WHERE PackageRegistrationKey
 IN @packageRegKeys";
 
+        // INSERT QUERY
+
+        public const string InsertNewPackages = @"INSERT INTO dbo.MDPackageState VALUES (@PackageKey, @Id, @Version, NULL)";
+
 
 // HANDLES EDIT PACKAGES
 
         public const string PackageEditMetadata = @"SELECT * FROM dbo.Packages WHERE [Key] IN @packageKeys";
 
 // HANDLES DELETE PACKAGES
+
+        public const string PackagesUndeleted = @"SELECT Id FROM dbo.PackageRegistrations WHERE Id IN @packageIds";
 
 // HANDLES ADD OWNERS
 
@@ -333,7 +339,8 @@ IN @packageRegKeys";
             DumpTriggers(triggers);
 
             // Update PackageState with uploaded packages
-            // INSERT INTO MDPackageState (PackageKey, Id, Version, LastEdited) (Trigger.PackageKey, Trigger.PackageId, Trigger.PackageVersion, NULL)
+            // TODO : MAKE ASYNC IF POSSIBLE
+            connection.Execute(MDSqlQueries.InsertNewPackages, packageRecords);
 
             return triggers;
         }
@@ -376,10 +383,41 @@ IN @packageRegKeys";
             List<Trigger> triggers = new List<Trigger>();
             // Add 'DeletePackage' triggers (Should contain PackageId, PackageVersion)
             // Add 'DeletePackageRegistration' triggers (Should contain PackageId)
+            var packageIds = from record in records
+                             select record.Id;
+
+            var undeletedPackages = (await connection.QueryAsync<string>(MDSqlQueries.PackagesUndeleted, new { packageIds = packageIds })).ToList();
+
+            var deletedPackages = new HashSet<string>();
+
+            foreach (var record in records)
+            {
+                Trigger trigger = new Trigger();
+                if (undeletedPackages.Contains(record.Id))
+                {
+                    // This is deletion of a version of a package
+                    // which has other undeleted versions
+                    trigger.Add(MDConstants.Trigger, MDConstants.DeletePackage);
+                    trigger.Add(MDConstants.PackageId, record.Id);
+                    trigger.Add(MDConstants.PackageVersion, record.Version);
+                }
+                else
+                {
+                    if (!deletedPackages.Contains(record.Id))
+                    {
+                        deletedPackages.Add(record.Id);
+                        trigger.Add(MDConstants.Trigger, MDConstants.DeletePackageRegistration);
+                        trigger.Add(MDConstants.PackageId, record.Id);
+                    }
+                }
+            }
 
             // Dump Triggers
+            DumpTriggers(triggers);
 
             // Update PackageState with deleted packages
+            // TODO
+
             return triggers;
         }
 
@@ -411,6 +449,7 @@ IN @packageRegKeys";
 
             // Update PackageState with edited packages
             // TODO
+            // UPDATE LastEdited
 
             return triggers;
         }
