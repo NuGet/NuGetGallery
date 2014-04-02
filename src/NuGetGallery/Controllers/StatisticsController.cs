@@ -36,18 +36,24 @@ namespace NuGetGallery
         [OutputCache(VaryByHeader = "Accept-Language", Duration = 120, Location = OutputCacheLocation.Server)]
         public virtual JsonResult Totals()
         {
-            var stats = _aggregateStatsService.GetAggregateStats();
+            //var stats = _aggregateStatsService.GetAggregateStats();
 
-            // if we fail to detect client locale from the Languages header, fall back to server locale
-            CultureInfo clientCulture = DetermineClientLocale() ?? CultureInfo.CurrentCulture;
-            return Json(
-                new
-                {
-                    Downloads = stats.Downloads.ToString("n0", clientCulture),
-                    UniquePackages = stats.UniquePackages.ToString("n0", clientCulture),
-                    TotalPackages = stats.TotalPackages.ToString("n0", clientCulture)
-                },
-                JsonRequestBehavior.AllowGet);
+            //// if we fail to detect client locale from the Languages header, fall back to server locale
+            //CultureInfo clientCulture = DetermineClientLocale() ?? CultureInfo.CurrentCulture;
+            //return Json(
+            //    new
+            //    {
+            //        Downloads = stats.Downloads.ToString("n0", clientCulture),
+            //        UniquePackages = stats.UniquePackages.ToString("n0", clientCulture),
+            //        TotalPackages = stats.TotalPackages.ToString("n0", clientCulture)
+            //    },
+            //    JsonRequestBehavior.AllowGet);
+
+            return Content(@"{
+    ""Downloads"": ""169,553,131"",
+    ""UniquePackages"": ""21,321"",
+    ""TotalPackages"": ""181,685""
+}", "application/json");
         }
 
         private CultureInfo DetermineClientLocale()
