@@ -16,6 +16,7 @@ using System.Xml.XPath;
 using System.Xml.Xsl;
 using VDS.RDF;
 using VDS.RDF.Parsing;
+using VDS.RDF.Query;
 using VDS.RDF.Writing;
 
 namespace TestNuspec
@@ -113,7 +114,8 @@ namespace TestNuspec
             //XDocument nuspec = GetNuspecFromPackage(@"C:\data\nupkgs\dotnetrdf\dotnetrdf.0.8.0.nupkg");
             //XDocument nuspec = GetNuspecFromPackage(@"C:\data\nupkgs\dotnetrdf.1.0.3.nupkg");
 
-            XDocument nuspec = GetNuspecFromFile("one.nuspec");
+            //XDocument nuspec = GetNuspecFromFile("one.nuspec");
+            XDocument nuspec = GetNuspecFromFile("native.nuspec");
 
             XDocument rdfxml = new XDocument();
             using (XmlWriter writer = rdfxml.CreateWriter())
@@ -131,6 +133,36 @@ namespace TestNuspec
             IGraph graph = new Graph();
             rdfXmlParser.Load(graph, doc);
 
+            Uri ownerUri = new Uri(baseAddress + "test" + ".json");
+            Uri registrationUri = new Uri(baseAddress + "native" + ".json");
+
+            graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
+            graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
+
+            Triple triple = graph.GetTriplesWithPredicateObject(graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:Package")).First();
+
+            graph.Assert(triple.Subject, graph.CreateUriNode("nuget:owner"), graph.CreateUriNode(ownerUri));
+            graph.Assert(triple.Subject, graph.CreateUriNode("nuget:published"), graph.CreateLiteralNode(DateTime.Now.ToString()));
+
+            graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:Owner"));
+            graph.Assert(graph.CreateUriNode(registrationUri), graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:PackageRegistration"));
+            graph.Assert(graph.CreateUriNode(registrationUri), graph.CreateUriNode("nuget:owner"), graph.CreateUriNode(ownerUri));
+            graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("nuget:registration"), graph.CreateUriNode(registrationUri));
+
+            DumpTurtle(graph);
+
+            string str = new StreamReader(@"C:\private\NuGet3\NuGet.Services.Metadata\src\GatherMergeRewrite\GatherMergeRewrite\sparql\Package.rq").ReadToEnd();
+
+            SparqlParameterizedString sparql = new SparqlParameterizedString();
+            sparql.CommandText = str;
+            sparql.SetUri("resource", new Uri("http://tempuri.org/base/native/1.0.0.json"));
+
+            TripleStore store = new TripleStore();
+            store.Add(graph, true);
+            graph = SparqlHelpers.Construct(store, sparql.ToString());
+
+            DumpTurtle(graph);
+
             System.IO.StringWriter json = new System.IO.StringWriter();
             JsonLdWriter jsonLdWriter = new JsonLdWriter();
             jsonLdWriter.Save(graph, json);
@@ -145,7 +177,7 @@ namespace TestNuspec
             JToken flattened = JToken.Parse(json.ToString());
             JObject framed = JsonLdProcessor.Frame(flattened, frame, new JsonLdOptions());
             JObject compacted = JsonLdProcessor.Compact(framed, framed["@context"], new JsonLdOptions());
-
+            
             Console.WriteLine(compacted);
         }
     }

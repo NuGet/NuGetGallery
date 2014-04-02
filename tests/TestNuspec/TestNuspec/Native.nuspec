@@ -1,11 +1,12 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>one</id>
-    <version>1.0.4</version>
-    <authors>Test</authors>
-    <owners>test</owners>
-    <description>This is a test package.</description>
+    <id>Native</id>
+    <version>1.0.0</version>
+    <authors>johtaylo</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Test package</description>
+    <tags>C++ native test</tags>
     <dependencies>
       <group>
         <property name="group_property">hello</property>

@@ -4,6 +4,7 @@
 		"ng" : "http://nuget.org/schema#",
         "group" : { "@container" : "@set" },
         "dependency" : { "@container" : "@set" },
+        "property" : { "@container" : "@set" },
 		"url" : "@id"
 	},
 	"@type" : "ng:Package"
