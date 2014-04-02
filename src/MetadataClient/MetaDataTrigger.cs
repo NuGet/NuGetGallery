@@ -10,6 +10,8 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 using Trigger = System.Collections.Generic.Dictionary<string, string>;
+using System.Text;
+using System.Reflection;
 
 namespace MetadataClient
 {
@@ -18,6 +20,12 @@ namespace MetadataClient
     //
     public static class MDSqlQueries
     {
+        public const string PackageOwners = @"SELECT UserName
+FROM dbo.PackageRegistrationOwners T1
+INNER JOIN dbo.Users T2
+ON T1.UserKey = T2.[Key]
+WHERE PackageRegistrationKey =@id";
+
         public const string NewPackages = @"SELECT PackageRegistrationKey, Id, Version FROM dbo.Packages T1
 INNER JOIN dbo.PackageRegistrations T2
 ON [PackageRegistrationKey] = T2.[Key]
@@ -29,6 +37,8 @@ WHERE [Key] IN
 (SELECT UserKey FROM dbo.PackageRegistrationOwners T2
 WHERE PackageRegistrationKey = {0})";
 
+// HANDLES UPLOAD PACKAGES
+
         public const string PackageStateJoin = @"SELECT T1.[Key] as SourcePackageKey, PackageKey as BackupPackageKey,
        T1.LastEdited as SourceLastEdited, T2.LastEdited as BackupLastEdited,
        T2.Id, T2.[Version]
@@ -39,11 +49,33 @@ WHERE (T1.[Key] IS NULL) OR (T2.[PackageKey] IS NULL)
 OR (T1.LastEdited IS NOT NULL AND T2.LastEdited IS NULL
 OR T1.LastEdited != T2.LastEdited)";
 
-        public const string PackageRegRef = @"SELECT PackageRegistrationKey, Id, [Version]
+        public const string PackageRecordsFromdboPackages = @"SELECT T1.[Key], PackageRegistrationKey, Id, [Version]
 FROM dbo.Packages T1
 INNER JOIN dbo.PackageRegistrations T2
 ON T1.[PackageRegistrationKey] = T2.[Key]
-WHERE T1.[Key] IN @records";
+WHERE T1.[Key] IN @packageKeys";
+
+        public const string PackageOwnerRecords = @"SELECT PackageRegistrationKey, UserName as OwnerName
+FROM dbo.PackageRegistrationOwners T1
+INNER JOIN dbo.Users T2
+ON T1.UserKey = T2.[Key]
+WHERE PackageRegistrationKey
+IN @packageRegKeys";
+
+
+// HANDLES EDIT PACKAGES
+
+        public const string PackageEditMetadata = @"SELECT * FROM dbo.Packages WHERE [Key] IN @packageKeys";
+
+// HANDLES DELETE PACKAGES
+
+// HANDLES ADD OWNERS
+
+// HANDLES REMOVE OWNERS
+
+// HANDLES RENAME OWNER
+
+// HANDLES USERS SYNC?
     }
 
     public static class MDConstants
@@ -69,13 +101,6 @@ WHERE T1.[Key] IN @records";
         public const string Owners = "Owners";
     }
 
-    public class PackageRegRef
-    {
-        public int PackageRegistrationKey { get; set; }
-        public string Id { get; set; }
-        public string Version { get; set; }
-    }
-
     public class PackageStateJoin
     {
         public int? SourcePackageKey { get; set; }
@@ -84,6 +109,53 @@ WHERE T1.[Key] IN @records";
         public DateTime BackupLastEdited { get; set; }
         public string Id { get; set; }
         public string Version { get; set; }
+
+        public override string ToString()
+        {
+            return String.Format("{0}, {1}, {2}, {3}, {4}, {5}", SourcePackageKey, BackupPackageKey, SourceLastEdited, BackupLastEdited, Id, Version);
+        }
+    }
+
+    public class PackageRecord
+    {
+        public int PackageKey { get; set; }
+        public int PackageRegistrationKey { get; set; }
+        public string Id { get; set; }
+        public string Version { get; set; }
+
+        public override string ToString()
+        {
+            return String.Format("{0}, {1}, {2}, {3}", PackageKey, PackageRegistrationKey, Id, Version);
+        }
+    }
+
+    public class PackageOwnerRecord
+    {
+        public int PackageRegistrationKey { get; set; }
+        public string OwnerName { get; set; }
+
+        public override string ToString()
+        {
+            return String.Format("{0}, {1}", PackageRegistrationKey, OwnerName);
+        }
+    }
+
+    public class PackageEditMetadata
+    {
+        public int Key { get; set; }
+        public string Version { get; set; }
+        public string Title { get; set; }
+        public string Authors { get; set; }
+        public string Copyright { get; set; }
+        public string Description { get; set; }
+        public string IconUrl { get; set; }
+        public string LicenseUrl { get; set; }
+        public string ProjectUrl { get; set; }
+        public string ReleaseNotes { get; set; }
+        public bool RequiresLicenseAcceptance { get; set; }
+        public string Summary { get; set; }
+        public string Tags { get; set; }
+        public DateTime? LastEdited { get; set; }
     }
 
     public static class MetadataTrigger
@@ -132,6 +204,7 @@ WHERE T1.[Key] IN @records";
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.StackTrace);
             }
 
             return triggers;
@@ -141,17 +214,27 @@ WHERE T1.[Key] IN @records";
         {
             if (triggers != null && triggers.Count > 0)
             {
-                Console.WriteLine("---------- TRIGGERS ARE ----------");
                 foreach (Trigger trigger in triggers)
                 {
-                    Console.WriteLine("-------------TRIGGER------------");
+                    Console.WriteLine("\n{");
                     foreach (var pair in trigger)
                     {
-                        Console.WriteLine("\t{0} : {1}", pair.Key, pair.Value);
+                        Console.WriteLine("\t'{0}' : '{1}'", pair.Key, pair.Value);
                     }
+                    Console.WriteLine("}\n");
                 }
-                Console.WriteLine("--------------------------------");
             }
+        }
+
+        private static void DumpListForDebugging<T>(IEnumerable<T> values)
+        {
+            Console.WriteLine("\n--------------");
+            Console.WriteLine(typeof(T) + "s");
+            foreach(var value in values)
+            {
+                Console.WriteLine(value);
+            }
+            Console.WriteLine("\n--------------");
         }
 
         private static Task ExecuteAsync(SqlConnection connection, string sql)
@@ -217,23 +300,31 @@ WHERE T1.[Key] IN @records";
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.StackTrace);
             }
 
             return triggers;
         }
 
-        private static async Task<IList<Trigger>> HandleUploadPackages(SqlConnection connection, List<int> records)
+        private static async Task<IList<Trigger>> HandleUploadPackages(SqlConnection connection, List<int> packageKeys)
         {
             List<Trigger> triggers = new List<Trigger>();
 
-            var packageRegRefs = await connection.QueryAsync<PackageRegRef>(MDSqlQueries.PackageRegRef, new { records = records });
+            var packageRecords = await connection.QueryAsync<PackageRecord>(MDSqlQueries.PackageRecordsFromdboPackages, new { packageKeys = packageKeys });
+            var packageRegKeys = (from packageRecord in packageRecords
+                                  select packageRecord.PackageRegistrationKey).Distinct();
+            var packageOwnerRecords = await connection.QueryAsync<PackageOwnerRecord>(MDSqlQueries.PackageOwnerRecords, new { packageRegKeys = packageRegKeys });
+
+            var packageOwners = GetOwners(packageRegKeys, packageOwnerRecords);
+
             // Add 'UploadPackage' triggers (Should contain PackageId, PackageVersion, Owners List)
-            foreach (var package in packageRegRefs)
+            foreach (var package in packageRecords)
             {
                 Trigger trigger = new Trigger();
                 trigger.Add(MDConstants.Trigger, MDConstants.UploadPackage);
                 trigger.Add(MDConstants.PackageId, package.Id);
                 trigger.Add(MDConstants.PackageVersion, package.Version);
+                trigger.Add(MDConstants.Owners, GetPrettyPrintArray(MDConstants.OwnerName, packageOwners[package.PackageRegistrationKey]));
 
                 triggers.Add(trigger);
             }
@@ -242,16 +333,48 @@ WHERE T1.[Key] IN @records";
             DumpTriggers(triggers);
 
             // Update PackageState with uploaded packages
-            // TODO
+            // INSERT INTO MDPackageState (PackageKey, Id, Version, LastEdited) (Trigger.PackageKey, Trigger.PackageId, Trigger.PackageVersion, NULL)
 
             return triggers;
+        }
+
+        private static IDictionary<int, IEnumerable<string>> GetOwners(IEnumerable<int> packageRegKeys, IEnumerable<PackageOwnerRecord> packageOwnerRecords)
+        {
+            Dictionary<int, IEnumerable<string>> owners = new Dictionary<int, IEnumerable<string>>();
+            foreach (var packageRegKey in packageRegKeys)
+            {
+                // The following if should always return false if packageRegKeys passed in are distinct
+                if(!owners.ContainsKey(packageRegKey))
+                {
+                    var packageOwners = from packageOwnerRecord in packageOwnerRecords
+                                        where packageOwnerRecord.PackageRegistrationKey == packageRegKey
+                                        select packageOwnerRecord.OwnerName;
+
+                    owners.Add(packageRegKey, packageOwners);
+                }
+            }
+            return owners;
+        }
+
+        private static string GetPrettyPrintArray(string propertyName, IEnumerable<string> values)
+        {
+            // TODO : GET BETTER FORMATTING POSSIBLY USING Json.NET
+            StringBuilder array = new StringBuilder();
+            array.Append("[");
+            foreach (string value in values)
+            {
+                var arrayElement = String.Format("\n\t\t{{ '{0}' : '{1}' }}", propertyName, value);
+                array.Append(arrayElement);
+            }
+            array.Append("\n\t\t]");
+
+            return array.ToString();
         }
 
         private static async Task<IList<Trigger>> HandleDeletePackages(SqlConnection connection, List<PackageStateJoin> records)
         {
             List<Trigger> triggers = new List<Trigger>();
             // Add 'DeletePackage' triggers (Should contain PackageId, PackageVersion)
-
             // Add 'DeletePackageRegistration' triggers (Should contain PackageId)
 
             // Dump Triggers
@@ -263,14 +386,22 @@ WHERE T1.[Key] IN @records";
         private static async Task<IList<Trigger>> HandleEditPackages(SqlConnection connection, List<PackageStateJoin> records)
         {
             List<Trigger> triggers = new List<Trigger>();
+            var packageKeys = from record in records
+                              select record.SourcePackageKey;
+
+            var packagesEditMetadata = await connection.QueryAsync<PackageEditMetadata>(MDSqlQueries.PackageEditMetadata, new { packageKeys = packageKeys });
+
             // Add 'EditPackage' triggers (Should contain PackageId, PackageVersion AND Package MD Info)
             // TODO : Package MD Info will be handled later
-            foreach(var record in records)
+            foreach (var packageEditMetadata in packagesEditMetadata)
             {
                 Trigger trigger = new Trigger();
                 trigger.Add(MDConstants.Trigger, MDConstants.EditPackage);
-                trigger.Add(MDConstants.PackageId, record.Id);
-                trigger.Add(MDConstants.PackageVersion, record.Version);
+                var packageId = (from record in records
+                                where record.SourcePackageKey.Value == packageEditMetadata.Key
+                                select record.Id).FirstOrDefault();
+                trigger.Add(MDConstants.PackageId, packageId);
+                AddEditPackageMetadataTrigger(trigger, packageEditMetadata);
 
                 triggers.Add(trigger);
             }
@@ -282,6 +413,16 @@ WHERE T1.[Key] IN @records";
             // TODO
 
             return triggers;
+        }
+
+        private static void AddEditPackageMetadataTrigger(Trigger trigger, PackageEditMetadata packageEditMetadata)
+        {
+            Type packageEditMetadataType = typeof(PackageEditMetadata);
+            foreach (PropertyInfo propertyInfo in packageEditMetadataType.GetProperties())
+            {
+                var value = propertyInfo.GetValue(packageEditMetadata);
+                trigger.Add(propertyInfo.Name, value != null ? value.ToString() : String.Empty);
+            }
         }
 
         //public static async Task<IList<Trigger>> DetectUploadPackages(SqlConnection connection)
