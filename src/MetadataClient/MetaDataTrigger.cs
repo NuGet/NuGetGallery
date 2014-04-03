@@ -63,17 +63,19 @@ WHERE PackageRegistrationKey
 IN @packageRegKeys";
 
         // INSERT QUERY
-
         public const string InsertNewPackages = @"INSERT INTO dbo.MDPackageState VALUES (@PackageKey, @Id, @Version, NULL)";
 
+// HANDLES DELETE PACKAGES
+
+        public const string PackagesUndeleted = @"SELECT Id FROM dbo.PackageRegistrations WHERE Id IN @packageIds";
 
 // HANDLES EDIT PACKAGES
 
         public const string PackageEditMetadata = @"SELECT * FROM dbo.Packages WHERE [Key] IN @packageKeys";
 
-// HANDLES DELETE PACKAGES
+        // UPDATE QUERY
+        public const string UpdateEditedPackages = @"UPDATE dbo.MDPackageState SET LastEdited = @LastEdited WHERE PackageKey = @PackageKey";
 
-        public const string PackagesUndeleted = @"SELECT Id FROM dbo.PackageRegistrations WHERE Id IN @packageIds";
 
 // HANDLES ADD OWNERS
 
@@ -448,8 +450,11 @@ IN @packageRegKeys";
             DumpTriggers(triggers);
 
             // Update PackageState with edited packages
-            // TODO
-            // UPDATE LastEdited
+            // TODO : MAKE ASYNC IF POSSIBLE AND MAKE IT A SINGLE STATEMENT IF POSSIBLE
+            foreach (var packageEditMetadata in packagesEditMetadata)
+            {
+                connection.Execute(MDSqlQueries.UpdateEditedPackages, new { LastEdited = packageEditMetadata.LastEdited, PackageKey = packageEditMetadata.Key });
+            }
 
             return triggers;
         }
