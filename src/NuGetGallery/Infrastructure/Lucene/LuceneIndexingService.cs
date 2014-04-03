@@ -47,7 +47,10 @@ namespace NuGetGallery
 
         public void UpdateIndex()
         {
-            UpdateIndex(forceRefresh: false);
+            // TODO: Reenable this
+            // Prevent automatic update of index for now
+            // Admin->LuceneController calls UpdateIndex(bool forceRefresh)
+            //UpdateIndex(forceRefresh: false);
         }
 
         public void UpdateIndex(bool forceRefresh)
