@@ -1,6 +1,9 @@
 @echo off
 SETLOCAL ENABLEDELAYEDEXPANSION
 
+Echo Set environment variable RunFuntionalTests to True to enable running the functional tests
+set RunFuntionalTests=true
+
 Echo Clear previulsly defined GalleryUrl
 set GalleryURl=
 
