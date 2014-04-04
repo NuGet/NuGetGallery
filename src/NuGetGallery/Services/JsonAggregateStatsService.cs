@@ -30,7 +30,9 @@ namespace NuGetGallery
             }
 
             string totals = await blob.DownloadTextAsync();
-            return JsonConvert.DeserializeObject<AggregateStats>(totals);
+            var json = JsonConvert.DeserializeObject<AggregateStats>(totals);
+
+            return json;
         }
     }
 }

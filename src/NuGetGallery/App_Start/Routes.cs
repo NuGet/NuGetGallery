@@ -32,7 +32,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.Stats,
                 "stats/totals",
-                MVC.Statistics.Totals());
+                new { controller = MVC.Statistics.Name, action = "Totals" });
 
             routes.MapRoute(
                 RouteName.StatisticsPackages,

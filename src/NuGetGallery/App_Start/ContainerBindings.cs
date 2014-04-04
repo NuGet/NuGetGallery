@@ -261,15 +261,18 @@ namespace NuGetGallery
                 .To<CloudBlobFileStorageService>()
                 .InSingletonScope();
 
+            // when running on Windows Azure, we use a back-end job to calculate stats totals and store in the blobs
+            Bind<IAggregateStatsService>()
+                .ToMethod(_ => new JsonAggregateStatsService(configuration.Current.AzureStorageConnectionString))
+                .InSingletonScope();
+
             // when running on Windows Azure, pull the statistics from the warehouse via storage
             Bind<IReportService>()
                 .ToMethod(_ => new CloudReportService(configuration.Current.AzureStorageConnectionString))
                 .InSingletonScope();
+
             Bind<IStatisticsService>()
                 .To<JsonStatisticsService>()
-                .InSingletonScope();
-            Bind<IAggregateStatsService>()
-                .ToMethod(_ => new JsonAggregateStatsService(configuration.Current.AzureStorageConnectionString))
                 .InSingletonScope();
 
             string instanceId;
