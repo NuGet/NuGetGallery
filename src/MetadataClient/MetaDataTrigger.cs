@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Text;
+using System.Reflection;
+using System.IO;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -8,10 +11,11 @@ using System.Threading.Tasks;
 using Dapper;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 using Trigger = System.Collections.Generic.Dictionary<string, string>;
-using System.Text;
-using System.Reflection;
+using Newtonsoft.Json.Linq;
 
 namespace MetadataClient
 {
@@ -168,16 +172,25 @@ IN @packageRegKeys";
 
     public static class MetadataTrigger
     {
+        private const int MaxTriggersPerKind = 1000;
         public const string PackagesTable = "Packages";
         public const string PackageRegistrationOwnersTable = "PackageRegistrationOwners";
         public const string UsersTable = "Users";
         public const string MDPackagesTable = "MDPackages";
         public const string MDPackageRegOwnersTable = "MDPackageRegOwners";
         public const string MDOwnersTable = "MDOwners";
-        public static async Task Start(CloudStorageAccount blobAccount, CloudBlobContainer container, SqlConnectionStringBuilder sql)
+        public static async Task Start(CloudStorageAccount blobAccount, CloudBlobContainer container, SqlConnectionStringBuilder sql, bool dumpToCloud)
         {
             Console.WriteLine("Started polling...");
             Console.WriteLine("Looking for changes in {0}/{1} ", sql.DataSource, sql.InitialCatalog);
+
+            if (await container.CreateIfNotExistsAsync())
+            {
+                Console.WriteLine("Container created");
+            }
+
+            Container = container;
+            DumpToCloud = dumpToCloud;
 
             // The blobAccount and container can potentially be used to put the trigger information
             // on package blobs or otherwise. Not Important now
@@ -196,6 +209,18 @@ IN @packageRegKeys";
                 Console.WriteLine('.');
                 Thread.Sleep(3000);
             }
+        }
+
+        public static CloudBlobContainer Container
+        {
+            private get;
+            set;
+        }
+
+        public static bool DumpToCloud
+        {
+            get;
+            private set;
         }
 
         public static async Task<IList<Trigger>> DetectChanges(SqlConnectionStringBuilder sql)
@@ -218,20 +243,54 @@ IN @packageRegKeys";
             return triggers;
         }
 
-        private static void DumpTriggers(IList<Trigger> triggers)
+        private static async Task DumpTriggers(IList<Trigger> triggers, IList<string> keyProperties = null)
         {
+            var dumpToCloud = DumpToCloud;
+            if (!DumpToCloud || keyProperties == null || keyProperties.Count == 0 || triggers == null || triggers.Count == 0)
+            {
+                Console.WriteLine("Don't dump or No Key properties to dump the trigger");
+                dumpToCloud = false;
+            }
+
             if (triggers != null && triggers.Count > 0)
             {
                 foreach (Trigger trigger in triggers)
                 {
-                    Console.WriteLine("\n{");
-                    foreach (var pair in trigger)
+                    string triggerJson = JsonConvert.SerializeObject(trigger, new KeyValuePairConverter());
+
+                    Console.WriteLine(triggerJson);
+                    if (dumpToCloud)
                     {
-                        Console.WriteLine("\t'{0}' : '{1}'", pair.Key, pair.Value);
+                        var triggerId = GetTriggerId(trigger, keyProperties);
+                        Console.WriteLine("Dumping to {0}", triggerId);
+                        CloudBlockBlob blob = Container.GetBlockBlobReference(triggerId);
+                        if (await blob.ExistsAsync())
+                        {
+                            Console.WriteLine("{0} already exists", triggerId);
+                        }
+                        else
+                        {
+                            using (var stream = new MemoryStream(Encoding.Default.GetBytes(triggerJson), false))
+                            {
+                                await blob.UploadFromStreamAsync(stream);
+                            }
+                        }
                     }
-                    Console.WriteLine("}\n");
                 }
             }
+        }
+
+        private static string GetTriggerId(Trigger trigger, IList<string> keyProperties)
+        {
+            StringBuilder triggerId = new StringBuilder();
+            foreach (var key in keyProperties)
+            {
+                triggerId.Append(trigger[key]);
+                triggerId.Append(".");
+            }
+            triggerId.Append("json");
+
+            return triggerId.ToString();
         }
 
         private static void DumpListForDebugging<T>(IEnumerable<T> values)
@@ -318,6 +377,11 @@ IN @packageRegKeys";
         {
             List<Trigger> triggers = new List<Trigger>();
 
+            if (packageKeys.Count > MaxTriggersPerKind)
+            {
+                packageKeys.RemoveRange(MaxTriggersPerKind, packageKeys.Count - MaxTriggersPerKind);
+            }
+
             var packageRecords = await connection.QueryAsync<PackageRecord>(MDSqlQueries.PackageRecordsFromdboPackages, new { packageKeys = packageKeys });
             var packageRegKeys = (from packageRecord in packageRecords
                                   select packageRecord.PackageRegistrationKey).Distinct();
@@ -332,13 +396,13 @@ IN @packageRegKeys";
                 trigger.Add(MDConstants.Trigger, MDConstants.UploadPackage);
                 trigger.Add(MDConstants.PackageId, package.Id);
                 trigger.Add(MDConstants.PackageVersion, package.Version);
-                trigger.Add(MDConstants.Owners, GetPrettyPrintArray(MDConstants.OwnerName, packageOwners[package.PackageRegistrationKey]));
+                trigger.Add(MDConstants.Owners, GetJSONArray(MDConstants.OwnerName, packageOwners[package.PackageRegistrationKey]));
 
                 triggers.Add(trigger);
             }
 
             // Dump Triggers
-            DumpTriggers(triggers);
+            await DumpTriggers(triggers, new List<string> { MDConstants.PackageId, MDConstants.PackageVersion } );
 
             // Update PackageState with uploaded packages
             // TODO : MAKE ASYNC IF POSSIBLE
@@ -365,17 +429,11 @@ IN @packageRegKeys";
             return owners;
         }
 
-        private static string GetPrettyPrintArray(string propertyName, IEnumerable<string> values)
+        private static string GetJSONArray(string propertyName, IEnumerable<string> values)
         {
-            // TODO : GET BETTER FORMATTING POSSIBLY USING Json.NET
-            StringBuilder array = new StringBuilder();
-            array.Append("[");
-            foreach (string value in values)
-            {
-                var arrayElement = String.Format("\n\t\t{{ '{0}' : '{1}' }}", propertyName, value);
-                array.Append(arrayElement);
-            }
-            array.Append("\n\t\t]");
+            JArray array = new JArray(
+                from value in values
+                select new JObject(new JProperty(propertyName, value)));
 
             return array.ToString();
         }
@@ -415,7 +473,7 @@ IN @packageRegKeys";
             }
 
             // Dump Triggers
-            DumpTriggers(triggers);
+            await DumpTriggers(triggers);
 
             // Update PackageState with deleted packages
             // TODO
@@ -447,7 +505,7 @@ IN @packageRegKeys";
             }
 
             // Dump Triggers
-            DumpTriggers(triggers);
+            await DumpTriggers(triggers);
 
             // Update PackageState with edited packages
             // TODO : MAKE ASYNC IF POSSIBLE AND MAKE IT A SINGLE STATEMENT IF POSSIBLE

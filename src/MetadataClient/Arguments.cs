@@ -92,7 +92,7 @@ namespace MetadataClient
         {
             if (String.IsNullOrEmpty(args.ContainerName))
             {
-                args.ContainerName = "received";
+                args.ContainerName = "mdtriggers";
             }
 
             CloudStorageAccount account = CloudStorageAccount.Parse(args.StorageConnectionString);
@@ -107,7 +107,7 @@ namespace MetadataClient
             Console.WriteLine("Trimming network protocol if any");
             sql.TrimNetworkProtocol();
 
-            MetadataTrigger.Start(account, container, sql).Wait();
+            MetadataTrigger.Start(account, container, sql, args.DumpToCloud).Wait();
         }
 
         static string Nuget = "http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd";
