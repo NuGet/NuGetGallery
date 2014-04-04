@@ -34,16 +34,8 @@ namespace NuGetGallery
             
             MemoryStream stream = new MemoryStream();
 
-            await Task.Factory.FromAsync(blob.BeginFetchAttributes(null, null), blob.EndFetchAttributes);
-            await Task.Factory.FromAsync(blob.BeginDownloadToStream(stream, null, null), blob.EndDownloadToStream);
-
-            stream.Seek(0, SeekOrigin.Begin);
-
-            string content;
-            using (TextReader reader = new StreamReader(stream))
-            {
-                content = reader.ReadToEnd();
-            }
+            await blob.FetchAttributesAsync();
+            string content = await blob.DownloadTextAsync();
 
             return new StatisticsReport(content, (blob.Properties.LastModified == null ? (DateTime?)null : blob.Properties.LastModified.Value.UtcDateTime));
         }
