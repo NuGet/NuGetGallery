@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.30110.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{96E4AFF8-D3A1-4102-ADCF-05F186F916A9}"
 	ProjectSection(SolutionItems) = preProject
@@ -29,6 +29,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.FunctionalTests.Helpers", "tests\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj", "{8FB56455-C688-44AE-95F1-48FFCB199BFE}"
 EndProject
 Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGetGallery.Cloud", "src\NuGetGallery.Cloud\NuGetGallery.Cloud.ccproj", "{0041ACA0-30EC-4554-8C7C-0AF810F3086F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{B7092BA7-77A3-44AA-9C0A-D600F6C31182}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Backend", "src\NuGetGallery.Backend\NuGetGallery.Backend.csproj", "{7F92C174-5310-4090-A6A3-3CC7C67C19D6}"
+EndProject
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGetGallery.Backend.Cloud", "src\NuGetGallery.Backend.Cloud\NuGetGallery.Backend.Cloud.ccproj", "{1D0164B6-92D4-455A-AC68-C30B61733748}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -72,6 +78,14 @@ Global
 		{0041ACA0-30EC-4554-8C7C-0AF810F3086F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0041ACA0-30EC-4554-8C7C-0AF810F3086F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0041ACA0-30EC-4554-8C7C-0AF810F3086F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D0164B6-92D4-455A-AC68-C30B61733748}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D0164B6-92D4-455A-AC68-C30B61733748}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D0164B6-92D4-455A-AC68-C30B61733748}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D0164B6-92D4-455A-AC68-C30B61733748}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,5 +96,7 @@ Global
 		{0041ACA0-30EC-4554-8C7C-0AF810F3086F} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
 		{DBECF66B-8F2F-4B32-9143-E243BAFF12DF} = {2ECA1159-9B9D-4D65-95AF-F14337FD3DA6}
 		{F240D1BC-BBFB-4F22-9DF8-3FDE36BFD665} = {2ECA1159-9B9D-4D65-95AF-F14337FD3DA6}
+		{7F92C174-5310-4090-A6A3-3CC7C67C19D6} = {B7092BA7-77A3-44AA-9C0A-D600F6C31182}
+		{1D0164B6-92D4-455A-AC68-C30B61733748} = {B7092BA7-77A3-44AA-9C0A-D600F6C31182}
 	EndGlobalSection
 EndGlobal
