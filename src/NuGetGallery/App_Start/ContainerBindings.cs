@@ -203,9 +203,6 @@ namespace NuGetGallery
                 .To<AutomaticallyCuratePackageCommand>()
                 .InRequestScope();
 
-            Bind<IAggregateStatsService>()
-                .To<AggregateStatsService>()
-                .InRequestScope();
             Bind<IPackageIdsQuery>()
                 .To<PackageIdsQuery>()
                 .InRequestScope();
@@ -248,13 +245,17 @@ namespace NuGetGallery
             Bind<IReportService>().ToConstant(NullReportService.Instance);
             Bind<IStatisticsService>().ToConstant(NullStatisticsService.Instance);
             Bind<AuditingService>().ToConstant(AuditingService.None);
+
+            // If we're not using azure storage, then aggregate stats comes from SQL
+            Bind<IAggregateStatsService>()
+                .To<SqlAggregateStatsService>()
+                .InRequestScope();
         }
 
         private void ConfigureForAzureStorage(ConfigurationService configuration)
         {
             Bind<ICloudBlobClient>()
-                .ToMethod(
-                    _ => new CloudBlobClientWrapper(configuration.Current.AzureStorageConnectionString))
+                .ToMethod(_ => new CloudBlobClientWrapper(configuration.Current.AzureStorageConnectionString))
                 .InSingletonScope();
             Bind<IFileStorageService>()
                 .To<CloudBlobFileStorageService>()
@@ -262,10 +263,13 @@ namespace NuGetGallery
 
             // when running on Windows Azure, pull the statistics from the warehouse via storage
             Bind<IReportService>()
-                .ToMethod(context => new CloudReportService(configuration.Current.AzureStorageConnectionString))
+                .ToMethod(_ => new CloudReportService(configuration.Current.AzureStorageConnectionString))
                 .InSingletonScope();
             Bind<IStatisticsService>()
                 .To<JsonStatisticsService>()
+                .InSingletonScope();
+            Bind<IAggregateStatsService>()
+                .ToMethod(_ => new JsonAggregateStatsService(configuration.Current.AzureStorageConnectionString))
                 .InSingletonScope();
 
             string instanceId;

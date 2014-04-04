@@ -502,7 +502,7 @@ namespace NuGetGallery
         public class TheTotalsAllAction
         {
             [Fact]
-            public void UseServerCultureIfLanguageHeadersIsMissing()
+            public async void UseServerCultureIfLanguageHeadersIsMissing()
             {
                 // Arrange
                 var currentCulture = CultureInfo.CurrentCulture;
@@ -518,12 +518,12 @@ namespace NuGetGallery
                         TotalPackages = 1000,
                         UniquePackages = 500
                     };
-                    aggregateStatsService.Setup(s => s.GetAggregateStats()).Returns(stats);
+                    aggregateStatsService.Setup(s => s.GetAggregateStats()).Returns(Task.FromResult(stats));
 
                     var controller = CreateController(aggregateStatsService);
 
                     // Act
-                    var result = controller.Totals() as JsonResult;
+                    var result = await controller.Totals() as JsonResult;
 
                     // Asssert
                     Assert.NotNull(result);
@@ -540,7 +540,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void UseClientCultureIfLanguageHeadersIsPresent()
+            public async void UseClientCultureIfLanguageHeadersIsPresent()
             {
                 // Arrange
                 var aggregateStatsService = new Mock<IAggregateStatsService>(MockBehavior.Strict);
@@ -550,7 +550,7 @@ namespace NuGetGallery
                     TotalPackages = 1000,
                     UniquePackages = 500
                 };
-                aggregateStatsService.Setup(s => s.GetAggregateStats()).Returns(stats);
+                aggregateStatsService.Setup(s => s.GetAggregateStats()).Returns(Task.FromResult(stats));
 
                 var request = new Mock<HttpRequestBase>();
                 request.Setup(r => r.UserLanguages).Returns(new string[] { "vi-VN" });
@@ -558,7 +558,7 @@ namespace NuGetGallery
                 var controller = CreateController(aggregateStatsService, request);
 
                 // Act
-                var result = controller.Totals() as JsonResult;
+                var result = await controller.Totals() as JsonResult;
 
                 // Asssert
                 Assert.NotNull(result);

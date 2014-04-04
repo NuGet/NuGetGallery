@@ -34,9 +34,9 @@ namespace NuGetGallery
 
         [HttpGet]
         [OutputCache(VaryByHeader = "Accept-Language", Duration = 120, Location = OutputCacheLocation.Server)]
-        public virtual JsonResult Totals()
+        public virtual async Task<ActionResult> Totals()
         {
-            var stats = _aggregateStatsService.GetAggregateStats();
+            var stats = await _aggregateStatsService.GetAggregateStats();
 
             // if we fail to detect client locale from the Languages header, fall back to server locale
             CultureInfo clientCulture = DetermineClientLocale() ?? CultureInfo.CurrentCulture;
