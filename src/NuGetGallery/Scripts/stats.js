@@ -7,8 +7,9 @@
         update(data, currData, 'Downloads');
         update(data, currData, 'TotalPackages');
     }).error(function () {
-        var section = $('section.aggstatserr');
-        section.show();
+        // Don't show the stats error anymore.  Just fail silently.
+        // var section = $('section.aggstatserr');
+        // section.show();
     });
 
     setTimeout(function () { getStats(currData); }, 30000);
