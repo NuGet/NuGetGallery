@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -28,16 +29,31 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         public virtual async Task<ActionResult> Index()
         {
-            return View("Index", new LuceneInfoModel()
+            return View("Index",
+                await GetLuceneInfo());
+        }
+
+        private async Task<LuceneInfoModel> GetLuceneInfo()
+        {
+            var model = new LuceneInfoModel()
             {
-                LastUpdated = await IndexingService.GetLastWriteTime(),
-                DocumentCount = await IndexingService.GetDocumentCount(),
-                IndexSize = await IndexingService.GetIndexSizeInBytes(),
                 Directory = IndexingService.IndexPath,
                 IsLocal = IndexingService.IsLocal,
-                Location = Config.LuceneIndexLocation,
-                QueryStats = PerfCounters.GetStats(ExternalSearchService.SearchRoundtripTimePerfCounter)
-            });
+                Location = Config.LuceneIndexLocation
+            };
+
+            try
+            {
+                model.LastUpdated = await IndexingService.GetLastWriteTime();
+                model.DocumentCount = await IndexingService.GetDocumentCount();
+                model.IndexSize = await IndexingService.GetIndexSizeInBytes();
+                model.QueryStats = PerfCounters.GetStats(ExternalSearchService.SearchRoundtripTimePerfCounter);
+            }
+            catch (FileNotFoundException)
+            {
+                model.LastUpdated = null;
+            }
+            return model;
         }
 
         [HttpPost]

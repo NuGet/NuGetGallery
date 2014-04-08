@@ -48,9 +48,11 @@ namespace NuGetGallery.Infrastructure.Lucene
             // Extract credentials
             var userInfo = ServiceUri.UserInfo;
             ICredentials credentials = null;
-            if(!String.IsNullOrEmpty(userInfo)) {
+            if (!String.IsNullOrEmpty(userInfo))
+            {
                 var split = userInfo.Split(':');
-                if(split.Length != 2) {
+                if (split.Length != 2)
+                {
                     throw new FormatException("Invalid user info in SearchServiceUri!");
                 }
 
@@ -64,6 +66,12 @@ namespace NuGetGallery.Infrastructure.Lucene
             }
 
             _client = new SearchClient(ServiceUri, credentials, new TracingHttpHandler(Trace));
+        }
+
+        private static readonly Task<bool> _exists = Task.FromResult(true);
+        public Task<bool> Exists()
+        {
+            return _exists;
         }
 
         public Task<SearchResults> RawSearch(SearchFilter filter)

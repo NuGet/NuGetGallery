@@ -33,7 +33,7 @@ else
 
 @if(Model.IsLocal) 
 {
-    using (Html.BeginForm(MVC.Admin.Lucene.Rebuild()))
+    using (Html.BeginForm("Rebuild", "Lucene"))
     {
         <fieldset class="form">
             <input type="submit" value="Rebuild Now" />
