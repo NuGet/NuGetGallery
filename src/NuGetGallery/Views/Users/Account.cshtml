@@ -92,7 +92,6 @@
         loginCredentials += credGroups[CredentialKind.External].Count;
     }
 
-    var subscriptionAction = MVC.Users.ChangeEmailSubscription(!CurrentUser.EmailAllowed);
     var currentEmailAddress = CurrentUser.UnconfirmedEmailAddress ?? CurrentUser.EmailAddress;
 }
 
@@ -141,7 +140,7 @@
         </li>
 
         <li class="actionlist-item">
-            <a class="actionlist-item-link" href="@Url.Action(MVC.Users.Packages())">
+            <a class="actionlist-item-link" href="@Url.Action(actionName: "Packages", controllerName: "Users")">
                 <div class="actionlist-item-header">
                     <i class="icon-gears actionlist-item-header-icon"></i>
                     <span class="actionlist-item-header-text">Manage my Packages</span>
@@ -205,7 +204,7 @@
         enabled: CurrentUser.EmailAllowed,
         actions: @<text>
             @item.ExpandLink("More Info", "Less Info")
-            @using (Html.BeginForm(subscriptionAction, FormMethod.Post, new { @class = "form-inline" }))
+            @using (Html.BeginForm(actionName: "ChangeEmailSubscription", controllerName: "Users", routeValues: new { subscribe = !CurrentUser.EmailAllowed }, method: FormMethod.Post, htmlAttributes:object new { @class = "form-inline" }))
             {
                 <fieldset class="form">
                     <legend>Update Email Subscription</legend>

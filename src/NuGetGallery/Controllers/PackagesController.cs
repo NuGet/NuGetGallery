@@ -347,7 +347,7 @@ namespace NuGetGallery
                 // If user logged on in as owner a different tab, then clicked the link, we can redirect them to ReportMyPackage
                 if (package.IsOwner(user))
                 {
-                    return RedirectToAction(ActionNames.ReportMyPackage, new {id, version});
+                    return RedirectToAction("ReportMyPackage", new {id, version});
                 }
 
                 if (user.Confirmed)
@@ -356,7 +356,7 @@ namespace NuGetGallery
                 }
             }
 
-            ViewData[Constants.ReturnUrlViewDataKey] = Url.Action(ActionNames.ReportMyPackage, new {id, version});
+            ViewData[Constants.ReturnUrlViewDataKey] = Url.Action("ReportMyPackage", new {id, version});
             return View(model);
         }
 
@@ -384,7 +384,7 @@ namespace NuGetGallery
             // If user hit this url by constructing it manually but is not the owner, redirect them to ReportAbuse
             if (!(User.IsInRole(Constants.AdminRoleName) || package.IsOwner(user)))
             {
-                return RedirectToAction(ActionNames.ReportAbuse, new { id, version });
+                return RedirectToAction("ReportAbuse", new { id, version });
             }
 
             var model = new ReportAbuseViewModel
@@ -532,11 +532,26 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);
             _messageService.SendContactOwnersMessage(
-                fromAddress, package, contactForm.Message, Url.Action(MVC.Users.Account(), protocol: Request.Url.Scheme), contactForm.CopySender);
+                fromAddress, 
+                package, 
+                contactForm.Message, 
+                Url.Action(
+                    actionName: "Account", 
+                    controllerName: "Users", 
+                    routeValues: null, 
+                    protocol: Request.Url.Scheme), 
+                contactForm.CopySender);
 
             string message = String.Format(CultureInfo.CurrentCulture, "Your message has been sent to the owners of {0}.", id);
             TempData["Message"] = message;
-            return RedirectToAction(MVC.Packages.DisplayPackage(id, null));
+            return RedirectToAction(
+                actionName: "DisplayPackage", 
+                controllerName: "Packages", 
+                routeValues: new
+                {
+                    id,
+                    version = (string)null
+                });
         }
 
         // This is the page that explains why there's no download link.

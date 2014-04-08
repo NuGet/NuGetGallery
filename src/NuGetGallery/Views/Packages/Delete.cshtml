@@ -59,7 +59,7 @@
     </li>
 </ul>
 <p>
-    If you need the package permanently removed, click on the <a href="@Url.Action(MVC.Packages.ReportAbuse(Model.Id, Model.Version))" title="Contact Support">Contact Support</a> link and we'll take care 
+    If you need the package permanently removed, click on the <a href="@Url.Action(actionName: "ReportAbuse", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Contact Support">Contact Support</a> link and we'll take care 
     of it for you. PLEASE ONLY DO THIS IF THERE IS AN URGENT PROBLEM WITH THE PACKAGE. 
     (Passwords, malicious code, etc). Even if you remove it, it's prudent to immediately 
     reset any passwords/sensitive data you accidentally pushed instead of waiting for us to delete 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 
@@ -15,6 +16,10 @@ namespace NuGetGallery
         public static string Absolute(this UrlHelper url, string path)
         {
             UriBuilder builder = GetCanonicalUrl(url);
+            if (path.StartsWith("~/", StringComparison.OrdinalIgnoreCase))
+            {
+                path = VirtualPathUtility.ToAbsolute(path, url.RequestContext.HttpContext.Request.ApplicationPath);
+            }
             builder.Path = path;
             return builder.Uri.AbsoluteUri;
         }
@@ -69,7 +74,7 @@ namespace NuGetGallery
 
         public static string UndoPendingEdits(this UrlHelper url, IPackageVersionModel package)
         {
-            return url.Action(MVC.Packages.UndoPendingEdits(package.Id, package.Version));
+            return url.Action(actionName: "UndoPendingEdits", controllerName: "Packages");
         }
 
         public static string Package(this UrlHelper url, string id)
@@ -113,7 +118,7 @@ namespace NuGetGallery
         {
             string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
             string result = url.RouteUrl(RouteName.Home, null, protocol: protocol);
-            result = result.TrimEnd('/') + Links.Content.Images.packageDefaultIcon_50x50_png;
+            result = result.TrimEnd('/') + VirtualPathUtility.ToAbsolute("~/Content/Images/packageDefaultIcon-50x50.png");
             return result;
         }
 
@@ -150,18 +155,12 @@ namespace NuGetGallery
             {
                 returnUrl = String.Empty;
             }
-            var originalResult = MVC.Authentication.LogOff(returnUrl);
-            var result = originalResult.GetT4MVCResult();
-            
-            // T4MVC doesn't set area to "", but we need it to, otherwise it thinks this is an intra-area link.
-            result.RouteValueDictionary["area"] = "";
-
-            return url.Action(originalResult);
+            return url.Action("LogOff", "Authentication", new { returnUrl, area = "" });
         }
 
         public static string Register(this UrlHelper url)
         {
-            return url.Action(MVC.Authentication.LogOn());
+            return url.Action(actionName: "LogOn", controllerName: "Authentication");
         }
 
         public static string Search(this UrlHelper url, string searchTerm)
@@ -176,7 +175,11 @@ namespace NuGetGallery
 
         public static string User(this UrlHelper url, User user, string scheme = null)
         {
-            string result = url.Action(MVC.Users.Profiles(user.Username), protocol: scheme);
+            string result = url.Action(
+                actionName: "Profiles", 
+                controllerName: "Users", 
+                routeValues: new { username = user.Username }, 
+                protocol: scheme);
             return EnsureTrailingSlash(result);
         }
 
@@ -192,12 +195,25 @@ namespace NuGetGallery
 
         public static string DeletePackage(this UrlHelper url, IPackageVersionModel package)
         {
-            return url.Action(MVC.Packages.Delete(package.Id, package.Version));
+            return url.Action(
+                actionName: "Delete", 
+                controllerName: "Packages", 
+                routeValues: new {
+                    id = package.Id,
+                    version = package.Version
+                });
         }
 
         public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package)
         {
-            return url.Action(MVC.Packages.ManagePackageOwners(package.Id, package.Version));
+            return url.Action(
+                actionName: "ManagePackageOwners",
+                controllerName: "Packages",
+                routeValues: new
+                {
+                    id = package.Id,
+                    version = package.Version
+                });
         }
 
         public static string ConfirmationUrl(this UrlHelper url, string action, string controller, string username, string token)
@@ -220,12 +236,12 @@ namespace NuGetGallery
 
         public static string VerifyPackage(this UrlHelper url)
         {
-            return url.Action(actionName: "VerifyPackage", controllerName: MVC.Packages.Name);
+            return url.Action(actionName: "VerifyPackage", controllerName: "Packages");
         }
 
         public static string CancelUpload(this UrlHelper url)
         {
-            return url.Action(actionName: "CancelUpload", controllerName: MVC.Packages.Name);
+            return url.Action(actionName: "CancelUpload", controllerName: "Packages");
         }
 
         private static UriBuilder GetCanonicalUrl(UrlHelper url)

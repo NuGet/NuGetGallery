@@ -41,7 +41,7 @@
     <script type="text/javascript">
         $(function () {
             AsyncFileUploadManager.init(
-                '@Url.Action(MVC.Packages.UploadPackageProgress())',
+                '@Url.Action(actionName: "UploadPackageProgress", controllerName: "Packages")',
                 'uploadForm',
                 '@Scripts.Url("~/Scripts/jquery")');
         });

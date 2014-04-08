@@ -12,7 +12,7 @@
     This form is for reporting <em>abusive</em> packages such as 
     packages containing <em>malicious code</em> or spam. If "@Model.PackageId" simply doesn't 
     work, or if you need help getting the package installed, please 
-    <a href="@Url.Action(MVC.Packages.ContactOwners(Model.PackageId))" title="contact the owners">contact the owners instead.</a> 
+    <a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.PackageId })" title="contact the owners">contact the owners instead.</a> 
 </p>
 
 <p>Please provide a detailed abuse report. Include exactly what the package did, for example if you are reporting a package with a virus or malicious code, 

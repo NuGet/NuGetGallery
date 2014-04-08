@@ -1,4 +1,3 @@
-@using Links
 @model DisplayPackageViewModel
 @{
     ViewBag.Title = Model.Title + " " + Model.Version;
@@ -15,7 +14,7 @@
     <meta property="og:url"         content="@absolutePackageUrl" /> 
     <meta property="og:description" content="@Model.Description" /> 
     <meta property="og:determiner"  content="a" />
-    <meta property="og:image"       content="@(Model.IconUrl ?? Url.Absolute(Links.Content.Images.packageDefaultIcon_png))" />
+    <meta property="og:image"       content="@(Model.IconUrl ?? Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" />
 }
 @section BottomScripts {
     @* Facebook SDK *@
@@ -36,7 +35,7 @@
     <script>!function (d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (!d.getElementById(id)) { js = d.createElement(s); js.id = id; js.src = "//platform.twitter.com/widgets.js"; fjs.parentNode.insertBefore(js, fjs); } }(document, "script", "twitter-wjs");</script>
 }
 @section SideColumn {
-    <img class="logo" src="@(Model.IconUrl ?? Content.Images.packageDefaultIcon_png)" alt="Icon for package @Model.Id" onerror="this.src = '@Content.Images.packageDefaultIcon_png';" />
+    <img class="logo" src="@(Model.IconUrl ?? Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" alt="Icon for package @Model.Id" onerror="this.src = '@Url.Absolute("~/Content/Images/packageDefaultIcon.png")';" />
     <div id="stats">
         <div class="stat">
             <p class="stat-number">@Model.TotalDownloadCount.ToString("n0")</p>
@@ -65,15 +64,15 @@
             {
                 <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
             }
-            <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))" title="Ask the package owners a question">Contact Owners</a></li>
+            <li><a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.Id })" title="Ask the package owners a question">Contact Owners</a></li>
             @if (Model.IsOwner(User))
             {
-                <li><a href="@Url.Action(MVC.Packages.ReportMyPackage(Model.Id, Model.Version))" title="Contact the NuGet team for help with your package">
+                <li><a href="@Url.Action(actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Contact the NuGet team for help with your package">
                         Contact Support</a></li>
             }
             else
             {
-                <li><a href="@Url.Action(MVC.Packages.ReportAbuse(Model.Id, Model.Version))" title="Report the package as abusive">
+                <li><a href="@Url.Action(actionName: "ReportAbuse", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Report the package as abusive">
                         Report Abuse</a></li>
             }
             @if (User.Identity.IsAuthenticated)
@@ -82,7 +81,7 @@
             }
             else
             {
-                <li><a href="@Url.Action(@MVC.Packages.Download())" title="How do I download?">How to Download</a></li>
+                <li><a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">How to Download</a></li>
             }
             @if (Model.IsOwner(User))
             {
@@ -135,7 +134,7 @@
                     }
                     else
                     {
-                        using (Html.BeginForm(MVC.Packages.SetLicenseReportVisibility(Model.Id, Model.Version, Model.HideLicenseReport), FormMethod.Post, new { @class = "form" }))
+                        using (Html.BeginForm(actionName: "SetLicenseReportVisibility", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version, visible = Model.HideLicenseReport }, method: FormMethod.Post, htmlAttributes: new { @class = "form" }))
                         {
                             @Html.AntiForgeryToken()
                             <input id="enableDisableLicenseReportButton" type="submit" title="@(Model.HideLicenseReport ? "Display" : "Hide") license information provided by Sonatype CLM" value="@(Model.HideLicenseReport ? "Enable" : "Disable")"/>
@@ -150,7 +149,7 @@
 <div class="package-page">
     @if (Model.HasPendingMetadata)
     {
-        using (Html.BeginForm(MVC.Packages.UndoPendingEdits()))
+        using (Html.BeginForm(actionName: "UndoPendingEdits", controllerName: "Packages"))
         {
             @Html.AntiForgeryToken()
             <fieldset class="form">
@@ -264,7 +263,7 @@
             <p>
                 An error occurred processing dependencies. 
                 Your package can still be downloaded and installed, but dependencies cannot be shown.
-                Please @Html.ActionLink("Contact Support", MVC.Packages.ReportMyPackage(Model.Id, Model.Version)) if you have questions.</p>
+                Please @Html.ActionLink("Contact Support", actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version }, htmlAttributes: null) if you have questions.</p>
             <p>
                 <strong>Note: This message is only visible to you and any other package owners.</strong></p>
         }
