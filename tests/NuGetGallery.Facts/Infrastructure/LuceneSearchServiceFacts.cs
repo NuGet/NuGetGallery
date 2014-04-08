@@ -601,6 +601,7 @@ namespace NuGetGallery.Infrastructure
                 mockPackageSource.Object,
                 mockCuratedPackageSource.Object,
                 d,
+                null,
                 null);
             luceneIndexingService.UpdateIndex(forceRefresh: true);
 

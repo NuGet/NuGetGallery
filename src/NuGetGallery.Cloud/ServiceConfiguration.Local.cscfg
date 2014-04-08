@@ -39,6 +39,7 @@
       <Setting name="Gallery.StorageType" value="AzureStorage" />
       <Setting name="Gallery.LuceneIndexLocation" value="Temp" />
       <Setting name="Gallery.ConfirmEmailAddress" value="true" />
+      <Setting name="Gallery.AutoUpdateSearchIndex" value="true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="nuget" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
