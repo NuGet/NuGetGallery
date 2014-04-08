@@ -134,7 +134,7 @@
                     }
                     else
                     {
-                        using (Html.BeginForm(actionName: "SetLicenseReportVisibility", controllerName "Packages", routeValues: new { id = Model.Id, version = Model.Version, visible = Model.HideLicenseReport }, method: FormMethod.Post, htmlAttributes: new { @class = "form" }))
+                        using (Html.BeginForm(actionName: "SetLicenseReportVisibility", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version, visible = Model.HideLicenseReport }, method: FormMethod.Post, htmlAttributes: new { @class = "form" }))
                         {
                             @Html.AntiForgeryToken()
                             <input id="enableDisableLicenseReportButton" type="submit" title="@(Model.HideLicenseReport ? "Display" : "Hide") license information provided by Sonatype CLM" value="@(Model.HideLicenseReport ? "Enable" : "Disable")"/>

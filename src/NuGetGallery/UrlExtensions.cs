@@ -16,6 +16,10 @@ namespace NuGetGallery
         public static string Absolute(this UrlHelper url, string path)
         {
             UriBuilder builder = GetCanonicalUrl(url);
+            if (path.StartsWith("~/", StringComparison.OrdinalIgnoreCase))
+            {
+                path = VirtualPathUtility.ToAbsolute(path, url.RequestContext.HttpContext.Request.ApplicationPath);
+            }
             builder.Path = path;
             return builder.Uri.AbsoluteUri;
         }
