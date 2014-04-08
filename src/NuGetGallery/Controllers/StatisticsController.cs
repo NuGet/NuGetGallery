@@ -11,8 +11,8 @@ namespace NuGetGallery
 {
     public partial class StatisticsController : AppController
     {
-        private readonly IStatisticsService _statisticsService;
-        private readonly IAggregateStatsService _aggregateStatsService;
+        private readonly IStatisticsService _statisticsService = null;
+        private readonly IAggregateStatsService _aggregateStatsService = null;
 
         public StatisticsController(IAggregateStatsService aggregateStatsService)
         {
@@ -34,9 +34,9 @@ namespace NuGetGallery
 
         [HttpGet]
         [OutputCache(VaryByHeader = "Accept-Language", Duration = 120, Location = OutputCacheLocation.Server)]
-        public virtual JsonResult Totals()
+        public virtual async Task<ActionResult> Totals()
         {
-            var stats = _aggregateStatsService.GetAggregateStats();
+            var stats = await _aggregateStatsService.GetAggregateStats();
 
             // if we fail to detect client locale from the Languages header, fall back to server locale
             CultureInfo clientCulture = DetermineClientLocale() ?? CultureInfo.CurrentCulture;
@@ -45,7 +45,8 @@ namespace NuGetGallery
                 {
                     Downloads = stats.Downloads.ToString("n0", clientCulture),
                     UniquePackages = stats.UniquePackages.ToString("n0", clientCulture),
-                    TotalPackages = stats.TotalPackages.ToString("n0", clientCulture)
+                    TotalPackages = stats.TotalPackages.ToString("n0", clientCulture),
+                    LastUpdatedDateUtc = stats.LastUpdateDateUtc
                 },
                 JsonRequestBehavior.AllowGet);
         }

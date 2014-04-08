@@ -1,7 +1,8 @@
-﻿namespace NuGetGallery
+﻿using System.Threading.Tasks;
+namespace NuGetGallery
 {
     public interface IAggregateStatsService
     {
-        AggregateStats GetAggregateStats();
+        Task<AggregateStats> GetAggregateStats();
     }
 }
