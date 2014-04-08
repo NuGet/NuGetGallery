@@ -733,8 +733,6 @@ namespace NuGetGallery
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 
-                T4MVCHelpers.ProcessVirtualPath = s => s;
-
                 ActionResult actionResult = await controller.GetStatsDownloads(3);
 
                 ContentResult contentResult = (ContentResult)actionResult;

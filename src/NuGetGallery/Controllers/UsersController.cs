@@ -193,7 +193,9 @@ namespace NuGetGallery
                 MessageService.SendCredentialAddedNotice(cred.User, cred);
             }
 
-            return RedirectToAction(MVC.Users.PasswordChanged());
+            return RedirectToAction(
+                actionName: "PasswordChanged",
+                controllerName: "Users");
         }
 
         [Authorize]
@@ -304,7 +306,7 @@ namespace NuGetGallery
             if (String.Equals(model.ChangeEmail.NewEmail, user.LastSavedEmailAddress, StringComparison.OrdinalIgnoreCase))
             {
                 // email address unchanged - accept
-                return RedirectToAction(MVC.Users.Account());
+                return RedirectToAction(actionName: "Account", controllerName: "Users");
             }
 
             try
@@ -330,7 +332,7 @@ namespace NuGetGallery
                 TempData["Message"] = Strings.EmailUpdated;
             }
 
-            return RedirectToAction(MVC.Users.Account());
+            return RedirectToAction(actionName: "Account", controllerName: "Users");
         }
 
         [HttpPost]
@@ -468,7 +470,7 @@ namespace NuGetGallery
             MessageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
 
             TempData["Email"] = user.EmailAddress;
-            return RedirectToAction(MVC.Users.PasswordSent());
+            return RedirectToAction(actionName: "PasswordSent", controllerName: "Users");
         }
     }
 }

@@ -250,7 +250,7 @@ namespace NuGetGallery
             }
 
             // User was not on their way anywhere in particular. Show them the thanks/welcome page.
-            return RedirectToAction(MVC.Users.Thanks());
+            return RedirectToAction(actionName: "Thanks", controllerName: "Users");
         }
 
         private async Task<AuthenticatedUser> AssociateCredential(AuthenticatedUser user)

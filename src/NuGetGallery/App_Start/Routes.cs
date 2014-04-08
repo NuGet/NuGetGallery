@@ -12,126 +12,129 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.Home,
                 "",
-                new { controller = MVC.Pages.Name, action = "Home" }); // T4MVC doesn't work with Async Action
+                new { controller = "Pages", action = "Home" }); // T4MVC doesn't work with Async Action
 
             routes.MapRoute(
                 RouteName.Error500,
                 "errors/500",
-                MVC.Errors.InternalError());
+                new { controller = "Errors", action = "InternalError" });
 
             routes.MapRoute(
                 RouteName.Error404,
                 "errors/404",
-                MVC.Errors.NotFound());
+                new { controller = "Errors", action = "NotFound" });
 
             routes.MapRoute(
                 RouteName.StatisticsHome,
                 "stats",
-                new { controller = MVC.Statistics.Name, action = "Index" });
+                new { controller = "Statistics", action = "Index" });
 
             routes.MapRoute(
                 RouteName.Stats,
                 "stats/totals",
-                new { controller = MVC.Statistics.Name, action = "Totals" });
+                new { controller = "Statistics", action = "Totals" });
 
             routes.MapRoute(
                 RouteName.StatisticsPackages,
                 "stats/packages",
-                new { controller = MVC.Statistics.Name, action = "Packages" });
+                new { controller = "Statistics", action = "Packages" });
 
             routes.MapRoute(
                 RouteName.StatisticsPackageVersions,
                 "stats/packageversions",
-                new { controller = MVC.Statistics.Name, action = "PackageVersions" });
+                new { controller = "Statistics", action = "PackageVersions" });
 
             routes.MapRoute(
                 RouteName.StatisticsPackageDownloadsDetail,
                 "stats/packages/{id}/{version}",
-                new { controller = MVC.Statistics.Name, action = "PackageDownloadsDetail" });
+                new { controller = "Statistics", action = "PackageDownloadsDetail" });
 
             routes.MapRoute(
                 RouteName.StatisticsPackageDownloadsByVersion,
                 "stats/packages/{id}",
-                new { controller = MVC.Statistics.Name, action = "PackageDownloadsByVersion" });
+                new { controller = "Statistics", action = "PackageDownloadsByVersion" });
            
             routes.Add(new JsonRoute("json/{controller}"));
 
             routes.MapRoute(
                 RouteName.Policies,
                 "policies/{action}",
-                new { controller = MVC.Pages.Name });
+                new { controller = "Pages" });
 
             routes.MapRoute(
                 RouteName.Pages,
                 "pages/{pageName}",
-                new { controller = MVC.Pages.Name, action = "Page" });
+                new { controller = "Pages", action = "Page" });
 
             var packageListRoute = routes.MapRoute(
                 RouteName.ListPackages,
                 "packages",
-                new { controller = MVC.Packages.Name, action = "ListPackages" });
+                new { controller = "Packages", action = "ListPackages" });
 
             var uploadPackageRoute = routes.MapRoute(
                 RouteName.UploadPackage,
                 "packages/upload",
-                new { controller = MVC.Packages.Name, action = "UploadPackage" });
+                new { controller = "Packages", action = "UploadPackage" });
 
             routes.MapRoute(
                 RouteName.UploadPackageProgress,
                 "packages/upload-progress",
-                MVC.Packages.UploadPackageProgress());
+                new { controller = "Packages", action = "UploadPackageProgress" });
 
             routes.MapRoute(
                 RouteName.VerifyPackage,
                 "packages/verify-upload",
-                new { controller = MVC.Packages.Name, action = "VerifyPackage" });
+                new { controller = "Packages", action = "VerifyPackage" });
 
             routes.MapRoute(
                 RouteName.CancelUpload,
                 "packages/cancel-upload",
-                new { controller = MVC.Packages.Name, action = "CancelUpload"});
+                new { controller = "Packages", action = "CancelUpload"});
 
             routes.MapRoute(
                 RouteName.PackageOwnerConfirmation,
                 "packages/{id}/owners/{username}/confirm/{token}",
-                new { controller = MVC.Packages.Name, action = "ConfirmOwner" });
+                new { controller = "Packages", action = "ConfirmOwner" });
 
             // We need the following two routes (rather than just one) due to Routing's 
             // Consecutive Optional Parameter bug. :(
             var packageDisplayRoute = routes.MapRoute(
                 RouteName.DisplayPackage,
                 "packages/{id}/{version}",
-                MVC.Packages.DisplayPackage().AddRouteValue("version", UrlParameter.Optional),
-                null /*defaults*/,
+                new { 
+                    controller = "packages", 
+                    action = "DisplayPackage", 
+                    version = UrlParameter.Optional 
+                },
                 new { version = new VersionRouteConstraint() });
 
             routes.MapRoute(
                 RouteName.PackageEnableLicenseReport,
                 "packages/{id}/{version}/EnableLicenseReport",
-                new { controller = MVC.Packages.Name, action = "SetLicenseReportVisibility", visible = true },
+                new { controller = "Packages", action = "SetLicenseReportVisibility", visible = true },
                 new { version = new VersionRouteConstraint() });
             
             routes.MapRoute(
                 RouteName.PackageDisableLicenseReport,
                 "packages/{id}/{version}/DisableLicenseReport",
-                new { controller = MVC.Packages.Name, action = "SetLicenseReportVisibility", visible = false },
+                new { controller = "Packages", action = "SetLicenseReportVisibility", visible = false },
                 new { version = new VersionRouteConstraint() });
 
             var packageVersionActionRoute = routes.MapRoute(
                 RouteName.PackageVersionAction,
                 "packages/{id}/{version}/{action}",
-                new { controller = MVC.Packages.Name },
+                new { controller = "Packages" },
                 new { version = new VersionRouteConstraint() });
 
             var packageActionRoute = routes.MapRoute(
                 RouteName.PackageAction,
                 "packages/{id}/{action}",
-                new { controller = MVC.Packages.Name });
+                new { controller = "Packages" });
 
             var confirmationRequiredRoute = routes.MapRoute(
                 "ConfirmationRequired",
                 "account/ConfirmationRequired",
-                MVC.Users.ConfirmationRequired());
+                new { controller = "Users", action = "ConfirmationRequired" });
 
             //Redirecting v1 Confirmation Route
             routes.Redirect(
@@ -142,92 +145,92 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.ExternalAuthenticationCallback,
                 "users/account/authenticate/return",
-                new { controller = MVC.Authentication.Name, action = "LinkExternalAccount" });
+                new { controller = "Authentication", action = "LinkExternalAccount" });
 
             routes.MapRoute(
                 RouteName.ExternalAuthentication,
                 "users/account/authenticate/{provider}",
-                new { controller = MVC.Authentication.Name, action = MVC.Authentication.ActionNames.Authenticate });
+                new { controller = "Authentication", action = "Authenticate" });
 
             routes.MapRoute(
                 RouteName.Authentication,
                 "users/account/{action}",
-                new { controller = MVC.Authentication.Name });
+                new { controller = "Authentication" });
 
             routes.MapRoute(
                 RouteName.Profile,
                 "profiles/{username}",
-                MVC.Users.Profiles());
+                new { controller = "Users", action = "Profiles" });
 
             routes.MapRoute(
                 RouteName.LegacyRegister,
                 "account/register",
-                new { controller = MVC.Authentication.Name, action = "Register" });
+                new { controller = "Authentication", action = "Register" });
 
             routes.MapRoute(
                 RouteName.RemovePassword,
                 "account/RemoveCredential/password",
-                new { controller = MVC.Users.Name, action = "RemovePassword" });
+                new { controller = "Users", action = "RemovePassword" });
 
             routes.MapRoute(
                 RouteName.RemoveCredential,
                 "account/RemoveCredential/{credentialType}",
-                new { controller = MVC.Users.Name, action = "RemoveCredential" });
+                new { controller = "Users", action = "RemoveCredential" });
 
             routes.MapRoute(
                 RouteName.PasswordReset,
                 "account/forgotpassword/{username}/{token}",
-                MVC.Users.ResetPassword(forgot: true));
+                new { controller = "Users", action = "ResetPassword", forgot = true });
 
             routes.MapRoute(
                 RouteName.PasswordSet,
                 "account/setpassword/{username}/{token}",
-                MVC.Users.ResetPassword(forgot: false));
+                new { controller = "Users", action = "ResetPassword", forgot = false });
 
             routes.MapRoute(
                 RouteName.ConfirmAccount,
                 "account/confirm/{username}/{token}",
-                new { controller = MVC.Users.Name, action = "Confirm" });
+                new { controller = "Users", action = "Confirm" });
 
             routes.MapRoute(
                 RouteName.SubscribeToEmails,
                 "account/subscribe",
-                MVC.Users.ChangeEmailSubscription(true));
+                new { controller = "Users", action = "ChangeEmailSubscription", subscribe = true });
 
             routes.MapRoute(
                 RouteName.UnsubscribeFromEmails,
                 "account/unsubscribe",
-                MVC.Users.ChangeEmailSubscription(false));
+                new { controller = "Users", action = "ChangeEmailSubscription", subscribe = false });
 
             routes.MapRoute(
                 RouteName.Account,
                 "account/{action}",
-                MVC.Users.Account());
+                new { controllers = "Users", action = "Account" });
 
             routes.MapRoute(
                 RouteName.CuratedFeed,
                 "curated-feeds/{name}",
-                new { controller = MVC.CuratedFeeds.Name, action = "CuratedFeed" });
+                new { controller = "CuratedFeeds", action = "CuratedFeed" });
 
             routes.MapRoute(
                 RouteName.CuratedFeedListPackages,
                 "curated-feeds/{curatedFeedName}/packages",
-                new { controller = MVC.CuratedFeeds.Name, action = "ListPackages" });
+                new { controller = "CuratedFeeds", action = "ListPackages" });
 
             routes.MapRoute(
                 RouteName.CreateCuratedPackageForm,
                 "forms/add-package-to-curated-feed",
-                new { controller = MVC.CuratedPackages.Name, action = "CreateCuratedPackageForm" });
+                new { controller = "CuratedPackages", action = "CreateCuratedPackageForm" });
 
             routes.MapRoute(
                 RouteName.CuratedPackage,
                 "curated-feeds/{curatedFeedName}/curated-packages/{curatedPackageId}",
-                new { controller = MVC.CuratedPackages.Name, action = "CuratedPackage" });
+                new { controller = "CuratedPackages", action = "CuratedPackage" });
 
             routes.MapRoute(
                 RouteName.CuratedPackages,
                 "curated-feeds/{curatedFeedName}/curated-packages",
-                new { controller = MVC.CuratedPackages.Name, action = "CuratedPackages" });
+                new { controller = "CuratedPackages", action = "CuratedPackages" });
 
             // TODO : Most of the routes are essentially of the format api/v{x}/*. We should refactor the code to vary them by the version.
             // V1 Routes
@@ -235,96 +238,106 @@ namespace NuGetGallery
             routes.MapRoute(
                 "v1" + RouteName.VerifyPackageKey,
                 "api/v1/verifykey/{id}/{version}",
-                MVC.Api.VerifyPackageKey(),
-                defaults: new { id = UrlParameter.Optional, version = UrlParameter.Optional });
+                new { 
+                    controller = "Api", 
+                    action = "VerifyPackageKey", 
+                    id = UrlParameter.Optional, 
+                    version = UrlParameter.Optional 
+                });
 
             var downloadRoute = routes.MapRoute(
                 "v1" + RouteName.DownloadPackage,
                 "api/v1/package/{id}/{version}",
-                defaults: new { controller = MVC.Api.Name, action = "GetPackageApi", version = UrlParameter.Optional },
+                defaults: new { 
+                    controller = "Api", 
+                    action = "GetPackageApi", 
+                    version = UrlParameter.Optional 
+                },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 "v1" + RouteName.PushPackageApi,
                 "v1/PackageFiles/{apiKey}/nupkg",
-                defaults: new { controller = MVC.Api.Name, action = "PushPackageApi" },
+                defaults: new { controller = "Api", action = "PushPackageApi" },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
                 "v1" + RouteName.DeletePackageApi,
                 "v1/Packages/{apiKey}/{id}/{version}",
-                MVC.Api.DeletePackage());
+                new { controller = "Api", action = "DeletePackages" });
 
             routes.MapRoute(
                 "v1" + RouteName.PublishPackageApi,
                 "v1/PublishedPackages/Publish",
-                MVC.Api.PublishPackage());
+                new { controller = "Api", action = "PublishPackage" });
 
             // V2 routes
             routes.MapRoute(
                 "v2" + RouteName.VerifyPackageKey,
                 "api/v2/verifykey/{id}/{version}",
-                MVC.Api.VerifyPackageKey(),
-                defaults: new { id = UrlParameter.Optional, version = UrlParameter.Optional });
+                new { 
+                    controller = "Api", 
+                    action = "VerifyPackageKey",
+                    id = UrlParameter.Optional, 
+                    version = UrlParameter.Optional 
+                });
 
             routes.MapRoute(
                 "v2CuratedFeeds" + RouteName.DownloadPackage,
                 "api/v2/curated-feeds/package/{id}/{version}",
-                defaults: new { controller = MVC.Api.Name, action = "GetPackageApi", version = UrlParameter.Optional },
+                defaults: new { controller = "Api", action = "GetPackageApi", version = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 "v2" + RouteName.DownloadPackage,
                 "api/v2/package/{id}/{version}",
-                defaults: new { controller = MVC.Api.Name, action = "GetPackageApi", version = UrlParameter.Optional },
+                defaults: new { controller = "Api", action = "GetPackageApi", version = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 "v2" + RouteName.PushPackageApi,
                 "api/v2/package",
-                defaults: new { controller = MVC.Api.Name, action = "PushPackageApi" },
+                defaults: new { controller = "Api", action = "PushPackageApi" },
                 constraints: new { httpMethod = new HttpMethodConstraint("PUT") });
 
             routes.MapRoute(
                 "v2" + RouteName.DeletePackageApi,
                 "api/v2/package/{id}/{version}",
-                MVC.Api.DeletePackage(),
-                defaults: null,
+                new { controller = "Api", action = "DeletePackage" },
                 constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
 
             routes.MapRoute(
                 "v2" + RouteName.PublishPackageApi,
                 "api/v2/package/{id}/{version}",
-                MVC.Api.PublishPackage(),
-                defaults: null,
+                new { controller = "Api", action = "PublishPackage" },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
                 "v2PackageIds",
                 "api/v2/package-ids",
-                MVC.Api.GetPackageIds());
+                new { controller = "Api", action = "GetPackageIds" });
 
             routes.MapRoute(
                 "v2PackageVersions",
                 "api/v2/package-versions/{id}",
-                MVC.Api.GetPackageVersions());
+                new { controller = "Api", action = "GetPackageVersions" });
 
             routes.MapRoute(
                 RouteName.StatisticsDownloadsApi,
                 "api/v2/stats/downloads/last6weeks",
-                defaults: new { controller = MVC.Api.Name, action = "StatisticsDownloadsApi" },
+                defaults: new { controller = "Api", action = "StatisticsDownloadsApi" },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 RouteName.ServiceAlert,
                 "api/v2/service-alert",
-                defaults: new { controller = MVC.Api.Name, action = "ServiceAlert" },
+                defaults: new { controller = "Api", action = "ServiceAlert" },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 RouteName.DownloadNuGetExe,
                 "nuget.exe",
-                new { controller = MVC.Api.Name, action = "GetNuGetExeApi" });
+                new { controller = "Api", action = "GetNuGetExeApi" });
 
             // Redirected Legacy Routes
 
@@ -332,15 +345,14 @@ namespace NuGetGallery
                 r => r.MapRoute(
                     "ReportAbuse",
                     "Package/ReportAbuse/{id}/{version}",
-                    MVC.Packages.ReportAbuse()),
+                    new { controller = "Packages", action = "ReportAbuse" }),
                 permanent: true).To(packageVersionActionRoute);
 
             routes.Redirect(
                 r => r.MapRoute(
                     "PackageActions",
                     "Package/{action}/{id}",
-                    MVC.Packages.ContactOwners(),
-                    null /*defaults*/,
+                    new { controller = "Packages", action = "ContactOwners" },
                     // This next bit looks bad, but it's not. It will never change because 
                     // it's mapping the legacy routes to the new better routes.
                     new { action = "ContactOwners|ManagePackageOwners" }),
@@ -350,28 +362,28 @@ namespace NuGetGallery
                 r => r.MapRoute(
                     RouteName.ListPackages,
                     "List/Packages",
-                    new { controller = MVC.Packages.Name, action = "ListPackages" }),
+                    new { controller = "Packages", action = "ListPackages" }),
                 permanent: true).To(packageListRoute);
 
             routes.Redirect(
                 r => r.MapRoute(
                     RouteName.DisplayPackage,
                     "List/Packages/{id}/{version}",
-                    MVC.Packages.DisplayPackage().AddRouteValue("version", UrlParameter.Optional)),
+                    new { controller = "Packages", action = "DisplayPackage", version = UrlParameter.Optional }),
                 permanent: true).To(packageDisplayRoute);
 
             routes.Redirect(
                 r => r.MapRoute(
                     RouteName.NewSubmission,
                     "Contribute/NewSubmission",
-                    new { controller = MVC.Packages.Name, action = "UploadPackage" }),
+                    new { controller = "Packages", action = "UploadPackage" }),
                 permanent: true).To(uploadPackageRoute);
 
             routes.Redirect(
                 r => r.MapRoute(
                     "LegacyDownloadRoute",
                     "v1/Package/Download/{id}/{version}",
-                    new { controller = MVC.Api.Name, action = "GetPackageApi", version = UrlParameter.Optional }),
+                    new { controller = "Api", action = "GetPackageApi", version = UrlParameter.Optional }),
                 permanent: true).To(downloadRoute);
         }
 

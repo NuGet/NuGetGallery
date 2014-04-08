@@ -1,5 +1,4 @@
-﻿@using Links
-@model UserProfileModel
+﻿@model UserProfileModel
 @{
     ViewBag.Title = @Model.Username;
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
@@ -33,7 +32,7 @@
             <section class="package">
                 <div class="side">
                     <a href="@Url.Package(package.Id)" title="View more about @package.Title">
-                        <img src="@(package.IconUrl ?? Content.Images.packageDefaultIcon_50x50_png)" alt="@package.Id icon" onerror="this.src = '@Content.Images.packageDefaultIcon_50x50_png';" />
+                        <img src="@(package.IconUrl ?? Url.Absolute("~/Content/Images/packageDefaultIcon-50x50.png"))" alt="@package.Id icon" onerror="this.src = '@Url.Absolute("~/Content/Images/packageDefaultIcon-50x50.png")';" />
                     </a>
                 </div>
                 <div class="main">
