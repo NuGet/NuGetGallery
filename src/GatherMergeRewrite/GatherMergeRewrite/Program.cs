@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,6 +17,13 @@ namespace GatherMergeRewrite
             LocalPackageHandle[] handles = new LocalPackageHandle[] { new LocalPackageHandle(ownerId, registrationId, nupkg, published) };
             Processor.Upload(handles, storage).Wait();
         }
+
+        static void Upload(IStorage storage, string ownerId, string registrationId, Stream nupkg, DateTime published)
+        {
+            CloudPackageHandle[] handles = new CloudPackageHandle[] { new CloudPackageHandle(nupkg, ownerId, registrationId, published) };
+            Processor.Upload(handles, storage).Wait();
+        }
+
 
         static void Test0()
         {
@@ -164,6 +174,58 @@ namespace GatherMergeRewrite
             Console.WriteLine("save: {0} load: {1}", ((FileStorage)storage).SaveCount, ((FileStorage)storage).LoadCount);
         }
 
+        static void Test3_LoadFromDatabaseLogs()
+        {
+            string connectionString = "";
+            IStorage storage = new AzureStorage
+            {
+                ConnectionString = connectionString,
+                Container = "package-metadata",
+                BaseAddress = "http://nugetprod1.blob.core.windows.net"
+            };
+
+            //IStorage storage = new FileStorage
+            //{
+            //    Path = @"c:\data\site\pub",
+            //    Container = "pub",
+            //    BaseAddress = "http://localhost:8000"
+            //};
+
+            DateTime before = DateTime.Now;
+
+            CloudStorageAccount account = CloudStorageAccount.Parse(connectionString);
+            CloudBlobContainer mdtriggers = account.CreateCloudBlobClient().GetContainerReference("mdtriggers");
+            CloudBlobContainer metadata = account.CreateCloudBlobClient().GetContainerReference("package-metadata");
+            BlobContinuationToken token = null;
+
+            int packageCount = 0;
+
+            do
+            {
+                var result = mdtriggers.ListBlobsSegmented(token);
+                token = result.ContinuationToken;
+                var blobs = result.Results;
+                packageCount += result.Results.Count();
+
+                foreach (var blob in blobs)
+                {
+                    var blobRef = account.CreateCloudBlobClient().GetBlobReferenceFromServer(blob.StorageUri);
+                    var stream = blobRef.OpenRead();
+                    var reader = new StreamReader(stream);
+                    string json = reader.ReadToEnd();
+                    var obj = JObject.Parse(json);
+                    Upload(storage, (string)obj["Owners"][0]["OwnerName"], "", stream, DateTime.Now);
+                }
+            } while (token != null);
+
+            DateTime after = DateTime.Now;
+
+            Console.WriteLine("{0} seconds {1} packages", (after - before).TotalSeconds, packageCount);
+
+            Console.WriteLine("save: {0} load: {1}", ((FileStorage)storage).SaveCount, ((FileStorage)storage).LoadCount);
+        }
+
+
         static void PrintException(Exception e)
         {
             Console.WriteLine("{0} {1}", e.GetType().Name, e.Message);
@@ -180,6 +242,7 @@ namespace GatherMergeRewrite
                 //Test0();
                 //Test1();
                 Test2();
+                //Test3_LoadFromDatabaseLogs();
             }
             catch (AggregateException g)
             {

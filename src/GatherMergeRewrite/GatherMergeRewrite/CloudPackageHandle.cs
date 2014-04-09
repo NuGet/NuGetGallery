@@ -1,0 +1,43 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Packaging;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml.Linq;
+
+namespace GatherMergeRewrite
+{
+    class CloudPackageHandle : PackageHandle
+    {
+        Stream _stream;
+        string _owner;
+        string _registrationId;
+        DateTime _published;
+
+        public CloudPackageHandle(Stream stream, string owner, string registrationId, DateTime published)
+        {
+            _stream = stream;
+            _owner = owner;
+            _registrationId = registrationId;
+            published = _published;
+        }
+
+        public override Task<PackageData> GetData()
+        {
+            Package package = Utils.GetPackage(_stream);
+            XDocument nuspec = Utils.GetNuspec(package);
+
+            PackageData result = new PackageData()
+            {
+                OwnerId = _owner,
+                RegistrationId = _registrationId,
+                Published = _published,
+                Nuspec = nuspec
+            };
+
+            return Task.FromResult(result);
+        }
+    }
+}

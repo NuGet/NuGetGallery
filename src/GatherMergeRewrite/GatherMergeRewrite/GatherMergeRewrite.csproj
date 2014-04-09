@@ -82,6 +82,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CloudPackageHandle.cs" />
     <Compile Include="FileStorage.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="PackageHandle.cs" />
