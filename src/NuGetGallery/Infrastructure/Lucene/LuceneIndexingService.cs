@@ -28,6 +28,7 @@ namespace NuGetGallery
         private IndexWriter _indexWriter;
         private IEntityRepository<Package> _packageRepository;
         private IEntityRepository<CuratedPackage> _curatedPackageRepository;
+        private Func<bool> _getShouldAutoUpdate;
 
         private IDiagnosticsSource Trace { get; set; }
 
@@ -45,81 +46,91 @@ namespace NuGetGallery
             IEntityRepository<Package> packageSource,
             IEntityRepository<CuratedPackage> curatedPackageSource,
             Lucene.Net.Store.Directory directory,
-			IDiagnosticsService diagnostics)
+			IDiagnosticsService diagnostics,
+            IAppConfiguration config)
         {
             _packageRepository = packageSource;
             _curatedPackageRepository = curatedPackageSource;
             _directory = directory;
+            _getShouldAutoUpdate = config == null ? new Func<bool>(() => true) : new Func<bool>(() => config.AutoUpdateSearchIndex);
             Trace = diagnostics.SafeGetSource("LuceneIndexingService");
         }
 
         public void UpdateIndex()
         {
-            // TODO: Reenable this
-            // Prevent automatic update of index for now
-            // Admin->LuceneController calls UpdateIndex(bool forceRefresh)
-            //UpdateIndex(forceRefresh: false);
+            if (_getShouldAutoUpdate())
+            {
+                UpdateIndex(forceRefresh: false);
+            }
         }
 
         public void UpdateIndex(bool forceRefresh)
         {
-            DateTime? lastWriteTime = GetLastWriteTime().Result;
-
-            if ((lastWriteTime == null) || IndexRequiresRefresh() || forceRefresh)
+            // Always do it if we're asked to "force" a refresh (i.e. manually triggered)
+            // Otherwise, no-op unless we're supporting background search indexing.
+            if (forceRefresh || _getShouldAutoUpdate())
             {
-                EnsureIndexWriter(creatingIndex: true);
-                _indexWriter.DeleteAll();
-                _indexWriter.Commit();
+                DateTime? lastWriteTime = GetLastWriteTime().Result;
 
-                // Reset the lastWriteTime to null. This will allow us to get a fresh copy of all the latest \ latest successful packages
-                lastWriteTime = null;
+                if ((lastWriteTime == null) || IndexRequiresRefresh() || forceRefresh)
+                {
+                    EnsureIndexWriter(creatingIndex: true);
+                    _indexWriter.DeleteAll();
+                    _indexWriter.Commit();
 
-                // Set the index create time to now. This would tell us when we last rebuilt the index.
-                UpdateIndexRefreshTime();
+                    // Reset the lastWriteTime to null. This will allow us to get a fresh copy of all the latest \ latest successful packages
+                    lastWriteTime = null;
+
+                    // Set the index create time to now. This would tell us when we last rebuilt the index.
+                    UpdateIndexRefreshTime();
+                }
+
+                var packages = GetPackages(lastWriteTime);
+                if (packages.Count > 0)
+                {
+                    EnsureIndexWriter(creatingIndex: lastWriteTime == null);
+                    AddPackagesCore(packages, creatingIndex: lastWriteTime == null);
+                }
+
+                UpdateLastWriteTime();
             }
-
-            var packages = GetPackages(lastWriteTime);
-            if (packages.Count > 0)
-            {
-                EnsureIndexWriter(creatingIndex: lastWriteTime == null);
-                AddPackages(packages, creatingIndex: lastWriteTime == null);
-            }
-
-            UpdateLastWriteTime();
         }
 
         public void UpdatePackage(Package package)
         {
-            var packageRegistrationKey = package.PackageRegistrationKey;
-            var updateTerm = new Term("PackageRegistrationKey", packageRegistrationKey.ToString(CultureInfo.InvariantCulture));
-
-            if (!package.IsLatest || !package.IsLatestStable)
+            if (_getShouldAutoUpdate())
             {
-                // Someone passed us in a version which was e.g. just unlisted? Or just not the latest version which is what we want to index. Doesn't really matter. We'll find one to index.
-                package = _packageRepository.GetAll()
-                    .Where(p => (p.IsLatest || p.IsLatestStable) && p.PackageRegistrationKey == packageRegistrationKey)
-                    .Include(p => p.PackageRegistration)
-                    .Include(p => p.PackageRegistration.Owners)
-                    .Include(p => p.SupportedFrameworks)
-                    .FirstOrDefault();
-            }
+                var packageRegistrationKey = package.PackageRegistrationKey;
+                var updateTerm = new Term("PackageRegistrationKey", packageRegistrationKey.ToString(CultureInfo.InvariantCulture));
 
-            // Just update the provided package
-            using (Trace.Activity(String.Format(CultureInfo.CurrentCulture, "Updating Document: {0}", updateTerm.ToString())))
-            {
-                EnsureIndexWriter(creatingIndex: false);
-                if (package != null)
+                if (!package.IsLatest || !package.IsLatestStable)
                 {
-                    var indexEntity = new PackageIndexEntity(package);
-                    Trace.Information(String.Format(CultureInfo.CurrentCulture, "Updating Lucene Index for: {0} {1} [PackageKey:{2}]", package.PackageRegistration.Id, package.Version, package.Key));
-                    _indexWriter.UpdateDocument(updateTerm, indexEntity.ToDocument());
+                    // Someone passed us in a version which was e.g. just unlisted? Or just not the latest version which is what we want to index. Doesn't really matter. We'll find one to index.
+                    package = _packageRepository.GetAll()
+                        .Where(p => (p.IsLatest || p.IsLatestStable) && p.PackageRegistrationKey == packageRegistrationKey)
+                        .Include(p => p.PackageRegistration)
+                        .Include(p => p.PackageRegistration.Owners)
+                        .Include(p => p.SupportedFrameworks)
+                        .FirstOrDefault();
                 }
-                else
+
+                // Just update the provided package
+                using (Trace.Activity(String.Format(CultureInfo.CurrentCulture, "Updating Document: {0}", updateTerm.ToString())))
                 {
-                    Trace.Information(String.Format(CultureInfo.CurrentCulture, "Deleting Document: {0}", updateTerm.ToString()));
-                    _indexWriter.DeleteDocuments(updateTerm);
+                    EnsureIndexWriter(creatingIndex: false);
+                    if (package != null)
+                    {
+                        var indexEntity = new PackageIndexEntity(package);
+                        Trace.Information(String.Format(CultureInfo.CurrentCulture, "Updating Lucene Index for: {0} {1} [PackageKey:{2}]", package.PackageRegistration.Id, package.Version, package.Key));
+                        _indexWriter.UpdateDocument(updateTerm, indexEntity.ToDocument());
+                    }
+                    else
+                    {
+                        Trace.Information(String.Format(CultureInfo.CurrentCulture, "Deleting Document: {0}", updateTerm.ToString()));
+                        _indexWriter.DeleteDocuments(updateTerm);
+                    }
+                    _indexWriter.Commit();
                 }
-                _indexWriter.Commit();
             }
         }
 
@@ -170,6 +181,14 @@ namespace NuGetGallery
         }
 
         public void AddPackages(IList<PackageIndexEntity> packages, bool creatingIndex)
+        {
+            if (_getShouldAutoUpdate())
+            {
+                AddPackagesCore(packages, creatingIndex);
+            }
+        }
+
+        private void AddPackagesCore(IList<PackageIndexEntity> packages, bool creatingIndex)
         {
             if (!creatingIndex)
             {
@@ -289,12 +308,14 @@ namespace NuGetGallery
 
         public void RegisterBackgroundJobs(IList<IJob> jobs, IAppConfiguration configuration)
         {
-            jobs.Add(
-                new LuceneIndexingJob(
-                    TimeSpan.FromMinutes(10),
-                    () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true),
-                    timeout: TimeSpan.FromMinutes(2),
-                    location: configuration.LuceneIndexLocation));
+            if (_getShouldAutoUpdate())
+            {
+                jobs.Add(
+                    new LuceneIndexingJob(
+                        frequence: TimeSpan.FromMinutes(10),
+                        timeout: TimeSpan.FromMinutes(2),
+                        indexingService: this));
+            }
         }
 
         private long CalculateSize(DirectoryInfo dir)
