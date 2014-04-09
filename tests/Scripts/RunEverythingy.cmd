@@ -1,8 +1,4 @@
 @echo off
-SETLOCAL ENABLEDELAYEDEXPANSION
-
-Echo Set environment variable RunFuntionalTests to True to enable running the functional tests
-set RunFuntionalTests=true
 
 Echo Clear previulsly defined GalleryUrl
 set GalleryURl=
@@ -16,7 +12,7 @@ SET GalleryUrl=%Param%
 REM If GalleryUrl is still not defined, the default is to use int.nugettest.org
 if "%GalleryUrl%"=="" (
 ECHO Setting GalleryUrl to the default - int.nugettest.org
-SET GalleryUrl=https://int.nugettest.org
+SET GalleryUrl=https://int.nugettest.org/
 )
 ECHO The NuGet gallery tests are running against %GalleryUrl%
 
@@ -43,5 +39,4 @@ Echo Finished running NuGet Gallery Functional tests...
 Echo Exit.
 
 :End
-endlocal
 exit /b 0
