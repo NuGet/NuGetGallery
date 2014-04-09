@@ -74,7 +74,7 @@ namespace NuGetGallery
 
         public static string UndoPendingEdits(this UrlHelper url, IPackageVersionModel package)
         {
-            return url.Action(actionName: "UndoPendingEdits", controllerName: "Packages");
+            return url.Action(actionName: "UndoPendingEdits", controllerName: "Packages", routeValues: new { id = package.Id, version = package.Version });
         }
 
         public static string Package(this UrlHelper url, string id)

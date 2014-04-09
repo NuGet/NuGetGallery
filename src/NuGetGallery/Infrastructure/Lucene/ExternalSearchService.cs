@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -69,6 +70,7 @@ namespace NuGetGallery.Infrastructure.Lucene
         }
 
         private static readonly Task<bool> _exists = Task.FromResult(true);
+        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification="This method is implementing an interface")]
         public Task<bool> Exists()
         {
             return _exists;
