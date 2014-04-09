@@ -1,5 +1,4 @@
 @echo off
-SETLOCAL ENABLEDELAYEDEXPANSION
 
 set RunFunctionalTests=true
 set TestAccountName=testnuget@gmail.com
@@ -15,7 +14,7 @@ Echo Set the gallery Url...
 set galleryUrl=%1
 if "%galleryUrl%" == "" (
 Echo Setting galleryUrl to the default - int.nugettest.org
-set galleryUrl=https://int.nugettest.org
+set galleryUrl=https://int.nugettest.org/
 )
 Echo The gallery Url was set to %galleryUrl%
 Echo.
@@ -34,8 +33,7 @@ copy /y \\nuget-ci\drops\%branch%\latest-successful\nuget.exe .\..\.nuget\
 Echo.
 
 Echo Set APIKey for the gallery...
-.\..\.nuget\nuget.exe setAPIKey 0f9b12ee-876a-408b-bf27-3f5392c24ae1 -Source %galleryUrl%/api/v2/package/
+.\..\.nuget\nuget.exe setAPIKey 0f9b12ee-876a-408b-bf27-3f5392c24ae1 -Source %galleryUrl%api/v2/package/
 Echo Done.
 
-endlocal
 exit /b 0
