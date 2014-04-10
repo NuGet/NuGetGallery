@@ -51,7 +51,7 @@ namespace NuGetGallery.FunctionTests.Helpers
                 if (string.IsNullOrEmpty(_baseurl))
                 {
                     if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl")))
-                        _baseurl = "https://preview.nuget.org/";
+                        _baseurl = "https://int.nugettest.org/";
                     else
                         _baseurl = Environment.GetEnvironmentVariable("GalleryUrl");
                 }

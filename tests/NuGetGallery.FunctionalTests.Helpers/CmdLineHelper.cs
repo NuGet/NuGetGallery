@@ -80,7 +80,10 @@ namespace NuGetGallery.FunctionTests.Helpers
         public static int InvokeNugetProcess(string arguments, out string standardError, out string standardOutput, string WorkingDir = null)
         {
             Process nugetProcess = new Process();
-            ProcessStartInfo nugetProcessStartInfo = new ProcessStartInfo(Path.Combine(Environment.CurrentDirectory, NugetExePath));
+            string pathToNugetExe = Path.Combine(Environment.CurrentDirectory, NugetExePath);
+
+            // During the actual test run, a script will copy the latest NuGet.exe and overwrite the existing one
+            ProcessStartInfo nugetProcessStartInfo = new ProcessStartInfo(pathToNugetExe);
             nugetProcessStartInfo.Arguments = arguments;
             nugetProcessStartInfo.RedirectStandardError = true;
             nugetProcessStartInfo.RedirectStandardOutput = true;

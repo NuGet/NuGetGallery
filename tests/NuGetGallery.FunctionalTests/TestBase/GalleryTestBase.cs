@@ -25,10 +25,18 @@ namespace NuGetGallery.FunctionalTests.TestBase
         public static void AssemblyInit(TestContext context)
         {         
             //Check if functional tests is enabled. If not, do an assert inconclusive.
+#if DEBUG
+#else
             if (!EnvironmentSettings.RunFunctionalTests.Equals("True", StringComparison.OrdinalIgnoreCase))
             {
                 Assert.Inconclusive("Functional tests are disabled in the current run. Please set environment variable RunFuntionalTests to True to enable them");
             }
+#endif
+            CheckIfBaseTestPackageExists();
+        }
+
+        public static void CheckIfBaseTestPackageExists()
+        {
             //Check if the BaseTestPackage exists in current source and if not upload it. This will be used by the download related tests.
             try
             {
@@ -41,7 +49,7 @@ namespace NuGetGallery.FunctionalTests.TestBase
             {
                 Assert.Inconclusive("The initialization method to pre-upload test package has failed. Hence failing all the tests. Make sure that a package by name {0} exists @ {1} before running tests. Check test run error for details", Constants.TestPackageId, UrlHelper.BaseUrl);
             }
-        }    
+        }
 
         [TestInitialize()]
         public void TestInit()
