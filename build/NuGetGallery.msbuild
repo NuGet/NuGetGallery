@@ -81,7 +81,7 @@
     <Message Text="**************" Importance="high" />
     <Message Text="Packaging ... " Importance="high" />
     <Message Text="**************" Importance="high" />
-    <MSBuild Projects="..\src\NuGetGallery.Cloud\NuGetGallery.Cloud.ccproj" Targets="Publish" Properties="VisualStudioVersion=12.0;Configuration=$(Configuration);Platform=AnyCPU;VMSize=$(Frontend_VMSize);TargetProfile=Local" BuildInParallel="false" ToolsVersion="12.0" />
+    <MSBuild Projects="..\src\NuGetGallery.Cloud\NuGetGallery.Cloud.ccproj" Targets="Publish" Properties="VisualStudioVersion=12.0;Configuration=$(Configuration);Platform=AnyCPU;VMSize=$(Frontend_VMSize);TargetProfile=Local;NuGetExePath=$(NuGetExePath)" BuildInParallel="false" ToolsVersion="12.0" />
     <MSBuild Projects="..\src\NuGetGallery\NuGetGallery.csproj" Targets="Package" Properties="VisualStudioVersion=12.0;Configuration=$(Configuration);Platform=AnyCPU;" BuildInParallel="false" />
   </Target>
 

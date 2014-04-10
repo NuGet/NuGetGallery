@@ -8,4 +8,18 @@
 			Namespaces="csdef=http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition"
 			Value="$(VMSize)" />
 	</Target>
+	<PropertyGroup>
+		<PublishDependsOn>
+			$(PublishDependsOn);
+			OctopusPackage
+		</PublishDependsOn>
+	</PropertyGroup>
+	<Target Name="OctopusPackage" Condition="'$(NuGetExePath)' != ''">
+		<PropertyGroup>
+			<PackageOutputDir Condition="$(PackageOutputDir) == ''">$(MSBuildProjectDirectory)\$(PublishDir.Trim('\\'))</PackageOutputDir>
+			<PackCommand>"$(NuGetExePath)" pack "$(MSBuildProjectDirectory)\$(MSBuildProjectName).nuspec" -Properties "Configuration=$(Configuration);Platform=$(Platform);SemanticVersion=$(SemanticVersion);SimpleVersion=$(SimpleVersion);BuildMachine=$(BuildMachine);BuildUser=$(BuildUser);Branch=$(Branch);Commit=$(Commit);BuildDateUtc=$(BuildDateUtc)" -Version $(SemanticVersion) -NonInteractive -OutputDirectory "$(PackageOutputDir)"</PackCommand>
+		</PropertyGroup>
+		<Message Text="Building Octopus Package..." Importance="high" />
+		<Exec Command="$(PackCommand)" />
+	</Target>
 </Project>

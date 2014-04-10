@@ -33,6 +33,8 @@
   </PropertyGroup>
   <!-- Items for the project -->
   <ItemGroup>
+    <None Include="DeployToAzure.ps1" />
+    <None Include="NuGetGallery.Cloud.nuspec" />
     <ServiceDefinition Include="ServiceDefinition.csdef" />
     <ServiceConfiguration Include="ServiceConfiguration.Local.cscfg" />
   </ItemGroup>
