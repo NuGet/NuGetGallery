@@ -18,11 +18,13 @@ ECHO The NuGet gallery tests are running against %GalleryUrl%
 
 If Exist ""%VS120COMNTOOLS%"\..\IDE\mstest.exe" (
    set toolpath=%VS120COMNTOOLS%
+   set VisualStudioVersion=12.0
    goto Run
 )
 
 If Exist ""%VS110COMNTOOLS%"..\IDE\mstest.exe" (
    set toolpath=%VS110COMNTOOLS%
+   set VisualStudioVersion=11.0
    goto Run
 )
 
@@ -32,7 +34,17 @@ goto End
 
 :Run
 Echo.
-Echo Start running NuGet Gallery Functional tests...
+Echo. Build the NuGet Gallery solution...
+call ..\..\build.cmd
+Echo Done.
+Echo.
+
+Echo Build the NuGet Gallery Fluent test solution...
+%WinDir%\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe /p:OutputPath=bin\ ..\NuGetGallery.FunctionalTests.Fluent\NuGetGallery.FunctionalTests.Fluent.sln
+Echo Done.
+Echo.
+
+Echo Start running all NuGet Gallery Functional tests...
 Echo The path to mstest.exe is "%toolpath%..\IDE\mstest.exe"
 "%toolpath%..\IDE\mstest.exe"  /testsettings:"..\Local.testsettings" /testmetadata:"..\NuGetGallery.FunctionalTests.vsmdi"
 Echo Finished running NuGet Gallery Functional tests...

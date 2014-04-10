@@ -159,7 +159,7 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// </summary>
         /// <param name="packageId"></param>
         /// <returns></returns>
-        public static bool CheckIfPackageVersionExistsInSource(string packageId,string version,string sourceUrl)
+        public static bool CheckIfPackageVersionExistsInSource(string packageId, string version, string sourceUrl)
         {
             bool found = false;
             for (int i = 0; ((i < 6) && (!found)); i++)
