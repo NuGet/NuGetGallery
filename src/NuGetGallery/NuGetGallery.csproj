@@ -721,10 +721,10 @@
     <Compile Include="Infrastructure\StatisticsReport.cs" />
     <Compile Include="Infrastructure\SubtextAttribute.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
-    <Compile Include="AsyncFileUpload\AsyncFileUploadExtensions.cs" />
-    <Compile Include="AsyncFileUpload\AsyncFileUploadModule.cs" />
-    <Compile Include="AsyncFileUpload\AsyncFileUploadProgress.cs" />
-    <Compile Include="AsyncFileUpload\AsyncFileUploadRequestParser.cs" />
+    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadExtensions.cs" />
+    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadModule.cs" />
+    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadProgress.cs" />
+    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadRequestParser.cs" />
     <Compile Include="Infrastructure\HintAttribute.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProvider.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProviderFactory.cs" />
