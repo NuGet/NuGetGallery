@@ -22,9 +22,12 @@ namespace NuGetGallery.FunctionalTests.Fluent
             string packageName = "NuGetGallery.FunctionalTests.Fluent.PackageManagementTest";
             FluentAutomation.Element listedCheckbox = null;
 
-            UploadPackageIfNecessary(packageName, "1.0.0");
-            UploadPackageIfNecessary(packageName, "2.0.0");
-            UploadPackageIfNecessary(packageName, "3.0.0-rc");
+            if (CheckForPackageExistence)
+            {
+                UploadPackageIfNecessary(packageName, "1.0.0");
+                UploadPackageIfNecessary(packageName, "2.0.0");
+                UploadPackageIfNecessary(packageName, "3.0.0-rc");
+            }
 
             I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
 

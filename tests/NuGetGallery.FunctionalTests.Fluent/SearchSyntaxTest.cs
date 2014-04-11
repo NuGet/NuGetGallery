@@ -116,6 +116,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             I.Expect.Count(1).Of("h1:contains('" + title2 + "')");
             I.Expect.Count(1).Of("h1:contains('returned 1')");
 
+            /* Starting API V3, searching using Title: and description: is no longer supported. So commenting out the tests here.
             // 11. Description filter.  Should match one package.
             I.Enter("description:" + word5).In("#searchBoxInput");
             I.Click("#searchBoxSubmit");
@@ -157,6 +158,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             I.Expect.Count(0).Of("h1:contains('" + title1 + "')");
             I.Expect.Count(0).Of("h1:contains('" + title2 + "')");
             I.Expect.Count(1).Of("h1:contains('returned 0')");
+             * */
 
             // 17. Tags filter.  Should match one package.
             I.Enter("tags:" + word4).In("#searchBoxInput");

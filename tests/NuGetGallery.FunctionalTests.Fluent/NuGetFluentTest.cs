@@ -15,6 +15,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 {
     public class NuGetFluentTest : FluentTest 
     {
+        private static bool checkforPackageExistence;
         public NuGetFluentTest()
         {
             FluentAutomation.SeleniumWebDriver.Bootstrap();
@@ -55,22 +56,40 @@ namespace NuGetGallery.FunctionalTests.Fluent
         public bool PackageExists(string packageName, string version)
         {
             bool found = false;
-            for (int i = 0; ((i < 30) && (!found)); i++)
+            for (int i = 0; ((i < 6) && (!found)); i++)
             {
-                HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(UrlHelper.V2FeedRootUrl + @"/package/" + packageName + "/" + version);
-                packagePageRequest.Timeout = 1000;
+                string requestURL = UrlHelper.V2FeedRootUrl + @"package/" + packageName + "/" + version + "?t=" + DateTime.Now.Ticks;
+                Console.WriteLine("The request URL for checking package existence was: " + requestURL);
+                HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(requestURL);
+
+                // Increase timeout to be consistent with the functional tests
+                packagePageRequest.Timeout = 2 * 5000;
                 HttpWebResponse packagePageResponse;
                 try
-                {
+                {               
                     packagePageResponse = (HttpWebResponse)packagePageRequest.GetResponse();
                     if (packagePageResponse != null && (((HttpWebResponse)packagePageResponse).StatusCode == HttpStatusCode.OK)) found = true;
                 }
                 catch (WebException e)
                 {
-                    return false;
+                    Console.WriteLine(e.Message);
                 }
             }
             return found;
+        }
+
+        public static bool CheckForPackageExistence
+        {
+            get
+            {
+                {
+                    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CheckforPackageExistence")))
+                        checkforPackageExistence = false;
+                    else
+                        checkforPackageExistence = Convert.ToBoolean(Environment.GetEnvironmentVariable("CheckforPackageExistence"));
+                }
+                return checkforPackageExistence;
+            }
         }
     }
 }
