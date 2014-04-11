@@ -164,9 +164,5 @@ src/NuGetGallery/App_Data/Lucene
 # Kudu build folder
 build/artifacts/
 
-# Exclude CSCFGs, except the local emulator one
-*.cscfg
-!*.Local*.cscfg
-
 # Exclude Azure Publish Profiles
 *.pubxml
