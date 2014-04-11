@@ -55,9 +55,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NuGetGallery.Operations, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="NuGetGallery.FunctionalTests, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\School\NuGet.Operations\NuGetGallery.Operations.dll</HintPath>
+      <HintPath>..\NuGetGallery.FunctionalTests\bin\NuGetGallery.FunctionalTests.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGetGallery.FunctionalTests.Helpers, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\NuGetGallery.FunctionalTests\bin\NuGetGallery.FunctionalTests.Helpers.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -107,16 +111,6 @@
     <None Include="Pages.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj">
-      <Project>{8fb56455-c688-44ae-95f1-48ffcb199bfe}</Project>
-      <Name>NuGetGallery.FunctionalTests.Helpers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NuGetGallery.FunctionalTests\NuGetGallery.FunctionalTests.csproj">
-      <Project>{0a6b1a52-4d26-4946-9ddd-416d01a1adbf}</Project>
-      <Name>NuGetGallery.FunctionalTests</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

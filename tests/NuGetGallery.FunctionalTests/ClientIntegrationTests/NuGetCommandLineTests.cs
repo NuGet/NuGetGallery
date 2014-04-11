@@ -1,8 +1,9 @@
-using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
-using System.IO;
 using NuGetGallery.FunctionalTests.TestBase;
+using NuGetGallery.FunctionTests.Helpers;
+using System;
+using System.IO;
+using System.Threading;
 
 namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
 {
@@ -57,7 +58,7 @@ namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
         {
             string packageId = DateTime.Now.Ticks.ToString() + testContextInstance.TestName;
             string version = "1.0.0";
-            string packageFullPath = PackageCreationHelper.CreatePackageWithMinClientVersion(packageId,version, "2.3");         
+            string packageFullPath = PackageCreationHelper.CreatePackageWithMinClientVersion(packageId, version, "2.3");        
             int exitCode = CmdLineHelper.UploadPackage(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
             Assert.IsTrue((exitCode == 0), "The package upload via Nuget.exe didnt suceed properly. Check the logs to see the process error and output stream");
             Assert.IsTrue(ClientSDKHelper.CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl), "Package {0} is not found in the site {1} after uploading.", packageId, UrlHelper.V2FeedRootUrl);
@@ -68,7 +69,8 @@ namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
                 File.Delete(packageFullPath);
                 Directory.Delete(Path.GetFullPath(Path.GetDirectoryName(packageFullPath)), true);
             }
-            System.Threading.Thread.Sleep(30000);
+            // Increase the thread.sleep time as a workaround for packages appearing in search index 1-2 mins after being uploaded
+            System.Threading.Thread.Sleep(3 * 60 * 1000);
             AssertAndValidationHelper.DownloadPackageAndVerify(packageId);
         }
 
@@ -79,13 +81,15 @@ namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
         {
             string packageId = DateTime.Now.Ticks.ToString() +  "UploadAndDownLoadPackageWithDotCsNames.Cs";
             AssertAndValidationHelper.UploadNewPackageAndVerify(packageId);
+            // Add a thread.sleep as a workaround for packages appearing in search index 1-2 mins after being uploaded
+            Thread.Sleep(3 * 60 * 1000);
             AssertAndValidationHelper.DownloadPackageAndVerify(packageId);
         }
 
         [TestMethod]
         [Description("Creates a test bomb package and pushes it using Nuget.exe. Downloads the package again to make sure it works fine.")]
         [Priority(2)]
-        [Ignore] //This method is marked ignore as we don't it to be run in regular runs. It will be run only when required.
+        [Ignore] //This method is marked ignore as we don't want it to be run in regular runs. It will be run only when required.
         public void UploadAndDownLoadTestBombPackage()
         {
             string packageId = DateTime.Now.Ticks.ToString() + testContextInstance.TestName;

@@ -159,13 +159,16 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// </summary>
         /// <param name="packageId"></param>
         /// <returns></returns>
-        public static bool CheckIfPackageVersionExistsInSource(string packageId,string version,string sourceUrl)
+        public static bool CheckIfPackageVersionExistsInSource(string packageId, string version, string sourceUrl)
         {
             bool found = false;
             for (int i = 0; ((i < 6) && (!found)); i++)
             {
-                HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(UrlHelper.V2FeedRootUrl + @"/package/" + packageId + "/" + version + "?t=" + DateTime.Now.Ticks);
-                packagePageRequest.Timeout = 5000;
+                string requestURL = UrlHelper.V2FeedRootUrl + @"package/" + packageId + "/" + version + "?t=" + DateTime.Now.Ticks;
+                Console.WriteLine("The request URL for checking package existence was: " + requestURL);
+                HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(requestURL);
+                // Increase the request timeout
+                packagePageRequest.Timeout = 2 * 5000;
                 HttpWebResponse packagePageResponse;
                 try
                 {
@@ -174,7 +177,7 @@ namespace NuGetGallery.FunctionTests.Helpers
                 }
                 catch (WebException e)
                 {
-                    // Do nothing.  
+                    Console.WriteLine(e.Message);
                 }
             }
             return found;

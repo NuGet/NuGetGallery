@@ -210,10 +210,10 @@ namespace NuGetGallery.FunctionalTests
             string standardOutput = string.Empty;
             string standardError = string.Empty;
             int exitCode = CmdLineHelper.UploadPackage(packageFullPath, UrlHelper.V2FeedPushSourceUrl, out standardOutput, out standardError);
-            Assert.IsTrue((exitCode == 0), "The package upload via Nuget.exe didnt suceed properly. Check the logs to see the process error and output stream.  Exit Code: " + exitCode + ". Error message: \"" + standardError + "\"");
+            Assert.IsTrue((exitCode == 0), "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " + exitCode + ". Error message: \"" + standardError + "\"");
             Console.WriteLine(standardOutput);
             Console.WriteLine(standardError);
-            Assert.IsTrue(ClientSDKHelper.CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl), "Package {0} is not found in the site {1} after uploading.", packageId, UrlHelper.V2FeedRootUrl);
+            Assert.IsTrue(ClientSDKHelper.CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl), "Package {0} with version {1} is not found in the site {2} after uploading.", packageId, version, UrlHelper.V2FeedRootUrl);
 
             //Delete package from local disk so once it gets uploaded
             if (File.Exists(packageFullPath))
