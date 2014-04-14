@@ -1,10 +1,13 @@
 ﻿using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
+using NuGet;
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,7 +26,6 @@ namespace GatherMergeRewrite
             CloudPackageHandle[] handles = new CloudPackageHandle[] { new CloudPackageHandle(nupkg, ownerId, registrationId, published) };
             Processor.Upload(handles, storage).Wait();
         }
-
 
         static void Test0()
         {
@@ -174,7 +176,7 @@ namespace GatherMergeRewrite
             Console.WriteLine("save: {0} load: {1}", ((FileStorage)storage).SaveCount, ((FileStorage)storage).LoadCount);
         }
 
-        static void Test3_LoadFromDatabaseLogs()
+        static async Task Test3_LoadFromDatabaseLogs()
         {
             string connectionString = "";
             IStorage storage = new AzureStorage
@@ -196,9 +198,12 @@ namespace GatherMergeRewrite
             CloudStorageAccount account = CloudStorageAccount.Parse(connectionString);
             CloudBlobContainer mdtriggers = account.CreateCloudBlobClient().GetContainerReference("mdtriggers");
             CloudBlobContainer metadata = account.CreateCloudBlobClient().GetContainerReference("package-metadata");
+            CloudBlobContainer packages = account.CreateCloudBlobClient().GetContainerReference("packages");
             BlobContinuationToken token = null;
 
             int packageCount = 0;
+
+            bool resumePoint = false;
 
             do
             {
@@ -209,12 +214,52 @@ namespace GatherMergeRewrite
 
                 foreach (var blob in blobs)
                 {
+                    if (!resumePoint)
+                    {
+                        if (blob.Uri.ToString().ToLowerInvariant().Contains("bastard.js"))
+                        {
+                            resumePoint = true;
+                        }
+                        else
+                        { 
+                            continue;
+                        }
+                    }
+
                     var blobRef = account.CreateCloudBlobClient().GetBlobReferenceFromServer(blob.StorageUri);
                     var stream = blobRef.OpenRead();
                     var reader = new StreamReader(stream);
                     string json = reader.ReadToEnd();
                     var obj = JObject.Parse(json);
-                    Upload(storage, (string)obj["Owners"][0]["OwnerName"], "", stream, DateTime.Now);
+                    var ownerArray = JArray.Parse((string)obj["Owners"]);
+
+                    string packageId = ((string)obj["PackageId"]).ToLowerInvariant();
+                    string versionString = (string)obj["PackageVersion"];
+
+                    string normalizedVersionString = SemanticVersionExtensions.Normalize(versionString);
+
+                    string nupkgName = (packageId + "." + normalizedVersionString + ".nupkg").ToLowerInvariant();
+                    string nupkgUrl = "http://nugetprod1.blob.core.windows.net/packages/" + nupkgName;
+
+                    using (var tempFiles = new TempFileCollection())
+                    {
+                        string file = tempFiles.AddExtension(".nupkg", false);
+                        try
+                        {
+                            await new WebClient().DownloadFileTaskAsync(new Uri(nupkgUrl), file);
+                        }
+                        catch (WebException ex)
+                        {
+                            using (var log = File.AppendText("log.txt"))
+                            {
+                                log.WriteLine("Couldn't download '{0}'.", nupkgName);
+                            }
+                            continue;
+                        }
+                        var nupkgStream = File.OpenRead(file);
+                        Upload(storage, ownerArray.Count() != 0 ? (string)ownerArray[0]["OwnerName"] : "NULL", packageId, nupkgStream, DateTime.Now);
+                    }
+                    
                 }
             } while (token != null);
 
@@ -241,8 +286,8 @@ namespace GatherMergeRewrite
             {
                 //Test0();
                 //Test1();
-                Test2();
-                //Test3_LoadFromDatabaseLogs();
+                //Test2();
+                Test3_LoadFromDatabaseLogs().Wait();
             }
             catch (AggregateException g)
             {
