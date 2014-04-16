@@ -99,5 +99,44 @@ namespace NuGetGallery.FunctionalTests.LoadTests
             string responseText = sr.ReadToEnd();
             Assert.IsTrue(responseText.Contains(@"Downloads"));
         }
+
+        [TestMethod]
+        [Description("Hits the search endpoint directly")]
+        [Priority(0)]
+        public void HitSearchEndPointDirectly()
+        {
+            bool Value = TrySearch().Result;
+            Assert.IsTrue(Value);
+        }
+
+       public static async Task<bool> TrySearch()
+       {
+           try
+           {
+                HttpClientHandler handler = new HttpClientHandler();
+                handler.AllowAutoRedirect = false;
+                using (HttpClient client = new HttpClient(handler))
+                {
+                    string requestUri = "https://api-search-0.nuget.org/search/query?q='app insights'&luceneQuery=false";
+                    var response = await client.GetAsync(requestUri);
+                    //print the header 
+                    Console.WriteLine("HTTP status code : {0}", response.StatusCode);
+                    //Console.WriteLine("HTTP header : {0}", response.Headers.ToString());
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+            catch (HttpRequestException hre)
+            {
+                Console.WriteLine("Exception : {0}", hre.Message);
+                return false;
+            }
+        }
     }
 }
