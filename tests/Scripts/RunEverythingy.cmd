@@ -39,8 +39,8 @@ call ..\..\build.cmd
 Echo Done.
 Echo.
 
-Echo Build the NuGet Gallery Fluent test solution...
-%WinDir%\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe /p:OutputPath=bin\ ..\NuGetGallery.FunctionalTests.Fluent\NuGetGallery.FunctionalTests.Fluent.sln
+Echo Build the NuGet Gallery test solution...
+%WinDir%\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe ..\NuGetGallery.FunctionalTests.sln
 Echo Done.
 Echo.
 
