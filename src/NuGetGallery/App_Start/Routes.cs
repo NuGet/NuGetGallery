@@ -205,7 +205,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.Account,
                 "account/{action}",
-                new { controllers = "Users", action = "Account" });
+                new { controller = "Users", action = "Account" });
 
             routes.MapRoute(
                 RouteName.CuratedFeed,
