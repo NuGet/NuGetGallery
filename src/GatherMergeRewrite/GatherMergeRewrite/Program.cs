@@ -142,6 +142,8 @@ namespace GatherMergeRewrite
             string ownerId = "microsoft";
             string path = @"c:\data\nupkgs\";
 
+            const int BatchSize = 100;
+
             DateTime before = DateTime.Now;
 
             List<Tuple<string, string>> packages = new List<Tuple<string, string>>();
@@ -162,7 +164,7 @@ namespace GatherMergeRewrite
             {
                 batch.Add(item);
 
-                if (batch.Count == 100)
+                if (batch.Count == BatchSize)
                 {
                     BatchUpload(storage, ownerId, batch, DateTime.Now);
                     batch.Clear();
@@ -325,6 +327,7 @@ namespace GatherMergeRewrite
         static void PrintException(Exception e)
         {
             Console.WriteLine("{0} {1}", e.GetType().Name, e.Message);
+            Console.WriteLine("{0}", e.StackTrace);
             if (e.InnerException != null)
             {
                 PrintException(e.InnerException);
@@ -337,8 +340,8 @@ namespace GatherMergeRewrite
             {
                 //Test0();
                 //Test1();
-                //Test2();
-                Test3_LoadFromDatabaseLogs(args.Length > 0 ? args[0] : null).Wait();
+                Test2();
+                //Test3_LoadFromDatabaseLogs(args.Length > 0 ? args[0] : null).Wait();
             }
             catch (AggregateException g)
             {

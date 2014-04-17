@@ -1,0 +1,9 @@
+﻿{ 
+	"@context" : { 
+		"@vocab" : "http://nuget.org/schema#",
+		"ng" : "http://nuget.org/schema#",
+        "contains" : { "@container" : "@set" },
+		"url" : "@id"
+	},
+	"@type" : "ng:Catalog"
+}

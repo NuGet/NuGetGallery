@@ -24,6 +24,7 @@ namespace GatherMergeRewrite
 
             Uri ownerUri = new Uri(baseAddress + "owners/" + data.OwnerId + ".json");
             Uri registrationUri = new Uri(baseAddress + "packages/" + data.RegistrationId + ".json");
+            Uri catalogUri = new Uri(baseAddress + "catalog" + ".json");
 
             IGraph graph = Utils.CreateNuspecGraph(data.Nuspec, baseAddress);
 
@@ -39,6 +40,9 @@ namespace GatherMergeRewrite
             graph.Assert(graph.CreateUriNode(registrationUri), graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:PackageRegistration"));
             graph.Assert(graph.CreateUriNode(registrationUri), graph.CreateUriNode("nuget:owner"), graph.CreateUriNode(ownerUri));
             graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("nuget:registration"), graph.CreateUriNode(registrationUri));
+
+            //graph.Assert(graph.CreateUriNode(catalogUri), graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:Catalog"));
+            //graph.Assert(graph.CreateUriNode(catalogUri), graph.CreateUriNode("nuget:contains"), graph.CreateUriNode(registrationUri));
 
             return graph;
         }
