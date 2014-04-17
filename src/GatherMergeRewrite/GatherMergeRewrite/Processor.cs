@@ -43,7 +43,22 @@ namespace GatherMergeRewrite
 
             foreach (IInputDataHandle handle in handles)
             {
-                IGraph graph = await handle.CreateGraph(baseAddress);
+                IGraph graph;
+                try 
+                { 
+                    graph = await handle.CreateGraph(baseAddress);
+                }
+                catch (NuspecMissingException ex)
+                {
+                    if (handle is CloudPackageHandle)
+                    {
+                        using (var log = File.AppendText("log.txt"))
+                        {
+                            log.WriteLine("Missing nuspec '{0}'.", ((CloudPackageHandle)handle).RegistrationId);
+                        }
+                    }
+                    continue;
+                }
                 state.Store.Add(graph, true);
             }
         }

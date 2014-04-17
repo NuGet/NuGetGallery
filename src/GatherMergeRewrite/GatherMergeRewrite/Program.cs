@@ -176,7 +176,7 @@ namespace GatherMergeRewrite
             Console.WriteLine("save: {0} load: {1}", ((FileStorage)storage).SaveCount, ((FileStorage)storage).LoadCount);
         }
 
-        static async Task Test3_LoadFromDatabaseLogs()
+        static async Task Test3_LoadFromDatabaseLogs(string resumePackage)
         {
             string connectionString = "";
             IStorage storage = new AzureStorage
@@ -203,7 +203,7 @@ namespace GatherMergeRewrite
 
             int packageCount = 0;
 
-            bool resumePoint = false;
+            bool resumePoint = resumePackage == null;
 
             do
             {
@@ -212,11 +212,15 @@ namespace GatherMergeRewrite
                 var blobs = result.Results;
                 packageCount += result.Results.Count();
 
+                List<CloudPackageHandle> uploads = new List<CloudPackageHandle>();
+                List<Task> downloads = new List<Task>();
+                List<string> tempFiles = new List<string>();
+                
                 foreach (var blob in blobs)
                 {
                     if (!resumePoint)
                     {
-                        if (blob.Uri.ToString().ToLowerInvariant().Contains("bastard.js"))
+                        if (blob.Uri.ToString().ToLowerInvariant().Contains(resumePackage))
                         {
                             resumePoint = true;
                         }
@@ -241,9 +245,11 @@ namespace GatherMergeRewrite
                     string nupkgName = (packageId + "." + normalizedVersionString + ".nupkg").ToLowerInvariant();
                     string nupkgUrl = "http://nugetprod1.blob.core.windows.net/packages/" + nupkgName;
 
-                    using (var tempFiles = new TempFileCollection())
+                    string file = Path.GetTempFileName();
+                    tempFiles.Add(file);
+
+                    downloads.Add(Task.Factory.StartNew(async () =>
                     {
-                        string file = tempFiles.AddExtension(".nupkg", false);
                         try
                         {
                             await new WebClient().DownloadFileTaskAsync(new Uri(nupkgUrl), file);
@@ -254,14 +260,58 @@ namespace GatherMergeRewrite
                             {
                                 log.WriteLine("Couldn't download '{0}'.", nupkgName);
                             }
-                            continue;
+                            return;
                         }
                         var nupkgStream = File.OpenRead(file);
-                        Upload(storage, ownerArray.Count() != 0 ? (string)ownerArray[0]["OwnerName"] : "NULL", packageId, nupkgStream, DateTime.Now);
+                        lock (uploads)
+                        {
+                            uploads.Add(new CloudPackageHandle(nupkgStream, ownerArray.Count() != 0 ? (string)ownerArray[0]["OwnerName"] : "NULL",
+                                packageId, DateTime.Now));
+                        }
+                    }));
+
+                    if (downloads.Count() == 100)
+                    {
+                        await Task.WhenAll(downloads.ToArray());
+                            
+                        await Processor.Upload(uploads.ToArray(), storage);
+
+                        lock (uploads)
+                        {
+                            foreach (var upload in uploads)
+                            {
+                                upload.Close();
+                            }
+
+                            downloads.Clear();
+                            uploads.Clear();
+                        }
                     }
-                    
                 }
+
+                if (downloads.Count() != 0)
+                {
+                    await Task.WhenAll(downloads.ToArray());
+
+                    await Processor.Upload(uploads.ToArray(), storage);
+
+                    foreach (var upload in uploads)
+                    {
+                        upload.Close();
+                    }
+
+                    downloads.Clear();
+                    uploads.Clear();
+                }
+
+                foreach (string tempfile in tempFiles)
+                {
+                    File.Delete(tempfile);
+                }
+                tempFiles.Clear();
+
             } while (token != null);
+            
 
             DateTime after = DateTime.Now;
 
@@ -287,7 +337,7 @@ namespace GatherMergeRewrite
                 //Test0();
                 //Test1();
                 //Test2();
-                Test3_LoadFromDatabaseLogs().Wait();
+                Test3_LoadFromDatabaseLogs(args.Length > 0 ? args[0] : null).Wait();
             }
             catch (AggregateException g)
             {
@@ -321,9 +371,9 @@ namespace GatherMergeRewrite
             //webapi                                      
             //webapi.all                                  
             //webapi.core                                 
-            //webapi.enhancements                         
-            //webapi.odata                                
-            //microsoft.web.infrastructure                
+            //webapi.enhancements
+            //webapi.odata
+            //microsoft.web.infrastructure
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.IO.Packaging;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,14 @@ namespace GatherMergeRewrite
         string _registrationId;
         DateTime _published;
 
+        public string RegistrationId
+        {
+            get
+            {
+                return _registrationId;
+            }
+        }
+
         public CloudPackageHandle(Stream stream, string owner, string registrationId, DateTime published)
         {
             _stream = stream;
@@ -26,8 +35,10 @@ namespace GatherMergeRewrite
 
         public override Task<PackageData> GetData()
         {
-            Package package = Utils.GetPackage(_stream);
+            ZipArchive package = Utils.GetPackage(_stream);
             XDocument nuspec = Utils.GetNuspec(package);
+
+            if (nuspec == null) throw new NuspecMissingException();
 
             PackageData result = new PackageData()
             {
@@ -38,6 +49,11 @@ namespace GatherMergeRewrite
             };
 
             return Task.FromResult(result);
+        }
+
+        public void Close()
+        {
+            _stream.Close();
         }
     }
 }

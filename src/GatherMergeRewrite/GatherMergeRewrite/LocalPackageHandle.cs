@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.IO.Packaging;
 using System.Linq;
 using System.Text;
@@ -28,7 +29,7 @@ namespace GatherMergeRewrite
         public override async Task<PackageData> GetData()
         {
             Stream stream = new FileStream(_filename, FileMode.Open);
-            Package package = Utils.GetPackage(stream);
+            ZipArchive package = Utils.GetPackage(stream);
             XDocument nuspec = Utils.GetNuspec(package);
 
             PackageData result = new PackageData()

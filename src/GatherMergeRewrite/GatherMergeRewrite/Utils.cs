@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.IO.Packaging;
+using System.IO.Compression;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Xsl;
@@ -62,23 +63,32 @@ namespace GatherMergeRewrite
             turtleWriter.Save(graph, Console.Out);
         }
 
-        public static XDocument GetNuspec(Package package)
+        public static XDocument GetNuspec(ZipArchive package)
         {
-            foreach (PackagePart part in package.GetParts())
+            if (package == null) { return null; }
+
+            foreach (ZipArchiveEntry part in package.Entries)
             {
-                if (part.Uri.ToString().EndsWith(".nuspec"))
+                if (part.FullName.EndsWith(".nuspec"))
                 {
-                    XDocument nuspec = XDocument.Load(part.GetStream());
+                    XDocument nuspec = XDocument.Load(part.Open());
                     return nuspec;
                 }
             }
-            throw new FileNotFoundException("nuspec");
+            return null;
         }
 
-        public static Package GetPackage(Stream stream)
+        public static ZipArchive GetPackage(Stream stream)
         {
-            Package package = Package.Open(stream);
-            return package;
+            try
+            {
+                ZipArchive package = new ZipArchive(stream);
+                return package;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public static XDocument NormalizeNuspecNamespace(XDocument original)
