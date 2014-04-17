@@ -3,14 +3,10 @@
 CONSTRUCT
 {
     @resource a nuget:Catalog ;
-	          nuget:contains ?registration .
-
-	?registration nuget:id ?id .
+	          nuget:contains ?catalogPage .
 }
 WHERE
 {
     @resource a nuget:Catalog ;
-              nuget:contains ?registration .
-
-	?registration nuget:id ?id .
+              nuget:contains ?catalogPage .
 }

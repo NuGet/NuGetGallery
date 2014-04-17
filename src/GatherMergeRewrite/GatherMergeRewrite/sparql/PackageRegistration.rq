@@ -5,7 +5,8 @@ CONSTRUCT
     @resource a nuget:PackageRegistration ;
               nuget:id ?id ;
               nuget:owners ?owner ;
-              nuget:package ?package .
+              nuget:package ?package ;
+	      nuget:page ?page .
 
 	?package nuget:id ?packageId ;
 			 nuget:version ?packageVersion ;
@@ -35,7 +36,8 @@ WHERE
 {
     @resource a nuget:PackageRegistration ;
                   nuget:id ?id ;
-                  nuget:owner ?owner .
+                  nuget:owner ?owner ;
+    		  nuget:page ?page .
 
     ?package a nuget:Package ;
              nuget:registration @resource .

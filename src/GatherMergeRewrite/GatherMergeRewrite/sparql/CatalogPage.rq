@@ -1,0 +1,14 @@
+﻿PREFIX nuget: <http://nuget.org/schema#>
+
+CONSTRUCT
+{
+    @resource a nuget:CatalogPage ;
+	          nuget:contains ?registration ;
+	          nuget:catalog ?catalog ;
+}
+WHERE
+{
+    @resource a nuget:CatalogPage ;
+              nuget:contains ?registration ;
+			  nuget:catalog ?catalog .
+}

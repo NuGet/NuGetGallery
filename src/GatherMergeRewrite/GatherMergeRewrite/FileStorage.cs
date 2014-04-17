@@ -70,29 +70,32 @@ namespace GatherMergeRewrite
 
             string path = Path.Trim('\\') + '\\';
 
-            string folder = string.Empty;
-
             string[] t = name.Split('/');
-            if (t.Length == 2)
-            {
-                folder = t[0];
-                name = t[1];
-            }
 
-            if (folder != string.Empty)
+            name = t[t.Length - 1];
+
+            if (t.Length > 1)
             {
-                if (!(new DirectoryInfo(path + folder)).Exists)
+                for (int i = 0; i < t.Length - 1; i++)
                 {
-                    DirectoryInfo directoryInfo = new DirectoryInfo(path);
-                    directoryInfo.CreateSubdirectory(folder);
-                }
+                    string folder = t[i];
 
-                folder = folder + '\\';
+                    if (folder != string.Empty)
+                    {
+                        if (!(new DirectoryInfo(path + folder)).Exists)
+                        {
+                            DirectoryInfo directoryInfo = new DirectoryInfo(path);
+                            directoryInfo.CreateSubdirectory(folder);
+                        }
+
+                        path = path + folder + '\\';
+                    }
+                }
             }
 
             await Task.Factory.StartNew(() =>
             {
-                using (StreamWriter writer = new StreamWriter(path + folder + name))
+                using (StreamWriter writer = new StreamWriter(path + name))
                 {
                     writer.Write(content);
                 }

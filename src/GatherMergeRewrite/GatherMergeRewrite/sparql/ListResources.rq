@@ -39,4 +39,11 @@ WHERE
 		BIND ("Catalog.rq" AS ?transform)
 		BIND ("CatalogFrame.json" AS ?frame)
 	}
+	UNION
+	{
+		?resource a nuget:CatalogPage .
+
+		BIND ("CatalogPage.rq" AS ?transform)
+		BIND ("CatalogPageFrame.json" AS ?frame)
+	}
 }
