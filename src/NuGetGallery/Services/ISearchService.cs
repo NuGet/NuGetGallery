@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace NuGetGallery
@@ -31,17 +32,19 @@ namespace NuGetGallery
     public class SearchResults
     {
         public int Hits { get; private set; }
+        public DateTime? IndexTimestampUtc { get; private set; }
         public IQueryable<Package> Data { get; private set; }
 
-        public SearchResults(int hits)
-            : this(hits, Enumerable.Empty<Package>().AsQueryable())
+        public SearchResults(int hits, DateTime? indexTimestampUtc)
+            : this(hits, indexTimestampUtc, Enumerable.Empty<Package>().AsQueryable())
         {
         }
 
-        public SearchResults(int hits, IQueryable<Package> data)
+        public SearchResults(int hits, DateTime? indexTimestampUtc, IQueryable<Package> data)
         {
             Hits = hits;
             Data = data;
+            IndexTimestampUtc = indexTimestampUtc;
         }
     }
 }

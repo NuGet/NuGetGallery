@@ -303,6 +303,7 @@ namespace NuGetGallery
 
             var viewModel = new PackageListViewModel(
                 results.Data,
+                results.IndexTimestampUtc,
                 q,
                 totalHits,
                 page - 1,
