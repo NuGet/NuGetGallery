@@ -13,11 +13,17 @@ using VDS.RDF.Parsing;
 using VDS.RDF.Query;
 using VDS.RDF.Query.Datasets;
 using VDS.RDF.Writing;
+using System.Reflection;
 
 namespace GatherMergeRewrite
 {
     class Utils
     {
+        public static Stream GetResourceStream(string resName)
+        {
+            return Assembly.GetExecutingAssembly().GetManifestResourceStream("GatherMergeRewrite." + resName.Replace('\\', '.'));
+        }
+
         public static IGraph CreateNuspecGraph(XDocument nuspec, string baseAddress)
         {
             nuspec = NormalizeNuspecNamespace(nuspec);
@@ -50,7 +56,7 @@ namespace GatherMergeRewrite
         static XslCompiledTransform CreateTransform(string path)
         {
             XslCompiledTransform transform = new XslCompiledTransform();
-            transform.Load(XmlReader.Create(new StreamReader(path)));
+            transform.Load(XmlReader.Create(new StreamReader(Utils.GetResourceStream(path))));
             return transform;
         }
 
@@ -100,7 +106,7 @@ namespace GatherMergeRewrite
             using (XmlWriter writer = result.CreateWriter())
             {
                 XslCompiledTransform xslt = new XslCompiledTransform();
-                xslt.Load(XmlReader.Create(new StreamReader(path)));
+                xslt.Load(XmlReader.Create(new StreamReader(Utils.GetResourceStream(path))));
                 xslt.Transform(original.CreateReader(), writer);
             }
 
@@ -117,7 +123,7 @@ namespace GatherMergeRewrite
 
         public static string CreateHtmlView(Uri resource, string frame, string baseAddress)
         {
-            XDocument original = XDocument.Load(new StreamReader("html\\view.html"));
+            XDocument original = XDocument.Load(new StreamReader(Utils.GetResourceStream("html\\view.html")));
             XslCompiledTransform transform = CreateTransform("xslt\\view.xslt");
             XsltArgumentList arguments = new XsltArgumentList();
             arguments.AddParam("resource", "", resource.ToString());

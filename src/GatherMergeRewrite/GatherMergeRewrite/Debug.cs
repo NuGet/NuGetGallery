@@ -19,7 +19,7 @@ namespace GatherMergeRewrite
         public static async Task Dump(State state, PackageData data, IStorage storage)
         {
             string name = "debug/" + data.RegistrationId;
-            IGraph graph = SparqlHelpers.Construct(state.Store, new StreamReader("sparql\\All.rq").ReadToEnd());
+            IGraph graph = SparqlHelpers.Construct(state.Store, new StreamReader(Utils.GetResourceStream("sparql\\All.rq")).ReadToEnd());
 
             await storage.Save("application/json", name, Utils.CreateJson(graph));
         }

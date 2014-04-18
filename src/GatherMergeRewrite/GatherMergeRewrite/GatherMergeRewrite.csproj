@@ -115,33 +115,33 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="context\OwnerFrame.json">
+    <EmbeddedResource Include="context\OwnerFrame.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="context\PackageFrame.json">
+    </EmbeddedResource>
+    <EmbeddedResource Include="context\PackageFrame.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="context\PackageRegistrationFrame.json">
+    </EmbeddedResource>
+    <EmbeddedResource Include="context\PackageRegistrationFrame.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </EmbeddedResource>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="sparql\All.rq">
+    <EmbeddedResource Include="sparql\All.rq">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="sparql\ListResources.rq">
+    </EmbeddedResource>
+    <EmbeddedResource Include="sparql\ListResources.rq">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="sparql\Owner.rq">
+    </EmbeddedResource>
+    <EmbeddedResource Include="sparql\Owner.rq">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="sparql\Package.rq">
+    </EmbeddedResource>
+    <EmbeddedResource Include="sparql\Package.rq">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="sparql\PackageRegistration.rq">
+    </EmbeddedResource>
+    <EmbeddedResource Include="sparql\PackageRegistration.rq">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\JsonLDIntegration\JsonLDIntegration\JsonLDIntegration.csproj">
@@ -162,17 +162,16 @@
     <Content Include="html\graph.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="xslt\view.xslt">
+    <EmbeddedResource Include="xslt\view.xslt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="xslt\normalizeNuspecNamespace.xslt">
+    </EmbeddedResource>
+    <EmbeddedResource Include="xslt\normalizeNuspecNamespace.xslt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="xslt\nuspec.xslt">
+    </EmbeddedResource>
+    <EmbeddedResource Include="xslt\nuspec.xslt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

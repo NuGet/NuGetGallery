@@ -117,13 +117,13 @@ namespace GatherMergeRewrite
             foreach (KeyValuePair<Uri, Tuple<string, string>> resource in state.Resources)
             {
                 SparqlParameterizedString sparql = new SparqlParameterizedString();
-                sparql.CommandText = (new StreamReader("sparql\\" + resource.Value.Item1)).ReadToEnd();
+                sparql.CommandText = (new StreamReader(Utils.GetResourceStream("sparql\\" + resource.Value.Item1))).ReadToEnd();
                 sparql.SetUri("resource", resource.Key);
 
                 IGraph resourceGraph = SparqlHelpers.Construct(state.Store, sparql.ToString());
 
                 JToken resourceFrame;
-                using (JsonReader jsonReader = new JsonTextReader(new StreamReader("context\\" + resource.Value.Item2)))
+                using (JsonReader jsonReader = new JsonTextReader(new StreamReader(Utils.GetResourceStream("context\\" + resource.Value.Item2))))
                 {
                     resourceFrame = JToken.Load(jsonReader);
                 }
@@ -149,7 +149,7 @@ namespace GatherMergeRewrite
         {
             IDictionary<Uri, Tuple<string, string>> resources = new Dictionary<Uri, Tuple<string, string>>();
 
-            SparqlResultSet results = SparqlHelpers.Select(store, (new StreamReader("sparql\\ListResources.rq")).ReadToEnd());
+            SparqlResultSet results = SparqlHelpers.Select(store, (new StreamReader(Utils.GetResourceStream("sparql\\ListResources.rq"))).ReadToEnd());
             foreach (SparqlResult result in results)
             {
                 Tuple<string, string> metadata = new Tuple<string, string>(result["transform"].ToString(), result["frame"].ToString());
