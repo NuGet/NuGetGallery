@@ -190,9 +190,15 @@ namespace NuGetGallery
                 {
                     nuGetPackage = CreatePackage(uploadStream);
                 }
+                catch (InvalidPackageException ipex)
+                {
+                    ipex.Log();
+                    ModelState.AddModelError(String.Empty, ipex.Message);
+                    return View();
+                }
                 catch (Exception ex)
                 {
-                    QuietLog.LogHandledException(ex);
+                    ex.Log();
                     ModelState.AddModelError(String.Empty, Strings.FailedToReadUploadFile);
                     return View();
                 }
@@ -911,14 +917,18 @@ namespace NuGetGallery
             {
                 nugetPackage = CreatePackage(uploadFile);
             }
+            catch (InvalidPackageException ipex)
+            {
+                caught = ipex.AsUserSafeException();
+            }
             catch (Exception ex)
             {
                 // Can't wait for Roslyn to let us await in Catch blocks :(
                 caught = ex;
-                ex.Log();
             }
             if (caught != null)
             {
+                caught.Log();
                 // Report the error
                 TempData["Message"] = caught.GetUserSafeMessage();
 

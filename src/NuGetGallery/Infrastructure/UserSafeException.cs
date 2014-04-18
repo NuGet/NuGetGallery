@@ -36,6 +36,11 @@ namespace NuGetGallery
 
     public static class UserSafeExceptionExtensions
     {
+        public static UserSafeException AsUserSafeException(this Exception self)
+        {
+            return new UserSafeException(self.Message, self.InnerException);
+        }
+
         public static string GetUserSafeMessage(this Exception self)
         {
             IUserSafeException uvex = self as IUserSafeException;

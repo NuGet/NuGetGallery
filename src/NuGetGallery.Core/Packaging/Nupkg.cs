@@ -118,7 +118,7 @@ namespace NuGetGallery.Packaging
 
             if (manifestEntry == null)
             {
-                throw new InvalidOperationException("The package does not contain a manifest, or the manifest is not in the root of the package.");
+                throw new InvalidPackageException("A manifest was not found at the root of the package.");
             }
 
             using (var safeStream = GetSizeVerifiedFileStream(manifestEntry, MaxManifestSize))
