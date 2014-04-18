@@ -27,9 +27,13 @@
                 <text>There are @Model.TotalCount packages</text>
             }</h1>
     }
-    @if (@Model.LastResultIndex > 0)
+    @if (Model.LastResultIndex > 0)
     {
         <h2>Displaying results @Model.FirstResultIndex - @Model.LastResultIndex.</h2>
+    }
+    @if(Model.IndexTimestampUtc.HasValue) 
+    {
+        <h3 class="package-list-lastupdated">Search Index last updated <span class="s-localtime" data-utc="@Model.IndexTimestampUtc.Value.ToJavaScriptUTC()">@Model.IndexTimestampUtc.Value.ToJavaScriptUTC()</span></h3>
     }
 </div>
 

@@ -23,6 +23,11 @@ namespace NuGetGallery
 {
     public static class ExtensionMethods
     {
+        public static string ToJavaScriptUTC(this DateTime self)
+        {
+            return self.ToString("yyyy-MM-dd HH:mm:ss UTC", CultureInfo.CurrentCulture);
+        }
+
         public static string ToNuGetShortDateTimeString(this DateTime self)
         {
             return self.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.CurrentCulture);

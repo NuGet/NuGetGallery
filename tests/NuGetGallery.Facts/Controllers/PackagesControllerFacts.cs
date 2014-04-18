@@ -108,7 +108,7 @@ namespace NuGetGallery
         {
             var searchService = new Mock<ISearchService>();
             searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns(
-                (IQueryable<Package> p, string searchTerm) => Task.FromResult(new SearchResults(p.Count(), p)));
+                (IQueryable<Package> p, string searchTerm) => Task.FromResult(new SearchResults(p.Count(), DateTime.UtcNow, p)));
 
             return searchService;
         }
@@ -574,7 +574,7 @@ namespace NuGetGallery
             {
                 var searchService = new Mock<ISearchService>();
                 searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns(
-                    Task.FromResult(new SearchResults(0)));
+                    Task.FromResult(new SearchResults(0, DateTime.UtcNow)));
                 var controller = CreateController(searchService: searchService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 

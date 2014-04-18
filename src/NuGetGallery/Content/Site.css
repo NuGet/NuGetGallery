@@ -476,6 +476,10 @@ fieldset.search {
 
 /* List Package */
 
+.package-list-lastupdated {
+    font-size: 14pt;
+}
+
 section.package {
     border-top: 1px solid #ccc;
     padding-top: 10px;
