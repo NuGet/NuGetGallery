@@ -4,7 +4,7 @@ CONSTRUCT
 {
     @resource a nuget:PackageRegistration ;
               nuget:id ?id ;
-              nuget:owner ?owner ;
+              nuget:owners ?owner ;
               nuget:package ?package .
 
 	?package nuget:id ?packageId ;

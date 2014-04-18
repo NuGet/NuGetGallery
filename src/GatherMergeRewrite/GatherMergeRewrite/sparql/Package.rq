@@ -17,7 +17,7 @@ CONSTRUCT
 			  nuget:published ?published ;
 		      nuget:dependencies ?dependencies .
 
-	?registration nuget:owner ?owner .
+	?registration nuget:owners ?owner .
 
     ?dependencies nuget:group ?dependency_group .
 

@@ -27,7 +27,7 @@ namespace GatherMergeRewrite
             XslCompiledTransform transform = CreateTransform(path);
 
             XsltArgumentList arguments = new XsltArgumentList();
-            arguments.AddParam("base", "", baseAddress);
+            arguments.AddParam("base", "", baseAddress + "packages/");
             arguments.AddParam("extension", "", ".json");
 
             arguments.AddExtensionObject("urn:helper", new XsltHelper());

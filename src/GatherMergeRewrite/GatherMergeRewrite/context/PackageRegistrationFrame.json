@@ -6,6 +6,7 @@
         "group" : { "@container" : "@set" },
         "dependency" : { "@container" : "@set" },
         "property" : { "@container" : "@set" },
+        "owners" : { "@container" : "@set" },
 		"url" : "@id"
 	},
 	"@type" : "ng:PackageRegistration"

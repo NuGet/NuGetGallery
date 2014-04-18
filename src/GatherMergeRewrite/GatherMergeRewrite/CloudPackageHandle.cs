@@ -30,7 +30,7 @@ namespace GatherMergeRewrite
             _stream = stream;
             _owner = owner;
             _registrationId = registrationId;
-            published = _published;
+            _published = published;
         }
 
         public override Task<PackageData> GetData()

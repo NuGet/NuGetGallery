@@ -56,7 +56,7 @@
                     <xsl:when test="nuget:group">
                       <xsl:apply-templates select="nuget:group">
                         <xsl:with-param name="path" select="$path" />
-                        <xsl:with-param name="parent_fragment" select="'#gpdep'" />
+                        <xsl:with-param name="parent_fragment" select="'#dependencies/group'" />
                       </xsl:apply-templates>
                     </xsl:when>
                     
@@ -64,11 +64,11 @@
                       <ng:group>
                         <rdf:Description>
                           <xsl:attribute name="rdf:about">
-                            <xsl:value-of select="translate(concat($base, $path, $extension, '#gpdep'), $uppercase, $lowercase)"/>
+                            <xsl:value-of select="translate(concat($base, $path, $extension, '#dependencies/group'), $uppercase, $lowercase)"/>
                           </xsl:attribute>
                           <xsl:apply-templates select="nuget:dependency">
                             <xsl:with-param name="path" select="$path" />
-                            <xsl:with-param name="parent_fragment" select="'#gpdep'" />
+                            <xsl:with-param name="parent_fragment" select="'#dependencies/group'" />
                           </xsl:apply-templates>
                         </rdf:Description>
                       </ng:group>
@@ -143,10 +143,10 @@
         <xsl:variable name="fragment">
           <xsl:choose>
             <xsl:when test="@targetFramework">
-              <xsl:value-of select="concat($parent_fragment, '_', @targetFramework)"/>
+              <xsl:value-of select="concat($parent_fragment, '/', @targetFramework)"/>
             </xsl:when>
             <xsl:when test="@name">
-              <xsl:value-of select="concat($parent_fragment, '_', @name)"/>
+              <xsl:value-of select="concat($parent_fragment, '/', @name)"/>
             </xsl:when>
             <xsl:otherwise>
               <xsl:value-of select="$parent_fragment"/>
@@ -195,7 +195,7 @@
     <ng:dependency>
       <rdf:Description>
 
-        <xsl:variable name="fragment" select="concat($parent_fragment, '_dep_', @id)" />
+        <xsl:variable name="fragment" select="concat($parent_fragment, '/', @id)" />
 
         <xsl:attribute name="rdf:about">
           <xsl:value-of select="translate(concat($base, $path, $extension, $fragment), $uppercase, $lowercase)"/>
@@ -230,7 +230,7 @@
     <ng:reference>
       <rdf:Description>
 
-        <xsl:variable name="fragment" select="concat($parent_fragment, '_ref_', @file)" />
+        <xsl:variable name="fragment" select="concat($parent_fragment, '/ref/', @file)" />
 
         <xsl:attribute name="rdf:about">
           <xsl:value-of select="translate(concat($base, $path, $extension, $fragment), $uppercase, $lowercase)"/>
@@ -255,7 +255,7 @@
     <ng:property>
       <rdf:Description>
 
-        <xsl:variable name="fragment" select="concat($parent_fragment, '_prop_', @name)" />
+        <xsl:variable name="fragment" select="concat($parent_fragment, '/prop/', @name)" />
 
         <xsl:attribute name="rdf:about">
           <xsl:value-of select="translate(concat($base, $path, $extension, $fragment), $uppercase, $lowercase)"/>

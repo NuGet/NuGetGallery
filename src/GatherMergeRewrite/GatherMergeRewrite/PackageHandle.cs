@@ -22,8 +22,8 @@ namespace GatherMergeRewrite
         {
             PackageData data = await GetData();
 
-            Uri ownerUri = new Uri(baseAddress + data.OwnerId + ".json");
-            Uri registrationUri = new Uri(baseAddress + data.RegistrationId + ".json");
+            Uri ownerUri = new Uri(baseAddress + "owners/" + data.OwnerId + ".json");
+            Uri registrationUri = new Uri(baseAddress + "packages/" + data.RegistrationId + ".json");
 
             IGraph graph = Utils.CreateNuspecGraph(data.Nuspec, baseAddress);
 

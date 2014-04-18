@@ -254,7 +254,7 @@ namespace GatherMergeRewrite
                         {
                             await new WebClient().DownloadFileTaskAsync(new Uri(nupkgUrl), file);
                         }
-                        catch (WebException ex)
+                        catch (WebException)
                         {
                             using (var log = File.AppendText("log.txt"))
                             {

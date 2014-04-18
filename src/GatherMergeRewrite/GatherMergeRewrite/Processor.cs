@@ -48,7 +48,7 @@ namespace GatherMergeRewrite
                 { 
                     graph = await handle.CreateGraph(baseAddress);
                 }
-                catch (NuspecMissingException ex)
+                catch (NuspecMissingException)
                 {
                     if (handle is CloudPackageHandle)
                     {
