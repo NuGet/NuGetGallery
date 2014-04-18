@@ -132,6 +132,19 @@ namespace NuGetGallery
             return version == null ? EnsureTrailingSlash(result) : result;
         }
 
+        public static string ExplorerDeepLink(this UrlHelper url, int feedVersion, string id, string version)
+        {
+            string routeName = "v" + feedVersion + RouteName.DownloadPackage;
+            string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
+            string urlResult = url.RouteUrl(routeName, new { Id = id }, protocol: protocol);
+
+            urlResult = EnsureTrailingSlash(urlResult);
+
+            string explorerDeepLink = @"https://npe.codeplex.com/releases/clickonce/NuGetPackageExplorer.application?url={0}&id={1}&version={2}";
+
+            return string.Format(explorerDeepLink, urlResult, id, version);
+        }
+
         public static string LogOn(this UrlHelper url)
         {
             return url.RouteUrl(RouteName.Authentication, new { action = "LogOn" });
