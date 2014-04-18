@@ -1,49 +1,9 @@
 ﻿PREFIX nuget: <http://nuget.org/schema#>
 
-SELECT DISTINCT ?resource ?transform ?frame
+SELECT DISTINCT ?resource ?transform ?frame ?type
 WHERE
 {
-	{
-		?resource a nuget:Package .
-
-		BIND ("Package.rq" AS ?transform)
-		BIND ("PackageFrame.json" AS ?frame)
-	}
-	UNION
-	{
-		?resource a nuget:PackageRegistration .
-
-		BIND ("PackageRegistration.rq" AS ?transform)
-		BIND ("PackageRegistrationFrame.json" AS ?frame)
-	}
-    UNION
-	{
-		?registration a nuget:PackageRegistration .
-		?registration nuget:package ?resource .
-
-		BIND ("Package.rq" AS ?transform)
-		BIND ("PackageFrame.json" AS ?frame)
-	}
-	UNION
-	{
-		?registration a nuget:PackageRegistration .
-		?registration nuget:owner ?resource .
-
-		BIND ("Owner.rq" AS ?transform)
-		BIND ("OwnerFrame.json" AS ?frame)
-	}
-	UNION
-	{
-		?resource a nuget:Catalog .
-
-		BIND ("Catalog.rq" AS ?transform)
-		BIND ("CatalogFrame.json" AS ?frame)
-	}
-	UNION
-	{
-		?resource a nuget:CatalogPage .
-
-		BIND ("CatalogPage.rq" AS ?transform)
-		BIND ("CatalogPageFrame.json" AS ?frame)
-	}
+	?resource a nuget:Resource, ?type .
+	?type nuget:transform ?transform ;
+	      nuget:frame ?frame .
 }

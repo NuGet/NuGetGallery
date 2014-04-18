@@ -7,6 +7,5 @@
         "property" : { "@container" : "@set" },
         "owners" : { "@container" : "@set" },
 		"url" : "@id"
-	},
-	"@type" : "ng:Package"
+	}
 }

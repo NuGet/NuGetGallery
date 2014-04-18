@@ -60,13 +60,21 @@ namespace GatherMergeRewrite
             return transform;
         }
 
-        static void Dump(IGraph graph)
+        public static void Dump(IGraph graph)
         {
             CompressingTurtleWriter turtleWriter = new CompressingTurtleWriter();
             turtleWriter.DefaultNamespaces.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
             turtleWriter.PrettyPrintMode = true;
             turtleWriter.CompressionLevel = 10;
             turtleWriter.Save(graph, Console.Out);
+        }
+
+        public static IGraph Load(string filename)
+        {
+            TurtleParser parser = new TurtleParser();
+            IGraph g = new Graph();
+            parser.Load(g, new StreamReader(filename));
+            return g;
         }
 
         public static XDocument GetNuspec(ZipArchive package)

@@ -33,24 +33,14 @@ namespace GatherMergeRewrite
 
             Triple triple = graph.GetTriplesWithPredicateObject(graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:Package")).First();
 
-            graph.Assert(triple.Subject, graph.CreateUriNode("nuget:owner"), graph.CreateUriNode(ownerUri));
             graph.Assert(triple.Subject, graph.CreateUriNode("nuget:published"), graph.CreateLiteralNode(data.Published.ToString()));
-
-            graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:Owner"));
-            graph.Assert(graph.CreateUriNode(registrationUri), graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:PackageRegistration"));
-            graph.Assert(graph.CreateUriNode(registrationUri), graph.CreateUriNode("nuget:owner"), graph.CreateUriNode(ownerUri));
-            graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("nuget:registration"), graph.CreateUriNode(registrationUri));
+            graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("nuget:owns"), graph.CreateUriNode(registrationUri));
 
             Uri catalogUri = new Uri(baseAddress + "catalog" + ".json");
             Uri cataloPageUri = new Uri(baseAddress + "catalog/page/" + data.RegistrationId.Substring(0, 1) + ".json");
 
-            graph.Assert(graph.CreateUriNode(catalogUri), graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:Catalog"));
-            graph.Assert(graph.CreateUriNode(catalogUri), graph.CreateUriNode("nuget:contains"), graph.CreateUriNode(cataloPageUri));
-            graph.Assert(graph.CreateUriNode(cataloPageUri), graph.CreateUriNode("nuget:catalog"), graph.CreateUriNode(catalogUri));
-
-            graph.Assert(graph.CreateUriNode(cataloPageUri), graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:CatalogPage"));
-            graph.Assert(graph.CreateUriNode(cataloPageUri), graph.CreateUriNode("nuget:contains"), graph.CreateUriNode(registrationUri));
-            graph.Assert(graph.CreateUriNode(registrationUri), graph.CreateUriNode("nuget:page"), graph.CreateUriNode(cataloPageUri));
+            graph.Assert(graph.CreateUriNode(catalogUri), graph.CreateUriNode("nuget:item"), graph.CreateUriNode(cataloPageUri));
+            graph.Assert(graph.CreateUriNode(cataloPageUri), graph.CreateUriNode("nuget:item"), graph.CreateUriNode(registrationUri));
 
             return graph;
         }

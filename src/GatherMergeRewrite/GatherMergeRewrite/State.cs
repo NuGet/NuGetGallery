@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using VDS.RDF;
+using VDS.RDF.Query.Inference;
 
 namespace GatherMergeRewrite
 {
@@ -9,7 +10,15 @@ namespace GatherMergeRewrite
         public State(string container, string baseAddress)
         {
             Store = new TripleStore();
-            Resources = new Dictionary<Uri, Tuple<string, string>>();
+
+            IGraph schema = Utils.Load("schema\\schema.ttl");
+
+            IInferenceEngine rdfsPlus = new StaticRdfsPlusReasoner();
+            rdfsPlus.Initialise(schema);
+            Store.AddInferenceEngine(rdfsPlus);
+            Store.Add(schema, true);
+
+            Resources = new Dictionary<Uri, Tuple<string, string, string>>();
             Container = container;
             BaseAddress = baseAddress;
         }
@@ -20,7 +29,7 @@ namespace GatherMergeRewrite
             private set; 
         }
 
-        public IDictionary<Uri, Tuple<string, string>> Resources 
+        public IDictionary<Uri, Tuple<string, string, string>> Resources 
         { 
             get; 
             private set;

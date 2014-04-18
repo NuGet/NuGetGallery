@@ -1,0 +1,15 @@
+﻿PREFIX nuget: <http://nuget.org/schema#>
+
+CONSTRUCT
+{
+    @resource a nuget:Container ;
+	          nuget:item ?item ;
+	          nuget:container ?container .
+}
+WHERE
+{
+    @resource a nuget:Container ;
+              nuget:item ?item .
+
+	OPTIONAL { @resource nuget:container ?container . }
+}

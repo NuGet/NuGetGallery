@@ -107,6 +107,8 @@
     <Compile Include="AzureStorage.cs" />
     <Compile Include="PackageData.cs" />
     <Compile Include="InputDataHandle.cs" />
+    <Compile Include="StaticOwlReasoner.cs" />
+    <Compile Include="StaticRdfsPlusReasoner.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="XmlHtmlWriter.cs" />
     <Compile Include="XsltHelper.cs" />
@@ -134,6 +136,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="sparql\ListResources.rq">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="schema\schema.ttl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="sparql\Container.rq">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="sparql\Owner.rq">

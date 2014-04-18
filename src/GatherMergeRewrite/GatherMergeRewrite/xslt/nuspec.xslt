@@ -209,11 +209,11 @@
           <xsl:value-of select="@version"/>
         </ng:range>
 
-        <ng:registration>
+        <ng:url>
           <xsl:attribute name="rdf:resource">
             <xsl:value-of select="translate(concat($base, @id, $extension), $uppercase, $lowercase)"/>
           </xsl:attribute>
-        </ng:registration>
+        </ng:url>
 
         <xsl:apply-templates select="nuget:property">
           <xsl:with-param name="path" select="$path" />

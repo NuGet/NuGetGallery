@@ -3,9 +3,9 @@
 CONSTRUCT
 {
     @resource a nuget:Owner ;
-              nuget:registration ?registration .
+              nuget:owns ?registration .
 }
 WHERE
 {
-    @resource nuget:registration ?registration .
+    @resource nuget:owns ?registration .
 }

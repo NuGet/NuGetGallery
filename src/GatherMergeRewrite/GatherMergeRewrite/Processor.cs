@@ -60,6 +60,7 @@ namespace GatherMergeRewrite
                     continue;
                 }
                 state.Store.Add(graph, true);
+                state.Store.ApplyInference(state.Store.Graphs.First());
             }
         }
 
@@ -67,10 +68,12 @@ namespace GatherMergeRewrite
         {
             while (true)
             {
-                IDictionary<Uri, Tuple<string, string>> resourceList = DetermineResourceList(state.Store);
+                //Utils.Dump(SparqlHelpers.Construct(state.Store, (new StreamReader("sparql\\All.rq")).ReadToEnd()));
 
-                IDictionary<Uri, Tuple<string, string>> missing = new Dictionary<Uri, Tuple<string, string>>();
-                foreach (KeyValuePair<Uri, Tuple<string, string>> item in resourceList)
+                IDictionary<Uri, Tuple<string, string, string>> resourceList = DetermineResourceList(state.Store);
+
+                IDictionary<Uri, Tuple<string, string, string>> missing = new Dictionary<Uri, Tuple<string, string, string>>();
+                foreach (KeyValuePair<Uri, Tuple<string, string, string>> item in resourceList)
                 {
                     if (!state.Resources.ContainsKey(item.Key))
                     {
@@ -84,7 +87,7 @@ namespace GatherMergeRewrite
                 }
 
                 List<Task> tasks = new List<Task>();
-                foreach (KeyValuePair<Uri, Tuple<string, string>> item in missing)
+                foreach (KeyValuePair<Uri, Tuple<string, string, string>> item in missing)
                 {
                     tasks.Add(storage.Load(Utils.GetName(item.Key, state.BaseAddress, state.Container)));
                 }
@@ -99,10 +102,11 @@ namespace GatherMergeRewrite
                         {
                             IGraph graph = Utils.CreateGraph(json);
                             state.Store.Add(graph, true);
+                            state.Store.ApplyInference(state.Store.Graphs.First());
                         }
                     }
 
-                    foreach (KeyValuePair<Uri, Tuple<string, string>> item in missing)
+                    foreach (KeyValuePair<Uri, Tuple<string, string, string>> item in missing)
                     {
                         state.Resources.Add(item);
                     }
@@ -112,9 +116,14 @@ namespace GatherMergeRewrite
 
         static async Task SaveResources(State state, IStorage storage)
         {
+            foreach (Uri resourceUri in state.Resources.Keys)
+            {
+                Console.WriteLine("\t{0}", resourceUri);
+            }
+
             List<Task> tasks = new List<Task>();
 
-            foreach (KeyValuePair<Uri, Tuple<string, string>> resource in state.Resources)
+            foreach (KeyValuePair<Uri, Tuple<string, string, string>> resource in state.Resources)
             {
                 SparqlParameterizedString sparql = new SparqlParameterizedString();
                 sparql.CommandText = (new StreamReader(Utils.GetResourceStream("sparql\\" + resource.Value.Item1))).ReadToEnd();
@@ -122,10 +131,17 @@ namespace GatherMergeRewrite
 
                 IGraph resourceGraph = SparqlHelpers.Construct(state.Store, sparql.ToString());
 
+                if (resourceGraph.Triples.Count == 0)
+                {
+                    Utils.Dump(SparqlHelpers.Construct(state.Store, (new StreamReader("sparql\\All.rq")).ReadToEnd()));
+                    throw new Exception(string.Format("resource {0} is empty (created by {1})", resource.Key, resource.Value.Item1));
+                }
+
                 JToken resourceFrame;
                 using (JsonReader jsonReader = new JsonTextReader(new StreamReader(Utils.GetResourceStream("context\\" + resource.Value.Item2))))
                 {
-                    resourceFrame = JToken.Load(jsonReader);
+                    resourceFrame = JObject.Load(jsonReader);
+                    resourceFrame["@type"] = resource.Value.Item3;
                 }
 
                 string name = Utils.GetName(resource.Key, state.BaseAddress, state.Container);
@@ -145,14 +161,17 @@ namespace GatherMergeRewrite
             await Task.Factory.ContinueWhenAll(tasks.ToArray(), (t) => { });
         }
 
-        static IDictionary<Uri, Tuple<string, string>> DetermineResourceList(TripleStore store)
+        static IDictionary<Uri, Tuple<string, string, string>> DetermineResourceList(TripleStore store)
         {
-            IDictionary<Uri, Tuple<string, string>> resources = new Dictionary<Uri, Tuple<string, string>>();
+            IDictionary<Uri, Tuple<string, string, string>> resources = new Dictionary<Uri, Tuple<string, string, string>>();
 
             SparqlResultSet results = SparqlHelpers.Select(store, (new StreamReader(Utils.GetResourceStream("sparql\\ListResources.rq"))).ReadToEnd());
             foreach (SparqlResult result in results)
             {
-                Tuple<string, string> metadata = new Tuple<string, string>(result["transform"].ToString(), result["frame"].ToString());
+                Tuple<string, string, string> metadata = new Tuple<string, string, string>(
+                    result["transform"].ToString(), 
+                    result["frame"].ToString(),
+                    result["type"].ToString());
 
                 resources[new Uri(result["resource"].ToString())] = metadata;
             }

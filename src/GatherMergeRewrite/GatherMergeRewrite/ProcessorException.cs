@@ -18,9 +18,9 @@ namespace GatherMergeRewrite
         public void WriteTo(TextWriter writer)
         {
             writer.WriteLine("resources:");
-            foreach (KeyValuePair<Uri, Tuple<string, string>> item in State.Resources)
+            foreach (KeyValuePair<Uri, Tuple<string, string, string>> item in State.Resources)
             {
-                writer.WriteLine("{0} {1} {2}", item.Key, item.Value.Item1, item.Value.Item2);
+                writer.WriteLine("{0} {1} {2} {3}", item.Key, item.Value.Item1, item.Value.Item2, item.Value.Item3);
             }
 
             writer.WriteLine("store:");
