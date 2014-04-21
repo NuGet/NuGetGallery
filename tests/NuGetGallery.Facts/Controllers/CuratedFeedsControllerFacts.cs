@@ -213,7 +213,7 @@ namespace NuGetGallery
 
                 controller.StubSearchService
                     .Setup(stub => stub.Search(It.IsAny<SearchFilter>()))
-                    .Returns(Task.FromResult(new SearchResults(mockPackages.Count(), mockPackages)));
+                    .Returns(Task.FromResult(new SearchResults(mockPackages.Count(), DateTime.UtcNow, mockPackages)));
 
                 var mockHttpContext = new Mock<HttpContextBase>();
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);

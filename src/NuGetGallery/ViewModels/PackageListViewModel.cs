@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 
@@ -8,6 +9,7 @@ namespace NuGetGallery
     {
         public PackageListViewModel(
             IQueryable<Package> packages,
+            DateTime? indexTimestampUtc,
             string searchTerm,
             int totalCount,
             int pageIndex,
@@ -17,6 +19,7 @@ namespace NuGetGallery
             // TODO: Implement actual sorting
             IEnumerable<ListPackageItemViewModel> items = packages.ToList().Select(pv => new ListPackageItemViewModel(pv));
             PageIndex = pageIndex;
+            IndexTimestampUtc = indexTimestampUtc;
             PageSize = pageSize;
             TotalCount = totalCount;
             SearchTerm = searchTerm;
@@ -49,5 +52,7 @@ namespace NuGetGallery
         public int PageIndex { get; private set; }
 
         public int PageSize { get; private set; }
+
+        public DateTime? IndexTimestampUtc { get; private set; }
     }
 }
