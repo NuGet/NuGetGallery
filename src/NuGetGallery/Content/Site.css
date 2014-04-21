@@ -442,7 +442,7 @@ p.authors {
 }
 
     #sideColumn nav ul li {
-        margin: 0;
+        margin: 3px 0px 0px;
         padding: 0;
     }
 
@@ -1056,6 +1056,10 @@ a.btn {
     box-sizing: border-box;
 }
 
+.btn.btn-small {
+    font-size: 10pt;
+}
+
 .btn.btn-inline {
     display: inline-block;
 }
@@ -1299,6 +1303,10 @@ ul.accordian {
 
 /* Script-related Classes */
 .s-hidden {
+    display: none;
+}
+
+body.s-noclickonce .s-clickonce {
     display: none;
 }
 
