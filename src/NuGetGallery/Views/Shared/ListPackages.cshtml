@@ -34,7 +34,7 @@
     }
     @if(Model.IndexTimestampUtc.HasValue) 
     {
-        <p class="package-list-lastupdated">Search Index last updated <span class="s-localtime" data-utc="@Model.IndexTimestampUtc.Value.ToJavaScriptUTC()">@Model.IndexTimestampUtc.Value.ToJavaScriptUTC()</span></p>
+        <p class="package-list-lastupdated">Search Index last updated <time class="timeago" datetime="@Model.IndexTimestampUtc.Value.ToString("O")">@Model.IndexTimestampUtc.Value.ToJavaScriptUTC()</time></p>
     }
 </div>
 
