@@ -78,6 +78,7 @@
             @if (User.Identity.IsAuthenticated)
             {
                 <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file.">Download</a></li>
+                <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)">Open in Package Explorer</a></li>
             }
             else
             {
@@ -92,9 +93,6 @@
             @if (StatisticsHelper.IsStatisticsPageAvailable)
             {
                 <li><a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">Package Statistics</a></li>
-            }
-            @if(User.Identity.IsAuthenticated) {
-                <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)">Open in NuGet Package Explorer</a></li>
             }
         </ul>
     </nav>
