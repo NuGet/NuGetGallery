@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -142,7 +143,7 @@ namespace NuGetGallery
 
             urlResult = EnsureTrailingSlash(urlResult);
 
-            return string.Format(PackageExplorerDeepLink, urlResult, id, version);
+            return String.Format(CultureInfo.InvariantCulture, PackageExplorerDeepLink, urlResult, id, version);
         }
 
         public static string LogOn(this UrlHelper url)
