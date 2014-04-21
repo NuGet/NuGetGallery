@@ -1,6 +1,7 @@
 ﻿@model PackageListViewModel
 @{
     ViewBag.Title = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "Packages" : "Packages matching " + Model.SearchTerm;
+    ViewBag.SortText = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "recent installs" : "relevance";
     ViewBag.Tab = "Packages";
 }
 
@@ -33,7 +34,7 @@
     }
 </div>
 
-<span class="sorted-by">Sorted by Recent Installs</span>
+<span class="sorted-by">sorted by @ViewBag.SortText</span>
 
 <ul id="searchResults">
     @foreach (var package in Model.Items)

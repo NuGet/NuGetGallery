@@ -204,7 +204,7 @@
         enabled: CurrentUser.EmailAllowed,
         actions: @<text>
             @item.ExpandLink("More Info", "Less Info")
-            @using (Html.BeginForm(actionName: "ChangeEmailSubscription", controllerName: "Users", routeValues: new { subscribe = !CurrentUser.EmailAllowed }, method: FormMethod.Post, htmlAttributes:object new { @class = "form-inline" }))
+            @using (Html.BeginForm(actionName: "ChangeEmailSubscription", controllerName: "Users", routeValues: new { subscribe = !CurrentUser.EmailAllowed }, method: FormMethod.Post, htmlAttributes: new { @class = "form-inline" }))
             {
                 <fieldset class="form">
                     <legend>Update Email Subscription</legend>
