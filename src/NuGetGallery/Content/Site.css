@@ -79,11 +79,11 @@ h6 {
     padding-bottom: 10px;
 }
 
-.page-heading h1,
-.page-heading h2 {
-    margin: 0;
-    padding: 0;
-}
+    .page-heading h1,
+    .page-heading h2 {
+        margin: 0;
+        padding: 0;
+    }
 
 /* Aside Headings */
 
@@ -226,15 +226,15 @@ nav, section {
     padding: 20px 20px 0 0;
 }
 
-#logo a {
-    background: url(../Content/Images/nugetlogo.png) no-repeat;
-    display: block;
-    height: 75px;
-    margin: 0;
-    padding: 0;
-    text-indent: -9999px;
-    width: 345px;
-}
+    #logo a {
+        background: url(../Content/Images/nugetlogo.png) no-repeat;
+        display: block;
+        height: 75px;
+        margin: 0;
+        padding: 0;
+        text-indent: -9999px;
+        width: 345px;
+    }
 
 /* Body */
 
@@ -248,9 +248,9 @@ nav, section {
     width: 25%;
 }
 
-    #pageSearchBox #searchBoxInput {
-        width: 265px;
-    }
+#pageSearchBox #searchBoxInput {
+    width: 265px;
+}
 
 
 /* Logo */
@@ -301,7 +301,9 @@ ul.owners {
     padding: 0;
 }
 
-ul.owners li { margin-bottom: 12px; }
+    ul.owners li {
+        margin-bottom: 12px;
+    }
 
 a.owner {
     font-size: 1.4em;
@@ -313,16 +315,20 @@ a.owner {
         top: -0.5em;
     }
 
-a.owner:hover {
-    text-decoration: none;
-    color: #333;
-}
+    a.owner:hover {
+        text-decoration: none;
+        color: #333;
+    }
 
-.owner-image { margin-right: 5px; }
+.owner-image {
+    margin-right: 5px;
+}
 
 /* Authors */
 
-p.authors { font-size: 1.25em; }
+p.authors {
+    font-size: 1.25em;
+}
 
 /* Large Package Icon - up to 128x128 */
 
@@ -465,6 +471,7 @@ fieldset.search {
     }
 
 #searchResults {
+    clear: both;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -477,7 +484,9 @@ fieldset.search {
 /* List Package */
 
 .package-list-lastupdated {
-    font-size: 14pt;
+    float: left;
+    font-style: italic;
+    font-size: 8pt;
 }
 
 section.package {
@@ -517,7 +526,9 @@ section.package {
     }
 
     section.package ul,
-    section.package li { display: inline; }
+    section.package li {
+        display: inline;
+    }
 
     section.package h1 {
         font-size: 1.75em;
@@ -595,7 +606,9 @@ ul.pager {
             padding-right: 7px;
         }
 
-ul.pager li.next { padding-left: 10px; }
+        ul.pager li.next {
+            padding-left: 10px;
+        }
 
 /* Sexy Table */
 
@@ -641,9 +654,9 @@ ul.pager li.next { padding-left: 10px; }
             background-color: #f4f5f6;
         }
 
-.sexy-table tbody tr.recommended { 
-    font-weight: 800;
-}
+        .sexy-table tbody tr.recommended {
+            font-weight: 800;
+        }
 
     .sexy-table tbody td {
         padding: 5px 25px 5px 0;
@@ -864,9 +877,13 @@ fieldset.form {
         display: none;
     }
 
-.form-field p { margin-left: 10px; }
+.form-field p {
+    margin-left: 10px;
+}
 
-.form-field h3 { color: #52a4ca; }
+.form-field h3 {
+    color: #52a4ca;
+}
 
 .form-field {
     margin-bottom: 10px;
@@ -918,16 +935,21 @@ fieldset.form {
         padding-left: 6px;
     }
 
-.form-field input[type="checkbox"] { border-left: none; }
+    .form-field input[type="checkbox"] {
+        border-left: none;
+    }
 
-.form-field input[type="url"] { width: 100%; }
+    .form-field input[type="url"] {
+        width: 100%;
+    }
 
-.form-field select {
-    color: #7f8c7d;
-    font-size: 1.25em;
-    padding: 2px;
-    margin: 0px 0px 10px 0;
-}
+    .form-field select {
+        color: #7f8c7d;
+        font-size: 1.25em;
+        padding: 2px;
+        margin: 0px 0px 10px 0;
+    }
+
         .form-field select[data-edited=true] {
             border-left: solid 4px #2ef12e;
             padding-left: 0px;
@@ -949,31 +971,31 @@ fieldset.form {
         background-color: #e6e6e6;
     }
 
-.form-field select[data-edited=true] {
-    border-left: solid 4px #2ef12e;
-    padding-left: 0px;
-}
+    .form-field select[data-edited=true] {
+        border-left: solid 4px #2ef12e;
+        padding-left: 0px;
+    }
 
-.form-field textarea[disabled],
-.form-field input[type="email"][disabled],
-.form-field input[type="text"][disabled],
-.form-field input[type="file"][disabled],
-.form-field input[type="password"][disabled],
-.form input[type="submit"][disabled],
-.form input[type="submit"][disabled]:hover {
-    background: silver;
-    cursor: not-allowed;
-    border: none;
-    opacity: 0.65;
-    filter: alpha(opacity=65);
-    color: #333;
-    background-color: #e6e6e6;
-}
+    .form-field textarea[disabled],
+    .form-field input[type="email"][disabled],
+    .form-field input[type="text"][disabled],
+    .form-field input[type="file"][disabled],
+    .form-field input[type="password"][disabled],
+    .form input[type="submit"][disabled],
+    .form input[type="submit"][disabled]:hover {
+        background: silver;
+        cursor: not-allowed;
+        border: none;
+        opacity: 0.65;
+        filter: alpha(opacity=65);
+        color: #333;
+        background-color: #e6e6e6;
+    }
 
-.form-field input.input-validation-error,
-.form-field textarea.input-validation-error {
-    border-left: solid 5px #ca5252;
-}
+    .form-field input.input-validation-error,
+    .form-field textarea.input-validation-error {
+        border-left: solid 5px #ca5252;
+    }
 
 /* flyout Text */
 
@@ -1113,8 +1135,7 @@ button, input[type="submit"], .btn {
 }
 
 /* Last Updated Timestamp (in various places)*/
-.last-updated
-{
+.last-updated {
     margin-top: 1em;
     clear: both;
     color: grey;
@@ -1130,36 +1151,36 @@ button, input[type="submit"], .btn {
     padding: 0;
 }
 
-.sequence li {
-    border: solid 1px #333;
-    box-shadow: inset 0px 0px 1px rgba(255, 255, 255, 1), 1px 1px 1px rgba(0, 0, 0, 0.3);
-    color: #333;
-    float: left;
-    height: 35px;
-    line-height: 35px;
-    margin: 0 30px 20px 0;
-    padding: 0 20px;
-    width: auto;
-}
+    .sequence li {
+        border: solid 1px #333;
+        box-shadow: inset 0px 0px 1px rgba(255, 255, 255, 1), 1px 1px 1px rgba(0, 0, 0, 0.3);
+        color: #333;
+        float: left;
+        height: 35px;
+        line-height: 35px;
+        margin: 0 30px 20px 0;
+        padding: 0 20px;
+        width: auto;
+    }
 
-.sequence li.past,
-.sequence li.current {
-    background-color: #4585aa;
-    background-image: -ms-linear-gradient(top, #4585aa 0%, #376783 100%);
-    background-image: -o-linear-gradient(top, #4585aa 0%, #376783 100%);
-    background-image: -webkit-linear-gradient(top, #4585aa 0%, #376783 100%);
-    background-image: linear-gradient(top, #4585aa 0%, #376783 100%);
-    border-color: #376783;
-    color: #fff;
-}
+        .sequence li.past,
+        .sequence li.current {
+            background-color: #4585aa;
+            background-image: -ms-linear-gradient(top, #4585aa 0%, #376783 100%);
+            background-image: -o-linear-gradient(top, #4585aa 0%, #376783 100%);
+            background-image: -webkit-linear-gradient(top, #4585aa 0%, #376783 100%);
+            background-image: linear-gradient(top, #4585aa 0%, #376783 100%);
+            border-color: #376783;
+            color: #fff;
+        }
 
-.sequence li.current {
-    font-weight: 600;
-    height: 41px;
-    line-height: 41px;
-    margin-top: -3px;
-    text-decoration: underline;
-}
+        .sequence li.current {
+            font-weight: 600;
+            height: 41px;
+            line-height: 41px;
+            margin-top: -3px;
+            text-decoration: underline;
+        }
 
 .btn.btn-big {
     width: 100%;
@@ -1215,13 +1236,13 @@ ul.actionlist {
                 color: #0071bc;
             }
 
-                ul.actionlist li.actionlist-item a.actionlist-item-link:hover .actionlist-item-header .actionlist-item-header-text {
-                    text-decoration: underline;
-                }
+            ul.actionlist li.actionlist-item a.actionlist-item-link:hover .actionlist-item-header .actionlist-item-header-text {
+                text-decoration: underline;
+            }
 
-        ul.actionlist li.actionlist-item a.actionlist-item-link:hover {
-            text-decoration: none
-        }
+            ul.actionlist li.actionlist-item a.actionlist-item-link:hover {
+                text-decoration: none;
+            }
 
 ul.accordian {
     margin: 0;
@@ -1252,6 +1273,7 @@ ul.accordian {
             font-size: 12pt;
             margin-left: 1em;
         }
+
             ul.accordian li.accordian-item .accordian-item-subtitle .owner-image {
                 margin-bottom: -8px;
             }
@@ -1306,8 +1328,7 @@ ul.accordian {
 }
 
 span.sorted-by {
-    width: 100%;
-    text-align: right;
+    float: right;
     color: #52a4ca;
     display: block;
     font-size: 1.25em;
