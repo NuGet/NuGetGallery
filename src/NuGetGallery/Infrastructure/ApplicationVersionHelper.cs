@@ -41,7 +41,7 @@ namespace NuGetGallery
             Commit = commit;
             BuildDateUtc = buildDateUtc;
 
-            ShortCommit = String.IsNullOrEmpty(Commit) ? String.Empty : Commit.Substring(0, 10);
+            ShortCommit = String.IsNullOrEmpty(Commit) ? String.Empty : Commit.Substring(0, Math.Min(10, Commit.Length));
 
             if (repositoryBase != null)
             {
