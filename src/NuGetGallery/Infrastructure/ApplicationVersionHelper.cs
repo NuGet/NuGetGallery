@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Web;
@@ -99,7 +100,7 @@ namespace NuGetGallery
                 string repoUriString = TryGet(metadata, "RepositoryUrl");
 
                 DateTime buildDate;
-                if (!DateTime.TryParse(dateString, out buildDate))
+                if (!DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out buildDate))
                 {
                     buildDate = DateTime.MinValue;
                 }
