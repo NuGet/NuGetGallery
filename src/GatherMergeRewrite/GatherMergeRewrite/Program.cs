@@ -90,7 +90,7 @@ namespace GatherMergeRewrite
             };
 
             string ownerId = "microsoft";
-            string registrationId = "entityframework";
+            string registrationId = "dotnetrdf";
 
             string path = @"c:\data\nupkgs\" + registrationId + @"\";
 
@@ -98,7 +98,7 @@ namespace GatherMergeRewrite
 
             LocalPackageHandle[] handles = new LocalPackageHandle[]
             { 
-                new LocalPackageHandle(ownerId, registrationId, path + "entityframework.4.1.10311.nupkg", DateTime.Now),
+                new LocalPackageHandle(ownerId, registrationId, path + "dotnetrdf.0.8.0.nupkg", DateTime.Now),
                 //new LocalPackageHandle(ownerId, registrationId, path + "EntityFramework.5.0.0.nupkg", DateTime.Now),
             };
             
@@ -125,19 +125,21 @@ namespace GatherMergeRewrite
 
         static void Test2()
         {
-            //IStorage storage = new AzureStorage
-            //{
-            //    ConnectionString = "",
-            //    Container = "pub",
-            //    BaseAddress = "http://nuget3.blob.core.windows.net"
-            //};
+            string accountKey = "";
 
-            IStorage storage = new FileStorage
+            IStorage storage = new AzureStorage
             {
-                Path = @"c:\data\site\pub",
+                ConnectionString = string.Format("DefaultEndpointsProtocol=https;AccountName=nuget3;AccountKey={0}", accountKey),
                 Container = "pub",
-                BaseAddress = "http://localhost:8000"
+                BaseAddress = "http://nuget3.blob.core.windows.net"
             };
+
+            //IStorage storage = new FileStorage
+            //{
+            //    Path = @"c:\data\site\pub",
+            //    Container = "pub",
+            //    BaseAddress = "http://localhost:8000"
+            //};
 
             string ownerId = "microsoft";
             string path = @"c:\data\nupkgs\";
@@ -176,7 +178,10 @@ namespace GatherMergeRewrite
 
             Console.WriteLine("{0} seconds {1} packages", (after - before).TotalSeconds, packages.Count);
 
-            Console.WriteLine("save: {0} load: {1}", ((FileStorage)storage).SaveCount, ((FileStorage)storage).LoadCount);
+            if (storage is FileStorage)
+            {
+                Console.WriteLine("save: {0} load: {1}", ((FileStorage)storage).SaveCount, ((FileStorage)storage).LoadCount);
+            }
         }
 
         static async Task Test3_LoadFromDatabaseLogs(string resumePackage)
@@ -339,8 +344,11 @@ namespace GatherMergeRewrite
             try
             {
                 //Test0();
+
                 //Test1();
+                
                 Test2();
+                
                 //Test3_LoadFromDatabaseLogs(args.Length > 0 ? args[0] : null).Wait();
             }
             catch (AggregateException g)

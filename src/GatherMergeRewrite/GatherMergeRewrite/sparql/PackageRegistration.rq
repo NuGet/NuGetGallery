@@ -24,7 +24,7 @@ CONSTRUCT
                                nuget:value ?dependency_group_property_value .
 
 	?dependency nuget:id ?dependency_id ;
-				nuget:registration ?dependency_registration ;
+				nuget:registrationUrl ?dependency_registration ;
 				nuget:range ?dependency_version ;
 				nuget:property ?dependency_property .
 
@@ -36,8 +36,7 @@ WHERE
 {
     @resource a nuget:PackageRegistration ;
               nuget:id ?id ;
-              nuget:owner ?owner ;
-              nuget:container ?container .
+              nuget:owner ?owner .
 
     ?package a nuget:Package ;
              nuget:registration @resource .
@@ -62,7 +61,7 @@ WHERE
 		}
 		
 		?dependency nuget:id ?dependency_id ;
-					nuget:registration ?dependency_registration .
+					nuget:url ?dependency_registration .
 		OPTIONAL { ?dependency nuget:range ?dependency_version . }
 		OPTIONAL 
 		{ 

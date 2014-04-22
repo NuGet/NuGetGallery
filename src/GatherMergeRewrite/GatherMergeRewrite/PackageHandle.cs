@@ -36,10 +36,12 @@ namespace GatherMergeRewrite
             graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("nuget:owns"), graph.CreateUriNode(registrationUri));
 
             Uri catalogUri = new Uri(baseAddress + "catalog/index.json");
-            Uri cataloPageUri = new Uri(baseAddress + "catalog/page/" + data.RegistrationId.Substring(0, 1) + ".json");
+            Uri catalogPageUri = new Uri(baseAddress + "catalog/page/" + data.RegistrationId.Substring(0, 1) + ".json");
+            Uri catalogRegistrationUri = new Uri(baseAddress + "catalog/registration/" + data.RegistrationId + ".json");
 
-            graph.Assert(graph.CreateUriNode(catalogUri), graph.CreateUriNode("nuget:item"), graph.CreateUriNode(cataloPageUri));
-            graph.Assert(graph.CreateUriNode(cataloPageUri), graph.CreateUriNode("nuget:item"), graph.CreateUriNode(registrationUri));
+            graph.Assert(graph.CreateUriNode(catalogUri), graph.CreateUriNode("nuget:item"), graph.CreateUriNode(catalogPageUri));
+            graph.Assert(graph.CreateUriNode(catalogPageUri), graph.CreateUriNode("nuget:item"), graph.CreateUriNode(catalogRegistrationUri));
+            graph.Assert(graph.CreateUriNode(catalogRegistrationUri), graph.CreateUriNode("nuget:item"), triple.Subject);
 
             return graph;
         }
