@@ -101,7 +101,7 @@
                 }
                 ampm = "PM";
             }
-            $(this).text(utc.getFullYear() + "-" + padInt(utc.getMonth(), 2) + "-" + padInt(utc.getDate(), 2) + " " + hrs + ":" + padInt(utc.getMinutes(), 2) + " " + ampm + " Local Time");
+            $(this).text(utc.getFullYear() + "-" + padInt(utc.getMonth() + 1, 2) + "-" + padInt(utc.getDate(), 2) + " " + hrs + ":" + padInt(utc.getMinutes(), 2) + " " + ampm + " Local Time");
         });
         $('time.timeago').timeago();
     }
