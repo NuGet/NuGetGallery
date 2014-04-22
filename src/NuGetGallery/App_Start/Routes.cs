@@ -315,12 +315,12 @@ namespace NuGetGallery
             routes.MapRoute(
                 "v2PackageIds",
                 "api/v2/package-ids",
-                new { controller = "Api", action = "GetPackageIds" });
+                new { controller = "Api", action = "PackageIDs" });
 
             routes.MapRoute(
                 "v2PackageVersions",
                 "api/v2/package-versions/{id}",
-                new { controller = "Api", action = "GetPackageVersions" });
+                new { controller = "Api", action = "PackageVersions" });
 
             routes.MapRoute(
                 RouteName.StatisticsDownloadsApi,
