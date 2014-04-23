@@ -1,6 +1,7 @@
 ﻿@model PackageListViewModel
 @{
     ViewBag.Title = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "Packages" : "Packages matching " + Model.SearchTerm;
+    ViewBag.SortText = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "recent installs" : "relevance";
     ViewBag.Tab = "Packages";
 }
 
@@ -27,13 +28,16 @@
                 <text>There are @Model.TotalCount packages</text>
             }</h1>
     }
-    @if (@Model.LastResultIndex > 0)
+    <span class="sorted-by">Sorted by @ViewBag.SortText</span>
+    @if (Model.LastResultIndex > 0)
     {
         <h2>Displaying results @Model.FirstResultIndex - @Model.LastResultIndex.</h2>
     }
+    @if(Model.IndexTimestampUtc.HasValue)
+    {
+        <p class="package-list-lastupdated" title="The time the Search Index was last modified to incorporate new packages.">Search Index last updated <time class="timeago" datetime="@Model.IndexTimestampUtc.Value.ToJavaScriptUTC()">@Model.IndexTimestampUtc.Value.ToNuGetShortDateTimeString() UTC</time></p>
+    }
 </div>
-
-<span class="sorted-by">Sorted by Recent Installs</span>
 
 <ul id="searchResults">
     @foreach (var package in Model.Items)

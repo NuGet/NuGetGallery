@@ -111,12 +111,13 @@ namespace NuGetGallery.Infrastructure.Lucene
                 var content = await result.ReadContent();
                 if (filter.CountOnly || content.TotalHits == 0)
                 {
-                    results = new SearchResults(content.TotalHits);
+                    results = new SearchResults(content.TotalHits, content.IndexTimestamp);
                 }
                 else
                 {
                     results = new SearchResults(
                         content.TotalHits,
+                        content.IndexTimestamp,
                         content.Data.Select(ReadPackage).AsQueryable());
                 }
             }

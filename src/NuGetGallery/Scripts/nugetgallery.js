@@ -26,6 +26,8 @@
         checkServiceStatus();
 
         attachPlugins();
+
+        sniffClickonce();
     });
 
 	// Add validator that ensures provided value is NOT equal to a specified value.
@@ -42,6 +44,21 @@
         while (s.length < size) s = "0" + s;
         return s;
     }
+
+    function hasMimeTypeSupport(desiredMime) {
+        var mimes = window.navigator.mimeTypes,
+            hasSupport = false;
+
+        for (var i = 0; i < mimes.length; i++) {
+            var mime = mimes[i];
+
+            if (mime.type == desiredMime) {
+                hasSupport = true;
+            }
+        }
+
+        return hasSupport;
+    };
 
     // Attach script plugins
     function attachPlugins() {
@@ -71,7 +88,7 @@
                 evt.preventDefault();
             }
         });
-        if(!navigator.mimeTypes["application/x-shockwave-flash"]) {
+        if (!hasMimeTypeSupport("application/x-shockwave-flash")) {
             $('.s-reqflash').remove();
         }
         $('.s-localtime[data-utc]').each(function () {
@@ -84,7 +101,17 @@
                 }
                 ampm = "PM";
             }
-            $(this).text(utc.getFullYear() + "-" + padInt(utc.getMonth(), 2) + "-" + padInt(utc.getDate(), 2) + " " + hrs + ":" + padInt(utc.getMinutes(), 2) + " " + ampm + " Local Time");
+            $(this).text(utc.getFullYear() + "-" + padInt(utc.getMonth() + 1, 2) + "-" + padInt(utc.getDate(), 2) + " " + hrs + ":" + padInt(utc.getMinutes(), 2) + " " + ampm + " Local Time");
         });
+        $('time.timeago').timeago();
+    }
+
+    function sniffClickonce() {
+        var userAgent = window.navigator.userAgent.toUpperCase(),
+            hasNativeDotNet = userAgent.indexOf('.NET CLR 3.5') >= 0;
+
+        if (hasNativeDotNet) {
+            $('body').removeClass('s-noclickonce');
+        }
     }
 })(window, jQuery);

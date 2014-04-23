@@ -24,7 +24,10 @@ namespace NuGetGallery.FunctionalTests.Fluent
             string version = "1.0.0";
             string tagString = ";This,is a,;test,,package, created ;by ,the  NuGet;;;team.";
 
-            UploadPackageIfNecessary(packageName, version, null, null, tagString, "This is a test package created by the NuGet team.");
+            if (CheckForPackageExistence)
+            {
+                UploadPackageIfNecessary(packageName, version, null, null, tagString, "This is a test package created by the NuGet team.");
+            }
 
             // Go to the package page.
             I.Open(UrlHelper.BaseUrl + @"Packages/" + packageName + "/" + version);

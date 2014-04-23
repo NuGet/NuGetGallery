@@ -1,4 +1,4 @@
-param([string]$ParentBranch = "prod")
+param([string]$ParentBranch = "master")
 
 git branch --merged "origin/$ParentBranch" -r | 
         foreach { $_.Trim() } | 
@@ -6,7 +6,7 @@ git branch --merged "origin/$ParentBranch" -r |
         where { 
             ($_ -notlike "origin/pr*") -and 
             ($_ -notlike "origin/HEAD*") -and 
-            (@("origin/master","origin/prod","origin/staging","origin/iter-start","origin/qa") -notcontains $_) 
+            (@("origin/master") -notcontains $_) 
         } | 
         foreach {
             $_.Substring("origin/".Length)

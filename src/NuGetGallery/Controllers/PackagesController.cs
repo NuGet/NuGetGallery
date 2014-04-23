@@ -190,9 +190,15 @@ namespace NuGetGallery
                 {
                     nuGetPackage = CreatePackage(uploadStream);
                 }
+                catch (InvalidPackageException ipex)
+                {
+                    ipex.Log();
+                    ModelState.AddModelError(String.Empty, ipex.Message);
+                    return View();
+                }
                 catch (Exception ex)
                 {
-                    QuietLog.LogHandledException(ex);
+                    ex.Log();
                     ModelState.AddModelError(String.Empty, Strings.FailedToReadUploadFile);
                     return View();
                 }
@@ -303,6 +309,7 @@ namespace NuGetGallery
 
             var viewModel = new PackageListViewModel(
                 results.Data,
+                results.IndexTimestampUtc,
                 q,
                 totalHits,
                 page - 1,
@@ -768,19 +775,13 @@ namespace NuGetGallery
                     return RedirectToRoute(RouteName.UploadPackage);
                 }
 
-                try
+                using (INupkg package = await SafeCreatePackage(currentUser, uploadFile))
                 {
-                    using (INupkg package = CreatePackage(uploadFile))
+                    if (package == null)
                     {
-                        packageMetadata = package.Metadata;
+                        return Redirect(Url.UploadPackage());
                     }
-                }
-                catch (InvalidDataException e)
-                {
-                    // Log the exception in case we get support requests about it.
-                    QuietLog.LogHandledException(e);
-
-                    return View("UnverifiablePackage");
+                    packageMetadata = package.Metadata;
                 }
             }
 
@@ -826,7 +827,13 @@ namespace NuGetGallery
                     return new RedirectResult(Url.UploadPackage());
                 }
 
-                INupkg nugetPackage = CreatePackage(uploadFile);
+                INupkg nugetPackage = await SafeCreatePackage(currentUser, uploadFile);
+                if (nugetPackage == null)
+                {
+                    // Send the user back
+                    return new RedirectResult(Url.UploadPackage());
+                }
+                Debug.Assert(nugetPackage != null);
 
                 // Rule out problem scenario with multiple tabs - verification request (possibly with edits) was submitted by user 
                 // viewing a different package to what was actually most recently uploaded
@@ -903,6 +910,35 @@ namespace NuGetGallery
             return RedirectToRoute(RouteName.DisplayPackage, new { package.PackageRegistration.Id, package.Version });
         }
 
+        private async Task<INupkg> SafeCreatePackage(NuGetGallery.User currentUser, Stream uploadFile)
+        {
+            Exception caught = null;
+            INupkg nugetPackage = null;
+            try
+            {
+                nugetPackage = CreatePackage(uploadFile);
+            }
+            catch (InvalidPackageException ipex)
+            {
+                caught = ipex.AsUserSafeException();
+            }
+            catch (Exception ex)
+            {
+                // Can't wait for Roslyn to let us await in Catch blocks :(
+                caught = ex;
+            }
+            if (caught != null)
+            {
+                caught.Log();
+                // Report the error
+                TempData["Message"] = caught.GetUserSafeMessage();
+
+                // Clear the upload
+                await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+            }
+            return nugetPackage;
+        }
+
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -950,7 +986,15 @@ namespace NuGetGallery
         // this methods exist to make unit testing easier
         protected internal virtual INupkg CreatePackage(Stream stream)
         {
-            return new Nupkg(stream, leaveOpen: false);
+            try
+            {
+                return new Nupkg(stream, leaveOpen: false);
+            }
+            catch (Exception)
+            {
+                stream.Dispose();
+                throw;
+            }
         }
 
         private static string GetSortExpression(string sortOrder)

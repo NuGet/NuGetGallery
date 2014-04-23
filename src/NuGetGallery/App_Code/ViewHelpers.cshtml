@@ -129,9 +129,10 @@
     string brand = config == null ? "" : config.Current.Brand;
 
     <p id="releaseTag">
-        This is the @brand.
+        This is the @brand
         @if (ver.Present)
         {
+            @:, version @ver.Version.
             if(!String.IsNullOrEmpty(ver.ShortCommit)) {
                 <text>
                     Deployed from
@@ -155,8 +156,10 @@
             }
             
             if(ver.BuildDateUtc != DateTime.MinValue) {
-                @: Built at <span class="s-localtime" data-utc="@ver.BuildDateUtc.ToString("O")">@ver.BuildDateUtc.ToNuGetShortDateString()</span>.
+                @: Built at <span class="s-localtime" data-utc="@ver.BuildDateUtc.ToJavaScriptUTC()">@ver.BuildDateUtc.ToNuGetShortDateString()</span>.
             }
+        } else {
+            @:.
         }
         
         @* A little quick-n-dirty code to display the current machine *@

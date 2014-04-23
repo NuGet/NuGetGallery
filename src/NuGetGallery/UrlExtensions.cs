@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -7,6 +8,8 @@ namespace NuGetGallery
 {
     public static class UrlExtensions
     {
+        private const string PackageExplorerDeepLink = @"https://npe.codeplex.com/releases/clickonce/NuGetPackageExplorer.application?url={0}&id={1}&version={2}";
+
         // Shorthand for current url
         public static string Current(this UrlHelper url)
         {
@@ -140,9 +143,7 @@ namespace NuGetGallery
 
             urlResult = EnsureTrailingSlash(urlResult);
 
-            string explorerDeepLink = @"https://npe.codeplex.com/releases/clickonce/NuGetPackageExplorer.application?url={0}&id={1}&version={2}";
-
-            return string.Format(explorerDeepLink, urlResult, id, version);
+            return String.Format(CultureInfo.InvariantCulture, PackageExplorerDeepLink, urlResult, id, version);
         }
 
         public static string LogOn(this UrlHelper url)

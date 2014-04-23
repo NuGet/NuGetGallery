@@ -271,13 +271,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.Core.2.8.1\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Platform.Client, Version=3.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="NuGet.Services.Platform.Client, Version=3.0.11.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Services.Platform.Client.3.0.3-rel-0008\lib\portable-net45+wp80+win\NuGet.Services.Platform.Client.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Services.Platform.Client.3.0.11-r-master\lib\portable-net45+wp80+win\NuGet.Services.Platform.Client.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Search.Client, Version=3.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="NuGet.Services.Search.Client, Version=3.0.16.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Services.Search.Client.3.0.3-rel-0015\lib\portable-net45+wp80+win\NuGet.Services.Search.Client.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Services.Search.Client.3.0.16-r-master\lib\portable-net45+wp80+win\NuGet.Services.Search.Client.dll</HintPath>
     </Reference>
     <Reference Include="ODataNullPropagationVisitor">
       <HintPath>..\..\packages\ODataNullPropagationVisitor.0.5.4237.2641\lib\net40\ODataNullPropagationVisitor.dll</HintPath>
@@ -738,6 +738,7 @@
     <Compile Include="Infrastructure\Lucene\PerFieldAnalyzer.cs" />
     <Compile Include="Infrastructure\Lucene\NuGetSearchTerm.cs" />
     <Compile Include="Infrastructure\TracingHttpHandler.cs" />
+    <Compile Include="Infrastructure\UserSafeException.cs" />
     <Compile Include="Migrations\201110060711357_Initial.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -1081,6 +1082,7 @@
     <Content Include="Branding\Views\web.config" />
     <Compile Include="Views\NuGetViewBase.cs" />
     <Content Include="Public\Blocked.html" />
+    <Content Include="Scripts\jquery.timeago.js" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />

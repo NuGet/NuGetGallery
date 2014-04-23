@@ -112,13 +112,13 @@ namespace NuGetGallery.Packaging
         private static Manifest SafelyLoadManifest(ZipArchive archive)
         {
             var manifestEntry = archive.Entries.SingleOrDefault(entry =>
-                    entry.Name.IndexOf("/", StringComparison.Ordinal) == -1
+                    entry.FullName.IndexOf("/", StringComparison.Ordinal) == -1
                     && entry.Name.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase)
                 );
 
             if (manifestEntry == null)
             {
-                throw new InvalidOperationException("The package does not contain a manifest.");
+                throw new InvalidPackageException("A manifest was not found at the root of the package.");
             }
 
             using (var safeStream = GetSizeVerifiedFileStream(manifestEntry, MaxManifestSize))

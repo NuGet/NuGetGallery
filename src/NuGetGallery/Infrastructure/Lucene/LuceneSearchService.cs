@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Lucene.Net.Analysis;
@@ -49,6 +50,9 @@ namespace NuGetGallery
 
         private SearchResults SearchCore(SearchFilter searchFilter)
         {
+            // Get index timestamp
+            DateTime timestamp = File.GetLastWriteTimeUtc(LuceneCommon.GetIndexMetadataPath());
+
             int numRecords = searchFilter.Skip + searchFilter.Take;
 
             var searcher = new IndexSearcher(_directory, readOnly: true);
@@ -77,7 +81,7 @@ namespace NuGetGallery
             
             if (results.TotalHits == 0 || searchFilter.CountOnly)
             {
-                return new SearchResults(results.TotalHits);
+                return new SearchResults(results.TotalHits, timestamp);
             }
 
             var packages = results.ScoreDocs
@@ -86,6 +90,7 @@ namespace NuGetGallery
                                   .ToList();
             return new SearchResults(
                 results.TotalHits,
+                timestamp,
                 packages.AsQueryable());
         }
 

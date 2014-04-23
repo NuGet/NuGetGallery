@@ -114,6 +114,7 @@
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\User.cs" />
     <Compile Include="Packaging\INupkg.cs" />
+    <Compile Include="Packaging\InvalidPackageException.cs" />
     <Compile Include="Packaging\ManifestValidator.cs" />
     <Compile Include="Packaging\Nupkg.cs" />
     <Compile Include="Packaging\NupkgRewriter.cs" />

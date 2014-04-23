@@ -299,4 +299,7 @@ The {2} Team</value>
   <data name="UploadPackage_MinClientVersionOutOfRange" xml:space="preserve">
     <value>This package requires version '{0}' of NuGet, which this gallery does not currently support. Please contact us if you have questions.</value>
   </data>
+  <data name="DefaultUserSafeExceptionMessage" xml:space="preserve">
+    <value>An unexpected error occurred. Contact support for assistance.</value>
+  </data>
 </root>
