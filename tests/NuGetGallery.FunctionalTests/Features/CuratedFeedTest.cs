@@ -249,5 +249,19 @@ namespace NuGetGallery.FunctionalTests.Features
                 if (((HttpWebResponse)e.Response).StatusCode != HttpStatusCode.OK) Assert.Fail("Next page link is broken.  Expected 200, got " + ((HttpWebResponse)e.Response).StatusCode);
             }
         }
+
+        [TestMethod]
+        [Description("Performs a querystring-based search of the Microsoft curated feed.  Confirms expected packages are returned.")]
+        public void SearchMicrosoftDotNetCuratedFeed()
+        {
+            string packageId = "microsoft.aspnet.webpages";
+            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"curated-feeds/microsoftdotnet/Packages()?$filter=tolower(Id)%20eq%20'" + packageId + "'&$orderby=Id&$skip=0&$top=30");
+            // Get the response.          
+            WebResponse response = request.GetResponse();
+            StreamReader sr = new StreamReader(response.GetResponseStream());
+            string responseText = sr.ReadToEnd();
+            Assert.IsTrue(responseText.Contains(@"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId));          
+
+        }
     }
 }

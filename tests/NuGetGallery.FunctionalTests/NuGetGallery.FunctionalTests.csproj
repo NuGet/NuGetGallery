@@ -80,7 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Features\SearchTest.cs" />
-    <Compile Include="LoadTests\PackageDownloadTest.cs" />
+    <Compile Include="LoadTests\LoadTests.cs" />
     <Compile Include="WebUITests\AccountManagement\RegisterNewUserTest.cs" />
     <Compile Include="WebUITests\AssertAndValidationHelper.cs" />
     <Compile Include="ClientIntegrationTests\NuGetCommandLineTests.cs" />
