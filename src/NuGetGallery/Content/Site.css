@@ -227,7 +227,7 @@ nav, section {
 }
 
     #logo a {
-        background: url(../Content/Images/nugetlogo.png) no-repeat;
+        background: url(../Content/Logos/nugetlogo.png) no-repeat;
         display: block;
         height: 75px;
         margin: 0;
@@ -261,7 +261,7 @@ nav, section {
 }
 
     #logo a {
-        background: url(../Content/Images/nugetlogo.png) no-repeat;
+        background: url(../Content/Logos/nugetlogo.png) no-repeat;
         display: block;
         height: 75px;
         margin: 0;
