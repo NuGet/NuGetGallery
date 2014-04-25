@@ -272,6 +272,7 @@ namespace GatherMergeRewrite
                             return;
                         }
                         var nupkgStream = File.OpenRead(file);
+                        Console.WriteLine("Downloaded {0}", nupkgUrl);
                         lock (uploads)
                         {
                             uploads.Add(new CloudPackageHandle(nupkgStream, ownerArray.Count() != 0 ? ownerArray.Select(o => (string)o["OwnerName"]).ToList() : new List<string> {"NULL"},
@@ -285,16 +286,13 @@ namespace GatherMergeRewrite
                             
                         await Processor.Upload(uploads.ToArray(), storage);
 
-                        lock (uploads)
+                        foreach (var upload in uploads)
                         {
-                            foreach (var upload in uploads)
-                            {
-                                upload.Close();
-                            }
-
-                            downloads.Clear();
-                            uploads.Clear();
+                            upload.Close();
                         }
+
+                        downloads.Clear();
+                        uploads.Clear();
                     }
                 }
 
