@@ -77,7 +77,8 @@ namespace NuGetGallery.FunctionalTests.Fluent
             string expectedDescription = @"p:contains('" + newDescription + "')";
             string unexpectedSummary = @"contains('" + newSummary + "')";
             string unexpectedIconUrl = "img[src='" + newIconUrl + "']";
-            string expectedIconUrl = "img[src='/Content/Images/packageDefaultIcon.png']";
+            string defaultIconUrl = UrlHelper.BaseUrl + "Content/Images/packageDefaultIcon.png";
+            string expectedIconUrl = "img[src='" + defaultIconUrl + "']";
             string expectedHomePageUrl = "a[href='" + newHomePageUrl + "']";
             string unexpectedCopyright = @"contains('" + newCopyright + "')";
             string expectedReleaseNotes = @"p:contains('" + newReleaseNotes + "')";
