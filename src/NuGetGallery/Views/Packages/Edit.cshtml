@@ -22,7 +22,7 @@
                 var newValue = event.target.value;
                 $('#IconUrl_Preview').remove();
                 if (newValue.trim().length) {
-                    $(target).after($('<img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="' + encodeURI(newValue) + '"></img>'))
+                    $(target).after($('<img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="' + encodeURI(newValue) + '" />'));
                 }
 
                 RunValidationForEvent(event);
@@ -240,7 +240,13 @@
                 <li>@EditableField(EditPackageVersionRequest.TitleStr, m => m.Edit.VersionTitle)</li>
                 <li>@EditableField(EditPackageVersionRequest.DescriptionStr, m => m.Edit.Description, multiline: true)</li>
                 <li>@EditableField(EditPackageVersionRequest.SummaryStr, m => m.Edit.Summary, multiline: true)</li>
-                <li>@EditableField(EditPackageVersionRequest.IconUrlStr, m => m.Edit.IconUrl, link: true)</li>
+                <li>
+                    @EditableField(EditPackageVersionRequest.IconUrlStr, m => m.Edit.IconUrl, link: true)
+                    @if (string.IsNullOrWhiteSpace(Model.Edit.IconUrl) == false)
+                    {
+                        <img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="@Model.Edit.IconUrl" />
+                    }
+                </li>
                 <li>@EditableField(EditPackageVersionRequest.ProjectUrlStr, m => m.Edit.ProjectUrl, link: true)</li>
                 <li>@EditableField(EditPackageVersionRequest.AuthorsStr, m => m.Edit.Authors)</li>
                 <li>@EditableField(EditPackageVersionRequest.CopyrightStr, m => m.Edit.Copyright)</li>
@@ -252,22 +258,22 @@
                     <li>
                         <h4>
                             @EditPackageVersionRequest.RequiresLicenseAcceptanceStr
-                        <button type="button" class="undo-button" id="UndoEdit_RequiresLicenseAcceptance" style="display: none"><span class="icon-undo"></span></button>
-                    </h4>
-                    <div style="position: relative">
-                        <div id="Edit_RequiresLicenseAcceptanceField" style="width: 100%">
-                            <div class="form-field" style="display: inline">
-                                @Html.DropDownList("Edit.RequiresLicenseAcceptance",
+                            <button type="button" class="undo-button" id="UndoEdit_RequiresLicenseAcceptance" style="display: none"><span class="icon-undo"></span></button>
+                        </h4>
+                        <div style="position: relative">
+                            <div id="Edit_RequiresLicenseAcceptanceField" style="width: 100%">
+                                <div class="form-field" style="display: inline">
+                                    @Html.DropDownList("Edit.RequiresLicenseAcceptance",
                                     new List<SelectListItem>
                                     {
                                         new SelectListItem { Text = "Yes", Value = "true" },
                                         new SelectListItem { Text = "No", Value = "false" },
                                     })
-                                @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+                                    @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </li>
+                    </li>
                 }
             }
         </ul>
