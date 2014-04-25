@@ -31,7 +31,7 @@ namespace NuGetGallery.FunctionTests.Helpers
                if (string.IsNullOrEmpty(runFunctionalTests))
                 {
                     if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RunFunctionalTests")))
-                        runFunctionalTests = "False";
+                        runFunctionalTests = "True";
                     else
                         runFunctionalTests = Environment.GetEnvironmentVariable("RunFunctionalTests");
                 }
