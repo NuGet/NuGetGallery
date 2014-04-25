@@ -184,14 +184,14 @@ namespace GatherMergeRewrite
             }
         }
 
-        static async Task Test3_LoadFromDatabaseLogs(string resumePackage)
+        static async Task Test3_LoadFromDatabaseLogs(string container, int batchSize, string resumePackage)
         {
             string connectionString = "";
             IStorage storage = new AzureStorage
             {
                 ConnectionString = connectionString,
-                Container = "package-metadata",
                 BaseAddress = "http://nugetprod1.blob.core.windows.net"
+                Container = container,
             };
 
             //IStorage storage = new FileStorage
@@ -228,7 +228,7 @@ namespace GatherMergeRewrite
                 {
                     if (!resumePoint)
                     {
-                        if (blob.Uri.ToString().ToLowerInvariant().Contains(resumePackage))
+                        if (blob.Uri.ToString().ToLowerInvariant().Split("/".ToCharArray()).Last().StartsWith(resumePackage + "."))
                         {
                             resumePoint = true;
                         }
@@ -273,12 +273,12 @@ namespace GatherMergeRewrite
                         var nupkgStream = File.OpenRead(file);
                         lock (uploads)
                         {
-                            uploads.Add(new CloudPackageHandle(nupkgStream, ownerArray.Count() != 0 ? (string)ownerArray[0]["OwnerName"] : "NULL",
+                            uploads.Add(new CloudPackageHandle(nupkgStream, ownerArray.Count() != 0 ? ownerArray.Select(o => (string)o["OwnerName"]).ToList() : new List<string> {"NULL"},
                                 packageId, DateTime.Now));
                         }
                     }));
 
-                    if (downloads.Count() == 100)
+                    if (downloads.Count() == batchSize)
                     {
                         await Task.WhenAll(downloads.ToArray());
                             
@@ -350,6 +350,7 @@ namespace GatherMergeRewrite
                 Test2();
                 
                 //Test3_LoadFromDatabaseLogs(args.Length > 0 ? args[0] : null).Wait();
+                Test3_LoadFromDatabaseLogs(args[0], int.Parse(args[1]), args.Length > 2 ? args[2] : null).Wait();
             }
             catch (AggregateException g)
             {
