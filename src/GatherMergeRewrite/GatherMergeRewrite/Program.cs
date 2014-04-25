@@ -127,19 +127,19 @@ namespace GatherMergeRewrite
         {
             string accountKey = "";
 
-            IStorage storage = new AzureStorage
-            {
-                ConnectionString = string.Format("DefaultEndpointsProtocol=https;AccountName=nuget3;AccountKey={0}", accountKey),
-                Container = "pub",
-                BaseAddress = "http://nuget3.blob.core.windows.net"
-            };
-
-            //IStorage storage = new FileStorage
+            //IStorage storage = new AzureStorage
             //{
-            //    Path = @"c:\data\site\pub",
+            //    ConnectionString = string.Format("DefaultEndpointsProtocol=https;AccountName=nuget3;AccountKey={0}", accountKey),
             //    Container = "pub",
-            //    BaseAddress = "http://localhost:8000"
+            //    BaseAddress = "http://nuget3.blob.core.windows.net"
             //};
+
+            IStorage storage = new FileStorage
+            {
+                Path = @"c:\data\site\pub",
+                Container = "pub",
+                BaseAddress = "http://localhost:8000"
+            };
 
             string ownerId = "microsoft";
             string path = @"c:\data\nupkgs\";
@@ -186,12 +186,13 @@ namespace GatherMergeRewrite
 
         static async Task Test3_LoadFromDatabaseLogs(string container, int batchSize, string resumePackage)
         {
-            string connectionString = "";
+            string connectionString1 = "";
+            string connectionString2 = "";
             IStorage storage = new AzureStorage
             {
-                ConnectionString = connectionString,
-                BaseAddress = "http://nugetprod1.blob.core.windows.net"
+                ConnectionString = connectionString2,
                 Container = container,
+                BaseAddress = "http://nugetdev1.blob.core.windows.net"
             };
 
             //IStorage storage = new FileStorage
@@ -203,10 +204,10 @@ namespace GatherMergeRewrite
 
             DateTime before = DateTime.Now;
 
-            CloudStorageAccount account = CloudStorageAccount.Parse(connectionString);
-            CloudBlobContainer mdtriggers = account.CreateCloudBlobClient().GetContainerReference("mdtriggers");
-            CloudBlobContainer metadata = account.CreateCloudBlobClient().GetContainerReference("package-metadata");
-            CloudBlobContainer packages = account.CreateCloudBlobClient().GetContainerReference("packages");
+            CloudStorageAccount account1 = CloudStorageAccount.Parse(connectionString1);
+            CloudStorageAccount account2 = CloudStorageAccount.Parse(connectionString2);
+            CloudBlobContainer mdtriggers = account1.CreateCloudBlobClient().GetContainerReference("mdtriggers");
+            CloudBlobContainer metadata = account2.CreateCloudBlobClient().GetContainerReference(container);
             BlobContinuationToken token = null;
 
             int packageCount = 0;
@@ -238,7 +239,7 @@ namespace GatherMergeRewrite
                         }
                     }
 
-                    var blobRef = account.CreateCloudBlobClient().GetBlobReferenceFromServer(blob.StorageUri);
+                    var blobRef = account1.CreateCloudBlobClient().GetBlobReferenceFromServer(blob.StorageUri);
                     var stream = blobRef.OpenRead();
                     var reader = new StreamReader(stream);
                     string json = reader.ReadToEnd();
@@ -346,11 +347,10 @@ namespace GatherMergeRewrite
                 //Test0();
 
                 //Test1();
-                
+
                 Test2();
-                
-                //Test3_LoadFromDatabaseLogs(args.Length > 0 ? args[0] : null).Wait();
-                Test3_LoadFromDatabaseLogs(args[0], int.Parse(args[1]), args.Length > 2 ? args[2] : null).Wait();
+
+                //Test3_LoadFromDatabaseLogs(args[0], int.Parse(args[1]), args.Length > 2 ? args[2] : null).Wait();
             }
             catch (AggregateException g)
             {
