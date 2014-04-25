@@ -73,7 +73,7 @@ namespace GatherMergeRewrite
         {
             TurtleParser parser = new TurtleParser();
             IGraph g = new Graph();
-            parser.Load(g, new StreamReader(filename));
+            parser.Load(g, new StreamReader(Utils.GetResourceStream(filename)));
             return g;
         }
 
