@@ -16,15 +16,15 @@ namespace GatherMergeRewrite
 {
     class Program
     {
-        static void Upload(IStorage storage, string ownerId, string registrationId, string nupkg, DateTime published)
+        static void Upload(IStorage storage, IList<string> ownerIds, string registrationId, string nupkg, DateTime published)
         {
-            LocalPackageHandle[] handles = new LocalPackageHandle[] { new LocalPackageHandle(ownerId, registrationId, nupkg, published) };
+            LocalPackageHandle[] handles = new LocalPackageHandle[] { new LocalPackageHandle(ownerIds, registrationId, nupkg, published) };
             Processor.Upload(handles, storage).Wait();
         }
 
-        static void Upload(IStorage storage, string ownerId, string registrationId, Stream nupkg, DateTime published)
+        static void Upload(IStorage storage, IList<string> ownerIds, string registrationId, Stream nupkg, DateTime published)
         {
-            CloudPackageHandle[] handles = new CloudPackageHandle[] { new CloudPackageHandle(nupkg, ownerId, registrationId, published) };
+            CloudPackageHandle[] handles = new CloudPackageHandle[] { new CloudPackageHandle(nupkg, ownerIds, registrationId, published) };
             Processor.Upload(handles, storage).Wait();
         }
 
@@ -61,7 +61,7 @@ namespace GatherMergeRewrite
 
                 foreach (FileInfo nupkg in registration.EnumerateFiles("*.nupkg"))
                 {
-                    Upload(storage, ownerId, registrationId, nupkg.FullName, DateTime.Now);
+                    Upload(storage, new List<string> {ownerId}, registrationId, nupkg.FullName, DateTime.Now);
                     packages++;
                 }
             }
@@ -98,7 +98,7 @@ namespace GatherMergeRewrite
 
             LocalPackageHandle[] handles = new LocalPackageHandle[]
             { 
-                new LocalPackageHandle(ownerId, registrationId, path + "dotnetrdf.0.8.0.nupkg", DateTime.Now),
+                new LocalPackageHandle(new List<string>{ownerId}, registrationId, path + "dotnetrdf.0.8.0.nupkg", DateTime.Now),
                 //new LocalPackageHandle(ownerId, registrationId, path + "EntityFramework.5.0.0.nupkg", DateTime.Now),
             };
             
@@ -118,7 +118,7 @@ namespace GatherMergeRewrite
                 Console.WriteLine(t.Item1);
             }
 
-            LocalPackageHandle[] handles = batch.Select((item) => new LocalPackageHandle(ownerId, item.Item1, item.Item2, published)).ToArray();
+            LocalPackageHandle[] handles = batch.Select((item) => new LocalPackageHandle(new List<string>{ownerId}, item.Item1, item.Item2, published)).ToArray();
             
             Processor.Upload(handles, storage).Wait();
         }

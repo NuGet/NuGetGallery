@@ -9,7 +9,7 @@ namespace GatherMergeRewrite
 {
     public class PackageData
     {
-        public string OwnerId { get; set; }
+        public IList<string> OwnerIds { get; set; }
         public string RegistrationId { get; set; }
         public DateTime Published { get; set; }
         public XDocument Nuspec { get; set; }
