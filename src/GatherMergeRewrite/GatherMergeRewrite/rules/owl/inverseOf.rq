@@ -1,0 +1,12 @@
+
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+CONSTRUCT
+{
+	?y ?p ?x
+}
+WHERE
+{
+	?p owl:inverseOf ?q . 
+	?x ?q ?y
+}

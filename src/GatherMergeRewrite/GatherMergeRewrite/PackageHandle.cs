@@ -32,7 +32,7 @@ namespace GatherMergeRewrite
 
             Triple triple = graph.GetTriplesWithPredicateObject(graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:Package")).First();
 
-            graph.Assert(triple.Subject, graph.CreateUriNode("nuget:published"), graph.CreateLiteralNode(data.Published.ToString()));
+            graph.Assert(triple.Subject, graph.CreateUriNode("nuget:published"), graph.CreateLiteralNode(data.Published.ToString(), new Uri("http://www.w3.org/2001/XMLSchema#dateTime")));
             graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("nuget:owns"), graph.CreateUriNode(registrationUri));
 
             Uri catalogUri = new Uri(baseAddress + "catalog/index.json");

@@ -13,14 +13,23 @@ namespace GatherMergeRewrite
 
             IGraph schema = Utils.Load("schema\\schema.ttl");
 
-            IInferenceEngine rdfsPlus = new StaticRdfsPlusReasoner();
-            rdfsPlus.Initialise(schema);
-            Store.AddInferenceEngine(rdfsPlus);
+            //IInferenceEngine rdfsPlus = new StaticRdfsPlusReasoner();
+            //rdfsPlus.Initialise(schema);
+            //Store.AddInferenceEngine(rdfsPlus);
+
             Store.Add(schema, true);
 
             Resources = new Dictionary<Uri, Tuple<string, string, string>>();
             Container = container;
             BaseAddress = baseAddress;
+
+            Reasoner = new Reasoner();
+        }
+
+        public Reasoner Reasoner
+        {
+            get;
+            private set;
         }
 
         public TripleStore Store 
@@ -28,7 +37,7 @@ namespace GatherMergeRewrite
             get; 
             private set; 
         }
-
+        
         public IDictionary<Uri, Tuple<string, string, string>> Resources 
         { 
             get; 

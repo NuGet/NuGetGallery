@@ -1,0 +1,32 @@
+
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+CONSTRUCT
+{
+  ?subject a ?type .
+}
+WHERE
+{
+  ?type a owl:Restriction .
+  ?type owl:onProperty ?predicate .
+  ?type owl:maxCardinality ?maxCardinality .
+  FILTER (?cardinality <= ?maxCardinality)
+  {
+    SELECT ?subject ?predicate COUNT(?object) AS ?cardinality
+    WHERE
+    {
+      ?subject ?predicate ?object .
+
+      SELECT DISTINCT ?predicate
+      WHERE
+      {
+        ?type a owl:Restriction .
+        ?type owl:onProperty ?predicate .
+        ?type owl:maxCardinality ?maxCardinality .
+      }
+    }
+    GROUP BY ?subject ?predicate
+  }
+}
+
+
