@@ -1,0 +1,13 @@
+
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+CONSTRUCT
+{
+	?a rdfs:subClassOf ?c
+}
+WHERE
+{
+	?a rdfs:subClassOf ?b .
+	?b rdfs:subClassOf ?c
+}
+
