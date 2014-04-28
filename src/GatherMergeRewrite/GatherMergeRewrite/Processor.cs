@@ -135,7 +135,10 @@ namespace GatherMergeRewrite
 
                 if (resourceGraph.Triples.Count == 0)
                 {
-                    Utils.Dump(SparqlHelpers.Construct(state.Store, (new StreamReader("sparql\\All.rq")).ReadToEnd()));
+                    using (var outfile = new StreamWriter("graphdump.ttl"))
+                    {
+                        Utils.Dump(SparqlHelpers.Construct(state.Store, (new StreamReader(Utils.GetResourceStream("sparql\\All.rq"))).ReadToEnd()), outfile);
+                    }
                     throw new Exception(string.Format("resource {0} is empty (created by {1})", resource.Key, resource.Value.Item1));
                 }
 

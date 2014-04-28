@@ -22,7 +22,6 @@ namespace GatherMergeRewrite
         {
             PackageData data = await GetData();
 
-            Uri ownerUri = new Uri(baseAddress + "owners/" + data.OwnerId + ".json");
             Uri registrationUri = new Uri(baseAddress + "packages/" + data.RegistrationId + ".json");
 
             IGraph graph = Utils.CreateNuspecGraph(data.Nuspec, baseAddress);
@@ -31,9 +30,13 @@ namespace GatherMergeRewrite
             graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
 
             Triple triple = graph.GetTriplesWithPredicateObject(graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:Package")).First();
+            graph.Assert(triple.Subject, graph.CreateUriNode("nuget:published"), graph.CreateLiteralNode(data.Published.ToString()));
 
-            graph.Assert(triple.Subject, graph.CreateUriNode("nuget:published"), graph.CreateLiteralNode(data.Published.ToString(), new Uri("http://www.w3.org/2001/XMLSchema#dateTime")));
-            graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("nuget:owns"), graph.CreateUriNode(registrationUri));
+            foreach (string owner in data.OwnerIds)
+            {
+                Uri ownerUri = new Uri(baseAddress + "owners/" + owner + ".json");
+                graph.Assert(graph.CreateUriNode(ownerUri), graph.CreateUriNode("nuget:owns"), graph.CreateUriNode(registrationUri));
+            }
 
             Uri catalogUri = new Uri(baseAddress + "catalog/index.json");
             Uri catalogPageUri = new Uri(baseAddress + "catalog/page/" + data.RegistrationId.Substring(0, 1) + ".json");

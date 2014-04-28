@@ -13,7 +13,7 @@ namespace GatherMergeRewrite
     class CloudPackageHandle : PackageHandle
     {
         Stream _stream;
-        string _owner;
+        IList<string> _owner;
         string _registrationId;
         DateTime _published;
 
@@ -25,7 +25,7 @@ namespace GatherMergeRewrite
             }
         }
 
-        public CloudPackageHandle(Stream stream, string owner, string registrationId, DateTime published)
+        public CloudPackageHandle(Stream stream, IList<string> owner, string registrationId, DateTime published)
         {
             _stream = stream;
             _owner = owner;
@@ -42,7 +42,7 @@ namespace GatherMergeRewrite
 
             PackageData result = new PackageData()
             {
-                OwnerId = _owner,
+                OwnerIds = _owner,
                 RegistrationId = _registrationId,
                 Published = _published,
                 Nuspec = nuspec

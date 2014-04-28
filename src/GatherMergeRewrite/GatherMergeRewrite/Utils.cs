@@ -62,18 +62,23 @@ namespace GatherMergeRewrite
 
         public static void Dump(IGraph graph)
         {
+            Dump(graph, Console.Out);
+        }
+
+        public static void Dump(IGraph graph, TextWriter outfile)
+        {
             CompressingTurtleWriter turtleWriter = new CompressingTurtleWriter();
             turtleWriter.DefaultNamespaces.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
             turtleWriter.PrettyPrintMode = true;
             turtleWriter.CompressionLevel = 10;
-            turtleWriter.Save(graph, Console.Out);
+            turtleWriter.Save(graph, outfile);
         }
 
         public static IGraph Load(string filename)
         {
             TurtleParser parser = new TurtleParser();
             IGraph g = new Graph();
-            parser.Load(g, new StreamReader(filename));
+            parser.Load(g, new StreamReader(Utils.GetResourceStream(filename)));
             return g;
         }
 

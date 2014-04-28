@@ -13,12 +13,12 @@ namespace GatherMergeRewrite
 {
     public class LocalPackageHandle : PackageHandle
     {
-        string _owner;
+        IList<string> _owner;
         string _registrationId;
         string _filename;
         DateTime _published;
 
-        public LocalPackageHandle(string owner, string registrationId, string filename, DateTime published)
+        public LocalPackageHandle(IList<string> owner, string registrationId, string filename, DateTime published)
         {
             _owner = owner;
             _registrationId = registrationId;
@@ -34,7 +34,7 @@ namespace GatherMergeRewrite
 
             PackageData result = new PackageData()
             {
-                OwnerId = _owner,
+                OwnerIds = _owner,
                 RegistrationId = _registrationId,
                 Published = _published,
                 Nuspec = nuspec
