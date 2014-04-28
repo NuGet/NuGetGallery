@@ -262,8 +262,8 @@ namespace CatalogTests
         {
             try
             {
-                //Test0();
-                Test1(args.Length > 0 ? args[0] : null).Wait();
+                Test0();
+                //Test1(args.Length > 0 ? args[0] : null).Wait();
             }
             catch (Exception e)
             {
