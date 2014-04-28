@@ -17,6 +17,7 @@
   <xsl:template match="/nuget:package/nuget:metadata">
     <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 
+      <!--
       <ng:PackageRegistration>
         <xsl:attribute name="rdf:about">
           <xsl:value-of select="translate(concat($base, nuget:id, $extension), $uppercase, $lowercase)"/>
@@ -25,7 +26,8 @@
           <xsl:value-of select="nuget:id"/>
         </ng:id>
       </ng:PackageRegistration>
-
+      -->
+      
       <ng:Package>
 
         <xsl:variable name="path" select="concat(nuget:id, '/', nuget:version)" />
@@ -34,12 +36,14 @@
           <xsl:value-of select="translate(concat($base, $path, $extension), $uppercase, $lowercase)"/>
         </xsl:attribute>
 
+        <!--
         <ng:registration>
           <xsl:attribute name="rdf:resource">
             <xsl:value-of select="translate(concat($base, nuget:id, $extension), $uppercase, $lowercase)"/>
           </xsl:attribute>
         </ng:registration>
-
+        -->
+        
         <xsl:for-each select="*">
           <xsl:choose>
 

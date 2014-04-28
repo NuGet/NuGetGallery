@@ -14,7 +14,8 @@ nuget:Owner rdfs:subClassOf nuget:Resource .
 nuget:Container rdfs:subClassOf nuget:Resource .
 
 
-nuget:registration rdfs:domain nuget:Package .
+nuget:registration rdfs:domain nuget:Package ;
+                   rdfs:range nuget:PackageRegistration .
 
 nuget:package rdfs:domain nuget:PackageRegistration .
 

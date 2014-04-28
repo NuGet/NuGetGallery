@@ -5,38 +5,17 @@ CONSTRUCT
     @resource a nuget:PackageRegistration ;
               nuget:id ?id ;
               nuget:owners ?owner ;
-              nuget:package ?package ;
-              nuget:container ?container .
+              nuget:package ?package .
 
 	?package nuget:id ?packageId ;
 			 nuget:version ?packageVersion ;
-			 nuget:published ?published ;
-             nuget:dependencies ?dependencies .
-
-    ?dependencies nuget:group ?dependency_group .
-
-    ?dependency_group nuget:dependency ?dependency ;
-                      nuget:targetFramework ?dependency_group_targetFramework ;
-					  nuget:name ?dependency_group_name ;
-					  nuget:property ?dependency_group_property .
-
-    ?dependency_group_property nuget:name ?dependency_group_property_name ;
-                               nuget:value ?dependency_group_property_value .
-
-	?dependency nuget:id ?dependency_id ;
-				nuget:registrationUrl ?dependency_registration ;
-				nuget:range ?dependency_version ;
-				nuget:property ?dependency_property .
-
-	?dependency_property nuget:name ?dependency_property_name ;
-					     nuget:value ?dependency_property_value .
-
+			 nuget:published ?published .
 }
 WHERE
 {
     @resource a nuget:PackageRegistration ;
               nuget:id ?id ;
-              nuget:owner ?owner .
+			  nuget:owner ?owner .
 
     ?package a nuget:Package ;
              nuget:registration @resource .
@@ -44,30 +23,4 @@ WHERE
 	?package nuget:id ?packageId ;
 			 nuget:version ?packageVersion ;
 			 nuget:published ?published .
-
-	OPTIONAL
-	{
-        ?package nuget:dependencies ?dependencies .
-		?dependencies nuget:group ?dependency_group .
-
-		?dependency_group nuget:dependency ?dependency .
-		OPTIONAL { ?dependency_group nuget:targetFramework ?dependency_group_targetFramework . }
-		OPTIONAL { ?dependency_group nuget:name ?dependency_group_name . }
-		OPTIONAL 
-		{ 
-			?dependency_group nuget:property ?dependency_group_property .
-			?dependency_group_property nuget:name ?dependency_group_property_name ;
-								       nuget:value ?dependency_group_property_value .
-		}
-		
-		?dependency nuget:id ?dependency_id ;
-					nuget:url ?dependency_registration .
-		OPTIONAL { ?dependency nuget:range ?dependency_version . }
-		OPTIONAL 
-		{ 
-			?dependency nuget:property ?dependency_property .
-			?dependency_property nuget:name ?dependency_property_name ;
-								 nuget:value ?dependency_property_value .
-		}
-	}
 }

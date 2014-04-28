@@ -23,10 +23,11 @@ namespace GatherMergeRewrite
             SparqlQueryParser sparqlparser = new SparqlQueryParser();
 
             _rules.Add(sparqlparser.ParseFromString(Load("rules\\rdfs\\domain.rq")));
+            _rules.Add(sparqlparser.ParseFromString(Load("rules\\rdfs\\range.rq")));
             _rules.Add(sparqlparser.ParseFromString(Load("rules\\rdfs\\subClassOf.rq")));
-            _rules.Add(sparqlparser.ParseFromString(Load("rules\\owl\\owl.rq")));
-            _rules.Add(sparqlparser.ParseFromString(Load("rules\\owl\\SymmetricProperty.rq")));
-            _rules.Add(sparqlparser.ParseFromString(Load("rules\\owl\\inverseOf.rq")));
+            //_rules.Add(sparqlparser.ParseFromString(Load("rules\\owl\\owl.rq")));
+            //_rules.Add(sparqlparser.ParseFromString(Load("rules\\owl\\SymmetricProperty.rq")));
+            //_rules.Add(sparqlparser.ParseFromString(Load("rules\\owl\\inverseOf.rq")));
         }
 
         public void Apply(TripleStore store)

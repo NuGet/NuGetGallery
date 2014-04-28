@@ -42,7 +42,6 @@ WHERE
 {
     @resource nuget:id ?id ;
 	          nuget:version ?version ;
-	          nuget:registration ?registration ;
 			  nuget:container ?container .
 
 	OPTIONAL { @resource nuget:authors ?authors . }
@@ -54,8 +53,6 @@ WHERE
 	OPTIONAL { @resource nuget:releaseNotes ?releaseNotes . }
 	OPTIONAL { @resource nuget:tag ?tag . }
 	OPTIONAL { @resource nuget:published ?published . }
-
-	?registration nuget:owner ?owner .
 
 	OPTIONAL
 	{

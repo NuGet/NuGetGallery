@@ -24,11 +24,13 @@ namespace GatherMergeRewrite
 
             Uri registrationUri = new Uri(baseAddress + "packages/" + data.RegistrationId + ".json");
 
-            IGraph graph = Utils.CreateNuspecGraph(data.Nuspec, baseAddress);
+            IGraph graph = Utils.CreateNuspecGraph(data.Nuspec, itemBaseAddress);
+
+            //Uri ownerUri = new Uri(baseAddress + "catalog/view/owner/" + data.OwnerId + ".json");
+            //Uri registrationUri = new Uri(baseAddress + "catalog/view/registration/" + data.RegistrationId + ".json");
 
             graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
             graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
-
             Triple triple = graph.GetTriplesWithPredicateObject(graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:Package")).First();
             graph.Assert(triple.Subject, graph.CreateUriNode("nuget:published"), graph.CreateLiteralNode(data.Published.ToString()));
 
@@ -40,13 +42,21 @@ namespace GatherMergeRewrite
 
             Uri catalogUri = new Uri(baseAddress + "catalog/index.json");
             Uri catalogPageUri = new Uri(baseAddress + "catalog/page/" + data.RegistrationId.Substring(0, 1) + ".json");
-            Uri catalogRegistrationUri = new Uri(baseAddress + "catalog/registration/" + data.RegistrationId + ".json");
 
             graph.Assert(graph.CreateUriNode(catalogUri), graph.CreateUriNode("nuget:item"), graph.CreateUriNode(catalogPageUri));
-            graph.Assert(graph.CreateUriNode(catalogPageUri), graph.CreateUriNode("nuget:item"), graph.CreateUriNode(catalogRegistrationUri));
-            graph.Assert(graph.CreateUriNode(catalogRegistrationUri), graph.CreateUriNode("nuget:item"), triple.Subject);
+            graph.Assert(graph.CreateUriNode(catalogPageUri), graph.CreateUriNode("nuget:item"), package.Subject);
+
+            graph.Assert(package.Subject, graph.CreateUriNode("nuget:container"), graph.CreateUriNode(catalogPageUri));
+            graph.Assert(graph.CreateUriNode(catalogPageUri), graph.CreateUriNode("nuget:container"), graph.CreateUriNode(catalogUri));
+
+            //graph.Assert(graph.CreateUriNode(catalogPageUri), graph.CreateUriNode("nuget:item"), registration.Subject);
 
             return graph;
+        }
+
+        string MakePublishedPathComponent(DateTime published)
+        {
+            return string.Format("{0}.{1}.{2}.{3}.{4}.{5}", published.Year, published.Month, published.Day, published.Hour, published.Minute, published.Second);
         }
     }
 }

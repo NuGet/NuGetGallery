@@ -104,7 +104,10 @@ namespace GatherMergeRewrite
                         {
                             IGraph graph = Utils.CreateGraph(json);
                             state.Store.Add(graph, true);
-                            state.Store.ApplyInference(state.Store.Graphs.First());
+
+                            state.Reasoner.Apply(state.Store);
+
+                            //state.Store.ApplyInference(state.Store.Graphs.First());
                         }
                     }
 
