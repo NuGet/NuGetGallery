@@ -1,0 +1,45 @@
+﻿
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix nuget: <http://nuget.org/schema#> .
+
+
+nuget:PackageRegistration rdfs:subClassOf nuget:Resource .
+
+nuget:Package rdfs:subClassOf nuget:Resource .
+
+nuget:Owner rdfs:subClassOf nuget:Resource .
+
+nuget:Container rdfs:subClassOf nuget:Resource .
+
+
+nuget:registration rdfs:domain nuget:Package ;
+                   rdfs:range nuget:PackageRegistration .
+
+nuget:package rdfs:domain nuget:PackageRegistration .
+
+nuget:owns rdfs:domain nuget:Owner .
+
+nuget:item rdfs:domain nuget:Container .
+
+
+nuget:registration owl:inverseOf nuget:package .
+
+nuget:owner owl:inverseOf nuget:owns .
+
+nuget:container owl:inverseOf nuget:item .
+
+
+nuget:PackageRegistration nuget:transform "PackageRegistration.rq" ;
+                          nuget:frame "PackageRegistrationFrame.json" .
+
+nuget:Package nuget:transform "Package.rq" ;
+              nuget:frame "PackageFrame.json" .
+
+nuget:Owner nuget:transform "Owner.rq" ;
+            nuget:frame "OwnerFrame.json" .
+
+nuget:Container nuget:transform "Container.rq" ;
+                nuget:frame "ContainerFrame.json" .
+

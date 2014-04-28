@@ -1,0 +1,182 @@
+﻿using Catalog.JsonLDIntegration;
+using JsonLD.Core;
+using Newtonsoft.Json.Linq;
+using System;
+using System.IO;
+using System.IO.Compression;
+using System.Reflection;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.Xsl;
+using VDS.RDF;
+using VDS.RDF.Parsing;
+using VDS.RDF.Writing;
+
+namespace Catalog
+{
+    class Utils
+    {
+        public static Stream GetResourceStream(string resName)
+        {
+            return Assembly.GetExecutingAssembly().GetManifestResourceStream("Catalog." + resName);
+        }
+
+        public static string GetResource(string resName)
+        {
+            return new StreamReader(GetResourceStream(resName)).ReadToEnd();
+        }
+
+        public static IGraph CreateNuspecGraph(XDocument nuspec, string baseAddress)
+        {
+            nuspec = NormalizeNuspecNamespace(nuspec);
+
+            XslCompiledTransform transform = CreateTransform("xslt.nuspec.xslt");
+
+            XsltArgumentList arguments = new XsltArgumentList();
+            arguments.AddParam("base", "", baseAddress + "packages/");
+            arguments.AddParam("extension", "", ".json");
+
+            arguments.AddExtensionObject("urn:helper", new XsltHelper());
+
+            XDocument rdfxml = new XDocument();
+            using (XmlWriter writer = rdfxml.CreateWriter())
+            {
+                transform.Transform(nuspec.CreateReader(), arguments, writer);
+            }
+
+            RdfXmlParser rdfXmlParser = new RdfXmlParser();
+            XmlDocument doc = new XmlDocument();
+            doc.Load(rdfxml.CreateReader());
+            IGraph graph = new Graph();
+            rdfXmlParser.Load(graph, doc);
+
+            return graph;
+        }
+
+        static XslCompiledTransform CreateTransform(string name)
+        {
+            XslCompiledTransform transform = new XslCompiledTransform();
+            transform.Load(XmlReader.Create(new StreamReader(Utils.GetResourceStream(name))));
+            return transform;
+        }
+
+        public static void Dump(IGraph graph)
+        {
+            CompressingTurtleWriter turtleWriter = new CompressingTurtleWriter();
+            turtleWriter.DefaultNamespaces.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
+            turtleWriter.PrettyPrintMode = true;
+            turtleWriter.CompressionLevel = 10;
+            turtleWriter.Save(graph, Console.Out);
+        }
+
+        public static IGraph Load(string name)
+        {
+            TurtleParser parser = new TurtleParser();
+            IGraph g = new Graph();
+            parser.Load(g, new StreamReader(Utils.GetResourceStream(name)));
+            return g;
+        }
+
+        public static XDocument GetNuspec(ZipArchive package)
+        {
+            if (package == null) { return null; }
+
+            foreach (ZipArchiveEntry part in package.Entries)
+            {
+                if (part.FullName.EndsWith(".nuspec"))
+                {
+                    XDocument nuspec = XDocument.Load(part.Open());
+                    return nuspec;
+                }
+            }
+            return null;
+        }
+
+        public static ZipArchive GetPackage(Stream stream)
+        {
+            try
+            {
+                ZipArchive package = new ZipArchive(stream);
+                return package;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static XDocument NormalizeNuspecNamespace(XDocument original)
+        {
+            XDocument result = new XDocument();
+
+            using (XmlWriter writer = result.CreateWriter())
+            {
+                XslCompiledTransform xslt = new XslCompiledTransform();
+                xslt.Load(XmlReader.Create(new StreamReader(Utils.GetResourceStream("xslt.normalizeNuspecNamespace.xslt"))));
+                xslt.Transform(original.CreateReader(), writer);
+            }
+
+            return result;
+        }
+
+        public static string GetName(Uri uri, string baseAddress, string container)
+        {
+            string address = string.Format("{0}/{1}/", baseAddress, container);
+            string s = uri.ToString();
+            string name = s.Substring(address.Length);
+            return name;
+        }
+
+        public static string CreateHtmlView(Uri resource, string frame, string baseAddress)
+        {
+            XDocument original = XDocument.Load(new StreamReader(Utils.GetResourceStream("html.view.html")));
+            XslCompiledTransform transform = CreateTransform("xslt.view.xslt");
+            XsltArgumentList arguments = new XsltArgumentList();
+            arguments.AddParam("resource", "", resource.ToString());
+            arguments.AddParam("frame", "", frame);
+            arguments.AddParam("base", "", baseAddress);
+
+            System.IO.StringWriter writer = new System.IO.StringWriter();
+            using (XmlTextWriter xmlWriter = new XmlHtmlWriter(writer))
+            {
+                xmlWriter.Formatting = System.Xml.Formatting.Indented;
+                transform.Transform(original.CreateReader(), arguments, xmlWriter);
+            }
+
+            return writer.ToString();
+        }
+
+        public static string CreateJson(IGraph graph, JToken frame = null)
+        {
+            System.IO.StringWriter writer = new System.IO.StringWriter();
+            IRdfWriter rdfWriter = new JsonLdWriter();
+            rdfWriter.Save(graph, writer);
+            writer.Flush();
+
+            if (frame == null)
+            {
+                return writer.ToString();
+            }
+            else
+            {
+                JToken flattened = JToken.Parse(writer.ToString());
+                JObject framed = JsonLdProcessor.Frame(flattened, frame, new JsonLdOptions());
+                JObject compacted = JsonLdProcessor.Compact(framed, framed["@context"], new JsonLdOptions());
+
+                return compacted.ToString();
+            }
+        }
+
+        public static IGraph CreateGraph(string json)
+        {
+            JToken compacted = JToken.Parse(json);
+            JToken flattened = JsonLdProcessor.Flatten(compacted, new JsonLdOptions());
+
+            IRdfReader rdfReader = new JsonLdReader();
+            IGraph graph = new Graph();
+            rdfReader.Load(graph, new StringReader(flattened.ToString()));
+
+            return graph;
+        }
+    }
+}

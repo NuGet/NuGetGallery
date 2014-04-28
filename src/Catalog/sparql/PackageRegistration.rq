@@ -1,0 +1,26 @@
+﻿PREFIX nuget: <http://nuget.org/schema#>
+
+CONSTRUCT
+{
+    @resource a nuget:PackageRegistration ;
+              nuget:id ?id ;
+              nuget:owners ?owner ;
+              nuget:package ?package .
+
+	?package nuget:id ?packageId ;
+			 nuget:version ?packageVersion ;
+			 nuget:published ?published .
+}
+WHERE
+{
+    @resource a nuget:PackageRegistration ;
+              nuget:id ?id ;
+			  nuget:owner ?owner .
+
+    ?package a nuget:Package ;
+             nuget:registration @resource .
+
+	?package nuget:id ?packageId ;
+			 nuget:version ?packageVersion ;
+			 nuget:published ?published .
+}
