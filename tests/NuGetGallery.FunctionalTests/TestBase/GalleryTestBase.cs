@@ -8,8 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Web.UI;
-using Elmah;
-using NuGetGallery.Infrastructure;
+
+
 
 namespace NuGetGallery.FunctionalTests.TestBase
 {
@@ -63,18 +63,7 @@ namespace NuGetGallery.FunctionalTests.TestBase
         [AssemblyCleanup()]
         public static void CleanAssembly()
         {
-            TableErrorLog log = new TableErrorLog(@"DefaultEndpointsProtocol=https;AccountName=" + Environment.GetEnvironmentVariable("StorageAccount") + @";AccountKey=""" + Environment.GetEnvironmentVariable("StorageAccessKey") + @"""");
-            List<ErrorLogEntry> entities = new List<ErrorLogEntry>();
-            log.GetErrors(0, 1000, entities);
-            //this gets the error logs in the last ten minutes  
-            entities = entities.FindAll(entity => DateTime.Now.Subtract(entity.Error.Time) > new TimeSpan(0, 10, 0));
-            if (entities != null)
-            {
-                foreach (ErrorLogEntry entity in entities)
-                {
-                    Assert.Inconclusive(String.Format("ELMAH log error found:  {0}, {1}, {2}", entity.Error.Message, entity.Error.Time.ToString(), entity.Error.StatusCode));  
-                }
-            }  
+         
         }
     }
 }
