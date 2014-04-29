@@ -7,10 +7,10 @@
             <Import moduleName="RemoteForwarder" />
         </Imports>
         <ConfigurationSettings>
-            <Setting name="Storage.Primary" />
-            <Setting name="Storage.Backup" />
-            <Setting name="Sql.Primary" />
-            <Setting name="Sql.Warehouse" />
+            <Setting name="Operations.Storage.Primary" />
+            <Setting name="Operations.Storage.Backup" />
+            <Setting name="Operations.Sql.Primary" />
+            <Setting name="Operations.Sql.Warehouse" />
             <Setting name="Queue.PollInterval" />
         </ConfigurationSettings>
         <LocalResources>
