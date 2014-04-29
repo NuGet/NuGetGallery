@@ -9,6 +9,10 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using VDS.RDF;
+using VDS.RDF.Parsing;
+using VDS.RDF.Query;
+using VDS.RDF.Query.Datasets;
 
 namespace CatalogTests
 {
@@ -242,9 +246,74 @@ namespace CatalogTests
             string baseAddress = "http://localhost:8000/pub/";
             DateTime since = DateTime.MinValue;
 
-            Collector collector = new Collector();
+            Collector collector = new PackageCollector(new CountingPackageEmitter());
+            //Collector collector = new PackageCollector(new PrintingPackageEmitter());
 
             collector.Run(baseAddress, since);
+        }
+
+        static void Test3()
+        {
+            string baseAddress = "http://localhost:8000/pub/";
+            DateTime since = DateTime.MinValue;
+
+            TripleStore store = new TripleStore();
+            Collector collector = new PackageCollector(new TripleStorePackageEmitter(store));
+
+            collector.Run(baseAddress, since);
+
+            Console.WriteLine("collected {0} triples", store.Triples.Count());
+        }
+
+        static void Test4()
+        {
+            string baseAddress = "http://localhost:8000/pub/";
+            DateTime since = DateTime.MinValue;
+
+            TripleStore store = new TripleStore();
+            Collector collector = new PackageCollector(new TripleStorePackageEmitter(store));
+
+            long before = GC.GetTotalMemory(true);
+
+            collector.Run(baseAddress, since);
+
+            long after = GC.GetTotalMemory(true);
+
+            Console.WriteLine("before = {0:N0} bytes, after = {1:N0} bytes", before, after);
+
+            InMemoryDataset ds = new InMemoryDataset(store);
+            ISparqlQueryProcessor processor = new LeviathanQueryProcessor(ds);
+            SparqlQueryParser sparqlparser = new SparqlQueryParser();
+
+            SparqlQuery countQuery = sparqlparser.ParseFromString("SELECT COUNT(?resource) AS ?count WHERE { ?resource a <http://nuget.org/schema#Package> . }");
+            SparqlResultSet countResults = (SparqlResultSet)processor.ProcessQuery(countQuery);
+            foreach (SparqlResult result in countResults)
+            {
+                Console.WriteLine("found {0} packages", ((ILiteralNode)result["count"]).Value);
+            }
+
+            SparqlQuery distinctQuery = sparqlparser.ParseFromString("SELECT COUNT(DISTINCT ?id) AS ?count WHERE { ?resource a <http://nuget.org/schema#Package> . ?resource <http://nuget.org/schema#id> ?s . BIND (LCASE(?s) AS ?id) }");
+            SparqlResultSet distinctResults = (SparqlResultSet)processor.ProcessQuery(distinctQuery);
+            foreach (SparqlResult result in distinctResults)
+            {
+                Console.WriteLine("found {0} packages", ((ILiteralNode)result["count"]).Value);
+            }
+        }
+
+        static void Test5()
+        {
+            DateTime since = DateTime.MinValue;
+
+            IStorage storage = new FileStorage
+            {
+                Path = @"c:\data\site\pub",
+                Container = "pub",
+                BaseAddress = "http://localhost:8000/pub/"
+            };
+
+            Collector collector = new PackageCollector(new ResolverPackageEmitter(storage, 400));
+
+            collector.Run(storage.BaseAddress, since);
         }
 
         static void PrintException(Exception e)
@@ -273,7 +342,10 @@ namespace CatalogTests
             {
                 //Test0();
                 //Test1(args.Length > 0 ? args[0] : null).Wait();
-                Test2();
+                //Test2();
+                //Test3();
+                //Test4();
+                Test5();
             }
             catch (Exception e)
             {

@@ -82,6 +82,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CloudPackageHandle.cs" />
+    <Compile Include="CountingPackageEmitter.cs" />
+    <Compile Include="ResolverPackageEmitter.cs" />
+    <Compile Include="TripleStorePackageEmitter.cs" />
+    <Compile Include="PrintingPackageEmitter.cs" />
+    <Compile Include="PackageEmitter.cs" />
+    <Compile Include="PackageCollector.cs" />
+    <Compile Include="Emitter.cs" />
     <Compile Include="InputDataHandle.cs" />
     <Compile Include="LocalPackageHandle.cs" />
     <Compile Include="NuspecMissingException.cs" />
@@ -118,7 +125,7 @@
     <EmbeddedResource Include="context\ContainerFrame.json" />
     <EmbeddedResource Include="context\OwnerFrame.json" />
     <EmbeddedResource Include="context\PackageFrame.json" />
-    <EmbeddedResource Include="context\PackageRegistrationFrame.json" />
+    <EmbeddedResource Include="context\ResolverFrame.json" />
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />
@@ -127,6 +134,8 @@
     <EmbeddedResource Include="sparql\Owner.rq" />
     <EmbeddedResource Include="sparql\Package.rq" />
     <EmbeddedResource Include="sparql\PackageRegistration.rq" />
+    <EmbeddedResource Include="sparql\ConstructResolverGraph.rq" />
+    <EmbeddedResource Include="sparql\SelectDistinctPackage.rq" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -170,6 +170,11 @@ namespace Catalog
         public static IGraph CreateGraph(string json)
         {
             JToken compacted = JToken.Parse(json);
+            return CreateGraph(compacted);
+        }
+
+        public static IGraph CreateGraph(JToken compacted)
+        {
             JToken flattened = JsonLdProcessor.Flatten(compacted, new JsonLdOptions());
 
             IRdfReader rdfReader = new JsonLdReader();

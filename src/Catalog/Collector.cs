@@ -11,15 +11,14 @@ using System.Threading.Tasks.Dataflow;
 
 namespace Catalog
 {
-    public class Collector
+    public abstract class Collector
     {
-        static int Calls = 0;
+        static int HttpCalls = 0;
+        static int RefCount = 0;
 
-        static int Count = 0;
-
-        static async Task FetchAsync(Uri requestUri, DateTime last, ConcurrentBag<JObject> results, ActionBlock<Uri> actionBlock)
+        async Task FetchAsync(Uri requestUri, DateTime last, Emitter emitter, ActionBlock<Uri> actionBlock)
         {
-            Interlocked.Increment(ref Calls);
+            Interlocked.Increment(ref HttpCalls);
 
             HttpClient client = new HttpClient();
             HttpResponseMessage response = await client.GetAsync(requestUri);
@@ -28,13 +27,7 @@ namespace Catalog
             client.Dispose();
 
             JObject obj = JObject.Parse(json);
-
-            JToken type;
-            if (obj.TryGetValue("@type", out type) && type.ToString() == "Package")
-            {
-                results.Add(obj);
-            }
-            else
+            if (!emitter.Emit(obj))
             {
                 JToken items;
                 if (obj.TryGetValue("item", out items))
@@ -47,57 +40,55 @@ namespace Catalog
                         if (published > last)
                         {
                             Uri next = new Uri(item["url"].ToString());
-                            Interlocked.Increment(ref Count);
+                            Interlocked.Increment(ref RefCount);
                             actionBlock.Post(next);
                         }
                     }
                 }
             }
 
-            int result = Interlocked.Decrement(ref Count);
+            int result = Interlocked.Decrement(ref RefCount);
             if (result == 0)
             {
                 actionBlock.Complete();
             }
         }
 
-        public void Run(string baseAddress, DateTime since)
+        public void Run(string baseAddress, DateTime since, int maxDegreeOfParallelism = 4)
         {
             Uri requestUri = new Uri(baseAddress + "catalog/index.json");
 
-            ConcurrentBag<JObject> results = new ConcurrentBag<JObject>();
+            Emitter emitter = CreateEmitter();
 
-            ActionBlock<Uri> baseBlock = null;
-
-            baseBlock = new ActionBlock<Uri>(async (url) =>
+            try
             {
-                await FetchAsync(url, since, results, baseBlock);
-            },
-            new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 4 });
+                ActionBlock<Uri> baseBlock = null;
 
-            Count = 0;
-            Calls = 0;
+                baseBlock = new ActionBlock<Uri>(async (url) =>
+                {
+                    await FetchAsync(url, since, emitter, baseBlock);
+                },
+                new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism });
 
-            DateTime before = DateTime.Now;
+                RefCount = 0;
+                HttpCalls = 0;
 
-            Interlocked.Increment(ref Count);
-            baseBlock.Post(requestUri);
-            baseBlock.Completion.Wait();
+                DateTime before = DateTime.Now;
 
-            DateTime after = DateTime.Now;
+                Interlocked.Increment(ref RefCount);
+                baseBlock.Post(requestUri);
+                baseBlock.Completion.Wait();
 
-            Console.WriteLine("duration {0} seconds", (after - before).TotalSeconds);
-            Console.WriteLine("{0} packages since {1} (used {2} http calls)", results.Count, since, Calls);
+                DateTime after = DateTime.Now;
 
-            Dump(results);
-        }
-
-        static void Dump(IEnumerable<JObject> packages)
-        {
-            foreach (JObject package in packages)
+                Console.WriteLine("duration {0} seconds, {1} http calls", (after - before).TotalSeconds, HttpCalls);
+            }
+            finally
             {
-                Console.WriteLine("{0}/{1}", package["id"], package["version"]);
+                emitter.Close();
             }
         }
+
+        protected abstract Emitter CreateEmitter();
     }
 }

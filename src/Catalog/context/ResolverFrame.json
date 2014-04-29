@@ -8,5 +8,6 @@
         "property" : { "@container" : "@set" },
         "owners" : { "@container" : "@set" },
 		"url" : "@id"
-	}
+	},
+	"@type" : "PackageRegistration"
 }

@@ -1,0 +1,69 @@
+﻿PREFIX nuget: <http://nuget.org/schema#>
+
+CONSTRUCT
+{
+    ?resource a nuget:PackageRegistration ;
+	          nuget:id @id ;
+			  nuget:package ?package .
+
+	?package nuget:version ?version ;
+	         nuget:dependencies ?dependencies .
+
+    ?dependencies nuget:group ?dependency_group .
+
+    ?dependency_group nuget:dependency ?dependency ;
+                      nuget:targetFramework ?dependency_group_targetFramework ;
+					  nuget:name ?dependency_group_name ;
+					  nuget:property ?dependency_group_property .
+
+    ?dependency_group_property nuget:name ?dependency_group_property_name ;
+                               nuget:value ?dependency_group_property_value .
+
+	?dependency nuget:id ?dependency_id ;
+				nuget:registrationUrl ?dependency_registrationUrl ;
+				nuget:range ?dependency_version ;
+				nuget:property ?dependency_property .
+
+	?dependency_property nuget:name ?dependency_property_name ;
+					     nuget:value ?dependency_property_value .
+}
+WHERE
+{
+	BIND (IRI(CONCAT(@base, @id, @extension)) AS ?resource)
+
+    ?package a nuget:Package ;
+	         nuget:version ?version ;
+             nuget:id ?id .
+
+	FILTER (LCASE(?id) = @id)
+
+	OPTIONAL
+	{
+        ?package nuget:dependencies ?dependencies .
+		?dependencies nuget:group ?dependency_group .
+
+		?dependency_group nuget:dependency ?dependency .
+
+		OPTIONAL { ?dependency_group nuget:targetFramework ?dependency_group_targetFramework . }
+
+		OPTIONAL { ?dependency_group nuget:name ?dependency_group_name . }
+		OPTIONAL 
+		{ 
+			?dependency_group nuget:property ?dependency_group_property .
+			?dependency_group_property nuget:name ?dependency_group_property_name ;
+								       nuget:value ?dependency_group_property_value .
+		}
+		
+		?dependency nuget:id ?dependency_id ;
+					nuget:registrationUrl ?dependency_registrationUrl .
+	
+		OPTIONAL { ?dependency nuget:range ?dependency_version . }
+
+		OPTIONAL 
+		{ 
+			?dependency nuget:property ?dependency_property .
+			?dependency_property nuget:name ?dependency_property_name ;
+								 nuget:value ?dependency_property_value .
+		}
+	}
+}
