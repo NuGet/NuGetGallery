@@ -33,7 +33,7 @@ namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
         [TestMethod]
         [Description("Downloads a package using NuGet.exe and checks if the package file is present in the output dir")]
         [Priority(0)]
-        public void DownPackageWithNuGetCommandLineTest()
+        public void DownloadPackageWithNuGetCommandLineTest()
         {
            string packageId = Constants.TestPackageId; //try to down load a pre-defined test package.          
            ClientSDKHelper.ClearLocalPackageFolder(packageId);
