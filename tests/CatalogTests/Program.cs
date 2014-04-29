@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CatalogTests
@@ -60,7 +59,7 @@ namespace CatalogTests
             };
 
             string ownerId = "microsoft";
-            string path = @"c:\data\nupkgs\;c:\data\nupkgs2\;c:\data\nupkgs3\";
+            string path = @"c:\data\nupkgs;c:\data\nupkgs2;c:\data\nupkgs3;c:\data\nupkgs4";
 
             const int BatchSize = 100;
 
@@ -238,6 +237,16 @@ namespace CatalogTests
             Console.WriteLine("save: {0} load: {1}", ((FileStorage)storage).SaveCount, ((FileStorage)storage).LoadCount);
         }
 
+        static void Test2()
+        {
+            string baseAddress = "http://localhost:8000/pub/";
+            DateTime since = DateTime.MinValue;
+
+            Collector collector = new Collector();
+
+            collector.Run(baseAddress, since);
+        }
+
         static void PrintException(Exception e)
         {
             if (e is AggregateException)
@@ -262,8 +271,9 @@ namespace CatalogTests
         {
             try
             {
-                Test0();
+                //Test0();
                 //Test1(args.Length > 0 ? args[0] : null).Wait();
+                Test2();
             }
             catch (Exception e)
             {

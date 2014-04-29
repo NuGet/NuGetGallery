@@ -27,6 +27,11 @@ namespace Catalog
             ZipArchive package = Utils.GetPackage(stream);
             XDocument nuspec = Utils.GetNuspec(package);
 
+            if (nuspec == null)
+            {
+                throw new ArgumentNullException(string.Format("{0} nuspec missing", _filename));
+            }
+
             PackageData result = new PackageData()
             {
                 OwnerId = _owner,
