@@ -39,7 +39,6 @@ namespace NuGetGallery.FunctionalTests.LinksTests
         [TestMethod]
         public void TestStatisticsPageLinks()
         {
-            WebTestRequest logonPostRequest = AssertAndValidationHelper.GetLogonGetRequest();
             TestLinksOnWebPagesUsingFluentLinkChecker(UrlHelper.StatsPageUrl);
         }
 
