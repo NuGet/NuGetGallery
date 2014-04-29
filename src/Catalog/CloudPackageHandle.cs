@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace Catalog
     public class CloudPackageHandle : PackageHandle
     {
         Stream _stream;
-        string _owner;
+        List<string> _owners;
         string _registrationId;
         DateTime _published;
 
@@ -21,10 +22,10 @@ namespace Catalog
             }
         }
 
-        public CloudPackageHandle(Stream stream, string owner, string registrationId, DateTime published)
+        public CloudPackageHandle(Stream stream, List<string> owners, string registrationId, DateTime published)
         {
             _stream = stream;
-            _owner = owner;
+            _owners = owners;
             _registrationId = registrationId;
             _published = published;
         }
@@ -38,7 +39,7 @@ namespace Catalog
 
             PackageData result = new PackageData()
             {
-                OwnerId = _owner,
+                OwnerIds = _owners,
                 RegistrationId = _registrationId,
                 Published = _published,
                 Nuspec = nuspec
