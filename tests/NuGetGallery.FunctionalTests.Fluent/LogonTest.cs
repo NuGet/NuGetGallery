@@ -21,6 +21,8 @@ namespace NuGetGallery.FunctionalTests.Fluent
         public void Logon()
         {
             LogonHelper("/");
+            // Added for checking the account page after logged in - equivalent of clicking the username after logged in
+            LogonHelper("/account");
             LogonHelper("/packages");
             LogonHelper("/stats");
             LogonHelper("/policies/Contact");
