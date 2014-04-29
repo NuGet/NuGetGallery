@@ -1,10 +1,11 @@
 @echo off
 
 Set Criteria=%1
-Set GalleryUrl=%2
+Set Testkind=%2
+Set GalleryUrl=%3
 
 IF "%Criteria%" == "" (
-ECHO "Specify a search string to filter tests. Example :RunSpecificTests.cmd Download. You can optionally specify the environment that you want to point to as second parameter."
+ECHO "Specify a search string to filter tests. Example :RunSpecificTests.cmd EditPackage .Fluent. You can optionally specify the kind of tests and environment that you want to point to as second and third parameter."
 exit /b
 )
 
@@ -32,9 +33,20 @@ Echo The variable toolpath is not set correctly. check your visual studio instal
 goto End
 
 :Run
-Echo Start running all NuGet Gallery Functional tests...
+Echo.
+Echo. Build the NuGet Gallery solution...
+call ..\..\build.cmd
+Echo Done.
+Echo.
+
+Echo Build the NuGet Gallery test solution...
+%WinDir%\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe ..\NuGetGallery.FunctionalTests.sln
+Echo Done.
+Echo.
+
+Echo Start running the specific NuGet Gallery Functional tests...
 Echo The path to mstest.exe is "%toolpath%..\IDE\mstest.exe"
-"%toolpath%..\IDE\mstest.exe"  /testsettings:"..\Local.testsettings" /testContainer:"..\NuGetGallery.FunctionalTests\bin\NuGetGallery.FunctionalTests.dll" /test:"%Criteria%"
+"%toolpath%..\IDE\mstest.exe"  /testsettings:"..\Local.testsettings" /testContainer:"..\NuGetGallery.FunctionalTests%Testkind%\bin\NuGetGallery.FunctionalTests%Testkind%.dll" /test:"%Criteria%"
 
 Echo Exit.
 
