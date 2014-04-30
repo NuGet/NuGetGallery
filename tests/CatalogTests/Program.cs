@@ -91,7 +91,7 @@ namespace CatalogTests
                     string file = Path.GetTempFileName();
                     tempFiles.Add(file);
 
-                    downloads.Add(Task.Factory.StartNew(async () =>
+                    downloads.Add(await Task.Factory.StartNew(async () =>
                     {
                         try
                         {
