@@ -18,7 +18,6 @@ namespace CatalogTests
 {
     class Program
     {
-
         static async Task Test1(string resumePackage)
         {
             string connectionString = "";
@@ -187,9 +186,7 @@ namespace CatalogTests
         {
             try
             {
-                //Test0();
                 //Test1(args.Length > 0 ? args[0] : null).Wait();
-
                 //BuilderTests.Test0();
                 //BuilderTests.Test1();
                 BuilderTests.Test2();

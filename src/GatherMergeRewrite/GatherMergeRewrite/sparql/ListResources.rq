@@ -1,9 +1,0 @@
-﻿PREFIX nuget: <http://nuget.org/schema#>
-
-SELECT DISTINCT ?resource ?transform ?frame ?type
-WHERE
-{
-	?resource a nuget:Resource, ?type .
-	?type nuget:transform ?transform ;
-	      nuget:frame ?frame .
-}

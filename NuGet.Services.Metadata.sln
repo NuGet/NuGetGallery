@@ -1,17 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonLDIntegration", "src\JsonLDIntegration\JsonLDIntegration\JsonLDIntegration.csproj", "{7019ECAE-0C0D-4978-9E39-79AA276CD495}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonLDIntegrationTests", "tests\JsonLDIntegrationTests\JsonLDIntegrationTests\JsonLDIntegrationTests.csproj", "{6A4E128E-B06D-4541-AA78-C32A66B2AD9B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nu", "src\MetadataClient\Nu.csproj", "{1C9E8DFE-C6DD-45BA-976E-84AE1076756E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestNuspec", "tests\TestNuspec\TestNuspec\TestNuspec.csproj", "{8110AEB8-0A54-40B5-B8CE-C434A21C3993}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GatherMergeRewrite", "src\GatherMergeRewrite\GatherMergeRewrite\GatherMergeRewrite.csproj", "{7A719289-888C-48A9-A2FF-72EB3DF12CD4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BulkUpload", "tests\BulkUpload\BulkUpload\BulkUpload.csproj", "{3BE654F7-4204-48DD-B1E5-F137DF34F497}"
 EndProject
@@ -39,14 +33,6 @@ Global
 		{1C9E8DFE-C6DD-45BA-976E-84AE1076756E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C9E8DFE-C6DD-45BA-976E-84AE1076756E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C9E8DFE-C6DD-45BA-976E-84AE1076756E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8110AEB8-0A54-40B5-B8CE-C434A21C3993}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8110AEB8-0A54-40B5-B8CE-C434A21C3993}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8110AEB8-0A54-40B5-B8CE-C434A21C3993}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8110AEB8-0A54-40B5-B8CE-C434A21C3993}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7A719289-888C-48A9-A2FF-72EB3DF12CD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7A719289-888C-48A9-A2FF-72EB3DF12CD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7A719289-888C-48A9-A2FF-72EB3DF12CD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7A719289-888C-48A9-A2FF-72EB3DF12CD4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3BE654F7-4204-48DD-B1E5-F137DF34F497}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3BE654F7-4204-48DD-B1E5-F137DF34F497}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BE654F7-4204-48DD-B1E5-F137DF34F497}.Release|Any CPU.ActiveCfg = Release|Any CPU
