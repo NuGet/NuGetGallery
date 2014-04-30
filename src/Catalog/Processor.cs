@@ -1,4 +1,4 @@
-﻿using Catalog.Storage;
+﻿using Catalog.Persistence;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -13,7 +13,7 @@ namespace Catalog
 {
     public class Processor
     {
-        public static async Task Upload(IInputDataHandle[] handles, IStorage storage)
+        public static async Task Upload(IInputDataHandle[] handles, Storage storage)
         {
             State state = new State(storage.Container, storage.BaseAddress);
 
@@ -57,7 +57,7 @@ namespace Catalog
             }
         }
 
-        static async Task LoadResources(State state, IStorage storage)
+        static async Task LoadResources(State state, Storage storage)
         {
             while (true)
             {
@@ -107,7 +107,7 @@ namespace Catalog
             }
         }
 
-        static async Task SaveResources(State state, IStorage storage)
+        static async Task SaveResources(State state, Storage storage)
         {
             List<Task> tasks = new List<Task>();
 

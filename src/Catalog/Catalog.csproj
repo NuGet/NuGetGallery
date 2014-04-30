@@ -96,9 +96,9 @@
     <Compile Include="PackageHandle.cs" />
     <Compile Include="Collector.cs" />
     <Compile Include="State.cs" />
-    <Compile Include="Storage\AzureStorage.cs" />
-    <Compile Include="Storage\FileStorage.cs" />
-    <Compile Include="Storage\IStorage.cs" />
+    <Compile Include="Persistence\AzureStorage.cs" />
+    <Compile Include="Persistence\FileStorage.cs" />
+    <Compile Include="Persistence\Storage.cs" />
     <Compile Include="JsonLdIntegration\JsonLdReader.cs" />
     <Compile Include="JsonLdIntegration\JsonLdWriter.cs" />
     <Compile Include="Processor.cs" />

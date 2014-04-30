@@ -1,4 +1,4 @@
-﻿using Catalog.Storage;
+﻿using Catalog.Persistence;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
@@ -18,13 +18,13 @@ namespace Catalog
         int _resolverResourceCount = 0;
         int _mergedResourceCount = 0;
 
-        IStorage _storage;
+        Storage _storage;
         int _currentBatchSize = 0;
         int _maxBatchSize;
         TripleStore _currentStore;
         ActionBlock<TripleStore> _actionBlock = null;
 
-        public ResolverPackageEmitter(IStorage storage, int maxBatchSize = 1000)
+        public ResolverPackageEmitter(Storage storage, int maxBatchSize = 1000)
         {
             _storage = storage;
             _maxBatchSize = maxBatchSize;

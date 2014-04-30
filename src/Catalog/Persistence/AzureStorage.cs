@@ -3,9 +3,9 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Threading.Tasks;
 
-namespace Catalog.Storage
+namespace Catalog.Persistence
 {
-    public class AzureStorage : IStorage
+    public class AzureStorage : Storage
     {
         public AzureStorage()
         {
@@ -17,28 +17,12 @@ namespace Catalog.Storage
             set;
         }
 
-        public string Container
-        {
-            get;
-            set;
-        }
-
-        public string BaseAddress
-        {
-            get;
-            set;
-        }
-
-        public bool Verbose
-        {
-            get;
-            set;
-        }
-
         //  save
        
-        public async Task Save(string contentType, string name, string content)
+        public override async Task Save(string contentType, string name, string content)
         {
+            SaveCount++;
+
             CloudStorageAccount account = CloudStorageAccount.Parse(ConnectionString);
             CloudBlobClient client = account.CreateCloudBlobClient();
             CloudBlobContainer container = client.GetContainerReference(Container);
@@ -61,8 +45,10 @@ namespace Catalog.Storage
 
         //  load
 
-        public async Task<string> Load(string name)
+        public override async Task<string> Load(string name)
         {
+            LoadCount++;
+
             CloudStorageAccount account = CloudStorageAccount.Parse(ConnectionString);
             CloudBlobClient client = account.CreateCloudBlobClient();
             CloudBlobContainer container = client.GetContainerReference(Container);

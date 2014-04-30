@@ -2,10 +2,12 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Catalog.Storage
+namespace Catalog.Persistence
 {
-    public class FileStorage : IStorage
+    public class FileStorage : Storage
     {
+        string _baseAddress;
+
         public FileStorage()
         {
             ResetStatistics();
@@ -17,43 +19,7 @@ namespace Catalog.Storage
             set;
         } 
 
-        public string Container
-        {
-            get;
-            set; 
-        }
-        
-        public string BaseAddress
-        { 
-            get; 
-            set; 
-        }
-
-        public bool Verbose
-        {
-            get;
-            set;
-        }
-
-        public int SaveCount
-        {
-            get;
-            private set;
-        }
-
-        public int LoadCount
-        {
-            get;
-            private set;
-        }
-
-        public void ResetStatistics()
-        {
-            SaveCount = 0;
-            LoadCount = 0;
-        }
-
-        public async Task Save(string contentType, string name, string content)
+        public override async Task Save(string contentType, string name, string content)
         {
             SaveCount++;
 
@@ -96,7 +62,7 @@ namespace Catalog.Storage
             });
         }
 
-        public async Task<string> Load(string name)
+        public override async Task<string> Load(string name)
         {
             LoadCount++;
 

@@ -1,5 +1,5 @@
 ﻿using Catalog;
-using Catalog.Storage;
+using Catalog.Persistence;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
@@ -18,89 +18,11 @@ namespace CatalogTests
 {
     class Program
     {
-        static void BatchUpload(IStorage storage, string ownerId, List<Tuple<string, string>> batch, DateTime published)
-        {
-            foreach (Tuple<string, string> t in batch)
-            {
-                Console.WriteLine(t.Item1);
-            }
-
-            LocalPackageHandle[] handles = batch.Select((item) => new LocalPackageHandle(ownerId, item.Item1, item.Item2, published)).ToArray();
-
-            Processor.Upload(handles, storage).Wait();
-
-            Console.WriteLine("...uploaded");
-        }
-
-        static List<Tuple<string, string>> GatherPackageList(string paths)
-        {
-            List<Tuple<string, string>> packages = new List<Tuple<string, string>>();
-
-            foreach (string path in paths.Split(';'))
-            {
-                DirectoryInfo nupkgs = new DirectoryInfo(path);
-                foreach (DirectoryInfo registration in nupkgs.EnumerateDirectories())
-                {
-                    string registrationId = registration.Name.ToLowerInvariant();
-
-                    foreach (FileInfo nupkg in registration.EnumerateFiles("*.nupkg"))
-                    {
-                        packages.Add(new Tuple<string, string>(registrationId, nupkg.FullName));
-                    }
-                }
-            }
-
-            return packages;
-        }
-
-        static void Test0()
-        {
-            IStorage storage = new FileStorage
-            {
-                Path = @"c:\data\site\pub",
-                Container = "pub",
-                BaseAddress = "http://localhost:8000"
-            };
-
-            string ownerId = "microsoft";
-            string path = @"c:\data\nupkgs;c:\data\nupkgs2;c:\data\nupkgs3;c:\data\nupkgs4";
-
-            const int BatchSize = 100;
-
-            DateTime before = DateTime.Now;
-
-            List<Tuple<string, string>> packages = GatherPackageList(path);
-
-            List<Tuple<string, string>> batch = new List<Tuple<string, string>>();
-            foreach (Tuple<string, string> item in packages)
-            {
-                batch.Add(item);
-
-                if (batch.Count == BatchSize)
-                {
-                    BatchUpload(storage, ownerId, batch, DateTime.Now);
-                    batch.Clear();
-                }
-            }
-            if (batch.Count > 0)
-            {
-                BatchUpload(storage, ownerId, batch, DateTime.Now);
-            }
-
-            DateTime after = DateTime.Now;
-
-            Console.WriteLine("{0} seconds {1} packages", (after - before).TotalSeconds, packages.Count);
-
-            if (storage is FileStorage)
-            {
-                Console.WriteLine("save: {0} load: {1}", ((FileStorage)storage).SaveCount, ((FileStorage)storage).LoadCount);
-            }
-        }
 
         static async Task Test1(string resumePackage)
         {
             string connectionString = "";
-            IStorage storage = new AzureStorage
+            Storage storage = new AzureStorage
             {
                 ConnectionString = connectionString,
                 Container = "package-metadata",
@@ -241,81 +163,6 @@ namespace CatalogTests
             Console.WriteLine("save: {0} load: {1}", ((FileStorage)storage).SaveCount, ((FileStorage)storage).LoadCount);
         }
 
-        static void Test2()
-        {
-            string baseAddress = "http://localhost:8000/pub/";
-            DateTime since = DateTime.MinValue;
-
-            Collector collector = new PackageCollector(new CountingPackageEmitter());
-            //Collector collector = new PackageCollector(new PrintingPackageEmitter());
-
-            collector.Run(baseAddress, since);
-        }
-
-        static void Test3()
-        {
-            string baseAddress = "http://localhost:8000/pub/";
-            DateTime since = DateTime.MinValue;
-
-            TripleStore store = new TripleStore();
-            Collector collector = new PackageCollector(new TripleStorePackageEmitter(store));
-
-            collector.Run(baseAddress, since);
-
-            Console.WriteLine("collected {0} triples", store.Triples.Count());
-        }
-
-        static void Test4()
-        {
-            string baseAddress = "http://localhost:8000/pub/";
-            DateTime since = DateTime.MinValue;
-
-            TripleStore store = new TripleStore();
-            Collector collector = new PackageCollector(new TripleStorePackageEmitter(store));
-
-            long before = GC.GetTotalMemory(true);
-
-            collector.Run(baseAddress, since);
-
-            long after = GC.GetTotalMemory(true);
-
-            Console.WriteLine("before = {0:N0} bytes, after = {1:N0} bytes", before, after);
-
-            InMemoryDataset ds = new InMemoryDataset(store);
-            ISparqlQueryProcessor processor = new LeviathanQueryProcessor(ds);
-            SparqlQueryParser sparqlparser = new SparqlQueryParser();
-
-            SparqlQuery countQuery = sparqlparser.ParseFromString("SELECT COUNT(?resource) AS ?count WHERE { ?resource a <http://nuget.org/schema#Package> . }");
-            SparqlResultSet countResults = (SparqlResultSet)processor.ProcessQuery(countQuery);
-            foreach (SparqlResult result in countResults)
-            {
-                Console.WriteLine("found {0} packages", ((ILiteralNode)result["count"]).Value);
-            }
-
-            SparqlQuery distinctQuery = sparqlparser.ParseFromString("SELECT COUNT(DISTINCT ?id) AS ?count WHERE { ?resource a <http://nuget.org/schema#Package> . ?resource <http://nuget.org/schema#id> ?s . BIND (LCASE(?s) AS ?id) }");
-            SparqlResultSet distinctResults = (SparqlResultSet)processor.ProcessQuery(distinctQuery);
-            foreach (SparqlResult result in distinctResults)
-            {
-                Console.WriteLine("found {0} packages", ((ILiteralNode)result["count"]).Value);
-            }
-        }
-
-        static void Test5()
-        {
-            DateTime since = DateTime.MinValue;
-
-            IStorage storage = new FileStorage
-            {
-                Path = @"c:\data\site\pub",
-                Container = "pub",
-                BaseAddress = "http://localhost:8000/pub/"
-            };
-
-            Collector collector = new PackageCollector(new ResolverPackageEmitter(storage, 400));
-
-            collector.Run(storage.BaseAddress, since);
-        }
-
         static void PrintException(Exception e)
         {
             if (e is AggregateException)
@@ -342,10 +189,15 @@ namespace CatalogTests
             {
                 //Test0();
                 //Test1(args.Length > 0 ? args[0] : null).Wait();
-                //Test2();
-                //Test3();
-                //Test4();
-                Test5();
+
+                //BuilderTests.Test0();
+                //BuilderTests.Test1();
+                BuilderTests.Test2();
+
+                //CollectorTests.Test0();
+                //CollectorTests.Test1();
+                //CollectorTests.Test2();
+                //CollectorTests.Test3();
             }
             catch (Exception e)
             {
