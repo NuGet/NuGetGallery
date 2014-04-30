@@ -53,7 +53,7 @@ namespace Catalog
                     continue;
                 }
                 state.Store.Add(graph, true);
-                state.Store.ApplyInference(state.Store.Graphs.First());
+                //state.Store.ApplyInference(state.Store.Graphs.First());
             }
         }
 

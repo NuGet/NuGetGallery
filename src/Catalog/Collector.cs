@@ -13,12 +13,23 @@ namespace Catalog
 {
     public abstract class Collector
     {
-        static int HttpCalls = 0;
-        static int RefCount = 0;
+        int _httpCalls = 0;
+        int _refCount = 0;
+
+        public int HttpCalls
+        {
+            get { return _httpCalls; }
+        }
+
+        public double Duration
+        {
+            get;
+            private set;
+        }
 
         async Task FetchAsync(Uri requestUri, DateTime last, Emitter emitter, ActionBlock<Uri> actionBlock)
         {
-            Interlocked.Increment(ref HttpCalls);
+            Interlocked.Increment(ref _httpCalls);
 
             HttpClient client = new HttpClient();
             HttpResponseMessage response = await client.GetAsync(requestUri);
@@ -40,14 +51,14 @@ namespace Catalog
                         if (published > last)
                         {
                             Uri next = new Uri(item["url"].ToString());
-                            Interlocked.Increment(ref RefCount);
+                            Interlocked.Increment(ref _refCount);
                             actionBlock.Post(next);
                         }
                     }
                 }
             }
 
-            int result = Interlocked.Decrement(ref RefCount);
+            int result = Interlocked.Decrement(ref _refCount);
             if (result == 0)
             {
                 actionBlock.Complete();
@@ -70,18 +81,18 @@ namespace Catalog
                 },
                 new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism });
 
-                RefCount = 0;
-                HttpCalls = 0;
+                _refCount = 0;
+                _httpCalls = 0;
 
                 DateTime before = DateTime.Now;
 
-                Interlocked.Increment(ref RefCount);
+                Interlocked.Increment(ref _refCount);
                 baseBlock.Post(requestUri);
                 baseBlock.Completion.Wait();
 
                 DateTime after = DateTime.Now;
 
-                Console.WriteLine("duration {0} seconds, {1} http calls", (after - before).TotalSeconds, HttpCalls);
+                Duration = (after - before).TotalSeconds;
             }
             finally
             {

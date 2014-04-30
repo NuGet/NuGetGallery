@@ -186,15 +186,21 @@ namespace CatalogTests
         {
             try
             {
+                DateTime before = DateTime.Now;
+
                 //Test1(args.Length > 0 ? args[0] : null).Wait();
                 //BuilderTests.Test0();
                 //BuilderTests.Test1();
-                BuilderTests.Test2();
+                //BuilderTests.Test2();
 
                 //CollectorTests.Test0();
                 //CollectorTests.Test1();
                 //CollectorTests.Test2();
-                //CollectorTests.Test3();
+                CollectorTests.Test3();
+
+                DateTime after = DateTime.Now;
+
+                Console.WriteLine("Total duration {0} seconds", (after - before).TotalSeconds);
             }
             catch (Exception e)
             {

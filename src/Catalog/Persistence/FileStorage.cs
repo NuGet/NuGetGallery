@@ -6,8 +6,6 @@ namespace Catalog.Persistence
 {
     public class FileStorage : Storage
     {
-        string _baseAddress;
-
         public FileStorage()
         {
             ResetStatistics();

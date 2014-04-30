@@ -13,9 +13,9 @@ namespace Catalog
 
             IGraph schema = Utils.Load("schema.schema.ttl");
 
-            IInferenceEngine rdfs = new StaticRdfsReasoner();
-            rdfs.Initialise(schema);
-            Store.AddInferenceEngine(rdfs);
+            //IInferenceEngine rdfs = new StaticRdfsReasoner();
+            //rdfs.Initialise(schema);
+            //Store.AddInferenceEngine(rdfs);
 
             Store.Add(schema, true);
 

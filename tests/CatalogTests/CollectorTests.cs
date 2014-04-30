@@ -84,6 +84,8 @@ namespace CatalogTests
             Collector collector = new PackageCollector(new ResolverPackageEmitter(storage, 400));
 
             collector.Run(storage.BaseAddress, since);
+
+            Console.WriteLine("collection duration: {0} seconds, making {1} http calls", collector.Duration, collector.HttpCalls);
         }
     }
 }

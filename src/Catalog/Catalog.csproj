@@ -123,7 +123,6 @@
   <ItemGroup>
     <None Include="app.config" />
     <EmbeddedResource Include="context\ContainerFrame.json" />
-    <EmbeddedResource Include="context\OwnerFrame.json" />
     <EmbeddedResource Include="context\PackageFrame.json" />
     <EmbeddedResource Include="context\ResolverFrame.json" />
     <None Include="packages.config" />
