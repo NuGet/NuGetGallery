@@ -35,7 +35,7 @@
             d3.select('#framed').on('click', function () {
                 var frame = JSON.parse(document.getElementById("frame").textContent);
                 var type = frame['@type'];
-                frame = { '@type' : frame['@context']['ng'] + type.substring(type.indexOf(':') + 1) };
+                frame = { '@type' : type };
                 jsonld.frame(resourceJson, frame, function (err, framed) {
                   d3.select('#content').html(json2html(framed));
                 });

@@ -9,5 +9,5 @@
         "owners" : { "@container" : "@set" },
 		"url" : "@id"
 	},
-	"@type" : "PackageRegistration"
+	"@type" : "http://nuget.org/schema#PackageRegistration"
 }

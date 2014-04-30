@@ -63,7 +63,8 @@ namespace CatalogTests
             };
 
             string ownerId = "microsoft";
-            string path = @"c:\data\nupkgs;c:\data\nupkgs2;c:\data\nupkgs3;c:\data\nupkgs4";
+            //string path = @"c:\data\nupkgs;c:\data\nupkgs2;c:\data\nupkgs3;c:\data\nupkgs4";
+            string path = @"c:\data\nupkgs";
 
             const int BatchSize = 100;
 
@@ -340,12 +341,12 @@ namespace CatalogTests
         {
             try
             {
-                //Test0();
+                Test0();
                 //Test1(args.Length > 0 ? args[0] : null).Wait();
                 //Test2();
                 //Test3();
                 //Test4();
-                Test5();
+                //Test5();
             }
             catch (Exception e)
             {
