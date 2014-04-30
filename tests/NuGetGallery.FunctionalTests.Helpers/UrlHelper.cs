@@ -119,9 +119,19 @@ namespace NuGetGallery.FunctionTests.Helpers
             get { return UrlHelper.V2FeedRootUrl + WebMatrixCuratedFeedUrlSuffix; }
         }
 
+        public static string AccountPageUrl
+        {
+            get { return UrlHelper.BaseUrl + AccountPageUrlSuffix; }
+        }
+
         public static string ManageMyPackagesUrl
         {
             get { return UrlHelper.BaseUrl + ManageMyPackagesUrlSuffix; }
+        }
+
+        public static string GetPackagePageUrl(string packageId)
+        {
+            return UrlHelper.BaseUrl + @"Packages/" + packageId;
         }
 
         public static string GetPackagePageUrl(string packageId, string version = "1.0.0")
@@ -155,6 +165,7 @@ namespace NuGetGallery.FunctionTests.Helpers
         private const string VerifyUploadPageUrlSuffix = "/packages/verify-upload";
         private const string Windows8CuratedFeedUrlSuffix = "curated-feeds/windows8-packages/";
         private const string WebMatrixCuratedFeedUrlSuffix = "curated-feeds/webmatrix/";
+        private const string AccountPageUrlSuffix = "/account";
         private const string ManageMyPackagesUrlSuffix = "/account/Packages";
         #endregion UrlSuffix
     }

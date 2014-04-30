@@ -85,8 +85,9 @@ namespace NuGetGallery.FunctionalTests.LoadTests
             // Get the response.          
             WebResponse response = request.GetResponse();
             StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
-            Assert.IsTrue(responseText.Contains(@"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId));
+            string responseText = sr.ReadToEnd().ToLowerInvariant();
+            string expectedText = @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId;
+            Assert.IsTrue(responseText.Contains(expectedText.ToLowerInvariant()));
         }
 
         [TestMethod]
