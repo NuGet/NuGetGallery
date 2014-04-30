@@ -13,31 +13,34 @@ namespace CatalogTests
     {
         public static void Test0()
         {
-            string baseAddress = "http://localhost:8000/pub/";
+            Uri requestUri = new Uri("http://localhost:8000/pub/catalog/index.json");
+
             DateTime since = DateTime.MinValue;
 
             Collector collector = new PackageCollector(new CountingPackageEmitter());
             //Collector collector = new PackageCollector(new PrintingPackageEmitter());
 
-            collector.Run(baseAddress, since);
+            collector.Run(requestUri, since);
         }
 
         public static void Test1()
         {
-            string baseAddress = "http://localhost:8000/pub/";
+            Uri requestUri = new Uri("http://localhost:8000/pub/catalog/index.json");
+
             DateTime since = DateTime.MinValue;
 
             TripleStore store = new TripleStore();
             Collector collector = new PackageCollector(new TripleStorePackageEmitter(store));
 
-            collector.Run(baseAddress, since);
+            collector.Run(requestUri, since);
 
             Console.WriteLine("collected {0} triples", store.Triples.Count());
         }
 
         public static void Test2()
         {
-            string baseAddress = "http://localhost:8000/pub/";
+            Uri requestUri = new Uri("http://localhost:8000/pub/catalog/index.json");
+            
             DateTime since = DateTime.MinValue;
 
             TripleStore store = new TripleStore();
@@ -45,7 +48,7 @@ namespace CatalogTests
 
             long before = GC.GetTotalMemory(true);
 
-            collector.Run(baseAddress, since);
+            collector.Run(requestUri, since);
 
             long after = GC.GetTotalMemory(true);
 
@@ -74,16 +77,28 @@ namespace CatalogTests
         {
             DateTime since = DateTime.MinValue;
 
-            Storage storage = new FileStorage
+            //Storage storage = new FileStorage
+            //{
+            //    Path = @"c:\data\site\pub",
+            //    Container = "pub",
+            //    BaseAddress = "http://http://nuget3.blob.core.windows.net/pub"
+            //};
+
+            string accountName = "nuget3";
+            string accountKey = "";
+            string connectionString = string.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", accountName, accountKey);
+            Storage storage = new AzureStorage
             {
-                Path = @"c:\data\site\pub",
-                Container = "pub",
-                BaseAddress = "http://localhost:8000/pub/"
+                ConnectionString = connectionString,
+                Container = "feed",
+                BaseAddress = "http://nuget3.blob.core.windows.net"
             };
+
+            Uri requestUri = new Uri("http://nuget3.blob.core.windows.net/pub/catalog/index.json");
 
             Collector collector = new PackageCollector(new ResolverPackageEmitter(storage, 400));
 
-            collector.Run(storage.BaseAddress, since);
+            collector.Run(requestUri, since, 16);
 
             Console.WriteLine("collection duration: {0} seconds, making {1} http calls", collector.Duration, collector.HttpCalls);
         }

@@ -119,14 +119,6 @@ namespace Catalog
             return result;
         }
 
-        public static string GetName(Uri uri, string baseAddress, string container)
-        {
-            string address = string.Format("{0}/{1}/", baseAddress, container);
-            string s = uri.ToString();
-            string name = s.Substring(address.Length);
-            return name;
-        }
-
         public static string CreateHtmlView(Uri resource, string frame, string baseAddress)
         {
             XDocument original = XDocument.Load(new StreamReader(Utils.GetResourceStream("html.view.html")));

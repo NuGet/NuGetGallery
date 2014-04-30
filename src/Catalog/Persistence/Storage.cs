@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace Catalog.Persistence
 {
@@ -6,8 +7,8 @@ namespace Catalog.Persistence
     {
         string _baseAddress;
 
-        public abstract Task Save(string contentType, string name, string content);
-        public abstract Task<string> Load(string name);
+        public abstract Task Save(string contentType, Uri resourceUri, string content);
+        public abstract Task<string> Load(Uri resourceUri);
 
         public string Container
         {
@@ -43,6 +44,14 @@ namespace Catalog.Persistence
         {
             SaveCount = 0;
             LoadCount = 0;
+        }
+
+        protected static string GetName(Uri uri, string baseAddress, string container)
+        {
+            string address = string.Format("{0}{1}/", baseAddress, container);
+            string s = uri.ToString();
+            string name = s.Substring(address.Length);
+            return name;
         }
     }
 }

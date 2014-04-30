@@ -61,9 +61,7 @@ namespace Catalog
             }
 
             int take = GetTakeLengthForLetter(id[0]);
-
             take = Math.Min(take, id.Length);
-
             return id.Substring(0, take);
         }
 

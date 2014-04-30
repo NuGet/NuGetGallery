@@ -19,9 +19,16 @@ namespace Catalog.Persistence
 
         //  save
        
-        public override async Task Save(string contentType, string name, string content)
+        public override async Task Save(string contentType, Uri resourceUri, string content)
         {
             SaveCount++;
+
+            string name = GetName(resourceUri, BaseAddress, Container);
+
+            if (Verbose)
+            {
+                Console.WriteLine("save {0}", name);
+            }
 
             CloudStorageAccount account = CloudStorageAccount.Parse(ConnectionString);
             CloudBlobClient client = account.CreateCloudBlobClient();
@@ -31,7 +38,10 @@ namespace Catalog.Persistence
             {
                 container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
-                Console.WriteLine("Created '{0}' publish container", Container);
+                if (Verbose)
+                {
+                    Console.WriteLine("Created '{0}' publish container", Container);
+                }
             }
 
             CloudBlockBlob blob = container.GetBlockBlobReference(name);
@@ -39,15 +49,15 @@ namespace Catalog.Persistence
             blob.Properties.CacheControl = "no-store";  // no for production, just helps with debugging
 
             await blob.UploadTextAsync(content);
-
-            Console.WriteLine("save: {0}", name);
         }
 
         //  load
 
-        public override async Task<string> Load(string name)
+        public override async Task<string> Load(Uri resourceUri)
         {
             LoadCount++;
+
+            string name = GetName(resourceUri, BaseAddress, Container);
 
             CloudStorageAccount account = CloudStorageAccount.Parse(ConnectionString);
             CloudBlobClient client = account.CreateCloudBlobClient();
@@ -57,7 +67,10 @@ namespace Catalog.Persistence
             {
                 container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
-                Console.WriteLine("Created '{0}' publish container", Container);
+                if (Verbose)
+                {
+                    Console.WriteLine("Created '{0}' publish container", Container);
+                }
             }
 
             CloudBlockBlob blob = container.GetBlockBlobReference(name);

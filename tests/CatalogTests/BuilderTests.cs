@@ -105,11 +105,21 @@ namespace CatalogTests
 
         public static void Test2()
         {
-            Storage storage = new FileStorage
+            //Storage storage = new FileStorage
+            //{
+            //    Path = @"c:\data\site\pub",
+            //    Container = "pub",
+            //    BaseAddress = "http://localhost:8000"
+            //};
+
+            string accountName = "nuget3";
+            string accountKey = "";
+            string connectionString = string.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", accountName, accountKey);
+            Storage storage = new AzureStorage
             {
-                Path = @"c:\data\site\pub",
+                ConnectionString = connectionString,
                 Container = "pub",
-                BaseAddress = "http://localhost:8000"
+                BaseAddress = "http://nuget3.blob.core.windows.net"
             };
 
             string ownerId = "microsoft";

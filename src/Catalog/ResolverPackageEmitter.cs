@@ -116,11 +116,11 @@ namespace Catalog
 
             foreach (KeyValuePair<Uri, IGraph> resolverResource in resolverResources)
             {
-                string name = resolverResource.Key.ToString().Substring(_storage.BaseAddress.Length);
+                //string name = resolverResource.Key.ToString().Substring(_storage.BaseAddress.Length);
 
                 IGraph newGraph = resolverResource.Value;
 
-                string existingJson = await _storage.Load(name);
+                string existingJson = await _storage.Load(resolverResource.Key);
                 if (existingJson != null)
                 {
                     IGraph existingGraph = Utils.CreateGraph(existingJson);
@@ -130,7 +130,7 @@ namespace Catalog
                 }
 
                 string content = Utils.CreateJson(newGraph, resolverFrame);
-                await _storage.Save("application/json", name, content);
+                await _storage.Save("application/json", resolverResource.Key, content);
             }
         }
     }

@@ -32,7 +32,7 @@ namespace Catalog
 
         static async Task CaptureData(State state, IInputDataHandle[] handles)
         {
-            string baseAddress = string.Format("{0}/{1}/", state.BaseAddress, state.Container);
+            string baseAddress = string.Format("{0}{1}/", state.BaseAddress, state.Container);
 
             foreach (IInputDataHandle handle in handles)
             {
@@ -41,6 +41,7 @@ namespace Catalog
                 {
                     graph = await handle.CreateGraph(baseAddress);
                 }
+                //TODO: this exception handling doesn't look correct
                 catch (NuspecMissingException)
                 {
                     if (handle is CloudPackageHandle)
@@ -53,7 +54,6 @@ namespace Catalog
                     continue;
                 }
                 state.Store.Add(graph, true);
-                //state.Store.ApplyInference(state.Store.Graphs.First());
             }
         }
 
@@ -82,7 +82,7 @@ namespace Catalog
                 List<Task> tasks = new List<Task>();
                 foreach (KeyValuePair<Uri, Tuple<string, string, string>> item in missing)
                 {
-                    tasks.Add(storage.Load(Utils.GetName(item.Key, state.BaseAddress, state.Container)));
+                    tasks.Add(storage.Load(item.Key));
                 }
 
                 await Task.Factory.ContinueWhenAll(tasks.ToArray(), (tgs) =>
@@ -95,7 +95,6 @@ namespace Catalog
                         {
                             IGraph graph = Utils.CreateGraph(json);
                             state.Store.Add(graph, true);
-                            state.Store.ApplyInference(state.Store.Graphs.First());
                         }
                     }
 
@@ -132,18 +131,14 @@ namespace Catalog
                     resourceFrame["@type"] = resource.Value.Item3;
                 }
 
-                string name = Utils.GetName(resource.Key, state.BaseAddress, state.Container);
+                tasks.Add(storage.Save("application/json", resource.Key, Utils.CreateJson(resourceGraph, resourceFrame)));
 
-                tasks.Add(storage.Save("application/json", name, Utils.CreateJson(resourceGraph, resourceFrame)));
+                string jsonResourceStr = resource.Key.ToString();
+                string htmlResourceStr = jsonResourceStr.Substring(0, jsonResourceStr.Length - 5) + ".html";
 
-                string htmlName = name;
-                if (name.EndsWith(".json"))
-                {
-                    htmlName = name.Substring(0, name.Length - 5);
-                    htmlName = htmlName + ".html";
-                }
+                Uri htmlResource = new Uri(htmlResourceStr);
 
-                tasks.Add(storage.Save("text/html", htmlName, Utils.CreateHtmlView(resource.Key, resourceFrame.ToString(), state.BaseAddress)));
+                tasks.Add(storage.Save("text/html", htmlResource, Utils.CreateHtmlView(resource.Key, resourceFrame.ToString(), state.BaseAddress)));
             }
 
             await Task.Factory.ContinueWhenAll(tasks.ToArray(), (t) => { });

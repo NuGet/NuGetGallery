@@ -15,11 +15,13 @@ namespace Catalog.Persistence
         { 
             get;
             set;
-        } 
+        }
 
-        public override async Task Save(string contentType, string name, string content)
+        public override async Task Save(string contentType, Uri resourceUri, string content)
         {
             SaveCount++;
+
+            string name = GetName(resourceUri, BaseAddress, Container);
 
             if (Verbose)
             {
@@ -60,9 +62,11 @@ namespace Catalog.Persistence
             });
         }
 
-        public override async Task<string> Load(string name)
+        public override async Task<string> Load(Uri resourceUri)
         {
             LoadCount++;
+
+            string name = GetName(resourceUri, BaseAddress, Container);
 
             if (Verbose)
             {

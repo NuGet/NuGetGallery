@@ -33,6 +33,12 @@ namespace Catalog
 
             HttpClient client = new HttpClient();
             HttpResponseMessage response = await client.GetAsync(requestUri);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception(string.Format("http status code {0} on GET {1}", response.StatusCode, requestUri));
+            }
+
             string json = await response.Content.ReadAsStringAsync();
             response.Dispose();
             client.Dispose();
@@ -65,10 +71,8 @@ namespace Catalog
             }
         }
 
-        public void Run(string baseAddress, DateTime since, int maxDegreeOfParallelism = 4)
+        public void Run(Uri requestUri, DateTime since, int maxDegreeOfParallelism = 4)
         {
-            Uri requestUri = new Uri(baseAddress + "catalog/index.json");
-
             Emitter emitter = CreateEmitter();
 
             try
