@@ -27,6 +27,12 @@ namespace Catalog
             private set;
         }
 
+        public int DegreeOfParallelism
+        {
+            get;
+            private set;
+        }
+
         async Task FetchAsync(Uri requestUri, DateTime last, Emitter emitter, ActionBlock<Uri> actionBlock)
         {
             Interlocked.Increment(ref _httpCalls);
@@ -97,6 +103,7 @@ namespace Catalog
                 DateTime after = DateTime.Now;
 
                 Duration = (after - before).TotalSeconds;
+                DegreeOfParallelism = maxDegreeOfParallelism;
             }
             finally
             {

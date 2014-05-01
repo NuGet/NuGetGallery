@@ -6,7 +6,6 @@
         "group" : { "@container" : "@set" },
         "dependency" : { "@container" : "@set" },
         "property" : { "@container" : "@set" },
-        "owners" : { "@container" : "@set" },
 		"url" : "@id"
 	},
 	"@type" : "http://nuget.org/schema#PackageRegistration"

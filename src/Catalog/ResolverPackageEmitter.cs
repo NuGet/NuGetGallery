@@ -94,13 +94,15 @@ namespace Catalog
                 SparqlParameterizedString sparql = new SparqlParameterizedString();
                 sparql.CommandText = Utils.GetResource("sparql.ConstructResolverGraph.rq");
 
+                string baseAddress = _storage.BaseAddress + _storage.Container + "/";
+
                 sparql.SetLiteral("id", id);
-                sparql.SetLiteral("base", _storage.BaseAddress + "catalog/view/registration/");
+                sparql.SetLiteral("base", baseAddress);
                 sparql.SetLiteral("extension", ".json");
 
                 IGraph packageRegistration = SparqlHelpers.Construct(store, sparql.ToString());
 
-                Uri registrationUri = new Uri(_storage.BaseAddress + "catalog/view/registration/" + id.ToLowerInvariant() + ".json");
+                Uri registrationUri = new Uri(baseAddress + id.ToLowerInvariant() + ".json");
 
                 resolverResources.Add(registrationUri, packageRegistration);
             }
@@ -116,11 +118,10 @@ namespace Catalog
 
             foreach (KeyValuePair<Uri, IGraph> resolverResource in resolverResources)
             {
-                //string name = resolverResource.Key.ToString().Substring(_storage.BaseAddress.Length);
-
+                Uri resourceUri = resolverResource.Key;
                 IGraph newGraph = resolverResource.Value;
 
-                string existingJson = await _storage.Load(resolverResource.Key);
+                string existingJson = await _storage.Load(resourceUri);
                 if (existingJson != null)
                 {
                     IGraph existingGraph = Utils.CreateGraph(existingJson);
@@ -130,7 +131,7 @@ namespace Catalog
                 }
 
                 string content = Utils.CreateJson(newGraph, resolverFrame);
-                await _storage.Save("application/json", resolverResource.Key, content);
+                await _storage.Save("application/json", resourceUri, content);
             }
         }
     }

@@ -130,9 +130,7 @@
     <EmbeddedResource Include="sparql\All.rq" />
     <EmbeddedResource Include="sparql\Container.rq" />
     <EmbeddedResource Include="sparql\ListResources.rq" />
-    <EmbeddedResource Include="sparql\Owner.rq" />
     <EmbeddedResource Include="sparql\Package.rq" />
-    <EmbeddedResource Include="sparql\PackageRegistration.rq" />
     <EmbeddedResource Include="sparql\ConstructResolverGraph.rq" />
     <EmbeddedResource Include="sparql\SelectDistinctPackage.rq" />
   </ItemGroup>

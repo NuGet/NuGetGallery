@@ -90,7 +90,7 @@ namespace CatalogTests
             Storage storage = new AzureStorage
             {
                 ConnectionString = connectionString,
-                Container = "feed",
+                Container = "feed21",
                 BaseAddress = "http://nuget3.blob.core.windows.net"
             };
 
@@ -98,9 +98,9 @@ namespace CatalogTests
 
             Collector collector = new PackageCollector(new ResolverPackageEmitter(storage, 400));
 
-            collector.Run(requestUri, since, 16);
+            collector.Run(requestUri, since, 32);
 
-            Console.WriteLine("collection duration: {0} seconds, making {1} http calls", collector.Duration, collector.HttpCalls);
+            Console.WriteLine("collection duration: {0} seconds, making {1} http calls (up to {2} in parallel)", collector.Duration, collector.HttpCalls, collector.DegreeOfParallelism);
         }
     }
 }
