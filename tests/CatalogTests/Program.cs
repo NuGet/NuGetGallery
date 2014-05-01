@@ -22,7 +22,7 @@ namespace CatalogTests
         {
             string connectionStringProd = "DefaultEndpointsProtocol=https;AccountName=nugetprod1;AccountKey=";
             string connectionStringDev = "DefaultEndpointsProtocol=https;AccountName=nugetdev1;AccountKey=;";
-            IStorage storage = new AzureStorage
+            Storage storage = new AzureStorage
             {
                 ConnectionString = connectionStringDev,
                 Container = container,
