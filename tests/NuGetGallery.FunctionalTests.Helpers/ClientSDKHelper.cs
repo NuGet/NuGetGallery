@@ -1,11 +1,10 @@
-﻿using System;
+﻿using NuGet;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NuGet;
 using System.Globalization;
 using System.IO;
-using System.Net;
+using System.Linq;
+using System.Threading;
 
 namespace NuGetGallery.FunctionTests.Helpers
 {
@@ -147,7 +146,7 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// </summary>
         /// <param name="packageId"></param>
         /// <returns></returns>
-        public static bool CheckIfPackageExistsInSource(string packageId,string sourceUrl)
+        public static bool CheckIfPackageExistsInSource(string packageId, string sourceUrl)
         {
             IPackageRepository repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl) as IPackageRepository;
             IPackage package = repo.FindPackage(packageId);
@@ -162,22 +161,34 @@ namespace NuGetGallery.FunctionTests.Helpers
         public static bool CheckIfPackageVersionExistsInSource(string packageId, string version, string sourceUrl)
         {
             bool found = false;
-            for (int i = 0; ((i < 6) && (!found)); i++)
+            //    string requestURL = UrlHelper.V2FeedRootUrl + @"package/" + packageId + "/" + version + "?t=" + DateTime.Now.Ticks;
+            //    Console.WriteLine("The request URL for checking package existence was: " + requestURL);
+            //    HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(requestURL);
+            //    // Increase the request timeout
+            //    packagePageRequest.Timeout = 2 * 5000;
+            //    HttpWebResponse packagePageResponse;
+            //    try
+            //    {
+            //        packagePageResponse = (HttpWebResponse)packagePageRequest.GetResponse();
+            //        if (packagePageResponse != null && (((HttpWebResponse)packagePageResponse).StatusCode == HttpStatusCode.OK)) found = true;
+            //    }
+            //    catch (WebException e)
+            //    {
+            //        Console.WriteLine(e.Message);
+            //    }
+
+            // A new way to check if packages exist in source. The logic above often gives timeout errors randomly. 
+            IPackageRepository repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl) as IPackageRepository;
+            SemanticVersion semVersion;
+            bool success = SemanticVersion.TryParse(version, out semVersion);
+            if (success)
             {
-                string requestURL = UrlHelper.V2FeedRootUrl + @"package/" + packageId + "/" + version + "?t=" + DateTime.Now.Ticks;
-                Console.WriteLine("The request URL for checking package existence was: " + requestURL);
-                HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(requestURL);
-                // Increase the request timeout
-                packagePageRequest.Timeout = 2 * 5000;
-                HttpWebResponse packagePageResponse;
-                try
+                for (int i = 0; ((i < 3) && (!found)); i++)
                 {
-                    packagePageResponse = (HttpWebResponse)packagePageRequest.GetResponse();
-                    if (packagePageResponse != null && (((HttpWebResponse)packagePageResponse).StatusCode == HttpStatusCode.OK)) found = true;
-                }
-                catch (WebException e)
-                {
-                    Console.WriteLine(e.Message);
+                    // Wait for the search service to kick in, so that the package can be found via FindPackage(packageId, SemanticVersion)
+                    Thread.Sleep(60 * 1000);
+                    IPackage package = repo.FindPackage(packageId, semVersion);
+                    found = (package != null);
                 }
             }
             return found;
