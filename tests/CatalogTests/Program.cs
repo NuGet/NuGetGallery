@@ -18,14 +18,15 @@ namespace CatalogTests
 {
     class Program
     {
-        static async Task Test1(string resumePackage)
+        static async Task Test1(string container, int batchSize, string resumePackage)
         {
-            string connectionString = "";
-            Storage storage = new AzureStorage
+            string connectionStringProd = "DefaultEndpointsProtocol=https;AccountName=nugetprod1;AccountKey=";
+            string connectionStringDev = "DefaultEndpointsProtocol=https;AccountName=nugetdev1;AccountKey=;";
+            IStorage storage = new AzureStorage
             {
-                ConnectionString = connectionString,
-                Container = "package-metadata",
-                BaseAddress = "http://nugetprod1.blob.core.windows.net"
+                ConnectionString = connectionStringDev,
+                Container = container,
+                BaseAddress = "http://nugetdev1.blob.core.windows.net"
             };
 
             //IStorage storage = new FileStorage
@@ -37,10 +38,10 @@ namespace CatalogTests
 
             DateTime before = DateTime.Now;
 
-            CloudStorageAccount account = CloudStorageAccount.Parse(connectionString);
-            CloudBlobContainer mdtriggers = account.CreateCloudBlobClient().GetContainerReference("mdtriggers");
-            CloudBlobContainer metadata = account.CreateCloudBlobClient().GetContainerReference("package-metadata");
-            CloudBlobContainer packages = account.CreateCloudBlobClient().GetContainerReference("packages");
+            CloudStorageAccount account1 = CloudStorageAccount.Parse(connectionStringProd);
+            CloudStorageAccount account2 = CloudStorageAccount.Parse(connectionStringDev);
+            CloudBlobContainer mdtriggers = account1.CreateCloudBlobClient().GetContainerReference("mdtriggers");
+            CloudBlobContainer metadata = account2.CreateCloudBlobClient().GetContainerReference(container);
             BlobContinuationToken token = null;
 
             int packageCount = 0;
@@ -62,7 +63,7 @@ namespace CatalogTests
                 {
                     if (!resumePoint)
                     {
-                        if (blob.Uri.ToString().ToLowerInvariant().Contains(resumePackage))
+                        if (blob.Uri.ToString().ToLowerInvariant().Split("/".ToCharArray()).Last().StartsWith(resumePackage + "."))
                         {
                             resumePoint = true;
                         }
@@ -72,7 +73,7 @@ namespace CatalogTests
                         }
                     }
 
-                    var blobRef = account.CreateCloudBlobClient().GetBlobReferenceFromServer(blob.StorageUri);
+                    var blobRef = account1.CreateCloudBlobClient().GetBlobReferenceFromServer(blob.StorageUri);
                     var stream = blobRef.OpenRead();
                     var reader = new StreamReader(stream);
                     string json = reader.ReadToEnd();
@@ -90,7 +91,7 @@ namespace CatalogTests
                     string file = Path.GetTempFileName();
                     tempFiles.Add(file);
 
-                    downloads.Add(Task.Factory.StartNew(async () =>
+                    downloads.Add(await Task.Factory.StartNew(async () =>
                     {
                         try
                         {
@@ -105,29 +106,27 @@ namespace CatalogTests
                             return;
                         }
                         var nupkgStream = File.OpenRead(file);
+                        Console.WriteLine("Downloaded {0}", nupkgUrl);
                         lock (uploads)
                         {
-                            uploads.Add(new CloudPackageHandle(nupkgStream, ownerArray.Count() != 0 ? (string)ownerArray[0]["OwnerName"] : "NULL",
+                            uploads.Add(new CloudPackageHandle(nupkgStream, ownerArray.Count() != 0 ? ownerArray.Select(o => (string)o["OwnerName"]).ToList() : new List<string> { "NULL" },
                                 packageId, DateTime.Now));
                         }
                     }));
 
-                    if (downloads.Count() == 100)
+                    if (downloads.Count() == batchSize)
                     {
                         await Task.WhenAll(downloads.ToArray());
 
                         await Processor.Upload(uploads.ToArray(), storage);
 
-                        lock (uploads)
+                        foreach (var upload in uploads)
                         {
-                            foreach (var upload in uploads)
-                            {
-                                upload.Close();
-                            }
-
-                            downloads.Clear();
-                            uploads.Clear();
+                            upload.Close();
                         }
+
+                        downloads.Clear();
+                        uploads.Clear();
                     }
                 }
 
@@ -188,7 +187,7 @@ namespace CatalogTests
             {
                 DateTime before = DateTime.Now;
 
-                //Test1(args.Length > 0 ? args[0] : null).Wait();
+                //Test1(args[0], int.Parse(args[1]), args.Length > 2 ? args[2] : null).Wait();
                 //BuilderTests.Test0();
                 //BuilderTests.Test1();
                 //BuilderTests.Test2();

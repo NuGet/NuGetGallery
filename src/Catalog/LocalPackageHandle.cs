@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
@@ -8,14 +9,14 @@ namespace Catalog
 {
     public class LocalPackageHandle : PackageHandle
     {
-        string _owner;
+        List<string> _owners;
         string _registrationId;
         string _filename;
         DateTime _published;
 
-        public LocalPackageHandle(string owner, string registrationId, string filename, DateTime published)
+        public LocalPackageHandle(List<string> owners, string registrationId, string filename, DateTime published)
         {
-            _owner = owner;
+            _owners = owners;
             _registrationId = registrationId;
             _filename = filename;
             _published = published;
@@ -34,7 +35,7 @@ namespace Catalog
 
             PackageData result = new PackageData()
             {
-                OwnerId = _owner,
+                OwnerIds = _owners,
                 RegistrationId = _registrationId,
                 Published = _published,
                 Nuspec = nuspec

@@ -18,7 +18,7 @@ namespace CatalogTests
                 Console.WriteLine(t.Item1);
             }
 
-            LocalPackageHandle[] handles = batch.Select((item) => new LocalPackageHandle(ownerId, item.Item1, item.Item2, published)).ToArray();
+            LocalPackageHandle[] handles = batch.Select((item) => new LocalPackageHandle(new List<string>{ownerId}, item.Item1, item.Item2, published)).ToArray();
 
             Processor.Upload(handles, storage).Wait();
 
