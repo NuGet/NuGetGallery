@@ -209,7 +209,9 @@ namespace NuGetGallery.FunctionTests.Helpers
         {
             string packageVersion = ClientSDKHelper.GetLatestStableVersion(packageId);
             string expectedDownloadedNupkgFileName = packageId + "." + packageVersion;
-            if(Directory.Exists(Path.Combine(Environment.CurrentDirectory, expectedDownloadedNupkgFileName)))
+            string pathToNupkgFolder = Path.Combine(Environment.CurrentDirectory, expectedDownloadedNupkgFileName);
+            Console.WriteLine("Path to the downloaded Nupkg file for clearing local package folder is: " + pathToNupkgFolder);
+            if(Directory.Exists(pathToNupkgFolder))
                 Directory.Delete(expectedDownloadedNupkgFileName, true);
         }
 
@@ -236,6 +238,7 @@ namespace NuGetGallery.FunctionTests.Helpers
             string expectedDownloadedNupkgFileName = packageId + "." + packageVersion;
             //check if the nupkg file exists on the expected path post install
             string expectedNupkgFilePath = Path.Combine(Environment.CurrentDirectory, expectedDownloadedNupkgFileName, expectedDownloadedNupkgFileName + ".nupkg");
+            Console.WriteLine("The expected Nupkg file path after package install is: " + expectedNupkgFilePath);
             if ((!File.Exists(expectedNupkgFilePath)))
             {
                 Console.WriteLine(" Package file {0} not present after download", expectedDownloadedNupkgFileName);

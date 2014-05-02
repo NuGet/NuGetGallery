@@ -255,13 +255,13 @@ namespace NuGetGallery.FunctionalTests.Features
         public void SearchMicrosoftDotNetCuratedFeed()
         {
             string packageId = "microsoft.aspnet.webpages";
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"curated-feeds/microsoftdotnet/Packages()?$filter=tolower(Id)%20eq%20'" + packageId + "'&$orderby=Id&$skip=0&$top=30");
+            WebRequest request = WebRequest.Create(UrlHelper.DotnetCuratedFeedUrl + @"Packages()?$filter=tolower(Id)%20eq%20'" + packageId + "'&$orderby=Id&$skip=0&$top=30");
             // Get the response.          
             WebResponse response = request.GetResponse();
             StreamReader sr = new StreamReader(response.GetResponseStream());
             string responseText = sr.ReadToEnd();
-            Assert.IsTrue(responseText.Contains(@"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId));          
-
+            string packageURL = @"<id>" + UrlHelper.DotnetCuratedFeedUrl + "Packages(Id='" + packageId;
+            Assert.IsTrue(responseText.ToLowerInvariant().Contains(packageURL.ToLowerInvariant()));          
         }
     }
 }

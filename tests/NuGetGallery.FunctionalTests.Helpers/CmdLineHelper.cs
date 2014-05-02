@@ -37,8 +37,8 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// <param name="sourceName"></param>
         /// <returns></returns>
         public static int UploadPackage(string packageFullPath, string sourceName, out string standardOutput, out string standardError)
-        {            
-            return InvokeNugetProcess(string.Join(string.Empty, new string[] { PushCommandString, @"""" + packageFullPath + @"""",SourceSwitchString, sourceName }), out standardError, out standardOutput);            
+        {
+            return InvokeNugetProcess(string.Join(string.Empty, new string[] { PushCommandString, @"""" + packageFullPath + @"""", SourceSwitchString, sourceName }), out standardError, out standardOutput);         
         }
 
         /// <summary>
@@ -52,6 +52,20 @@ namespace NuGetGallery.FunctionTests.Helpers
             string standardOutput = string.Empty;
             string standardError = string.Empty;
             return InvokeNugetProcess(string.Join(string.Empty, new string[] { InstallCommandString, packageId, SourceSwitchString, sourceName}), out standardError, out standardOutput);
+        }
+
+        /// <summary>
+        ///  Install the specified package using Nuget.exe, specifying the output directory
+        /// </summary>
+        /// <param name="packageId">package to be installed</param>
+        /// <param name="sourceName">source url</param>
+        /// <param name="outputDirectory">outputDirectory</param>
+        /// <returns></returns>
+        public static int InstallPackage(string packageId, string sourceName, string outputDirectory)
+        {
+            string standardOutput = string.Empty;
+            string standardError = string.Empty;
+            return InvokeNugetProcess(string.Join(string.Empty, new string[] { InstallCommandString, packageId, SourceSwitchString, sourceName, OutputDirectorySwitchString, outputDirectory }), out standardError, out standardOutput);
         }
 
         /// <summary>
@@ -81,6 +95,7 @@ namespace NuGetGallery.FunctionTests.Helpers
         {
             Process nugetProcess = new Process();
             string pathToNugetExe = Path.Combine(Environment.CurrentDirectory, NugetExePath);
+            Console.WriteLine("The NuGet.exe command to be executed is: " + pathToNugetExe + " " + arguments);
 
             // During the actual test run, a script will copy the latest NuGet.exe and overwrite the existing one
             ProcessStartInfo nugetProcessStartInfo = new ProcessStartInfo(pathToNugetExe);
