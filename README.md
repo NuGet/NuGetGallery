@@ -10,7 +10,7 @@ website for the NuGet client. For information about the NuGet clients, visit htt
  2. PowerShell 2.0 (comes with Windows 7+)
  3. [NuGet](http://docs.nuget.org/docs/start-here/installing-nuget)
  4. [Windows Azure SDK v2.2](http://www.microsoft.com/windowsazure/sdk/) - Note that later versions may be supported, but will require you to manually upgrade the ".Cloud" projects in the solution.
- 5. (Optional, for unit tests) [xUnit for Visual Studio 2012](http://visualstudiogallery.msdn.microsoft.com/463c5987-f82b-46c8-a97e-b1cde42b9099)
+ 5. (Optional, for unit tests) [xUnit for Visual Studio 2012 and 2013](http://visualstudiogallery.msdn.microsoft.com/463c5987-f82b-46c8-a97e-b1cde42b9099)
 2. Clone it!
     
     ```git clone git@github.com:NuGet/NuGetGallery.git```
@@ -26,7 +26,7 @@ website for the NuGet client. For information about the NuGet clients, visit htt
  3. If you're having trouble, go to the Project Properties for the Website project, click on the Web tab and change the URL to localhost:port where _port_ is some port number above 1024.
 
 5. Create the Database!
- 1. Open Visual Studio 2012
+ 1. Open Visual Studio 2013
  2. Open the Package Manager Console window
  3. Ensure that the Default Project is set to `NuGetGallery`
  4. Open the NuGetGallery.sln solution from the root of this repository. ***Important:*** Make sure the Package Manager Console has been opened once before you open the solution. If the solution was already open, open the package manager console and then close and re-open the solution (from the file menu)
