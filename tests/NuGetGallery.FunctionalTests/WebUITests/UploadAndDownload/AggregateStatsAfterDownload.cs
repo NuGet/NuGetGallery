@@ -36,7 +36,7 @@
             //wait either the download count changes or till 5 minutes which ever is earlier.
             int waittime = 0;
             int aggregateStatsAfterDownload = aggregateStatsBeforeDownload;
-            while (aggregateStatsAfterDownload == aggregateStatsBeforeDownload && waittime <= 300)
+            while (aggregateStatsAfterDownload == aggregateStatsBeforeDownload && waittime <= 600)
             {
                 //send a request stats to keep polling the new download count.
                 statsRequestBeforeDownload = GetWebRequestForAggregateStats();

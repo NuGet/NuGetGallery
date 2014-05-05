@@ -37,7 +37,7 @@ namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
         {
            string packageId = Constants.TestPackageId; //try to down load a pre-defined test package.          
            ClientSDKHelper.ClearLocalPackageFolder(packageId);
-           int exitCode = CmdLineHelper.InstallPackage(packageId, UrlHelper.V2FeedRootUrl);
+           int exitCode = CmdLineHelper.InstallPackage(packageId, UrlHelper.V2FeedRootUrl, Environment.CurrentDirectory);
            Assert.IsTrue((exitCode == 0), "The package install via Nuget.exe didnt suceed properly. Check the logs to see the process error and output stream");
            Assert.IsTrue(ClientSDKHelper.CheckIfPackageInstalled(packageId), "Package install failed. Either the file is not present on disk or it is corrupted. Check logs for details");
 
