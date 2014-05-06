@@ -83,7 +83,7 @@ namespace NuGetGallery.FunctionalTests.Features
         public void CheckMicrosoftDotNetCuratedFeedForDuplicates()
         {
             WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/curated-feeds/microsoftdotnet/Packages");
-            request.Timeout = 2000;
+            request.Timeout = 15000;
             ArrayList packages = new ArrayList();
 
             // Get the response.          
