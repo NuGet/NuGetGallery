@@ -73,8 +73,9 @@ function Invoke-Netsh() {
 }
 
 # Enable access to the necessary URLs
-Invoke-Netsh http add urlacl "url=http://$Subdomain.localtest.me:80/" user=Everyone
-Invoke-Netsh http add urlacl "url=https://$Subdomain.localtest.me:443/" user=Everyone
+# S-1-1-0 is the unlocalized version for: user=Everyone 
+Invoke-Netsh http add urlacl "url=http://$Subdomain.localtest.me:80/" "sddl=D:(A;;GX;;;S-1-1-0)"
+Invoke-Netsh http add urlacl "url=https://$Subdomain.localtest.me:443/" "sddl=D:(A;;GX;;;S-1-1-0)"
 
 
 $SiteFullName = "$SiteName ($Subdomain.localtest.me)"
