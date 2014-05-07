@@ -1,6 +1,7 @@
 ﻿function getStats(currData) {
     currData = currData || {};
-    $.get('/stats/totals', function(data) {
+
+    $.get(window.app.root + 'stats/totals', function (data) {
         var section = $('section.aggstats');
         section.show();
         update(data, currData, 'UniquePackages');
