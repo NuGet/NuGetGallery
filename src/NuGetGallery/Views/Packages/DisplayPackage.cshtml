@@ -16,6 +16,12 @@
     <meta property="og:determiner"  content="a" />
     <meta property="og:image"       content="@(Model.IconUrl ?? Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" />
 }
+@section Meta {
+    @if (!Model.Listed)
+    {
+    <meta name="robots" content="noindex">
+    }
+}
 @section BottomScripts {
     @* Facebook SDK *@
     <div id="fb-root"></div>
@@ -192,13 +198,23 @@
         <p>@line</p>
     }
 
-    @if (!Model.Listed && Model.IsOwner(User))
+    @if (!Model.Listed)
     {
-        <p  class="message warning">
-            This package is unlisted and hidden from package listings.
-            You can see the package because you are one of its owners. To list the package again, 
-            <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
-        </p>
+        if(Model.IsOwner(User))
+        { 
+            <p  class="message warning">
+                This package is unlisted and hidden from package listings.
+                You can see the package because you are one of its owners. To list the package again, 
+                <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
+            </p>
+        }
+        else
+        {
+            <p  class="message warning">
+                The owner has unlisted this package. 
+                This could mean that the package is deprecated or shouldn't be used anymore.
+            </p>
+        }
     }
     <p>
         To install @Model.Title, run the following command in the <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">
