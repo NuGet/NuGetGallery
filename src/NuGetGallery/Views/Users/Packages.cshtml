@@ -39,69 +39,85 @@ else
 
 @helper PrintPublishedPackages(IEnumerable<PackageViewModel> packages, bool unlisted)
 {
-    var totlalDownloads = 0;
-    <table class="sexy-table">
-        <thead>
-            <tr>
-                <th class="first actions">Actions</th>
-                <th>Package</th>
-                <th>Package ID</th>
-                <th>Description</th>
-                <th class="last">Downloads</th>
-                
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var package in packages)
-            {
+    var totalDownloads = 0;
+    var totalPackages = packages.Count();
+
+    if (totalPackages > 0)
+    {
+        <table class="sexy-table">
+            <thead>
                 <tr>
-                    <td class="actions">
-                        @if (unlisted)
-                        {
-                            <a href="@Url.DeletePackage(package)" title="List Package" class="table-action-link">
-                                <i class="icon-share"></i>
-                            </a>
-                        }
-                        else
-                        {
-                            <a href="@Url.EditPackage(package.Id, package.Version)" title="Edit" class="table-action-link">
-                                <i class="icon-edit"></i>
-                            </a>
-                            <a href="@Url.DeletePackage(package)" title="Delete" class="table-action-link">
-                                <i class="icon-trash"></i>
-                            </a>
-                        }
-                    </td>
-                    <td>
-                        <a href="@Url.Package(package)"  title="View package page.">@package.Title</a>
-                    </td>
-                    <td>@package.Id</td>
-                    <td>
-                        @if (String.IsNullOrEmpty(package.Description) || package.Description.Length < 65)
-                        {
-                            @package.Description
-                        }
-                        else
-                        {
-                            @package.Description.Substring(0, 65)
-                            <a href="@Url.Package(package)" title="View package page.">...</a>
-                        }
-                    </td>
+                    <th class="first actions">Actions</th>
+                    <th>Package</th>
+                    <th>Package ID</th>
+                    <th>Description</th>
+                    <th class="last">Downloads</th>
                 
-                    <td>@package.DownloadCount</td>
                 </tr>
-                totlalDownloads += package.DownloadCount;
-            }
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="4">
-                    You have a total of @packages.Count() package(s).
-                </td>
-                <td class="total">
-                    @totlalDownloads
-                </td>
-            </tr>
-        </tfoot>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var package in packages)
+                {
+                    <tr>
+                        <td class="actions">
+                            @if (unlisted)
+                            {
+                                <a href="@Url.DeletePackage(package)" title="List Package" class="table-action-link">
+                                    <i class="icon-share"></i>
+                                </a>
+                            }
+                            else
+                            {
+                                <a href="@Url.EditPackage(package.Id, package.Version)" title="Edit" class="table-action-link">
+                                    <i class="icon-edit"></i>
+                                </a>
+                                <a href="@Url.DeletePackage(package)" title="Delete" class="table-action-link">
+                                    <i class="icon-trash"></i>
+                                </a>
+                            }
+                        </td>
+                        <td>
+                            <a href="@Url.Package(package)"  title="View package page.">@package.Title</a>
+                        </td>
+                        <td>@package.Id</td>
+                        <td>
+                            @if (String.IsNullOrEmpty(package.Description) || package.Description.Length < 65)
+                            {
+                                @package.Description
+                            }
+                            else
+                            {
+                                @package.Description.Substring(0, 65)
+                                <a href="@Url.Package(package)" title="View package page.">...</a>
+                            }
+                        </td>
+                
+                        <td>@package.DownloadCount</td>
+                    </tr>
+                    totalDownloads += package.DownloadCount;
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4">
+                        @if (totalPackages > 1)
+                        {
+                            @(string.Format("You have a total of {0} packages.", totalPackages))
+                        }
+                        else
+                        {
+                            @("You have one package.")
+                        }
+                    </td>
+                    <td class="total">
+                        @totalDownloads
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    }
+    else
+    {
+        <p><b>You don't have any packages here.</b></p>
+    }
 }
