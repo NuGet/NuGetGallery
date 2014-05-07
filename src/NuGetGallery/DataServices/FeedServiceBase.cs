@@ -7,13 +7,16 @@ using System.ServiceModel;
 using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Configuration;
+using NuGetGallery.DataServices;
 
 namespace NuGetGallery
 {
     [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple)]
-    public abstract class FeedServiceBase<TContext, TPackage> : DataService<TContext>, IDataServiceStreamProvider, IServiceProvider
+    public abstract class FeedServiceBase<TContext, TPackage> : DataService<TContext>, IDataServiceStreamProvider, IServiceProvider, IDataServicePagingProvider
         where TContext : FeedContext<TPackage>
     {
+        private static readonly object CustomSkipTokenTag = new object();
+
         private readonly ConfigurationService _configuration;
 
         private readonly IEntitiesContext _entities;
@@ -140,6 +143,13 @@ namespace NuGetGallery
                 return this;
             }
 
+            // Override paging for search
+            if (serviceType == typeof(IDataServicePagingProvider) && 
+                HttpContext.Items.Contains(CustomSkipTokenTag))
+            {
+                return this;
+            }
+
             return null;
         }
 
@@ -165,6 +175,21 @@ namespace NuGetGallery
                 siteRoot = siteRoot + '/';
             }
             return siteRoot;
+        }
+
+        public object[] GetContinuationToken(System.Collections.IEnumerator enumerator)
+        {
+            return new[] { HttpContext.Items[CustomSkipTokenTag] };
+        }
+
+        public void SetContinuationToken(System.Linq.IQueryable query, ResourceType resourceType, object[] continuationToken)
+        {
+            // Custom paging is applied in SearchAdaptor instead.
+        }
+
+        internal void SetCustomSkipToken(int skipToken)
+        {
+            HttpContext.Items.Add(CustomSkipTokenTag, skipToken);
         }
     }
 }

@@ -95,17 +95,25 @@ namespace NuGetGallery
 
             var curatedPackages = _curatedFeedService.GetPackages(curatedFeedName);
 
-            return SearchAdaptor.SearchCore(
-                SearchService, 
-                HttpContext.Request, 
-                curatedPackages, 
-                searchTerm, 
-                targetFramework, 
-                includePrerelease, 
-                curatedFeed)
+            var query = SearchAdaptor.SearchCore(
+                SearchService,
+                HttpContext.Request,
+                curatedPackages,
+                searchTerm,
+                targetFramework,
+                includePrerelease,
+                curatedFeed: null)
                 // TODO: Async this when I can figure out OData async stuff...
-                .Result
-                .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses);
+                .Result;
+
+            // If we found a search filter
+            var packageQuery = query.Query.ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses);
+            if (query.SearchFilter != null)
+            {
+                // Use a custom skip token
+                SetCustomSkipToken(query.SearchFilter.Skip + query.Query.Count());
+            }
+            return packageQuery;
         }
 
         public override Uri GetReadStreamUri(
