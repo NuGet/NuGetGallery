@@ -15,6 +15,12 @@
         <![endif]-->
 
         <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
+        
+        <script type="text/javascript">
+        @* Provides base Url for Javascript HTTP Requests *@
+        window.rootRelativeAppUrl = "@Url.Content("~")";
+        </script>
+
         @Scripts.Render("~/Scripts/modernizr")
         @ViewHelpers.AnalyticsScript()
         @RenderSection("TopScripts", required: false)
