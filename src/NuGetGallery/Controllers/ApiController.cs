@@ -172,6 +172,13 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        [ActionName("StatusApi")]
+        public virtual ActionResult Status()
+        {
+            return new HttpStatusCodeResult(HttpStatusCode.ServiceUnavailable, "Service is unavailable");
+        }
+
+        [HttpGet]
         [RequireSsl]
         [ApiAuthorize]
         [ActionName("VerifyPackageKeyApi")]
