@@ -13,14 +13,20 @@ namespace Catalog
     {
         int _total;
 
-        protected override void EmitPackage(JObject package)
+        protected override async Task EmitPackage(JObject package)
         {
-            Interlocked.Increment(ref _total);
+            await Task.Factory.StartNew(() =>
+            {
+                Interlocked.Increment(ref _total);
+            });
         }
 
-        public override void Close()
+        public override async Task Close()
         {
-            Console.WriteLine("total {0} documents emitted", _total);
+            await Task.Factory.StartNew(() =>
+            {
+                Console.WriteLine("total {0} documents emitted", _total);
+            });
         }
     }
 }

@@ -82,7 +82,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CloudPackageHandle.cs" />
+    <Compile Include="Container.cs" />
+    <Compile Include="DistinctCountingPackageEmitter.cs" />
     <Compile Include="CountingPackageEmitter.cs" />
+    <Compile Include="Package.cs" />
+    <Compile Include="DistinctCountingTripleStorePackageEmitter.cs" />
+    <Compile Include="ActionPackageEmitter.cs" />
+    <Compile Include="ResolverPackageEmitter2.cs" />
     <Compile Include="ResolverPackageEmitter.cs" />
     <Compile Include="TripleStorePackageEmitter.cs" />
     <Compile Include="PrintingPackageEmitter.cs" />

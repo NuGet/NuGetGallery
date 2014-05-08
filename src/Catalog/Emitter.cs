@@ -11,7 +11,7 @@ namespace Catalog
 {
     public abstract class Emitter
     {
-        public abstract bool Emit(JObject obj);
-        public abstract void Close();
+        public abstract Task<bool> Emit(JObject obj);
+        public abstract Task Close();
     }
 }

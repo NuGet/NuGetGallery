@@ -11,17 +11,17 @@ namespace Catalog
 {
     public abstract class PackageEmitter : Emitter
     {
-        public override bool Emit(JObject obj)
+        public override async Task<bool> Emit(JObject obj)
         {
             JToken type;
             if (obj.TryGetValue("@type", out type) && type.ToString() == "Package")
             {
-                EmitPackage(obj);
+                await EmitPackage(obj);
                 return true;
             }
             return false;
         }
 
-        protected abstract void EmitPackage(JObject package);
+        protected abstract Task EmitPackage(JObject package);
     }
 }

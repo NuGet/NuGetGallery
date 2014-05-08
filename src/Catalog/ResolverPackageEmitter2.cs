@@ -13,31 +13,32 @@ using VDS.RDF.Query;
 
 namespace Catalog
 {
-    public class ResolverPackageEmitter : CountingPackageEmitter
+    //  This is an implementation of the ResolverPackageEmitter that uses more of the TPL dataflow
+    //  abstractions. the code is cleaner but it runs marginally slower at the moment
+    //  and also hits a limit about 30% of the way through a full run. Basically its hard to implement
+    //  much in the way of push-back with dataflow - because its not really the point.
+
+    //  It might be better to create [and complete] a dataflow pipeline to handle an entire batch.
+
+    public class ResolverPackageEmitter2 : CountingPackageEmitter
     {
         int _resolverResourceCount = 0;
         int _mergedResourceCount = 0;
 
         Storage _storage;
         JObject _resolverFrame;
-        int _currentBatchSize = 0;
-        int _maxBatchSize;
-        TripleStore _currentStore;
-        ActionBlock<TripleStore> _actionBlock = null;
+        TransformBlock<JObject, IGraph> _createGraph = null;
+        ActionBlock<TripleStore> _processGraph = null;
 
-        HashSet<string> _beforePackageIds = new HashSet<string>();
-        HashSet<string> _afterPackageIds = new HashSet<string>();
-
-        public ResolverPackageEmitter(Storage storage, int maxBatchSize = 1000)
+        public ResolverPackageEmitter2(Storage storage, int maxBatchSize = 1000)
         {
             Options.InternUris = false;
 
+            _storage = storage;
+
             _resolverFrame = JObject.Parse(Utils.GetResource("context.ResolverFrame.json"));
 
-            _storage = storage;
-            _maxBatchSize = maxBatchSize;
-
-            _actionBlock = new ActionBlock<TripleStore>(async (tripleStore) =>
+            _processGraph = new ActionBlock<TripleStore>(async (tripleStore) =>
             {
                 Console.WriteLine("received {0:N0} triple store", tripleStore.Triples.Count());
 
@@ -46,72 +47,45 @@ namespace Catalog
             new ExecutionDataflowBlockOptions
             { 
                 MaxDegreeOfParallelism = 1,         //  we currently do not lock the storage blobs
-                BoundedCapacity = 10
+                BoundedCapacity = 1
             });
+
+            _createGraph = new TransformBlock<JObject, IGraph>((doc) => Utils.CreateGraph(doc));
+
+            BatchBlock<IGraph> batchGraphs = new BatchBlock<IGraph>(maxBatchSize);
+            
+            TransformBlock<IEnumerable<IGraph>, TripleStore> loadGraph = new TransformBlock<IEnumerable<IGraph>, TripleStore>((graphs) =>
+            {
+                TripleStore store = new TripleStore();
+                foreach (IGraph graph in graphs)
+                {
+                    store.Add(graph, true);
+                }
+                return store;
+            });
+
+            _createGraph.LinkTo(batchGraphs, new DataflowLinkOptions { PropagateCompletion = true });
+
+            batchGraphs.LinkTo(loadGraph, new DataflowLinkOptions { PropagateCompletion = true });
+            
+            loadGraph.LinkTo(_processGraph, new DataflowLinkOptions { PropagateCompletion = true });
         }
 
         protected override async Task EmitPackage(JObject package)
         {
             await base.EmitPackage(package);
-
-            lock (this)
+            bool success = await _createGraph.SendAsync(package);
+            if (!success)
             {
-                _beforePackageIds.Add(package["id"].ToString().ToLowerInvariant());
-            }
-
-            IGraph graph = Utils.CreateGraph(package);
-
-            TripleStore result = null;
-
-            lock (this)
-            {
-                if (_currentStore == null)
-                {
-                    _currentStore = new TripleStore();
-                }
-
-                _currentStore.Add(graph, true);
-
-                if (_currentBatchSize++ == _maxBatchSize)
-                {
-                    Console.WriteLine("post {0:N0} triple store", _currentStore.Triples.Count());
-
-                    result = _currentStore;
-
-                    _currentBatchSize = 0;
-                    _currentStore = null;
-                }
-            }
-
-            if (result != null)
-            {
-                bool success = await _actionBlock.SendAsync(result);
-                if (success == false)
-                {
-                    throw new Exception("_actionBlock.SendAsync false");
-                }
+                throw new Exception("_createGraph.SendAsync failed");
             }
         }
 
         public override async Task Close()
         {
-            if (_currentBatchSize > 0)
-            {
-                bool success = await _actionBlock.SendAsync(_currentStore);
-                if (success == false)
-                {
-                    throw new Exception("_actionBlock.SendAsync false");
-                }
-            }
+            _createGraph.Complete();
 
-            _actionBlock.Complete();
-            await _actionBlock.Completion;
-
-            Console.WriteLine("created {0} resolver resources", _resolverResourceCount);
-            Console.WriteLine("merged {0} resolver resources", _mergedResourceCount);
-
-            Console.WriteLine("[before] {0} distinct package ids", _beforePackageIds.Count);
-            Console.WriteLine("[after] {0} distinct package ids", _afterPackageIds.Count);
+            await _processGraph.Completion;
 
             await base.Close();
         }
@@ -129,11 +103,6 @@ namespace Catalog
                 foreach (SparqlResult row in distinctIds)
                 {
                     string id = row["id"].ToString();
-
-                    lock (this)
-                    {
-                        _afterPackageIds.Add(id);
-                    }
 
                     SparqlParameterizedString sparql = new SparqlParameterizedString();
                     sparql.CommandText = Utils.GetResource("sparql.ConstructResolverGraph.rq");

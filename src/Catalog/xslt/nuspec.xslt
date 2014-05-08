@@ -30,7 +30,7 @@
       
       <ng:Package>
 
-        <xsl:variable name="path" select="concat(nuget:id, '/', nuget:version)" />
+        <xsl:variable name="path" select="concat(nuget:id, '.', nuget:version)" />
 
         <xsl:attribute name="rdf:about">
           <xsl:value-of select="translate(concat($base, $path, $extension), $uppercase, $lowercase)"/>

@@ -13,16 +13,16 @@ namespace Catalog
     {
         ConcurrentBag<JToken> _packages = new ConcurrentBag<JToken>();
 
-        protected override void EmitPackage(JObject package)
+        protected override async Task EmitPackage(JObject package)
         {
-            base.EmitPackage(package);
+            await base.EmitPackage(package);
             _packages.Add(package);
         }
 
-        public override void Close()
+        public override async Task Close()
         {
             Dump(_packages);
-            base.Close();
+            await base.Close();
         }
 
         static void Dump(IEnumerable<JToken> packages)

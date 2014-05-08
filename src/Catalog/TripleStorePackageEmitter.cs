@@ -19,9 +19,9 @@ namespace Catalog
             _store = store;
         }
 
-        protected override void EmitPackage(JObject package)
+        protected override async Task EmitPackage(JObject package)
         {
-            base.EmitPackage(package);
+            await base.EmitPackage(package);
 
             IGraph graph = Utils.CreateGraph(package);
 
@@ -31,9 +31,9 @@ namespace Catalog
             }
         }
 
-        public override void Close()
+        public override async Task Close()
         {
-            base.Close();
+            await base.Close();
         }
     }
 }

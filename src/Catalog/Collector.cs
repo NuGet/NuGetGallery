@@ -50,7 +50,7 @@ namespace Catalog
             client.Dispose();
 
             JObject obj = JObject.Parse(json);
-            if (!emitter.Emit(obj))
+            if (!await emitter.Emit(obj))
             {
                 JToken items;
                 if (obj.TryGetValue("item", out items))
@@ -64,7 +64,11 @@ namespace Catalog
                         {
                             Uri next = new Uri(item["url"].ToString());
                             Interlocked.Increment(ref _refCount);
-                            actionBlock.Post(next);
+                            bool success = await actionBlock.SendAsync(next);
+                            if (!success)
+                            {
+                                throw new Exception(string.Format("SendAsync({0})", next));
+                            }
                         }
                     }
                 }
@@ -77,7 +81,7 @@ namespace Catalog
             }
         }
 
-        public void Run(Uri requestUri, DateTime since, int maxDegreeOfParallelism = 4)
+        public async Task Run(Uri requestUri, DateTime since, int maxDegreeOfParallelism = 4)
         {
             Emitter emitter = CreateEmitter();
 
@@ -97,17 +101,23 @@ namespace Catalog
                 DateTime before = DateTime.Now;
 
                 Interlocked.Increment(ref _refCount);
-                baseBlock.Post(requestUri);
-                baseBlock.Completion.Wait();
+                bool success = await baseBlock.SendAsync(requestUri);
+                if (!success)
+                {
+                    throw new Exception(string.Format("SendAsync({0})", requestUri));
+                }
+
+                await baseBlock.Completion;
 
                 DateTime after = DateTime.Now;
 
                 Duration = (after - before).TotalSeconds;
                 DegreeOfParallelism = maxDegreeOfParallelism;
+
+                await emitter.Close();
             }
             finally
             {
-                emitter.Close();
             }
         }
 

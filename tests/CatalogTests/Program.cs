@@ -183,6 +183,8 @@ namespace CatalogTests
 
         static void Main(string[] args)
         {
+            Options.InternUris = false;
+
             try
             {
                 DateTime before = DateTime.Now;
@@ -196,6 +198,7 @@ namespace CatalogTests
                 //CollectorTests.Test1();
                 //CollectorTests.Test2();
                 CollectorTests.Test3();
+                //CollectorTests.Test4();
 
                 DateTime after = DateTime.Now;
 
