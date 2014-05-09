@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Catalog.Maintenance
 {
-    public class CatalogPage : CatalogContainer
+    class CatalogPage : CatalogContainer
     {
         IDictionary<Uri, Tuple<DateTime, int?>> _items;
 

@@ -91,8 +91,10 @@
     <Compile Include="Maintenance\CatalogPage.cs" />
     <Compile Include="Maintenance\CatalogRoot.cs" />
     <Compile Include="Maintenance\CatalogWriter.cs" />
+    <Compile Include="Maintenance\DeletePackageVersionCatalogItem.cs" />
     <Compile Include="Maintenance\NuspecPackageCatalogItem.cs" />
     <Compile Include="Maintenance\PackageCatalogItem.cs" />
+    <Compile Include="Maintenance\DeletePackageCatalogItem.cs" />
     <Compile Include="Package.cs" />
     <Compile Include="DistinctCountingTripleStorePackageEmitter.cs" />
     <Compile Include="ActionPackageEmitter.cs" />
@@ -139,6 +141,7 @@
     <EmbeddedResource Include="context\ContainerFrame.json" />
     <EmbeddedResource Include="context\PackageFrame.json" />
     <EmbeddedResource Include="context\ResolverFrame.json" />
+    <EmbeddedResource Include="context\DeletePackageFrame.json" />
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />

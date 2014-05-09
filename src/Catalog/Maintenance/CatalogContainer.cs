@@ -6,7 +6,7 @@ using VDS.RDF;
 
 namespace Catalog.Maintenance
 {
-    public abstract class CatalogContainer
+    abstract class CatalogContainer
     {
         Uri _resourceUri;
         Uri _parent;

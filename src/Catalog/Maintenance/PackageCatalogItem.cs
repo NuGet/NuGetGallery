@@ -13,6 +13,10 @@ namespace Catalog.Maintenance
 
         public override string CreateContent(CatalogContext context)
         {
+            //BUG BUG BUG
+            //
+            //  there is a bug in the URI generation here the BaseAddress is wrong - its missing the date string
+
             XDocument original = GetNuspec();
             XDocument nuspec = NormalizeNuspecNamespace(original, context.GetXslt("xslt.normalizeNuspecNamespace.xslt"));
             IGraph graph = CreateNuspecGraph(nuspec, GetBaseAddress(), context.GetXslt("xslt.nuspec.xslt"));

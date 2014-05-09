@@ -5,7 +5,7 @@ using VDS.RDF;
 
 namespace Catalog.Maintenance
 {
-    public class CatalogRoot : CatalogContainer
+    class CatalogRoot : CatalogContainer
     {
         IDictionary<Uri, Tuple<DateTime, int?>> _items;
         string _baseAddress;
