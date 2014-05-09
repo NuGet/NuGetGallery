@@ -62,7 +62,7 @@ namespace Catalog.Maintenance
 
             CatalogRoot root = new CatalogRoot(rootResourceUri, rootContent);
 
-            Uri pageResourceUri = root.GetNextPageAddress(timeStamp);
+            Uri pageResourceUri = root.GetNextPageAddress(timeStamp, pageItems.Count);
 
             CatalogPage page = new CatalogPage(pageResourceUri, rootResourceUri);
 

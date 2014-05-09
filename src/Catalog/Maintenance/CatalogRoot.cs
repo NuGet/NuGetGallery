@@ -5,16 +5,16 @@ using VDS.RDF;
 
 namespace Catalog.Maintenance
 {
-    class CatalogRoot : CatalogContainer
+    public class CatalogRoot : CatalogContainer
     {
-        List<Tuple<Uri, DateTime>> _items;
+        List<Tuple<Uri, DateTime, int?>> _items;
         string _baseAddress;
         int _nextPageNumber;
 
         public CatalogRoot(Uri root, string content)
             : base(root)
         {
-            _items = new List<Tuple<Uri, DateTime>>();
+            _items = new List<Tuple<Uri, DateTime, int?>>();
 
             _nextPageNumber = 0;
             if (content != null)
@@ -27,37 +27,40 @@ namespace Catalog.Maintenance
             _baseAddress = s.Substring(0, s.LastIndexOf('/') + 1);
         }
 
-        public Uri GetNextPageAddress(DateTime timeStamp)
+        public Uri GetNextPageAddress(DateTime timeStamp, int count)
         {
             Uri nextPageAddress = new Uri(_baseAddress + string.Format("page{0}.json", _nextPageNumber++));
-            _items.Add(new Tuple<Uri, DateTime>(nextPageAddress, timeStamp));
+            _items.Add(new Tuple<Uri, DateTime, int?>(nextPageAddress, timeStamp, count));
             return nextPageAddress;
         }
 
-        protected override IEnumerable<Tuple<Uri, DateTime>> GetItems()
+        protected override IEnumerable<Tuple<Uri, DateTime, int?>> GetItems()
         {
             return _items;
         }
 
-        static int ExtractCurrentItems(List<Tuple<Uri, DateTime>> _items, string content)
+        static int ExtractCurrentItems(List<Tuple<Uri, DateTime, int?>> _items, string content)
         {
             IGraph graph = Utils.CreateGraph(content);
 
             graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
 
-            INode itemNode = graph.CreateUriNode("nuget:item");
-            INode publishedNode = graph.CreateUriNode("nuget:published");
+            INode itemPredicate = graph.CreateUriNode("nuget:item");
+            INode publishedPredicate = graph.CreateUriNode("nuget:published");
+            INode countPredicate = graph.CreateUriNode("nuget:count");
 
             int maxPageNumber = 0;
 
-            foreach (Triple itemTriple in graph.GetTriplesWithPredicate(itemNode))
+            foreach (Triple itemTriple in graph.GetTriplesWithPredicate(itemPredicate))
             {
-                Triple publishedTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, publishedNode).First();
+                Triple publishedTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, publishedPredicate).First();
+                Triple countTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, countPredicate).First();
 
                 Uri itemUri = ((IUriNode)itemTriple.Object).Uri;
                 DateTime published = DateTime.Parse(((ILiteralNode)publishedTriple.Object).Value);
+                int count = int.Parse(((ILiteralNode)countTriple.Object).Value);
 
-                _items.Add(new Tuple<Uri, DateTime>(itemUri, published));
+                _items.Add(new Tuple<Uri, DateTime, int?>(itemUri, published, count));
 
                 string s = itemUri.ToString();
                 s = s.Substring(s.LastIndexOf('/') + 5);

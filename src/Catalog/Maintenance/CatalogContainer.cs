@@ -16,7 +16,7 @@ namespace Catalog.Maintenance
             _parent = parent;
         }
 
-        protected abstract IEnumerable<Tuple<Uri, DateTime>> GetItems();
+        protected abstract IEnumerable<Tuple<Uri, DateTime, int?>> GetItems();
 
         public string CreateContent(CatalogContext context)
         {
@@ -36,13 +36,18 @@ namespace Catalog.Maintenance
 
             INode itemPredicate = graph.CreateUriNode("nuget:item");
             INode publishedPredicate = graph.CreateUriNode("nuget:published");
+            INode countPredicate = graph.CreateUriNode("nuget:count");
 
-            foreach (Tuple<Uri, DateTime> item in GetItems())
+            foreach (Tuple<Uri, DateTime, int?> item in GetItems())
             {
                 INode itemNode = graph.CreateUriNode(item.Item1);
 
                 graph.Assert(container, itemPredicate, itemNode);
                 graph.Assert(itemNode, publishedPredicate, graph.CreateLiteralNode(item.Item2.ToString(), new Uri("http://www.w3.org/2001/XMLSchema#dateTime")));
+                if (item.Item3 != null)
+                {
+                    graph.Assert(itemNode, countPredicate, graph.CreateLiteralNode(item.Item3.ToString(), new Uri("http://www.w3.org/2001/XMLSchema#integer")));
+                }
             }
 
             JObject frame = context.GetJsonLdContext("context.ContainerFrame.json");

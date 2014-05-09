@@ -205,5 +205,57 @@ namespace CatalogTests
         {
             Test3Async().Wait();
         }
+
+        public static async Task Test4Async()
+        {
+            string nuspecs = @"c:\data\nuspecs";
+
+            Storage storage = new FileStorage
+            {
+                Path = @"c:\data\site\full5",
+                Container = "full5",
+                BaseAddress = "http://localhost:8000/"
+            };
+
+            CatalogContext context = new CatalogContext();
+
+            CatalogWriter writer = new CatalogWriter(storage, context);
+
+            int total = 0;
+
+            int[] commitSize = { 500, 400, 250, 50, 10, 30, 40, 5, 400, 30, 10 };
+            int i = 0;
+
+            int commitCount = 0;
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
+            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
+            {
+                if (commitCount == commitSize.Length)
+                {
+                    break;
+                }
+
+                writer.Add(new NuspecPackageCatalogItem(fileInfo));
+                total++;
+
+                if (++i == commitSize[commitCount])
+                {
+                    await writer.Commit(DateTime.Now);
+
+                    Console.WriteLine("commit number {0}", commitCount);
+
+                    commitCount++;
+                    i = 0;
+                }
+            }
+
+            Console.WriteLine("total: {0}", total);
+        }
+
+        public static void Test4()
+        {
+            Test4Async().Wait();
+        }
     }
 }
