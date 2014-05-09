@@ -1,4 +1,5 @@
 ﻿using Catalog;
+using Catalog.Maintenance;
 using Catalog.Persistence;
 using System;
 using System.Collections.Generic;
@@ -155,6 +156,54 @@ namespace CatalogTests
             {
                 Console.WriteLine("save: {0} load: {1}", ((FileStorage)storage).SaveCount, ((FileStorage)storage).LoadCount);
             }
+        }
+
+        public static async Task Test3Async()
+        {
+            string nuspecs = @"c:\data\nuspecs";
+
+            Storage storage = new FileStorage
+            {
+                Path = @"c:\data\site\full5",
+                Container = "full5",
+                BaseAddress = "http://localhost:8000/"
+            };
+
+            CatalogContext context = new CatalogContext();
+
+            CatalogWriter writer = new CatalogWriter(storage, context);
+
+            const int BatchSize = 500;
+            int i = 0;
+
+            int commitCount = 0;
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
+            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
+            {
+                writer.Add(new NuspecPackageCatalogItem(fileInfo));
+
+                if (++i % BatchSize == 0)
+                {
+                    await writer.Commit(DateTime.Now);
+
+                    Console.WriteLine("commit number {0}", commitCount++);
+                }
+
+                if (commitCount == 4)
+                {
+                    break;
+                }
+            }
+
+            await writer.Commit(DateTime.Now);
+
+            Console.WriteLine("commit number {0}", commitCount++);
+        }
+
+        public static void Test3()
+        {
+            Test3Async().Wait();
         }
     }
 }

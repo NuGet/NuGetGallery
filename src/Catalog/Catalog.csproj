@@ -85,6 +85,14 @@
     <Compile Include="Container.cs" />
     <Compile Include="DistinctCountingPackageEmitter.cs" />
     <Compile Include="CountingPackageEmitter.cs" />
+    <Compile Include="Maintenance\CatalogContainer.cs" />
+    <Compile Include="Maintenance\CatalogContext.cs" />
+    <Compile Include="Maintenance\CatalogItem.cs" />
+    <Compile Include="Maintenance\CatalogPage.cs" />
+    <Compile Include="Maintenance\CatalogRoot.cs" />
+    <Compile Include="Maintenance\CatalogWriter.cs" />
+    <Compile Include="Maintenance\NuspecPackageCatalogItem.cs" />
+    <Compile Include="Maintenance\PackageCatalogItem.cs" />
     <Compile Include="Package.cs" />
     <Compile Include="DistinctCountingTripleStorePackageEmitter.cs" />
     <Compile Include="ActionPackageEmitter.cs" />

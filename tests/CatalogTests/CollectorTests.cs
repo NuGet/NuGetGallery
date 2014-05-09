@@ -14,7 +14,7 @@ namespace CatalogTests
     {
         public static void Test0()
         {
-            Uri requestUri = new Uri("http://localhost:8000/full/catalog/index.json");
+            Uri requestUri = new Uri("http://localhost:8000/full5/catalog/index.json");
 
             DateTime since = DateTime.MinValue;
 

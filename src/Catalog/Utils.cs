@@ -14,7 +14,7 @@ using VDS.RDF.Writing;
 
 namespace Catalog
 {
-    class Utils
+    public class Utils
     {
         public static Stream GetResourceStream(string resName)
         {
