@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Web.UI;
+using System.Net;
 
 
 
@@ -32,6 +33,7 @@ namespace NuGetGallery.FunctionalTests.TestBase
                 Assert.Inconclusive("Functional tests are disabled in the current run. Please set environment variable RunFuntionalTests to True to enable them");
             }
 #endif
+            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; }; //supress SSL validation so that we can run tests against staging slot as well.
             CheckIfBaseTestPackageExists();
         }
 
