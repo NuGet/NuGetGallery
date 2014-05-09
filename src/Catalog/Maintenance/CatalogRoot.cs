@@ -7,62 +7,64 @@ namespace Catalog.Maintenance
 {
     public class CatalogRoot : CatalogContainer
     {
-        List<Tuple<Uri, DateTime, int?>> _items;
+        IDictionary<Uri, Tuple<DateTime, int?>> _items;
         string _baseAddress;
         int _nextPageNumber;
+
+        Uri _latestUri;
+        int _latestCount;
 
         public CatalogRoot(Uri root, string content)
             : base(root)
         {
-            _items = new List<Tuple<Uri, DateTime, int?>>();
+            _items = new Dictionary<Uri, Tuple<DateTime, int?>>();
 
             _nextPageNumber = 0;
             if (content != null)
             {
-                int maxPageNumber = ExtractCurrentItems(_items, content);
-                _nextPageNumber = maxPageNumber + 1;
+                Load(_items, content);
+
+                Tuple<int, Uri, int> latest = ExtractLatest();
+                _nextPageNumber = latest.Item1 + 1;
+                _latestUri = latest.Item2;
+                _latestCount = latest.Item3;
             }
 
             string s = root.ToString();
             _baseAddress = s.Substring(0, s.LastIndexOf('/') + 1);
         }
 
-        public Uri GetNextPageAddress(DateTime timeStamp, int count)
+        public Uri AddNextPage(DateTime timeStamp, int count)
         {
             Uri nextPageAddress = new Uri(_baseAddress + string.Format("page{0}.json", _nextPageNumber++));
-            _items.Add(new Tuple<Uri, DateTime, int?>(nextPageAddress, timeStamp, count));
+            _items.Add(nextPageAddress, new Tuple<DateTime, int?>(timeStamp, count));
             return nextPageAddress;
         }
 
-        protected override IEnumerable<Tuple<Uri, DateTime, int?>> GetItems()
+        public Tuple<Uri, int> GetLatestPage()
+        {
+            return _latestUri == null ? null : new Tuple<Uri, int>(_latestUri, _latestCount);
+        }
+
+        public void UpdatePage(Uri pageUri, DateTime timeStamp, int count)
+        {
+            _items[pageUri] = new Tuple<DateTime, int?>(timeStamp, count);
+        }
+
+        protected override IDictionary<Uri, Tuple<DateTime, int?>> GetItems()
         {
             return _items;
         }
 
-        static int ExtractCurrentItems(List<Tuple<Uri, DateTime, int?>> _items, string content)
+        Tuple<int, Uri, int> ExtractLatest()
         {
-            IGraph graph = Utils.CreateGraph(content);
+            int maxPageNumber = -1;
+            Uri latestUri = null;
+            int latestCount = 0;
 
-            graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
-
-            INode itemPredicate = graph.CreateUriNode("nuget:item");
-            INode publishedPredicate = graph.CreateUriNode("nuget:published");
-            INode countPredicate = graph.CreateUriNode("nuget:count");
-
-            int maxPageNumber = 0;
-
-            foreach (Triple itemTriple in graph.GetTriplesWithPredicate(itemPredicate))
+            foreach (KeyValuePair<Uri, Tuple<DateTime, int?>> item in _items)
             {
-                Triple publishedTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, publishedPredicate).First();
-                Triple countTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, countPredicate).First();
-
-                Uri itemUri = ((IUriNode)itemTriple.Object).Uri;
-                DateTime published = DateTime.Parse(((ILiteralNode)publishedTriple.Object).Value);
-                int count = int.Parse(((ILiteralNode)countTriple.Object).Value);
-
-                _items.Add(new Tuple<Uri, DateTime, int?>(itemUri, published, count));
-
-                string s = itemUri.ToString();
+                string s = item.Key.ToString();
                 s = s.Substring(s.LastIndexOf('/') + 5);
                 s = s.Substring(0, s.Length - 5);
 
@@ -70,10 +72,12 @@ namespace Catalog.Maintenance
                 if (pageNumber > maxPageNumber)
                 {
                     maxPageNumber = pageNumber;
+                    latestUri = item.Key;
+                    latestCount = item.Value.Item2.Value;
                 }
             }
 
-            return maxPageNumber;
+            return new Tuple<int, Uri, int>(maxPageNumber, latestUri, latestCount);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using VDS.RDF;
 
 namespace Catalog.Maintenance
@@ -16,7 +17,7 @@ namespace Catalog.Maintenance
             _parent = parent;
         }
 
-        protected abstract IEnumerable<Tuple<Uri, DateTime, int?>> GetItems();
+        protected abstract IDictionary<Uri, Tuple<DateTime, int?>> GetItems();
 
         public string CreateContent(CatalogContext context)
         {
@@ -38,15 +39,15 @@ namespace Catalog.Maintenance
             INode publishedPredicate = graph.CreateUriNode("nuget:published");
             INode countPredicate = graph.CreateUriNode("nuget:count");
 
-            foreach (Tuple<Uri, DateTime, int?> item in GetItems())
+            foreach (KeyValuePair<Uri, Tuple<DateTime, int?>> item in GetItems())
             {
-                INode itemNode = graph.CreateUriNode(item.Item1);
+                INode itemNode = graph.CreateUriNode(item.Key);
 
                 graph.Assert(container, itemPredicate, itemNode);
-                graph.Assert(itemNode, publishedPredicate, graph.CreateLiteralNode(item.Item2.ToString(), new Uri("http://www.w3.org/2001/XMLSchema#dateTime")));
-                if (item.Item3 != null)
+                graph.Assert(itemNode, publishedPredicate, graph.CreateLiteralNode(item.Value.Item1.ToString(), new Uri("http://www.w3.org/2001/XMLSchema#dateTime")));
+                if (item.Value.Item2 != null)
                 {
-                    graph.Assert(itemNode, countPredicate, graph.CreateLiteralNode(item.Item3.ToString(), new Uri("http://www.w3.org/2001/XMLSchema#integer")));
+                    graph.Assert(itemNode, countPredicate, graph.CreateLiteralNode(item.Value.Item2.ToString(), new Uri("http://www.w3.org/2001/XMLSchema#integer")));
                 }
             }
 
@@ -57,6 +58,35 @@ namespace Catalog.Maintenance
             string content = Utils.CreateJson(graph, frame);
 
             return content;
+        }
+
+        protected static void Load(IDictionary<Uri, Tuple<DateTime, int?>> items, string content)
+        {
+            IGraph graph = Utils.CreateGraph(content);
+
+            graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
+            INode itemPredicate = graph.CreateUriNode("nuget:item");
+            INode publishedPredicate = graph.CreateUriNode("nuget:published");
+            INode countPredicate = graph.CreateUriNode("nuget:count");
+
+            foreach (Triple itemTriple in graph.GetTriplesWithPredicate(itemPredicate))
+            {
+                Uri itemUri = ((IUriNode)itemTriple.Object).Uri;
+
+                Triple publishedTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, publishedPredicate).First();
+                DateTime published = DateTime.Parse(((ILiteralNode)publishedTriple.Object).Value);
+
+                IEnumerable<Triple> countTriples = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, countPredicate);
+
+                int? count = null;
+                if (countTriples.Count() > 0)
+                {
+                    Triple countTriple = countTriples.First();
+                    count = int.Parse(((ILiteralNode)countTriple.Object).Value);
+                }
+
+                items.Add(itemUri, new Tuple<DateTime, int?>(published, count));
+            }
         }
     }
 }

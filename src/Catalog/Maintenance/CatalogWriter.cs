@@ -13,7 +13,7 @@ namespace Catalog.Maintenance
         CatalogContext _context;
         bool _append;
 
-        public CatalogWriter(Storage storage, CatalogContext context, bool append = true)
+        public CatalogWriter(Storage storage, CatalogContext context, int maxPageSize = 1000, bool append = true)
         {
             Options.InternUris = false;
 
@@ -21,6 +21,13 @@ namespace Catalog.Maintenance
             _context = context;
             _append = append;
             _batch = new List<CatalogItem>();
+            MaxPageSize = maxPageSize;
+        }
+
+        public int MaxPageSize
+        {
+            get;
+            private set;
         }
 
         public void Add(CatalogItem item)
@@ -61,10 +68,23 @@ namespace Catalog.Maintenance
             }
 
             CatalogRoot root = new CatalogRoot(rootResourceUri, rootContent);
+            CatalogPage page;
 
-            Uri pageResourceUri = root.GetNextPageAddress(timeStamp, pageItems.Count);
+            Tuple<Uri, int> latestPage = root.GetLatestPage();
 
-            CatalogPage page = new CatalogPage(pageResourceUri, rootResourceUri);
+            Uri pageResourceUri;
+            if (latestPage == null || latestPage.Item2 + pageItems.Count > MaxPageSize)
+            {
+                pageResourceUri = root.AddNextPage(timeStamp, pageItems.Count);
+                page = new CatalogPage(pageResourceUri, rootResourceUri);
+            }
+            else
+            {
+                pageResourceUri = latestPage.Item1;
+                string pageContent = await _storage.Load(pageResourceUri);
+                page = new CatalogPage(pageResourceUri, rootResourceUri, pageContent);
+                root.UpdatePage(pageResourceUri, timeStamp, latestPage.Item2 + pageItems.Count);
+            }
 
             foreach (Uri resourceUri in pageItems)
             {

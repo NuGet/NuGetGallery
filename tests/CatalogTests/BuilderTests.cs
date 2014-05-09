@@ -173,7 +173,7 @@ namespace CatalogTests
 
             CatalogWriter writer = new CatalogWriter(storage, context);
 
-            const int BatchSize = 500;
+            const int BatchSize = 37;
             int i = 0;
 
             int commitCount = 0;
@@ -190,7 +190,7 @@ namespace CatalogTests
                     Console.WriteLine("commit number {0}", commitCount++);
                 }
 
-                if (commitCount == 4)
+                if (commitCount == 200)
                 {
                     break;
                 }
@@ -223,7 +223,7 @@ namespace CatalogTests
 
             int total = 0;
 
-            int[] commitSize = { 500, 400, 250, 50, 10, 30, 40, 5, 400, 30, 10 };
+            int[] commitSize = { 50, 40, 25, 50, 10, 30, 40, 5, 400, 30, 10 };
             int i = 0;
 
             int commitCount = 0;
