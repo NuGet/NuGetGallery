@@ -50,10 +50,18 @@ namespace NuGetGallery.FunctionTests.Helpers
             {
                 if (string.IsNullOrEmpty(_baseurl))
                 {
-                    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl")))
+                    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.User)) && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.Process)) && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.Machine)))
                         _baseurl = "https://int.nugettest.org/";
                     else
-                        _baseurl = Environment.GetEnvironmentVariable("GalleryUrl");
+                    {
+                        //Check for the environment variable under all scopes. This is to make sure that the variables are acessed properly in teamcity where we cannot set process leve variables.
+                        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.User)))
+                           _baseurl = Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.User);
+                        else if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.Process)))
+                           _baseurl = Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.Process);
+                        else
+                            _baseurl = Environment.GetEnvironmentVariable("GalleryUrl", EnvironmentVariableTarget.Machine);
+                    }
                 }
 
                 return _baseurl;
