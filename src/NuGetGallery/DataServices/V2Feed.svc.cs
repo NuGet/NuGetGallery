@@ -55,17 +55,26 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Where(p => p.Listed);
-            return SearchAdaptor.SearchCore(
-                SearchService, 
-                HttpContext.Request, 
-                packages, 
-                searchTerm, 
-                targetFramework, 
-                includePrerelease, 
+
+            var query = SearchAdaptor.SearchCore(
+                SearchService,
+                HttpContext.Request,
+                packages,
+                searchTerm,
+                targetFramework,
+                includePrerelease,
                 curatedFeed: null)
                 // TODO: Async this when I can figure out OData async stuff...
-                .Result
-                .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
+                .Result;
+                
+            // If we found a search filter
+            var packageQuery = query.Query.ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
+            if (query.SearchFilter != null)
+            {
+                // Use a custom skip token
+                SetCustomSkipToken(query.SearchFilter.Skip + query.Query.Count());
+            }
+            return packageQuery;
         }
 
         [WebGet]
