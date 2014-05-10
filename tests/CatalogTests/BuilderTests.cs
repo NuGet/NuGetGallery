@@ -190,7 +190,7 @@ namespace CatalogTests
                     Console.WriteLine("commit number {0}", commitCount++);
                 }
 
-                if (commitCount == 200)
+                if (commitCount == 20)
                 {
                     break;
                 }

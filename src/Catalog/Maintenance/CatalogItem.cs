@@ -23,12 +23,12 @@ namespace Catalog.Maintenance
 
         public string GetBaseAddress()
         {
-            return _baseAddress + "catalog/item/";
+            return _baseAddress + "catalog/item/" + MakeTimestampPathComponent(_timeStamp);
         }
 
         public string GetRelativeAddress()
         {
-            return MakeTimestampPathComponent(_timeStamp) + GetItemName() + ".json";
+            return GetItemName() + ".json";
         }
 
         protected static string MakeTimestampPathComponent(DateTime timestamp)
