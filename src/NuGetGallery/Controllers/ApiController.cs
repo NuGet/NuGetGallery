@@ -30,6 +30,7 @@ namespace NuGetGallery
         public ISearchService SearchService { get; set; }
         public IIndexingService IndexingService { get; set; }
         public IAutomaticallyCuratePackageCommand AutoCuratePackage { get; set; }
+        public IStatusService StatusService { get; set; }
         
         protected ApiController() { }
 
@@ -42,7 +43,8 @@ namespace NuGetGallery
             IContentService contentService,
             IIndexingService indexingService,
             ISearchService searchService,
-            IAutomaticallyCuratePackageCommand autoCuratePackage)
+            IAutomaticallyCuratePackageCommand autoCuratePackage,
+            IStatusService statusService)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -54,6 +56,7 @@ namespace NuGetGallery
             IndexingService = indexingService;
             SearchService = searchService;
             AutoCuratePackage = autoCuratePackage;
+            StatusService = statusService;
         }
 
         public ApiController(
@@ -66,8 +69,9 @@ namespace NuGetGallery
             IIndexingService indexingService,
             ISearchService searchService,
             IAutomaticallyCuratePackageCommand autoCuratePackage,
+            IStatusService statusService,
             IStatisticsService statisticsService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService)
         {
             StatisticsService = statisticsService;
         }
@@ -173,9 +177,13 @@ namespace NuGetGallery
 
         [HttpGet]
         [ActionName("StatusApi")]
-        public virtual ActionResult Status()
+        public async virtual Task<ActionResult> Status()
         {
-            return new HttpStatusCodeResult(HttpStatusCode.ServiceUnavailable, "Service is unavailable");
+            if (StatusService == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.ServiceUnavailable, "Status service is unavailable");
+            }
+            return await StatusService.GetStatus();
         }
 
         [HttpGet]

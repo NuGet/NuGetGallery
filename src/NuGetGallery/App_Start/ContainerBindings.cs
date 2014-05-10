@@ -121,6 +121,10 @@ namespace NuGetGallery
                 .To<NuGetExeDownloaderService>()
                 .InRequestScope();
 
+            Bind<IStatusService>()
+                .To<StatusService>()
+                .InRequestScope();
+
             var mailSenderThunk = new Lazy<IMailSender>(
                 () =>
                 {
