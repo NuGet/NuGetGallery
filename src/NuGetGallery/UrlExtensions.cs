@@ -80,6 +80,11 @@ namespace NuGetGallery
             return url.Action(actionName: "UndoPendingEdits", controllerName: "Packages", routeValues: new { id = package.Id, version = package.Version });
         }
 
+        public static string PackageFeed(this UrlHelper url, string id)
+        {
+            return url.RouteUrl(RouteName.DisplayPackageFeed, new { id }, protocol: null);
+        }
+
         public static string Package(this UrlHelper url, string id)
         {
             return url.Package(id, null, scheme: null);

@@ -96,6 +96,12 @@ namespace NuGetGallery
                 "packages/{id}/owners/{username}/confirm/{token}",
                 new { controller = "Packages", action = "ConfirmOwner" });
 
+            routes.MapRoute(
+                RouteName.DisplayPackageFeed,
+                "packages/{id}/feed",
+                new { controller = "Packages", action = "Feed" });
+
+
             // We need the following two routes (rather than just one) due to Routing's 
             // Consecutive Optional Parameter bug. :(
             var packageDisplayRoute = routes.MapRoute(

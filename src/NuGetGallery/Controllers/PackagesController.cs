@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Mail;
 using System.Security.Principal;
+using System.ServiceModel.Syndication;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -17,6 +18,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
+using NuGetGallery.Results;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -252,6 +254,38 @@ namespace NuGetGallery
 
             return RedirectToRoute(RouteName.VerifyPackage);
         }
+
+        public virtual ActionResult Feed(string id)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, null);
+
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+            var model = new DisplayPackageViewModel(package);
+
+            var items = new List<SyndicationItem>();
+
+            foreach (var packageHistory in model.PackageVersions)
+            {
+                string feedTitle = packageHistory.Title + ": " + packageHistory.Version;
+
+                if (packageHistory.Prerelease)
+                {
+                    feedTitle = feedTitle + " (Prerelease)";
+                }
+
+                var helper = new UrlHelper(this.Request.RequestContext);
+                var url = helper.Action("DisplayPackage", "Packages", new { id = id, version = packageHistory.Version }, this.Request.IsSecureConnection ? "https" : "http");
+
+                var feedPackageItem = new SyndicationItem(feedTitle, packageHistory.ReleaseNotes, new Uri(url));
+                feedPackageItem.PublishDate = packageHistory.LastUpdated;
+                items.Add(feedPackageItem);
+            }
+
+            return new RssResult(model.Title, items);
+        }   
 
         public virtual ActionResult DisplayPackage(string id, string version)
         {

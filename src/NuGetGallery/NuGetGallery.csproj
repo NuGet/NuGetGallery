@@ -965,6 +965,7 @@
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
+    <Compile Include="Results\FeedResult.cs" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\ICuratedFeedService.cs" />

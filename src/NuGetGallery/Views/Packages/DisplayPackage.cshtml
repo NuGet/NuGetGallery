@@ -21,6 +21,7 @@
     {
     <meta name="robots" content="noindex">
     }
+    <link rel="alternate" type="application/rss+xml" title="Package Feed" href="@Url.PackageFeed(Model.Id)">
 }
 @section BottomScripts {
     @* Facebook SDK *@
@@ -100,6 +101,7 @@
             {
                 <li><a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">Package Statistics</a></li>
             }
+            <li><a href="@Url.PackageFeed(Model.Id)" title="Subscribe to the Package Feed">Package Feed</a></li>
         </ul>
     </nav>
 
