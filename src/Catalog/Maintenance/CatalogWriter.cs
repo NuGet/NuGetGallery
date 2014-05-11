@@ -44,7 +44,7 @@ namespace Catalog.Maintenance
 
             string baseAddress = string.Format("{0}{1}/", _storage.BaseAddress, _storage.Container);
 
-            List<Uri> pageItems = new List<Uri>();
+            IDictionary<Uri, string> pageItems = new Dictionary<Uri, string>();
             List<Task> tasks = new List<Task>();
             foreach (CatalogItem item in _batch)
             {
@@ -54,7 +54,7 @@ namespace Catalog.Maintenance
                 Uri resourceUri = new Uri(item.GetBaseAddress() + item.GetRelativeAddress());
                 tasks.Add(_storage.Save("application/json", resourceUri, item.CreateContent(_context)));
 
-                pageItems.Add(resourceUri);
+                pageItems.Add(resourceUri, item.GetItemType());
             }
 
             await Task.WhenAll(tasks.ToArray());
@@ -86,9 +86,9 @@ namespace Catalog.Maintenance
                 root.UpdatePage(pageResourceUri, timeStamp, latestPage.Item2 + pageItems.Count);
             }
 
-            foreach (Uri resourceUri in pageItems)
+            foreach (KeyValuePair<Uri, string> pageItem in pageItems)
             {
-                page.Add(resourceUri, timeStamp);
+                page.Add(pageItem.Key, pageItem.Value, timeStamp);
             }
 
             await _storage.Save("application/json", pageResourceUri, page.CreateContent(_context));

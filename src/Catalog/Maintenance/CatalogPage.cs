@@ -5,24 +5,24 @@ namespace Catalog.Maintenance
 {
     class CatalogPage : CatalogContainer
     {
-        IDictionary<Uri, Tuple<DateTime, int?>> _items;
+        IDictionary<Uri, Tuple<string, DateTime, int?>> _items;
 
         public CatalogPage(Uri page, Uri root, string content = null)
             : base(page, root)
         {
-            _items = new Dictionary<Uri, Tuple<DateTime, int?>>();
+            _items = new Dictionary<Uri, Tuple<string, DateTime, int?>>();
             if (content != null)
             {
                 Load(_items, content);
             }
         }
 
-        public void Add(Uri item, DateTime timeStamp)
+        public void Add(Uri resourceUri, string resourceType, DateTime timeStamp)
         {
-            _items.Add(item, new Tuple<DateTime, int?>(timeStamp, null));
+            _items.Add(resourceUri, new Tuple<string, DateTime, int?>(resourceType, timeStamp, null));
         }
 
-        protected override IDictionary<Uri, Tuple<DateTime, int?>> GetItems()
+        protected override IDictionary<Uri, Tuple<string, DateTime, int?>> GetItems()
         {
             return _items;
         }

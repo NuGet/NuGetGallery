@@ -18,11 +18,16 @@ namespace Catalog.Maintenance
             IGraph graph = CreateNuspecGraph(nuspec, GetBaseAddress(), context.GetXslt("xslt.nuspec.xslt"));
 
             JObject frame = context.GetJsonLdContext("context.PackageFrame.json");
-            frame["@type"] = "http://nuget.org/schema#Package";
+            frame["@type"] = GetItemType();
 
             string content = Utils.CreateJson(graph, frame);
 
             return content;
+        }
+
+        public override string GetItemType()
+        {
+            return "http://nuget.org/schema#Package";
         }
 
         static XDocument NormalizeNuspecNamespace(XDocument original, XslCompiledTransform xslt)

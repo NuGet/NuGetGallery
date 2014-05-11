@@ -7,7 +7,7 @@ namespace Catalog.Maintenance
 {
     class CatalogRoot : CatalogContainer
     {
-        IDictionary<Uri, Tuple<DateTime, int?>> _items;
+        IDictionary<Uri, Tuple<string, DateTime, int?>> _items;
         string _baseAddress;
         int _nextPageNumber;
 
@@ -17,7 +17,7 @@ namespace Catalog.Maintenance
         public CatalogRoot(Uri root, string content)
             : base(root)
         {
-            _items = new Dictionary<Uri, Tuple<DateTime, int?>>();
+            _items = new Dictionary<Uri, Tuple<string, DateTime, int?>>();
 
             _nextPageNumber = 0;
             if (content != null)
@@ -37,7 +37,7 @@ namespace Catalog.Maintenance
         public Uri AddNextPage(DateTime timeStamp, int count)
         {
             Uri nextPageAddress = new Uri(_baseAddress + string.Format("page{0}.json", _nextPageNumber++));
-            _items.Add(nextPageAddress, new Tuple<DateTime, int?>(timeStamp, count));
+            _items.Add(nextPageAddress, new Tuple<string, DateTime, int?>("http://nuget.org/schema#Container", timeStamp, count));
             return nextPageAddress;
         }
 
@@ -48,10 +48,10 @@ namespace Catalog.Maintenance
 
         public void UpdatePage(Uri pageUri, DateTime timeStamp, int count)
         {
-            _items[pageUri] = new Tuple<DateTime, int?>(timeStamp, count);
+            _items[pageUri] = new Tuple<string, DateTime, int?>("http://nuget.org/schema#Container", timeStamp, count);
         }
 
-        protected override IDictionary<Uri, Tuple<DateTime, int?>> GetItems()
+        protected override IDictionary<Uri, Tuple<string, DateTime, int?>> GetItems()
         {
             return _items;
         }
@@ -62,7 +62,7 @@ namespace Catalog.Maintenance
             Uri latestUri = null;
             int latestCount = 0;
 
-            foreach (KeyValuePair<Uri, Tuple<DateTime, int?>> item in _items)
+            foreach (KeyValuePair<Uri, Tuple<string, DateTime, int?>> item in _items)
             {
                 string s = item.Key.ToString();
                 s = s.Substring(s.LastIndexOf('/') + 5);
@@ -73,7 +73,7 @@ namespace Catalog.Maintenance
                 {
                     maxPageNumber = pageNumber;
                     latestUri = item.Key;
-                    latestCount = item.Value.Item2.Value;
+                    latestCount = item.Value.Item3.Value;
                 }
             }
 

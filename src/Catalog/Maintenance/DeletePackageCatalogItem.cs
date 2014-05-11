@@ -30,12 +30,16 @@ namespace Catalog.Maintenance
             graph.Assert(subject, graph.CreateUriNode("nuget:id"), graph.CreateLiteralNode(_id));
 
             JObject frame = context.GetJsonLdContext("context.DeletePackageFrame.json");
-
-            frame["@type"] = "http://nuget.org/schema#DeletePackage";
+            frame["@type"] = GetItemType();
 
             string content = Utils.CreateJson(graph, frame);
 
             return content;
+        }
+
+        public override string GetItemType()
+        {
+            return "http://nuget.org/schema#DeletePackage";
         }
 
         protected override string GetItemName()

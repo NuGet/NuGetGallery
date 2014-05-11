@@ -17,7 +17,7 @@ namespace Catalog.Maintenance
             _parent = parent;
         }
 
-        protected abstract IDictionary<Uri, Tuple<DateTime, int?>> GetItems();
+        protected abstract IDictionary<Uri, Tuple<string, DateTime, int?>> GetItems();
 
         public string CreateContent(CatalogContext context)
         {
@@ -26,9 +26,11 @@ namespace Catalog.Maintenance
             graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
             graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
 
+            INode rdfTypePredicate = graph.CreateUriNode("rdf:type");
+
             INode container = graph.CreateUriNode(_resourceUri);
 
-            graph.Assert(container, graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:Container"));
+            graph.Assert(container, rdfTypePredicate, graph.CreateUriNode("nuget:Container"));
 
             if (_parent != null)
             {
@@ -39,15 +41,16 @@ namespace Catalog.Maintenance
             INode publishedPredicate = graph.CreateUriNode("nuget:published");
             INode countPredicate = graph.CreateUriNode("nuget:count");
 
-            foreach (KeyValuePair<Uri, Tuple<DateTime, int?>> item in GetItems())
+            foreach (KeyValuePair<Uri, Tuple<string, DateTime, int?>> item in GetItems())
             {
                 INode itemNode = graph.CreateUriNode(item.Key);
 
                 graph.Assert(container, itemPredicate, itemNode);
-                graph.Assert(itemNode, publishedPredicate, graph.CreateLiteralNode(item.Value.Item1.ToString(), new Uri("http://www.w3.org/2001/XMLSchema#dateTime")));
-                if (item.Value.Item2 != null)
+                graph.Assert(itemNode, rdfTypePredicate, graph.CreateUriNode(new Uri(item.Value.Item1)));
+                graph.Assert(itemNode, publishedPredicate, graph.CreateLiteralNode(item.Value.Item2.ToString(), new Uri("http://www.w3.org/2001/XMLSchema#dateTime")));
+                if (item.Value.Item3 != null)
                 {
-                    graph.Assert(itemNode, countPredicate, graph.CreateLiteralNode(item.Value.Item2.ToString(), new Uri("http://www.w3.org/2001/XMLSchema#integer")));
+                    graph.Assert(itemNode, countPredicate, graph.CreateLiteralNode(item.Value.Item3.ToString(), new Uri("http://www.w3.org/2001/XMLSchema#integer")));
                 }
             }
 
@@ -60,11 +63,13 @@ namespace Catalog.Maintenance
             return content;
         }
 
-        protected static void Load(IDictionary<Uri, Tuple<DateTime, int?>> items, string content)
+        protected static void Load(IDictionary<Uri, Tuple<string, DateTime, int?>> items, string content)
         {
             IGraph graph = Utils.CreateGraph(content);
 
+            graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
             graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
+            INode rdfTypePredicate = graph.CreateUriNode("rdf:type");
             INode itemPredicate = graph.CreateUriNode("nuget:item");
             INode publishedPredicate = graph.CreateUriNode("nuget:published");
             INode countPredicate = graph.CreateUriNode("nuget:count");
@@ -72,6 +77,9 @@ namespace Catalog.Maintenance
             foreach (Triple itemTriple in graph.GetTriplesWithPredicate(itemPredicate))
             {
                 Uri itemUri = ((IUriNode)itemTriple.Object).Uri;
+
+                Triple rdfTypeTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, rdfTypePredicate).First();
+                Uri rdfType = ((IUriNode)rdfTypeTriple.Object).Uri;
 
                 Triple publishedTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, publishedPredicate).First();
                 DateTime published = DateTime.Parse(((ILiteralNode)publishedTriple.Object).Value);
@@ -85,7 +93,7 @@ namespace Catalog.Maintenance
                     count = int.Parse(((ILiteralNode)countTriple.Object).Value);
                 }
 
-                items.Add(itemUri, new Tuple<DateTime, int?>(published, count));
+                items.Add(itemUri, new Tuple<string, DateTime, int?>(rdfType.ToString(), published, count));
             }
         }
     }

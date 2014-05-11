@@ -19,6 +19,8 @@ namespace Catalog.Maintenance
 
         public abstract string CreateContent(CatalogContext context);
 
+        public abstract string GetItemType();
+
         protected abstract string GetItemName();
 
         public string GetBaseAddress()
