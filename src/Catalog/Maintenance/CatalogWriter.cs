@@ -6,12 +6,14 @@ using VDS.RDF;
 
 namespace Catalog.Maintenance
 {
-    public class CatalogWriter
+    public class CatalogWriter : IDisposable
     {
         Storage _storage;
         List<CatalogItem> _batch;
         CatalogContext _context;
         bool _append;
+        bool _first;
+        bool _open;
 
         public CatalogWriter(Storage storage, CatalogContext context, int maxPageSize = 1000, bool append = true)
         {
@@ -22,6 +24,8 @@ namespace Catalog.Maintenance
             _append = append;
             _batch = new List<CatalogItem>();
             MaxPageSize = maxPageSize;
+            _first = true;
+            _open = true;
         }
 
         public int MaxPageSize
@@ -32,11 +36,15 @@ namespace Catalog.Maintenance
 
         public void Add(CatalogItem item)
         {
+            Check();
+
             _batch.Add(item);
         }
 
         public async Task Commit(DateTime timeStamp)
         {
+            Check();
+
             if (_batch.Count == 0)
             {
                 return;
@@ -45,27 +53,40 @@ namespace Catalog.Maintenance
             string baseAddress = string.Format("{0}{1}/", _storage.BaseAddress, _storage.Container);
 
             IDictionary<Uri, string> pageItems = new Dictionary<Uri, string>();
-            List<Task> tasks = new List<Task>();
+            List<Task> tasks = null;
             foreach (CatalogItem item in _batch)
             {
                 item.SetTimeStamp(timeStamp);
                 item.SetBaseAddress(baseAddress);
 
                 Uri resourceUri = new Uri(item.GetBaseAddress() + item.GetRelativeAddress());
-                tasks.Add(_storage.Save("application/json", resourceUri, item.CreateContent(_context)));
+                string content = item.CreateContent(_context);
+
+                if (content != null)
+                {
+                    if (tasks == null)
+                    {
+                        tasks = new List<Task>();
+                    }
+                    tasks.Add(_storage.Save("application/json", resourceUri, content));
+                }
 
                 pageItems.Add(resourceUri, item.GetItemType());
             }
 
-            await Task.WhenAll(tasks.ToArray());
+            if (tasks != null)
+            {
+                await Task.WhenAll(tasks.ToArray());
+            }
 
             Uri rootResourceUri = new Uri(baseAddress + "catalog/index.json");
 
             string rootContent = null;
-            if (_append)
+            if (!_first || _first && _append)
             {
                 rootContent = await _storage.Load(rootResourceUri);
             }
+            _first = false;
 
             CatalogRoot root = new CatalogRoot(rootResourceUri, rootContent);
             CatalogPage page;
@@ -96,6 +117,19 @@ namespace Catalog.Maintenance
             await _storage.Save("application/json", rootResourceUri, root.CreateContent(_context));
 
             _batch.Clear();
+        }
+ 
+        public void Dispose()
+        {
+            _open = false;
+        }
+
+        void Check()
+        {
+            if (!_open)
+            {
+                throw new ObjectDisposedException(GetType().Name);
+            }
         }
     }
 }

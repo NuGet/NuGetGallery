@@ -22,6 +22,11 @@ namespace Catalog.Maintenance
             _items.Add(resourceUri, new Tuple<string, DateTime, int?>(resourceType, timeStamp, null));
         }
 
+        protected override Uri GetContainerType()
+        {
+            return new Uri("http://nuget.org/schema#CatalogPage");
+        }
+
         protected override IDictionary<Uri, Tuple<string, DateTime, int?>> GetItems()
         {
             return _items;

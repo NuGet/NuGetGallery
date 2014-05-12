@@ -19,6 +19,8 @@ namespace Catalog.Maintenance
 
         protected abstract IDictionary<Uri, Tuple<string, DateTime, int?>> GetItems();
 
+        protected abstract Uri GetContainerType();
+
         public string CreateContent(CatalogContext context)
         {
             IGraph graph = new Graph();
@@ -30,7 +32,7 @@ namespace Catalog.Maintenance
 
             INode container = graph.CreateUriNode(_resourceUri);
 
-            graph.Assert(container, rdfTypePredicate, graph.CreateUriNode("nuget:Container"));
+            graph.Assert(container, rdfTypePredicate, graph.CreateUriNode(GetContainerType()));
 
             if (_parent != null)
             {
@@ -56,7 +58,7 @@ namespace Catalog.Maintenance
 
             JObject frame = context.GetJsonLdContext("context.ContainerFrame.json");
 
-            frame["@type"] = "http://nuget.org/schema#Container";
+            frame["@type"] = GetContainerType().ToString();
 
             string content = Utils.CreateJson(graph, frame);
 

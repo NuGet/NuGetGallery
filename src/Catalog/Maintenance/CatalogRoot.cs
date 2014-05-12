@@ -51,6 +51,11 @@ namespace Catalog.Maintenance
             _items[pageUri] = new Tuple<string, DateTime, int?>("http://nuget.org/schema#Container", timeStamp, count);
         }
 
+        protected override Uri GetContainerType()
+        {
+            return new Uri("http://nuget.org/schema#CatalogRoot");
+        }
+
         protected override IDictionary<Uri, Tuple<string, DateTime, int?>> GetItems()
         {
             return _items;
