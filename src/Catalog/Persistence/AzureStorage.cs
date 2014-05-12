@@ -1,4 +1,5 @@
 ﻿using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Threading.Tasks;
@@ -11,7 +12,23 @@ namespace Catalog.Persistence
         {
         }
 
+        // "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}"
+
         public string ConnectionString
+        {
+            get;
+            set;
+        }
+
+        // if the ConnectionString is null the follow are used 
+
+        public string AccountName
+        {
+            get;
+            set;
+        }
+
+        public string AccountKey
         {
             get;
             set;
@@ -30,7 +47,9 @@ namespace Catalog.Persistence
                 Console.WriteLine("save {0}", name);
             }
 
-            CloudStorageAccount account = CloudStorageAccount.Parse(ConnectionString);
+            CloudStorageAccount account = ConnectionString != null ?
+                CloudStorageAccount.Parse(ConnectionString) : new CloudStorageAccount(new StorageCredentials(AccountName, AccountKey), true);
+
             CloudBlobClient client = account.CreateCloudBlobClient();
             CloudBlobContainer container = client.GetContainerReference(Container);
 
@@ -59,7 +78,9 @@ namespace Catalog.Persistence
 
             string name = GetName(resourceUri, BaseAddress, Container);
 
-            CloudStorageAccount account = CloudStorageAccount.Parse(ConnectionString);
+            CloudStorageAccount account = ConnectionString != null ?
+                CloudStorageAccount.Parse(ConnectionString) : new CloudStorageAccount(new StorageCredentials(AccountName, AccountKey), true);
+
             CloudBlobClient client = account.CreateCloudBlobClient();
             CloudBlobContainer container = client.GetContainerReference(Container);
 

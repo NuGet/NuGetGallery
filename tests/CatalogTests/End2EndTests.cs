@@ -15,13 +15,19 @@ namespace CatalogTests
     {
         public static async Task Test0Async()
         {
-            string path = @"c:\data\site\test";
+            //Storage storage = new FileStorage
+            //{
+            //    Path = @"c:\data\site\test",
+            //    Container = "test",
+            //    BaseAddress = "http://localhost:8000/"
+            //};
 
-            Storage storage = new FileStorage
+            Storage storage = new AzureStorage
             {
-                Path = path,
+                AccountName = "",
+                AccountKey = "",
                 Container = "test",
-                BaseAddress = "http://localhost:8000/"
+                BaseAddress = "http://nuget3.blob.core.windows.net"
             };
 
             CatalogContext context = new CatalogContext();
@@ -49,19 +55,25 @@ namespace CatalogTests
             }
             await writer.Commit(new DateTime(2012, 12, 25, 12, 0, 0));
 
+            //  collection...
+
+            string baseAddress = storage.BaseAddress + storage.Container + "/";
+
+            Uri index = new Uri(baseAddress + "catalog/index.json");
+
             ItemCollector collector = new ItemCollector();
 
             Console.WriteLine("----------------");
 
-            await collector.Run(new Uri("http://localhost:8000/test/catalog/index.json"), new DateTime(2012, 10, 31, 12, 0, 0));
+            await collector.Run(index, new DateTime(2012, 10, 31, 12, 0, 0));
 
             Console.WriteLine("----------------");
 
-            await collector.Run(new Uri("http://localhost:8000/test/catalog/index.json"), new DateTime(2011, 10, 31, 12, 0, 0));
+            await collector.Run(index, new DateTime(2011, 10, 31, 12, 0, 0));
 
             Console.WriteLine("----------------");
 
-            await collector.Run(new Uri("http://localhost:8000/test/catalog/index.json"), DateTime.MinValue);
+            await collector.Run(index, DateTime.MinValue);
         }
 
         public static void Test0()
