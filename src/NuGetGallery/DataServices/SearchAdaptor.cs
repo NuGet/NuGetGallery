@@ -61,7 +61,7 @@ namespace NuGetGallery
             return result.Data.InterceptWith(new DisregardODataInterceptor());
         }
 
-        public static async Task<SearchQuery> SearchCore(
+        public static async Task<IQueryable<Package>> SearchCore(
             ISearchService searchService,
             HttpRequestBase request,
             IQueryable<Package> packages, 
@@ -84,7 +84,7 @@ namespace NuGetGallery
 
                 var results = await GetResultsFromSearchService(searchService, searchFilter);
 
-                return new SearchQuery(results, searchFilter);
+                return results;
             }
 
             if (!includePrerelease)
@@ -92,7 +92,7 @@ namespace NuGetGallery
                 packages = packages.Where(p => !p.IsPrerelease);
             }
 
-            return new SearchQuery(packages.Search(searchTerm), searchFilter: null);
+            return packages.Search(searchTerm);
         }
 
         private static bool TryReadSearchFilter(bool allVersionsInIndex, string url, out SearchFilter searchFilter)
@@ -170,26 +170,6 @@ namespace NuGetGallery
                 }
             }
 
-            string skiptoken;
-            if (queryTerms.TryGetValue("$skiptoken", out skiptoken))
-            {
-                int result;
-                if (int.TryParse(skiptoken, out result))
-                {
-                    searchFilter.Skip = result;
-                }
-            }
-
-            string top;
-            if (queryTerms.TryGetValue("$top", out top))
-            {
-                int result;
-                if (int.TryParse(top, out result))
-                {
-                    searchFilter.Take = result;
-                }
-            }
-
             //  only certain orderBy clauses are supported from the Lucene search
             string orderBy;
             if (queryTerms.TryGetValue("$orderby", out orderBy))
@@ -235,18 +215,6 @@ namespace NuGetGallery
             }
 
             return true;
-        }
-    }
-
-    public class SearchQuery
-    {
-        public IQueryable<Package> Query { get; private set; }
-        public SearchFilter SearchFilter { get; private set; }
-
-        public SearchQuery(IQueryable<Package> query, SearchFilter searchFilter)
-        {
-            Query = query;
-            SearchFilter = searchFilter;
         }
     }
 }

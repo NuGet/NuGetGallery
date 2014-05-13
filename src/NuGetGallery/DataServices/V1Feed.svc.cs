@@ -69,7 +69,7 @@ namespace NuGetGallery
                 .Where(p => p.Listed && !p.IsPrerelease);
 
             // For v1 feed, only allow stable package versions.
-            var query = SearchAdaptor.SearchCore(
+            packages = SearchAdaptor.SearchCore(
                 SearchService, 
                 HttpContext.Request, 
                 packages, 
@@ -79,7 +79,7 @@ namespace NuGetGallery
                 curatedFeed: null)
                 // TODO: Async once I figure Odata Async stuff out
                 .Result;
-            return query.Query.ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
+            return packages.ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
     }
 }
