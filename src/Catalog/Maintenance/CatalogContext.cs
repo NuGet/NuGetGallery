@@ -36,13 +36,15 @@ namespace Catalog.Maintenance
             });
         }
 
-        public JObject GetJsonLdContext(string name)
+        public JObject GetJsonLdContext(string name, string type)
         {
             return _jsonLdContext.GetOrAdd(name, (key) =>
             {
                 using (JsonReader jsonReader = new JsonTextReader(new StreamReader(GetStream(name))))
                 {
-                    return JObject.Load(jsonReader);
+                    JObject obj = JObject.Load(jsonReader);
+                    obj["@type"] = type;
+                    return obj;
                 }
             });
         }

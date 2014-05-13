@@ -32,8 +32,7 @@ namespace Catalog.Maintenance
             graph.Assert(subject, graph.CreateUriNode("nuget:id"), graph.CreateLiteralNode(_id));
             graph.Assert(subject, graph.CreateUriNode("nuget:version"), graph.CreateLiteralNode(_id));
 
-            JObject frame = context.GetJsonLdContext("context.DeletePackageFrame.json");
-            frame["@type"] = GetItemType();
+            JObject frame = context.GetJsonLdContext("context.DeletePackageFrame.json", GetItemType());
 
             string content = Utils.CreateJson(graph, frame);
 

@@ -19,7 +19,7 @@ namespace Catalog.Maintenance
 
         protected abstract IDictionary<Uri, Tuple<string, DateTime, int?>> GetItems();
 
-        protected abstract Uri GetContainerType();
+        protected abstract string GetContainerType();
 
         public string CreateContent(CatalogContext context)
         {
@@ -32,7 +32,7 @@ namespace Catalog.Maintenance
 
             INode container = graph.CreateUriNode(_resourceUri);
 
-            graph.Assert(container, rdfTypePredicate, graph.CreateUriNode(GetContainerType()));
+            graph.Assert(container, rdfTypePredicate, graph.CreateUriNode(new Uri(GetContainerType())));
 
             if (_parent != null)
             {
@@ -56,9 +56,7 @@ namespace Catalog.Maintenance
                 }
             }
 
-            JObject frame = context.GetJsonLdContext("context.ContainerFrame.json");
-
-            frame["@type"] = GetContainerType().ToString();
+            JObject frame = context.GetJsonLdContext("context.ContainerFrame.json", GetContainerType());
 
             string content = Utils.CreateJson(graph, frame);
 
