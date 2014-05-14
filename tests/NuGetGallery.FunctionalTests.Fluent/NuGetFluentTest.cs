@@ -15,7 +15,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 {
     public class NuGetFluentTest : FluentTest 
     {
-        private static bool checkforPackageExistence;
+        private static bool _checkForPackageExistence = false;
         public NuGetFluentTest()
         {
             FluentAutomation.SeleniumWebDriver.Bootstrap();
@@ -84,11 +84,11 @@ namespace NuGetGallery.FunctionalTests.Fluent
             {
                 {
                     if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CheckforPackageExistence")))
-                        checkforPackageExistence = false;
+                        _checkForPackageExistence = false;
                     else
-                        checkforPackageExistence = Convert.ToBoolean(Environment.GetEnvironmentVariable("CheckforPackageExistence"));
+                        _checkForPackageExistence = Convert.ToBoolean(Environment.GetEnvironmentVariable("CheckforPackageExistence"));
                 }
-                return checkforPackageExistence;
+                return _checkForPackageExistence;
             }
         }
     }

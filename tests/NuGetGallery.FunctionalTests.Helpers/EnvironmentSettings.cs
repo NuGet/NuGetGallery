@@ -64,6 +64,10 @@ namespace NuGetGallery.FunctionTests.Helpers
                     }
                 }
 
+                if (string.IsNullOrEmpty(_baseurl))
+                {
+                    _baseurl = "https://int.nugettest.org/";
+                }
                 return _baseurl;
             }
         }
