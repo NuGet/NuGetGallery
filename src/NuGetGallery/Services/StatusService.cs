@@ -20,7 +20,7 @@ namespace NuGetGallery
         private const string Unavailable = "Unavailable";
         private const string StatusMessageFormat = "NuGet Gallery service is {0}. SQL Azure is {1}. Storage is {2}";
 
-        private const string TestSqlQuery = "SELECT TOP(1) [Key] FROM Users WITH (NOLOCK)";
+        private const string TestSqlQuery = "SELECT TOP(1) [Key] FROM GallerySettings WITH (NOLOCK)";
 
         public StatusService(
             IEntitiesContext entities,
