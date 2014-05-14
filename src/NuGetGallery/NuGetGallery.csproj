@@ -1157,13 +1157,11 @@
     <Content Include="Content\Logos\hero.png">
       <BrowseToURL>hero.png</BrowseToURL>
     </Content>
-    <Content Include="Content\Logos\herowithlogo.png" />
     <Content Include="Content\Images\inputBackground.png" />
     <Content Include="Content\Logos\nugetlogo.png" />
     <Content Include="Content\Logos\nugetLogoFooter.png" />
     <Content Include="Content\Images\packageDefaultIcon-50x50.png" />
     <Content Include="Content\Images\packageDefaultIcon.png" />
-    <Content Include="Content\Images\packageOwnerActionIcons.png" />
     <Content Include="Content\Images\required.png" />
     <Content Include="Content\Images\searchButton.png" />
     <Content Include="Content\SyntaxHighlighter\shCore.css" />

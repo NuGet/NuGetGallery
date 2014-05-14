@@ -252,24 +252,6 @@ nav, section {
     width: 265px;
 }
 
-
-/* Logo */
-
-#logo {
-    float: left;
-    padding: 20px 20px 0 0;
-}
-
-    #logo a {
-        background: url(../Content/Images/nugetlogo.png) no-repeat;
-        display: block;
-        height: 75px;
-        margin: 0;
-        padding: 0;
-        text-indent: -9999px;
-        width: 345px;
-    }
-
 /* Body */
 
 #body {
