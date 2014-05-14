@@ -17,6 +17,7 @@ namespace NuGetGallery.FunctionTests.Helpers
         private static string testAccountPassword;
         private static string testEmailServerHost;
         private static string runFunctionalTests;
+        private static string readOnlyMode;
       
         #endregion PrivateFields
         #region Properties
@@ -39,6 +40,23 @@ namespace NuGetGallery.FunctionTests.Helpers
             }
         }
 
+        /// <summary>
+        /// Option to enable or disable functional tests from the current run.
+        /// </summary>
+        public static string ReadOnlyMode
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(readOnlyMode))
+                {
+                    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ReadOnlyMode")))
+                        readOnlyMode = "False";
+                    else
+                        readOnlyMode = Environment.GetEnvironmentVariable("ReadOnlyMode");
+                }
+                return readOnlyMode;
+            }
+        }
 
         /// <summary>
         /// The environment against which the test has to be run. The value would be picked from env variable.

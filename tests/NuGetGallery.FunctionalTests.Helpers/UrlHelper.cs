@@ -129,6 +129,16 @@ namespace NuGetGallery.FunctionTests.Helpers
             get { return UrlHelper.BaseUrl + AccountPageUrlSuffix; }
         }
 
+        public static string AccountUnscribeUrl
+        {
+            get { return UrlHelper.BaseUrl + AccountUnscribeUrlSuffix; }
+        }
+
+        public static string AccountApiKeyResetUrl
+        {
+            get { return UrlHelper.BaseUrl + AccountApiKeyResetUrlSuffix; }
+        } 
+
         public static string ManageMyPackagesUrl
         {
             get { return UrlHelper.BaseUrl + ManageMyPackagesUrlSuffix; }
@@ -172,6 +182,8 @@ namespace NuGetGallery.FunctionTests.Helpers
         private const string WebMatrixCuratedFeedUrlSuffix = "curated-feeds/webmatrix/";
         private const string DotnetCuratedFeedUrlSuffix = "curated-feeds/microsoftdotnet/";
         private const string AccountPageUrlSuffix = "/account";
+        private const string AccountUnscribeUrlSuffix = "account/unsubscribe";
+        private const string AccountApiKeyResetUrlSuffix = "/account/GenerateApiKey";
         private const string ManageMyPackagesUrlSuffix = "/account/Packages";
         #endregion UrlSuffix
     }

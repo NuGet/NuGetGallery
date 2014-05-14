@@ -48,7 +48,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.PackageManagement
             yield return uploadPostRequest;
             uploadPostRequest = null;
 
-            WebTestRequest verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(this, packageId, "1.0.0");
+            WebTestRequest verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(this, packageId, "1.0.0", UrlHelper.GetPackagePageUrl(packageId, "1.0.0"), packageId);
             yield return verifyUploadPostRequest;
             verifyUploadPostRequest = null; 
 
