@@ -17,7 +17,12 @@ namespace Catalog
         {
             await Task.Factory.StartNew(() =>
             {
-                Interlocked.Increment(ref _total);
+                int progress = Interlocked.Increment(ref _total);
+
+                if (progress % 1000 == 0)
+                {
+                    Console.WriteLine(progress);
+                }
             });
         }
 

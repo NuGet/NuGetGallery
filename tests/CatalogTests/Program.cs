@@ -202,7 +202,11 @@ namespace CatalogTests
                 //CollectorTests.Test3();
                 //CollectorTests.Test4();
 
-                End2EndTests.Test0();
+                //CollectorTests.Test5();
+                //CollectorTests.Test6();
+                CollectorTests.Test7();
+
+                //End2EndTests.Test0();
 
                 DateTime after = DateTime.Now;
 

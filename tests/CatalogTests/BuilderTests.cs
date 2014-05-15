@@ -162,18 +162,26 @@ namespace CatalogTests
         {
             string nuspecs = @"c:\data\nuspecs";
 
-            Storage storage = new FileStorage
+            //Storage storage = new FileStorage
+            //{
+            //    Path = @"c:\data\site\full5",
+            //    Container = "full5",
+            //    BaseAddress = "http://localhost:8000/"
+            //};
+
+            Storage storage = new AzureStorage
             {
-                Path = @"c:\data\site\full5",
-                Container = "full5",
-                BaseAddress = "http://localhost:8000/"
+                AccountName = "nuget3",
+                AccountKey = "",
+                Container = "pub",
+                BaseAddress = "http://nuget3.blob.core.windows.net"
             };
 
             CatalogContext context = new CatalogContext();
 
             CatalogWriter writer = new CatalogWriter(storage, context);
 
-            const int BatchSize = 37;
+            const int BatchSize = 1000;
             int i = 0;
 
             int commitCount = 0;
@@ -190,10 +198,10 @@ namespace CatalogTests
                     Console.WriteLine("commit number {0}", commitCount++);
                 }
 
-                if (commitCount == 20)
-                {
-                    break;
-                }
+                //if (commitCount == 20)
+                //{
+                //    break;
+                //}
             }
 
             await writer.Commit(DateTime.Now);
