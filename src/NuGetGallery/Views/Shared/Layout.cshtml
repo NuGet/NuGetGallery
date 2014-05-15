@@ -33,7 +33,7 @@
                         <div id="searchBox" role="search">
                             <form action="@Url.PackageList()" method="get">
                                 <input name="q" id="searchBoxInput" class="expanding-search" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" autocomplete="off" />
-                                <input id="searchBoxSubmit" type="submit" value=" " />
+                                <input id="searchBoxSubmit" type="submit" value="Submit" />
                             </form>
                         </div>
                         @Html.Partial("UserDisplay")
