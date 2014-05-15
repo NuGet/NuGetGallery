@@ -38,7 +38,7 @@ namespace Catalog.Maintenance
 
         public JObject GetJsonLdContext(string name, string type)
         {
-            return _jsonLdContext.GetOrAdd(name, (key) =>
+            return _jsonLdContext.GetOrAdd(name + "#" + type, (key) =>
             {
                 using (JsonReader jsonReader = new JsonTextReader(new StreamReader(GetStream(name))))
                 {

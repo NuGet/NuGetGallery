@@ -26,11 +26,11 @@ namespace Catalog.Maintenance
             graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
             graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
 
-            INode subject = graph.CreateUriNode("http://tempuri.org/debug");
+            INode subject = graph.CreateUriNode(GetBaseAddress() + GetItemName());
 
             graph.Assert(subject, graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:DeletePackageVersion"));
             graph.Assert(subject, graph.CreateUriNode("nuget:id"), graph.CreateLiteralNode(_id));
-            graph.Assert(subject, graph.CreateUriNode("nuget:version"), graph.CreateLiteralNode(_id));
+            graph.Assert(subject, graph.CreateUriNode("nuget:version"), graph.CreateLiteralNode(_version));
 
             JObject frame = context.GetJsonLdContext("context.DeletePackageFrame.json", GetItemType());
 
@@ -46,7 +46,7 @@ namespace Catalog.Maintenance
 
         protected override string GetItemName()
         {
-            return "DELETE." + _id + "." + _version;
+            return "delete/" + _id + "." + _version;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Catalog;
+using Catalog.Collecting;
 using Catalog.Maintenance;
 using Catalog.Persistence;
 using Newtonsoft.Json.Linq;
@@ -6,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -118,29 +120,32 @@ namespace CatalogTests
             }
         }
 
-        class ItemCollector : Collector
+        class ItemCollector : BatchCollector
         {
-            protected override Emitter CreateEmitter()
+            public ItemCollector()
+                : base(10)
             {
-                return new ItemEmitter();
             }
 
-            class ItemEmitter : Emitter
+            protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items)
             {
-                public override async Task<bool> Emit(JObject obj)
+                List<Task<JObject>> tasks = new List<Task<JObject>>();
+
+                foreach (JObject item in items)
                 {
-                    JToken type;
-                    if (obj.TryGetValue("@type", out type) && type.ToString() == "http://test.org/schema#TestItem")
+                    Uri itemUri = new Uri(item["url"].ToString());
+                    string type = item["@type"].ToString();
+                    if (type == "TestItem")
                     {
-                        await Task.Factory.StartNew(() => { Console.WriteLine(obj["name"]); });
-                        return true;
+                        tasks.Add(client.GetJObjectAsync(itemUri));
                     }
-                    return false;
                 }
 
-                public override async Task Close()
+                await Task.WhenAll(tasks.ToArray());
+
+                foreach (Task<JObject> task in tasks)
                 {
-                    await Task.Factory.StartNew(() => {});
+                    Console.WriteLine(task.Result["name"]);
                 }
             }
         }

@@ -1,15 +1,14 @@
-﻿using Catalog.Persistence;
+﻿using Catalog.Helpers;
+using Catalog.Persistence;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using VDS.RDF;
 using VDS.RDF.Query;
 
-namespace Catalog
+namespace Catalog.Collecting
 {
     public class ResolverCollector : BatchCollector
     {
@@ -25,39 +24,39 @@ namespace Catalog
             _storage = storage;
         }
 
-        protected override async Task ProcessBatch(HttpClient client, IList<JObject> items)
+        protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items)
         {
-            List<Task<string>> tasks = new List<Task<string>>();
+            List<Task<IGraph>> tasks = new List<Task<IGraph>>();
 
             foreach (JObject item in items)
             {
-                Uri itemUri = new Uri(item["url"].ToString());
-
-                Console.WriteLine("\t\t{0}", itemUri);
-
-                tasks.Add(client.GetStringAsync(itemUri));
+                Uri itemUri = item["url"].ToObject<Uri>();
+                string type = item["@type"].ToString();
+                if (type == "Package")
+                {
+                    tasks.Add(client.GetGraphAsync(itemUri));
+                }
             }
 
-            await Task.WhenAll(tasks.ToArray());
-
-            TripleStore store = new TripleStore();
-
-            foreach (Task<string> task in tasks)
+            if (tasks.Count > 0)
             {
-                JObject obj = JObject.Parse(task.Result);
-                IGraph graph = Utils.CreateGraph(obj);
-                store.Add(graph, true);
-            }
+                await Task.WhenAll(tasks.ToArray());
 
-            await ProcessStore(store);
+                TripleStore store = new TripleStore();
+
+                foreach (Task<IGraph> task in tasks)
+                {
+                    store.Add(task.Result, true);
+                }
+
+                await ProcessStore(store);
+            }
         }
 
         async Task ProcessStore(TripleStore store)
         {
             try
             {
-                //Console.WriteLine("process {0:N0} triples (memory: {1:N0} bytes)", store.Triples.Count(), GC.GetTotalMemory(true));
-
                 SparqlResultSet distinctIds = SparqlHelpers.Select(store, Utils.GetResource("sparql.SelectDistinctPackage.rq"));
 
                 IDictionary<Uri, IGraph> resolverResources = new Dictionary<Uri, IGraph>();
@@ -78,13 +77,11 @@ namespace Catalog
                     IGraph packageRegistration = SparqlHelpers.Construct(store, sparql.ToString());
 
                     Uri registrationUri = new Uri(baseAddress + id.ToLowerInvariant() + ".json");
-
                     resolverResources.Add(registrationUri, packageRegistration);
                 }
 
                 if (resolverResources.Count != distinctIds.Count)
                 {
-                    Console.WriteLine("\t{0} {1}", resolverResources.Count, distinctIds.Count);
                     throw new Exception("resolverResources.Count != distinctIds.Count");
                 }
 
