@@ -34,6 +34,9 @@ namespace Catalog.Collecting.Test
 
             await Task.WhenAll(tasks.ToArray());
 
+            //DEBUG
+            Console.WriteLine("{0}", client.RequestCount);
+
             foreach (Task<JObject> task in tasks)
             {
                 JObject obj = task.Result;

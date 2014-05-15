@@ -16,6 +16,12 @@ namespace Catalog.Collecting
             _batchSize = batchSize;
         }
 
+        public int BatchCount
+        {
+            private set;
+            get;
+        }
+
         protected override async Task Fetch(CollectorHttpClient client, Uri index, DateTime last)
         {
             IList<JObject> items = new List<JObject>();
@@ -44,6 +50,7 @@ namespace Catalog.Collecting
                             if (items.Count == _batchSize)
                             {
                                 await ProcessBatch(client, items);
+                                BatchCount++;
                                 items.Clear();
                             }
                         }
@@ -54,6 +61,7 @@ namespace Catalog.Collecting
             if (items.Count > 0)
             {
                 await ProcessBatch(client, items);
+                BatchCount++;
             }
         }
 

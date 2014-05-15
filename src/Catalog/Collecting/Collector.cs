@@ -22,7 +22,14 @@ namespace Catalog.Collecting
             using (CollectorHttpClient client = new CollectorHttpClient())
             {
                 await Fetch(client, index, last);
+                RequestCount = client.RequestCount;
             }
+        }
+
+        public int RequestCount
+        {
+            get;
+            private set;
         }
 
         protected abstract Task Fetch(CollectorHttpClient client, Uri index, DateTime last);

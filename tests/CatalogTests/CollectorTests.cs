@@ -29,6 +29,7 @@ namespace CatalogTests
             ResolverCollector collector = new ResolverCollector(storage, 200);
 
             await collector.Run(new Uri("http://localhost:8000/pub/catalog/index.json"), DateTime.MinValue);
+            Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
 
         public static void Test0()
@@ -40,7 +41,8 @@ namespace CatalogTests
         {
             CountCollector collector = new CountCollector();
             await collector.Run(new Uri("http://localhost:8000/pub/catalog/index.json"), DateTime.MinValue);
-            Console.WriteLine(collector.Total);
+            Console.WriteLine("total: {0}", collector.Total);
+            Console.WriteLine("http requests: {0}", collector.RequestCount);
         }
 
         public static void Test1()
@@ -71,6 +73,7 @@ namespace CatalogTests
 
             Console.WriteLine();
             Console.WriteLine("count = {0}", collector.Result.Count);
+            Console.WriteLine("http requests: {0}", collector.RequestCount);
         }
 
         public static void Test3()
