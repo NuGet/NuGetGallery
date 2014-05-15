@@ -31,6 +31,7 @@ namespace NuGetGallery.FunctionalTests
         internal const string ContactOwnersText = "Your message has been sent to the owners of";
         internal const string UnListedPackageText = "This package is unlisted and hidden from package listings";
         internal const string TestPackageId = "BaseTestPackage";
+        internal const string ReadOnlyModeError = "503 : Please try again later! (Read-only)";
         #endregion PredefinedText
 
     }

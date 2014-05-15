@@ -82,6 +82,8 @@
     <Compile Include="Features\SearchTest.cs" />
     <Compile Include="LinksTests\LinksTests.cs" />
     <Compile Include="LoadTests\LoadTests.cs" />
+    <Compile Include="ReadOnlyMode\AccountManagementInReadOnlyModeTest.cs" />
+    <Compile Include="ReadOnlyMode\UploadPackageFromInUIInReadOnlyMode.cs" />
     <Compile Include="WebUITests\AccountManagement\RegisterNewUserTest.cs" />
     <Compile Include="WebUITests\AssertAndValidationHelper.cs" />
     <Compile Include="ClientIntegrationTests\NuGetCommandLineTests.cs" />
@@ -99,10 +101,10 @@
     <Compile Include="WebUITests\PackageManagement\ContactOwnerTest.cs" />
     <Compile Include="WebUITests\PackageManagement\ContactUsAndReportAbuseLinkTest.cs" />
     <Compile Include="WebUITests\PackageManagement\EditPackageTest.cs" />
+    <Compile Include="ReadOnlyMode\RegisterNewUserInReadOnlyModeTest.cs" />
     <Compile Include="WebUITests\UploadAndDownload\UploadPackageWithMinClientVersionFromUITest.cs" />
     <Compile Include="WebUITests\PackageManagement\DeletePackageTest.cs" />
     <Compile Include="WebUITests\PackageManagement\ManagePackagesPageTest.cs" />
-    <Compile Include="WebUITests\ReadOnlyMode\ReadOnlyModeRegisterNewUserTest.cs" />
     <Compile Include="WebUITests\UploadAndDownload\AggregateStatsAfterDownload.cs" />
     <Compile Include="WebUITests\UploadAndDownload\UploadPackageFromUI.cs" />
     <Compile Include="WebUITests\AccountManagement\LogonTest.cs" />
@@ -132,6 +134,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

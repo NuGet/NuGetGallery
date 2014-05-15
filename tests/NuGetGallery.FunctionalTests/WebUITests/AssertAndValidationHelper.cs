@@ -167,11 +167,12 @@ namespace NuGetGallery.FunctionalTests
         /// Individual WebTests can use this.
         /// </summary>
         /// <returns></returns>
-        public static WebTestRequest GetVerifyPackagePostRequestForPackage(WebTest test, string packageId, string packageVersion)
+        public static WebTestRequest GetVerifyPackagePostRequestForPackage(WebTest test, string packageId, string packageVersion,string expectedResponseUrl,string expectedText,int expectedResponseCode = 200)
         {
             WebTestRequest verifyUploadPostRequest = new WebTestRequest(UrlHelper.VerifyUploadPageUrl);
             verifyUploadPostRequest.Method = "POST";
-            verifyUploadPostRequest.ExpectedResponseUrl = UrlHelper.GetPackagePageUrl(packageId, packageVersion);
+            verifyUploadPostRequest.ExpectedHttpStatusCode = expectedResponseCode;
+            verifyUploadPostRequest.ExpectedResponseUrl = expectedResponseUrl;
             FormPostHttpBody verifyUploadPostRequestBody = new FormPostHttpBody();
             verifyUploadPostRequestBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
             verifyUploadPostRequestBody.FormPostParameters.Add("Id", packageId);
@@ -187,6 +188,9 @@ namespace NuGetGallery.FunctionalTests
             verifyUploadPostRequestBody.FormPostParameters.Add("Edit.Tags", " windows8 ");
             verifyUploadPostRequestBody.FormPostParameters.Add("Edit.ReleaseNotes", "");
             verifyUploadPostRequest.Body = verifyUploadPostRequestBody;
+            
+            ValidationRuleFindText postUploadText = AssertAndValidationHelper.GetValidationRuleForFindText(expectedText);
+            verifyUploadPostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(postUploadText.Validate);
             return verifyUploadPostRequest;
         }
 
