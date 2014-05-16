@@ -56,6 +56,8 @@ namespace CatalogTests
 
         public static void Test0()
         {
+            Console.WriteLine("BuilderTests.Test0");
+
             Test0Async().Wait();
         }
 
@@ -108,11 +110,62 @@ namespace CatalogTests
 
         public static void Test1()
         {
+            Console.WriteLine("BuilderTests.Test1");
+
             Test1Async().Wait();
+        }
+
+        public static async Task Test2Async()
+        {
+            string nuspecs = @"c:\data\test_nuspecs";
+
+            Storage storage = new FileStorage
+            {
+                Path = @"c:\data\site\test",
+                Container = "test",
+                BaseAddress = "http://localhost:8000/"
+            };
+
+            //Storage storage = new AzureStorage
+            //{
+            //    AccountName = "nuget3",
+            //    AccountKey = "",
+            //    Container = "pub",
+            //    BaseAddress = "http://nuget3.blob.core.windows.net"
+            //};
+
+            CatalogContext context = new CatalogContext();
+
+            CatalogWriter writer = new CatalogWriter(storage, context, 1000);
+
+            const int BatchSize = 1000;
+            int i = 0;
+
+            int commitCount = 0;
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
+            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
+            {
+                writer.Add(new NuspecPackageCatalogItem(fileInfo));
+
+                if (++i % BatchSize == 0)
+                {
+                    await writer.Commit(DateTime.Now);
+
+                    Console.WriteLine("commit number {0}", commitCount++);
+                }
+            }
+
+            await writer.Commit(DateTime.Now);
+
+            Console.WriteLine("commit number {0}", commitCount++);
         }
 
         public static void Test2()
         {
+            Console.WriteLine("BuilderTests.Test2");
+
+            Test2Async().Wait();
         }
     }
 }

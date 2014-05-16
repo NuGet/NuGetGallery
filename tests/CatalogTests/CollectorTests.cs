@@ -34,6 +34,8 @@ namespace CatalogTests
 
         public static void Test0()
         {
+            Console.WriteLine("CollectorTests.Test0");
+
             Test0Async().Wait();
         }
 
@@ -47,6 +49,8 @@ namespace CatalogTests
 
         public static void Test1()
         {
+            Console.WriteLine("CollectorTests.Test1");
+
             Test1Async().Wait();
         }
 
@@ -58,6 +62,8 @@ namespace CatalogTests
 
         public static void Test2()
         {
+            Console.WriteLine("CollectorTests.Test2");
+
             Test2Async().Wait();
         }
 
@@ -78,6 +84,8 @@ namespace CatalogTests
 
         public static void Test3()
         {
+            Console.WriteLine("CollectorTests.Test3");
+
             Test3Async().Wait();
         }
 
@@ -93,19 +101,21 @@ namespace CatalogTests
 
             Storage storage = new FileStorage
             {
-                Path = @"c:\data\site",
-                Container = "full5",
+                Path = @"c:\data\site\test",
+                Container = "test",
                 BaseAddress = "http://localhost:8000/"
             };
 
             ResolverCollector collector = new ResolverCollector(storage, 200);
 
-            await collector.Run(new Uri("http://localhost:8000/full5/catalog/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://localhost:8000/test/catalog/index.json"), DateTime.MinValue);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
 
         public static void Test4()
         {
+            Console.WriteLine("CollectorTests.Test4");
+
             Test4Async().Wait();
         }
     }
