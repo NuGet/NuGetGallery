@@ -72,7 +72,7 @@ namespace CatalogTests
 
             CatalogContext context = new CatalogContext();
 
-            CatalogWriter writer = new CatalogWriter(storage, context);
+            CatalogWriter writer = new CatalogWriter(storage, context, 150);
 
             int total = 0;
 

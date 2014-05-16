@@ -56,7 +56,7 @@ namespace Catalog.Maintenance
                 }
             }
 
-            JObject frame = context.GetJsonLdContext("context.ContainerFrame.json", GetContainerType());
+            JObject frame = context.GetJsonLdContext("context.Container.json", GetContainerType());
 
             string content = Utils.CreateJson(graph, frame);
 

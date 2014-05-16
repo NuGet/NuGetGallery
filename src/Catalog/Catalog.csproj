@@ -121,10 +121,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <EmbeddedResource Include="context\ContainerFrame.json" />
-    <EmbeddedResource Include="context\PackageFrame.json" />
-    <EmbeddedResource Include="context\ResolverFrame.json" />
-    <EmbeddedResource Include="context\DeletePackageFrame.json" />
+    <EmbeddedResource Include="context\Container.json" />
+    <EmbeddedResource Include="context\Package.json" />
+    <EmbeddedResource Include="context\PackageRegistration.json" />
+    <EmbeddedResource Include="context\DeletePackage.json" />
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />

@@ -20,7 +20,8 @@ namespace Catalog.Collecting
         {
             Options.InternUris = false;
 
-            _resolverFrame = JObject.Parse(Utils.GetResource("context.ResolverFrame.json"));
+            _resolverFrame = JObject.Parse(Utils.GetResource("context.PackageRegistration.json"));
+            _resolverFrame["@type"] = "PackageRegistration";
             _storage = storage;
         }
 

@@ -7,6 +7,5 @@
         "dependency" : { "@container" : "@set" },
         "property" : { "@container" : "@set" },
 		"url" : "@id"
-	},
-	"@type" : "http://nuget.org/schema#PackageRegistration"
+	}
 }

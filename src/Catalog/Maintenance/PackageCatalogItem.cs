@@ -17,7 +17,7 @@ namespace Catalog.Maintenance
             XDocument nuspec = NormalizeNuspecNamespace(original, context.GetXslt("xslt.normalizeNuspecNamespace.xslt"));
             IGraph graph = CreateNuspecGraph(nuspec, GetBaseAddress(), context.GetXslt("xslt.nuspec.xslt"));
 
-            JObject frame = context.GetJsonLdContext("context.PackageFrame.json", GetItemType());
+            JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
 
             string content = Utils.CreateJson(graph, frame);
 

@@ -80,5 +80,33 @@ namespace CatalogTests
         {
             Test3Async().Wait();
         }
+
+        public static async Task Test4Async()
+        {
+            //Storage storage = new AzureStorage
+            //{
+            //    AccountName = "nuget3",
+            //    AccountKey = "",
+            //    Container = "feed",
+            //    BaseAddress = "http://nuget3.blob.core.windows.net"
+            //};
+
+            Storage storage = new FileStorage
+            {
+                Path = @"c:\data\site",
+                Container = "full5",
+                BaseAddress = "http://localhost:8000/"
+            };
+
+            ResolverCollector collector = new ResolverCollector(storage, 200);
+
+            await collector.Run(new Uri("http://localhost:8000/full5/catalog/index.json"), DateTime.MinValue);
+            Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
+        }
+
+        public static void Test4()
+        {
+            Test4Async().Wait();
+        }
     }
 }
