@@ -29,7 +29,14 @@ namespace Catalog.Collecting
             Task<string> task = GetStringAsync(address);
             return task.ContinueWith<JObject>((t) =>
             {
-                return JObject.Parse(t.Result);
+                try
+                {
+                    return JObject.Parse(t.Result);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception(string.Format("GetJObjectAsync({0})", address), e);
+                }
             });
         }
 
@@ -38,7 +45,14 @@ namespace Catalog.Collecting
             Task<JObject> task = GetJObjectAsync(address);
             return task.ContinueWith<IGraph>((t) =>
             {
-                return Utils.CreateGraph(t.Result);
+                try
+                {
+                    return Utils.CreateGraph(t.Result);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception(string.Format("GetGraphAsync({0})", address), e);
+                }
             });
         }
     }

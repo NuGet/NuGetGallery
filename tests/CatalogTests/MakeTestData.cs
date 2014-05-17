@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -59,7 +55,7 @@ namespace CatalogTests
             string path = @"c:\data\test_nuspecs";
             string id = "Test.Metadata.Service";
 
-            for (int i=1; i<=100; i++)
+            for (int i=1; i<=3; i++)
             {
                 string version = string.Format("{0}.0.0", i);
                 WriteNuspec(path, id, version);

@@ -90,10 +90,10 @@
     <Compile Include="Maintenance\CatalogPage.cs" />
     <Compile Include="Maintenance\CatalogRoot.cs" />
     <Compile Include="Maintenance\CatalogWriter.cs" />
-    <Compile Include="Maintenance\DeletePackageVersionCatalogItem.cs" />
+    <Compile Include="Maintenance\DeletePackageCatalogItem.cs" />
     <Compile Include="Maintenance\NuspecPackageCatalogItem.cs" />
     <Compile Include="Maintenance\PackageCatalogItem.cs" />
-    <Compile Include="Maintenance\DeletePackageCatalogItem.cs" />
+    <Compile Include="Maintenance\DeleteRegistrationCatalogItem.cs" />
     <Compile Include="Collecting\ResolverCollector.cs" />
     <Compile Include="Collecting\BatchCollector.cs" />
     <Compile Include="Persistence\AzureStorage.cs" />
@@ -133,6 +133,9 @@
     <EmbeddedResource Include="sparql\Package.rq" />
     <EmbeddedResource Include="sparql\ConstructResolverGraph.rq" />
     <EmbeddedResource Include="sparql\SelectDistinctPackage.rq" />
+    <EmbeddedResource Include="sparql\SelectDeletePackage.rq" />
+    <EmbeddedResource Include="sparql\DeletePackage.rq" />
+    <EmbeddedResource Include="sparql\SelectPackageCount.rq" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

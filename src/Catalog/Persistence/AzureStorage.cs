@@ -84,16 +84,6 @@ namespace Catalog.Persistence
             CloudBlobClient client = account.CreateCloudBlobClient();
             CloudBlobContainer container = client.GetContainerReference(Container);
 
-            if (container.CreateIfNotExists())
-            {
-                container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
-
-                if (Verbose)
-                {
-                    Console.WriteLine("Created '{0}' publish container", Container);
-                }
-            }
-
             CloudBlockBlob blob = container.GetBlockBlobReference(name);
 
             if (blob.Exists())
@@ -103,6 +93,25 @@ namespace Catalog.Persistence
             }
 
             return null;
+        }
+
+        //  delete
+
+        public override async Task Delete(Uri resourceUri)
+        {
+            DeleteCount++;
+
+            string name = GetName(resourceUri, BaseAddress, Container);
+
+            CloudStorageAccount account = ConnectionString != null ?
+                CloudStorageAccount.Parse(ConnectionString) : new CloudStorageAccount(new StorageCredentials(AccountName, AccountKey), true);
+
+            CloudBlobClient client = account.CreateCloudBlobClient();
+            CloudBlobContainer container = client.GetContainerReference(Container);
+
+            CloudBlockBlob blob = container.GetBlockBlobReference(name);
+
+            await blob.DeleteAsync();
         }
     }
 }
