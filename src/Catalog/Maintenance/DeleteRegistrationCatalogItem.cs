@@ -20,7 +20,7 @@ namespace Catalog.Maintenance
             graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
             graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
 
-            INode subject = graph.CreateUriNode(GetBaseAddress() + GetItemName());
+            INode subject = graph.CreateUriNode(new Uri(GetBaseAddress() + GetItemName()));
 
             graph.Assert(subject, graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:DeleteRegistration"));
             graph.Assert(subject, graph.CreateUriNode("nuget:id"), graph.CreateLiteralNode(_id));

@@ -129,14 +129,12 @@
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />
-    <None Include="sparql\Container.rq" />
-    <None Include="sparql\ListResources.rq" />
-    <None Include="sparql\Package.rq" />
     <EmbeddedResource Include="sparql\ConstructResolverGraph.rq" />
     <EmbeddedResource Include="sparql\SelectDistinctPackage.rq" />
     <EmbeddedResource Include="sparql\SelectDeletePackage.rq" />
     <EmbeddedResource Include="sparql\DeletePackage.rq" />
     <EmbeddedResource Include="sparql\SelectPackageCount.rq" />
+    <EmbeddedResource Include="sparql\SelectDeleteRegistration.rq" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

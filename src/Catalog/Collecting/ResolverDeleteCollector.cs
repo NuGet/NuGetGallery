@@ -56,10 +56,19 @@ namespace Catalog.Collecting
         {
             try
             {
-                SparqlResultSet packageDeletes = SparqlHelpers.Select(store, Utils.GetResource("sparql.SelectDeletePackage.rq"));
-
                 string baseAddress = _storage.BaseAddress + _storage.Container + "/resolver/";
 
+                SparqlResultSet registrationDeletes = SparqlHelpers.Select(store, Utils.GetResource("sparql.SelectDeleteRegistration.rq"));
+                foreach (SparqlResult row in registrationDeletes)
+                {
+                    string id = row["id"].ToString();
+
+                    Uri resourceUri = new Uri(baseAddress + id + ".json");
+
+                    await _storage.Delete(resourceUri);
+                }
+
+                SparqlResultSet packageDeletes = SparqlHelpers.Select(store, Utils.GetResource("sparql.SelectDeletePackage.rq"));
                 foreach (SparqlResult row in packageDeletes)
                 {
                     string id = row["id"].ToString();

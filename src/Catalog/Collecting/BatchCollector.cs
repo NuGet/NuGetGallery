@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -31,7 +32,9 @@ namespace Catalog.Collecting
             JToken context = null;
             root.TryGetValue("@context", out context);
 
-            foreach (JObject rootItem in root["item"])
+            IEnumerable<JToken> rootItems = root["item"].OrderBy(item => item["timeStamp"]["@value"].ToObject<DateTime>());
+
+            foreach (JObject rootItem in rootItems)
             {
                 DateTime pageTimeStamp = rootItem["timeStamp"]["@value"].ToObject<DateTime>();
 
@@ -40,7 +43,9 @@ namespace Catalog.Collecting
                     Uri pageUri = rootItem["url"].ToObject<Uri>();
                     JObject page = await client.GetJObjectAsync(pageUri);
 
-                    foreach (JObject pageItem in page["item"])
+                    IEnumerable<JToken> pageItems = page["item"].OrderBy(item => item["timeStamp"]["@value"].ToObject<DateTime>());
+
+                    foreach (JObject pageItem in pageItems)
                     {
                         DateTime itemTimeStamp = pageItem["timeStamp"]["@value"].ToObject<DateTime>();
 
