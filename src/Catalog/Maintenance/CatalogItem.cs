@@ -25,7 +25,7 @@ namespace Catalog.Maintenance
 
         public string GetBaseAddress()
         {
-            return _baseAddress + "catalog/item/" + MakeTimestampPathComponent(_timeStamp);
+            return _baseAddress + "catalog/item/" + MakeTimeStampPathComponent(_timeStamp);
         }
 
         public string GetRelativeAddress()
@@ -33,9 +33,9 @@ namespace Catalog.Maintenance
             return GetItemName() + ".json";
         }
 
-        protected static string MakeTimestampPathComponent(DateTime timestamp)
+        protected static string MakeTimeStampPathComponent(DateTime timeStamp)
         {
-            return string.Format("{0}.{1}.{2}.{3}.{4}.{5}/", timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second);
+            return string.Format("{0}.{1}.{2}.{3}.{4}.{5}/", timeStamp.Year, timeStamp.Month, timeStamp.Day, timeStamp.Hour, timeStamp.Minute, timeStamp.Second);
         }
     }
 }

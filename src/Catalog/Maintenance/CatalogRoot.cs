@@ -35,7 +35,7 @@ namespace Catalog.Maintenance
         public Uri AddNextPage(DateTime timeStamp, int count)
         {
             Uri nextPageAddress = new Uri(_baseAddress + string.Format("page{0}.json", _nextPageNumber++));
-            _items.Add(nextPageAddress, new Tuple<string, DateTime, int?>("http://nuget.org/schema#Container", timeStamp, count));
+            _items.Add(nextPageAddress, new Tuple<string, DateTime, int?>("http://nuget.org/catalog#Page", timeStamp, count));
             return nextPageAddress;
         }
 
@@ -46,12 +46,12 @@ namespace Catalog.Maintenance
 
         public void UpdatePage(Uri pageUri, DateTime timeStamp, int count)
         {
-            _items[pageUri] = new Tuple<string, DateTime, int?>("http://nuget.org/schema#Container", timeStamp, count);
+            _items[pageUri] = new Tuple<string, DateTime, int?>("http://nuget.org/catalog#Page", timeStamp, count);
         }
 
         protected override string GetContainerType()
         {
-            return "http://nuget.org/schema#CatalogRoot";
+            return "http://nuget.org/catalog#Root";
         }
 
         protected override IDictionary<Uri, Tuple<string, DateTime, int?>> GetItems()

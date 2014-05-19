@@ -33,11 +33,11 @@ namespace CatalogTests
                 //MakeTestData.Test0();
 
                 //BuilderTests.Test0();
-                //BuilderTests.Test1();
+                BuilderTests.Test1();
                 
                 //BuilderTests.Test2();
 
-                //CollectorTests.Test0();
+                CollectorTests.Test0();
                 //CollectorTests.Test1();
                 //CollectorTests.Test2();
                 //CollectorTests.Test3();
@@ -48,7 +48,7 @@ namespace CatalogTests
 
                 //CheckResults.Test0();
 
-                DeleteTests.Test0();
+                //DeleteTests.Test0();
 
                 DateTime after = DateTime.Now;
 

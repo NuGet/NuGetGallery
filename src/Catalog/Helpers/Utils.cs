@@ -175,5 +175,34 @@ namespace Catalog
 
             return graph;
         }
+
+        public static bool IsType(JObject context, JObject obj, Uri type)
+        {
+            JToken objTypeToken;
+            if (obj.TryGetValue("@type", out objTypeToken))
+            {
+                Uri objType = Expand(context, objTypeToken);
+                return objType == type;
+            }
+            return false;
+        }
+
+        public static Uri Expand(JObject context, JToken token)
+        {
+            string term = token.ToString();
+            if (term.StartsWith("http:", StringComparison.OrdinalIgnoreCase))
+            {
+                return new Uri(term);
+            }
+            
+            int indexOf = term.IndexOf(':');
+            if (indexOf > 0)
+            {
+                string ns = term.Substring(0, indexOf);
+                return new Uri(context[ns] + term.Substring(indexOf + 1));
+            }
+
+            return new Uri(context["@vocab"] + term);
+        }
     }
 }

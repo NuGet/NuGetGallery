@@ -127,7 +127,7 @@ namespace CatalogTests
             {
             }
 
-            protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items)
+            protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
             {
                 List<Task<JObject>> tasks = new List<Task<JObject>>();
 

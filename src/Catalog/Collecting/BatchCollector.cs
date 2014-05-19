@@ -28,9 +28,12 @@ namespace Catalog.Collecting
 
             JObject root = await client.GetJObjectAsync(index);
 
+            JToken context = null;
+            root.TryGetValue("@context", out context);
+
             foreach (JObject rootItem in root["item"])
             {
-                DateTime pageTimeStamp = rootItem["published"]["@value"].ToObject<DateTime>();
+                DateTime pageTimeStamp = rootItem["timeStamp"]["@value"].ToObject<DateTime>();
 
                 if (pageTimeStamp > last)
                 {
@@ -39,7 +42,7 @@ namespace Catalog.Collecting
 
                     foreach (JObject pageItem in page["item"])
                     {
-                        DateTime itemTimeStamp = pageItem["published"]["@value"].ToObject<DateTime>();
+                        DateTime itemTimeStamp = pageItem["timeStamp"]["@value"].ToObject<DateTime>();
 
                         if (itemTimeStamp > last)
                         {
@@ -49,7 +52,7 @@ namespace Catalog.Collecting
 
                             if (items.Count == _batchSize)
                             {
-                                await ProcessBatch(client, items);
+                                await ProcessBatch(client, items, (JObject)context);
                                 BatchCount++;
                                 items.Clear();
                             }
@@ -60,11 +63,11 @@ namespace Catalog.Collecting
 
             if (items.Count > 0)
             {
-                await ProcessBatch(client, items);
+                await ProcessBatch(client, items, (JObject)context);
                 BatchCount++;
             }
         }
 
-        protected abstract Task ProcessBatch(CollectorHttpClient client, IList<JObject> items);
+        protected abstract Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context);
     }
 }

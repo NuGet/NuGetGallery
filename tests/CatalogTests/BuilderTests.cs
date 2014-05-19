@@ -67,8 +67,8 @@ namespace CatalogTests
 
             Storage storage = new FileStorage
             {
-                Path = @"c:\data\site\full5",
-                Container = "full5",
+                Path = @"c:\data\site\full",
+                Container = "full",
                 BaseAddress = "http://localhost:8000/"
             };
 

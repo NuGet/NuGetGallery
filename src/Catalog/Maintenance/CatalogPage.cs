@@ -24,7 +24,7 @@ namespace Catalog.Maintenance
 
         protected override string GetContainerType()
         {
-            return "http://nuget.org/schema#CatalogPage";
+            return "http://nuget.org/catalog#Page";
         }
 
         protected override IDictionary<Uri, Tuple<string, DateTime, int?>> GetItems()

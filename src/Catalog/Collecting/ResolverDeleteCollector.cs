@@ -24,16 +24,15 @@ namespace Catalog.Collecting
             _storage = storage;
         }
 
-        protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items)
+        protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
         {
             List<Task<IGraph>> tasks = new List<Task<IGraph>>();
 
             foreach (JObject item in items)
             {
-                Uri itemUri = item["url"].ToObject<Uri>();
-                string type = item["@type"].ToString();
-                if (type == "DeletePackage" || type == "DeleteRegistration")
+                if (Utils.IsType(context, item, Constants.DeletePackage) || Utils.IsType(context, item, Constants.DeleteRegistration))
                 {
+                    Uri itemUri = item["url"].ToObject<Uri>();
                     tasks.Add(client.GetGraphAsync(itemUri));
                 }
             }

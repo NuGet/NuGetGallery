@@ -84,6 +84,7 @@
     <Compile Include="Collecting\Test\CheckLinksCollector.cs" />
     <Compile Include="Collecting\Test\CountCollector.cs" />
     <Compile Include="Collecting\ResolverDeleteCollector.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="Maintenance\CatalogContainer.cs" />
     <Compile Include="Maintenance\CatalogContext.cs" />
     <Compile Include="Maintenance\CatalogItem.cs" />
@@ -128,9 +129,9 @@
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />
-    <EmbeddedResource Include="sparql\Container.rq" />
-    <EmbeddedResource Include="sparql\ListResources.rq" />
-    <EmbeddedResource Include="sparql\Package.rq" />
+    <None Include="sparql\Container.rq" />
+    <None Include="sparql\ListResources.rq" />
+    <None Include="sparql\Package.rq" />
     <EmbeddedResource Include="sparql\ConstructResolverGraph.rq" />
     <EmbeddedResource Include="sparql\SelectDistinctPackage.rq" />
     <EmbeddedResource Include="sparql\SelectDeletePackage.rq" />

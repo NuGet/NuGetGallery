@@ -21,14 +21,14 @@ namespace CatalogTests
 
             Storage storage = new FileStorage
             {
-                Path = @"c:\data\site\pub",
-                Container = "feed",
+                Path = @"c:\data\site\full",
+                Container = "full",
                 BaseAddress = "http://localhost:8000/"
             };
 
             ResolverCollector collector = new ResolverCollector(storage, 200);
 
-            await collector.Run(new Uri("http://localhost:8000/pub/catalog/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://localhost:8000/full/catalog/index.json"), DateTime.MinValue);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
 
