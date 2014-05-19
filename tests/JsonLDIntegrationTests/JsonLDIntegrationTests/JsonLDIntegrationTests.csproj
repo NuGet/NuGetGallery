@@ -62,22 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="multitypes.context.john.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="multitypes.context.johnpaul.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="multitypes.context.robert.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="multitypes.context.jimmy.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="datatypes.context.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="multitypes.data.ledzep.ttl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="datatypes.test.ttl">
@@ -86,9 +71,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\JsonLDIntegration\JsonLDIntegration\JsonLDIntegration.csproj">
-      <Project>{7019ecae-0c0d-4978-9e39-79aa276cd495}</Project>
-      <Name>JsonLDIntegration</Name>
+    <ProjectReference Include="..\..\..\src\Catalog\Catalog.csproj">
+      <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
+      <Name>Catalog</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

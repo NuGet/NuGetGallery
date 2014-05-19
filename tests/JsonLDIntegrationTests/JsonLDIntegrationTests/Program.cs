@@ -1,5 +1,5 @@
 ﻿using JsonLD.Core;
-using JsonLDIntegration;
+using Catalog.JsonLDIntegration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -18,6 +18,8 @@ namespace JsonLDIntegrationTests
     {
         static void Test0()
         {
+            Console.WriteLine("JsonLDIntegrationTests.Test0");
+
             IGraph g = new Graph();
 
             TurtleParser parser = new TurtleParser();
@@ -54,42 +56,10 @@ namespace JsonLDIntegrationTests
             turtleWriter.Save(g2, Console.Out);
         }
 
-        static JToken ApplyFrame(IGraph g, string frameName)
-        {
-            JToken frame;
-            using (JsonReader reader = new JsonTextReader(new StreamReader(frameName)))
-            {
-                frame = JToken.Load(reader);
-            }
-
-            System.IO.StringWriter stringWriter = new System.IO.StringWriter();
-
-            JsonLdWriter jsonLdWriter = new JsonLdWriter();
-            jsonLdWriter.Save(g, stringWriter);
-
-            return JToken.Parse(stringWriter.ToString());
-        }
-
         static void Test1()
         {
-            IGraph g = new Graph();
+            Console.WriteLine("JsonLDIntegrationTests.Test1");
 
-            TurtleParser parser = new TurtleParser();
-            parser.Load(g, "multitypes.data.ledzep.ttl");
-
-            JToken jimmy = ApplyFrame(g, "multitypes.context.jimmy.json");
-            JToken robert = ApplyFrame(g, "multitypes.context.robert.json");
-            JToken johnpaul = ApplyFrame(g, "multitypes.context.johnpaul.json");
-            JToken john = ApplyFrame(g, "multitypes.context.john.json");
-
-            Console.WriteLine("-------- -------- ------- ------- --------");
-            Console.WriteLine(jimmy);
-            Console.WriteLine("-------- -------- ------- ------- --------");
-            Console.WriteLine(robert);
-            Console.WriteLine("-------- -------- ------- ------- --------");
-            Console.WriteLine(johnpaul);
-            Console.WriteLine("-------- -------- ------- ------- --------");
-            Console.WriteLine(john);
         }
 
         static void Main(string[] args)
