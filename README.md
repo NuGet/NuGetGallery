@@ -1,4 +1,6 @@
 NuGet.Services.Metadata
-=======================
+===================
 
-NuGet's Metadata Service
+NuGet Metadata Services
+
+Got bugs? File them here: https://github.com/NuGet/NuGetGallery/issues

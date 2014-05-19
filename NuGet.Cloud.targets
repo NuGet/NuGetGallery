@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<!-- 
+		Why is this in the template and not in the NuGet.Services.Build package? Because we can't install
+		NuGet packages in to ccprojes :( 
+	-->
+	<PropertyGroup>
+		<CollectRoleFilesDependsOn>
+			$(CollectRoleFilesDependsOn);
+			CollectWorkerAppConfig
+		</CollectRoleFilesDependsOn>
+	</PropertyGroup>
+	<Target Name="CollectWorkerAppConfig">
+		<!-- Add the app config file from SourceFilesOutputGroup -->
+		<ItemGroup>
+		  <WorkerFiles Include="%(CopyLocalDependencies.Identity).config" Condition="Exists('%(CopyLocalDependencies.Identity).config')">
+		  	<TargetPath>%(Filename)%(Extension).config</TargetPath>
+		  	<RoleOwner>$(_WorkerRoleProject)</RoleOwner>
+	        <RoleOwnerName>$(_WorkerRoleProjectName)</RoleOwnerName>
+		  </WorkerFiles>
+	      <WorkerFiles Include="@(SourceFilesOutputGroup)" Condition=" '%(SourceFilesOutputGroup.TargetPath)' == '$(WorkerEntryPoint).config' " >
+	        <TargetPath>%(TargetPath)</TargetPath>
+	        <RoleOwner>$(_WorkerRoleProject)</RoleOwner>
+	        <RoleOwnerName>$(_WorkerRoleProjectName)</RoleOwnerName>
+	      </WorkerFiles>
+	    </ItemGroup>
+	</Target>
+	<PropertyGroup>
+		<PublishDependsOn>
+			$(PublishDependsOn);
+			OctopusPackage
+		</PublishDependsOn>
+	</PropertyGroup>
+	<Target Name="OctopusPackage" Condition="'$(NuGetExePath)' != ''">
+		<PropertyGroup>
+			<PackageOutputDir Condition="$(PackageOutputDir) == ''">$(MSBuildProjectDirectory)\$(PublishDir.Trim('\\'))</PackageOutputDir>
+			<PackCommand>"$(NuGetExePath)" pack "$(MSBuildProjectDirectory)\$(MSBuildProjectName).nuspec" -Properties "Configuration=$(Configuration);Platform=$(Platform);SemanticVersion=$(SemanticVersion);SimpleVersion=$(SimpleVersion);BuildMachine=$(BuildMachine);BuildUser=$(BuildUser);Branch=$(Branch);Commit=$(Commit);BuildDateUtc=$(BuildDateUtc)" -Version $(SemanticVersion) -NonInteractive -OutputDirectory "$(PackageOutputDir)"</PackCommand>
+		</PropertyGroup>
+		<Message Text="Building Octopus Package..." Importance="high" />
+		<Exec Command="$(PackCommand)" />
+	</Target>
+</Project>
