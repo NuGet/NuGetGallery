@@ -1,0 +1,159 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.props" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NuGet.Services.Metadata.Catalog</RootNamespace>
+    <AssemblyName>NuGet.Services.Metadata.Catalog</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <NuGetPackageImportStamp>7d89f97b</NuGetPackageImportStamp>
+    <BuildPackage>true</BuildPackage>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="dotNetRDF">
+      <HintPath>..\..\packages\dotNetRDF.1.0.4.3225\lib\net40\dotNetRDF.dll</HintPath>
+    </Reference>
+    <Reference Include="HtmlAgilityPack">
+      <HintPath>..\..\packages\HtmlAgilityPack.1.4.6\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    </Reference>
+    <Reference Include="JsonLD">
+      <HintPath>..\..\packages\json-ld.net.1.0.1\lib\net40\JsonLD.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.Edm, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Data.Edm.5.6.0\lib\net40\Microsoft.Data.Edm.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.OData, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Data.OData.5.6.0\lib\net40\Microsoft.Data.OData.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.Services.Client, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Data.Services.Client.5.6.0\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Configuration, Version=1.8.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.WindowsAzure.ConfigurationManager.1.8.0.0\lib\net35-full\Microsoft.WindowsAzure.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=3.1.0.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\WindowsAzure.Storage.3.1.0.1\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.Spatial, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Spatial.5.6.0\lib\net40\System.Spatial.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="VDS.Common">
+      <HintPath>..\..\packages\VDS.Common.1.2.0\lib\net40-client\VDS.Common.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Collecting\Collector.cs" />
+    <Compile Include="Collecting\CollectorHttpClient.cs" />
+    <Compile Include="Collecting\Test\DistinctPackageIdCollector.cs" />
+    <Compile Include="Collecting\Test\CheckLinksCollector.cs" />
+    <Compile Include="Collecting\Test\CountCollector.cs" />
+    <Compile Include="Collecting\ResolverDeleteCollector.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="Maintenance\CatalogContainer.cs" />
+    <Compile Include="Maintenance\CatalogContext.cs" />
+    <Compile Include="Maintenance\CatalogItem.cs" />
+    <Compile Include="Maintenance\CatalogPage.cs" />
+    <Compile Include="Maintenance\CatalogRoot.cs" />
+    <Compile Include="Maintenance\CatalogWriter.cs" />
+    <Compile Include="Maintenance\DeletePackageCatalogItem.cs" />
+    <Compile Include="Maintenance\NuspecPackageCatalogItem.cs" />
+    <Compile Include="Maintenance\PackageCatalogItem.cs" />
+    <Compile Include="Maintenance\DeleteRegistrationCatalogItem.cs" />
+    <Compile Include="Collecting\ResolverCollector.cs" />
+    <Compile Include="Collecting\BatchCollector.cs" />
+    <Compile Include="Persistence\AzureStorage.cs" />
+    <Compile Include="Persistence\FileStorage.cs" />
+    <Compile Include="Persistence\Storage.cs" />
+    <Compile Include="JsonLdIntegration\JsonLdReader.cs" />
+    <Compile Include="JsonLdIntegration\JsonLdWriter.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Helpers\SparqlHelpers.cs" />
+    <Compile Include="Helpers\Utils.cs" />
+    <Compile Include="Helpers\XmlHtmlWriter.cs" />
+    <Compile Include="Helpers\XsltHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="content\d3.v3.min.js" />
+    <Content Include="content\further.js" />
+    <Content Include="content\Json2Html.js" />
+    <Content Include="content\Json2HtmlStyle.css" />
+    <Content Include="content\jsonld.js" />
+    <Content Include="content\Promise.js" />
+    <EmbeddedResource Include="html\view.html" />
+    <EmbeddedResource Include="xslt\normalizeNuspecNamespace.xslt" />
+    <EmbeddedResource Include="xslt\nuspec.xslt" />
+    <EmbeddedResource Include="xslt\view.xslt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <EmbeddedResource Include="context\Container.json" />
+    <EmbeddedResource Include="context\Package.json" />
+    <EmbeddedResource Include="context\PackageRegistration.json" />
+    <EmbeddedResource Include="context\DeletePackage.json" />
+    <None Include="packages.config" />
+    <EmbeddedResource Include="schema\schema.ttl" />
+    <EmbeddedResource Include="sparql\All.rq" />
+    <EmbeddedResource Include="sparql\ConstructResolverGraph.rq" />
+    <EmbeddedResource Include="sparql\SelectDistinctPackage.rq" />
+    <EmbeddedResource Include="sparql\SelectDeletePackage.rq" />
+    <EmbeddedResource Include="sparql\DeletePackage.rq" />
+    <EmbeddedResource Include="sparql\SelectPackageCount.rq" />
+    <EmbeddedResource Include="sparql\SelectDeleteRegistration.rq" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.props'))" />
+    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.targets'))" />
+  </Target>
+  <Import Project="..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.targets" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
