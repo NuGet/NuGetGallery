@@ -3,7 +3,7 @@ using VDS.RDF.Parsing;
 using VDS.RDF.Query;
 using VDS.RDF.Query.Datasets;
 
-namespace Catalog.Helpers
+namespace NuGet.Services.Metadata.Catalog.Helpers
 {
     class SparqlHelpers
     {

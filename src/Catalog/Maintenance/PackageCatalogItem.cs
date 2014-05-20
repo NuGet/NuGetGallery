@@ -5,7 +5,7 @@ using System.Xml.Xsl;
 using VDS.RDF;
 using VDS.RDF.Parsing;
 
-namespace Catalog.Maintenance
+namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     public abstract class PackageCatalogItem : CatalogItem
     {

@@ -1,5 +1,5 @@
-﻿using Catalog.Maintenance;
-using Catalog.Persistence;
+﻿using NuGet.Services.Metadata.Catalog.Maintenance;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.IO;
 using System.Threading.Tasks;

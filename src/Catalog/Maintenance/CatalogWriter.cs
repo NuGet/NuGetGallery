@@ -1,10 +1,10 @@
-﻿using Catalog.Persistence;
+﻿using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using VDS.RDF;
 
-namespace Catalog.Maintenance
+namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     public class CatalogWriter : IDisposable
     {

@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using System.Xml;
 
-namespace Catalog
+namespace NuGet.Services.Metadata.Catalog
 {
     class XmlHtmlWriter : XmlTextWriter
     {

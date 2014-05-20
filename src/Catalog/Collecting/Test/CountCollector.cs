@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Catalog.Collecting.Test
+namespace NuGet.Services.Metadata.Catalog.Collecting.Test
 {
     public class CountCollector : Collector
     {

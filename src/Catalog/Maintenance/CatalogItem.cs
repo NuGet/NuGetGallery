@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Catalog.Maintenance
+namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     public abstract class CatalogItem
     {

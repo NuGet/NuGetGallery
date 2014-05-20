@@ -5,7 +5,7 @@ using System.IO;
 using VDS.RDF;
 using VDS.RDF.Parsing.Handlers;
 
-namespace Catalog.JsonLDIntegration
+namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
 {
     public class JsonLdReader : IRdfReader
     {

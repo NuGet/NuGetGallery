@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Xml.Linq;
 
-namespace Catalog.Maintenance
+namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     public class NuspecPackageCatalogItem : PackageCatalogItem
     {

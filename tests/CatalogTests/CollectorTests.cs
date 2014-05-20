@@ -1,6 +1,6 @@
-﻿using Catalog.Collecting;
-using Catalog.Collecting.Test;
-using Catalog.Persistence;
+﻿using NuGet.Services.Metadata.Catalog.Collecting;
+using NuGet.Services.Metadata.Catalog.Collecting.Test;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Threading.Tasks;
 

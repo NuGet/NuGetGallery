@@ -2,7 +2,7 @@
 using System;
 using VDS.RDF;
 
-namespace Catalog.Maintenance
+namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     public class DeleteRegistrationCatalogItem : CatalogItem
     {

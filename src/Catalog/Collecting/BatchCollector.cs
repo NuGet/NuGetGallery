@@ -6,7 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Catalog.Collecting
+namespace NuGet.Services.Metadata.Catalog.Collecting
 {
     public abstract class BatchCollector : Collector
     {

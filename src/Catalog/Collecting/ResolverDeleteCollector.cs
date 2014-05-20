@@ -1,5 +1,5 @@
-﻿using Catalog.Helpers;
-using Catalog.Persistence;
+﻿using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using VDS.RDF;
 using VDS.RDF.Query;
 
-namespace Catalog.Collecting
+namespace NuGet.Services.Metadata.Catalog.Collecting
 {
     public class ResolverDeleteCollector : BatchCollector
     {

@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Catalog.Collecting
+namespace NuGet.Services.Metadata.Catalog.Collecting
 {
     public abstract class Collector
     {

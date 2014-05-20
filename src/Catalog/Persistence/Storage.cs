@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Catalog.Persistence
+namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public abstract class Storage
     {

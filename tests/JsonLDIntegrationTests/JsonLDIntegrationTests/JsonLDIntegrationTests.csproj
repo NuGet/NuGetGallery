@@ -71,9 +71,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Catalog\Catalog.csproj">
+    <ProjectReference Include="..\..\..\src\Catalog\NuGet.Services.Metadata.Catalog.csproj">
       <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
-      <Name>Catalog</Name>
+      <Name>NuGet.Services.Metadata.Catalog</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

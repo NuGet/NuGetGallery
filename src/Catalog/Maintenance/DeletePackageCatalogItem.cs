@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VDS.RDF;
 
-namespace Catalog.Maintenance
+namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     public class DeletePackageCatalogItem : CatalogItem
     {

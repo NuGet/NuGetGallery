@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using VDS.RDF;
 
-namespace Catalog.Maintenance
+namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     abstract class CatalogContainer
     {

@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Catalog.Collecting.Test
+namespace NuGet.Services.Metadata.Catalog.Collecting.Test
 {
     public class DistinctPackageIdCollector : BatchCollector
     {

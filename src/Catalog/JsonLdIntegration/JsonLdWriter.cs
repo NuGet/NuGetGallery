@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using VDS.RDF;
 
-namespace Catalog.JsonLDIntegration
+namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
 {
     public class JsonLdWriter : IRdfWriter
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Catalog
+namespace NuGet.Services.Metadata.Catalog
 {
     public static class Constants
     {

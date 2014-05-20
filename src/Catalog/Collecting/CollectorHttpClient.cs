@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 
-namespace Catalog.Collecting
+namespace NuGet.Services.Metadata.Catalog.Collecting
 {
     public class CollectorHttpClient : HttpClient
     {

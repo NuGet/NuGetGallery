@@ -1,7 +1,7 @@
-﻿using Catalog;
-using Catalog.Collecting;
-using Catalog.Maintenance;
-using Catalog.Persistence;
+﻿using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Collecting;
+using NuGet.Services.Metadata.Catalog.Maintenance;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;

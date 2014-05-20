@@ -6,7 +6,7 @@ using System.IO;
 using System.Xml;
 using System.Xml.Xsl;
 
-namespace Catalog.Maintenance
+namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     public class CatalogContext
     {

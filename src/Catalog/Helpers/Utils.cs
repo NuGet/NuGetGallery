@@ -1,4 +1,4 @@
-﻿using Catalog.JsonLDIntegration;
+﻿using NuGet.Services.Metadata.Catalog.JsonLDIntegration;
 using JsonLD.Core;
 using Newtonsoft.Json.Linq;
 using System;
@@ -12,7 +12,7 @@ using VDS.RDF;
 using VDS.RDF.Parsing;
 using VDS.RDF.Writing;
 
-namespace Catalog
+namespace NuGet.Services.Metadata.Catalog
 {
     public class Utils
     {

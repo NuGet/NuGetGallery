@@ -1,5 +1,5 @@
 ﻿using JsonLD.Core;
-using Catalog.JsonLDIntegration;
+using NuGet.Services.Metadata.Catalog.JsonLDIntegration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;

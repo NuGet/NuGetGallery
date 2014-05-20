@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Catalog.Persistence
+namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class FileStorage : Storage
     {
