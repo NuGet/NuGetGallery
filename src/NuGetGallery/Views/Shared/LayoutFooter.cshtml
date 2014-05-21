@@ -24,8 +24,9 @@
     <a title="Outercurve Foundation" href="http://outercurve.org"><img src="@Href("~/Content/Logos/outercurve.png")" alt="Outercurve Foundation" /></a>
     <p>
         &copy; @DateTime.UtcNow.Year Outercurve Foundation -
-        <a href="~/policies/Terms">Terms of Use</a> -
-        <a href="~/policies/Privacy">Privacy Policy</a>
+        <a href="@Url.Action("Terms", "Pages")">Terms of Use</a> -
+        <a href="@Url.Action("Privacy", "Pages")">Privacy Policy</a> -
+        <a href="@Url.Action("About", "Pages")">About the Gallery</a>
     </p>
     <p>
         Deployed using <a href="http://octopusdeploy.com/" target="referral">Octopus Deploy</a> | Uses <a href="http://fontawesome.io" target="referral">Font Awesome</a> by Dave Gandy

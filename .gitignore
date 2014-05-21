@@ -1,4 +1,5 @@
 nuget.exe
+*.ide
 
 *.results.xml
 _AzurePackage

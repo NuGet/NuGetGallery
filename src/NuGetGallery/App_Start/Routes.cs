@@ -57,6 +57,11 @@ namespace NuGetGallery
             routes.Add(new JsonRoute("json/{controller}"));
 
             routes.MapRoute(
+                RouteName.Contributors,
+                "pages/contributors",
+                new { controller = "Pages", action = "Contributors" });
+
+            routes.MapRoute(
                 RouteName.Policies,
                 "policies/{action}",
                 new { controller = "Pages" });
