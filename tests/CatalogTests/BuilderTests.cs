@@ -1,6 +1,7 @@
 ﻿using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -166,6 +167,70 @@ namespace CatalogTests
             Console.WriteLine("BuilderTests.Test2");
 
             Test2Async().Wait();
+        }
+
+        public static async Task Test3Async()
+        {
+            Storage storage = new FileStorage
+            {
+                Path = @"c:\data\site\test",
+                Container = "test",
+                BaseAddress = "http://localhost:8000/"
+            };
+
+            CatalogContext context = new CatalogContext();
+
+            CatalogWriter writer = new CatalogWriter(storage, context, 1000);
+
+            string[] names1 = { "a", "b", "c", "d", "e" };
+            string[] names2 = { "f", "g", "h" };
+            string[] names3 = { "i", "j", "k" };
+
+            foreach (string name in names1)
+            {
+                writer.Add(new TestCatalogItem(name));
+            }
+            await writer.Commit(DateTime.Now, new Dictionary<string, string> { { "prop1", "value1.1" }, { "prop2", "value2.1" } });
+
+            Console.WriteLine("commit user data #1");
+
+            foreach (KeyValuePair<string, string> items in await CatalogWriter.GetCommitUserData(storage))
+            {
+                Console.WriteLine("{0} {1}", items.Key, items.Value);
+            }
+
+            foreach (string name in names2)
+            {
+                writer.Add(new TestCatalogItem(name));
+            }
+            await writer.Commit(DateTime.Now, new Dictionary<string, string> { { "prop1", "value1.2" }, { "prop2", "value2.2" } });
+
+            Console.WriteLine("commit user data #2");
+
+            foreach (KeyValuePair<string, string> items in await CatalogWriter.GetCommitUserData(storage))
+            {
+                Console.WriteLine("{0} {1}", items.Key, items.Value);
+            }
+
+            foreach (string name in names3)
+            {
+                writer.Add(new TestCatalogItem(name));
+            }
+            await writer.Commit(DateTime.Now, new Dictionary<string, string> { { "prop1", "value1.3" }, { "prop2", "value2.3" } });
+
+            Console.WriteLine("commit user data #3");
+
+            foreach (KeyValuePair<string, string> items in await CatalogWriter.GetCommitUserData(storage))
+            {
+                Console.WriteLine("{0} {1}", items.Key, items.Value);
+            }
+        }
+
+        public static void Test3()
+        {
+            Console.WriteLine("BuilderTests.Test2");
+
+            Test3Async().Wait();
         }
     }
 }

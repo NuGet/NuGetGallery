@@ -63,7 +63,7 @@ namespace CatalogTests
 
             Uri index = new Uri(baseAddress + "catalog/index.json");
 
-            ItemCollector collector = new ItemCollector();
+            TestItemCollector collector = new TestItemCollector();
 
             Console.WriteLine("----------------");
 
@@ -81,73 +81,6 @@ namespace CatalogTests
         public static void Test0()
         {
             Test0Async().Wait();
-        }
-
-        class TestCatalogItem : CatalogItem
-        {
-            string _name;
-            string _type;
-
-            public TestCatalogItem(string name)
-            {
-                _name = name;
-                _type = "http://test.org/schema#TestItem";
-            }
-
-            public override string CreateContent(CatalogContext context)
-            {
-                string id = GetBaseAddress() + _name + ".json";
-
-                JObject obj = new JObject
-                {
-                    { "name", _name },
-                    { "@id", id },
-                    { "@type", _type },
-                    { "@context", new JObject { { "@vocab", "http://test.org/schema#" } } }
-                };
-
-                return obj.ToString();
-            }
-
-            public override string GetItemType()
-            {
-                return _type;
-            }
-
-            protected override string GetItemName()
-            {
-                return _name;
-            }
-        }
-
-        class ItemCollector : BatchCollector
-        {
-            public ItemCollector()
-                : base(10)
-            {
-            }
-
-            protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
-            {
-                List<Task<JObject>> tasks = new List<Task<JObject>>();
-
-                foreach (JObject item in items)
-                {
-                    Uri itemUri = new Uri(item["url"].ToString());
-                    string type = item["@type"].ToString();
-                    if (type == "TestItem")
-                    {
-                        tasks.Add(client.GetJObjectAsync(itemUri));
-                    }
-                }
-
-                await Task.WhenAll(tasks.ToArray());
-
-                foreach (Task<JObject> task in tasks)
-                {
-                    Console.WriteLine(task.Result["name"]);
-                }
-            }
         }
     }
 }

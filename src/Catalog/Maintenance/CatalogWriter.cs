@@ -41,7 +41,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             _batch.Add(item);
         }
 
-        public async Task Commit(DateTime timeStamp)
+        public async Task Commit(DateTime timeStamp, IDictionary<string, string> commitUserData = null)
         {
             Check();
 
@@ -112,6 +112,8 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 page.Add(pageItem.Key, pageItem.Value, timeStamp);
             }
 
+            root.SetCommitUserData(commitUserData);
+
             await _storage.Save("application/json", pageResourceUri, page.CreateContent(_context));
 
             await _storage.Save("application/json", rootResourceUri, root.CreateContent(_context));
@@ -122,6 +124,16 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         public void Dispose()
         {
             _open = false;
+        }
+
+        public static async Task<IDictionary<string, string>> GetCommitUserData(Storage storage)
+        {
+            string baseAddress = string.Format("{0}{1}/", storage.BaseAddress, storage.Container);
+            Uri rootResourceUri = new Uri(baseAddress + "catalog/index.json");
+
+            string content = await storage.Load(rootResourceUri);
+            
+            return CatalogRoot.GetCommitUserData(rootResourceUri, content);
         }
 
         void Check()

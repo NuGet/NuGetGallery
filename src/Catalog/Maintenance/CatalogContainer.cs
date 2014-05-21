@@ -56,11 +56,17 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 }
             }
 
+            AddCustomContent(container, graph);
+
             JObject frame = context.GetJsonLdContext("context.Container.json", GetContainerType());
 
             string content = Utils.CreateJson(graph, frame);
 
             return content;
+        }
+
+        protected virtual void AddCustomContent(INode resource, IGraph graph)
+        {
         }
 
         protected static void Load(IDictionary<Uri, Tuple<string, DateTime, int?>> items, string content)

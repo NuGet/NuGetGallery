@@ -1,11 +1,16 @@
-﻿using System;
+﻿using NuGet.Services.Metadata.Catalog.Collecting;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     class CatalogRoot : CatalogContainer
     {
         IDictionary<Uri, Tuple<string, DateTime, int?>> _items;
+        IDictionary<string, string> _commitUserData;
         string _baseAddress;
         int _nextPageNumber;
 
@@ -47,6 +52,53 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         public void UpdatePage(Uri pageUri, DateTime timeStamp, int count)
         {
             _items[pageUri] = new Tuple<string, DateTime, int?>("http://nuget.org/catalog#Page", timeStamp, count);
+        }
+
+        public void SetCommitUserData(IDictionary<string, string> commitUserData)
+        {
+            _commitUserData = commitUserData;
+        }
+
+        public static IDictionary<string, string> GetCommitUserData(Uri resourceUri, string content)
+        {
+            IGraph graph = Utils.CreateGraph(content);
+
+            graph.NamespaceMap.AddNamespace("catalog", new Uri("http://nuget.org/catalog#"));
+
+            IDictionary<string, string> commitUserData = null;
+
+            foreach (Triple commitUserDataSetTriples in graph.GetTriplesWithSubjectPredicate(graph.CreateUriNode(resourceUri), graph.CreateUriNode("catalog:commitUserData")))
+            {
+                foreach (Triple commitUserDataTriple in graph.GetTriplesWithSubject(commitUserDataSetTriples.Object))
+                {
+                    string predicate = commitUserDataTriple.Predicate.ToString();
+                    string key = predicate.Substring(predicate.LastIndexOf("$") + 1);
+                    string value = commitUserDataTriple.Object.ToString();
+
+                    if (commitUserData == null)
+                    {
+                        commitUserData = new Dictionary<string, string>();
+                    }
+
+                    commitUserData.Add(key, value);
+                }
+            }
+
+            return commitUserData;
+        }
+
+        protected override void AddCustomContent(INode resource, IGraph graph)
+        {
+            if (_commitUserData != null)
+            {
+                string baseAddress = ((IUriNode)resource).Uri.ToString();
+                INode commitUserData = graph.CreateUriNode(new Uri(baseAddress + "#commitUserData"));
+                graph.Assert(resource, graph.CreateUriNode("catalog:commitUserData"), commitUserData);
+                foreach (KeyValuePair<string, string> item in _commitUserData)
+                {
+                    graph.Assert(commitUserData, graph.CreateUriNode("catalog:property$" + item.Key), graph.CreateLiteralNode(item.Value));
+                }
+            }
         }
 
         protected override string GetContainerType()
