@@ -52,10 +52,10 @@ namespace CatalogTests
         {
             Console.WriteLine("MakeTestData.Test0");
 
-            string path = @"c:\data\test_nuspecs";
+            string path = @"c:\data\Demo\Third";
             string id = "Test.Metadata.Service";
 
-            for (int i=1; i<=3; i++)
+            for (int i=1; i<=500; i++)
             {
                 string version = string.Format("{0}.0.0", i);
                 WriteNuspec(path, id, version);

@@ -27,7 +27,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting.Test
 
             foreach (JObject rootItem in root["item"])
             {
-                DateTime pageTimeStamp = rootItem["published"]["@value"].ToObject<DateTime>();
+                DateTime pageTimeStamp = rootItem["timeStamp"]["@value"].ToObject<DateTime>();
 
                 if (pageTimeStamp > last)
                 {

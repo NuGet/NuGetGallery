@@ -18,7 +18,7 @@ namespace NuGet.Services.Metadata.Catalog
     {
         public static Stream GetResourceStream(string resName)
         {
-            return Assembly.GetExecutingAssembly().GetManifestResourceStream("Catalog." + resName);
+            return Assembly.GetExecutingAssembly().GetManifestResourceStream("NuGet.Services.Metadata.Catalog." + resName);
         }
 
         public static string GetResource(string resName)
