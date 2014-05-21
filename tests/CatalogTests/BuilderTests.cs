@@ -190,7 +190,7 @@ namespace CatalogTests
             {
                 writer.Add(new TestCatalogItem(name));
             }
-            await writer.Commit(DateTime.Now, new Dictionary<string, string> { { "prop1", "value1.1" }, { "prop2", "value2.1" } });
+            await writer.Commit(new Dictionary<string, string> { { "prop1", "value1.1" }, { "prop2", "value2.1" } });
 
             Console.WriteLine("commit user data #1");
 
@@ -203,7 +203,7 @@ namespace CatalogTests
             {
                 writer.Add(new TestCatalogItem(name));
             }
-            await writer.Commit(DateTime.Now, new Dictionary<string, string> { { "prop1", "value1.2" }, { "prop2", "value2.2" } });
+            await writer.Commit(new Dictionary<string, string> { { "prop1", "value1.2" }, { "prop2", "value2.2" } });
 
             Console.WriteLine("commit user data #2");
 
@@ -216,7 +216,7 @@ namespace CatalogTests
             {
                 writer.Add(new TestCatalogItem(name));
             }
-            await writer.Commit(DateTime.Now, new Dictionary<string, string> { { "prop1", "value1.3" }, { "prop2", "value2.3" } });
+            await writer.Commit(new Dictionary<string, string> { { "prop1", "value1.3" }, { "prop2", "value2.3" } });
 
             Console.WriteLine("commit user data #3");
 
@@ -228,9 +228,67 @@ namespace CatalogTests
 
         public static void Test3()
         {
-            Console.WriteLine("BuilderTests.Test2");
+            Console.WriteLine("BuilderTests.Test3 - User Data");
 
             Test3Async().Wait();
+        }
+
+        public static async Task Test4Async()
+        {
+            Storage storage = new FileStorage
+            {
+                Path = @"c:\data\site\test",
+                Container = "test",
+                BaseAddress = "http://localhost:8000/"
+            };
+
+            CatalogContext context = new CatalogContext();
+
+            CatalogWriter writer = new CatalogWriter(storage, context, 4);
+
+            string[] names1 = { "a", "b", "c", "d", "e" };
+            string[] names2 = { "f", "g", "h" };
+            string[] names3 = { "i", "j", "k" };
+
+            DateTime timeStamp = DateTime.UtcNow;
+
+            foreach (string name in names1)
+            {
+                writer.Add(new TestCatalogItem(name));
+            }
+            await writer.Commit(timeStamp);
+
+            Console.WriteLine("commit #1 timeStamp {0}", await CatalogWriter.GetLastCommitTimeStamp(storage));
+            Console.WriteLine("commit #1 count {0}", await CatalogWriter.GetCount(storage));
+
+            timeStamp = timeStamp.AddHours(1);
+
+            foreach (string name in names2)
+            {
+                writer.Add(new TestCatalogItem(name));
+            }
+            await writer.Commit(timeStamp);
+
+            Console.WriteLine("commit #2 timeStamp {0}", await CatalogWriter.GetLastCommitTimeStamp(storage));
+            Console.WriteLine("commit #2 count {0}", await CatalogWriter.GetCount(storage));
+
+            timeStamp = timeStamp.AddHours(1);
+
+            foreach (string name in names3)
+            {
+                writer.Add(new TestCatalogItem(name));
+            }
+            await writer.Commit(timeStamp);
+
+            Console.WriteLine("commit #3 timeStamp {0}", await CatalogWriter.GetLastCommitTimeStamp(storage));
+            Console.WriteLine("commit #3 count {0}", await CatalogWriter.GetCount(storage));
+        }
+
+        public static void Test4()
+        {
+            Console.WriteLine("BuilderTests.Test4 - commit TimeStamp");
+
+            Test4Async().Wait();
         }
     }
 }

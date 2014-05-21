@@ -87,6 +87,33 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return commitUserData;
         }
 
+        public static DateTime GetLastCommitTimeStamp(Uri resourceUri, string content)
+        {
+            IGraph graph = Utils.CreateGraph(content);
+            graph.NamespaceMap.AddNamespace("catalog", new Uri("http://nuget.org/catalog#"));
+            Triple timeStampTriple = graph.GetTriplesWithSubjectPredicate(graph.CreateUriNode(resourceUri), graph.CreateUriNode("catalog:timeStamp")).First();
+            return DateTime.Parse(((ILiteralNode)timeStampTriple.Object).Value);
+        }
+
+        public static int GetCount(Uri resourceUri, string content)
+        {
+            IGraph graph = Utils.CreateGraph(content);
+            graph.NamespaceMap.AddNamespace("catalog", new Uri("http://nuget.org/catalog#"));
+
+            int total = 0;
+
+            foreach (Triple itemTriples in graph.GetTriplesWithSubjectPredicate(graph.CreateUriNode(resourceUri), graph.CreateUriNode("catalog:item")))
+            {
+                foreach (Triple countTriple in graph.GetTriplesWithSubjectPredicate(itemTriples.Object, graph.CreateUriNode("catalog:count")))
+                {
+                    int count = int.Parse(countTriple.Object.ToString());
+                    total += count;
+                }
+            }
+
+            return total;
+        }
+
         protected override void AddCustomContent(INode resource, IGraph graph)
         {
             if (_commitUserData != null)

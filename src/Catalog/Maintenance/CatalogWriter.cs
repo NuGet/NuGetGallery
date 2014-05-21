@@ -41,6 +41,11 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             _batch.Add(item);
         }
 
+        public Task Commit(IDictionary<string, string> commitUserData = null)
+        {
+            return Commit(DateTime.UtcNow, commitUserData);
+        }
+
         public async Task Commit(DateTime timeStamp, IDictionary<string, string> commitUserData = null)
         {
             Check();
@@ -112,9 +117,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 page.Add(pageItem.Key, pageItem.Value, timeStamp);
             }
 
-            root.SetCommitUserData(commitUserData);
+            page.SetTimeStamp(timeStamp);
 
             await _storage.Save("application/json", pageResourceUri, page.CreateContent(_context));
+
+            root.SetCommitUserData(commitUserData);
+            root.SetTimeStamp(timeStamp);
 
             await _storage.Save("application/json", rootResourceUri, root.CreateContent(_context));
 
@@ -130,10 +138,24 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         {
             string baseAddress = string.Format("{0}{1}/", storage.BaseAddress, storage.Container);
             Uri rootResourceUri = new Uri(baseAddress + "catalog/index.json");
-
             string content = await storage.Load(rootResourceUri);
-            
             return CatalogRoot.GetCommitUserData(rootResourceUri, content);
+        }
+
+        public static async Task<DateTime> GetLastCommitTimeStamp(Storage storage)
+        {
+            string baseAddress = string.Format("{0}{1}/", storage.BaseAddress, storage.Container);
+            Uri rootResourceUri = new Uri(baseAddress + "catalog/index.json");
+            string content = await storage.Load(rootResourceUri);
+            return CatalogRoot.GetLastCommitTimeStamp(rootResourceUri, content);
+        }
+
+        public static async Task<int> GetCount(Storage storage)
+        {
+            string baseAddress = string.Format("{0}{1}/", storage.BaseAddress, storage.Container);
+            Uri rootResourceUri = new Uri(baseAddress + "catalog/index.json");
+            string content = await storage.Load(rootResourceUri);
+            return CatalogRoot.GetCount(rootResourceUri, content);
         }
 
         void Check()

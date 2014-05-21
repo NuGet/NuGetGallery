@@ -10,11 +10,17 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
     {
         Uri _resourceUri;
         Uri _parent;
+        DateTime _timeStamp;
 
         public CatalogContainer(Uri resourceUri, Uri parent = null)
         {
             _resourceUri = resourceUri;
             _parent = parent;
+        }
+
+        public void SetTimeStamp(DateTime timeStamp)
+        {
+            _timeStamp = timeStamp;
         }
 
         protected abstract IDictionary<Uri, Tuple<string, DateTime, int?>> GetItems();
@@ -29,18 +35,23 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             graph.NamespaceMap.AddNamespace("catalog", new Uri("http://nuget.org/catalog#"));
 
             INode rdfTypePredicate = graph.CreateUriNode("rdf:type");
+            INode timeStampPredicate = graph.CreateUriNode("catalog:timeStamp");
+
+            Uri dateTimeDatatype = new Uri("http://www.w3.org/2001/XMLSchema#dateTime");
 
             INode container = graph.CreateUriNode(_resourceUri);
 
             graph.Assert(container, rdfTypePredicate, graph.CreateUriNode(new Uri(GetContainerType())));
+            graph.Assert(container, timeStampPredicate, graph.CreateLiteralNode(_timeStamp.ToString(), dateTimeDatatype));
 
             if (_parent != null)
             {
                 graph.Assert(container, graph.CreateUriNode("catalog:parent"), graph.CreateUriNode(_parent));
             }
 
+            AddCustomContent(container, graph);
+
             INode itemPredicate = graph.CreateUriNode("catalog:item");
-            INode timeStampPredicate = graph.CreateUriNode("catalog:timeStamp");
             INode countPredicate = graph.CreateUriNode("catalog:count");
 
             foreach (KeyValuePair<Uri, Tuple<string, DateTime, int?>> item in GetItems())
@@ -49,14 +60,13 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
                 graph.Assert(container, itemPredicate, itemNode);
                 graph.Assert(itemNode, rdfTypePredicate, graph.CreateUriNode(new Uri(item.Value.Item1)));
-                graph.Assert(itemNode, timeStampPredicate, graph.CreateLiteralNode(item.Value.Item2.ToString(), new Uri("http://www.w3.org/2001/XMLSchema#dateTime")));
+                graph.Assert(itemNode, timeStampPredicate, graph.CreateLiteralNode(item.Value.Item2.ToString(), dateTimeDatatype));
                 if (item.Value.Item3 != null)
                 {
-                    graph.Assert(itemNode, countPredicate, graph.CreateLiteralNode(item.Value.Item3.ToString(), new Uri("http://www.w3.org/2001/XMLSchema#integer")));
+                    Uri integerDatatype = new Uri("http://www.w3.org/2001/XMLSchema#integer");
+                    graph.Assert(itemNode, countPredicate, graph.CreateLiteralNode(item.Value.Item3.ToString(), integerDatatype));
                 }
             }
-
-            AddCustomContent(container, graph);
 
             JObject frame = context.GetJsonLdContext("context.Container.json", GetContainerType());
 
