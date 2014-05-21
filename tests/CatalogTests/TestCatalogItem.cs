@@ -1,17 +1,18 @@
 ﻿using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Maintenance;
+using System;
 
 namespace CatalogTests
 {
     class TestCatalogItem : CatalogItem
     {
         string _name;
-        string _type;
+        Uri _type;
 
         public TestCatalogItem(string name)
         {
             _name = name;
-            _type = "http://test.org/schema#TestItem";
+            _type = new Uri("http://test.org/schema#TestItem");
         }
 
         public override string CreateContent(CatalogContext context)
@@ -29,12 +30,12 @@ namespace CatalogTests
             return obj.ToString();
         }
 
-        public override string GetItemType()
+        public override Uri GetItemType()
         {
             return _type;
         }
 
-        protected override string GetItemName()
+        protected override string GetItemIdentity()
         {
             return _name;
         }

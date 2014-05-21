@@ -36,14 +36,14 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             });
         }
 
-        public JObject GetJsonLdContext(string name, string type)
+        public JObject GetJsonLdContext(string name, Uri type)
         {
-            return _jsonLdContext.GetOrAdd(name + "#" + type, (key) =>
+            return _jsonLdContext.GetOrAdd(name + "#" + type.ToString(), (key) =>
             {
                 using (JsonReader jsonReader = new JsonTextReader(new StreamReader(GetStream(name))))
                 {
                     JObject obj = JObject.Load(jsonReader);
-                    obj["@type"] = type;
+                    obj["@type"] = type.ToString();
                     return obj;
                 }
             });

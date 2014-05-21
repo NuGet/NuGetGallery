@@ -13,6 +13,8 @@ namespace NuGet.Services.Metadata.Catalog
             Package = new Uri("http://nuget.org/schema#Package");
             DeletePackage = new Uri("http://nuget.org/schema#DeletePackage");
             DeleteRegistration = new Uri("http://nuget.org/schema#DeleteRegistration");
+            CatalogRoot = new Uri("http://nuget.org/catalog#Root");
+            CatalogPage = new Uri("http://nuget.org/catalog#Page");
         }
 
         public static Uri Package
@@ -26,6 +28,16 @@ namespace NuGet.Services.Metadata.Catalog
             private set;
         }
         public static Uri DeleteRegistration
+        {
+            get;
+            private set;
+        }
+        public static Uri CatalogRoot
+        {
+            get;
+            private set;
+        }
+        public static Uri CatalogPage
         {
             get;
             private set;

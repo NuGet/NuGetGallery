@@ -26,7 +26,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
             graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
 
-            INode subject = graph.CreateUriNode(new Uri(GetBaseAddress() + GetItemName()));
+            INode subject = graph.CreateUriNode(new Uri(GetBaseAddress() + GetItemIdentity()));
 
             graph.Assert(subject, graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:DeletePackage"));
             graph.Assert(subject, graph.CreateUriNode("nuget:id"), graph.CreateLiteralNode(_id));
@@ -39,12 +39,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return content;
         }
 
-        public override string GetItemType()
+        public override Uri GetItemType()
         {
-            return "http://nuget.org/schema#DeletePackage";
+            return Constants.DeletePackage;
         }
 
-        protected override string GetItemName()
+        protected override string GetItemIdentity()
         {
             return "delete/" + _id + "." + _version;
         }

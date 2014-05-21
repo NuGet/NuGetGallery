@@ -14,7 +14,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             _fullName = fileInfo.FullName;
         }
 
-        protected override string GetItemName()
+        protected override string GetItemIdentity()
         {
             return _name;
         }

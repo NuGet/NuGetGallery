@@ -57,7 +57,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             string baseAddress = string.Format("{0}{1}/", _storage.BaseAddress, _storage.Container);
 
-            IDictionary<Uri, string> pageItems = new Dictionary<Uri, string>();
+            IDictionary<Uri, Uri> pageItems = new Dictionary<Uri, Uri>();
             List<Task> tasks = null;
             foreach (CatalogItem item in _batch)
             {
@@ -112,7 +112,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 root.UpdatePage(pageResourceUri, timeStamp, latestPage.Item2 + pageItems.Count);
             }
 
-            foreach (KeyValuePair<Uri, string> pageItem in pageItems)
+            foreach (KeyValuePair<Uri, Uri> pageItem in pageItems)
             {
                 page.Add(pageItem.Key, pageItem.Value, timeStamp);
             }

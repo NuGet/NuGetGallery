@@ -23,9 +23,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             _timeStamp = timeStamp;
         }
 
-        protected abstract IDictionary<Uri, Tuple<string, DateTime, int?>> GetItems();
+        protected abstract IDictionary<Uri, Tuple<Uri, DateTime, int?>> GetItems();
 
-        protected abstract string GetContainerType();
+        protected abstract Uri GetContainerType();
 
         public string CreateContent(CatalogContext context)
         {
@@ -41,7 +41,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             INode container = graph.CreateUriNode(_resourceUri);
 
-            graph.Assert(container, rdfTypePredicate, graph.CreateUriNode(new Uri(GetContainerType())));
+            graph.Assert(container, rdfTypePredicate, graph.CreateUriNode(GetContainerType()));
             graph.Assert(container, timeStampPredicate, graph.CreateLiteralNode(_timeStamp.ToString(), dateTimeDatatype));
 
             if (_parent != null)
@@ -54,12 +54,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             INode itemPredicate = graph.CreateUriNode("catalog:item");
             INode countPredicate = graph.CreateUriNode("catalog:count");
 
-            foreach (KeyValuePair<Uri, Tuple<string, DateTime, int?>> item in GetItems())
+            foreach (KeyValuePair<Uri, Tuple<Uri, DateTime, int?>> item in GetItems())
             {
                 INode itemNode = graph.CreateUriNode(item.Key);
 
                 graph.Assert(container, itemPredicate, itemNode);
-                graph.Assert(itemNode, rdfTypePredicate, graph.CreateUriNode(new Uri(item.Value.Item1)));
+                graph.Assert(itemNode, rdfTypePredicate, graph.CreateUriNode(item.Value.Item1));
                 graph.Assert(itemNode, timeStampPredicate, graph.CreateLiteralNode(item.Value.Item2.ToString(), dateTimeDatatype));
                 if (item.Value.Item3 != null)
                 {
@@ -79,7 +79,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         {
         }
 
-        protected static void Load(IDictionary<Uri, Tuple<string, DateTime, int?>> items, string content)
+        protected static void Load(IDictionary<Uri, Tuple<Uri, DateTime, int?>> items, string content)
         {
             IGraph graph = Utils.CreateGraph(content);
 
@@ -109,7 +109,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                     count = int.Parse(((ILiteralNode)countTriple.Object).Value);
                 }
 
-                items.Add(itemUri, new Tuple<string, DateTime, int?>(rdfType.ToString(), timeStamp, count));
+                items.Add(itemUri, new Tuple<Uri, DateTime, int?>(rdfType, timeStamp, count));
             }
         }
     }

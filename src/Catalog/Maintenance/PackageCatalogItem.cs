@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Xsl;
@@ -24,9 +25,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return content;
         }
 
-        public override string GetItemType()
+        public override Uri GetItemType()
         {
-            return "http://nuget.org/schema#Package";
+            return Constants.Package;
         }
 
         static XDocument NormalizeNuspecNamespace(XDocument original, XslCompiledTransform xslt)

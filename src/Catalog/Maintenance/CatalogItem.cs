@@ -19,9 +19,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public abstract string CreateContent(CatalogContext context);
 
-        public abstract string GetItemType();
+        public abstract Uri GetItemType();
 
-        protected abstract string GetItemName();
+        protected abstract string GetItemIdentity();
 
         public string GetBaseAddress()
         {
@@ -30,7 +30,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public string GetRelativeAddress()
         {
-            return GetItemName() + ".json";
+            return GetItemIdentity() + ".json";
         }
 
         protected static string MakeTimeStampPathComponent(DateTime timeStamp)
