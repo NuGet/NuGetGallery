@@ -2,7 +2,7 @@
 
 CONSTRUCT
 {
-    ?resource a nuget:PackageRegistration ;
+    ?resource a nuget:Resolver ;
 	          nuget:id @id ;
 			  nuget:package ?resource_package .
 

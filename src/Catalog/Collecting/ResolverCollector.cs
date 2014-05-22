@@ -20,8 +20,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         {
             Options.InternUris = false;
 
-            _resolverFrame = JObject.Parse(Utils.GetResource("context.PackageRegistration.json"));
-            _resolverFrame["@type"] = "PackageRegistration";
+            _resolverFrame = JObject.Parse(Utils.GetResource("context.Resolver.json"));
+            _resolverFrame["@type"] = "Resolver";
             _storage = storage;
         }
 

@@ -128,7 +128,7 @@
     <None Include="app.config" />
     <EmbeddedResource Include="context\Container.json" />
     <EmbeddedResource Include="context\Package.json" />
-    <EmbeddedResource Include="context\PackageRegistration.json" />
+    <EmbeddedResource Include="context\Resolver.json" />
     <EmbeddedResource Include="context\DeletePackage.json" />
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
