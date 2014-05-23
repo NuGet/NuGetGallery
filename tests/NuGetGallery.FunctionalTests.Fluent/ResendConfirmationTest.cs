@@ -16,7 +16,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
     public class ResendConfirmationTest : NuGetFluentTest
     {
         [TestMethod]
-        [Description("Covers scenarios arounf the Resend Confirmation link.")]
+        [Description("Covers scenarios around the Resend Confirmation link.")]
         public void ResendConfirmation()
         {
 

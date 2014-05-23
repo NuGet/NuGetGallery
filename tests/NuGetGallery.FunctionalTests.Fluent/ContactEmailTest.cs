@@ -16,7 +16,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
     public class ContactEmailTest : NuGetFluentTest
     {
         [TestMethod]
-        [Description("Verify the gallery options for contacting us.")]
+        [Description("Verify the gallery options for reporting abuse.")]
         public void ContactEmailAbuse()
         {
             string packageName = "NuGetGallery.FunctionalTests.Fluent.ContactEmailTest";
@@ -50,7 +50,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
         }
 
         [TestMethod]
-        [Description("Verify the gallery options for contacting us.")]
+        [Description("Verify the gallery options for contacting owners.")]
         public void ContactEmailOwners()
         {
             string packageName = "NuGetGallery.FunctionalTests.Fluent.ContactEmailTest";

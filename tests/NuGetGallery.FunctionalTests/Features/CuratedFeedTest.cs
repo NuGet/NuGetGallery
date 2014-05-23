@@ -158,7 +158,7 @@ namespace NuGetGallery.FunctionalTests.Features
         }
 
         [TestMethod]
-        [Description("Checks the MicrosoftDotNet curated feed for duplicate packages.")]
+        [Description("Checks the Windows8 curated feed for duplicate packages.")]
         public void CheckWindows8CuratedFeedForDuplicates()
         {
             WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/curated-feeds/windows8-packages/Packages");

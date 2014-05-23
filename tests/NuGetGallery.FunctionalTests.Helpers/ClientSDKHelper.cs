@@ -161,6 +161,21 @@ namespace NuGetGallery.FunctionTests.Helpers
         public static bool CheckIfPackageVersionExistsInSource(string packageId, string version, string sourceUrl)
         {
             bool found = false;
+            //    string requestURL = UrlHelper.V2FeedRootUrl + @"package/" + packageId + "/" + version + "?t=" + DateTime.Now.Ticks;
+            //    Console.WriteLine("The request URL for checking package existence was: " + requestURL);
+            //    HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(requestURL);
+            //    // Increase the request timeout
+            //    packagePageRequest.Timeout = 2 * 5000;
+            //    HttpWebResponse packagePageResponse;
+            //    try
+            //    {
+            //        packagePageResponse = (HttpWebResponse)packagePageRequest.GetResponse();
+            //        if (packagePageResponse != null && (((HttpWebResponse)packagePageResponse).StatusCode == HttpStatusCode.OK)) found = true;
+            //    }
+            //    catch (WebException e)
+            //    {
+            //        Console.WriteLine(e.Message);
+            //    }
 
             // A new way to check if packages exist in source. The logic above often gives timeout errors randomly. 
             IPackageRepository repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl) as IPackageRepository;
