@@ -88,6 +88,10 @@
     <Compile Include="Collecting\Test\CountCollector.cs" />
     <Compile Include="Collecting\ResolverDeleteCollector.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="GalleryIntegration\GalleryExport.cs" />
+    <Compile Include="GalleryIntegration\GalleryExportBatcher.cs" />
+    <Compile Include="GalleryIntegration\GalleryExportCatalogItem.cs" />
+    <Compile Include="GalleryIntegration\GalleryExportPackage.cs" />
     <Compile Include="Maintenance\CatalogContainer.cs" />
     <Compile Include="Maintenance\CatalogContext.cs" />
     <Compile Include="Maintenance\CatalogItem.cs" />

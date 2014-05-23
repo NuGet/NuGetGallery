@@ -21,14 +21,14 @@ namespace CatalogTests
 
             Storage storage = new FileStorage
             {
-                Path = @"c:\data\site\full",
-                Container = "full",
+                Path = @"c:\data\site\export",
+                Container = "export",
                 BaseAddress = "http://localhost:8000/"
             };
 
             ResolverCollector collector = new ResolverCollector(storage, 200);
 
-            await collector.Run(new Uri("http://localhost:8000/full/catalog/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://localhost:8000/export/catalog/index.json"), DateTime.MinValue);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
 
@@ -42,7 +42,7 @@ namespace CatalogTests
         public static async Task Test1Async()
         {
             CountCollector collector = new CountCollector();
-            await collector.Run(new Uri("http://localhost:8000/pub/catalog/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://localhost:8000/export/catalog/index.json"), DateTime.MinValue);
             Console.WriteLine("total: {0}", collector.Total);
             Console.WriteLine("http requests: {0}", collector.RequestCount);
         }

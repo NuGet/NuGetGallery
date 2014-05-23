@@ -41,7 +41,6 @@ namespace CatalogTests
                 //CollectorTests.Test1();
                 //CollectorTests.Test2();
                 //CollectorTests.Test3();
-                
                 //CollectorTests.Test4();
 
                 //End2EndTests.Test0();
@@ -49,7 +48,6 @@ namespace CatalogTests
                 //CheckResults.Test0();
 
                 //DeleteTests.Test0();
-
                 //DeleteTests.Test1();
 
                 //ExportTests.Test0();
