@@ -57,7 +57,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             string baseAddress = string.Format("{0}{1}/", _storage.BaseAddress, _storage.Container);
 
-            IDictionary<Uri, Uri> pageItems = new Dictionary<Uri, Uri>();
+            IDictionary<Uri, Tuple<Uri, IGraph>> pageItems = new Dictionary<Uri, Tuple<Uri, IGraph>>();
             List<Task> tasks = null;
             foreach (CatalogItem item in _batch)
             {
@@ -66,6 +66,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
                 Uri resourceUri = new Uri(item.GetBaseAddress() + item.GetRelativeAddress());
                 string content = item.CreateContent(_context);
+                IGraph pageContent = item.CreatePageContent(_context);
 
                 if (content != null)
                 {
@@ -76,7 +77,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                     tasks.Add(_storage.Save("application/json", resourceUri, content));
                 }
 
-                pageItems.Add(resourceUri, item.GetItemType());
+                pageItems.Add(resourceUri, new Tuple<Uri, IGraph>(item.GetItemType(), pageContent));
             }
 
             if (tasks != null)
@@ -112,9 +113,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 root.UpdatePage(pageResourceUri, timeStamp, latestPage.Item2 + pageItems.Count);
             }
 
-            foreach (KeyValuePair<Uri, Uri> pageItem in pageItems)
+            foreach (KeyValuePair<Uri, Tuple<Uri, IGraph>> pageItem in pageItems)
             {
-                page.Add(pageItem.Key, pageItem.Value, timeStamp);
+                page.Add(pageItem.Key, pageItem.Value.Item1, pageItem.Value.Item2, timeStamp);
             }
 
             page.SetTimeStamp(timeStamp);
@@ -136,26 +137,29 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public static async Task<IDictionary<string, string>> GetCommitUserData(Storage storage)
         {
-            string baseAddress = string.Format("{0}{1}/", storage.BaseAddress, storage.Container);
-            Uri rootResourceUri = new Uri(baseAddress + "catalog/index.json");
+            Uri rootResourceUri = GetRootResourceUri(storage);
             string content = await storage.Load(rootResourceUri);
             return CatalogRoot.GetCommitUserData(rootResourceUri, content);
         }
 
         public static async Task<DateTime> GetLastCommitTimeStamp(Storage storage)
         {
-            string baseAddress = string.Format("{0}{1}/", storage.BaseAddress, storage.Container);
-            Uri rootResourceUri = new Uri(baseAddress + "catalog/index.json");
+            Uri rootResourceUri = GetRootResourceUri(storage);
             string content = await storage.Load(rootResourceUri);
             return CatalogRoot.GetLastCommitTimeStamp(rootResourceUri, content);
         }
 
         public static async Task<int> GetCount(Storage storage)
         {
-            string baseAddress = string.Format("{0}{1}/", storage.BaseAddress, storage.Container);
-            Uri rootResourceUri = new Uri(baseAddress + "catalog/index.json");
+            Uri rootResourceUri = GetRootResourceUri(storage);
             string content = await storage.Load(rootResourceUri);
             return CatalogRoot.GetCount(rootResourceUri, content);
+        }
+
+        static Uri GetRootResourceUri(Storage storage)
+        {
+            string baseAddress = string.Format("{0}{1}/", storage.BaseAddress, storage.Container);
+            return new Uri(baseAddress + "catalog/index.json");
         }
 
         void Check()

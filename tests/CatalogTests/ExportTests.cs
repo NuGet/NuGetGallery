@@ -20,8 +20,8 @@ namespace CatalogTests
             const int CatalogMaxPageSize = 1000;
             Storage storage = new FileStorage
             {
-                Path = @"c:\data\site\export",
-                Container = "export",
+                Path = @"c:\data\site\export2",
+                Container = "export2",
                 BaseAddress = "http://localhost:8000/"
             };
 
@@ -42,7 +42,7 @@ namespace CatalogTests
                     break;
                 }
 
-                if (count++ == 5)
+                if (count++ == 3)
                 {
                     break;
                 }

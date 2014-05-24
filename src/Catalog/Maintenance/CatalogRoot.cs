@@ -9,7 +9,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     class CatalogRoot : CatalogContainer
     {
-        IDictionary<Uri, Tuple<Uri, DateTime, int?>> _items;
+        IDictionary<Uri, Tuple<Uri, IGraph, DateTime, int?>> _items;
         IDictionary<string, string> _commitUserData;
         string _baseAddress;
         int _nextPageNumber;
@@ -20,7 +20,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         public CatalogRoot(Uri root, string content)
             : base(root)
         {
-            _items = new Dictionary<Uri, Tuple<Uri, DateTime, int?>>();
+            _items = new Dictionary<Uri, Tuple<Uri, IGraph, DateTime, int?>>();
 
             _nextPageNumber = 0;
             if (content != null)
@@ -40,7 +40,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         public Uri AddNextPage(DateTime timeStamp, int count)
         {
             Uri nextPageAddress = new Uri(_baseAddress + string.Format("page{0}.json", _nextPageNumber++));
-            _items.Add(nextPageAddress, new Tuple<Uri, DateTime, int?>(Constants.CatalogPage, timeStamp, count));
+            _items.Add(nextPageAddress, new Tuple<Uri, IGraph, DateTime, int?>(Constants.CatalogPage, null, timeStamp, count));
             return nextPageAddress;
         }
 
@@ -51,7 +51,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public void UpdatePage(Uri pageUri, DateTime timeStamp, int count)
         {
-            _items[pageUri] = new Tuple<Uri, DateTime, int?>(Constants.CatalogPage, timeStamp, count);
+            _items[pageUri] = new Tuple<Uri, IGraph, DateTime, int?>(Constants.CatalogPage, null, timeStamp, count);
         }
 
         public void SetCommitUserData(IDictionary<string, string> commitUserData)
@@ -133,7 +133,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return Constants.CatalogRoot;
         }
 
-        protected override IDictionary<Uri, Tuple<Uri, DateTime, int?>> GetItems()
+        protected override IDictionary<Uri, Tuple<Uri, IGraph, DateTime, int?>> GetItems()
         {
             return _items;
         }
@@ -144,7 +144,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             Uri latestUri = null;
             int latestCount = 0;
 
-            foreach (KeyValuePair<Uri, Tuple<Uri, DateTime, int?>> item in _items)
+            foreach (KeyValuePair<Uri, Tuple<Uri, IGraph, DateTime, int?>> item in _items)
             {
                 string s = item.Key.ToString();
                 s = s.Substring(s.LastIndexOf('/') + 5);
@@ -155,7 +155,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 {
                     maxPageNumber = pageNumber;
                     latestUri = item.Key;
-                    latestCount = item.Value.Item3.Value;
+                    latestCount = item.Value.Item4.Value;
                 }
             }
 

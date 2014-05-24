@@ -1,4 +1,5 @@
 ﻿using System;
+using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
@@ -20,6 +21,11 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         public abstract string CreateContent(CatalogContext context);
 
         public abstract Uri GetItemType();
+
+        public virtual IGraph CreatePageContent(CatalogContext context)
+        {
+            return null;
+        }
 
         protected abstract string GetItemIdentity();
 

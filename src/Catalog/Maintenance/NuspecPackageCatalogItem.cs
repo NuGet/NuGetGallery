@@ -1,5 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Xml.Linq;
+using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog.Maintenance
 {

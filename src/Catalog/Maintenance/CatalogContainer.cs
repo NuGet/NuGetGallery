@@ -23,7 +23,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             _timeStamp = timeStamp;
         }
 
-        protected abstract IDictionary<Uri, Tuple<Uri, DateTime, int?>> GetItems();
+        protected abstract IDictionary<Uri, Tuple<Uri, IGraph, DateTime, int?>> GetItems();
 
         protected abstract Uri GetContainerType();
 
@@ -54,17 +54,23 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             INode itemPredicate = graph.CreateUriNode("catalog:item");
             INode countPredicate = graph.CreateUriNode("catalog:count");
 
-            foreach (KeyValuePair<Uri, Tuple<Uri, DateTime, int?>> item in GetItems())
+            foreach (KeyValuePair<Uri, Tuple<Uri, IGraph, DateTime, int?>> item in GetItems())
             {
                 INode itemNode = graph.CreateUriNode(item.Key);
 
                 graph.Assert(container, itemPredicate, itemNode);
                 graph.Assert(itemNode, rdfTypePredicate, graph.CreateUriNode(item.Value.Item1));
-                graph.Assert(itemNode, timeStampPredicate, graph.CreateLiteralNode(item.Value.Item2.ToString(), dateTimeDatatype));
-                if (item.Value.Item3 != null)
+
+                if (item.Value.Item2 != null)
+                {
+                    graph.Merge(item.Value.Item2);
+                }
+
+                graph.Assert(itemNode, timeStampPredicate, graph.CreateLiteralNode(item.Value.Item3.ToString(), dateTimeDatatype));
+                if (item.Value.Item4 != null)
                 {
                     Uri integerDatatype = new Uri("http://www.w3.org/2001/XMLSchema#integer");
-                    graph.Assert(itemNode, countPredicate, graph.CreateLiteralNode(item.Value.Item3.ToString(), integerDatatype));
+                    graph.Assert(itemNode, countPredicate, graph.CreateLiteralNode(item.Value.Item4.ToString(), integerDatatype));
                 }
             }
 
@@ -79,7 +85,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         {
         }
 
-        protected static void Load(IDictionary<Uri, Tuple<Uri, DateTime, int?>> items, string content)
+        protected static void Load(IDictionary<Uri, Tuple<Uri, IGraph, DateTime, int?>> items, string content)
         {
             IGraph graph = Utils.CreateGraph(content);
 
@@ -97,6 +103,35 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 Triple rdfTypeTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, rdfTypePredicate).First();
                 Uri rdfType = ((IUriNode)rdfTypeTriple.Object).Uri;
 
+                IGraph pageContent = null;
+                INode pageContentSubjectNode = null;
+                foreach (Triple pageContentTriple in graph.GetTriplesWithSubject(itemTriple.Object))
+                {
+                    if (pageContentTriple.Predicate.Equals(rdfTypePredicate))
+                    {
+                        continue;
+                    }
+                    if (pageContentTriple.Predicate.Equals(timeStampPredicate))
+                    {
+                        continue;
+                    }
+                    if (pageContentTriple.Predicate.Equals(countPredicate))
+                    {
+                        continue;
+                    }
+
+                    if (pageContent == null)
+                    {
+                        pageContent = new Graph();
+                        pageContentSubjectNode = pageContentTriple.Subject.CopyNode(pageContent, false);
+                    }
+
+                    INode pageContentPredicateNode = pageContentTriple.Predicate.CopyNode(pageContent, false);
+                    INode pageContentObjectNode = pageContentTriple.Object.CopyNode(pageContent, false);
+
+                    pageContent.Assert(pageContentSubjectNode, pageContentPredicateNode, pageContentObjectNode);
+                }
+
                 Triple timeStampTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, timeStampPredicate).First();
                 DateTime timeStamp = DateTime.Parse(((ILiteralNode)timeStampTriple.Object).Value);
 
@@ -109,7 +144,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                     count = int.Parse(((ILiteralNode)countTriple.Object).Value);
                 }
 
-                items.Add(itemUri, new Tuple<Uri, DateTime, int?>(rdfType, timeStamp, count));
+                items.Add(itemUri, new Tuple<Uri, IGraph, DateTime, int?>(rdfType, pageContent, timeStamp, count));
             }
         }
     }

@@ -104,7 +104,6 @@
     <Compile Include="Maintenance\DeleteRegistrationCatalogItem.cs" />
     <Compile Include="Collecting\ResolverCollector.cs" />
     <Compile Include="Collecting\BatchCollector.cs" />
-    <Compile Include="Maintenance\PackageEntityCatalogItem.cs" />
     <Compile Include="Persistence\AzureStorage.cs" />
     <Compile Include="Persistence\FileStorage.cs" />
     <Compile Include="Persistence\Storage.cs" />

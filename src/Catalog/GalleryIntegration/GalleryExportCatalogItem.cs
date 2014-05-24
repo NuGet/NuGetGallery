@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 {
@@ -21,7 +22,8 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
         public override string CreateContent(CatalogContext context)
         {
-            JObject content = CreateContent(GetBaseAddress(), _export);
+            string resourceUri = GetBaseAddress() + GetRelativeAddress();
+            JObject content = CreateContent(resourceUri, _export);
             JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
             content.Add("@context", frame["@context"]);
             return content.ToString();
@@ -32,15 +34,30 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             return Constants.Package;
         }
 
+        public override IGraph CreatePageContent(CatalogContext context)
+        {
+            Uri resourceUri = new Uri(GetBaseAddress() + GetRelativeAddress());
+
+            Graph graph = new Graph();
+
+            INode subject = graph.CreateUriNode(resourceUri);
+            INode galleryKeyPredicate = graph.CreateUriNode(new Uri("http://nuget.org/gallery#key"));
+
+            string key = _export.Package["Key"].ToString();
+
+            Uri integerDatatype = new Uri("http://www.w3.org/2001/XMLSchema#integer");
+            graph.Assert(subject, galleryKeyPredicate, graph.CreateLiteralNode(key, integerDatatype));
+
+            return graph;
+        }
+
         protected override string GetItemIdentity()
         {
             return _identity;
         }
 
-        static JObject CreateContent(string baseAddress, GalleryExportPackage export)
+        static JObject CreateContent(string resourceUri, GalleryExportPackage export)
         {
-            string resourceUri = string.Format("{0}{1}.{2}.json", baseAddress, export.Id, export.Package["Version"]);
-
             IDictionary<string, string> Lookup = new Dictionary<string, string>
             {
                 { "Title", "title" },
@@ -58,7 +75,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
             JObject obj = new JObject();
 
-            obj.Add("url", resourceUri.ToLowerInvariant());
+            obj.Add("url", resourceUri);
 
             obj.Add("@type", "Package");
 
@@ -98,7 +115,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
                 JObject dependenciesObj = new JObject();
 
-                dependenciesObj.Add("url", dependenciesUri.ToLowerInvariant());
+                dependenciesObj.Add("url", dependenciesUri);
 
                 JArray dependencyGroups = new JArray();
                 foreach (IGrouping<JToken, JObject> group in export.Dependencies.GroupBy(d => d["TargetFramework"]))
@@ -112,10 +129,10 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                     if (targetFramework != "")
                     {
                         dependencyGroup.Add("targetFramework", targetFramework);
-                        dependencyGroupUri = dependencyGroupUri + "/" + targetFramework;
+                        dependencyGroupUri = dependencyGroupUri + "/" + targetFramework.ToLowerInvariant();
                     }
 
-                    dependencyGroup.Add("url", dependencyGroupUri.ToLowerInvariant());
+                    dependencyGroup.Add("url", dependencyGroupUri);
 
                     JArray dependencyGroupDependencies = new JArray();
 
@@ -123,11 +140,11 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                     {
                         JObject dependencyGroupDependency = new JObject();
 
-                        string id = value["Id"].ToString();
+                        string id = value["Id"].ToString().ToLowerInvariant();
 
                         string dependencyGroupDependencyUri = dependencyGroupUri + "/" + id;
 
-                        dependencyGroupDependency.Add("url", dependencyGroupDependencyUri.ToLowerInvariant());
+                        dependencyGroupDependency.Add("url", dependencyGroupDependencyUri);
                         dependencyGroupDependency.Add("id", id);
                         dependencyGroupDependency.Add("range", value["VersionSpec"].ToString());
 
