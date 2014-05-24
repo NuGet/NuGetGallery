@@ -32,6 +32,8 @@ namespace NuGetGallery.FunctionalTests
         internal const string UnListedPackageText = "This package is unlisted and hidden from package listings";
         internal const string TestPackageId = "BaseTestPackage";
         internal const string ReadOnlyModeError = "503 : Please try again later! (Read-only)";
+        internal const string UploadFailureMessage = "The package upload via Nuget.exe didnt succeed properly. Check the logs to see the process error and output stream";
+        internal const string PackageNotFoundAfterUpload = "Package {0} is not found in the site {1} after uploading.";
         #endregion PredefinedText
 
     }
