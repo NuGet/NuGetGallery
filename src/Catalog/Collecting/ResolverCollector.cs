@@ -15,6 +15,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         Storage _storage;
         JObject _resolverFrame;
 
+        public ICollectorLogger Logger { get; set; }
+
         public ResolverCollector(Storage storage, int batchSize)
             : base(batchSize)
         {
