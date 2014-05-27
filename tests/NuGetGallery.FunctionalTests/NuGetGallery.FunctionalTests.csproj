@@ -90,7 +90,6 @@
     <Compile Include="ClientIntegrationTests\NuGetCoreTests.cs" />
     <Compile Include="ODataTests\V2FeedExtendedTest.cs" />
     <Compile Include="TestBase\Constants.cs" />
-    <Compile Include="Features\DownloadStatsTest.cs" />
     <Compile Include="Features\CuratedFeedTest.cs" />
     <Compile Include="Features\PackageVersionTest.cs" />
     <Compile Include="TestBase\GalleryTestBase.cs" />

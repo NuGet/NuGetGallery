@@ -56,8 +56,7 @@ namespace NuGetGallery.FunctionTests.Helpers
             string formattedCount = GetDownLoadStatistics(packageId).ToString("N1", CultureInfo.InvariantCulture);
             if (formattedCount.EndsWith(".0"))
                 formattedCount = formattedCount.Remove(formattedCount.Length - 2);
-            return formattedCount;
-          
+            return formattedCount;         
         }
 
         /// <summary>

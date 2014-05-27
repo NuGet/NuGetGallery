@@ -10,8 +10,6 @@ namespace NuGetGallery.FunctionalTests.ODataTests
     [TestClass]
     public partial class V2FeedTest : GalleryTestBase
     {
-
-
         [TestMethod]
         public void ApiV2BaseUrlTest()
         {
@@ -61,14 +59,11 @@ namespace NuGetGallery.FunctionalTests.ODataTests
             StreamReader sr = new StreamReader(response.GetResponseStream());
             string responseText = sr.ReadToEnd();
             Assert.IsTrue(responseText.Contains(@"<id>"+ UrlHelper.V2FeedRootUrl + "Packages(Id='"+ packageId + "',Version='1.0.0')</id>"));
-            Assert.IsTrue(responseText.Contains(@"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='2.0.0')</id>"));
-           
+            Assert.IsTrue(responseText.Contains(@"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='2.0.0')</id>"));          
         }
 
-      
-
         /// <summary>
-        ///     Regression test for #1052
+        /// Regression test for #1052
         /// </summary>
         [TestMethod]
         public void GetUpdates1052RegressionTest()
@@ -93,7 +88,7 @@ namespace NuGetGallery.FunctionalTests.ODataTests
         }
 
         /// <summary>
-        ///     Regression test for #1199
+        /// Regression test for #1199
         /// </summary>
         [TestMethod]
         public void GetUpdates1199RegressionTest()
@@ -174,8 +169,6 @@ namespace NuGetGallery.FunctionalTests.ODataTests
                         i--;
                     }
                 }
-
-
             }
 
             request = WebRequest.Create(UrlHelper.BaseUrl + @"stats/packageversions");
