@@ -16,7 +16,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
     public class StatsInHomePageTest : NuGetFluentTest
     {
         [TestMethod]
-        [Description("Cross-check the contents of the Statistics page against the last6weeks API endpoint.")]
+        [Description("Cross-check the contents of the Statistics on the homepage against the stats/total API endpoint.")]
         public void StatsInHomePage()
         {
             // Request the last 6 weeks endpoint.

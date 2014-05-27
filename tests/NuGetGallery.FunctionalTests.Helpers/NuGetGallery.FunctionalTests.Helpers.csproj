@@ -67,6 +67,7 @@
     <Compile Include="ClientSDKHelper.cs" />
     <Compile Include="CmdLineHelper.cs" />
     <Compile Include="EnvironmentSettings.cs" />
+    <Compile Include="FeedType.cs" />
     <Compile Include="MailHelper.cs" />
     <Compile Include="NuspecHelper.cs" />
     <Compile Include="ODataHelper.cs" />
