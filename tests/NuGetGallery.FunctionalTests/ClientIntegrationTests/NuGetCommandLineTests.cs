@@ -21,8 +21,8 @@ namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
            string packageId = Constants.TestPackageId; //try to down load a pre-defined test package.          
            ClientSDKHelper.ClearLocalPackageFolder(packageId);
            int exitCode = CmdLineHelper.InstallPackage(packageId, UrlHelper.V2FeedRootUrl, Environment.CurrentDirectory);
-           Assert.IsTrue((exitCode == 0), "The package install via Nuget.exe didnt suceed properly. Check the logs to see the process error and output stream");
-           Assert.IsTrue(ClientSDKHelper.CheckIfPackageInstalled(packageId), "Package install failed. Either the file is not present on disk or it is corrupted. Check logs for details");
+           Assert.IsTrue((exitCode == 0), Constants.UploadFailureMessage);
+           Assert.IsTrue(ClientSDKHelper.CheckIfPackageInstalled(packageId), Constants.PackageInstallFailureMessage);
         }
 
         [TestMethod]
@@ -42,8 +42,8 @@ namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
             string version = "1.0.0";
             string packageFullPath = PackageCreationHelper.CreatePackageWithMinClientVersion(packageId, version, "2.3");        
             int exitCode = CmdLineHelper.UploadPackage(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
-            Assert.IsTrue((exitCode == 0), "The package upload via Nuget.exe didnt succeed properly. Check the logs to see the process error and output stream");
-            Assert.IsTrue(ClientSDKHelper.CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl), "Package {0} is not found in the site {1} after uploading.", packageId, UrlHelper.V2FeedRootUrl);
+            Assert.IsTrue((exitCode == 0), Constants.UploadFailureMessage);
+            Assert.IsTrue(ClientSDKHelper.CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl), Constants.PackageNotFoundAfterUpload, packageId, UrlHelper.V2FeedRootUrl);
 
             //Delete package from local disk so once it gets uploaded
             if (File.Exists(packageFullPath))
