@@ -5,6 +5,6 @@ namespace NuGetGallery.FunctionTests.Helpers
     {
         Windows8CuratedFeed,
         WebMatrixCuratedFeed,
-        MSDotnetCuratedFeed
+        DotnetCuratedFeed
     }
 }
