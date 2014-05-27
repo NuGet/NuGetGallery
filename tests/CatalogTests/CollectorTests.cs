@@ -21,8 +21,8 @@ namespace CatalogTests
 
             Storage storage = new FileStorage
             {
-                Path = @"c:\data\site\export2",
-                Container = "export2",
+                Path = @"c:\data\site\export",
+                Container = "export",
                 BaseAddress = "http://localhost:8000/"
             };
 

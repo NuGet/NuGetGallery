@@ -187,6 +187,18 @@ namespace NuGet.Services.Metadata.Catalog
             return false;
         }
 
+        public static bool IsType(JObject context, JObject obj, Uri[] types)
+        {
+            foreach (Uri type in types)
+            {
+                if (Utils.IsType(context, obj, type))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static Uri Expand(JObject context, JToken token)
         {
             string term = token.ToString();

@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Maintenance;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 
 namespace CatalogTests
@@ -15,7 +16,7 @@ namespace CatalogTests
             _type = new Uri("http://test.org/schema#TestItem");
         }
 
-        public override string CreateContent(CatalogContext context)
+        public override StorageContent CreateContent(CatalogContext context)
         {
             string id = GetBaseAddress() + _name + ".json";
 
@@ -27,7 +28,7 @@ namespace CatalogTests
                     { "@context", new JObject { { "@vocab", "http://test.org/schema#" } } }
                 };
 
-            return obj.ToString();
+            return new StringStorageContent(obj.ToString(), "application/json");
         }
 
         public override Uri GetItemType()

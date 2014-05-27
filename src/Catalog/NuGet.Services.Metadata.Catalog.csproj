@@ -83,6 +83,7 @@
   <ItemGroup>
     <Compile Include="Collecting\Collector.cs" />
     <Compile Include="Collecting\CollectorHttpClient.cs" />
+    <Compile Include="Collecting\StoreCollector.cs" />
     <Compile Include="Collecting\Test\DistinctPackageIdCollector.cs" />
     <Compile Include="Collecting\Test\CheckLinksCollector.cs" />
     <Compile Include="Collecting\Test\CountCollector.cs" />
@@ -92,7 +93,12 @@
     <Compile Include="GalleryIntegration\GalleryExportBatcher.cs" />
     <Compile Include="GalleryIntegration\GalleryExportCatalogItem.cs" />
     <Compile Include="GalleryIntegration\GalleryExportPackage.cs" />
+    <Compile Include="GalleryIntegration\GalleryKeyCollector.cs" />
+    <Compile Include="GalleryIntegration\GalleryKeyRangeCollector.cs" />
     <Compile Include="Maintenance\CatalogContainer.cs" />
+    <Compile Include="Persistence\StreamStorageContent.cs" />
+    <Compile Include="Persistence\StringStorageContent.cs" />
+    <Compile Include="Persistence\StorageContent.cs" />
     <Compile Include="Maintenance\CatalogContext.cs" />
     <Compile Include="Maintenance\CatalogItem.cs" />
     <Compile Include="Maintenance\CatalogPage.cs" />
@@ -133,6 +139,7 @@
     <EmbeddedResource Include="context\Package.json" />
     <EmbeddedResource Include="context\Resolver.json" />
     <EmbeddedResource Include="context\DeletePackage.json" />
+    <EmbeddedResource Include="context\Range.json" />
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />
@@ -142,6 +149,7 @@
     <EmbeddedResource Include="sparql\DeletePackage.rq" />
     <EmbeddedResource Include="sparql\SelectPackageCount.rq" />
     <EmbeddedResource Include="sparql\SelectDeleteRegistration.rq" />
+    <EmbeddedResource Include="sparql\SelectRangeUpdates.rq" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

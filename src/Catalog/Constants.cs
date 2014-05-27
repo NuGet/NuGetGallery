@@ -15,6 +15,12 @@ namespace NuGet.Services.Metadata.Catalog
             DeleteRegistration = new Uri("http://nuget.org/schema#DeleteRegistration");
             CatalogRoot = new Uri("http://nuget.org/catalog#Root");
             CatalogPage = new Uri("http://nuget.org/catalog#Page");
+            Resolver = new Uri("http://nuget.org/catalog#Resolver");
+            Range = new Uri("http://nuget.org/gallery#Range");
+
+            RdfType = new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+            Integer = new Uri("http://www.w3.org/2001/XMLSchema#integer");
+            DateTime = new Uri("http://www.w3.org/2001/XMLSchema#dateTime");
         }
 
         public static Uri Package
@@ -38,6 +44,32 @@ namespace NuGet.Services.Metadata.Catalog
             private set;
         }
         public static Uri CatalogPage
+        {
+            get;
+            private set;
+        }
+        public static Uri Resolver
+        {
+            get;
+            private set;
+        }
+        public static Uri Range
+        {
+            get;
+            private set;
+        }
+
+        public static Uri RdfType
+        {
+            get;
+            private set;
+        }
+        public static Uri Integer
+        {
+            get;
+            private set;
+        }
+        public static Uri DateTime
         {
             get;
             private set;

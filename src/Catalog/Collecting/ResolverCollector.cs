@@ -10,50 +10,20 @@ using VDS.RDF.Query;
 
 namespace NuGet.Services.Metadata.Catalog.Collecting
 {
-    public class ResolverCollector : BatchCollector
+    public class ResolverCollector : StoreCollector
     {
         Storage _storage;
         JObject _resolverFrame;
 
         public ResolverCollector(Storage storage, int batchSize)
-            : base(batchSize)
+            : base(batchSize, new Uri[] { Constants.Package })
         {
-            Options.InternUris = false;
-
             _resolverFrame = JObject.Parse(Utils.GetResource("context.Resolver.json"));
-            _resolverFrame["@type"] = "Resolver";
+            _resolverFrame["@type"] = Constants.Resolver.ToString();
             _storage = storage;
         }
 
-        protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
-        {
-            List<Task<IGraph>> tasks = new List<Task<IGraph>>();
-
-            foreach (JObject item in items)
-            {
-                if (Utils.IsType(context, item, Constants.Package))
-                {
-                    Uri itemUri = item["url"].ToObject<Uri>();
-                    tasks.Add(client.GetGraphAsync(itemUri));
-                }
-            }
-
-            if (tasks.Count > 0)
-            {
-                await Task.WhenAll(tasks.ToArray());
-
-                TripleStore store = new TripleStore();
-
-                foreach (Task<IGraph> task in tasks)
-                {
-                    store.Add(task.Result, true);
-                }
-
-                await ProcessStore(store);
-            }
-        }
-
-        async Task ProcessStore(TripleStore store)
+        protected override async Task ProcessStore(TripleStore store)
         {
             try
             {
@@ -105,15 +75,15 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         async Task Merge(KeyValuePair<Uri, IGraph> resource)
         {
-            string existingJson = await _storage.Load(resource.Key);
+            string existingJson = await _storage.LoadString(resource.Key);
             if (existingJson != null)
             {
                 IGraph existingGraph = Utils.CreateGraph(existingJson);
                 resource.Value.Merge(existingGraph);
             }
 
-            string content = Utils.CreateJson(resource.Value, _resolverFrame);
-            await _storage.Save("application/json", resource.Key, content);
+            StorageContent content = new StringStorageContent(Utils.CreateJson(resource.Value, _resolverFrame));
+            await _storage.Save(resource.Key, content);
         }
     }
 }

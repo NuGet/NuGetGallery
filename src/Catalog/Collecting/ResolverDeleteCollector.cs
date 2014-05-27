@@ -9,13 +9,13 @@ using VDS.RDF.Query;
 
 namespace NuGet.Services.Metadata.Catalog.Collecting
 {
-    public class ResolverDeleteCollector : BatchCollector
+    public class ResolverDeleteCollector : StoreCollector
     {
         Storage _storage;
         JObject _resolverFrame;
 
         public ResolverDeleteCollector(Storage storage, int batchSize = 200)
-            : base(batchSize)
+            : base(batchSize, new Uri[] { Constants.DeletePackage, Constants.DeleteRegistration })
         {
             Options.InternUris = false;
 
@@ -24,35 +24,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             _storage = storage;
         }
 
-        protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
-        {
-            List<Task<IGraph>> tasks = new List<Task<IGraph>>();
-
-            foreach (JObject item in items)
-            {
-                if (Utils.IsType(context, item, Constants.DeletePackage) || Utils.IsType(context, item, Constants.DeleteRegistration))
-                {
-                    Uri itemUri = item["url"].ToObject<Uri>();
-                    tasks.Add(client.GetGraphAsync(itemUri));
-                }
-            }
-
-            if (tasks.Count > 0)
-            {
-                await Task.WhenAll(tasks.ToArray());
-
-                TripleStore store = new TripleStore();
-
-                foreach (Task<IGraph> task in tasks)
-                {
-                    store.Add(task.Result, true);
-                }
-
-                await ProcessStore(store);
-            }
-        }
-
-        async Task ProcessStore(TripleStore store)
+        protected override async Task ProcessStore(TripleStore store)
         {
             try
             {
@@ -87,7 +59,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         async Task DeletePackage(Uri resourceUri, string version)
         {
-            string existingJson = await _storage.Load(resourceUri);
+            string existingJson = await _storage.LoadString(resourceUri);
             if (existingJson != null)
             {
                 IGraph currentPackageRegistration = Utils.CreateGraph(existingJson);
@@ -109,8 +81,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                     }
                     else
                     {
-                        string content = Utils.CreateJson(modifiedPackageRegistration, _resolverFrame);
-                        await _storage.Save("application/json", resourceUri, content);
+                        StorageContent content = new StringStorageContent(Utils.CreateJson(modifiedPackageRegistration, _resolverFrame), "application/json");
+                        await _storage.Save(resourceUri, content);
                     }
                 }
             }

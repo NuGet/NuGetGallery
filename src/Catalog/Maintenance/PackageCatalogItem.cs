@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Xml;
 using System.Xml.Linq;
@@ -12,7 +13,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
     {
         protected abstract XDocument GetNuspec();
 
-        public override string CreateContent(CatalogContext context)
+        public override StorageContent CreateContent(CatalogContext context)
         {
             XDocument original = GetNuspec();
             XDocument nuspec = NormalizeNuspecNamespace(original, context.GetXslt("xslt.normalizeNuspecNamespace.xslt"));
@@ -20,7 +21,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
 
-            string content = Utils.CreateJson(graph, frame);
+            StorageContent content = new StringStorageContent(Utils.CreateJson(graph, frame), "application/json");
 
             return content;
         }

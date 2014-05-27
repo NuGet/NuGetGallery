@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NuGet.Services.Metadata.Catalog.Persistence;
+using System;
 using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog.Maintenance
@@ -18,7 +19,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             _baseAddress = baseAddress;
         }
 
-        public abstract string CreateContent(CatalogContext context);
+        public abstract StorageContent CreateContent(CatalogContext context);
 
         public abstract Uri GetItemType();
 

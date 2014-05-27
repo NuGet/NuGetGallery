@@ -2,6 +2,7 @@
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
@@ -36,7 +37,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         //  save
        
-        public override async Task Save(string contentType, Uri resourceUri, string content)
+        public override async Task Save(Uri resourceUri, StorageContent content)
         {
             SaveCount++;
 
@@ -64,15 +65,18 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
 
             CloudBlockBlob blob = container.GetBlockBlobReference(name);
-            blob.Properties.ContentType = contentType;
+            blob.Properties.ContentType = content.ContentType;
             blob.Properties.CacheControl = "no-store";  // no for production, just helps with debugging
 
-            await blob.UploadTextAsync(content);
+            using (Stream stream = content.GetContentStream())
+            {
+                await blob.UploadFromStreamAsync(stream);
+            }
         }
 
         //  load
 
-        public override async Task<string> Load(Uri resourceUri)
+        public override async Task<StorageContent> Load(Uri resourceUri)
         {
             LoadCount++;
 
@@ -89,7 +93,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             if (blob.Exists())
             {
                 string content = await blob.DownloadTextAsync();
-                return content;
+                return new StringStorageContent(content);
             }
 
             return null;

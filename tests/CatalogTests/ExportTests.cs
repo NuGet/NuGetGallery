@@ -13,15 +13,15 @@ namespace CatalogTests
     {
         public static void Test0()
         {
-            const int SqlChunkSize = 8000;
+            const int SqlChunkSize = 2000;
             string sqlConnectionString = "";
 
             const int CatalogBatchSize = 1000;
             const int CatalogMaxPageSize = 1000;
             Storage storage = new FileStorage
             {
-                Path = @"c:\data\site\export2",
-                Container = "export2",
+                Path = @"c:\data\site\export",
+                Container = "export",
                 BaseAddress = "http://localhost:8000/"
             };
 
@@ -57,6 +57,47 @@ namespace CatalogTests
             batcher.Complete();
 
             Console.WriteLine(batcher.Total);
+        }
+
+        public static async Task Test1Async()
+        {
+            HashSet<int> keys = new HashSet<int>();
+
+            GalleryKeyCollector collector = new GalleryKeyCollector(keys);
+
+            await collector.Run(new Uri("http://localhost:8000/export/catalog/index.json"), DateTime.MinValue);
+            Console.WriteLine("http requests: {0}", collector.RequestCount);
+
+            Console.WriteLine(keys.Count);
+        }
+
+        public static void Test1()
+        {
+            Console.WriteLine("ExportTests.Test1");
+
+            Test1Async().Wait();
+        }
+
+        public static async Task Test2Async()
+        {
+            Storage storage = new FileStorage
+            {
+                Path = @"c:\data\site\export",
+                Container = "export",
+                BaseAddress = "http://localhost:8000/"
+            };
+
+            GalleryKeyRangeCollector collector = new GalleryKeyRangeCollector(storage, 200);
+
+            await collector.Run(new Uri("http://localhost:8000/export/catalog/index.json"), DateTime.MinValue);
+            Console.WriteLine("http requests: {0}", collector.RequestCount);
+        }
+
+        public static void Test2()
+        {
+            Console.WriteLine("ExportTests.Test2");
+
+            Test2Async().Wait();
         }
     }
 }

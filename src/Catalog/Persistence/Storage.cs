@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
@@ -7,9 +8,26 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     {
         string _baseAddress;
 
-        public abstract Task Save(string contentType, Uri resourceUri, string content);
-        public abstract Task<string> Load(Uri resourceUri);
+        public abstract Task Save(Uri resourceUri, StorageContent content);
+        public abstract Task<StorageContent> Load(Uri resourceUri);
         public abstract Task Delete(Uri resourceUri);
+
+        public async Task<string> LoadString(Uri resourceUri)
+        {
+            StorageContent content = await Load(resourceUri);
+            if (content == null)
+            {
+                return null;
+            }
+            else
+            {
+                using (Stream stream = content.GetContentStream())
+                {
+                    StreamReader reader = new StreamReader(stream);
+                    return await reader.ReadToEndAsync();
+                }
+            }
+        }
 
         public string Container
         {

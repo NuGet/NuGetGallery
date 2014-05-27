@@ -17,7 +17,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             set;
         }
 
-        public override async Task Save(string contentType, Uri resourceUri, string content)
+        public override async Task Save(Uri resourceUri, StorageContent content)
         {
             SaveCount++;
 
@@ -53,16 +53,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 }
             }
 
-            await Task.Factory.StartNew(() =>
+            using (FileStream stream = File.Create(path + name))
             {
-                using (StreamWriter writer = new StreamWriter(path + name))
-                {
-                    writer.Write(content);
-                }
-            });
+                await content.GetContentStream().CopyToAsync(stream);
+            }
         }
 
-        public override async Task<string> Load(Uri resourceUri)
+        public override async Task<StorageContent> Load(Uri resourceUri)
         {
             LoadCount++;
 
@@ -94,10 +91,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             FileInfo fileInfo = new FileInfo(filename);
             if (fileInfo.Exists)
             {
-                using (StreamReader reader = new StreamReader(filename))
-                {
-                    return await reader.ReadToEndAsync();
-                }
+                return await Task.Run<StorageContent>(() => { return new StreamStorageContent(fileInfo.OpenRead()); });
             }
 
             return null;

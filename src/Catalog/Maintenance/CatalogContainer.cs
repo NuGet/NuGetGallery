@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +28,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         protected abstract Uri GetContainerType();
 
-        public string CreateContent(CatalogContext context)
+        public StorageContent CreateContent(CatalogContext context)
         {
             IGraph graph = new Graph();
 
@@ -76,7 +77,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             JObject frame = context.GetJsonLdContext("context.Container.json", GetContainerType());
 
-            string content = Utils.CreateJson(graph, frame);
+            StorageContent content = new StringStorageContent(Utils.CreateJson(graph, frame), "application/json");
 
             return content;
         }

@@ -1,6 +1,7 @@
 ﻿using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -65,7 +66,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 item.SetBaseAddress(baseAddress);
 
                 Uri resourceUri = new Uri(item.GetBaseAddress() + item.GetRelativeAddress());
-                string content = item.CreateContent(_context);
+                StorageContent content = item.CreateContent(_context);
                 IGraph pageContent = item.CreatePageContent(_context);
 
                 if (content != null)
@@ -74,7 +75,8 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                     {
                         tasks = new List<Task>();
                     }
-                    tasks.Add(_storage.Save("application/json", resourceUri, content));
+
+                    tasks.Add(_storage.Save(resourceUri, content));
                 }
 
                 pageItems.Add(resourceUri, new Tuple<Uri, IGraph>(item.GetItemType(), pageContent));
@@ -90,7 +92,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             string rootContent = null;
             if (!_first || _first && _append)
             {
-                rootContent = await _storage.Load(rootResourceUri);
+                rootContent = await _storage.LoadString(rootResourceUri);
             }
             _first = false;
 
@@ -108,7 +110,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             else
             {
                 pageResourceUri = latestPage.Item1;
-                string pageContent = await _storage.Load(pageResourceUri);
+                string pageContent = await _storage.LoadString(pageResourceUri);
                 page = new CatalogPage(pageResourceUri, rootResourceUri, pageContent);
                 root.UpdatePage(pageResourceUri, timeStamp, latestPage.Item2 + pageItems.Count);
             }
@@ -120,12 +122,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             page.SetTimeStamp(timeStamp);
 
-            await _storage.Save("application/json", pageResourceUri, page.CreateContent(_context));
+            await _storage.Save(pageResourceUri, page.CreateContent(_context));
 
             root.SetCommitUserData(commitUserData);
             root.SetTimeStamp(timeStamp);
 
-            await _storage.Save("application/json", rootResourceUri, root.CreateContent(_context));
+            await _storage.Save(rootResourceUri, root.CreateContent(_context));
 
             _batch.Clear();
         }
@@ -138,21 +140,21 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         public static async Task<IDictionary<string, string>> GetCommitUserData(Storage storage)
         {
             Uri rootResourceUri = GetRootResourceUri(storage);
-            string content = await storage.Load(rootResourceUri);
+            string content = await storage.LoadString(rootResourceUri);
             return CatalogRoot.GetCommitUserData(rootResourceUri, content);
         }
 
         public static async Task<DateTime> GetLastCommitTimeStamp(Storage storage)
         {
             Uri rootResourceUri = GetRootResourceUri(storage);
-            string content = await storage.Load(rootResourceUri);
+            string content = await storage.LoadString(rootResourceUri);
             return CatalogRoot.GetLastCommitTimeStamp(rootResourceUri, content);
         }
 
         public static async Task<int> GetCount(Storage storage)
         {
             Uri rootResourceUri = GetRootResourceUri(storage);
-            string content = await storage.Load(rootResourceUri);
+            string content = await storage.LoadString(rootResourceUri);
             return CatalogRoot.GetCount(rootResourceUri, content);
         }
 

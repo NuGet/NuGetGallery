@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             _version = version;
         }
 
-        public override string CreateContent(CatalogContext context)
+        public override StorageContent CreateContent(CatalogContext context)
         {
             IGraph graph = new Graph();
 
@@ -34,7 +35,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             JObject frame = context.GetJsonLdContext("context.DeletePackage.json", GetItemType());
 
-            string content = Utils.CreateJson(graph, frame);
+            StorageContent content = new StringStorageContent(Utils.CreateJson(graph, frame), "application/json");
 
             return content;
         }

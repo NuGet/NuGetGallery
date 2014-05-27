@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Maintenance;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,13 +21,16 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             _identity = (export.Id + "." + export.Package["Version"]).ToLowerInvariant();
         }
 
-        public override string CreateContent(CatalogContext context)
+        public override StorageContent CreateContent(CatalogContext context)
         {
             string resourceUri = GetBaseAddress() + GetRelativeAddress();
-            JObject content = CreateContent(resourceUri, _export);
+            JObject obj = CreateContent(resourceUri, _export);
             JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
-            content.Add("@context", frame["@context"]);
-            return content.ToString();
+            obj.Add("@context", frame["@context"]);
+
+            StorageContent content = new StringStorageContent(obj.ToString(), "application/json");
+
+            return content;
         }
 
         public override Uri GetItemType()
@@ -74,6 +78,8 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             };
 
             JObject obj = new JObject();
+
+            obj.Add("http://nuget.org/gallery#key", export.Package["Key"].ToObject<int>());
 
             obj.Add("url", resourceUri);
 
