@@ -1,7 +1,4 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
-using NuGet;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionalTests.TestBase;
 
 namespace NuGetGallery.FunctionalTests

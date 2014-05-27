@@ -1,13 +1,8 @@
 ﻿using FluentLinkChecker;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.TestTools.WebTesting;
 using NuGetGallery.FunctionTests.Helpers;
 using System;
-using System.Collections.Specialized;
-using System.IO;
 using System.Net;
-using System.Text;
-using System.Web.UI;
 
 namespace NuGetGallery.FunctionalTests.LinksTests
 {
