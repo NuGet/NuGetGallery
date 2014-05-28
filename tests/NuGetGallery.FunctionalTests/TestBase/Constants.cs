@@ -1,10 +1,4 @@
-﻿using NuGetGallery.FunctionTests.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace NuGetGallery.FunctionalTests
 {
     internal static class Constants
@@ -35,6 +29,8 @@ namespace NuGetGallery.FunctionalTests
         internal const string UploadFailureMessage = "The package upload via Nuget.exe didnt succeed properly. Check the logs to see the process error and output stream";
         internal const string PackageInstallFailureMessage = "Package install failed. Either the file is not present on disk or it is corrupted. Check logs for details";
         internal const string PackageNotFoundAfterUpload = "Package {0} is not found in the site {1} after uploading.";
+        internal const string PackageDownloadFailureMessage = "Package download from V2 feed didnt work";
+        internal const string UnableToZipError = "Unable to unzip the package downloaded via V2 feed. Check log for details";
         #endregion PredefinedText
 
     }

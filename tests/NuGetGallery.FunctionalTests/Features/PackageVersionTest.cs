@@ -1,7 +1,7 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionalTests.TestBase;
 using NuGetGallery.FunctionTests.Helpers;
+using System;
 
 namespace NuGetGallery.FunctionalTests.Features
 {

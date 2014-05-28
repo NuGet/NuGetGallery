@@ -1,15 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.TestTools.WebTesting;
-using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
-using NuGet;
 using NuGetGallery.FunctionTests.Helpers;
-using NuGetGallery;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Web.UI;
 using System.Net;
-
 
 
 namespace NuGetGallery.FunctionalTests.TestBase

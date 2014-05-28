@@ -3,7 +3,6 @@ using NuGetGallery.FunctionalTests.TestBase;
 using NuGetGallery.FunctionTests.Helpers;
 using System;
 using System.IO;
-using System.Threading;
 
 namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
 {

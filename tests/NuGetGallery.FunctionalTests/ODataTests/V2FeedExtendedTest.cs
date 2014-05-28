@@ -1,74 +1,44 @@
-﻿using System;
-using System.Net;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionalTests.TestBase;
+using NuGetGallery.FunctionTests.Helpers;
+using System;
 using System.IO;
+using System.Net;
 
-namespace NuGetGallery.FunctionalTests.ODataTests 
+namespace NuGetGallery.FunctionalTests.ODataFeedTests 
 {
     [TestClass]
     public partial class V2FeedTest : GalleryTestBase
-    {
-
-
-        [TestMethod]
-        public void ApiV2BaseUrlTest()
-        {
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl);
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
-            //Just check for presence of defined tag.
-            Assert.IsTrue(responseText.Contains(@"<atom:title>Packages</atom:title>"));
-        }
-
-        [TestMethod]
-        public void ApiV2MetadataTest()
-        {
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"$metadata");
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
-            //Just check for presence of defined tag.
-            //Assert.IsTrue(responseText.Contains(@"<EntityType Name=" + @"""" + "V2FeedPackage" +@"""" +  "m:HasStream=" + @"""" + "true" +@"""" + ">"));
-            Assert.IsTrue(responseText.Contains(@"V2FeedPackage"));
-        }
-
-        [TestMethod]
-        public void Top30PackagesFeedTest()
-        {            
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/Search()?$filter=IsAbsoluteLatestVersion&$orderby=DownloadCount%20desc,Id&$skip=0&$top=30&searchTerm=''&targetFramework='net45'&includePrerelease=true");
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
-            //Just check for the presence of predefined package which is expected in Top 30.
-            Assert.IsTrue(responseText.Contains("jQuery"));          
-        }
-
+    {       
         [TestMethod]
         public void FindPackagesByIdTest()
         {
             string packageId = "TestV2FeedFindPackagesById" + "." + DateTime.Now.Ticks.ToString();
             AssertAndValidationHelper.UploadNewPackageAndVerify(packageId, "1.0.0");
             AssertAndValidationHelper.UploadNewPackageAndVerify(packageId, "2.0.0");
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId +"'");          
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
-            Assert.IsTrue(responseText.Contains(@"<id>"+ UrlHelper.V2FeedRootUrl + "Packages(Id='"+ packageId + "',Version='1.0.0')</id>"));
-            Assert.IsTrue(responseText.Contains(@"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='2.0.0')</id>"));
-           
+            string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'";
+            string[] expectedTexts = new string[] { @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='1.0.0')</id>", @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='2.0.0')</id>" };
+            Assert.IsTrue(ContainsResponseText(url, expectedTexts));
         }
 
-      
+        [TestMethod]
+        public void GetUpdatesTest()
+        {
+            // Use the same package name, but force the version to be unique.
+            string packageName = "NuGetGallery.FunctionalTests.Fluent.GetUpdatesTest";
+            string ticks = DateTime.Now.Ticks.ToString();
+            string version1 = new System.Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
+            string version2 = new System.Version(Convert.ToInt32((ticks.Substring(0, 6)) + 1).ToString() + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
+            AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version1);
+            AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version2);
+
+            string url = UrlHelper.V2FeedRootUrl + @"/GetUpdates()?packageIds='NuGetGallery.FunctionalTests.Fluent.GetUpdatesTest%7COwin%7CMicrosoft.Web.Infrastructure%7CMicrosoft.AspNet.Identity.Core%7CMicrosoft.AspNet.Identity.EntityFramework%7CMicrosoft.AspNet.Identity.Owin%7CMicrosoft.AspNet.Web.Optimization%7CRespond%7CWebGrease%7CjQuery%7CjQuery.Validation%7CMicrosoft.Owin.Security.Twitter%7CMicrosoft.Owin.Security.OAuth%7CMicrosoft.Owin.Security.MicrosoftAccount%7CMicrosoft.Owin.Security.Google%7CMicrosoft.Owin.Security.Facebook%7CMicrosoft.Owin.Security.Cookies%7CMicrosoft.Owin%7CMicrosoft.Owin.Host.SystemWeb%7CMicrosoft.Owin.Security%7CModernizr%7CMicrosoft.jQuery.Unobtrusive.Validation%7CMicrosoft.AspNet.WebPages%7CMicrosoft.AspNet.Razor%7Cbootstrap%7CAntlr%7CMicrosoft.AspNet.Mvc%7CNewtonsoft.Json%7CEntityFramework'&versions='" + version1 + "%7C1.0%7C1.0.0.0%7C1.0.0%7C1.0.0%7C1.0.0%7C1.1.1%7C1.2.0%7C1.5.2%7C1.10.2%7C1.11.1%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.6.2%7C3.0.0%7C3.0.0%7C3.0.0%7C3.0.0%7C3.4.1.9004%7C5.0.0%7C5.0.6%7C6.0.0'&includePrerelease=false&includeAllVersions=false&targetFrameworks='net45'&versionConstraints='%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C'";
+            string[] expectedTexts = new string[] { @"<title type=""text"">NuGetGallery.FunctionalTests.Fluent.GetUpdatesTest</title>", @"<d:Version>" + version2 + "</d:Version><d:NormalizedVersion>" + version2 + "</d:NormalizedVersion>" };
+            Assert.IsTrue(ContainsResponseText(url, expectedTexts));
+        }
 
         /// <summary>
-        ///     Regression test for #1052
+        /// Regression test for #1052
         /// </summary>
         [TestMethod]
         public void GetUpdates1052RegressionTest()
@@ -81,19 +51,13 @@ namespace NuGetGallery.FunctionalTests.ODataTests
             AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version1);
             AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version2);
 
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/GetUpdates()?packageIds='NuGetGallery.FunctionalTests.ODataTests.GetUpdates1052RegressionTest%7CNuGetGallery.FunctionalTests.ODataTests.GetUpdates1052RegressionTest%7COwin%7CMicrosoft.Web.Infrastructure%7CMicrosoft.AspNet.Identity.Core%7CMicrosoft.AspNet.Identity.EntityFramework%7CMicrosoft.AspNet.Identity.Owin%7CMicrosoft.AspNet.Web.Optimization%7CRespond%7CWebGrease%7CjQuery%7CjQuery.Validation%7CMicrosoft.Owin.Security.Twitter%7CMicrosoft.Owin.Security.OAuth%7CMicrosoft.Owin.Security.MicrosoftAccount%7CMicrosoft.Owin.Security.Google%7CMicrosoft.Owin.Security.Facebook%7CMicrosoft.Owin.Security.Cookies%7CMicrosoft.Owin%7CMicrosoft.Owin.Host.SystemWeb%7CMicrosoft.Owin.Security%7CModernizr%7CMicrosoft.jQuery.Unobtrusive.Validation%7CMicrosoft.AspNet.WebPages%7CMicrosoft.AspNet.Razor%7Cbootstrap%7CAntlr%7CMicrosoft.AspNet.Mvc%7CNewtonsoft.Json%7CEntityFramework'&versions='" + version1 + "%7C" + version2 + "%7C1.0%7C1.0.0.0%7C1.0.0%7C1.0.0%7C1.0.0%7C1.1.1%7C1.2.0%7C1.5.2%7C1.10.2%7C1.11.1%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.6.2%7C3.0.0%7C3.0.0%7C3.0.0%7C3.0.0%7C3.4.1.9004%7C5.0.0%7C5.0.6%7C6.0.0'&includePrerelease=false&includeAllVersions=false&targetFrameworks='net45'&versionConstraints='%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C'");
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
-
-            // Verify at least one package is in the output.
-            Assert.IsTrue(responseText.Contains(@"<title type=""text"">NuGetGallery.FunctionalTests.ODataTests.GetUpdates1052RegressionTest</title>"));
-            Assert.IsTrue(responseText.Contains(@"<d:Version>" + version2 + "</d:Version><d:NormalizedVersion>" + version2 + "</d:NormalizedVersion>"));
+            string url = UrlHelper.V2FeedRootUrl + @"/GetUpdates()?packageIds='NuGetGallery.FunctionalTests.ODataTests.GetUpdates1052RegressionTest%7CNuGetGallery.FunctionalTests.ODataTests.GetUpdates1052RegressionTest%7COwin%7CMicrosoft.Web.Infrastructure%7CMicrosoft.AspNet.Identity.Core%7CMicrosoft.AspNet.Identity.EntityFramework%7CMicrosoft.AspNet.Identity.Owin%7CMicrosoft.AspNet.Web.Optimization%7CRespond%7CWebGrease%7CjQuery%7CjQuery.Validation%7CMicrosoft.Owin.Security.Twitter%7CMicrosoft.Owin.Security.OAuth%7CMicrosoft.Owin.Security.MicrosoftAccount%7CMicrosoft.Owin.Security.Google%7CMicrosoft.Owin.Security.Facebook%7CMicrosoft.Owin.Security.Cookies%7CMicrosoft.Owin%7CMicrosoft.Owin.Host.SystemWeb%7CMicrosoft.Owin.Security%7CModernizr%7CMicrosoft.jQuery.Unobtrusive.Validation%7CMicrosoft.AspNet.WebPages%7CMicrosoft.AspNet.Razor%7Cbootstrap%7CAntlr%7CMicrosoft.AspNet.Mvc%7CNewtonsoft.Json%7CEntityFramework'&versions='" + version1 + "%7C" + version2 + "%7C1.0%7C1.0.0.0%7C1.0.0%7C1.0.0%7C1.0.0%7C1.1.1%7C1.2.0%7C1.5.2%7C1.10.2%7C1.11.1%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.6.2%7C3.0.0%7C3.0.0%7C3.0.0%7C3.0.0%7C3.4.1.9004%7C5.0.0%7C5.0.6%7C6.0.0'&includePrerelease=false&includeAllVersions=false&targetFrameworks='net45'&versionConstraints='%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C'";
+            string[] expectedTexts = new string[] { @"<title type=""text"">NuGetGallery.FunctionalTests.ODataTests.GetUpdates1052RegressionTest</title>", @"<d:Version>" + version2 + "</d:Version><d:NormalizedVersion>" + version2 + "</d:NormalizedVersion>" };
+            Assert.IsTrue(ContainsResponseText(url, expectedTexts));
         }
 
         /// <summary>
-        ///     Regression test for #1199
+        /// Regression test for #1199
         /// </summary>
         [TestMethod]
         public void GetUpdates1199RegressionTest()
@@ -107,42 +71,14 @@ namespace NuGetGallery.FunctionalTests.ODataTests
             string standardError = string.Empty;
             string package1Location = PackageCreationHelper.CreatePackageWithTargetFramework(packageName, version1, "net45");
             int exitCode = CmdLineHelper.UploadPackage(package1Location, UrlHelper.V2FeedPushSourceUrl, out standardOutput, out standardError);
-            Assert.IsTrue((exitCode == 0), "The package upload via Nuget.exe didnt suceed properly. Check the logs to see the process error and output stream.  Exit Code: " + exitCode + ". Error message: \"" + standardError + "\"");
+            Assert.IsTrue((exitCode == 0), Constants.UploadFailureMessage + "Exit Code: " + exitCode + ". Error message: \"" + standardError + "\"");
             string package2Location = PackageCreationHelper.CreatePackageWithTargetFramework(packageName, version2, "net40");
             exitCode = CmdLineHelper.UploadPackage(package2Location, UrlHelper.V2FeedPushSourceUrl, out standardOutput, out standardError);
-            Assert.IsTrue((exitCode == 0), "The package upload via Nuget.exe didnt suceed properly. Check the logs to see the process error and output stream.  Exit Code: " + exitCode + ". Error message: \"" + standardError + "\"");
+            Assert.IsTrue((exitCode == 0), Constants.UploadFailureMessage + "Exit Code: " + exitCode + ". Error message: \"" + standardError + "\"");
             
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/GetUpdates()?packageIds='NuGetGallery.FunctionalTests.ODataTests.GetUpdates1199RegressionTest%7COwin%7CMicrosoft.Web.Infrastructure%7CMicrosoft.AspNet.Identity.Core%7CMicrosoft.AspNet.Identity.EntityFramework%7CMicrosoft.AspNet.Identity.Owin%7CMicrosoft.AspNet.Web.Optimization%7CRespond%7CWebGrease%7CjQuery%7CjQuery.Validation%7CMicrosoft.Owin.Security.Twitter%7CMicrosoft.Owin.Security.OAuth%7CMicrosoft.Owin.Security.MicrosoftAccount%7CMicrosoft.Owin.Security.Google%7CMicrosoft.Owin.Security.Facebook%7CMicrosoft.Owin.Security.Cookies%7CMicrosoft.Owin%7CMicrosoft.Owin.Host.SystemWeb%7CMicrosoft.Owin.Security%7CModernizr%7CMicrosoft.jQuery.Unobtrusive.Validation%7CMicrosoft.AspNet.WebPages%7CMicrosoft.AspNet.Razor%7Cbootstrap%7CAntlr%7CMicrosoft.AspNet.Mvc%7CNewtonsoft.Json%7CEntityFramework'&versions='" + version1 + "%7C1.0%7C1.0.0.0%7C1.0.0%7C1.0.0%7C1.0.0%7C1.1.1%7C1.2.0%7C1.5.2%7C1.10.2%7C1.11.1%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.6.2%7C3.0.0%7C3.0.0%7C3.0.0%7C3.0.0%7C3.4.1.9004%7C5.0.0%7C5.0.6%7C6.0.0'&includePrerelease=false&includeAllVersions=false&targetFrameworks='net45'&versionConstraints='%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C'");
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
-
-            // Verify at least one package is in the output.
-            Assert.IsTrue(responseText.Contains(@"<title type=""text"">NuGetGallery.FunctionalTests.ODataTests.GetUpdates1199RegressionTest</title>"));
-            Assert.IsTrue(responseText.Contains(@"<d:Version>" + version2 + "</d:Version><d:NormalizedVersion>" + version2 + "</d:NormalizedVersion>"));
-        }
-
-        [TestMethod]
-        public void GetUpdatesTest()
-        {
-            // Use the same package name, but force the version to be unique.
-            string packageName = "NuGetGallery.FunctionalTests.Fluent.GetUpdatesTest";
-            string ticks = DateTime.Now.Ticks.ToString();
-            string version1 = new System.Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
-            string version2 = new System.Version(Convert.ToInt32((ticks.Substring(0, 6)) + 1).ToString()  + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
-            AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version1);
-            AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version2);
-
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/GetUpdates()?packageIds='NuGetGallery.FunctionalTests.Fluent.GetUpdatesTest%7COwin%7CMicrosoft.Web.Infrastructure%7CMicrosoft.AspNet.Identity.Core%7CMicrosoft.AspNet.Identity.EntityFramework%7CMicrosoft.AspNet.Identity.Owin%7CMicrosoft.AspNet.Web.Optimization%7CRespond%7CWebGrease%7CjQuery%7CjQuery.Validation%7CMicrosoft.Owin.Security.Twitter%7CMicrosoft.Owin.Security.OAuth%7CMicrosoft.Owin.Security.MicrosoftAccount%7CMicrosoft.Owin.Security.Google%7CMicrosoft.Owin.Security.Facebook%7CMicrosoft.Owin.Security.Cookies%7CMicrosoft.Owin%7CMicrosoft.Owin.Host.SystemWeb%7CMicrosoft.Owin.Security%7CModernizr%7CMicrosoft.jQuery.Unobtrusive.Validation%7CMicrosoft.AspNet.WebPages%7CMicrosoft.AspNet.Razor%7Cbootstrap%7CAntlr%7CMicrosoft.AspNet.Mvc%7CNewtonsoft.Json%7CEntityFramework'&versions='" + version1 + "%7C1.0%7C1.0.0.0%7C1.0.0%7C1.0.0%7C1.0.0%7C1.1.1%7C1.2.0%7C1.5.2%7C1.10.2%7C1.11.1%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.6.2%7C3.0.0%7C3.0.0%7C3.0.0%7C3.0.0%7C3.4.1.9004%7C5.0.0%7C5.0.6%7C6.0.0'&includePrerelease=false&includeAllVersions=false&targetFrameworks='net45'&versionConstraints='%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C'");
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
-
-            // Verify version 2 is in the output.
-            Assert.IsTrue(responseText.Contains(@"<title type=""text"">NuGetGallery.FunctionalTests.Fluent.GetUpdatesTest</title>"));
-            Assert.IsTrue(responseText.Contains(@"<d:Version>" + version2 + "</d:Version><d:NormalizedVersion>" + version2 + "</d:NormalizedVersion>"));
+            string url = UrlHelper.V2FeedRootUrl + @"/GetUpdates()?packageIds='NuGetGallery.FunctionalTests.ODataTests.GetUpdates1199RegressionTest%7COwin%7CMicrosoft.Web.Infrastructure%7CMicrosoft.AspNet.Identity.Core%7CMicrosoft.AspNet.Identity.EntityFramework%7CMicrosoft.AspNet.Identity.Owin%7CMicrosoft.AspNet.Web.Optimization%7CRespond%7CWebGrease%7CjQuery%7CjQuery.Validation%7CMicrosoft.Owin.Security.Twitter%7CMicrosoft.Owin.Security.OAuth%7CMicrosoft.Owin.Security.MicrosoftAccount%7CMicrosoft.Owin.Security.Google%7CMicrosoft.Owin.Security.Facebook%7CMicrosoft.Owin.Security.Cookies%7CMicrosoft.Owin%7CMicrosoft.Owin.Host.SystemWeb%7CMicrosoft.Owin.Security%7CModernizr%7CMicrosoft.jQuery.Unobtrusive.Validation%7CMicrosoft.AspNet.WebPages%7CMicrosoft.AspNet.Razor%7Cbootstrap%7CAntlr%7CMicrosoft.AspNet.Mvc%7CNewtonsoft.Json%7CEntityFramework'&versions='" + version1 + "%7C1.0%7C1.0.0.0%7C1.0.0%7C1.0.0%7C1.0.0%7C1.1.1%7C1.2.0%7C1.5.2%7C1.10.2%7C1.11.1%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.6.2%7C3.0.0%7C3.0.0%7C3.0.0%7C3.0.0%7C3.4.1.9004%7C5.0.0%7C5.0.6%7C6.0.0'&includePrerelease=false&includeAllVersions=false&targetFrameworks='net45'&versionConstraints='%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C'";
+            string[] expectedTexts = new string[] { @"<title type=""text"">NuGetGallery.FunctionalTests.ODataTests.GetUpdates1199RegressionTest</title>", @"<d:Version>" + version2 + "</d:Version><d:NormalizedVersion>" + version2 + "</d:NormalizedVersion>" };
+            Assert.IsTrue(ContainsResponseText(url, expectedTexts));
         }
 
         /// <summary>
@@ -174,8 +110,6 @@ namespace NuGetGallery.FunctionalTests.ODataTests
                         i--;
                     }
                 }
-
-
             }
 
             request = WebRequest.Create(UrlHelper.BaseUrl + @"stats/packageversions");
@@ -196,7 +130,7 @@ namespace NuGetGallery.FunctionalTests.ODataTests
         ///     Double-checks whether expected fields exist in the packages feed.
         /// </summary>
         [TestMethod]
-        public void PackageFeedSanityTest()
+        public void PackageFeedStatsSanityTest()
         {
             WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");
             // Get the response.          
