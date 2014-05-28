@@ -984,12 +984,10 @@ fieldset.form {
 .field-hint-message,
 .field-validation-error {
     font-size: 1em;
-    left: 440px;
     line-height: 1.2em;
     padding: 5px;
-    position: absolute;
-    top: 30px;
-    width: 400px;
+    margin-top: 5px;
+    width: 416px;
     z-index: 550;
 }
 
