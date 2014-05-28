@@ -11,7 +11,6 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
     /// <summary>
     /// Checks if the basic operations against V2 Feed works fine.
     /// </summary>
-    [TestClass]
     public partial class V2FeedTest : GalleryTestBase
     {
         [TestMethod]
