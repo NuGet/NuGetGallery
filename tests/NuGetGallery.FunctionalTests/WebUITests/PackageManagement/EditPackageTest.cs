@@ -1,14 +1,13 @@
-﻿namespace NuGetGallery.FunctionalTests
-{
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Microsoft.VisualStudio.TestTools.WebTesting;
-    using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
-    using NuGetGallery.FunctionalTests.TestBase;
-    using NuGetGallery.FunctionTests.Helpers;
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.WebTesting;
+using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
+using NuGetGallery.FunctionalTests.Helpers;
+using NuGetGallery.FunctionTests.Helpers;
+using System;
+using System.Collections.Generic;
 
+namespace NuGetGallery.FunctionalTests
+{
     /// <summary>
     /// Uploads a new package to gallery. Unlists the package and checks if the unlisted message shows up.
     /// Also checks if it doesn't show up in search results and NuGet.Core returns it as unlisted.

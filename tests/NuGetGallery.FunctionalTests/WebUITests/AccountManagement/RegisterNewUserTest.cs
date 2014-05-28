@@ -1,13 +1,12 @@
-﻿namespace NuGetGallery.FunctionalTests
-{
-    using Microsoft.VisualStudio.TestTools.WebTesting;
-    using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
-    using NuGetGallery.FunctionTests.Helpers;
-    using NuGetGallery.FunctionalTests.TestBase;
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
+﻿using Microsoft.VisualStudio.TestTools.WebTesting;
+using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
+using NuGetGallery.FunctionalTests.Helpers;
+using NuGetGallery.FunctionTests.Helpers;
+using System;
+using System.Collections.Generic;
 
+namespace NuGetGallery.FunctionalTests
+{
     /// <summary>
     /// Sends http POST request to register a new user and checks that a pending confirmation page is shown as response.
     /// </summary>

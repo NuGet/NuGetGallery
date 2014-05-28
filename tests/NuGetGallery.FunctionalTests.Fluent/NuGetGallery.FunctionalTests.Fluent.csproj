@@ -75,29 +75,29 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="1826RegressionTest.cs" />
-    <Compile Include="ContactEmailTest.cs" />
-    <Compile Include="CSExtensionTest.cs" />
-    <Compile Include="EditAndSearchTest.cs" />
-    <Compile Include="ErrorPageTest.cs" />
+    <Compile Include="UploadAndDownload\1826RegressionTest.cs" />
+    <Compile Include="AccountManagement\ContactEmailTest.cs" />
+    <Compile Include="BasicPages\CSExtensionTest.cs" />
+    <Compile Include="EditableMetadata\EditAndSearchTest.cs" />
+    <Compile Include="BasicPages\ErrorPageTest.cs" />
     <Compile Include="ExtensionMethods.cs" />
-    <Compile Include="EditPackageAsPartOfUploadTest.cs" />
-    <Compile Include="EditPackageTest.cs" />
-    <Compile Include="LanguageNameSearchTest.cs" />
-    <Compile Include="LicenseReportUITest.cs" />
-    <Compile Include="LogonTest.cs" />
-    <Compile Include="MinClientVersionFromUITest.cs" />
+    <Compile Include="EditableMetadata\EditPackageAsPartOfUploadTest.cs" />
+    <Compile Include="EditableMetadata\EditPackageTest.cs" />
+    <Compile Include="FeedTests\LanguageNameSearchTest.cs" />
+    <Compile Include="BasicPages\LicenseReportUITest.cs" />
+    <Compile Include="AccountManagement\LogonTest.cs" />
+    <Compile Include="BasicPages\MinClientVersionFromUITest.cs" />
     <Compile Include="NuGetFluentTest.cs" />
-    <Compile Include="PackageManagementTest.cs" />
-    <Compile Include="PackageStatsTest.cs" />
+    <Compile Include="PackageManagement\PackageManagementTest.cs" />
+    <Compile Include="Statistics\PackageStatsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ResendConfirmationTest.cs" />
-    <Compile Include="SearchSyntaxTest.cs" />
-    <Compile Include="SearchUITest.cs" />
-    <Compile Include="StatisticsPageTest.cs" />
-    <Compile Include="StatsInHomePageTest.cs" />
-    <Compile Include="TagSearchTest.cs" />
-    <Compile Include="VersionNormalizationTest.cs" />
+    <Compile Include="AccountManagement\ResendConfirmationTest.cs" />
+    <Compile Include="FeedTests\SearchSyntaxTest.cs" />
+    <Compile Include="FeedTests\SearchUITest.cs" />
+    <Compile Include="Statistics\StatisticsPageTest.cs" />
+    <Compile Include="Statistics\StatsInHomePageTest.cs" />
+    <Compile Include="FeedTests\TagSearchTest.cs" />
+    <Compile Include="FeedTests\VersionNormalizationTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

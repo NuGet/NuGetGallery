@@ -1,14 +1,13 @@
-﻿
+﻿using Microsoft.VisualStudio.TestTools.WebTesting;
+using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
+using NuGetGallery.FunctionalTests.Helpers;
+using NuGetGallery.FunctionTests.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Web.UI;
+
 namespace NuGetGallery.FunctionalTests
 {
-    using Microsoft.VisualStudio.TestTools.WebTesting;
-    using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
-    using NuGetGallery.FunctionTests.Helpers;
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using System.Web.UI;
-
     /// <summary>
     /// Tries to hit upload package page without logging in and checks if the log on form is displayed in the response.
     /// </summary>

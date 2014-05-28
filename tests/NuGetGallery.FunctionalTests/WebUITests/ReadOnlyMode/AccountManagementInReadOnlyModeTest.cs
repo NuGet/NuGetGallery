@@ -1,12 +1,12 @@
-﻿namespace NuGetGallery.FunctionalTests
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using Microsoft.VisualStudio.TestTools.WebTesting;
-    using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
-    using NuGetGallery.FunctionTests.Helpers;
+﻿using Microsoft.VisualStudio.TestTools.WebTesting;
+using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
+using NuGetGallery.FunctionalTests.Helpers;
+using NuGetGallery.FunctionTests.Helpers;
+using System;
+using System.Collections.Generic;
 
+namespace NuGetGallery.FunctionalTests
+{
     /// <summary>
     /// Go Account management activities like "Unsunscribe" notications and "Reset" Api key in read-only mode and check for error.
     /// </summary>

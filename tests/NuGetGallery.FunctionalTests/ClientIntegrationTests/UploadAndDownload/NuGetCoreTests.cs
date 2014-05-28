@@ -1,5 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NuGetGallery.FunctionalTests.Helpers;
 using NuGetGallery.FunctionalTests.TestBase;
+using NuGetGallery.FunctionTests.Helpers;
 
 namespace NuGetGallery.FunctionalTests
 {
