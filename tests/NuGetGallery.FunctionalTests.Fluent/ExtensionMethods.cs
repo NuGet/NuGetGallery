@@ -1,19 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net; 
+﻿using FluentAutomation.Interfaces;
 using NuGetGallery.FunctionTests.Helpers;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAutomation;
-using FluentAutomation.Interfaces;
+using System;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
     public static class ExtensionMethods  
     {
-
         public static void LogOn(this INativeActionSyntaxProvider I, string userName, string password)
         {
             I.Open(UrlHelper.BaseUrl + "users/account/LogOn");
@@ -45,6 +37,5 @@ namespace NuGetGallery.FunctionalTests.Fluent
             I.Wait(5);
             I.Click("input[value='Upload']");
         }
-
     }
 }

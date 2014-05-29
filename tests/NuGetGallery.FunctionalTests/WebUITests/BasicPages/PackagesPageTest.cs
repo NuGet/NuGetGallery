@@ -1,14 +1,12 @@
-﻿
+﻿using Microsoft.VisualStudio.TestTools.WebTesting;
+using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
+using NuGetGallery.FunctionalTests.Helpers;
+using NuGetGallery.FunctionTests.Helpers;
+using System;
+using System.Collections.Generic;
+
 namespace NuGetGallery.FunctionalTests
 {
-    using Microsoft.VisualStudio.TestTools.WebTesting;
-    using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
-    using NuGetGallery.FunctionTests.Helpers;
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using System.Web.UI;
-
     /// <summary>
     /// Sends http request to individual package pages and checks the response for appropriate title and download count.
     /// </summary>

@@ -1,11 +1,9 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.TestTools.WebTesting;
+﻿using Microsoft.VisualStudio.TestTools.WebTesting;
 using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
-using NuGetGallery.FunctionalTests.TestBase;
+using NuGetGallery.FunctionalTests.Helpers;
 using NuGetGallery.FunctionTests.Helpers;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace NuGetGallery.FunctionalTests.WebUITests.PackageManagement
 {

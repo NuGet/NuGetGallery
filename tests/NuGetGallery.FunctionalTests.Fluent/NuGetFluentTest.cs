@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using FluentAutomation;
+using NuGetGallery.FunctionalTests.Helpers;
 using NuGetGallery.FunctionTests.Helpers;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAutomation;
-
+using System;
+using System.Net;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {

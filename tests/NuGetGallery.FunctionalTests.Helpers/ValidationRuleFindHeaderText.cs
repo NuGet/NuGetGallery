@@ -1,11 +1,11 @@
 ﻿using Microsoft.VisualStudio.TestTools.WebTesting;
 
-namespace NuGetGallery.FunctionTests.Helpers
+namespace NuGetGallery.FunctionalTests.Helpers
 {
     /// <summary>
     ///     Validation rule for matching text in response headers.
     /// </summary>
-    class ValidationRuleFindHeaderText : ValidationRule
+    public class ValidationRuleFindHeaderText : ValidationRule
     {
         public ValidationRuleFindHeaderText()
         {

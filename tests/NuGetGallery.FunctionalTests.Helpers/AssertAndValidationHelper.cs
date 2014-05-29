@@ -1,16 +1,12 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.WebTesting;
 using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
+using NuGet;
 using NuGetGallery.FunctionTests.Helpers;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.IO;
-using System.Text;
-using System.Threading.Tasks;
-using NuGet;
 
-namespace NuGetGallery.FunctionalTests
+namespace NuGetGallery.FunctionalTests.Helpers
 {
     public class AssertAndValidationHelper
     {
@@ -117,8 +113,8 @@ namespace NuGetGallery.FunctionalTests
             logonRequestFormPostBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
             logonRequestFormPostBody.FormPostParameters.Add("ReturnUrl", "/");
             logonRequestFormPostBody.FormPostParameters.Add("LinkingAccount", "false");
-            logonRequestFormPostBody.FormPostParameters.Add(Constants.UserNameOrEmailFormField, EnvironmentSettings.TestAccountName);
-            logonRequestFormPostBody.FormPostParameters.Add(Constants.PasswordFormField, EnvironmentSettings.TestAccountPassword);
+            logonRequestFormPostBody.FormPostParameters.Add(NuGetGallery.FunctionTests.Helpers.Constants.UserNameOrEmailFormField, EnvironmentSettings.TestAccountName);
+            logonRequestFormPostBody.FormPostParameters.Add(NuGetGallery.FunctionTests.Helpers.Constants.PasswordFormField, EnvironmentSettings.TestAccountPassword);
             logonPostRequest.Body = logonRequestFormPostBody;
             return logonPostRequest;
         }
@@ -241,7 +237,7 @@ namespace NuGetGallery.FunctionalTests
 
         #endregion AssertMethods
 
-        internal static WebTestRequest GetCancelGetRequest()
+        public static WebTestRequest GetCancelGetRequest()
         {
             return GetHttpRequestForUrl(UrlHelper.CancelUrl);
         }

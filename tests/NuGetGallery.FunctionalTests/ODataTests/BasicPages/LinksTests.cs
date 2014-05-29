@@ -14,24 +14,32 @@ namespace NuGetGallery.FunctionalTests.LinksTests
     public class LinksTests
     {
         [TestMethod]
+        [Description("Test all clickable links on the gallery's home page are returning 200")]
+        [Priority(0)]
         public void TestHomePageLinks()
         {
             TestLinksOnWebPagesUsingFluentLinkChecker(UrlHelper.BaseUrl);
         }
 
         [TestMethod]
+        [Description("Test all clickable links on the Packages page are returning 200")]
+        [Priority(0)]
         public void TestPackagesPageLinks()
         {
             TestLinksOnWebPagesUsingFluentLinkChecker(UrlHelper.PackagesPageUrl);
         }
 
         [TestMethod]
+        [Description("Test all clickable links on EntityFramework's package details page are returning 200")]
+        [Priority(0)]
         public void TestPackageDetailsPageLinks()
         {
             TestLinksOnWebPagesUsingFluentLinkChecker(UrlHelper.GetPackagePageUrl("EntityFramework"));
         }
 
         [TestMethod]
+        [Description("Test all clickable links on the statistics's home page are returning 200")]
+        [Priority(1)]
         public void TestStatisticsPageLinks()
         {
             TestLinksOnWebPagesUsingFluentLinkChecker(UrlHelper.StatsPageUrl);

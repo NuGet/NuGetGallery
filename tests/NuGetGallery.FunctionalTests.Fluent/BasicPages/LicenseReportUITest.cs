@@ -15,8 +15,18 @@ namespace NuGetGallery.FunctionalTests.Fluent
     [TestClass]
     public class LicenseReportUITest : NuGetFluentTest
     {
-        [Ignore()]
         [TestMethod]
+        public void LicenseReportUIForKnownVersionOfJquery()
+        {
+            // Navigate to the jquery package (version 2.0.3 )'s page. 
+            I.Open((UrlHelper.BaseUrl + @"packages/jQuery/2.0.3"));
+            // Expect license block on page.
+            I.Expect.Count(1).Of("div.block");
+            I.Expect.Text("License details").In("h3.block-title");
+            I.Expect.Count(1).Of("a[href='http://sonatype.com/']");
+            I.Expect.Text("MIT").In("p.licenseName");
+        }
+
         // This test involves a long process for Sonatype to process the License URLs and present it on the UI. Ignore it for now.
         public void LicenseReportUI()
         {
@@ -114,18 +124,6 @@ namespace NuGetGallery.FunctionalTests.Fluent
             I.Expect.Text("License information is not yet available").In("p.block-text");
             I.Expect.Count(0).Of("p.licenseName");
             I.Expect.Count(0).Of("#enableDisableLicenseReportButton");
-        }
-
-        [TestMethod]
-        public void LicenseReportUIForKnownVersionOfJquery()
-        {
-            // Navigate to the jquery package (version 2.0.3 )'s page. 
-            I.Open((UrlHelper.BaseUrl + @"packages/jQuery/2.0.3"));
-            // Expect license block on page.
-            I.Expect.Count(1).Of("div.block");
-            I.Expect.Text("License details").In("h3.block-title");
-            I.Expect.Count(1).Of("a[href='http://sonatype.com/']");
-            I.Expect.Text("MIT").In("p.licenseName");
         }
     }
 }

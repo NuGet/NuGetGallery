@@ -23,21 +23,11 @@ namespace NuGetGallery.FunctionalTests.Fluent
         {
             // Use the same package name, but force the version to be unique.
             string packageName = "NuGetGallery.FunctionalTests.Fluent.MinClientVersionFromUITest";
-            string ticks = DateTime.Now.Ticks.ToString();
-            string version = new System.Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
-            string newPackageLocation = PackageCreationHelper.CreatePackage(packageName, version, "2.7");
-
-            // Log on using the test account.
-            I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
-
-            // Navigate to the upload page. 
-            I.UploadPackageUsingUI(newPackageLocation);
-
-            // Submit on the validate upload page.
-            I.Click("input[value='Submit']");
+            string version = "1.0.0";
+            UploadPackageIfNecessary(packageName, version, "2.7", packageName, "minclientversion", "A package with a MinClientVersion set for testing purpose only");
 
             // Validate that the minclientversion is shown to the user on the package page.
-            I.Expect.Url(UrlHelper.BaseUrl + @"packages/" + packageName + "/" + version);
+            I.Open(UrlHelper.BaseUrl + @"packages/" + packageName + "/" + version);
             string expectedMinClientVersion = @"p:contains('Requires NuGet 2.7 or higher')";
 
             I.Expect.Count(1).Of(expectedMinClientVersion);

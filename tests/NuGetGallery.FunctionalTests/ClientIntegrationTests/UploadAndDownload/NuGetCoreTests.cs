@@ -1,5 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NuGetGallery.FunctionalTests.Helpers;
 using NuGetGallery.FunctionalTests.TestBase;
+using NuGetGallery.FunctionTests.Helpers;
 
 namespace NuGetGallery.FunctionalTests
 {
@@ -14,6 +16,5 @@ namespace NuGetGallery.FunctionalTests
             string packageId = Constants.TestPackageId; //try to down load a pre-defined test package - BaseTestPackage.            
             AssertAndValidationHelper.DownloadPackageAndVerify(packageId);
         }
-
     }
 }

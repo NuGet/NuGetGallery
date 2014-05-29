@@ -1,15 +1,12 @@
-﻿
+﻿using Microsoft.VisualStudio.TestTools.WebTesting;
+using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
+using NuGetGallery.FunctionalTests.Helpers;
+using NuGetGallery.FunctionTests.Helpers;
+using System;
+using System.Collections.Generic;
+
 namespace NuGetGallery.FunctionalTests
-{
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Microsoft.VisualStudio.TestTools.WebTesting;
-    using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
-    using NuGetGallery.FunctionalTests.TestBase;
-    using NuGetGallery.FunctionTests.Helpers;
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-   
+{   
     /// <summary>
     /// Uploads a new test package using Gallery UI. Validates that logon prompt appears to upload and checks that the package's home page opens post upload.
     /// </summary>
