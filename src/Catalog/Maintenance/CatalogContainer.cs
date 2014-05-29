@@ -14,8 +14,11 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         DateTime _timeStamp;
         Guid _commitId;
 
+        protected IDictionary<Uri, CatalogContainerItem> _items;
+
         public CatalogContainer(Uri resourceUri, Uri parent = null)
         {
+            _items = new Dictionary<Uri, CatalogContainerItem>();
             _resourceUri = resourceUri;
             _parent = parent;
         }
@@ -29,8 +32,6 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         {
             _commitId = commitId;
         }
-
-        protected abstract IDictionary<Uri, Tuple<Uri, IGraph, DateTime, Guid, int?>> GetItems();
 
         protected abstract Uri GetContainerType();
 
@@ -63,25 +64,25 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             INode itemPredicate = graph.CreateUriNode("catalog:item");
             INode countPredicate = graph.CreateUriNode("catalog:count");
 
-            foreach (KeyValuePair<Uri, Tuple<Uri, IGraph, DateTime, Guid, int?>> item in GetItems())
+            foreach (KeyValuePair<Uri, CatalogContainerItem> item in _items)
             {
                 INode itemNode = graph.CreateUriNode(item.Key);
 
                 graph.Assert(container, itemPredicate, itemNode);
-                graph.Assert(itemNode, rdfTypePredicate, graph.CreateUriNode(item.Value.Item1));
+                graph.Assert(itemNode, rdfTypePredicate, graph.CreateUriNode(item.Value.Type));
 
-                if (item.Value.Item2 != null)
+                if (item.Value.PageContent != null)
                 {
-                    graph.Merge(item.Value.Item2);
+                    graph.Merge(item.Value.PageContent);
                 }
 
-                graph.Assert(itemNode, timeStampPredicate, graph.CreateLiteralNode(item.Value.Item3.ToString(), dateTimeDatatype));
-                graph.Assert(itemNode, commitIdPredicate, graph.CreateLiteralNode(item.Value.Item4.ToString()));
+                graph.Assert(itemNode, timeStampPredicate, graph.CreateLiteralNode(item.Value.TimeStamp.ToString(), dateTimeDatatype));
+                graph.Assert(itemNode, commitIdPredicate, graph.CreateLiteralNode(item.Value.CommitId.ToString()));
 
-                if (item.Value.Item5 != null)
+                if (item.Value.Count != null)
                 {
                     Uri integerDatatype = new Uri("http://www.w3.org/2001/XMLSchema#integer");
-                    graph.Assert(itemNode, countPredicate, graph.CreateLiteralNode(item.Value.Item5.ToString(), integerDatatype));
+                    graph.Assert(itemNode, countPredicate, graph.CreateLiteralNode(item.Value.Count.ToString(), integerDatatype));
                 }
             }
 
@@ -96,7 +97,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         {
         }
 
-        protected static void Load(IDictionary<Uri, Tuple<Uri, IGraph, DateTime, Guid, int?>> items, string content)
+        protected static void Load(IDictionary<Uri, CatalogContainerItem> items, string content)
         {
             IGraph graph = Utils.CreateGraph(content);
 
@@ -163,7 +164,14 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                     count = int.Parse(((ILiteralNode)countTriple.Object).Value);
                 }
 
-                items.Add(itemUri, new Tuple<Uri, IGraph, DateTime, Guid, int?>(rdfType, pageContent, timeStamp, commitId, count));
+                items.Add(itemUri, new CatalogContainerItem
+                {
+                    Type = rdfType,
+                    PageContent = pageContent,
+                    TimeStamp = timeStamp,
+                    CommitId = commitId, 
+                    Count = count
+                });
             }
         }
     }
