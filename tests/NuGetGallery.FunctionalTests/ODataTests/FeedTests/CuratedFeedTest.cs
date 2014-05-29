@@ -12,6 +12,7 @@ namespace NuGetGallery.FunctionalTests.Features
     {
         [TestMethod]
         [Description("Performs a querystring-based search of the Microsoft curated feed. Confirms expected packages are returned.")]
+        [Priority(0)]
         public void SearchMicrosoftDotNetCuratedFeed()
         {
             string packageId = "microsoft.aspnet.webpages";
@@ -26,6 +27,7 @@ namespace NuGetGallery.FunctionalTests.Features
 
         [TestMethod]
         [Description("Performs a querystring-based search of the Windows 8 curated feed. Confirms expected packages are returned.")]
+        [Priority(0)]
         public void SearchWindows8CuratedFeed()
         {
             string packageName = "NuGetGallery.FunctionalTests.SearchWindows8CuratedFeed";
@@ -41,6 +43,7 @@ namespace NuGetGallery.FunctionalTests.Features
 
         [TestMethod]
         [Description("Performs a querystring-based search of the WebMatrix curated feed.  Confirms expected packages are returned.")]
+        [Priority(0)]
         public void SearchWebMatrixCuratedFeed()
         {
             string packageName = "NuGetGallery.FunctionalTests.SearchWebMatrixCuratedFeed";
@@ -56,6 +59,7 @@ namespace NuGetGallery.FunctionalTests.Features
 
         [TestMethod]
         [Description("Checks the MicrosoftDotNet curated feed for duplicate packages.")]
+        [Priority(1)]
         public void CheckMicrosoftDotNetCuratedFeedForDuplicates()
         {
             CheckCuratedFeedForDuplicates(FeedType.DotnetCuratedFeed); 
@@ -71,6 +75,7 @@ namespace NuGetGallery.FunctionalTests.Features
 
         [TestMethod]
         [Description("Checks the Windows8 curated feed for duplicate packages.")]
+        [Priority(1)]
         public void CheckWindows8CuratedFeedForDuplicates()
         {
             CheckCuratedFeedForDuplicates(FeedType.Windows8CuratedFeed);
@@ -78,6 +83,7 @@ namespace NuGetGallery.FunctionalTests.Features
 
         [TestMethod]
         [Description("Validates the microsoftdotnet feed, including the next page link")]
+        [Priority(1)]
         public void ValidateMicrosoftDotNetCuratedFeed()
         {
             WebRequest request = WebRequest.Create(GetCuratedFeedUrl(FeedType.DotnetCuratedFeed) + "Packages");

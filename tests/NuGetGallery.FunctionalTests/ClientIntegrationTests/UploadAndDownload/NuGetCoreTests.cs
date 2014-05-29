@@ -16,6 +16,5 @@ namespace NuGetGallery.FunctionalTests
             string packageId = Constants.TestPackageId; //try to down load a pre-defined test package - BaseTestPackage.            
             AssertAndValidationHelper.DownloadPackageAndVerify(packageId);
         }
-
     }
 }
