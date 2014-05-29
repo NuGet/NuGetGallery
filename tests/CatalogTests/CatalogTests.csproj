@@ -83,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuilderTests.cs" />
+    <Compile Include="CatalogTests.cs" />
     <Compile Include="CheckResults.cs" />
     <Compile Include="CollectorTests.cs" />
     <Compile Include="DeleteTests.cs" />
@@ -103,6 +104,9 @@
       <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Node\collect.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
