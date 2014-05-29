@@ -8,10 +8,16 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
     {
         DateTime _timeStamp;
         string _baseAddress;
+        Guid _commitId;
 
         public void SetTimeStamp(DateTime timeStamp)
         {
             _timeStamp = timeStamp;
+        }
+
+        public void SetCommitId(Guid commitId)
+        {
+            _commitId = commitId;
         }
 
         public void SetBaseAddress(string baseAddress)
@@ -38,6 +44,16 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         public string GetRelativeAddress()
         {
             return GetItemIdentity() + ".json";
+        }
+
+        protected DateTime GetTimeStamp()
+        {
+            return _timeStamp;
+        }
+
+        protected Guid GetCommitId()
+        {
+            return _commitId;
         }
 
         protected static string MakeTimeStampPathComponent(DateTime timeStamp)

@@ -32,7 +32,7 @@ namespace CatalogTests
 
                 //MakeTestData.Test0();
                 //BuilderTests.Test0();
-                //BuilderTests.Test1();
+                BuilderTests.Test1();
                 //BuilderTests.Test2();
                 //BuilderTests.Test3();
                 //BuilderTests.Test4();
@@ -52,7 +52,7 @@ namespace CatalogTests
 
                 //ExportTests.Test0();
                 //ExportTests.Test1();
-                ExportTests.Test2();
+                //ExportTests.Test2();
 
                 DateTime after = DateTime.Now;
 

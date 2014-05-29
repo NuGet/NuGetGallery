@@ -12,6 +12,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         Uri _resourceUri;
         Uri _parent;
         DateTime _timeStamp;
+        Guid _commitId;
 
         public CatalogContainer(Uri resourceUri, Uri parent = null)
         {
@@ -24,7 +25,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             _timeStamp = timeStamp;
         }
 
-        protected abstract IDictionary<Uri, Tuple<Uri, IGraph, DateTime, int?>> GetItems();
+        public void SetCommitId(Guid commitId)
+        {
+            _commitId = commitId;
+        }
+
+        protected abstract IDictionary<Uri, Tuple<Uri, IGraph, DateTime, Guid, int?>> GetItems();
 
         protected abstract Uri GetContainerType();
 
@@ -37,6 +43,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             INode rdfTypePredicate = graph.CreateUriNode("rdf:type");
             INode timeStampPredicate = graph.CreateUriNode("catalog:timeStamp");
+            INode commitIdPredicate = graph.CreateUriNode("catalog:commitId");
 
             Uri dateTimeDatatype = new Uri("http://www.w3.org/2001/XMLSchema#dateTime");
 
@@ -44,6 +51,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             graph.Assert(container, rdfTypePredicate, graph.CreateUriNode(GetContainerType()));
             graph.Assert(container, timeStampPredicate, graph.CreateLiteralNode(_timeStamp.ToString(), dateTimeDatatype));
+            graph.Assert(container, commitIdPredicate, graph.CreateLiteralNode(_commitId.ToString()));
 
             if (_parent != null)
             {
@@ -55,7 +63,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             INode itemPredicate = graph.CreateUriNode("catalog:item");
             INode countPredicate = graph.CreateUriNode("catalog:count");
 
-            foreach (KeyValuePair<Uri, Tuple<Uri, IGraph, DateTime, int?>> item in GetItems())
+            foreach (KeyValuePair<Uri, Tuple<Uri, IGraph, DateTime, Guid, int?>> item in GetItems())
             {
                 INode itemNode = graph.CreateUriNode(item.Key);
 
@@ -68,10 +76,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 }
 
                 graph.Assert(itemNode, timeStampPredicate, graph.CreateLiteralNode(item.Value.Item3.ToString(), dateTimeDatatype));
-                if (item.Value.Item4 != null)
+                graph.Assert(itemNode, commitIdPredicate, graph.CreateLiteralNode(item.Value.Item4.ToString()));
+
+                if (item.Value.Item5 != null)
                 {
                     Uri integerDatatype = new Uri("http://www.w3.org/2001/XMLSchema#integer");
-                    graph.Assert(itemNode, countPredicate, graph.CreateLiteralNode(item.Value.Item4.ToString(), integerDatatype));
+                    graph.Assert(itemNode, countPredicate, graph.CreateLiteralNode(item.Value.Item5.ToString(), integerDatatype));
                 }
             }
 
@@ -86,7 +96,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         {
         }
 
-        protected static void Load(IDictionary<Uri, Tuple<Uri, IGraph, DateTime, int?>> items, string content)
+        protected static void Load(IDictionary<Uri, Tuple<Uri, IGraph, DateTime, Guid, int?>> items, string content)
         {
             IGraph graph = Utils.CreateGraph(content);
 
@@ -95,6 +105,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             INode rdfTypePredicate = graph.CreateUriNode("rdf:type");
             INode itemPredicate = graph.CreateUriNode("catalog:item");
             INode timeStampPredicate = graph.CreateUriNode("catalog:timeStamp");
+            INode commitIdPredicate = graph.CreateUriNode("catalog:commitId");
             INode countPredicate = graph.CreateUriNode("catalog:count");
 
             foreach (Triple itemTriple in graph.GetTriplesWithPredicate(itemPredicate))
@@ -113,6 +124,10 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                         continue;
                     }
                     if (pageContentTriple.Predicate.Equals(timeStampPredicate))
+                    {
+                        continue;
+                    }
+                    if (pageContentTriple.Predicate.Equals(commitIdPredicate))
                     {
                         continue;
                     }
@@ -136,6 +151,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 Triple timeStampTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, timeStampPredicate).First();
                 DateTime timeStamp = DateTime.Parse(((ILiteralNode)timeStampTriple.Object).Value);
 
+                Triple commitIdTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, commitIdPredicate).First();
+                Guid commitId = Guid.Parse(((ILiteralNode)commitIdTriple.Object).Value);
+
                 IEnumerable<Triple> countTriples = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, countPredicate);
 
                 int? count = null;
@@ -145,7 +163,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                     count = int.Parse(((ILiteralNode)countTriple.Object).Value);
                 }
 
-                items.Add(itemUri, new Tuple<Uri, IGraph, DateTime, int?>(rdfType, pageContent, timeStamp, count));
+                items.Add(itemUri, new Tuple<Uri, IGraph, DateTime, Guid, int?>(rdfType, pageContent, timeStamp, commitId, count));
             }
         }
     }

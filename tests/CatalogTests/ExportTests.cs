@@ -18,11 +18,18 @@ namespace CatalogTests
 
             const int CatalogBatchSize = 1000;
             const int CatalogMaxPageSize = 1000;
-            Storage storage = new FileStorage
+            //Storage storage = new FileStorage
+            //{
+            //    Path = @"c:\data\site\export",
+            //    Container = "export",
+            //    BaseAddress = "http://localhost:8000/"
+            //};
+            Storage storage = new AzureStorage
             {
-                Path = @"c:\data\site\export",
+                AccountName = "nuget3",
+                AccountKey = "",
                 Container = "export",
-                BaseAddress = "http://localhost:8000/"
+                BaseAddress = "http://nuget3.blob.core.windows.net/"
             };
 
             CatalogWriter writer = new CatalogWriter(storage, new CatalogContext(), CatalogMaxPageSize);
@@ -31,7 +38,7 @@ namespace CatalogTests
 
             int lastHighestPackageKey = 0;
 
-            int count = 0;
+            //int count = 0;
 
             while (true)
             {
@@ -42,10 +49,10 @@ namespace CatalogTests
                     break;
                 }
 
-                if (count++ == 3)
-                {
-                    break;
-                }
+                //if (count++ == 3)
+                //{
+                //    break;
+                //}
 
                 Console.WriteLine("{0} {1}", range.Item1, range.Item2);
 

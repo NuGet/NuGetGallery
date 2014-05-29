@@ -24,7 +24,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
         public override StorageContent CreateContent(CatalogContext context)
         {
             string resourceUri = GetBaseAddress() + GetRelativeAddress();
-            JObject obj = CreateContent(resourceUri, _export);
+            JObject obj = CreateContent(resourceUri, _export, GetTimeStamp(), GetCommitId());
             JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
             obj.Add("@context", frame["@context"]);
 
@@ -60,7 +60,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             return _identity;
         }
 
-        static JObject CreateContent(string resourceUri, GalleryExportPackage export)
+        static JObject CreateContent(string resourceUri, GalleryExportPackage export, DateTime timeStamp, Guid commitId)
         {
             IDictionary<string, string> Lookup = new Dictionary<string, string>
             {
@@ -84,6 +84,15 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             obj.Add("url", resourceUri);
 
             obj.Add("@type", "Package");
+
+            obj.Add("http://nuget.org/catalog#commitId", commitId);
+
+            obj.Add("http://nuget.org/catalog#timeStamp", 
+                new JObject
+                { 
+                    { "@type", "http://www.w3.org/2001/XMLSchema#dateTime" },
+                    { "@value", timeStamp.ToString() }
+                });
 
             obj.Add("id", export.Id);
 

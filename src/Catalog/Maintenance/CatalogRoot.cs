@@ -9,7 +9,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     class CatalogRoot : CatalogContainer
     {
-        IDictionary<Uri, Tuple<Uri, IGraph, DateTime, int?>> _items;
+        IDictionary<Uri, Tuple<Uri, IGraph, DateTime, Guid, int?>> _items;
         IDictionary<string, string> _commitUserData;
         string _baseAddress;
         int _nextPageNumber;
@@ -20,7 +20,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         public CatalogRoot(Uri root, string content)
             : base(root)
         {
-            _items = new Dictionary<Uri, Tuple<Uri, IGraph, DateTime, int?>>();
+            _items = new Dictionary<Uri, Tuple<Uri, IGraph, DateTime, Guid, int?>>();
 
             _nextPageNumber = 0;
             if (content != null)
@@ -37,10 +37,10 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             _baseAddress = s.Substring(0, s.LastIndexOf('/') + 1);
         }
 
-        public Uri AddNextPage(DateTime timeStamp, int count)
+        public Uri AddNextPage(DateTime timeStamp, Guid commitId, int count)
         {
             Uri nextPageAddress = new Uri(_baseAddress + string.Format("page{0}.json", _nextPageNumber++));
-            _items.Add(nextPageAddress, new Tuple<Uri, IGraph, DateTime, int?>(Constants.CatalogPage, null, timeStamp, count));
+            _items.Add(nextPageAddress, new Tuple<Uri, IGraph, DateTime, Guid, int?>(Constants.CatalogPage, null, timeStamp, commitId, count));
             return nextPageAddress;
         }
 
@@ -49,9 +49,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return _latestUri == null ? null : new Tuple<Uri, int>(_latestUri, _latestCount);
         }
 
-        public void UpdatePage(Uri pageUri, DateTime timeStamp, int count)
+        public void UpdatePage(Uri pageUri, DateTime timeStamp, Guid commitId, int count)
         {
-            _items[pageUri] = new Tuple<Uri, IGraph, DateTime, int?>(Constants.CatalogPage, null, timeStamp, count);
+            _items[pageUri] = new Tuple<Uri, IGraph, DateTime, Guid, int?>(Constants.CatalogPage, null, timeStamp, commitId, count);
         }
 
         public void SetCommitUserData(IDictionary<string, string> commitUserData)
@@ -133,7 +133,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return Constants.CatalogRoot;
         }
 
-        protected override IDictionary<Uri, Tuple<Uri, IGraph, DateTime, int?>> GetItems()
+        protected override IDictionary<Uri, Tuple<Uri, IGraph, DateTime, Guid, int?>> GetItems()
         {
             return _items;
         }
@@ -144,7 +144,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             Uri latestUri = null;
             int latestCount = 0;
 
-            foreach (KeyValuePair<Uri, Tuple<Uri, IGraph, DateTime, int?>> item in _items)
+            foreach (KeyValuePair<Uri, Tuple<Uri, IGraph, DateTime, Guid, int?>> item in _items)
             {
                 string s = item.Key.ToString();
                 s = s.Substring(s.LastIndexOf('/') + 5);
@@ -155,7 +155,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 {
                     maxPageNumber = pageNumber;
                     latestUri = item.Key;
-                    latestCount = item.Value.Item4.Value;
+                    latestCount = item.Value.Item5.Value;
                 }
             }
 

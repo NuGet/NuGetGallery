@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
+using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Xsl;
@@ -18,6 +19,16 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             XDocument original = GetNuspec();
             XDocument nuspec = NormalizeNuspecNamespace(original, context.GetXslt("xslt.normalizeNuspecNamespace.xslt"));
             IGraph graph = CreateNuspecGraph(nuspec, GetBaseAddress(), context.GetXslt("xslt.nuspec.xslt"));
+
+            graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
+            graph.NamespaceMap.AddNamespace("catalog", new Uri("http://nuget.org/catalog#"));
+            INode rdfTypePredicate = graph.CreateUriNode("rdf:type");
+            INode timeStampPredicate = graph.CreateUriNode("catalog:timeStamp");
+            INode commitIdPredicate = graph.CreateUriNode("catalog:commitId");
+            Uri dateTimeDatatype = new Uri("http://www.w3.org/2001/XMLSchema#dateTime");
+            Triple resource = graph.GetTriplesWithPredicateObject(rdfTypePredicate, graph.CreateUriNode(GetItemType())).First();
+            graph.Assert(resource.Subject, timeStampPredicate, graph.CreateLiteralNode(GetTimeStamp().ToString(), dateTimeDatatype));
+            graph.Assert(resource.Subject, commitIdPredicate, graph.CreateLiteralNode(GetCommitId().ToString()));
 
             JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
 

@@ -49,6 +49,8 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public async Task Commit(DateTime timeStamp, IDictionary<string, string> commitUserData = null)
         {
+            Guid commitId = Guid.NewGuid();
+
             Check();
 
             if (_batch.Count == 0)
@@ -63,6 +65,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             foreach (CatalogItem item in _batch)
             {
                 item.SetTimeStamp(timeStamp);
+                item.SetCommitId(commitId);
                 item.SetBaseAddress(baseAddress);
 
                 Uri resourceUri = new Uri(item.GetBaseAddress() + item.GetRelativeAddress());
@@ -104,7 +107,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             Uri pageResourceUri;
             if (latestPage == null || latestPage.Item2 + pageItems.Count > MaxPageSize)
             {
-                pageResourceUri = root.AddNextPage(timeStamp, pageItems.Count);
+                pageResourceUri = root.AddNextPage(timeStamp, commitId, pageItems.Count);
                 page = new CatalogPage(pageResourceUri, rootResourceUri);
             }
             else
@@ -112,20 +115,22 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 pageResourceUri = latestPage.Item1;
                 string pageContent = await _storage.LoadString(pageResourceUri);
                 page = new CatalogPage(pageResourceUri, rootResourceUri, pageContent);
-                root.UpdatePage(pageResourceUri, timeStamp, latestPage.Item2 + pageItems.Count);
+                root.UpdatePage(pageResourceUri, timeStamp, commitId, latestPage.Item2 + pageItems.Count);
             }
 
             foreach (KeyValuePair<Uri, Tuple<Uri, IGraph>> pageItem in pageItems)
             {
-                page.Add(pageItem.Key, pageItem.Value.Item1, pageItem.Value.Item2, timeStamp);
+                page.Add(pageItem.Key, pageItem.Value.Item1, pageItem.Value.Item2, timeStamp, commitId);
             }
 
             page.SetTimeStamp(timeStamp);
+            page.SetCommitId(commitId);
 
             await _storage.Save(pageResourceUri, page.CreateContent(_context));
 
             root.SetCommitUserData(commitUserData);
             root.SetTimeStamp(timeStamp);
+            root.SetCommitId(commitId);
 
             await _storage.Save(rootResourceUri, root.CreateContent(_context));
 
