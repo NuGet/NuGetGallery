@@ -22,7 +22,7 @@
                 var newValue = event.target.value;
                 $('#IconUrl_Preview').remove();
                 if (newValue.trim().length) {
-                    $(target).after($('<img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="' + encodeURI(newValue) + '"></img>'))
+                    $(target).after($('<img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="' + encodeURI(newValue) + '" />'));
                 }
 
                 RunValidationForEvent(event);
@@ -38,6 +38,15 @@
                     }
                 };
 
+                PreventSubmitOnEnter = function (event) {
+                    var keycode = event.keyCode || event.which;
+                    if (keycode == 13) {
+                        event.preventDefault();
+                        return false;
+                    }
+                };
+
+                $("input[id=" + name + "]").keypress(PreventSubmitOnEnter);
                 $("input[id=" + name + "]").keyup(SetDataEditedFlag);
                 $("textarea[id=" + name + "]").keyup(SetDataEditedFlag);
                 $("select[id=" + name + "]").change(SetDataEditedFlag);
@@ -163,42 +172,41 @@
 
 @section SideColumn {
     @{
-        var isRootSelected = Model.Version == null;
         <nav id="edit-list">
             <h2>Editing</h2>
             <span class="edit-root">
                 @(Model.PackageId)
             </span>
             <ul id="packageVersions">
-            @foreach (var version in Model.PackageVersions)
-            {
-                var versionStr = version.Version;
-                var isSelected = string.Equals(Model.Version, versionStr, StringComparison.OrdinalIgnoreCase);
-                <li>
-                    <span class="@(isSelected ? "edit-tree-selected" : "edit-tree")">
-                        @if (isSelected)
-                        {
-                            <text>@(versionStr)</text>
-                        }
-                        else
-                        {
-                            <a href="@Url.EditPackage(Model.PackageId, versionStr)" >@(versionStr)</a>
-                        }
-                        @if (!version.Listed)
-                        {
-                            <text>(unlisted)</text>
-                        }
-                        @if (version.IsLatest)
-                        {
-                            <text>(latest)</text>
-                        }
-                        else if (version.IsLatestStable)
-                        {
-                            <text>(latest stable)</text>
-                        }
-                    </span>
-                </li>
-            }
+                @foreach (var version in Model.PackageVersions)
+                {
+                    var versionStr = version.Version;
+                    var isSelected = string.Equals(Model.Version, versionStr, StringComparison.OrdinalIgnoreCase);
+                    <li>
+                        <span class="@(isSelected ? "edit-tree-selected" : "edit-tree")">
+                            @if (isSelected)
+                            {
+                                <text>@(versionStr)</text>
+                            }
+                            else
+                            {
+                                <a href="@Url.EditPackage(Model.PackageId, versionStr)">@(versionStr)</a>
+                            }
+                            @if (!version.Listed)
+                            {
+                                <text>(unlisted)</text>
+                            }
+                            @if (version.IsLatest)
+                            {
+                                <text>(latest)</text>
+                            }
+                            else if (version.IsLatestStable)
+                            {
+                                <text>(latest stable)</text>
+                            }
+                        </span>
+                    </li>
+                }
             </ul>
         </nav>
     }
@@ -208,9 +216,8 @@
 {
     var formid = ExpressionHelper.GetExpressionText(func).Replace(".", "_");
     object temp = func.Compile().Invoke(Model);
-    string value = temp == null ? null : temp.ToString();
     <div class="form-field">
-        <div style="display: block" >
+        <div style="display: block">
             @Html.LabelFor(func, new { style = "display: inline-block" })
             <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo" title="Undo Edit"></span></button>
         </div>
@@ -221,57 +228,61 @@
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "EditForm" }))
 {
-    <fieldset class="form" >
+    <fieldset class="form">
         <legend>Edit @(Model.PackageId) @(Model.Version)</legend>
 
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true)
 
         <ul style="border-bottom: 1px solid gray; margin-bottom: 1em;">
-        @if (Model.Edit != null)
-        {
-            <li>@EditableField(EditPackageVersionRequest.TitleStr, m => m.Edit.VersionTitle)</li>
-            <li>@EditableField(EditPackageVersionRequest.DescriptionStr, m => m.Edit.Description, multiline: true)</li>
-            <li>@EditableField(EditPackageVersionRequest.SummaryStr, m => m.Edit.Summary, multiline: true)</li>
-            <li>@EditableField(EditPackageVersionRequest.IconUrlStr, m => m.Edit.IconUrl, link: true)</li>
-            <li>@EditableField(EditPackageVersionRequest.ProjectUrlStr, m => m.Edit.ProjectUrl, link: true)</li>
-            <li>@EditableField(EditPackageVersionRequest.AuthorsStr, m => m.Edit.Authors)</li>
-            <li>@EditableField(EditPackageVersionRequest.CopyrightStr, m => m.Edit.Copyright)</li>
-            <li>@EditableField(EditPackageVersionRequest.TagsStr, m => m.Edit.Tags)</li>
-            <li>@EditableField(EditPackageVersionRequest.ReleaseNotesStr, m => m.Edit.ReleaseNotes, multiline: true)</li>
-
-            if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
+            @if (Model.Edit != null)
             {
+                <li>@EditableField(EditPackageVersionRequest.TitleStr, m => m.Edit.VersionTitle)</li>
+                <li>@EditableField(EditPackageVersionRequest.DescriptionStr, m => m.Edit.Description, multiline: true)</li>
+                <li>@EditableField(EditPackageVersionRequest.SummaryStr, m => m.Edit.Summary, multiline: true)</li>
                 <li>
-                    <h4>@EditPackageVersionRequest.RequiresLicenseAcceptanceStr
-                        @{
-                            var formid2 = "Edit_RequiresLicenseAcceptance";
-                            <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
-                        }
-                    </h4>
-                    <div style="position: relative">
-                        <div id="Edit_RequiresLicenseAcceptanceField" style="width: 100%">
-                            <div class="form-field" style="display: inline">
-                                @Html.DropDownList("Edit.RequiresLicenseAcceptance", 
+                    @EditableField(EditPackageVersionRequest.IconUrlStr, m => m.Edit.IconUrl, link: true)
+                    @if (string.IsNullOrWhiteSpace(Model.Edit.IconUrl) == false)
+                    {
+                        <img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="@Model.Edit.IconUrl" />
+                    }
+                </li>
+                <li>@EditableField(EditPackageVersionRequest.ProjectUrlStr, m => m.Edit.ProjectUrl, link: true)</li>
+                <li>@EditableField(EditPackageVersionRequest.AuthorsStr, m => m.Edit.Authors)</li>
+                <li>@EditableField(EditPackageVersionRequest.CopyrightStr, m => m.Edit.Copyright)</li>
+                <li>@EditableField(EditPackageVersionRequest.TagsStr, m => m.Edit.Tags)</li>
+                <li>@EditableField(EditPackageVersionRequest.ReleaseNotesStr, m => m.Edit.ReleaseNotes, multiline: true)</li>
+
+                if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
+                {
+                    <li>
+                        <h4>
+                            @EditPackageVersionRequest.RequiresLicenseAcceptanceStr
+                            <button type="button" class="undo-button" id="UndoEdit_RequiresLicenseAcceptance" style="display: none"><span class="icon-undo"></span></button>
+                        </h4>
+                        <div style="position: relative">
+                            <div id="Edit_RequiresLicenseAcceptanceField" style="width: 100%">
+                                <div class="form-field" style="display: inline">
+                                    @Html.DropDownList("Edit.RequiresLicenseAcceptance",
                                     new List<SelectListItem>
                                     {
                                         new SelectListItem { Text = "Yes", Value = "true" },
                                         new SelectListItem { Text = "No", Value = "false" },
                                     })
-                                @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+                                    @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </li>
+                    </li>
+                }
             }
-        }
         </ul>
         <input type="submit" value="Save" title="Save Changes" />
         <a class="cancel" href="@Url.Package(Model.PackageId, Model.Version)" title="Cancel Changes and go back to package page.">Cancel</a>
 
         <h3>Note:</h3>
         <p>
-            To edit package dependencies, target frameworks, or license URL, you must upload a new version of the package. 
+            To edit package dependencies, target frameworks, or license URL, you must upload a new version of the package.
             Edits to package Icon, Title, and Summary may take a while to be shown in package search results.
         </p>
     </fieldset>
@@ -279,6 +290,6 @@
 
 <div id="navigate-away-dialog" title="Save Changes?" style="display: none">
     <p>
-    You are about to view a different page but your changes are not yet saved. Do you wish to save your changes?
+        You are about to view a different page but your changes are not yet saved. Do you wish to save your changes?
     </p>
 </div>
