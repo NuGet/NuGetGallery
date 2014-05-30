@@ -2,26 +2,34 @@
 
 We welcome contributions to the NuGet Gallery! However, we do have a few suggestions for making sure we can integrate your code in the cleanest possible way.
 
+## Choosing something to work on
+We love contributions, but please remember that we have to maintain all the code we accept. Sometimes we'll decide that a feature or other change is not in our primary goals and will decline the request. This doesn't mean we don't like it! We just don't think it fits well in our plan for the main gallery. Feel free to disagree with us and start a conversation!
+
+Similarly, if you submit a giant Pull Request modifying a bunch of different files without any warning or discussion in advance, we will probably decline it. If you want to take on a big task, give us a heads-up first by commenting on the relevant issue (if there isn't one, create one first). We'll let you know how we feel about it so you know before you write your code.
+
+Finally, don't be afraid to fork! If you need a feature for your own deployment of the Gallery, don't hesitate to maintain a fork.
+
+### Up For Grabs
+A lot of the issues that arise in our tracker are things we'd like to do and would be happy to maintain, but just don't have the resources to devote to building. We place those in the [Up For Grabs](https://github.com/NuGet/NuGetGallery/issues?milestone=13&page=1&state=open) milestone in our issue tracker. Feel free to grab any of those issues and start working on them (though again, a quick comment indicating you're going to work on it is always appreciated).
+
 ## Getting Started
-1. Make sure there is an issue in the [Issue Tracker](https://github.com/NuGet/NuGetGallery/issues) for the feature or bug you want to fix. If not, create one! 
+1. Make sure there is an issue in the [Issue Tracker](https://github.com/NuGet/NuGetGallery/issues) for the feature or bug you want to fix. If not, create one!
   * **Pull Requests without an associated issue will not be accepted!**
 1. Create a fork in GitHub
-1. Create a branch off of the **iter-start** branch. Name it something which easily links it back to the issue. For example: "Bug-1234".
+1. Create a branch off of the **master** branch. Name it something which easily links it back to the issue. For example: "Bug-1234".
 1. Make your changes
-1. Send a Pull Request from your branch to the **master** branch. **NOTE:** This is not the same branch you created your topic branch from!
+1. Send a Pull Request from your branch to the **master** branch.
 
 If you mess up the branching or get confused, that's OK, we'd rather have your contribution than have you waste a lot of time figuring out our branches. However, using the right branches will help us immensely and will make it much easier for us to quickly accept your contribution!
 
-## Some tips
-* Please follow the code style of the rest of the gallery. When you can't figure out what the style for a particular aspect is, please bring that up in your PR and we'd be happy to advise you.
-* Please don't surprise us with big Pull Requests. If you have a feature you want to work on, file an Issue so we can discuss it.
-* Please DO grab things from the "Up For Grabs" milestone! Some of those things are small things we just don't have time to get to, but we'd be happy to take contributions. Think of it as a great way to get your feet wet :)
-* However, don't feel obligated to stick to stuff in "Up For Grabs". We're happy to accept well-written, maintainable, PRs for any Issue in the Backlog.
-* We have to dedicate resources to integrate and test your code, so it may take a while for us to integrate it. Feel free to ping the PR and nag us to take a look :)
-* All contributions must include Unit Tests. We're also building out our Functional Tests, so the more of those you provide, the more excited we'll be to accept your change :).
-* Contributed code must be free of compilation warnings, FxCop errors/warnings and Unit or Functional Test failures.
-  * Please try to run the Functional Tests. Instructions to do so will be posted on our Wiki. If you can't run them, that's OK, but please let us know.
-* Please remember that we will be maintaining the code you contribute, so there may be cases where we have to decline a feature because it doesn't make much sense in the main code. You are more than welcome to maintain a custom fork of the code for your use cases.
+## DOs and DON'Ts
+* **DO** follow the code style of the rest of the gallery. When you can't figure out what the style for a particular aspect is, please bring that up in your PR and we'd be happy to advise you.
+* **DON'T** surprise us with big Pull Requests. If you have a feature you want to work on, file an Issue so we can discuss it.
+* **DO** grab things from the "Up For Grabs" milestone! Some of those things are small things we just don't have time to get to, but we'd be happy to take contributions. Think of it as a great way to get your feet wet :)
+* **DO** remember that we have to dedicate resources to integrate and test your code, so it may take a while for us to integrate it. Feel free to ping the PR and nag us to take a look :)
+* **DO** include Unit Tests in your change. We're also building out our Functional Tests, so the more of those you provide, the more excited we'll be to accept your change :).
+* **DO** ensure your code is free of compilation warnings, FxCop errors/warnings and Unit or Functional Test failures.
+* **DO** remember that we will be maintaining the code you contribute, so there may be cases where we have to decline a feature because it doesn't make much sense in the main code. You are more than welcome to maintain a custom fork of the code for your use cases.
 
 ## Specific code style notes
 
