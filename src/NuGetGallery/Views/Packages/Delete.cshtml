@@ -43,22 +43,9 @@
     to the policies employed by other package managers such as 
     <a href="http://help.rubygems.org/kb/gemcutter/removing-a-published-rubygem">Ruby Gems</a>.</p>
 <p>
-    Unlisting the package will remove the package from 
-    being available in the NuGet. The package is still available for download as a dependency for 
-    three main reasons.
+    Unlisting the package will prevent users from finding it by searching the gallery and it will prevent the dependency resolver from discovering the package. 
+    However, the package will still be available for download through <a href="http://docs.nuget.org/docs/reference/package-restore">NuGet Package Restore</a> so that existing projects referencing the package don't become broken.
 </p>
-<ul>
-    <li>
-        Other packages may depend on that package. Those packages might not necessarily be in this gallery.
-    </li>
-    <li>
-        Ensures that folks <a href="http://docs.nuget.org/docs/workflows/using-nuget-without-committing-packages">using NuGet without committing packages (package restore)</a> 
-        will not be broken.
-    </li>
-    <li>
-        Helps ensure that important community owned packages are not mass deleted.
-    </li>
-</ul>
 <p>
     If you need the package permanently removed, click on the <a href="@Url.Action(actionName: "ReportAbuse", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Contact Support">Contact Support</a> link and we'll take care 
     of it for you. PLEASE ONLY DO THIS IF THERE IS AN URGENT PROBLEM WITH THE PACKAGE. 
