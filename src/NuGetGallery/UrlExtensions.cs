@@ -70,6 +70,17 @@ namespace NuGetGallery
             });
         }
 
+        public static string CuratedPackageList(this UrlHelper url, int page, string q, string curatedFeedName)
+        {
+            return url.Action("ListPackages", "CuratedFeeds", new
+            {
+                q,
+                page,
+                curatedFeedName
+            });
+
+        }
+
         public static string PackageList(this UrlHelper url)
         {
             return url.RouteUrl(RouteName.ListPackages);
