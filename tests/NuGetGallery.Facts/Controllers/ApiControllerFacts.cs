@@ -182,53 +182,6 @@ namespace NuGetGallery
                 controller.MockPackageService.Verify(x => x.CreatePackage(It.IsAny<INupkg>(), user, false));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
-
-            [Fact]
-            public void CreatePackageRefreshesNuGetExeIfCommandLinePackageIsUploaded()
-            {
-                // Arrange
-                var nuGetPackage = new Mock<INupkg>();
-                nuGetPackage.Setup(x => x.Metadata.Id).Returns("NuGet.CommandLine");
-                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
-                var user = new User() { EmailAddress = "confirmed@email.com" }; 
-                var controller = new TestableApiController();
-                var apiKey = Guid.NewGuid();
-                controller.MockPackageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), false))
-                          .Returns(new Package { IsLatestStable = true });
-                controller.MockNuGetExeDownloaderService.Setup(s => s.UpdateExecutableAsync(nuGetPackage.Object)).Verifiable();
-                controller.SetCurrentUser(user);
-                controller.SetupPackageFromInputStream(nuGetPackage);
-
-                // Act
-                controller.CreatePackagePut();
-
-                // Assert
-                controller.MockNuGetExeDownloaderService.Verify();
-            }
-
-            [Fact]
-            public void CreatePackageDoesNotRefreshNuGetExeIfItIsNotLatestStable()
-            {
-                // Arrange
-                var nuGetPackage = new Mock<INupkg>();
-                nuGetPackage.Setup(x => x.Metadata.Id).Returns("NuGet.CommandLine");
-                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("2.0.0-alpha"));
-                var user = new User() { EmailAddress = "confirmed@email.com" }; 
-                var controller = new TestableApiController();
-                var apiKey = Guid.NewGuid();
-                controller.MockPackageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), false))
-                          .Returns(new Package { IsLatest = true, IsLatestStable = false });
-                controller.MockNuGetExeDownloaderService.Setup(s => s.UpdateExecutableAsync(nuGetPackage.Object)).Verifiable();
-                controller.SetCurrentUser(user);
-                controller.SetupPackageFromInputStream(nuGetPackage);
-
-                // Act
-                controller.CreatePackagePut();
-
-                // Assert
-                controller.MockNuGetExeDownloaderService.Verify(s => s.UpdateExecutableAsync(It.IsAny<INupkg>()), Times.Never());
-                controller.MockEntitiesContext.VerifyCommitted();
-            }
         }
 
         public class TheDeletePackageAction

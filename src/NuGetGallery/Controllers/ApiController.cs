@@ -280,14 +280,6 @@ namespace NuGetGallery
                 {
                     await PackageFileService.SavePackageFileAsync(package, uploadStream);
                 }
-
-                if (
-                    packageToPush.Metadata.Id.Equals(Constants.NuGetCommandLinePackageId,
-                                                     StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
-                {
-                    // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
-                    await NugetExeDownloaderService.UpdateExecutableAsync(packageToPush);
-                }
             }
 
             return new HttpStatusCodeResult(HttpStatusCode.Created);

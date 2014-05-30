@@ -892,13 +892,6 @@ namespace NuGetGallery
 
                 // tell Lucene to update index for the new package
                 _indexingService.UpdateIndex();
-
-                // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
-                if (package.PackageRegistration.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) &&
-                    package.IsLatestStable)
-                {
-                    await _nugetExeDownloaderService.UpdateExecutableAsync(nugetPackage);
-                }
             }
 
             // delete the uploaded binary in the Uploads container
