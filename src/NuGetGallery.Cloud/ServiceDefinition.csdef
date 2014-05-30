@@ -22,6 +22,7 @@
       <Setting name="Gallery.HasWorker" />
       <Setting name="Gallery.SearchServiceUri" />
       <Setting name="Gallery.AutoUpdateSearchIndex" />
+      <Setting name="Gallery.CollectPerfLogs" />
       <Setting name="Auth.MicrosoftAccount.Enabled" />
       <Setting name="Auth.MicrosoftAccount.ClientId" />
       <Setting name="Auth.MicrosoftAccount.ClientSecret" />
