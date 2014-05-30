@@ -10,9 +10,11 @@ namespace NuGetGallery.FunctionalTests.ODataTests.Statistics
     public class PackageStatsTests
     {
         /// <summary>
-        ///     Double-checks whether expected fields exist in the packages feed.
+        /// Double-checks whether expected fields exist in the packages feed.
         /// </summary>
         [TestMethod]
+        [Description("Verify the webresponse for stats/downloads/last6weeks/ returns all 6 fields")]
+        [Priority(1)]
         public void PackageFeedStatsSanityTest()
         {
             WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");
@@ -32,9 +34,11 @@ namespace NuGetGallery.FunctionalTests.ODataTests.Statistics
         }
 
         /// <summary>
-        ///     Verify copunt querystring parameter in the Packages feed.
+        /// Verify copunt querystring parameter in the Packages feed.
         /// </summary>
         [TestMethod]
+        [Description("Verify the webresponse for stats/downloads/last6weeks/ contains the right amount of packages")]
+        [Priority(2)]
         public void PackageFeedCountParameterTest()
         {
             WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");

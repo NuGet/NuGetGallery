@@ -12,6 +12,8 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
     public partial class V2FeedTest : GalleryTestBase
     {       
         [TestMethod]
+        [Description("Upload two packages and then issue the FindPackagesById request, expect to return both versions")]
+        [Priority(0)]
         public void FindPackagesByIdTest()
         {
             string packageId = "TestV2FeedFindPackagesById" + "." + DateTime.Now.Ticks.ToString();
@@ -19,13 +21,15 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
             AssertAndValidationHelper.UploadNewPackageAndVerify(packageId, "2.0.0");
             string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'";
             string[] expectedTexts = new string[] { @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='1.0.0')</id>", @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='2.0.0')</id>" };
-            Assert.IsTrue(ContainsResponseText(url, expectedTexts));
+            Assert.IsTrue(ODataHelper.ContainsResponseText(url, expectedTexts));
         }
 
         /// <summary>
         /// Regression test for #1199, also covers #1052
         /// </summary>
         [TestMethod]
+        [Description("GetUpdates test, with updated package version having a different targetframework moniker")]
+        [Priority(1)]
         public void GetUpdates1199RegressionTest()
         {
             // Use the same package name, but force the version to be unique.
@@ -44,13 +48,15 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
             
             string url = UrlHelper.V2FeedRootUrl + @"/GetUpdates()?packageIds='NuGetGallery.FunctionalTests.ODataTests.GetUpdates1199RegressionTest%7COwin%7CMicrosoft.Web.Infrastructure%7CMicrosoft.AspNet.Identity.Core%7CMicrosoft.AspNet.Identity.EntityFramework%7CMicrosoft.AspNet.Identity.Owin%7CMicrosoft.AspNet.Web.Optimization%7CRespond%7CWebGrease%7CjQuery%7CjQuery.Validation%7CMicrosoft.Owin.Security.Twitter%7CMicrosoft.Owin.Security.OAuth%7CMicrosoft.Owin.Security.MicrosoftAccount%7CMicrosoft.Owin.Security.Google%7CMicrosoft.Owin.Security.Facebook%7CMicrosoft.Owin.Security.Cookies%7CMicrosoft.Owin%7CMicrosoft.Owin.Host.SystemWeb%7CMicrosoft.Owin.Security%7CModernizr%7CMicrosoft.jQuery.Unobtrusive.Validation%7CMicrosoft.AspNet.WebPages%7CMicrosoft.AspNet.Razor%7Cbootstrap%7CAntlr%7CMicrosoft.AspNet.Mvc%7CNewtonsoft.Json%7CEntityFramework'&versions='" + version1 + "%7C1.0%7C1.0.0.0%7C1.0.0%7C1.0.0%7C1.0.0%7C1.1.1%7C1.2.0%7C1.5.2%7C1.10.2%7C1.11.1%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.0.0%7C2.6.2%7C3.0.0%7C3.0.0%7C3.0.0%7C3.0.0%7C3.4.1.9004%7C5.0.0%7C5.0.6%7C6.0.0'&includePrerelease=false&includeAllVersions=false&targetFrameworks='net45'&versionConstraints='%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C'";
             string[] expectedTexts = new string[] { @"<title type=""text"">NuGetGallery.FunctionalTests.ODataTests.GetUpdates1199RegressionTest</title>", @"<d:Version>" + version2 + "</d:Version><d:NormalizedVersion>" + version2 + "</d:NormalizedVersion>" };
-            Assert.IsTrue(ContainsResponseText(url, expectedTexts));
+            Assert.IsTrue(ODataHelper.ContainsResponseText(url, expectedTexts));
         }
 
         /// <summary>
-        ///     Double-checks whether feed and stats page rankings are the same.
+        /// Double-checks whether feed and stats page rankings are the same.
         /// </summary>
         [TestMethod]
+        [Description("Verify the most downloaded package list returned by the feed is the same with that shown on the statistics page")]
+        [Priority(1)]
         public void PackageFeedSortingTest()
         {
             WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");

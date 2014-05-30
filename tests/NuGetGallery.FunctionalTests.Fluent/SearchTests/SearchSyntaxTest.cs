@@ -1,14 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionTests.Helpers;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAutomation;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
@@ -17,6 +8,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
     {
         [TestMethod]
         [Description("Provide sanity testing of Nuget site search syntax.")]
+        [Priority(2)]
         public void SearchSyntax()
         {
             // These words are obscure and unlikely to be used by another package.  

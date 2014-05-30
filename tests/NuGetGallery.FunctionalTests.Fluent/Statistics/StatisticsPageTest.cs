@@ -1,24 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionTests.Helpers;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAutomation;
+using System.IO;
+using System.Net;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
-
     [TestClass]
     public class StatisticsPageTest : NuGetFluentTest 
     {
-
         [TestMethod]
         [Description("Cross-check the contents of the Statistics page against the last6weeks API endpoint.")]
+        [Priority(2)]
         public void StatisticsPage()
         {
             // Request the last 6 weeks endpoint.

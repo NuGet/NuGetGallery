@@ -10,6 +10,7 @@ namespace NuGetGallery.FunctionalTests.Features
     {
         [TestMethod]
         [Description("Performs a querystring-based search of the v1 feed.  Confirms expected packages are returned.")]
+        [Priority(0)]
         public void SearchV1Feed()
         {
             SearchFeed(UrlHelper.V1FeedRootUrl, "ASP.NET Web Helpers Library");
@@ -17,6 +18,7 @@ namespace NuGetGallery.FunctionalTests.Features
 
         [TestMethod]
         [Description("Performs a querystring-based search of the default (non-curated) v2 feed.  Confirms expected packages are returned.")]
+        [Priority(0)]
         public void SearchV2Feed()
         {
             SearchFeed(UrlHelper.V2FeedRootUrl, "microsoft-web-helpers");
