@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionalTests.Helpers;
 using NuGetGallery.FunctionTests.Helpers;
+using System;
 using System.Net;
 
 namespace NuGetGallery.FunctionalTests.TestBase
@@ -15,7 +16,7 @@ namespace NuGetGallery.FunctionalTests.TestBase
 
         [AssemblyInitialize()]
         public static void AssemblyInit(TestContext context)
-        {         
+        {
             //Check if functional tests is enabled. If not, do an assert inconclusive.
 #if DEBUG
 #else
