@@ -316,7 +316,7 @@ namespace NuGetGallery
             }
             catch (EntityException e)
             {
-                ModelState.AddModelError("NewEmail", e.Message);
+                ModelState.AddModelError("ChangeEmail.NewEmail", e.Message);
                 return AccountView(model);
             }
 
