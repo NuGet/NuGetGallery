@@ -1,0 +1,99 @@
+﻿@{
+    ViewBag.Title = "About the Gallery";
+}
+
+<h2>About the Gallery</h2>
+
+<p>
+    The NuGet Gallery is <a href="http://opensource.org/">Open-Source Software</a> licensed under the
+    <a href="https://github.com/NuGet/NuGetGallery/blob/master/LICENSE">Apache 2 License</a>. This means
+    you can take the code, modify it and redistribute it freely, as long as you adhere to the terms of the license.
+</p>
+<p>
+    We also welcome contributions from the community. If you would like to contribute, check out our
+    <a href="https://github.com/NuGet/NuGetGallery/blob/master/CONTRIBUTING.md">Contributors Guide</a> on
+    our <a href="https://github.com/NuGet/NuGetGallery">GitHub Project Page</a>.
+</p>
+
+<h3>Special Thanks</h3>
+<p>
+    A special thanks go out to some of our contributors who have made major contributions to the site.
+</p>
+<ul>
+    <li>
+        <a href="https://github.com/NuGet/NuGetGallery/commits?author=robertmuehsig">Robert Muehsig</a> -
+        Lots of bug fixes, up-for-grabs features and various assorted goodies
+    </li>
+    <li>
+        <a href="https://github.com/NuGet/NuGetGallery/commits?author=zippy1981">Justin Dearing</a> -
+        Added the ability to send a copy of support emails to the originator.
+    </li>
+    <li>
+        <a href="https://github.com/NuGet/NuGetGallery/commits?author=maartenba">Maarten Balliauw</a> -
+        Added knowledge of "MyGet" user agents to our statistics warehouse.
+    </li>
+    <li>And <a href="https://github.com/NuGet/NuGetGallery/graphs/contributors">many many more!</a></li>
+</ul>
+<ul class="contributor-list" id="contributors"></ul>
+
+<h3>The NuGet Team</h3>
+<p>
+    We work on the <a href="https://github.com/NuGet">NuGet Gallery</a>, and the <a href="https://nuget.codeplex.com">NuGet Client tools</a> (nuget.exe, Visual Studio Extension, etc).
+</p>
+<ul class="contributor-list" id="team"></ul>
+
+@section BottomScripts {
+    <script>
+        function addContributors($host, contributors, hrefBase) {
+            $.each(contributors, function (index, value) {
+                if (!value.avatar_url || !value.login) {
+                    return;
+                }
+
+                var $img = $('<img/>');
+                $img.attr('src', value.avatar_url);
+                $img.attr('class', 'contributors-contributor-avatar');
+                var $a = $('<a/>');
+                $a.attr('href', hrefBase + value.login);
+                $a.attr('title', value.login);
+                $a.append($img);
+                var $li = $('<li/>');
+                $li.attr('class', 'contributors-contributor');
+                $li.append($a);
+                $host.append($li);
+            });
+            $host.fadeIn();
+        }
+
+        // Little script to grab contributors and shove their faces into a box :)
+        $(function () {
+            var $contributors = $('#contributors');
+            var $team = $('#team');
+            var contributors = [];
+            var team = [];
+            var teamMap = {};
+            $.when(
+                $.getJSON('https://api.github.com/repos/NuGet/NuGetGallery/contributors', function (data) {
+                    contributors = data;
+                }),
+                $.getJSON('https://api.github.com/orgs/NuGet/members', function (data) {
+                    team = data;
+                    $.each(data, function (index, member) {
+                        teamMap[member.login] = 1; // Value is ignored
+                    });
+                })
+            ).then(function () {
+                // Filter out members from contributors
+                var externalContributors = []; // Quick-n-dirty filter because I don't want to pull a library in
+                $.each(contributors, function (index, contributor) {
+                    if (!teamMap.hasOwnProperty(contributor.login)) {
+                        externalContributors.push(contributor);
+                    }
+                });
+
+                addContributors($contributors, externalContributors, 'https://github.com/NuGet/NuGetGallery/commits?author=');
+                addContributors($team, team, 'https://github.com/');
+            });
+        });
+    </script>
+}

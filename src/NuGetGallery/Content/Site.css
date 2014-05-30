@@ -1323,3 +1323,18 @@ span.sorted-by {
     margin: 0.5em;
     margin-left: 0;
 }
+
+ul#contributors {
+    display: none;
+}
+
+li.contributors-contributor {
+    display: inline-block;
+    padding: 5px;
+    margin: 0;
+}
+
+img.contributors-contributor-avatar {
+    width: 64px;
+    height: 64px;
+}

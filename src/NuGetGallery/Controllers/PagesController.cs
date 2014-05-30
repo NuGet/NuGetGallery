@@ -27,6 +27,11 @@ namespace NuGetGallery
             return View(pageName);
         }
 
+        public virtual ActionResult About()
+        {
+            return View();
+        }
+
         public virtual ActionResult Contact()
         {
             return View();
