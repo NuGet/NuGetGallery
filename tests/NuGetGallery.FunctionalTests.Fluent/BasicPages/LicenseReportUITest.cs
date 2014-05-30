@@ -21,7 +21,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
         }
 
         // This test involves a long process for Sonatype to process the License URLs and present it on the UI. Ignore it for now.
-        [TestMethod]
+        //[TestMethod]
         [Description("Verify the Sonatype license is shown for each package, after uploading new packages with various type of licenses")]
         [Priority(2)]
         [Ignore]

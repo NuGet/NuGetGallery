@@ -31,6 +31,7 @@ namespace NuGetGallery.FunctionTests.Helpers
         public const string PackageNotFoundAfterUpload = "Package {0} is not found in the site {1} after uploading.";
         public const string PackageDownloadFailureMessage = "Package download from V2 feed didnt work";
         public const string UnableToZipError = "Unable to unzip the package downloaded via V2 feed. Check log for details";
+        public const string NuGetOrgUrl = "https://www.nuget.org";
         #endregion PredefinedText
 
     }

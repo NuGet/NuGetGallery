@@ -165,13 +165,25 @@ namespace NuGetGallery.FunctionTests.Helpers
             bool success = SemanticVersion.TryParse(version, out semVersion);
             if (success)
             {
-                for (int i = 0; ((i < 3) && (!found)); i++)
+                try
                 {
-                    // Wait for the search service to kick in, so that the package can be found via FindPackage(packageId, SemanticVersion)
-                    Thread.Sleep(60 * 1000);
-                    IPackage package = repo.FindPackage(packageId, semVersion);
-                    found = (package != null);
+                    for (int i = 0; ((i < 5) && (!found)); i++)
+                    {
+                        // Wait for the search service to kick in, so that the package can be found via FindPackage(packageId, SemanticVersion)
+                        Thread.Sleep(60 * 1000);
+                        IPackage package = repo.FindPackage(packageId, semVersion);
+                        found = (package != null);
+                    }
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception thrown while checking the existence of package {0} with version (1}:\r\n {2}", packageId, version, ex.Message);
+                }
+            }
+
+            if (found)
+            {
+                Console.WriteLine("Found package {0} with version {1} in sourceUrl of {2}", packageId, version, sourceUrl);
             }
             return found;
         }
