@@ -15,7 +15,7 @@ namespace NuGetGallery.FunctionalTests.LinksTests
     {
         [TestMethod]
         [Description("Test all clickable links on the gallery's home page are returning 200")]
-        [Priority(0)]
+        [Priority(1)]
         public void TestHomePageLinks()
         {
             TestLinksOnWebPagesUsingFluentLinkChecker(UrlHelper.BaseUrl);
@@ -23,7 +23,7 @@ namespace NuGetGallery.FunctionalTests.LinksTests
 
         [TestMethod]
         [Description("Test all clickable links on the Packages page are returning 200")]
-        [Priority(0)]
+        [Priority(1)]
         public void TestPackagesPageLinks()
         {
             TestLinksOnWebPagesUsingFluentLinkChecker(UrlHelper.PackagesPageUrl);
@@ -31,7 +31,7 @@ namespace NuGetGallery.FunctionalTests.LinksTests
 
         [TestMethod]
         [Description("Test all clickable links on EntityFramework's package details page are returning 200")]
-        [Priority(0)]
+        [Priority(1)]
         public void TestPackageDetailsPageLinks()
         {
             TestLinksOnWebPagesUsingFluentLinkChecker(UrlHelper.GetPackagePageUrl("EntityFramework"));

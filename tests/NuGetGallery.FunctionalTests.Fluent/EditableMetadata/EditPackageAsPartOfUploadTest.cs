@@ -1,24 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionTests.Helpers;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAutomation;
+using System;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
-
     [TestClass] 
     public class EditPackageAsPartOfUploadTest : NuGetFluentTest
     {
-
         [TestMethod]
         [Description("Edit every possible metadata field of the package as part of upload.")]
+        [Priority(2)]
         public void EditPackageAsPartOfUpload()
         {
             // Use the same package name, but force the version to be unique.

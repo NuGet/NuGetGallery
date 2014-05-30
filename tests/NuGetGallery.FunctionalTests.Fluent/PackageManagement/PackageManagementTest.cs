@@ -1,14 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionTests.Helpers;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAutomation;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
@@ -17,6 +8,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
     {
         [TestMethod]
         [Description("Verify basic package management scenarios.")]
+        [Priority(2)]
         public void PackageManagement()
         {
             string packageName = "NuGetGallery.FunctionalTests.Fluent.PackageManagementTest";
@@ -109,6 +101,5 @@ namespace NuGetGallery.FunctionalTests.Fluent
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName);
             I.Expect.Count(1).Of("h2:contains('1.0.0')");
         }
-
     }
 }

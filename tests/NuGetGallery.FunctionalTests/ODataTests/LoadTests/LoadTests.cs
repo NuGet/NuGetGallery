@@ -48,52 +48,46 @@ namespace NuGetGallery.FunctionalTests.LoadTests
         }
 
         [TestMethod]
+        [Description("Verify the webresponse for FindPackagesById with predefined packageId")]
+        [Priority(0)]
         public void FindPackagesByIdForPredefinedPackage()
         {
             string packageId = "PostSharp";
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'");
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
-            Assert.IsTrue(responseText.Contains(@"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId));
+            string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'";
+            string expectedText = @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId;
+            Assert.IsTrue(ODataHelper.ContainsResponseText(url, expectedText));
         }
 
         [TestMethod]
+        [Description("Verify the webresponse for FindPackagesById with specific packageId and version")]
+        [Priority(0)]
         public void FindPackagesBySpecificIdAndVersion()
         {
             string packageId = "Microsoft.Web.Infrastructure";
             string version = "1.0.0.0";
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"Packages(Id='" + packageId + "',Version='" + version + "')");
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
-            Assert.IsTrue(responseText.Contains(@"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='" + version + "')</id>"));
+            string url = UrlHelper.V2FeedRootUrl + @"Packages(Id='" + packageId + "',Version='" + version + "')";
+            string expectedText = @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='" + version + "')</id>";
+            Assert.IsTrue(ODataHelper.ContainsResponseText(url, expectedText));
         }
 
         [TestMethod]
+        [Description("Verify the webresponse for PackagesApi test with specific packageId ")]
+        [Priority(0)]
         public void PackagesApiTest()
         {
-            string packageId = "newtonsoft.json";            
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"Packages()?$filter=tolower(Id) eq '" + packageId + "'&$orderby=Id" );
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd().ToLowerInvariant();
+            string packageId = "newtonsoft.json";
+            string url = UrlHelper.V2FeedRootUrl + @"Packages()?$filter=tolower(Id) eq '" + packageId + "'&$orderby=Id";
             string expectedText = @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId;
-            Assert.IsTrue(responseText.Contains(expectedText.ToLowerInvariant()));
+            Assert.IsTrue(ODataHelper.ContainsResponseTextIgnoreCase(url, expectedText));
         }
 
         [TestMethod]
+        [Description("Verify the webresponse for PackagesApi test with specific packageId ")]
+        [Priority(1)]
         public void StatsTotalTest()
         {           
-            WebRequest request = WebRequest.Create(UrlHelper.BaseUrl + @"/stats/totals");
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
-            Assert.IsTrue(responseText.Contains(@"Downloads"));
+            string url = UrlHelper.BaseUrl + @"/stats/totals";
+            Assert.IsTrue(ODataHelper.ContainsResponseText(url, @"Downloads"));
         }
 
         [TestMethod]

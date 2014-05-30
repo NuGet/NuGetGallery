@@ -67,6 +67,7 @@ namespace NuGetGallery.FunctionalTests.Features
 
         [TestMethod]
         [Description("Checks the WebMatrix curated feed for duplicate packages.")]
+        [Priority(1)]
         [Ignore] //This method is marked ignore as it takes a very long time to run. It can be run manually if required.
         public void CheckWebMatrixCuratedFeedForDuplicates()
         {

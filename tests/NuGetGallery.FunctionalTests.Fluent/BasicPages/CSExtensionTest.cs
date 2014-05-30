@@ -1,24 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionTests.Helpers;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAutomation;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
-
     [TestClass] 
     public class CSExtensionTest : NuGetFluentTest
     {
-
         [TestMethod]
         [Description("Execute common scenarios with a package whose ID has a '.CS' extension.")]
+        [Priority(2)]
         public void CSExtension()
         {
             string packageName = "NuGetGallery.FunctionalTests.Fluent.CSExtensionTest.CS";

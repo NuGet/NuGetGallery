@@ -11,7 +11,7 @@ namespace NuGetGallery.FunctionalTests.Features
     {
         [TestMethod]
         [Description("Upload multiple versions of a package and see if it gets uploaded properly")]
-        [Priority(1)]
+        [Priority(0)]
         public void UploadMultipleVersionOfPackage()
         {
             string packageId = "TestMultipleVersion" + "." + DateTime.Now.Ticks.ToString();

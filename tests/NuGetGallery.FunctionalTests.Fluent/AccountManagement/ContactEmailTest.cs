@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionTests.Helpers;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAutomation;
+using System.Text;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
@@ -17,6 +9,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
     {
         [TestMethod]
         [Description("Verify the gallery options for reporting abuse.")]
+        [Priority(2)]
         public void ContactEmailAbuse()
         {
             string packageName = "NuGetGallery.FunctionalTests.Fluent.ContactEmailTest";
@@ -51,6 +44,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
         [TestMethod]
         [Description("Verify the gallery options for contacting owners.")]
+        [Priority(2)]
         public void ContactEmailOwners()
         {
             string packageName = "NuGetGallery.FunctionalTests.Fluent.ContactEmailTest";
@@ -82,6 +76,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
         [TestMethod]
         [Description("Verify the gallery options for contacting us.")]
+        [Priority(2)]
         public void ContactEmailSupport()
         {
             string packageName = "NuGetGallery.FunctionalTests.Fluent.ContactEmailTest";

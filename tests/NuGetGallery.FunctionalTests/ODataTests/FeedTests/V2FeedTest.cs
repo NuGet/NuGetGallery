@@ -14,24 +14,30 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
     public partial class V2FeedTest : GalleryTestBase
     {
         [TestMethod]
+        [Description("Verify the webresponse from /Api/V2/ feed contains the Packages text")]
+        [Priority(0)]
         public void ApiV2BaseUrlTest()
         {
             string expectedText = @"<atom:title>Packages</atom:title>";
-            Assert.IsTrue(ContainsResponseText(UrlHelper.V2FeedRootUrl, expectedText));
+            Assert.IsTrue(ODataHelper.ContainsResponseText(UrlHelper.V2FeedRootUrl, expectedText));
         }
 
         [TestMethod]
+        [Description("Verify the webresponse from /Api/V2/$metadata contains the V2FeedPackage text")]
+        [Priority(0)]
         public void ApiV2MetadataTest()
         {
             string expectedText = @"V2FeedPackage";
-            Assert.IsTrue(ContainsResponseText(UrlHelper.V2FeedRootUrl + @"$metadata", expectedText));
+            Assert.IsTrue(ODataHelper.ContainsResponseText(UrlHelper.V2FeedRootUrl + @"$metadata", expectedText));
         }
 
         [TestMethod]
+        [Description("Verify the webresponse from top30 packages feed contains jQuery")]
+        [Priority(0)]
         public void Top30PackagesFeedTest()
         {
             string url = UrlHelper.V2FeedRootUrl + @"/Search()?$filter=IsAbsoluteLatestVersion&$orderby=DownloadCount%20desc,Id&$skip=0&$top=30&searchTerm=''&targetFramework='net45'&includePrerelease=true";
-            Assert.IsTrue(ContainsResponseText(url, "jQuery"));
+            Assert.IsTrue(ODataHelper.ContainsResponseText(url, "jQuery"));
         }
 
         [TestMethod]
@@ -39,7 +45,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
         [Priority(0)]
         public void DownloadPackageFromV2Feed()
         {
-            DownloadPackageFromV2FeedWithOperation(Constants.TestPackageId, "1.0.0", "Install");
+            ODataHelper.DownloadPackageFromV2FeedWithOperation(Constants.TestPackageId, "1.0.0", "Install");
         }
 
         [TestMethod]
@@ -47,44 +53,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
         [Priority(0)]
         public void RestorePackageFromV2Feed()
         {
-            DownloadPackageFromV2FeedWithOperation(Constants.TestPackageId, "1.0.0", "Restore");
-        }
-
-        public bool ContainsResponseText(string url, params string[] expectedTexts)
-        {
-            WebRequest request = WebRequest.Create(url);
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
-
-            foreach (string s in expectedTexts)
-            {
-                if (!responseText.Contains(s))
-                {
-                    Console.WriteLine("Response text does not contain expected text of " + s);
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public void DownloadPackageFromV2FeedWithOperation(string packageId, string version, string operation)
-        {
-            try
-            {
-                Task<string> downloadTask = ODataHelper.DownloadPackageFromFeed(packageId, version, operation);
-                string filename = downloadTask.Result;
-                //check if the file exists.
-                Assert.IsTrue(File.Exists(filename), Constants.PackageDownloadFailureMessage);
-                string downloadedPackageId = ClientSDKHelper.GetPackageIdFromNupkgFile(filename);
-                //Check that the downloaded Nupkg file is not corrupt and it indeed corresponds to the package which we were trying to download.
-                Assert.IsTrue(downloadedPackageId.Equals(packageId), Constants.UnableToZipError);
-            }
-            catch (Exception e)
-            {
-                Assert.Fail(e.Message);
-            }
+            ODataHelper.DownloadPackageFromV2FeedWithOperation(Constants.TestPackageId, "1.0.0", "Restore");
         }
     }
 }

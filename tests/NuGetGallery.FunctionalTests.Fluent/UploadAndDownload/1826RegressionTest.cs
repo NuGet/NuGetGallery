@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionTests.Helpers;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAutomation;
+using System;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
@@ -17,6 +9,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
     {
         [TestMethod]
         [Description("Upload a package with a dependency that has no targetFramework, verify success.")]
+        [Priority(1)]
         public void _1826Regression()
         {
             string packageName = "NuGetGallery.FunctionalTests.Fluent._1826RegressionTest";
