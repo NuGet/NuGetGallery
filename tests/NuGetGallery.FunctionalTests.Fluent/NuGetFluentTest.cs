@@ -24,7 +24,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
         public void UploadPackageIfNecessary(string packageName, string version, string minClientVersion, string title, string tags, string description)
         {
-            if (!PackageExists(packageName, version))
+            if (!PackageExists(packageName, version, UrlHelper.V2FeedRootUrl))
             {
                 AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version, minClientVersion, title, tags, description);
             }
@@ -32,7 +32,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
         public void UploadPackageIfNecessary(string packageName, string version, string minClientVersion, string title, string tags, string description, string licenseUrl)
         {
-            if (!PackageExists(packageName, version))
+            if (!PackageExists(packageName, version, UrlHelper.V2FeedRootUrl))
             {
                 AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version, minClientVersion, title, tags, description, licenseUrl);
             }
@@ -40,7 +40,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
         public void UploadPackageIfNecessary(string packageName, string version, string minClientVersion, string title, string tags, string description, string licenseUrl, string dependencies)
         {
-            if (!PackageExists(packageName, version))
+            if (!PackageExists(packageName, version, UrlHelper.V2FeedRootUrl))
             {
                 AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
             }
@@ -69,6 +69,11 @@ namespace NuGetGallery.FunctionalTests.Fluent
                 }
             }
             return found;
+        }
+
+        public bool PackageExists(string packageName, string version, string url)
+        {
+            return ClientSDKHelper.CheckIfPackageVersionExistsInSource(packageName, version, url);
         }
 
         public static bool CheckForPackageExistence

@@ -48,7 +48,11 @@ namespace NuGetGallery.FunctionalTests.ODataTests.Statistics
             string responseText = sr.ReadToEnd();
             string[] separators = new string[1] { "}," };
             int packageCount = responseText.Split(separators, StringSplitOptions.RemoveEmptyEntries).Length;
-            Assert.IsTrue(packageCount == 500, "Expected feed to contain 500 packages. Actual count: " + packageCount);
+            // Only verify the stats feed contains 500 packages for production
+            if (UrlHelper.BaseUrl.ToLowerInvariant() == Constants.NuGetOrgUrl)
+            {
+                Assert.IsTrue(packageCount == 500, "Expected feed to contain 500 packages. Actual count: " + packageCount);
+            }
 
             request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks?count=5");
             // Get the response.          
