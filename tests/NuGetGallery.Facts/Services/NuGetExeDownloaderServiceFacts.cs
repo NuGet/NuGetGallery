@@ -32,15 +32,11 @@ namespace NuGetGallery
         }
 
         private static NuGetExeDownloaderService GetDownloaderService(
-            Mock<IPackageService> packageService = null,
-            Mock<IPackageFileService> packageFileService = null,
             Mock<IFileStorageService> fileStorageService = null)
         {
-            packageService = packageService ?? new Mock<IPackageService>(MockBehavior.Strict);
-            packageFileService = packageFileService ?? new Mock<IPackageFileService>(MockBehavior.Strict);
             fileStorageService = fileStorageService ?? new Mock<IFileStorageService>(MockBehavior.Strict);
 
-            return new NuGetExeDownloaderService(packageService.Object, packageFileService.Object, fileStorageService.Object);
+            return new NuGetExeDownloaderService(fileStorageService.Object);
         }
     }
 }

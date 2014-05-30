@@ -11,16 +11,10 @@ namespace NuGetGallery
     {
         private const int MaxNuGetExeFileSize = 10 * 1024 * 1024;
         private readonly IFileStorageService _fileStorageService;
-        private readonly IPackageFileService _packageFileService;
-        private readonly IPackageService _packageService;
 
         public NuGetExeDownloaderService(
-            IPackageService packageService,
-            IPackageFileService packageFileService,
             IFileStorageService fileStorageService)
         {
-            _packageService = packageService;
-            _packageFileService = packageFileService;
             _fileStorageService = fileStorageService;
         }
 
