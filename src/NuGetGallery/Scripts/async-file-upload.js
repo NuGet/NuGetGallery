@@ -1,16 +1,18 @@
 ﻿var AsyncFileUploadManager = new function () {
-    var _isWebkitBrowser = $.browser.webkit;
+    var _isWebkitBrowser = false; // $.browser.webkit is not longer supported on jQuery
     var _iframeId = '__fileUploadFrame';
     var _pollingInterval = 200;
     var _pingUrl;
     var _failureCount;
     var _isUploadInProgress;
-    
+
     this.init = function (pingUrl, formId, jQueryUrl) {
         _pingUrl = pingUrl;
 
         // attach the sumbit event to the form
         $('#' + formId).submit(function () {
+            $('#' + formId).find(':submit').attr('disabled', 'disabled');
+            $('#' + formId).find(':submit').val('Uploading...');
             submitForm(this);
             return false;
         });
@@ -72,7 +74,7 @@
         if (!result.FileName) {
             return;
         }
-        
+
         setProgressIndicator(percent, result.FileName);
         if (percent < 100) {
             setTimeout(getProgress, _pollingInterval);
