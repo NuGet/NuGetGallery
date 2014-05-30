@@ -32,7 +32,6 @@ namespace NuGetGallery
             Mock<ISearchService> searchService = null,
             Exception readPackageException = null,
             Mock<IAutomaticallyCuratePackageCommand> autoCuratePackageCmd = null,
-            Mock<INuGetExeDownloaderService> downloaderService = null,
             Mock<IAppConfiguration> config = null,
             Mock<IPackageFileService> packageFileService = null,
             Mock<IEntitiesContext> entitiesContext = null,
@@ -50,7 +49,6 @@ namespace NuGetGallery
             messageService = messageService ?? new Mock<IMessageService>();
             searchService = searchService ?? CreateSearchService();
             autoCuratePackageCmd = autoCuratePackageCmd ?? new Mock<IAutomaticallyCuratePackageCommand>();
-            downloaderService = downloaderService ?? new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
             config = config ?? new Mock<IAppConfiguration>();
 
             if (packageFileService == null)
@@ -73,7 +71,6 @@ namespace NuGetGallery
                 messageService.Object,
                 searchService.Object,
                 autoCuratePackageCmd.Object,
-                downloaderService.Object,
                 packageFileService.Object,
                 entitiesContext.Object,
                 config.Object,
