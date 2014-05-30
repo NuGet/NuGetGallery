@@ -10,12 +10,14 @@ namespace NuGet.Services.Metadata.Catalog
     {
         static Constants()
         {
+            CatalogRoot = new Uri("http://nuget.org/catalog#Root");
+            CatalogPage = new Uri("http://nuget.org/catalog#Page");
+
             Package = new Uri("http://nuget.org/schema#Package");
             DeletePackage = new Uri("http://nuget.org/schema#DeletePackage");
             DeleteRegistration = new Uri("http://nuget.org/schema#DeleteRegistration");
-            CatalogRoot = new Uri("http://nuget.org/catalog#Root");
-            CatalogPage = new Uri("http://nuget.org/catalog#Page");
-            Resolver = new Uri("http://nuget.org/catalog#Resolver");
+            Resolver = new Uri("http://nuget.org/schema#Resolver");
+
             Range = new Uri("http://nuget.org/gallery#Range");
 
             RdfType = new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");

@@ -2,6 +2,7 @@
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using VDS.RDF;
 
@@ -51,7 +52,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             INode container = graph.CreateUriNode(_resourceUri);
 
             graph.Assert(container, rdfTypePredicate, graph.CreateUriNode(GetContainerType()));
-            graph.Assert(container, timeStampPredicate, graph.CreateLiteralNode(_timeStamp.ToString(), dateTimeDatatype));
+            graph.Assert(container, timeStampPredicate, graph.CreateLiteralNode(_timeStamp.ToString("O"), dateTimeDatatype));
             graph.Assert(container, commitIdPredicate, graph.CreateLiteralNode(_commitId.ToString()));
 
             if (_parent != null)
@@ -76,7 +77,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                     graph.Merge(item.Value.PageContent);
                 }
 
-                graph.Assert(itemNode, timeStampPredicate, graph.CreateLiteralNode(item.Value.TimeStamp.ToString(), dateTimeDatatype));
+                graph.Assert(itemNode, timeStampPredicate, graph.CreateLiteralNode(item.Value.TimeStamp.ToString("O"), dateTimeDatatype));
                 graph.Assert(itemNode, commitIdPredicate, graph.CreateLiteralNode(item.Value.CommitId.ToString()));
 
                 if (item.Value.Count != null)
@@ -105,9 +106,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             graph.NamespaceMap.AddNamespace("catalog", new Uri("http://nuget.org/catalog#"));
             INode rdfTypePredicate = graph.CreateUriNode("rdf:type");
             INode itemPredicate = graph.CreateUriNode("catalog:item");
-            INode timeStampPredicate = graph.CreateUriNode("catalog:timeStamp");
-            INode commitIdPredicate = graph.CreateUriNode("catalog:commitId");
             INode countPredicate = graph.CreateUriNode("catalog:count");
+            INode commitIdPredicate = graph.CreateUriNode("catalog:commitId");
+            INode timeStampPredicate = graph.CreateUriNode("catalog:timeStamp");
 
             foreach (Triple itemTriple in graph.GetTriplesWithPredicate(itemPredicate))
             {
@@ -150,7 +151,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 }
 
                 Triple timeStampTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, timeStampPredicate).First();
-                DateTime timeStamp = DateTime.Parse(((ILiteralNode)timeStampTriple.Object).Value);
+                DateTime timeStamp = DateTime.Parse(((ILiteralNode)timeStampTriple.Object).Value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
 
                 Triple commitIdTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, commitIdPredicate).First();
                 Guid commitId = Guid.Parse(((ILiteralNode)commitIdTriple.Object).Value);

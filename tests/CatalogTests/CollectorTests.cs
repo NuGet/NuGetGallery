@@ -11,24 +11,24 @@ namespace CatalogTests
 
         public static async Task Test0Async()
         {
-            Storage storage = new AzureStorage
-            {
-                AccountName = "nuget3",
-                AccountKey = "",
-                Container = "export",
-                BaseAddress = "http://nuget3.blob.core.windows.net/"
-            };
-
-            //Storage storage = new FileStorage
+            //Storage storage = new AzureStorage
             //{
-            //    Path = @"c:\data\site\export",
+            //    AccountName = "nuget3",
+            //    AccountKey = "",
             //    Container = "export",
-            //    BaseAddress = "http://localhost:8000/"
+            //    BaseAddress = "http://nuget3.blob.core.windows.net/"
             //};
 
-            ResolverCollector collector = new ResolverCollector(storage, 200);
+            Storage storage = new FileStorage
+            {
+                Path = @"c:\data\site\full",
+                Container = "full",
+                BaseAddress = "http://localhost:8000/"
+            };
 
-            await collector.Run(new Uri("http://nuget3.blob.core.windows.net/export/catalog/index.json"), DateTime.MinValue);
+            ResolverCollector collector = new ResolverCollector(storage, 1);
+
+            await collector.Run(new Uri("http://localhost:8000/full/catalog/index.json"), DateTime.MinValue);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
 

@@ -87,16 +87,23 @@ namespace CatalogTests
 
         public static async Task Test2Async()
         {
-            Storage storage = new FileStorage
+            //Storage storage = new FileStorage
+            //{
+            //    Path = @"c:\data\site\export",
+            //    Container = "export",
+            //    BaseAddress = "http://localhost:8000/"
+            //};
+            Storage storage = new AzureStorage
             {
-                Path = @"c:\data\site\export",
+                AccountName = "nuget3",
+                AccountKey = "",
                 Container = "export",
-                BaseAddress = "http://localhost:8000/"
+                BaseAddress = "http://nuget3.blob.core.windows.net/"
             };
 
             GalleryKeyRangeCollector collector = new GalleryKeyRangeCollector(storage, 200);
 
-            await collector.Run(new Uri("http://localhost:8000/export/catalog/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://nuget3.blob.core.windows.net/export/catalog/index.json"), DateTime.MinValue);
             Console.WriteLine("http requests: {0}", collector.RequestCount);
         }
 

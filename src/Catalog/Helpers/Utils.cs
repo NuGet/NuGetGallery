@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Linq;
@@ -60,13 +61,19 @@ namespace NuGet.Services.Metadata.Catalog
             return transform;
         }
 
-        public static void Dump(IGraph graph)
+        public static void Dump(IGraph graph, TextWriter writer)
         {
             CompressingTurtleWriter turtleWriter = new CompressingTurtleWriter();
             turtleWriter.DefaultNamespaces.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
+            turtleWriter.DefaultNamespaces.AddNamespace("catalog", new Uri("http://nuget.org/catalog#"));
             turtleWriter.PrettyPrintMode = true;
             turtleWriter.CompressionLevel = 10;
-            turtleWriter.Save(graph, Console.Out);
+            turtleWriter.Save(graph, writer);
+        }
+
+        public static void Dump(TripleStore store, TextWriter writer)
+        {
+            Dump(store.Graphs.First(), writer);
         }
 
         public static IGraph Load(string name)
