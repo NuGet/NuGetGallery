@@ -86,7 +86,8 @@ namespace NuGetGallery
                 totalHits,
                 page - 1,
                 Constants.DefaultPackageListPageSize,
-                Url);
+                Url,
+                curatedFeedName);
 
             ViewBag.SearchTerm = q;
 
