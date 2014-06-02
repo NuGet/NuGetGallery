@@ -32,7 +32,6 @@ namespace NuGetGallery
             Mock<ISearchService> searchService = null,
             Exception readPackageException = null,
             Mock<IAutomaticallyCuratePackageCommand> autoCuratePackageCmd = null,
-            Mock<INuGetExeDownloaderService> downloaderService = null,
             Mock<IAppConfiguration> config = null,
             Mock<IPackageFileService> packageFileService = null,
             Mock<IEntitiesContext> entitiesContext = null,
@@ -50,7 +49,6 @@ namespace NuGetGallery
             messageService = messageService ?? new Mock<IMessageService>();
             searchService = searchService ?? CreateSearchService();
             autoCuratePackageCmd = autoCuratePackageCmd ?? new Mock<IAutomaticallyCuratePackageCommand>();
-            downloaderService = downloaderService ?? new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
             config = config ?? new Mock<IAppConfiguration>();
 
             if (packageFileService == null)
@@ -73,7 +71,6 @@ namespace NuGetGallery
                 messageService.Object,
                 searchService.Object,
                 autoCuratePackageCmd.Object,
-                downloaderService.Object,
                 packageFileService.Object,
                 entitiesContext.Object,
                 config.Object,
@@ -1525,126 +1522,6 @@ namespace NuGetGallery
                 await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
 
                 fakeAutoCuratePackageCmd.Verify(fake => fake.Execute(fakePackage, fakeNuGetPackage.Object, false));
-            }
-
-            [Fact]
-            public async Task WillExtractNuGetExe()
-            {
-                // Arrange
-                var fakeUploadFileService = new Mock<IUploadFileService>();
-                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
-                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(Stream.Null));
-                var fakePackageService = new Mock<IPackageService>();
-                var commandLinePackage = new Package
-                    {
-                        PackageRegistration = new PackageRegistration { Id = "NuGet.CommandLine" },
-                        Version = "2.0.0",
-                        IsLatestStable = true
-                    };
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<INupkg>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(commandLinePackage);
-                var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
-                nugetExeDownloader.Setup(d => d.UpdateExecutableAsync(It.IsAny<INupkg>())).Returns(Task.FromResult(0)).Verifiable();
-                var controller = CreateController(
-                    packageService: fakePackageService,
-                    uploadFileService: fakeUploadFileService,
-                    downloaderService: nugetExeDownloader);
-                controller.SetCurrentUser(TestUtility.FakeUser);
-
-                // Act
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
-
-                // Assert
-                nugetExeDownloader.Verify();
-            }
-
-            [Fact]
-            public async Task WillNotExtractNuGetExeIfIsNotLatestStable()
-            {
-                // Arrange
-                var fakeUploadFileService = new Mock<IUploadFileService>();
-
-                var fakePackageService = new Mock<IPackageService>();
-                var commandLinePackage = new Package
-                    {
-                        PackageRegistration = new PackageRegistration { Id = "NuGet.CommandLine" },
-                        Version = "2.0.0",
-                        IsLatestStable = false
-                    };
-
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<INupkg>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(commandLinePackage);
-
-                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(
-                    CreateTestPackageStream(commandLinePackage)));
-                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
-
-                var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
-                var controller = CreateController(
-                    packageService: fakePackageService,
-                    uploadFileService: fakeUploadFileService,
-                    downloaderService: nugetExeDownloader);
-                controller.SetCurrentUser(TestUtility.FakeUser);
-
-                // Act
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
-
-                // Assert
-                nugetExeDownloader.Verify(d => d.UpdateExecutableAsync(It.IsAny<INupkg>()), Times.Never());
-            }
-
-            [Theory]
-            [InlineData("nuget-commandline")]
-            [InlineData("nuget.x.commandline")]
-            [InlineData("nuget.command")]
-            public async Task WillNotExtractNuGetExeIfIsItDoesNotMatchId(string id)
-            {
-                // Arrange
-                var fakeUploadFileService = new Mock<IUploadFileService>();
-
-                var fakePackageService = new Mock<IPackageService>();
-                var commandLinePackage = new Package { PackageRegistration = new PackageRegistration { Id = id }, Version = "2.0.0", IsLatestStable = true };
-
-                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(
-                    CreateTestPackageStream(commandLinePackage)));
-                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
-
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<INupkg>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(commandLinePackage);
-                var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
-                var controller = CreateController(
-                    packageService: fakePackageService,
-                    uploadFileService: fakeUploadFileService,
-                    downloaderService: nugetExeDownloader);
-                TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://1.1.1.1"));
-                controller.SetCurrentUser(TestUtility.FakeUser);
-
-                // Act
-                await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null });
-
-                // Assert
-                nugetExeDownloader.Verify(d => d.UpdateExecutableAsync(It.IsAny<INupkg>()), Times.Never());
-            }
-
-            private Stream CreateTestPackageStream(Package commandLinePackage)
-            {
-                var packageStream = new MemoryStream();
-                var builder = new PackageBuilder
-                {
-                    Id = commandLinePackage.PackageRegistration.Id,
-                    Version = SemanticVersion.Parse(commandLinePackage.Version),
-                    Authors = 
-                    {
-                        "dummyAuthor",
-                    },
-                    Description = commandLinePackage.Description ?? "dummyDesription",
-                };
-
-                // Make the package buildable by adding a dependency
-                if (builder.Files.Count == 0 && !builder.DependencySets.Any(s => s.Dependencies.Any()))
-                {
-                    builder.DependencySets.Add(new PackageDependencySet(null, new[] { new NuGet.PackageDependency("dummy") }));
-                }
-
-                builder.Save(packageStream);
-                return packageStream;
             }
         }
 
