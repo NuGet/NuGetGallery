@@ -534,7 +534,7 @@ namespace NuGetGallery
                         }
                     });
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal("msg", controller.ModelState["NewEmail"].Errors[0].ErrorMessage);
+                Assert.Equal("msg", controller.ModelState["ChangeEmail.NewEmail"].Errors[0].ErrorMessage);
             }
 
             [Fact]
