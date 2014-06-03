@@ -17,13 +17,16 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             ServicePointManager.MaxServicePointIdleTime = 10000;
         }
 
-        public async Task Run(Uri index, DateTime last)
+        public async Task<CollectorCursor> Run(Uri index, CollectorCursor last)
         {
+            CollectorCursor cursor;
             using (CollectorHttpClient client = new CollectorHttpClient())
             {
-                await Fetch(client, index, last);
+                cursor = await Fetch(client, index, last);
                 RequestCount = client.RequestCount;
             }
+
+            return cursor;
         }
 
         public int RequestCount
@@ -32,6 +35,6 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             private set;
         }
 
-        protected abstract Task Fetch(CollectorHttpClient client, Uri index, DateTime last);
+        protected abstract Task<CollectorCursor> Fetch(CollectorHttpClient client, Uri index, CollectorCursor last);
     }
 }

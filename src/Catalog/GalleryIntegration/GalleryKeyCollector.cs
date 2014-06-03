@@ -17,8 +17,11 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             _keys = keys;
         }
 
-        protected override async Task Fetch(CollectorHttpClient client, Uri index, DateTime last)
+        protected override async Task<CollectorCursor> Fetch(CollectorHttpClient client, Uri index, CollectorCursor last)
         {
+            CollectorCursor cursor = last;
+            DateTime lastDateTime = (DateTime)cursor;
+
             JObject root = await client.GetJObjectAsync(index);
 
             JToken context = null;
@@ -30,8 +33,10 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             {
                 DateTime pageTimeStamp = rootItem["timeStamp"]["@value"].ToObject<DateTime>();
 
-                if (pageTimeStamp > last)
+                if (pageTimeStamp > lastDateTime)
                 {
+                    cursor = pageTimeStamp;
+
                     Uri pageUri = rootItem["url"].ToObject<Uri>();
                     JObject page = await client.GetJObjectAsync(pageUri);
 
@@ -49,6 +54,8 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                     }
                 }
             }
+
+            return cursor;
         }
     }
 }

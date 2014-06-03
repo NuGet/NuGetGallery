@@ -82,6 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collecting\Collector.cs" />
+    <Compile Include="Collecting\CollectorCursor.cs" />
     <Compile Include="Collecting\CollectorHttpClient.cs" />
     <Compile Include="Collecting\StoreCollector.cs" />
     <Compile Include="Collecting\ICollectorLogger.cs" />

@@ -44,6 +44,7 @@ namespace CatalogTests
                 //CollectorTests.Test4();
 
                 //End2EndTests.Test0();
+                //End2EndTests.Test1();
 
                 //CheckResults.Test0();
 

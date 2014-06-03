@@ -19,8 +19,11 @@ namespace NuGet.Services.Metadata.Catalog.Collecting.Test
             private set;
         }
 
-        protected override async Task Fetch(CollectorHttpClient client, Uri index, DateTime last)
+        protected override async Task<CollectorCursor> Fetch(CollectorHttpClient client, Uri index, CollectorCursor last)
         {
+            CollectorCursor cursor = last;
+            DateTime lastDateTime = (DateTime)cursor;
+
             JObject root = await client.GetJObjectAsync(index);
 
             List<Task<JObject>> tasks = new List<Task<JObject>>();
@@ -29,13 +32,17 @@ namespace NuGet.Services.Metadata.Catalog.Collecting.Test
             {
                 DateTime pageTimeStamp = rootItem["timeStamp"]["@value"].ToObject<DateTime>();
 
-                if (pageTimeStamp > last)
+                if (pageTimeStamp > lastDateTime)
                 {
+                    cursor = pageTimeStamp;
+
                     int count = int.Parse(rootItem["count"].ToString());
 
                     Total += count;
                 }
             }
+
+            return cursor;
         }
     }
 }
