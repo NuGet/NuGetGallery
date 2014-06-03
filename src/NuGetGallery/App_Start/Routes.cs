@@ -294,6 +294,18 @@ namespace NuGetGallery
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
+                "v2" + RouteName.DeletePackageApi,
+                "api/v2/package/{id}/{version}",
+                new { controller = "Api", action = "DeletePackageApi" },
+                constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
+
+            routes.MapRoute(
+                "v2" + RouteName.PublishPackageApi,
+                "api/v2/package/{id}/{version}",
+                new { controller = "Api", action = "PublishPackageApi" },
+                constraints: new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
                 "v2" + RouteName.DownloadPackage,
                 "api/v2/package/{id}/{version}",
                 defaults: new { controller = "Api", action = "GetPackageApi", version = UrlParameter.Optional },
@@ -304,18 +316,6 @@ namespace NuGetGallery
                 "api/v2/package",
                 defaults: new { controller = "Api", action = "PushPackageApi" },
                 constraints: new { httpMethod = new HttpMethodConstraint("PUT") });
-
-            routes.MapRoute(
-                "v2" + RouteName.DeletePackageApi,
-                "api/v2/package/{id}/{version}",
-                new { controller = "Api", action = "DeletePackage" },
-                constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
-
-            routes.MapRoute(
-                "v2" + RouteName.PublishPackageApi,
-                "api/v2/package/{id}/{version}",
-                new { controller = "Api", action = "PublishPackage" },
-                constraints: new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
                 "v2PackageIds",
