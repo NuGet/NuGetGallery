@@ -29,7 +29,7 @@ namespace CatalogTests
                 AccountName = "",
                 AccountKey = "",
                 Container = "test",
-                BaseAddress = "http://nuget3.blob.core.windows.net"
+                BaseAddress = "http://nuget3.blob.core.windows.net/"
             };
 
             CatalogContext context = new CatalogContext();
