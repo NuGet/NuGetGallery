@@ -263,8 +263,7 @@ namespace NuGetGallery
                 controllerName: "Packages",
                 routeValues: new
                 {
-                    id = package.Id,
-                    version = package.Version
+                    id = package.Id
                 });
         }
 
