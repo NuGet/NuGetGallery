@@ -565,9 +565,9 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        public virtual ActionResult ManagePackageOwners(string id, string version)
+        public virtual ActionResult ManagePackageOwners(string id)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersion(id, string.Empty);
             if (package == null)
             {
                 return HttpNotFound();
