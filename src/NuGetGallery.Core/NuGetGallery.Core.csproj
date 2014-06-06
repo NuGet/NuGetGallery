@@ -95,6 +95,9 @@
     <Compile Include="Entities\EntitiesContext.cs" />
     <Compile Include="Entities\EntityException.cs" />
     <Compile Include="Entities\EntityRepository.cs" />
+    <Compile Include="Entities\Feed.cs" />
+    <Compile Include="Entities\FeedPackage.cs" />
+    <Compile Include="Entities\FeedRule.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
     <Compile Include="Entities\IEntitiesContext.cs" />
     <Compile Include="Entities\IEntity.cs" />

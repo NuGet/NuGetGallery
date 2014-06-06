@@ -375,6 +375,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\FeedsController.cs" />
+    <Compile Include="Controllers\FeedRulesController.cs" />
     <Compile Include="Diagnostics\PerfCounters.cs" />
     <Compile Include="Diagnostics\ProcessPerfEvents.cs" />
     <Compile Include="App_Start\OwinStartup.cs" />
@@ -947,6 +949,10 @@
     <Compile Include="Migrations\201311261928187_NullifyOldColumns.Designer.cs">
       <DependentUpon>201311261928187_NullifyOldColumns.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201406061644004_InitialFeedImplementation.cs" />
+    <Compile Include="Migrations\201406061644004_InitialFeedImplementation.Designer.cs">
+      <DependentUpon>201406061644004_InitialFeedImplementation.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -957,6 +963,7 @@
     <Compile Include="Infrastructure\Lucene\NuGetQueryParser.cs" />
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
+    <Compile Include="RequestModels\CreateFeedRuleRequest.cs" />
     <Compile Include="RequestModels\EditPackageRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
@@ -972,6 +979,7 @@
     <Compile Include="Services\ContentService.cs" />
     <Compile Include="Services\IContentService.cs" />
     <Compile Include="Services\IFileReference.cs" />
+    <Compile Include="Services\IManageFeedService.cs" />
     <Compile Include="Services\IStatusService.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
     <Compile Include="Services\CloudReportService.cs" />
@@ -994,6 +1002,7 @@
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />
     <Compile Include="Services\LocalFileReference.cs" />
+    <Compile Include="Services\ManageFeedService.cs" />
     <Compile Include="Services\NuGetExeDownloaderService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="Filters\RequireSslAttribute.cs" />
@@ -1009,6 +1018,7 @@
     <Compile Include="Services\UploadFileService.cs" />
     <Compile Include="Services\EditPackageService.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />
+    <Compile Include="ViewModels\FeedViewModel.cs" />
     <Compile Include="ViewModels\LogOnViewModel.cs" />
     <Compile Include="ViewModels\StatisticsMonthlyUsageItem.cs" />
     <Compile Include="ViewModels\StatisticsNuGetUsageItem.cs" />
@@ -1097,6 +1107,8 @@
     <Content Include="Views\Pages\Privacy.cshtml" />
     <Content Include="Views\Pages\Terms.cshtml" />
     <Content Include="Views\Pages\About.cshtml" />
+    <Content Include="Views\Feeds\Feed.cshtml" />
+    <Content Include="Views\FeedRules\FeedRulesForm.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
@@ -1377,6 +1389,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201311261928187_NullifyOldColumns.resx">
       <DependentUpon>201311261928187_NullifyOldColumns.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201406061644004_InitialFeedImplementation.resx">
+      <DependentUpon>201406061644004_InitialFeedImplementation.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

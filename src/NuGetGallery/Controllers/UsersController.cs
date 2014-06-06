@@ -12,6 +12,7 @@ namespace NuGetGallery
 {
     public partial class UsersController : AppController
     {
+        public IManageFeedService ManageFeedService { get; protected set; }
         public ICuratedFeedService CuratedFeedService { get; protected set; }
         public IUserService UserService { get; protected set; }
         public IMessageService MessageService { get; protected set; }
@@ -20,6 +21,7 @@ namespace NuGetGallery
         public AuthenticationService AuthService { get; protected set; }
 
         public UsersController(
+            IManageFeedService manageFeedService,
             ICuratedFeedService feedsQuery,
             IUserService userService,
             IPackageService packageService,
@@ -27,6 +29,7 @@ namespace NuGetGallery
             IAppConfiguration config,
             AuthenticationService authService)
         {
+            ManageFeedService = manageFeedService;
             CuratedFeedService = feedsQuery;
             UserService = userService;
             PackageService = packageService;
@@ -445,10 +448,12 @@ namespace NuGetGallery
         {
             // Load Credential info
             var user = GetCurrentUser();
+            var feeds = ManageFeedService.GetFeedsForManager(user.Key);
             var curatedFeeds = CuratedFeedService.GetFeedsForManager(user.Key);
             var creds = user.Credentials.Select(c => AuthService.DescribeCredential(c)).ToList();
 
             model.Credentials = creds;
+            model.Feeds = feeds.Select(f => f.Name);
             model.CuratedFeeds = curatedFeeds.Select(f => f.Name);
             return View("Account", model);
         }

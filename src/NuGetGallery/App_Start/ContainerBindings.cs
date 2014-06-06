@@ -99,6 +99,14 @@ namespace NuGetGallery
                 .To<CuratedFeedService>()
                 .InRequestScope();
 
+            Bind<IEntityRepository<Feed>>()
+                .To<EntityRepository<Feed>>()
+                .InRequestScope();
+
+            Bind<IManageFeedService>()
+                .To<ManageFeedService>()
+                .InRequestScope();
+
             Bind<IUserService>()
                 .To<UserService>()
                 .InRequestScope();

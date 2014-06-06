@@ -274,6 +274,25 @@
                     </text>)
         }
     }
+
+    @**************************
+        Feeds
+    **************************@
+    @if (Model.Feeds.Any())
+    {
+        foreach (var feed in Model.Feeds)
+        {
+            @AccordianBar(
+                    groupName: "editprofile",
+                    title: "Feed",
+                         subtitle: feed,
+                    actions: @<text>
+                        <a class="btn btn-inline" href="@Url.RouteUrl(RouteName.Feed, new { name = feed })">
+                            Manage
+                        </a>
+                    </text>)
+        }
+    }
 </ul>
 <h2>Credentials</h2>
 @if (hasPassword && credGroups.ContainsKey(CredentialKind.External) && credGroups[CredentialKind.External].Any())

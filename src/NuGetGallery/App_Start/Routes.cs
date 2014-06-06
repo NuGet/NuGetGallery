@@ -213,6 +213,21 @@ namespace NuGetGallery
                 new { controller = "Users", action = "Account" });
 
             routes.MapRoute(
+                RouteName.Feed,
+                "feeds/{name}",
+                new { controller = "Feeds", action = "Feed" });
+
+            routes.MapRoute(
+                RouteName.FeedRuleAdd,
+                "forms/feed-rule-add",
+                new { controller = "FeedRules", action = "FeedRulesForm" });
+
+            routes.MapRoute(
+                RouteName.FeedRules,
+                "feeds/{feedName}/feed-rules",
+                new { controller = "FeedRules", action = "FeedRules" });
+
+            routes.MapRoute(
                 RouteName.CuratedFeed,
                 "curated-feeds/{name}",
                 new { controller = "CuratedFeeds", action = "CuratedFeed" });

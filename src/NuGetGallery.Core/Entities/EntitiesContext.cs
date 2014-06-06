@@ -38,6 +38,7 @@ namespace NuGetGallery
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<Credential> Credentials { get; set; }
         public IDbSet<User> Users { get; set; }
+        public IDbSet<Feed> Feeds { get; set; }
 
         IDbSet<T> IEntitiesContext.Set<T>()
         {
@@ -210,6 +211,39 @@ namespace NuGetGallery
 
             modelBuilder.Entity<CuratedPackage>()
                 .HasRequired(cp => cp.PackageRegistration);
+
+            modelBuilder.Entity<FeedPackage>()
+                .HasKey(pm => pm.Key);
+
+            modelBuilder.Entity<FeedPackage>()
+                .HasRequired(cp => cp.Package);
+
+            modelBuilder.Entity<FeedRule>()
+                .HasKey(pm => pm.Key);
+
+            modelBuilder.Entity<FeedRule>()
+                .HasRequired(cp => cp.PackageRegistration);
+
+            modelBuilder.Entity<Feed>()
+                .HasKey(pm => pm.Key);
+
+            modelBuilder.Entity<Feed>()
+                .HasMany<FeedPackage>(cf => cf.Packages)
+                .WithRequired(cp => cp.Feed)
+                .HasForeignKey(cp => cp.FeedKey);
+
+            modelBuilder.Entity<Feed>()
+                .HasMany<FeedRule>(cf => cf.Rules)
+                .WithRequired(cp => cp.Feed)
+                .HasForeignKey(cp => cp.FeedKey);
+
+            modelBuilder.Entity<Feed>()
+                .HasMany<User>(cf => cf.Managers)
+                .WithMany()
+                .Map(c => c.ToTable("FeedManagers")
+                           .MapLeftKey("FeedKey")
+                           .MapRightKey("UserKey"));
+
         }
 #pragma warning restore 618
 

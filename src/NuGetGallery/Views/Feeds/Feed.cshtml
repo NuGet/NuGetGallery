@@ -1,0 +1,53 @@
+﻿@model FeedViewModel
+@{
+    ViewBag.Title = "Feed: " + Model.Name;
+}
+
+<h1>Feed: @Model.Name</h1>
+<h2>Managers</h2>
+<p>This is a list of all users authorized to manage this feed. To add or remove managers, please contact the gallery operators.</p>
+<ul>
+    @foreach (var manager in Model.Managers)
+    {
+        <li>@manager</li>
+    }
+</ul>
+
+<h2>Feed Rules</h2>
+<p>This is a list of the manually created rules that govern the packages that will appear in this feed.
+To add a new rule for this feed, click the "Add Rule" link below. To remove a manually created rule,
+click the "Remove" link next to it.</p>
+<p>@Html.RouteLink("Add Rule", RouteName.FeedRuleAdd, new { feedName = Model.Name })</p>
+
+@if (Model.FeedRules.Count > 0)
+{
+    if (Model.Inclusive)
+    {
+        <p>This feed <strong>includes</strong> packages that match the following rules:</p>
+    }
+    else
+    {
+        <p>This feed <strong>excludes</strong> packages that match the following rules:</p>
+    }
+
+    <table class="sexy-table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>VersionSpec</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var feedRuleDesc in Model.FeedRules)
+            {
+                <tr>
+                    <td>@feedRuleDesc.Id</td>
+                    <td>@feedRuleDesc.VersionSpec</td>
+                    <td>@feedRuleDesc.Notes</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+

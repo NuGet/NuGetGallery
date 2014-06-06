@@ -1,0 +1,18 @@
+﻿@model CreateFeedRuleRequest
+@{
+    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+}
+@section SideColumn {
+    <p><strong>Note: </strong>Specifying a version spec (using the same syntax as in the nuspec) will cause all matching
+    Package Versions to be included in this feed.</p>
+}
+<h1 class="page-heading">Include Package in <i>@ViewBag.FeedName</i></h1>
+@using (Html.BeginForm("FeedRules", "FeedRules", new { feedName = ViewBag.FeedName }))
+{
+    <fieldset class="form">
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true)
+        @Html.EditorForModel()
+        <input type="submit" value="Add" title="Add" />
+    </fieldset>
+}

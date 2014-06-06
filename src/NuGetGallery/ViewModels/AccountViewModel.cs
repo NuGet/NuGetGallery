@@ -6,6 +6,7 @@ namespace NuGetGallery
 {
     public class AccountViewModel
     {
+        public IEnumerable<string> Feeds { get; set; }
         public IEnumerable<string> CuratedFeeds { get; set; }
         public IList<CredentialViewModel> Credentials { get; set; }
         public ChangePasswordViewModel ChangePassword { get; set; }
