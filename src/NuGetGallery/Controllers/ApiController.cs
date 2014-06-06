@@ -340,6 +340,12 @@ namespace NuGetGallery
             return Content(alert == null ? (string)null : alert.ToString(), "text/html");
         }
 
+        public virtual async Task<ActionResult> Team()
+        {
+            var team = await ContentService.GetContentItemAsync(Constants.ContentNames.Team, TimeSpan.FromHours(1));
+            return Content(team.ToString(), "application/json");
+        }
+
         protected override void OnException(ExceptionContext filterContext)
         {
             var exception = filterContext.Exception;

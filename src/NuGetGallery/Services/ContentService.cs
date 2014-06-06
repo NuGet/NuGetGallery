@@ -24,6 +24,8 @@ namespace NuGetGallery
         public static readonly string HtmlContentFileExtension = ".html";
         public static readonly string MarkdownContentFileExtension = ".md";
 
+        public static readonly string JsonContentFileExtension = ".json";
+
         public IFileStorageService FileStorage { get; protected set; }
 
         protected ConcurrentDictionary<string, ContentItem> ContentCache { get { return _contentCache; } }
@@ -47,6 +49,10 @@ namespace NuGetGallery
 
             FileStorage = fileStorage;
             Trace = diagnosticsService.GetSource("ContentService");
+        }
+        public void ClearCache()
+        {
+            _contentCache.Clear();
         }
 
         public Task<IHtmlString> GetContentItemAsync(string name, TimeSpan expiresIn)
@@ -73,10 +79,13 @@ namespace NuGetGallery
                 Trace.Verbose("Cache Expired.");
 
                 // Get the file from the content service
-                string htmlFileName = name + HtmlContentFileExtension;
-                string markdownFileName = name + MarkdownContentFileExtension;
+                var filenames = new[] {
+                    name + HtmlContentFileExtension,
+                    name + MarkdownContentFileExtension,
+                    name + JsonContentFileExtension
+                };
 
-                foreach (var filename in new[] { htmlFileName, markdownFileName })
+                foreach (var filename in filenames)
                 {
                     ContentItem item = await RefreshContentFromFile(filename, cachedItem, expiresIn);
                     if (item != null)
@@ -136,22 +145,18 @@ namespace NuGetGallery
                                 using (var reader = new StreamReader(stream))
                                 {
                                     string text = await reader.ReadToEndAsync();
-                                    string looseHtml;
+                                    string content;
 
-                                    if (fileName.EndsWith(".html"))
+                                    if (fileName.EndsWith(".md"))
                                     {
-                                        looseHtml = text;
-                                    }
-                                    else if (fileName.EndsWith(".md"))
-                                    {
-                                        looseHtml = new Markdown().Transform(text);
+                                        content = new Markdown().Transform(text);
                                     }
                                     else
                                     {
-                                        looseHtml = "Unknown Content File Type";
+                                        content = text;
                                     }
 
-                                    IHtmlString html = new HtmlString(looseHtml.Trim());
+                                    IHtmlString html = new HtmlString(content.Trim());
 
                                     // Prep the new item for the cache
                                     var expiryTime = DateTime.UtcNow + expiresIn;

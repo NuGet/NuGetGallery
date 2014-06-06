@@ -340,6 +340,12 @@ namespace NuGetGallery
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
+                RouteName.Team,
+                "api/v2/team",
+                defaults: new { controller = "Api", action = "Team" },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
                 RouteName.Status,
                 "api/status",
                 new { controller = "Api", action = "StatusApi" });

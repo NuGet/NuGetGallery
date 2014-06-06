@@ -62,5 +62,6 @@
         public const string Error404 = "Error404";
         public const string Status = "Status";
         public const string Contributors = "Contributors";
+        public const string Team = "Team";
     }
 }
