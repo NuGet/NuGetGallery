@@ -38,7 +38,7 @@
 
 <h3>The NuGet Team</h3>
 <p>
-    We work on the <a href="https://github.com/NuGet">NuGet Gallery</a>, and the <a href="https://nuget.codeplex.com">NuGet Client tools</a> (nuget.exe, Visual Studio Extension, etc).
+    These are contributors from the NuGet team, including current and past team members.  The NuGet team works on the <a href="https://github.com/NuGet">NuGet Gallery</a>, and the <a href="https://nuget.codeplex.com">NuGet Client tools</a> (Visual Studio Extension, nuget.exe, etc).
 </p>
 <ul class="contributor-list" id="team"></ul>
 
@@ -76,23 +76,26 @@
                 $.getJSON('https://api.github.com/repos/NuGet/NuGetGallery/contributors', function (data) {
                     contributors = data;
                 }),
-                $.getJSON('https://api.github.com/orgs/NuGet/members', function (data) {
+                $.getJSON(window.app.root + 'api/v2/team', function (data) {
                     team = data;
                     $.each(data, function (index, member) {
-                        teamMap[member.login] = 1; // Value is ignored
+                        teamMap[member] = 1; // Value is ignored
                     });
                 })
             ).then(function () {
                 // Filter out members from contributors
                 var externalContributors = []; // Quick-n-dirty filter because I don't want to pull a library in
+                var teamContributors = [];
                 $.each(contributors, function (index, contributor) {
                     if (!teamMap.hasOwnProperty(contributor.login)) {
                         externalContributors.push(contributor);
+                    } else {
+                        teamContributors.push(contributor);
                     }
                 });
 
                 addContributors($contributors, externalContributors, 'https://github.com/NuGet/NuGetGallery/commits?author=');
-                addContributors($team, team, 'https://github.com/');
+                addContributors($team, teamContributors, 'https://github.com/');
             });
         });
     </script>
