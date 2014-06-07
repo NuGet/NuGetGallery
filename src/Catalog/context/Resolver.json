@@ -1,10 +1,12 @@
 ﻿{ 
 	"@context" : { 
 		"@vocab" : "http://nuget.org/schema#",
+		"catalog" : "http://nuget.org/catalog#",
         "package" : { "@container" : "@set" },
         "group" : { "@container" : "@set" },
         "dependency" : { "@container" : "@set" },
         "property" : { "@container" : "@set" },
-		"url" : "@id"
+		"url" : "@id",
+		"catalog:timeStamp": { "@type": "http://www.w3.org/2001/XMLSchema#dateTime" }
 	}
 }

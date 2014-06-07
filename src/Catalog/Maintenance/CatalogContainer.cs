@@ -47,12 +47,10 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             INode timeStampPredicate = graph.CreateUriNode("catalog:timeStamp");
             INode commitIdPredicate = graph.CreateUriNode("catalog:commitId");
 
-            Uri dateTimeDatatype = new Uri("http://www.w3.org/2001/XMLSchema#dateTime");
-
             INode container = graph.CreateUriNode(_resourceUri);
 
             graph.Assert(container, rdfTypePredicate, graph.CreateUriNode(GetContainerType()));
-            graph.Assert(container, timeStampPredicate, graph.CreateLiteralNode(_timeStamp.ToString("O"), dateTimeDatatype));
+            graph.Assert(container, timeStampPredicate, _timeStamp.ToLiteral(graph));
             graph.Assert(container, commitIdPredicate, graph.CreateLiteralNode(_commitId.ToString()));
 
             if (_parent != null)
@@ -77,7 +75,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                     graph.Merge(item.Value.PageContent);
                 }
 
-                graph.Assert(itemNode, timeStampPredicate, graph.CreateLiteralNode(item.Value.TimeStamp.ToString("O"), dateTimeDatatype));
+                graph.Assert(itemNode, timeStampPredicate, item.Value.TimeStamp.ToLiteral(graph));
                 graph.Assert(itemNode, commitIdPredicate, graph.CreateLiteralNode(item.Value.CommitId.ToString()));
 
                 if (item.Value.Count != null)
