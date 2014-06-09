@@ -144,6 +144,11 @@ namespace NuGetGallery.FunctionTests.Helpers
             get { return UrlHelper.BaseUrl + ManageMyPackagesUrlSuffix; }
         }
 
+        public static string AboutGalleryPageUrl
+        {
+            get { return UrlHelper.BaseUrl + AboutPageUrlSuffix; }
+        }
+
         public static string GetPackagePageUrl(string packageId)
         {
             return UrlHelper.BaseUrl + @"Packages/" + packageId;
@@ -185,6 +190,7 @@ namespace NuGetGallery.FunctionTests.Helpers
         private const string AccountUnscribeUrlSuffix = "account/unsubscribe";
         private const string AccountApiKeyResetUrlSuffix = "/account/GenerateApiKey";
         private const string ManageMyPackagesUrlSuffix = "/account/Packages";
+        private const string AboutPageUrlSuffix = "policies/About";
         #endregion UrlSuffix
     }
 }
