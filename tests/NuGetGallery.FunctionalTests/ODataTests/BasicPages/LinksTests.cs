@@ -45,11 +45,20 @@ namespace NuGetGallery.FunctionalTests.LinksTests
             TestLinksOnWebPagesUsingFluentLinkChecker(UrlHelper.StatsPageUrl);
         }
 
-        #region Helper Methods
-        public bool TestLinksOnWebPagesUsingFluentLinkChecker(string uri)
+        [TestMethod]
+        [Description("Test all clickable links on the About Gallery page are returning 200")]
+        [Priority(1)]
+        public void TestAboutGalleryPageLinks()
         {
+            TestLinksOnWebPagesUsingFluentLinkChecker(UrlHelper.AboutGalleryPageUrl);
+        }
+
+        #region Helper Methods
+        public bool TestLinksOnWebPagesUsingFluentLinkChecker(string url)
+        {
+            Console.WriteLine("Starting Url is: {0}", url);
             var result = LinkCheck
-                          .On(src => src.Url(new Uri(uri))
+                          .On(src => src.Url(new Uri(url))
                           .Relative())
                           .AsBot(bot => bot.Bing())
                           .Start();
