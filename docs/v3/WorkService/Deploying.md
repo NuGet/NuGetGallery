@@ -2,12 +2,14 @@
 
 ## Initial Provisioning
 The work service requires the following resources:
+
 1. A SQL Server with a database: 'nuget-[environment]-[dc]' (for example: 'nuget-int-0')
 2. A Primary Storage Account with the name: 'nuget[environment][dc]' (for example: 'nugetint0')
 3. An SSL Certificate for the target service
 4. An RDP Certificate for the target service
 
 Optional resources include:
+
 1. The Connection String to the Legacy (APIv2) Storage account and Database
 2. A Backup storage account
 3. A Warehouse database connection string
@@ -15,6 +17,7 @@ Optional resources include:
 To provision the service, create a Cloud Service in Azure with the name 'nuget-[environment]-[dc]-[service]' (for example: 'nuget-int-0-work') and upload the SSL and RDP certificates.
 
 Provisioning the Primary SQL Database:
+
 1. Create a database
 2. Create two logins in the primary SQL Server with random passwords named 'primary' and 'secondary'
 3. Publish the NuGet.Services.Work.Database project to the SQL Database
