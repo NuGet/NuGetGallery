@@ -22,7 +22,7 @@ namespace NuGetGallery.Diagnostics
 
         public override Task Execute()
         {
-            return Task.WhenAll(Queues.Select(q => ProcessQueue(q)));
+            return new Task(() => Task.WaitAll(Queues.Select(q => ProcessQueue(q)).ToArray()));
         }
 
         private async Task ProcessQueue(string queue)
