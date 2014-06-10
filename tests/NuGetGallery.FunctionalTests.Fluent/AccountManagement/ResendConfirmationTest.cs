@@ -16,7 +16,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             // Go to account confirmation page
             I.Open(UrlHelper.BaseUrl + "account/confirmationrequired");
             // Click the (change) link
-            I.Open(UrlHelper.BaseUrl + "account/edit");
+            I.Open(UrlHelper.BaseUrl + "account");
             I.Expect.Count(0).Of("h1:contains('404')");
             
             // Go back to account confirmation page and click the Send Confirmation Email link
