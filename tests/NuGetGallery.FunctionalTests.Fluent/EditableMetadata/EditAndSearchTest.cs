@@ -28,7 +28,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             I.Click("#Edit_VersionTitleButton");
             string newTitle = String.Format("This title is accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newTitle).In("#Edit_VersionTitle");
-            I.Click("input[value='Submit']");
+            I.Click("#verifyUploadSubmit");
 
             // Re-load and validate that the edit has been applied.
             // The edit can be applied anytime within ten mins. to be considered successful.  This tries 20 times with a 30 sec. timeout.
