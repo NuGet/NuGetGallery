@@ -2,24 +2,66 @@
 @{
     ViewBag.Title = "Feed: " + Model.Name;
 }
+@section BottomScripts {
+    <script>
+        var urlFormat = "@Url.RouteUrl(RouteName.FeedRule,
+            new { feedName = Model.Name,
+                  id = "ID",
+                  versionSpec = "VERSION_SPEC" })";
+
+        function deleteRule(id, versionSpec) {
+
+            var url = urlFormat.replace("ID", id).replace("VERSION_SPEC", versionSpec);
+
+            $.ajax({
+                type: 'delete',
+                url: url
+            })
+            .error(function(jqXhr, textStatus, errorThrown) {
+                alert("Error: " + errorThrown);
+            })
+            .complete(function() {
+                location.reload();
+            });
+        }
+
+        $(document).ready(function () {
+            $(".remove-link").click(function () {
+                deleteRule(
+                    $(this).data("id"),
+                    $(this).data("versionSpec"));
+            });
+        });
+
+    </script>
+}
 
 <h1>Feed: @Model.Name</h1>
-<h2>Managers</h2>
-<p>This is a list of all users authorized to manage this feed. To add or remove managers, please contact the gallery operators.</p>
-<ul>
-    @foreach (var manager in Model.Managers)
+        <h2>Managers</h2>
+        <p>This is a list of all users authorized to manage this feed. To add or remove managers, please contact the gallery operators.</p>
+        <ul>
+            @foreach (var manager in Model.Managers)
     {
         <li>@manager</li>
     }
-</ul>
+        </ul>
 
-<h2>Feed Rules</h2>
-<p>This is a list of the manually created rules that govern the packages that will appear in this feed.
-To add a new rule for this feed, click the "Add Rule" link below. To remove a manually created rule,
-click the "Remove" link next to it.</p>
-<p>@Html.RouteLink("Add Rule", RouteName.FeedRuleAdd, new { feedName = Model.Name })</p>
+        <h2>Feed Rules</h2>
+        <p>This is a list of the manually created rules that govern the packages that will appear in this feed.
+        If the rule is satisfied the corresponding packages will be
+        @if (Model.Inclusive)
+{
+    <strong>included.</strong>
+}
+else
+{
+    <strong>excluded.</strong>
+}
+        To add a new rule for this feed, click the "Add Rule" link below. To remove a manually created rule,
+        click the "Remove" link next to it.</p>
+        <p>@Html.RouteLink("Add Rule", RouteName.FeedRuleAdd, new { feedName = Model.Name })</p>
 
-@if (Model.FeedRules.Count > 0)
+            @if (Model.FeedRules.Count > 0)
 {
     if (Model.Inclusive)
     {
@@ -33,20 +75,22 @@ click the "Remove" link next to it.</p>
     <table class="sexy-table">
         <thead>
             <tr>
-                <th>Id</th>
-                <th>VersionSpec</th>
-                <th>Notes</th>
+            <th>Id</th>
+            <th>VersionSpec</th>
+            <th>Notes</th>
+            <th></th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var feedRuleDesc in Model.FeedRules)
-            {
-                <tr>
-                    <td>@feedRuleDesc.Id</td>
-                    <td>@feedRuleDesc.VersionSpec</td>
-                    <td>@feedRuleDesc.Notes</td>
-                </tr>
-            }
+        @foreach (var feedRuleDesc in Model.FeedRules)
+        {
+            <tr>
+            <td>@feedRuleDesc.Id</td>
+            <td>@feedRuleDesc.VersionSpec</td>
+            <td>@feedRuleDesc.Notes</td>
+            <td><a href="#" class="remove-link" data-id="@feedRuleDesc.Id" data-version-spec="@feedRuleDesc.VersionSpec">Remove</a></td>
+            </tr>
+        }
         </tbody>
     </table>
 }

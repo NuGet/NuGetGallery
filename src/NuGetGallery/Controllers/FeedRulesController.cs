@@ -36,7 +36,40 @@ namespace NuGetGallery
             }
 
             ViewBag.FeedName = feed.Name;
+            ViewBag.Inclusive = feed.Inclusive;
             return View();
+        }
+
+        [ActionName("FeedRule")]
+        [HttpDelete]
+        public virtual ActionResult DeleteCuratedPackage(
+            string feedName,
+            string id,
+            string versionSpec)
+        {
+            Feed feed = ManageFeedService.GetFeedByName(feedName);
+            if (feed == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (feed.Managers.All(manager => manager.Username != User.Identity.Name))
+            {
+                return new HttpStatusCodeResult(403);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.FeedName = feed.Name;
+                return View("FeedRules");
+            }
+
+            ManageFeedService.DeleteFeedRule(
+                feed,
+                id,
+                versionSpec);
+
+            return new HttpStatusCodeResult(204);
         }
 
         [ActionName("FeedRules")]
@@ -59,7 +92,7 @@ namespace NuGetGallery
             if (!ModelState.IsValid)
             {
                 ViewBag.FeedName = feed.Name;
-                return View("FeedRulesForm");
+                return View("FeedRules");
             }
 
             PackageRegistration packageRegistration = EntitiesContext.PackageRegistrations

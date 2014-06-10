@@ -11,5 +11,7 @@ namespace NuGetGallery
         IEnumerable<Feed> GetFeedsForManager(int managerKey);
 
         void CreateFeedRule(Feed feed, PackageRegistration packageRegistration, string packageVersionSpec, string notes);
+
+        void DeleteFeedRule(Feed feed, string id, string versionSpec);
     }
 }

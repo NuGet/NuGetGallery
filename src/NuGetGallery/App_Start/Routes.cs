@@ -223,6 +223,11 @@ namespace NuGetGallery
                 new { controller = "FeedRules", action = "FeedRulesForm" });
 
             routes.MapRoute(
+                RouteName.FeedRule,
+                "feeds/{feedName}/feed-rules/{id}/{versionSpec}",
+                new { controller = "FeedRules", action = "FeedRule" });
+
+            routes.MapRoute(
                 RouteName.FeedRules,
                 "feeds/{feedName}/feed-rules",
                 new { controller = "FeedRules", action = "FeedRules" });

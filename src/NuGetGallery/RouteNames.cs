@@ -36,6 +36,7 @@
         public const string CancelUpload = "CancelUpload";
         public const string Feed = "Feed";
         public const string FeedRuleAdd = "FeedRuleAdd";
+        public const string FeedRule = "FeedRule";
         public const string FeedRules = "FeedRules";
         public const string CuratedFeed = "CuratedFeed";
         public const string CuratedFeedListPackages = "CuratedFeedListPackages";
