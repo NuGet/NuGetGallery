@@ -31,7 +31,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
             // Navigate to the upload page and upload the package. 
             I.UploadPackageUsingUI(newPackageLocation);
-            I.Click("input[value='Submit']");
+            I.Click("#verifyUploadSubmit");
 
             // Validate that the package has uploaded.
             I.Expect.Url(UrlHelper.BaseUrl + @"packages/" + packageName + "/" + version);
