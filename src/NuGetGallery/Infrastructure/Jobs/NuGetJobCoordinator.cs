@@ -46,7 +46,10 @@ namespace NuGetGallery.Infrastructure.Jobs
 
             var wrapper = new Task(() =>
             {
-                originalTask.Start();
+                if (originalTask.Status == TaskStatus.WaitingForActivation)
+                {
+                    originalTask.Start();
+                }
                 continuation.Wait();
             });
 
