@@ -20,7 +20,7 @@ namespace NuGetGallery
                 Id = rule.PackageRegistration.Id;
                 VersionSpec = rule.PackageVersionSpec;
 
-                if (rule.Notes.Length > 40)
+                if (rule.Notes != null && rule.Notes.Length > 40)
                 {
                     Notes = rule.Notes.Substring(0, 37) + "...";
                 }

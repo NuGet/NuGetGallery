@@ -37,6 +37,16 @@ namespace NuGetGallery
 
         public void CreateFeedRule(Feed feed, PackageRegistration packageRegistration, string packageVersionSpec, string notes)
         {
+            if (string.IsNullOrEmpty(packageVersionSpec))
+            {
+                SemanticVersion lowestVersion = GetLowestVersion(packageRegistration);
+                if (lowestVersion == null)
+                {
+                    return;
+                }
+                packageVersionSpec = lowestVersion.ToString();
+            }
+
             FeedRule newRule = new FeedRule
             {
                 Feed = feed,
@@ -85,6 +95,12 @@ namespace NuGetGallery
 
                 FeedRepository.CommitChanges();
             }
+        }
+
+        SemanticVersion GetLowestVersion(PackageRegistration packageRegistration)
+        {
+            var versions = packageRegistration.Packages.Select(p => new SemanticVersion(p.NormalizedVersion)).OrderBy(v => v);
+            return versions.FirstOrDefault();
         }
 
         void RecalculateFeedPackages(Feed feed, PackageRegistration packageRegistration)
