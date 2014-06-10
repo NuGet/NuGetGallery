@@ -61,7 +61,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             string newReleaseNotes = String.Format("These release notes are accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newReleaseNotes).In("#Edit_ReleaseNotes");
 
-            I.Click("input[value='Submit']");
+            I.Click("#verifyUploadSubmit");
 
             // Validate that the edit is queued.
             I.Expect.Url(UrlHelper.BaseUrl + @"packages/" + packageName + "/" + version);
