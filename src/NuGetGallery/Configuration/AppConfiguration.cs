@@ -52,6 +52,11 @@ namespace NuGetGallery.Configuration
         public bool ReadOnlyMode { get; set; }
 
         /// <summary>
+        /// Gets if only service feeds should be registered
+        /// </summary>
+        public bool FeedOnlyMode { get; set; }
+
+        /// <summary>
         /// Gets the local directory in which to store files.
         /// </summary>
         [DefaultValue("~/App_Data/Files")]

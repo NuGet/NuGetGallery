@@ -67,7 +67,7 @@ namespace NuGetGallery
             // Get configuration from the kernel
             var config = Container.Kernel.Get<IAppConfiguration>();
             BackgroundJobsPostStart(config);
-            AppPostStart();
+            AppPostStart(config);
             BundlingPostStart();
         }
 
@@ -168,9 +168,13 @@ namespace NuGetGallery
             ServiceCenter.Current = _ => Container.Kernel;
         }
 
-        private static void AppPostStart()
+        private static void AppPostStart(IAppConfiguration configuration)
         {
-            Routes.RegisterRoutes(RouteTable.Routes);
+            if (!configuration.FeedOnlyMode)
+            {
+                Routes.RegisterRoutes(RouteTable.Routes);
+            }
+            Routes.RegisterApiV2Routes(RouteTable.Routes);
             Routes.RegisterServiceRoutes(RouteTable.Routes);
             AreaRegistration.RegisterAllAreas();
 
