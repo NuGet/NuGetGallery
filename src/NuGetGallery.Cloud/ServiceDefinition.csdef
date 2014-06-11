@@ -12,6 +12,7 @@
       <Setting name="Gallery.SqlServer" />
       <Setting name="Gallery.ConfirmEmailAddress" />
       <Setting name="Gallery.ReadOnlyMode" />
+      <Setting name="Gallery.FeedOnlyMode" />
       <Setting name="Gallery.StorageType" />
       <Setting name="Gallery.SmtpUri" />
       <Setting name="Gallery.FacebookAppId" />

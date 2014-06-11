@@ -49,6 +49,7 @@
       <!-- **************** -->
       <!-- These are only changed at runtime -->
       <Setting name="Gallery.ReadOnlyMode" value="false" />
+      <Setting name="Gallery.FeedOnlyMode" value="false" />
       <Setting name="Startup.BlockedIPs" value="" />
     </ConfigurationSettings>
     <Certificates>
