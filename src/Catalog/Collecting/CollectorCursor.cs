@@ -11,7 +11,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         public CollectorCursor(DateTime datetime)
         {
-            _val = datetime.ToString();
+            _val = datetime.ToString("O");
         }
 
         public static explicit operator DateTime(CollectorCursor cur)
