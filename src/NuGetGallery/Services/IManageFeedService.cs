@@ -13,5 +13,7 @@ namespace NuGetGallery
         void CreateFeedRule(Feed feed, PackageRegistration packageRegistration, string packageVersionSpec, string notes);
 
         void DeleteFeedRule(Feed feed, string id, string versionSpec);
+
+        void PublishPackage(Package package, bool commitChanges);
     }
 }

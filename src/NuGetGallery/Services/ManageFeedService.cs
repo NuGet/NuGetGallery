@@ -97,6 +97,104 @@ namespace NuGetGallery
             }
         }
 
+        public void PublishPackage(Package package, bool commitChanges)
+        {
+            //TODO: put the PackageRegistrationKey in the FeedRule then we shouldn't have to bring all this stuff into memory
+
+            List<Feed> feeds = FeedRepository.GetAll()
+                .Include(f => f.Packages)
+                .Include(f => f.Packages.Select(fp => fp.Package))
+                .Include(f => f.Rules)
+                .Include(f => f.Rules.Select(r => r.PackageRegistration))
+                .ToList();
+
+            DateTime timeStamp = DateTime.UtcNow;
+
+            foreach (Feed feed in feeds)
+            {
+                if (feed.Inclusive)
+                {
+                    PublishPackageForInclude(timeStamp, feed, package, commitChanges);
+                }
+                else
+                {
+                    PublishPackageForExclude(timeStamp, feed, package, commitChanges);
+                }
+            }
+        }
+
+        void PublishPackageForInclude(DateTime timeStamp, Feed feed, Package package, bool commitChanges)
+        {
+            //TODO: this should be based on PackageRegistrationKey which we put inline in the rule
+            var rules = feed.Rules.Where(fr => fr.PackageRegistration.Id == package.PackageRegistration.Id);
+
+            SemanticVersion semanticVersion = SemanticVersion.Parse(package.NormalizedVersion);
+
+            foreach (var rule in rules)
+            {
+                IVersionSpec versionSpec = VersionUtility.ParseVersionSpec(rule.PackageVersionSpec);
+
+                if (versionSpec.Satisfies(semanticVersion))
+                {
+                    if (feed.Packages.SingleOrDefault(fp => fp.PackageKey == package.Key) == null)
+                    {
+                        FeedPackage feedPackage = new FeedPackage
+                        {
+                            Feed = feed,
+                            FeedKey = feed.Key,
+                            Package = package,
+                            PackageKey = package.Key,
+                            Added = timeStamp,
+                            IsLatest = false,
+                            IsLatestStable = false
+                        };
+
+                        feed.Packages.Add(feedPackage);
+                    }
+                }
+            }
+        }
+
+        void PublishPackageForExclude(DateTime timeStamp, Feed feed, Package package, bool commitChanges)
+        {
+            //TODO: this should be based on PackageRegistrationKey which we put inline in the rule
+            var rules = feed.Rules.Where(fr => fr.PackageRegistration.Id == package.PackageRegistration.Id);
+
+            SemanticVersion semanticVersion = SemanticVersion.Parse(package.NormalizedVersion);
+
+            bool addToFeed = true;
+
+            foreach (var rule in rules)
+            {
+                IVersionSpec versionSpec = VersionUtility.ParseVersionSpec(rule.PackageVersionSpec);
+
+                if (versionSpec.Satisfies(semanticVersion))
+                {
+                    addToFeed = false;
+                    break;
+                }
+            }
+
+            if (addToFeed)
+            {
+                if (feed.Packages.SingleOrDefault(fp => fp.PackageKey == package.Key) == null)
+                {
+                    FeedPackage feedPackage = new FeedPackage
+                    {
+                        Feed = feed,
+                        FeedKey = feed.Key,
+                        Package = package,
+                        PackageKey = package.Key,
+                        Added = timeStamp,
+                        IsLatest = false,
+                        IsLatestStable = false
+                    };
+
+                    feed.Packages.Add(feedPackage);
+                }
+            }
+        }
+
         SemanticVersion GetLowestVersion(PackageRegistration packageRegistration)
         {
             var versions = packageRegistration.Packages.Select(p => new SemanticVersion(p.NormalizedVersion)).OrderBy(v => v);
@@ -117,6 +215,7 @@ namespace NuGetGallery
 
         void RecalculateFeedPackageInclude(Feed feed, PackageRegistration packageRegistration)
         {
+            //TODO: add Where(PackageRegistration.Id)
             HashSet<int> packageKeyInFeed = new HashSet<int>(feed.Packages.Select(fp => fp.PackageKey));
 
             HashSet<int> recalculatedPackageSet = CalculateMatchingPackageSet(feed, packageRegistration);

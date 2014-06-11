@@ -38,6 +38,7 @@ namespace NuGetGallery
         private readonly IIndexingService _indexingService;
         private readonly ICacheService _cacheService;
         private readonly EditPackageService _editPackageService;
+        private readonly IManageFeedService _manageFeedService;
 
         public PackagesController(
             IPackageService packageService,
@@ -50,7 +51,8 @@ namespace NuGetGallery
             IAppConfiguration config,
             IIndexingService indexingService,
             ICacheService cacheService,
-            EditPackageService editPackageService)
+            EditPackageService editPackageService,
+            ManageFeedService manageFeedService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -63,6 +65,7 @@ namespace NuGetGallery
             _indexingService = indexingService;
             _cacheService = cacheService;
             _editPackageService = editPackageService;
+            _manageFeedService = manageFeedService;
         }
 
         [Authorize]
@@ -879,6 +882,8 @@ namespace NuGetGallery
                 }
 
                 _autoCuratedPackageCmd.Execute(package, nugetPackage, commitChanges: false);
+
+                _manageFeedService.PublishPackage(package, commitChanges: false);
 
                 // save package to blob storage
                 uploadFile.Position = 0;
