@@ -16,7 +16,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         public static explicit operator DateTime(CollectorCursor cur)
         {
-            return DateTime.Parse(cur._val);
+            return DateTime.Parse(cur._val).ToUniversalTime();
         }
 
         public static implicit operator CollectorCursor(DateTime datetime)
