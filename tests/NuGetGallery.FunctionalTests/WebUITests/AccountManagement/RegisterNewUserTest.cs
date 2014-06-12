@@ -9,6 +9,7 @@ namespace NuGetGallery.FunctionalTests
 {
     /// <summary>
     /// Sends http POST request to register a new user and checks that a pending confirmation page is shown as response.
+    /// priority : p0
     /// </summary>
     public class RegisterNewUserTest : WebTest
     {
@@ -31,12 +32,12 @@ namespace NuGetGallery.FunctionalTests
             FormPostHttpBody registerNewUserFormPost = new FormPostHttpBody();
             registerNewUserFormPost.FormPostParameters.Add("__RequestVerificationToken", this.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
             registerNewUserFormPost.FormPostParameters.Add("LinkingAccount", "false");
-            registerNewUserFormPost.FormPostParameters.Add(Constants.EmailAddressFormField, DateTime.Now.Ticks.ToString() + "@live.com"); //add a dummy mail account. This will be fixed once we incorporate the logic to delete user.
+            registerNewUserFormPost.FormPostParameters.Add(Constants.EmailAddressFormField, DateTime.Now.Ticks.ToString() + "@live.com"); //add a dummy mail account.
             registerNewUserFormPost.FormPostParameters.Add(Constants.UserNameFormField, DateTime.Now.Ticks.ToString() + "NewAccount");
             registerNewUserFormPost.FormPostParameters.Add(Constants.RegisterPasswordFormField, "xxxxxxxx");
             registerPagePostRequest.Body = registerNewUserFormPost;
-            //Validate the response to make sure that it has the pending confirmation text in it.           
-            ValidationRuleFindText PendingConfirmationTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.RegisterNewUserPendingConfirmationText);
+            //Validate the response to make sure that it has the confirmation text in it.           
+            ValidationRuleFindText PendingConfirmationTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.RegisterNewUserConfirmationText);
             registerPagePostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(PendingConfirmationTextRule.Validate);
             yield return registerPagePostRequest;
             registerPagePostRequest = null;
