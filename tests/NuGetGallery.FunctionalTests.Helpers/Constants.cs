@@ -16,7 +16,8 @@ namespace NuGetGallery.FunctionTests.Helpers
 
         #region PredefinedText
         public const string HomePageText = "What is NuGet?";
-        public const string RegisterNewUserPendingConfirmationText = "Your account is now registered!";
+        public const string InvalidUserText = "A unique user with that username or email address and password does not exist";
+        public const string RegisterNewUserConfirmationText = "Your account is now registered!";
         public const string UserAlreadyExistsText = "User already exists";
         public const string ReadOnlyModeRegisterNewUserText = "503 : Please try again later! (Read-only)";
         public const string SearchTerm = "elmah";

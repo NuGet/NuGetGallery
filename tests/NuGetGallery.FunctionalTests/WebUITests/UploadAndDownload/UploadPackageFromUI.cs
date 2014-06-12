@@ -9,6 +9,7 @@ namespace NuGetGallery.FunctionalTests
 {   
     /// <summary>
     /// Uploads a new test package using Gallery UI. Validates that logon prompt appears to upload and checks that the package's home page opens post upload.
+    /// priority : p0
     /// </summary>
     public class UploadPackageFromUI : WebTest
     {
@@ -35,30 +36,39 @@ namespace NuGetGallery.FunctionalTests
             yield return uploadRequest;
             if (this.LastResponse.ResponseUri.ToString().Contains("verify-upload"))
             {
-                WebTestRequest cancelGet = AssertAndValidationHelper.GetCancelGetRequest();
-                yield return cancelGet;
-                cancelGet = null;
-                uploadRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
-                yield return uploadRequest;
+                // if there is a upload in progress, try to submit that upload instead of creating a new package (since we are just going to verify that upload goes through UI).
+                //Extract the package Id of the pending upload.
+                string response = this.LastResponse.BodyString;
+                int referenceIndex = response.IndexOf("<h4>Package ID</h4>");
+                int startIndex = response.IndexOf("<p>");
+                int endIndex = response.IndexOf("</p>", startIndex);
+                string packageId = response.Substring(startIndex + 3, endIndex - (startIndex + 3));
+                this.AddCommentToResult(packageId);   //Adding the package ID to result for debugging.             
+                WebTestRequest verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(this, packageId, "1.0.0", UrlHelper.VerifyUploadPageUrl, Constants.ReadOnlyModeError, 503);
+                yield return verifyUploadPostRequest;
+                verifyUploadPostRequest = null;
             }
-            uploadRequest = null;
+            else
+            {
+                uploadRequest = null;
 
-            // The API key is part of the nuget.config file that is present under the solution dir.
-            string packageId = DateTime.Now.Ticks.ToString();
-            string packageFullPath = PackageCreationHelper.CreatePackage(packageId);
+                // The API key is part of the nuget.config file that is present under the solution dir.
+                string packageId = DateTime.Now.Ticks.ToString();
+                string packageFullPath = PackageCreationHelper.CreatePackage(packageId);
 
-            WebTestRequest uploadPostRequest = AssertAndValidationHelper.GetUploadPostRequestForPackage(this, packageFullPath);
-            yield return uploadPostRequest;
-            uploadPostRequest = null;
+                WebTestRequest uploadPostRequest = AssertAndValidationHelper.GetUploadPostRequestForPackage(this, packageFullPath);
+                yield return uploadPostRequest;
+                uploadPostRequest = null;
 
-            WebTestRequest verifyUploadRequest = new WebTestRequest(UrlHelper.VerifyUploadPageUrl);
-            verifyUploadRequest.ExtractValues += new EventHandler<ExtractionEventArgs>(defaultExtractionRule.Extract);
-            yield return verifyUploadRequest;
-            verifyUploadRequest = null;
+                WebTestRequest verifyUploadRequest = new WebTestRequest(UrlHelper.VerifyUploadPageUrl);
+                verifyUploadRequest.ExtractValues += new EventHandler<ExtractionEventArgs>(defaultExtractionRule.Extract);
+                yield return verifyUploadRequest;
+                verifyUploadRequest = null;
 
-            WebTestRequest verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(this, packageId, "1.0.0", UrlHelper.GetPackagePageUrl(packageId, "1.0.0"),packageId);              
-            yield return verifyUploadPostRequest;
-            verifyUploadPostRequest = null;      
+                WebTestRequest verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(this, packageId, "1.0.0", UrlHelper.GetPackagePageUrl(packageId, "1.0.0"), packageId);
+                yield return verifyUploadPostRequest;
+                verifyUploadPostRequest = null;
+            }
         }
     }
 }

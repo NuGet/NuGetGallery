@@ -10,6 +10,7 @@ namespace NuGetGallery.FunctionalTests
 {
     /// <summary>
     /// Sends a http request to the statistics page and tries to validate the default stats page text and the prescene of top package.
+    /// Priority : p1
     /// </summary>
     public class StatisticsPageTest : WebTest
     {

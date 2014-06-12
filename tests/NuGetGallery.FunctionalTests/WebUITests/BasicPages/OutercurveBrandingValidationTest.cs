@@ -9,6 +9,7 @@ namespace NuGetGallery.FunctionalTests
 {
     /// <summary>
     /// Sends http request to gallery home page checks for the default home page text in the reponse.
+    /// priority : p1
     /// </summary>
     public class OutercurveBrandingValidationTest : WebTest
     {

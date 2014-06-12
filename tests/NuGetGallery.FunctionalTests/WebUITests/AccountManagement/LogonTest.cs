@@ -9,6 +9,7 @@ namespace NuGetGallery.FunctionalTests
 {
     /// <summary>
     /// Tries to login with a POST request with the credentials retrieved from the data source. Validates that the response has the logged in user name.
+    /// priority : p0
     /// </summary>   
     public class LogonTest : WebTest
     {

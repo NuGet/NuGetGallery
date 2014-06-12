@@ -9,6 +9,7 @@ namespace NuGetGallery.FunctionalTests
 {
     /// <summary>
     /// Sends http request to individual package pages and checks the response for appropriate title and download count.
+    /// priority : p1
     /// </summary>
     public class PackagesPageTest : WebTest
     {
@@ -19,7 +20,7 @@ namespace NuGetGallery.FunctionalTests
 
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
-            // take package names from the data source        
+            //Use a predefined test package.
             string packageId = Constants.TestPackageId;
             WebTestRequest packagePageRequest = new WebTestRequest(UrlHelper.BaseUrl + @"/Packages/" + packageId);      
           
