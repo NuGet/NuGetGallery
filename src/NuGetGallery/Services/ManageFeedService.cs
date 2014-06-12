@@ -115,10 +115,12 @@ namespace NuGetGallery
                 if (feed.Inclusive)
                 {
                     PublishPackageForInclude(timeStamp, feed, package, commitChanges);
+                    UpdateIsLatest(feed, package.PackageRegistration);
                 }
                 else
                 {
                     PublishPackageForExclude(timeStamp, feed, package, commitChanges);
+                    UpdateIsLatest(feed, package.PackageRegistration);
                 }
             }
         }
@@ -157,7 +159,6 @@ namespace NuGetGallery
 
         void PublishPackageForExclude(DateTime timeStamp, Feed feed, Package package, bool commitChanges)
         {
-            //TODO: this should be based on PackageRegistrationKey which we put inline in the rule
             var rules = feed.Rules.Where(fr => fr.PackageRegistration.Id == package.PackageRegistration.Id);
 
             SemanticVersion semanticVersion = SemanticVersion.Parse(package.NormalizedVersion);
@@ -215,8 +216,10 @@ namespace NuGetGallery
 
         void RecalculateFeedPackageInclude(Feed feed, PackageRegistration packageRegistration)
         {
-            //TODO: add Where(PackageRegistration.Id)
-            HashSet<int> packageKeyInFeed = new HashSet<int>(feed.Packages.Select(fp => fp.PackageKey));
+            HashSet<int> packageKeyInFeed = new HashSet<int>(
+                feed.Packages
+                .Where(fp => fp.Package.PackageRegistrationKey == packageRegistration.Key)
+                .Select(fp => fp.PackageKey));
 
             HashSet<int> recalculatedPackageSet = CalculateMatchingPackageSet(feed, packageRegistration);
 
@@ -282,7 +285,10 @@ namespace NuGetGallery
 
         void RecalculateFeedPackageExclude(Feed feed, PackageRegistration packageRegistration)
         {
-            HashSet<int> packageKeyInFeed = new HashSet<int>(feed.Packages.Select(fp => fp.PackageKey));
+            HashSet<int> packageKeyInFeed = new HashSet<int>(
+                feed.Packages
+                .Where(fp => fp.Package.PackageRegistrationKey == packageRegistration.Key)
+                .Select(fp => fp.PackageKey));
 
             HashSet<int> packageKeyInRepository = new HashSet<int>(packageRegistration.Packages.Select(p => p.Key));
 
@@ -328,7 +334,10 @@ namespace NuGetGallery
 
         static void IncludePackagesInFeed(Feed feed, PackageRegistration packageRegistration, string packageVersionSpec)
         {
-            HashSet<int> packageKeyInFeed = new HashSet<int>(feed.Packages.Select(fp => fp.PackageKey));
+            HashSet<int> packageKeyInFeed = new HashSet<int>(
+                feed.Packages
+                .Where(fp => fp.Package.PackageRegistrationKey == packageRegistration.Key)
+                .Select(fp => fp.PackageKey));
 
             DateTime timeStamp = DateTime.UtcNow;
 
@@ -357,7 +366,10 @@ namespace NuGetGallery
 
         void ExcludePackagesFromFeed(Feed feed, PackageRegistration packageRegistration, string packageVersionSpec)
         {
-            HashSet<int> packageKeyInFeed = new HashSet<int>(feed.Packages.Select(fp => fp.PackageKey));
+            HashSet<int> packageKeyInFeed = new HashSet<int>(
+                feed.Packages
+                .Where(fp => fp.Package.PackageRegistrationKey == packageRegistration.Key)
+                .Select(fp => fp.PackageKey));
 
             DateTime timeStamp = DateTime.UtcNow;
 
@@ -392,9 +404,13 @@ namespace NuGetGallery
 
         static void UpdateIsLatest(Feed feed, PackageRegistration packageRegistration)
         {
-            var feedPackages = feed.Packages.Where((fp) => fp.Package.PackageRegistrationKey == packageRegistration.Key);
+            var feedPackages = feed.Packages.Where((fp) =>
+                fp.Package.PackageRegistration != null &&
+                fp.Package.PackageRegistration.Key == packageRegistration.Key);
 
-            if (feedPackages.Count() > 0)
+            int count = feedPackages.Count();
+
+            if (count > 0)
             {
                 FeedPackage isLatestCandidate = feedPackages.First();
                 FeedPackage isLatestStableCandidate = feedPackages.First();
@@ -406,6 +422,7 @@ namespace NuGetGallery
 
                     if (feedPackageSemanticVersion > currentCandidateSemanticVersion)
                     {
+                        isLatestCandidate.IsLatest = false;
                         isLatestCandidate = feedPackage;
                     }
                     else
@@ -415,6 +432,7 @@ namespace NuGetGallery
 
                     if (feedPackageSemanticVersion > currentCandidateSemanticVersion && !feedPackage.Package.IsPrerelease)
                     {
+                        isLatestStableCandidate.IsLatestStable = false;
                         isLatestStableCandidate = feedPackage;
                     }
                     else
