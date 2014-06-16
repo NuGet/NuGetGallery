@@ -92,26 +92,15 @@
     <Compile Include="ODataTests\FeedTests\CuratedFeedTest.cs" />
     <Compile Include="ClientIntegrationTests\UploadAndDownload\PackageVersionTest.cs" />
     <Compile Include="GalleryTestBase.cs" />
-    <Compile Include="WebUITests\AccountManagement\InvalidLogonTest.cs" />
     <Compile Include="WebUITests\BasicPages\OutercurveBrandingValidationTest.cs" />
-    <Compile Include="WebUITests\BasicPages\SecurityHeaderTest.cs" />
-    <Compile Include="WebUITests\PackageManagement\ContactOwnerTest.cs" />
-    <Compile Include="WebUITests\PackageManagement\ContactUsAndReportAbuseLinkTest.cs" />
-    <Compile Include="WebUITests\PackageManagement\EditPackageTest.cs" />
     <Compile Include="WebUITests\ReadOnlyMode\RegisterNewUserInReadOnlyModeTest.cs" />
-    <Compile Include="WebUITests\UploadAndDownload\UploadPackageWithMinClientVersionFromUITest.cs" />
-    <Compile Include="WebUITests\PackageManagement\DeletePackageTest.cs" />
-    <Compile Include="WebUITests\PackageManagement\ManagePackagesPageTest.cs" />
-    <Compile Include="WebUITests\UploadAndDownload\AggregateStatsAfterDownload.cs" />
     <Compile Include="WebUITests\UploadAndDownload\UploadPackageFromUI.cs" />
     <Compile Include="WebUITests\AccountManagement\LogonTest.cs" />
     <Compile Include="WebUITests\BasicPages\PackagesPageTest.cs" />
     <Compile Include="WebUITests\BasicPages\HomePageValidationTest.cs" />
     <Compile Include="ODataTests\FeedTests\V2FeedTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WebUITests\AccountManagement\RegisterInvalidUserTest.cs" />
     <Compile Include="WebUITests\BasicPages\StatisticsPageTest.cs" />
-    <Compile Include="WebUITests\AccountManagement\UploadPackageWithoutLoginTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj">
