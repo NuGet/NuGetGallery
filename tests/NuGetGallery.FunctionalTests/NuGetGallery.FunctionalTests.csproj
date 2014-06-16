@@ -83,6 +83,7 @@
     <Compile Include="ODataTests\BasicPages\LinksTests.cs" />
     <Compile Include="ODataTests\LoadTests\LoadTests.cs" />
     <Compile Include="ODataTests\Statistics\PackageStatsTests.cs" />
+    <Compile Include="WebUITests\BasicPages\SecurityHeaderTest.cs" />
     <Compile Include="WebUITests\ReadOnlyMode\AccountManagementInReadOnlyModeTest.cs" />
     <Compile Include="WebUITests\ReadOnlyMode\UploadPackageFromInUIInReadOnlyMode.cs" />
     <Compile Include="WebUITests\AccountManagement\RegisterNewUserTest.cs" />
