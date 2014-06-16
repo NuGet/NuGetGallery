@@ -6,8 +6,9 @@ using System.Collections.Generic;
 
 namespace NuGetGallery.FunctionalTests
 {
-    /// <summary>
-    ///     Verify that an expected series of security headers is returned as part of the response.
+     /// <summary>
+     ///     Verify that an expected series of security headers is returned as part of the response.
+     ///     Priority :P2
      /// </summary>
      public class SecurityHeaderTest : WebTest
      {
