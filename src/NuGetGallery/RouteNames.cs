@@ -3,6 +3,7 @@
     public static class RouteName
     {
         public const string V2ApiCuratedFeed = "V2ApiCuratedFeed";
+        public const string V2ApiManagedFeed = "V2ApiManagedFeed";
         public const string V1ApiFeed = "V1ApiFeed";
         public const string V2ApiFeed = "V2ApiFeed";
         public const string ApiFeed = "ApiFeed";

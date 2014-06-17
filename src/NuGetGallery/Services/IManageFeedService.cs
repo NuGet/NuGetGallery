@@ -8,6 +8,7 @@ namespace NuGetGallery
     public interface IManageFeedService
     {
         Feed GetFeedByName(string feedName);
+
         IEnumerable<Feed> GetFeedsForManager(int managerKey);
 
         void CreateFeedRule(Feed feed, PackageRegistration packageRegistration, string packageVersionSpec, string notes);
@@ -15,5 +16,8 @@ namespace NuGetGallery
         void DeleteFeedRule(Feed feed, string id, string versionSpec);
 
         void PublishPackage(Package package, bool commitChanges);
+
+        IQueryable<Package> GetPackages(string feedName);
+        IQueryable<FeedPackage> GetFeedPackages(string feedName);
     }
 }

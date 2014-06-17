@@ -377,6 +377,9 @@
   <ItemGroup>
     <Compile Include="Controllers\FeedsController.cs" />
     <Compile Include="Controllers\FeedRulesController.cs" />
+    <Compile Include="DataServices\V2ManagedFeed.svc.cs">
+      <DependentUpon>V2ManagedFeed.svc</DependentUpon>
+    </Compile>
     <Compile Include="Diagnostics\PerfCounters.cs" />
     <Compile Include="Diagnostics\ProcessPerfEvents.cs" />
     <Compile Include="App_Start\OwinStartup.cs" />
@@ -970,6 +973,7 @@
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
+    <Content Include="DataServices\V2ManagedFeed.svc" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
