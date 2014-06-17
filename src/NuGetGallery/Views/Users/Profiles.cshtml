@@ -12,8 +12,8 @@
     }
     <div id="stats">
         <div class="stat">
-            <p class="stat-number">@Model.Packages.Count.ToString("n0")</p>
-            <p class="stat-label">@(Model.Packages.Count == 1 ? "Package" : "Packages")</p>
+            <p class="stat-number">@Model.AllPackages.Count.ToString("n0")</p>
+            <p class="stat-label">@(Model.AllPackages.Count == 1 ? "Package" : "Packages")</p>
         </div>
         <div class="stat">
             <p class="stat-number">@Model.TotalPackageDownloadCount.ToString("n0")</p>
@@ -24,9 +24,13 @@
 
 <h1 class="page-heading">@Model.Username's Profile</h1>
 
-<h2>Packages</h2>
+<h2>Packages
+     @if (Model.PackagePageTotalCount > 1)
+{
+    <small>(Page @(Model.PackagePage + 1) of @Model.PackagePageTotalCount)</small>
+}</h2>
 <ul id="searchResults">
-    @foreach (var package in Model.Packages)
+    @foreach (var package in Model.PagedPackages)
     {
         <li>
             <section class="package">
@@ -60,3 +64,5 @@
         </li>
     }
 </ul>
+
+@ViewHelpers.PreviousNextPager(Model.Pager)
