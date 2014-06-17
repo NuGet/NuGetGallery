@@ -17,7 +17,6 @@ namespace NuGetGallery
 
         void PublishPackage(Package package, bool commitChanges);
 
-        IQueryable<Package> GetPackages(string feedName);
         IQueryable<FeedPackage> GetFeedPackages(string feedName);
     }
 }

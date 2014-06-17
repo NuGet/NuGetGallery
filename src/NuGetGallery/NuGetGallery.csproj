@@ -978,6 +978,7 @@
     <Content Include="Scripts\jquery-1.11.0.min.js" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
+    <Compile Include="Services\ManagedFeedExtensions.cs" />
     <Compile Include="Services\ICuratedFeedService.cs" />
     <Compile Include="Services\CloudFileReference.cs" />
     <Compile Include="Services\ContentService.cs" />

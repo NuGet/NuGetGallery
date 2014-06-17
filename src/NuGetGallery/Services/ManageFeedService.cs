@@ -125,18 +125,6 @@ namespace NuGetGallery
             }
         }
 
-        public IQueryable<Package> GetPackages(string feedName)
-        {
-            IQueryable<Package> query = FeedRepository.GetAll()
-                .Where(f => f.Name == feedName)
-                .Include(f => f.Packages)
-                .Include(f => f.Packages.Select(fp => fp.Package))
-                .SelectMany(f => f.Packages)
-                .Select(fp => fp.Package);
-
-            return query;
-        }
-
         public IQueryable<FeedPackage> GetFeedPackages(string feedName)
         {
             IQueryable<FeedPackage> query = FeedRepository.GetAll()
@@ -145,7 +133,6 @@ namespace NuGetGallery
                 .Include(f => f.Packages.Select(fp => fp.Package))
                 .Include(f => f.Packages.Select(fp => fp.Package.PackageRegistration))
                 .SelectMany(f => f.Packages);
-                //.Select(fp => fp.Package);
 
             return query;
         }

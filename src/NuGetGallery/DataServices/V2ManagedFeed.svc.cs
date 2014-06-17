@@ -59,21 +59,19 @@ namespace NuGetGallery
         public IQueryable<V2FeedPackage> FindPackagesById(string id)
         {
             var feedName = GetFeedName();
-            return _manageFeedService.GetPackages(feedName)
-                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
-                .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses);
+            IQueryable<FeedPackage> packagesQuery = _manageFeedService.GetFeedPackages(feedName)
+                .Where(fp => fp.Package.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+
+            IQueryable<V2FeedPackage> projectedV2FeedPackageQuery = ProjectV2FeedPackage(packagesQuery,
+                Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses);
+
+            return projectedV2FeedPackageQuery;
         }
 
         private string GetFeedName()
         {
             var feedName = HttpContext.Request.QueryString["name"];
             return feedName;
-        }
-
-        private IQueryable<Package> GetPackages()
-        {
-            var feedName = GetFeedName();
-            return _manageFeedService.GetPackages(feedName);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "targetFramework", Justification = "We can't change it because it's now part of the contract of this service method.")]
@@ -89,8 +87,7 @@ namespace NuGetGallery
                 feedPackages = feedPackages.Where(fp => !fp.Package.IsPrerelease);
             }
 
-            //IQueryable<Package> packagesQuery = packages.Search(searchTerm);
-            IQueryable<FeedPackage> packagesQuery = feedPackages;
+            IQueryable<FeedPackage> packagesQuery = feedPackages.Search(searchTerm);
 
             IQueryable<V2FeedPackage> projectedV2FeedPackageQuery = ProjectV2FeedPackage(packagesQuery, Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses);
 
@@ -120,13 +117,14 @@ namespace NuGetGallery
             return new Uri(url, UriKind.Absolute);
         }
 
+        internal static readonly DateTime UnpublishedDate = new DateTime(1900, 1, 1, 0, 0, 0);
+
         static IQueryable<V2FeedPackage> ProjectV2FeedPackage(IQueryable<FeedPackage> packages, string siteRoot, bool includeLicenseReport)
         {
-            string sql = packages.ToString();
-
             siteRoot = siteRoot.TrimEnd('/') + '/';
 
-            var v2FeedPackages = packages.Select(fp => new V2FeedPackage
+            var v2FeedPackages = packages
+                .Select(fp => new V2FeedPackage
             {
                 Id = fp.Package.PackageRegistration.Id,
                 Version = fp.Package.Version,
@@ -151,7 +149,7 @@ namespace NuGetGallery
                 ReleaseNotes = fp.Package.ReleaseNotes,
                 ReportAbuseUrl = siteRoot + "package/ReportAbuse/" + fp.Package.PackageRegistration.Id + "/" + fp.Package.NormalizedVersion,
                 RequireLicenseAcceptance = fp.Package.RequiresLicenseAcceptance,
-                Published = fp.Package.Listed ? fp.Package.Published : DateTime.MinValue,
+                Published = fp.Package.Listed ? fp.Package.Published : UnpublishedDate,
                 Summary = fp.Package.Summary,
                 Tags = fp.Package.Tags,
                 Title = fp.Package.Title,
