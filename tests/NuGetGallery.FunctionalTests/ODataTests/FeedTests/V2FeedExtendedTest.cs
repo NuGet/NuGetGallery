@@ -13,7 +13,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
     {       
         [TestMethod]
         [Description("Upload two packages and then issue the FindPackagesById request, expect to return both versions")]
-        [Priority(0)]
+        [Priority(1)]
         public void FindPackagesByIdTest()
         {
             string packageId = "TestV2FeedFindPackagesById" + "." + DateTime.Now.Ticks.ToString();
