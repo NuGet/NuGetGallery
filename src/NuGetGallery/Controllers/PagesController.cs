@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 
@@ -46,6 +47,11 @@ namespace NuGetGallery
                     TimeSpan.FromMinutes(1));
             }
             return View();
+        }
+
+        public virtual ActionResult EmptyHome()
+        {
+            return new HttpStatusCodeResult(HttpStatusCode.OK, "Empty Home");
         }
 
         public virtual async Task<ActionResult> Terms()

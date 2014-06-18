@@ -7,7 +7,26 @@ namespace NuGetGallery
 {
     public static class Routes
     {
-        public static void RegisterRoutes(RouteCollection routes)
+        public static void RegisterRoutes(RouteCollection routes, bool feedOnlyMode = false)
+        {
+            if (!feedOnlyMode)
+            {
+                Routes.RegisterUIRoutes(routes);
+            }
+            else
+            {
+                // The home route is used as a probe path by Azure Load Balancer
+                // to determine if the node is up. So, always register the home route
+                // Just do so with an Empty Home, in the FeedOnlyMode, which simply returns a 200
+                RouteTable.Routes.MapRoute(
+                RouteName.Home,
+                "",
+                new { controller = "Pages", action = "EmptyHome" });
+            }
+            Routes.RegisterApiV2Routes(routes);
+        }
+
+        public static void RegisterUIRoutes(RouteCollection routes)
         {
             routes.MapRoute(
                 RouteName.Home,
@@ -276,85 +295,6 @@ namespace NuGetGallery
                 "v1/PublishedPackages/Publish",
                 new { controller = "Api", action = "PublishPackage" });
 
-            // V2 routes
-            routes.MapRoute(
-                "v2" + RouteName.VerifyPackageKey,
-                "api/v2/verifykey/{id}/{version}",
-                new { 
-                    controller = "Api", 
-                    action = "VerifyPackageKey",
-                    id = UrlParameter.Optional, 
-                    version = UrlParameter.Optional 
-                });
-
-            routes.MapRoute(
-                "v2CuratedFeeds" + RouteName.DownloadPackage,
-                "api/v2/curated-feeds/package/{id}/{version}",
-                defaults: new { controller = "Api", action = "GetPackageApi", version = UrlParameter.Optional },
-                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
-
-            routes.MapRoute(
-                "v2" + RouteName.DeletePackageApi,
-                "api/v2/package/{id}/{version}",
-                new { controller = "Api", action = "DeletePackageApi" },
-                constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
-
-            routes.MapRoute(
-                "v2" + RouteName.PublishPackageApi,
-                "api/v2/package/{id}/{version}",
-                new { controller = "Api", action = "PublishPackageApi" },
-                constraints: new { httpMethod = new HttpMethodConstraint("POST") });
-
-            routes.MapRoute(
-                "v2" + RouteName.DownloadPackage,
-                "api/v2/package/{id}/{version}",
-                defaults: new { controller = "Api", action = "GetPackageApi", version = UrlParameter.Optional },
-                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
-
-            routes.MapRoute(
-                "v2" + RouteName.PushPackageApi,
-                "api/v2/package",
-                defaults: new { controller = "Api", action = "PushPackageApi" },
-                constraints: new { httpMethod = new HttpMethodConstraint("PUT") });
-
-            routes.MapRoute(
-                "v2PackageIds",
-                "api/v2/package-ids",
-                new { controller = "Api", action = "PackageIDs" });
-
-            routes.MapRoute(
-                "v2PackageVersions",
-                "api/v2/package-versions/{id}",
-                new { controller = "Api", action = "PackageVersions" });
-
-            routes.MapRoute(
-                RouteName.StatisticsDownloadsApi,
-                "api/v2/stats/downloads/last6weeks",
-                defaults: new { controller = "Api", action = "StatisticsDownloadsApi" },
-                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
-
-            routes.MapRoute(
-                RouteName.ServiceAlert,
-                "api/v2/service-alert",
-                defaults: new { controller = "Api", action = "ServiceAlert" },
-                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
-
-            routes.MapRoute(
-                RouteName.Team,
-                "api/v2/team",
-                defaults: new { controller = "Api", action = "Team" },
-                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
-
-            routes.MapRoute(
-                RouteName.Status,
-                "api/status",
-                new { controller = "Api", action = "StatusApi" });
-
-            routes.MapRoute(
-                RouteName.DownloadNuGetExe,
-                "nuget.exe",
-                new { controller = "Api", action = "GetNuGetExeApi" });
-
             // Redirected Legacy Routes
 
             routes.Redirect(
@@ -369,7 +309,7 @@ namespace NuGetGallery
                     "PackageActions",
                     "Package/{action}/{id}",
                     new { controller = "Packages", action = "ContactOwners" },
-                    // This next bit looks bad, but it's not. It will never change because 
+                    // This next bit looks bad, but it's not. It will never change because
                     // it's mapping the legacy routes to the new better routes.
                     new { action = "ContactOwners|ManagePackageOwners" }),
                 permanent: true).To(packageActionRoute);
@@ -401,6 +341,82 @@ namespace NuGetGallery
                     "v1/Package/Download/{id}/{version}",
                     new { controller = "Api", action = "GetPackageApi", version = UrlParameter.Optional }),
                 permanent: true).To(downloadRoute);
+        }
+
+        public static void RegisterApiV2Routes(RouteCollection routes)
+        {
+            // V2 routes
+            routes.MapRoute(
+                "v2" + RouteName.VerifyPackageKey,
+                "api/v2/verifykey/{id}/{version}",
+                new {
+                    controller = "Api",
+                    action = "VerifyPackageKey",
+                    id = UrlParameter.Optional,
+                    version = UrlParameter.Optional
+                });
+
+            routes.MapRoute(
+                "v2CuratedFeeds" + RouteName.DownloadPackage,
+                "api/v2/curated-feeds/package/{id}/{version}",
+                defaults: new { controller = "Api", action = "GetPackageApi", version = UrlParameter.Optional },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                "v2" + RouteName.DownloadPackage,
+                "api/v2/package/{id}/{version}",
+                defaults: new { controller = "Api", action = "GetPackageApi", version = UrlParameter.Optional },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                "v2" + RouteName.PushPackageApi,
+                "api/v2/package",
+                defaults: new { controller = "Api", action = "PushPackageApi" },
+                constraints: new { httpMethod = new HttpMethodConstraint("PUT") });
+
+            routes.MapRoute(
+                "v2" + RouteName.DeletePackageApi,
+                "api/v2/package/{id}/{version}",
+                new { controller = "Api", action = "DeletePackage" },
+                constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
+
+            routes.MapRoute(
+                "v2" + RouteName.PublishPackageApi,
+                "api/v2/package/{id}/{version}",
+                new { controller = "Api", action = "PublishPackage" },
+                constraints: new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                "v2PackageIds",
+                "api/v2/package-ids",
+                new { controller = "Api", action = "PackageIDs" });
+
+            routes.MapRoute(
+                "v2PackageVersions",
+                "api/v2/package-versions/{id}",
+                new { controller = "Api", action = "PackageVersions" });
+
+            routes.MapRoute(
+                RouteName.StatisticsDownloadsApi,
+                "api/v2/stats/downloads/last6weeks",
+                defaults: new { controller = "Api", action = "StatisticsDownloadsApi" },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.ServiceAlert,
+                "api/v2/service-alert",
+                defaults: new { controller = "Api", action = "ServiceAlert" },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.Status,
+                "api/status",
+                new { controller = "Api", action = "StatusApi" });
+
+            routes.MapRoute(
+                RouteName.DownloadNuGetExe,
+                "nuget.exe",
+                new { controller = "Api", action = "GetNuGetExeApi" });
         }
 
         // note: Pulled out service route registration separately because it's not testable T.T (won't run outside IIS/WAS) 

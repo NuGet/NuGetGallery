@@ -119,6 +119,11 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential)
         {
+            if (Config.FeedOnlyMode)
+            {
+                throw new FeedOnlyModeException(FeedOnlyModeException.FeedOnlyModeError);
+            }
+
             var existingUser = Entities.Users
                 .FirstOrDefault(u => u.Username == username || u.EmailAddress == emailAddress);
             if (existingUser != null)
