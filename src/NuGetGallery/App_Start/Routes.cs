@@ -24,7 +24,6 @@ namespace NuGetGallery
                 new { controller = "Pages", action = "EmptyHome" });
             }
             Routes.RegisterApiV2Routes(routes);
-            Routes.RegisterServiceRoutes(routes);
         }
 
         public static void RegisterUIRoutes(RouteCollection routes)
