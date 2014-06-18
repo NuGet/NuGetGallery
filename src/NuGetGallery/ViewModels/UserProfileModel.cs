@@ -39,6 +39,6 @@ namespace NuGetGallery
         public int PackagePage { get; private set; }
         public int PackagePageSize { get; private set; }
         public IPreviousNextPager Pager { get; private set; }
-
+        public bool ShowAllPackages { get; set; }
     }
 }

@@ -253,7 +253,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        public virtual ActionResult Profiles(string username, int page = 1)
+        public virtual ActionResult Profiles(string username, int page = 1, bool showAllPackages = false)
         {
             var user = UserService.FindByUsername(username);
             if (user == null)
@@ -270,6 +270,7 @@ namespace NuGetGallery
                 }).ToList();
 
             var model = new UserProfileModel(user, packages, page - 1, Constants.DefaultPackageListPageSize, Url);
+            model.ShowAllPackages = showAllPackages;
 
             return View(model);
         }

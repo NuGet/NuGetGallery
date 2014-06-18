@@ -25,12 +25,22 @@
 <h1 class="page-heading">@Model.Username's Profile</h1>
 
 <h2>Packages
-     @if (Model.PackagePageTotalCount > 1)
+@if (Model.PackagePageTotalCount > 1 && Model.ShowAllPackages == false)
 {
-    <small>(Page @(Model.PackagePage + 1) of @Model.PackagePageTotalCount)</small>
-}</h2>
+    <small>(Page @(Model.PackagePage + 1) of @Model.PackagePageTotalCount) <a href="@Url.UserShowAllPackages(Model.Username)">Show all packages</a></small>
+}
+</h2>
 <ul id="searchResults">
-    @foreach (var package in Model.PagedPackages)
+@{
+    var allOrPagedPackages = Model.PagedPackages;
+
+    if (Model.ShowAllPackages)
+    {
+        allOrPagedPackages = Model.AllPackages;
+    }
+}
+
+    @foreach (var package in allOrPagedPackages)
     {
         <li>
             <section class="package">
@@ -65,4 +75,8 @@
     }
 </ul>
 
-@ViewHelpers.PreviousNextPager(Model.Pager)
+@if (Model.ShowAllPackages == false)
+{
+    @ViewHelpers.PreviousNextPager(Model.Pager)    
+}
+

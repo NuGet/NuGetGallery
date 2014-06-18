@@ -222,6 +222,16 @@ namespace NuGetGallery
             return result;
         }
 
+        public static string UserShowAllPackages(this UrlHelper url, string username, string scheme = null)
+        {
+            string result;
+                result = url.Action(actionName: "Profiles",
+                                    controllerName: "Users",
+                                    routeValues: new { username = username, showAllPackages = true },
+                                    protocol: scheme);
+            return result;
+        }
+
         public static string EditPackage(this UrlHelper url, string id, string version)
         {
             if (String.IsNullOrEmpty(version))
