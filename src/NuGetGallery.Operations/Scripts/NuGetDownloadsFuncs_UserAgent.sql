@@ -61,6 +61,10 @@ BEGIN
 	-- MyGet doesn't send a version at all, so be sure to omit the /
     IF CHARINDEX('MyGet', @value) > 0 
         RETURN 'MyGet'
+        
+	-- Refer to www.inedo.com for details
+    IF CHARINDEX('ProGet/', @value) > 0 
+        RETURN 'Inedo ProGet'        
     
     RETURN 'Other'
 END
