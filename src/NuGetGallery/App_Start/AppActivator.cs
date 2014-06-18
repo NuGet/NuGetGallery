@@ -170,23 +170,7 @@ namespace NuGetGallery
 
         private static void AppPostStart(IAppConfiguration configuration)
         {
-            if (!configuration.FeedOnlyMode)
-            {
-                Routes.RegisterRoutes(RouteTable.Routes);
-            }
-            else
-            {
-                // The home route is used as a probe path by Azure Load Balancer
-                // to determine if the node is up. So, always register the home route
-                // Just do so with an Empty Home, in the FeedOnlyMode, which simply returns a 200
-                RouteTable.Routes.MapRoute(
-                RouteName.Home,
-                "",
-                new { controller = "Pages", action = "EmptyHome" });
-            }
-
-            Routes.RegisterApiV2Routes(RouteTable.Routes);
-            Routes.RegisterServiceRoutes(RouteTable.Routes);
+            Routes.RegisterRoutes(RouteTable.Routes, configuration.FeedOnlyMode);
             AreaRegistration.RegisterAllAreas();
 
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute() { View = "~/Views/Errors/InternalError.cshtml" });
