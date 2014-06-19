@@ -308,6 +308,12 @@ namespace NuGetGallery
                 });
 
             routes.MapRoute(
+                "v2ManagedFeeds" + RouteName.DownloadPackage,
+                "api/v2/managed-feeds/package/{id}/{version}",
+                defaults: new { controller = "Api", action = "GetPackageApi", version = UrlParameter.Optional },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
                 "v2CuratedFeeds" + RouteName.DownloadPackage,
                 "api/v2/curated-feeds/package/{id}/{version}",
                 defaults: new { controller = "Api", action = "GetPackageApi", version = UrlParameter.Optional },
