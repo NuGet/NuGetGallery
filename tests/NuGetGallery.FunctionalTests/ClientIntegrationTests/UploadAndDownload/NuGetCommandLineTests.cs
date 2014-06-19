@@ -21,7 +21,7 @@ namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
            string packageId = Constants.TestPackageId; //try to down load a pre-defined test package.          
            ClientSDKHelper.ClearLocalPackageFolder(packageId);
            int exitCode = CmdLineHelper.InstallPackage(packageId, UrlHelper.V2FeedRootUrl, Environment.CurrentDirectory);
-           Assert.IsTrue((exitCode == 0), Constants.UploadFailureMessage);
+           Assert.IsTrue((exitCode == 0), Constants.PackageDownloadFailureMessage);
            Assert.IsTrue(ClientSDKHelper.CheckIfPackageInstalled(packageId), Constants.PackageInstallFailureMessage);
         }
 
