@@ -24,9 +24,9 @@ namespace NuGetGallery.FunctionalTests
              homePageRequest.ParseDependentRequests = false;
              ValidationRuleFindHeaderText homePageTextValidationRule = new ValidationRuleFindHeaderText(
  @"X-Frame-Options: deny
- X-XSS-Protection: 1; mode=block
- X-Content-Type-Options: nosniff
- Strict-Transport-Security: maxage=31536000; includeSubDomains");               
+X-XSS-Protection: 1; mode=block
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: maxage=31536000; includeSubDomains");               
              homePageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(homePageTextValidationRule.Validate);         
              yield return homePageRequest;
              homePageRequest = null;
