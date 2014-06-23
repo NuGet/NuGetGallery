@@ -66,6 +66,12 @@ h6 {
     font-size: 1em;
 }
 
+
+small {
+    font-size: 0.5em;
+}
+
+
     h1 img, h2 img, h3 img,
     h4 img, h5 img, h6 img {
         margin: 0;
