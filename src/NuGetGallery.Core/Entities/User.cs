@@ -69,6 +69,12 @@ namespace NuGetGallery
             UnconfirmedEmailAddress = null;
         }
 
+        public void CancelChangeEmailAddress()
+        {
+            EmailConfirmationToken = null;
+            UnconfirmedEmailAddress = null;
+        }
+
         public void UpdateEmailAddress(string newEmailAddress, Func<string> generateToken)
         {
             if (!String.IsNullOrEmpty(UnconfirmedEmailAddress))

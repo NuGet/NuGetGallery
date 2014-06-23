@@ -81,6 +81,7 @@ namespace NuGetGallery.Auditing
         RemovedCredential,
         RequestedPasswordReset,
         ChangeEmail,
+        CancelChangeEmail,
         ConfirmEmail,
     }
 }

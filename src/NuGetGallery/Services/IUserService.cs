@@ -19,5 +19,7 @@ namespace NuGetGallery
         Task<bool> ConfirmEmailAddress(User user, string token);
 
         Task ChangeEmailAddress(User user, string newEmailAddress);
+
+        Task CancelChangeEmailAddress(User user);
     }
 }
