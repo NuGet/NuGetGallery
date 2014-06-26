@@ -6,8 +6,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class FileStorage : Storage
     {
-        public FileStorage()
+        public FileStorage(string baseAddress, string path)
         {
+            Path = path;
+            BaseAddress = baseAddress;
+            Container = System.IO.Path.GetFileName(path);
+
             ResetStatistics();
         }
 

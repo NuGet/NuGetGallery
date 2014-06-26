@@ -1,0 +1,10 @@
+﻿PREFIX nuget: <http://nuget.org/schema#> 
+PREFIX gallery: <http://nuget.org/gallery#> 
+
+SELECT ?key ?checksum
+WHERE
+{
+	?package a nuget:Package ;
+	         gallery:key ?key ;
+	         gallery:checksum ?checksum .
+}

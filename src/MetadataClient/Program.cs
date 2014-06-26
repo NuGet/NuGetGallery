@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Diagnostics;
 using PowerArgs;
 
 namespace MetadataClient
@@ -7,6 +9,12 @@ namespace MetadataClient
     {
         static void Main(string[] args)
         {
+            if (args.Length > 0 && String.Equals("dbg", args[0], StringComparison.OrdinalIgnoreCase))
+            {
+                args = args.Skip(1).ToArray();
+                Debugger.Launch();
+            }
+
             try
             {
                 if (args.Length == 0)

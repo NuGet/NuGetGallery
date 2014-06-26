@@ -81,6 +81,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Collecting\ChecksumCollector.cs" />
     <Compile Include="Collecting\Collector.cs" />
     <Compile Include="Collecting\CollectorHttpClient.cs" />
     <Compile Include="Collecting\StoreCollector.cs" />
@@ -90,6 +91,7 @@
     <Compile Include="Collecting\Test\CountCollector.cs" />
     <Compile Include="Collecting\ResolverDeleteCollector.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="FileSystemEmulatorHandler.cs" />
     <Compile Include="GalleryIntegration\GalleryExport.cs" />
     <Compile Include="GalleryIntegration\GalleryExportBatcher.cs" />
     <Compile Include="GalleryIntegration\GalleryExportCatalogItem.cs" />
@@ -152,6 +154,7 @@
     <EmbeddedResource Include="sparql\SelectPackageCount.rq" />
     <EmbeddedResource Include="sparql\SelectDeleteRegistration.rq" />
     <EmbeddedResource Include="sparql\SelectRangeUpdates.rq" />
+    <EmbeddedResource Include="sparql\SelectChecksums.rq" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

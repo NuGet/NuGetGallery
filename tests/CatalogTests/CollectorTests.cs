@@ -99,12 +99,7 @@ namespace CatalogTests
             //    BaseAddress = "http://nuget3.blob.core.windows.net"
             //};
 
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\test",
-                Container = "test",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\test");
 
             ResolverCollector collector = new ResolverCollector(storage, 200);
 

@@ -13,12 +13,7 @@ namespace CatalogTests
         {
             string nuspecs = @"c:\data\nuspecs";
 
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\pub",
-                Container = "pub",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\pub");
 
             //Storage storage = new AzureStorage
             //{
@@ -66,12 +61,7 @@ namespace CatalogTests
         {
             string nuspecs = @"c:\data\nuspecs";
 
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\full",
-                Container = "full",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\full");
 
             CatalogContext context = new CatalogContext();
 
@@ -120,12 +110,7 @@ namespace CatalogTests
         {
             string nuspecs = @"c:\data\test_nuspecs";
 
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\test",
-                Container = "test",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\test");
 
             //Storage storage = new AzureStorage
             //{
@@ -171,12 +156,7 @@ namespace CatalogTests
 
         public static async Task Test3Async()
         {
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\test",
-                Container = "test",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\test");
 
             CatalogContext context = new CatalogContext();
 
@@ -235,12 +215,7 @@ namespace CatalogTests
 
         public static async Task Test4Async()
         {
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\test",
-                Container = "test",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\test");
 
             CatalogContext context = new CatalogContext();
 

@@ -4,6 +4,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 {
@@ -21,7 +22,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             Total = 0;
         }
 
-        public void Process(JObject package, string registration, List<JObject> dependencies, List<string> targetFrameworks)
+        public async Task Process(JObject package, string registration, List<JObject> dependencies, List<string> targetFrameworks)
         {
             GalleryExportPackage export = new GalleryExportPackage
             {
@@ -35,16 +36,16 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
             if (_currentBatch.Count == _batchSize)
             {
-                SubmitCurrentBatch();
+                await SubmitCurrentBatch();
                 _currentBatch.Clear();
             }
         }
 
-        public void Complete()
+        public async Task Complete()
         {
             if (_currentBatch.Count > 0)
             {
-                SubmitCurrentBatch();
+                await SubmitCurrentBatch();
                 _currentBatch.Clear();
             }
         }
@@ -55,7 +56,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             private set;
         }
 
-        void SubmitCurrentBatch()
+        Task SubmitCurrentBatch()
         {
             Total += _currentBatch.Count;
 
@@ -64,7 +65,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                 _writer.Add(new GalleryExportCatalogItem(export));
             }
 
-            _writer.Commit().Wait();
+            return _writer.Commit();
         }
     }
 }

@@ -12,7 +12,10 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         int _requestCount;
 
         public CollectorHttpClient()
-            : base(new WebRequestHandler { AllowPipelining = true })
+            : this(new WebRequestHandler { AllowPipelining = true }) { }
+
+        public CollectorHttpClient(HttpMessageHandler handler)
+            : base(handler)
         {
             _requestCount = 0;
         }

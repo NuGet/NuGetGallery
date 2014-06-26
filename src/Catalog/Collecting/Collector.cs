@@ -21,9 +21,14 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         {
             using (CollectorHttpClient client = new CollectorHttpClient())
             {
-                await Fetch(client, index, last);
-                RequestCount = client.RequestCount;
+                await Run(client, index, last);
             }
+        }
+
+        public async Task Run(CollectorHttpClient client, Uri index, DateTime last)
+        {
+            await Fetch(client, index, last);
+            RequestCount = client.RequestCount;
         }
 
         public int RequestCount

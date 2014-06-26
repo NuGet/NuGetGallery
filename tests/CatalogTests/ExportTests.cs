@@ -42,7 +42,7 @@ namespace CatalogTests
 
             while (true)
             {
-                Tuple<int, int> range = GalleryExport.GetNextRange(sqlConnectionString, lastHighestPackageKey, SqlChunkSize);
+                Tuple<int, int> range = GalleryExport.GetNextRange(sqlConnectionString, lastHighestPackageKey, SqlChunkSize).Result;
 
                 if (range.Item1 == 0 && range.Item2 == 0)
                 {
@@ -56,12 +56,12 @@ namespace CatalogTests
 
                 Console.WriteLine("{0} {1}", range.Item1, range.Item2);
 
-                GalleryExport.FetchRange(sqlConnectionString, range, batcher);
+                GalleryExport.WriteRange(sqlConnectionString, range, batcher).Wait();
 
                 lastHighestPackageKey = range.Item2;
             }
 
-            batcher.Complete();
+            batcher.Complete().Wait();
 
             Console.WriteLine(batcher.Total);
         }
@@ -87,12 +87,7 @@ namespace CatalogTests
 
         public static async Task Test2Async()
         {
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\export",
-                Container = "export",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\export");
 
             GalleryKeyRangeCollector collector = new GalleryKeyRangeCollector(storage, 200);
 
