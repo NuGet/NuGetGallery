@@ -302,4 +302,7 @@ The {2} Team</value>
   <data name="DefaultUserSafeExceptionMessage" xml:space="preserve">
     <value>An unexpected error occurred. Contact support for assistance.</value>
   </data>
+  <data name="CancelEmailAddress" xml:space="preserve">
+    <value>You canceled your email address change request.</value>
+  </data>
 </root>

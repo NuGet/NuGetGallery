@@ -335,6 +335,25 @@ namespace NuGetGallery
 
         [HttpPost]
         [Authorize]
+        public virtual async Task<ActionResult> CancelChangeEmail(AccountViewModel model)
+        {
+            var user = GetCurrentUser();
+
+            if(string.IsNullOrWhiteSpace(user.UnconfirmedEmailAddress))
+            {
+                return RedirectToAction(actionName: "Account", controllerName: "Users");
+            }
+            
+            await UserService.CancelChangeEmailAddress(user);
+
+            TempData["Message"] = Strings.CancelEmailAddress;
+
+            return RedirectToAction(actionName: "Account", controllerName: "Users");
+        }
+
+
+        [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ChangePassword(AccountViewModel model)
         {
@@ -431,11 +450,6 @@ namespace NuGetGallery
                 TempData["Message"] = message;
             }
             return RedirectToAction("Account");
-        }
-
-        private ActionResult EditProfileView()
-        {
-            return AccountView(new AccountViewModel());
         }
 
         private ActionResult AccountView(AccountViewModel model)

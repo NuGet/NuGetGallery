@@ -98,6 +98,14 @@ namespace NuGetGallery
             UserRepository.CommitChanges();
         }
 
+        public async Task CancelChangeEmailAddress(User user)
+        {
+            await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.CancelChangeEmail, user.UnconfirmedEmailAddress));
+
+            user.CancelChangeEmailAddress();
+            UserRepository.CommitChanges();
+        }
+
         public async Task<bool> ConfirmEmailAddress(User user, string token)
         {
             if (user == null)

@@ -302,6 +302,62 @@ namespace NuGetGallery
             }
         }
 
+        public class TheCancelChangeEmailAddressMethod
+        {
+            [Fact]
+            public async Task ClearsUnconfirmedEmail()
+            {
+                var user = new User { Username = "Bob", UnconfirmedEmailAddress = "unconfirmedEmail@example.org", EmailAddress = "confirmedEmail@example.org" };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user }
+                };
+
+                await service.CancelChangeEmailAddress(user);
+
+                Assert.Equal("confirmedEmail@example.org", user.EmailAddress);
+                Assert.Null(user.UnconfirmedEmailAddress);
+                service.FakeEntitiesContext.VerifyCommitChanges();
+            }
+
+            [Fact]
+            public async Task ClearsEmailConfirmationToken()
+            {
+                var user = new User { Username = "Bob", EmailConfirmationToken = Guid.NewGuid().ToString() ,UnconfirmedEmailAddress = "unconfirmedEmail@example.org", EmailAddress = "confirmedEmail@example.org" };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user }
+                };
+
+                await service.CancelChangeEmailAddress(user);
+
+                Assert.Equal("confirmedEmail@example.org", user.EmailAddress);
+                Assert.Null(user.EmailConfirmationToken);
+                service.FakeEntitiesContext.VerifyCommitChanges();
+            }
+
+            [Fact]
+            public async Task WritesAuditRecord()
+            {
+                // Arrange
+                var user = new User { Username = "Bob", EmailConfirmationToken = Guid.NewGuid().ToString(), UnconfirmedEmailAddress = "unconfirmedEmail@example.org", EmailAddress = "confirmedEmail@example.org" };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user }
+                };
+
+                // Act
+                await service.CancelChangeEmailAddress(user);
+
+                // Assert
+                Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                    ar.Action == UserAuditAction.CancelChangeEmail &&
+                    ar.AffectedEmailAddress == "unconfirmedEmail@example.org" &&
+                    ar.EmailAddress == "confirmedEmail@example.org"));
+            }
+        }
+
+
         public class TheUpdateProfileMethod
         {   
             [Fact]

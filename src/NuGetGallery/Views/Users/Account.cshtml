@@ -163,7 +163,19 @@
         subtitle: currentEmailAddress,
         enabled: String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress),
         formModelStatePrefix: "ChangeEmail", 
-        actions: @<text>@item.ExpandButton("Change", "Cancel")</text>,
+        actions: @<text>@item.ExpandButton("Change", "Cancel")
+                  @if (!String.IsNullOrEmpty(CurrentUser.EmailAddress) && !String.IsNullOrEmpty(CurrentUser.UnconfirmedEmailAddress))
+                  {
+                      using (Html.BeginForm("CancelChangeEmail", "Users", FormMethod.Post, new { @class = "form-inline" }))
+                      {
+                        <fieldset class="form">
+                            <legend>Reset to Confirmed Email Address</legend>
+                            @Html.AntiForgeryToken()
+                            <button class="btn btn-inline" type="submit">Reset to Confirmed Email Address</button>
+                        </fieldset>
+                      }
+                  }
+                </text>,
         content: @<text>
             @using (Html.BeginForm("ChangeEmail", "Users", FormMethod.Post, new { @class = "form-inline" }))
             {

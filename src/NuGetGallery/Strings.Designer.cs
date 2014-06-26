@@ -116,6 +116,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You canceled your email address change request..
+        /// </summary>
+        public static string CancelEmailAddress {
+            get {
+                return ResourceManager.GetString("CancelEmailAddress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Oops! You can&apos;t remove the only credential that can be used to log in to the website!.
         /// </summary>
         public static string CannotRemoveOnlyLoginCredential {
