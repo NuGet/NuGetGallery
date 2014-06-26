@@ -703,7 +703,7 @@
     <Compile Include="Helpers\HtmlExtensions.cs" />
     <Compile Include="Helpers\PackageHelper.cs" />
     <Compile Include="Helpers\QuietLog.cs" />
-    <Compile Include="Helpers\StringHelper.cs" />
+    <Compile Include="Helpers\StringExtensions.cs" />
     <Compile Include="Helpers\StatisticsHelper.cs" />
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />

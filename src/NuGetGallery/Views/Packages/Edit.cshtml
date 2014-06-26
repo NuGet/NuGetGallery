@@ -174,8 +174,8 @@
     @{
         <nav id="edit-list">
             <h2>Editing</h2>
-            <span class="edit-root">
-                @(Model.PackageId)
+            <span class="edit-root" title="@(Model.PackageId)">
+                @(Model.PackageId.Abbreviate(25))
             </span>
             <ul id="packageVersions">
                 @foreach (var version in Model.PackageVersions)

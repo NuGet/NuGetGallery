@@ -186,7 +186,7 @@
     @if (Model.Prerelease)
     {
         <p class="prerelease-message">
-            This is a prerelease version of @Model.Title.
+            This is a prerelease version of @Model.Title.Abbreviate(65).
         </p>
     }
     @if (Model.LatestStableVersion && Model.HasNewerPrerelease)
@@ -196,7 +196,7 @@
         </p>
     }
     <div class="package-page-heading">
-        <h1>@Model.Title</h1>
+        <h1 title="@Model.Title">@Model.Title.Abbreviate(40)</h1>
         <h2>@Model.Version</h2>
     </div>
     @foreach (var line in Model.Description.ToStringSafe().Split('\n'))
@@ -328,17 +328,18 @@
                         <td class="version" title="@cellTitle">
                             @if (!packageVersion.IsCurrent(Model))
                             {
-                                <a href="@Url.Package(packageVersion)">
-                                    @packageVersion.Title 
+                                <a title="@packageVersion.Title @packageVersion.Version" href="@Url.Package(packageVersion) ">
+                                    @packageVersion.Title.Abbreviate(20)
                                     @packageVersion.Version
-                                    @if(packageVersion.LatestStableVersion) {
+                                    @if (packageVersion.LatestStableVersion)
+                                    {
                                         @:(latest stable)
                                     }
                                 </a>
                             }
                             else
                             {
-                                <span>@packageVersion.Title @packageVersion.Version (this version)</span>
+                                <span title="@packageVersion.Title @packageVersion.Version (this version)">@packageVersion.Title.Abbreviate(20) @packageVersion.Version (this version)</span>
                             }
                         </td>
                         <td>@packageVersion.DownloadCount
