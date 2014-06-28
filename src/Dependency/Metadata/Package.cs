@@ -7,13 +7,13 @@ namespace Resolver.Metadata
     {
         public string Id { get; private set; }
         public SemanticVersion Version { get; private set; }
-        public IDictionary<string, Group> DependencyGroups { get; private set; }
+        public IList<Group> DependencyGroups { get; private set; }
 
         public Package(string id, SemanticVersion version)
         {
             Id = id;
             Version = version;
-            DependencyGroups = new Dictionary<string, Group>();
+            DependencyGroups = new List<Group>();
         }
 
         public Package(string id, string version)

@@ -83,11 +83,14 @@ namespace Resolver.Resolver
 
             //  really what is the correct logic here? (this is currently a fallback)
             Group dependencyGroup;
-            if (package.DependencyGroups.TryGetValue(name, out dependencyGroup))
+            dependencyGroup = package.DependencyGroups.Where(g => g.TargetFramework == name).FirstOrDefault();
+
+            if (dependencyGroup == null)
             {
-                dependencies = dependencyGroup.Dependencies;
+                dependencyGroup = package.DependencyGroups.Where(g => g.TargetFramework == "all").FirstOrDefault();
             }
-            else if (package.DependencyGroups.TryGetValue("all", out dependencyGroup))
+
+            if (dependencyGroup != null)
             {
                 dependencies = dependencyGroup.Dependencies;
             }
