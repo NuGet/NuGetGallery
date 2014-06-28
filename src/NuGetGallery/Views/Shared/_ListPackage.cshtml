@@ -17,24 +17,34 @@
             </ul>
         </header>
 
-        <p>
-            @if (String.IsNullOrEmpty(Model.Description) || Model.Description.Length < 350)
-            {
-                @Model.Description
-            }
-            else
-            {
-                @Model.Description.Substring(0, 350)<text>... </text>
-                <a href="@Url.Package(Model)">More information</a>
-            }
-        </p>
+        <article>
+            <p>
+                <small>
+                    Last  Published: <time datetime="@Model.LastUpdated.ToJavaScriptUTC()" pubdate>@Model.LastUpdated.ToNuGetShortDateString()</time>
+                </small>
+                <small>
+                    Latest Version: @Model.Version @(Model.Prerelease ? "(prerelease)" : "")
+                </small>
+            </p>
+            <p>
+                @if (String.IsNullOrEmpty(Model.Description) || Model.Description.Length < 350)
+                {
+                    @Model.Description
+                }
+                else
+                {
+                    @Model.Description.Substring(0, 350)<text>... </text>
+                    <a href="@Url.Package(Model)">More information</a>
+                }
+            </p>
 
-        @if (!String.IsNullOrEmpty(Model.MinClientVersion)) 
-        {
-            <div class="minimum-client-version">
-                Requires NuGet @Model.MinClientVersion or higher.
-            </div>
-        }
+            @if (!String.IsNullOrEmpty(Model.MinClientVersion))
+            {
+                <p class="minimum-client-version">
+                    Requires NuGet @Model.MinClientVersion or higher.
+                </p>
+            }
+        </article>
     
         <footer>
             <p class="downloads">

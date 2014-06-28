@@ -72,10 +72,10 @@ small {
 }
 
 
-    h1 img, h2 img, h3 img,
-    h4 img, h5 img, h6 img {
-        margin: 0;
-    }
+h1 img, h2 img, h3 img,
+h4 img, h5 img, h6 img {
+    margin: 0;
+}
 
 /* Page Headings*/
 
@@ -487,7 +487,17 @@ section.package {
         overflow: hidden;
     }
 
-    section.package div.minimum-client-version {
+    section.package article > :first-child {
+        font-style: italic;
+    }
+
+        section.package article > :first-child small:last-child {
+            padding-left: 10px;
+            margin-left: 10px;
+            border-left: 1px solid #ccc;
+        }
+
+    section.package article > .minimum-client-version {
         float: right;
     }
 
