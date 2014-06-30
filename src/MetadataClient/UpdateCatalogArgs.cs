@@ -12,7 +12,7 @@ namespace MetadataClient
 
         [ArgRequired]
         [ArgShortcut("c")]
-        [ArgDescription("The root URL to the catalog")]
+        [ArgDescription("The root URL to the catalog, EXCLUDING index.json segment")]
         public Uri CatalogRootUrl { get; set; }
 
         [ArgShortcut("base")]

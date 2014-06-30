@@ -80,7 +80,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             JObject obj = new JObject();
 
             obj.Add("http://nuget.org/gallery#key", export.Package["Key"].ToObject<int>());
-            obj.Add("http://nuget.org/gallery#checksum", export.Package["DatabaseChecksum"].ToObject<int>());
+            obj.Add("http://nuget.org/gallery#checksum", export.Package["DatabaseChecksum"].ToObject<string>());
 
             obj.Add("url", resourceUri);
 

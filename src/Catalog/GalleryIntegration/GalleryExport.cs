@@ -3,11 +3,16 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using System.Data.SqlTypes;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 {
     public class GalleryExport
     {
+        private static SHA512Managed _sha512 = new SHA512Managed();
+
         private const string CollectChecksumsSql = @"
             WITH cte AS (
 	            SELECT
@@ -20,16 +25,14 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 			            FOR XML PATH('')
 		            ) AS [Feeds],
 		            p.[LastEdited], 
-		            p.[LastUpdated], 
 		            p.[Published], 
 		            p.[Listed], 
 		            p.[IsLatestStable], 
-		            p.[IsPrerelease]
+		            p.[IsLatest]
 	            FROM Packages p
             )
             SELECT TOP(@ChunkSize)
-                [Key], 
-                CHECKSUM([LastEdited], [LastUpdated], [Published], [Listed], [IsLatestStable], [IsPrerelease], [Feeds]) AS [DatabaseChecksum]
+                *
             FROM cte
             WHERE [Key] > @LastHighestPackageKey
             ORDER BY [Key]";
@@ -47,12 +50,11 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 		            ) AS [Feeds]
                 FROM Packages p
             )
-            SELECT 
-                *, 
-                CHECKSUM([LastEdited], [LastUpdated], [Published], [Listed], [IsLatestStable], [IsPrerelease], [Feeds]) AS [DatabaseChecksum]
+            SELECT *
             FROM cte
             WHERE [Key] >= @MinKey
-            AND [Key] <= @MaxKey";
+            AND [Key] <= @MaxKey
+            ORDER BY [Key]";
 
         private const string FetchPackageKeyRangeSql = @"
             SELECT ISNULL(MIN(A.[Key]), 0), ISNULL(MAX(A.[Key]), 0)
@@ -86,6 +88,38 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             FROM PackageFrameworks
             INNER JOIN Packages ON PackageFrameworks.[Package_Key] = Packages.[Key]
             WHERE Packages.[Key] >= @MinKey AND Packages.[Key] <= @MaxKey";
+
+        public static IEnumerable<ChecksumComparisonResult> CompareChecksums(IDictionary<int, string> catalogChecksums, IDictionary<int, string> databaseChecksums)
+        {
+            foreach (var catalogPair in catalogChecksums)
+            {
+                string databaseChecksum;
+                if (!databaseChecksums.TryGetValue(catalogPair.Key, out databaseChecksum))
+                {
+                    yield return new ChecksumComparisonResult(
+                        catalogPair.Key,
+                        ComparisonResult.PresentInCatalogOnly);
+                }
+                else
+                {
+                    databaseChecksums.Remove(catalogPair.Key);
+                    if (!String.Equals(databaseChecksum, catalogPair.Value, StringComparison.Ordinal))
+                    {
+                        yield return new ChecksumComparisonResult(
+                            catalogPair.Key,
+                            ComparisonResult.DifferentInCatalog);
+                    }
+                }
+            }
+
+            // Keys that remain in the DB section are new to the catalog
+            foreach (var databasePair in databaseChecksums)
+            {
+                yield return new ChecksumComparisonResult(
+                    databasePair.Key,
+                    ComparisonResult.PresentInDatabaseOnly);
+            }
+        }
 
 
         public static async Task<Tuple<int, int>> GetNextRange(string sqlConnectionString, int lastHighestPackageKey, int chunkSize)
@@ -159,15 +193,44 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                     int key = reader.GetInt32(reader.GetOrdinal("Key"));
 
                     JObject obj = new JObject();
-                    for (int i = 0; i < reader.FieldCount; i++)
+                    for (int i = 0;
+                    i < reader.FieldCount;
+                    i++)
                     {
                         obj.Add(reader.GetName(i), new JValue(reader.GetValue(i)));
                     }
+
+                    // Fill in the checksum
+                    string checksumString = await CalculateChecksum(reader);
+                    obj.Add("DatabaseChecksum", checksumString);
 
                     packages.Add(key, obj);
                 }
 
                 return packages;
+            }
+        }
+
+        public static async Task<IDictionary<int, string>> FetchChecksums(string sqlConnectionString, int lastHighestPackageKey, int chunkSize)
+        {
+            using (SqlConnection connection = new SqlConnection(sqlConnectionString))
+            {
+                await connection.OpenAsync();
+
+                SqlCommand command = new SqlCommand(CollectChecksumsSql, connection);
+                command.Parameters.AddWithValue("ChunkSize", chunkSize);
+                command.Parameters.AddWithValue("LastHighestPackageKey", lastHighestPackageKey);
+
+                SqlDataReader reader = await command.ExecuteReaderAsync();
+
+                var dict = new Dictionary<int, string>(chunkSize);
+                while (await reader.ReadAsync())
+                {
+                    int key = reader.GetInt32(reader.GetOrdinal("Key"));
+                    string checksumString = await CalculateChecksum(reader);
+                    dict[key] = checksumString;
+                }
+                return dict;
             }
         }
 
@@ -267,5 +330,48 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                 return targetFrameworks;
             }
         }
+
+        private static async Task<string> CalculateChecksum(SqlDataReader reader)
+        {
+            DateTime? lastEdited = null;
+            int lastEditedOrdinal = reader.GetOrdinal("LastEdited");
+            if (!await reader.IsDBNullAsync(lastEditedOrdinal))
+            {
+                lastEdited = reader.GetDateTime(lastEditedOrdinal);
+            }
+            DateTime published = reader.GetDateTime(reader.GetOrdinal("Published"));
+            bool listed = reader.GetBoolean(reader.GetOrdinal("Listed"));
+            bool latestStable = reader.GetBoolean(reader.GetOrdinal("IsLatestStable"));
+            bool latest = reader.GetBoolean(reader.GetOrdinal("IsLatest"));
+            string checksumInput = String.Concat(
+                lastEdited == null ? String.Empty : lastEdited.Value.ToString("O"), "|",
+                published.ToString("O"), "|",
+                listed.ToString(), "|",
+                latestStable.ToString(), "|",
+                latest.ToString(), "|");
+            string checksumString =
+                Convert.ToBase64String(
+                    _sha512.ComputeHash(
+                        Encoding.UTF8.GetBytes(checksumInput)));
+            return checksumString;
+        }
+    }
+
+    public class ChecksumComparisonResult
+    {
+        public int Key { get; private set; }
+        public ComparisonResult Result { get; private set; }
+
+        public ChecksumComparisonResult(int key, ComparisonResult result)
+        {
+            Key = key;
+            Result = result;
+        }
+    }
+
+    public enum ComparisonResult {
+        PresentInCatalogOnly,
+        PresentInDatabaseOnly,
+        DifferentInCatalog
     }
 }
