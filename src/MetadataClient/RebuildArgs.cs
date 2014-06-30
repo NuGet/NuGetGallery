@@ -1,3 +1,4 @@
+using System;
 using PowerArgs;
 
 namespace MetadataClient
@@ -14,10 +15,10 @@ namespace MetadataClient
         [ArgDescription("The destination folder in which to write the catalog")]
         public string DestinationFolder { get; set; }
 
+        [ArgRequired]
         [ArgShortcut("base")]
-        [ArgDescription("The base address to use for the URIs, defaults to http://api.nuget.org")]
-        [DefaultValue("http://api.nuget.org")]
-        public string BaseAddress { get; set; }
+        [ArgDescription("The base address to use for URIs")]
+        public Uri BaseAddress { get; set; }
 
     }
 }

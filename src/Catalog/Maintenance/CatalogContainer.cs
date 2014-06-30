@@ -41,6 +41,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
             graph.NamespaceMap.AddNamespace("catalog", new Uri("http://nuget.org/catalog#"));
+            graph.NamespaceMap.AddNamespace("gallery", new Uri("http://nuget.org/gallery#"));
 
             INode rdfTypePredicate = graph.CreateUriNode("rdf:type");
             INode timeStampPredicate = graph.CreateUriNode("catalog:timeStamp");

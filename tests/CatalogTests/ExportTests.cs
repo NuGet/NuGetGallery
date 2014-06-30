@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
 
 namespace CatalogTests
 {
@@ -24,13 +25,8 @@ namespace CatalogTests
             //    Container = "export",
             //    BaseAddress = "http://localhost:8000/"
             //};
-            Storage storage = new AzureStorage
-            {
-                AccountName = "nuget3",
-                AccountKey = "",
-                Container = "export",
-                BaseAddress = "http://nuget3.blob.core.windows.net/"
-            };
+            Storage storage = new AzureStorage(
+                CloudStorageAccount.Parse("AccountName=nuget3;AccountKey=;DefaultEndpointsProtocol=https"), "export");
 
             CatalogWriter writer = new CatalogWriter(storage, new CatalogContext(), CatalogMaxPageSize);
 

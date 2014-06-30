@@ -11,7 +11,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 {
     public class GalleryExport
     {
-        private static SHA512Managed _sha512 = new SHA512Managed();
+        private static HashAlgorithm _hash = new SHA1Managed();
 
         private const string CollectChecksumsSql = @"
             WITH cte AS (
@@ -121,7 +121,6 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             }
         }
 
-
         public static async Task<Tuple<int, int>> GetNextRange(string sqlConnectionString, int lastHighestPackageKey, int chunkSize)
         {
             using (SqlConnection connection = new SqlConnection(sqlConnectionString))
@@ -172,6 +171,11 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
                 await batcher.Process(packages[key], registration, dependency, targetFramework);
             }
+        }
+
+        public static Task WritePackage(string sqlConnectionString, int key, GalleryExportBatcher batcher)
+        {
+            return WriteRange(sqlConnectionString, Tuple.Create(key, key), batcher);
         }
 
         public static async Task<IDictionary<int, JObject>> FetchPackages(string sqlConnectionString, Tuple<int, int> range)
@@ -351,7 +355,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                 latest.ToString(), "|");
             string checksumString =
                 Convert.ToBase64String(
-                    _sha512.ComputeHash(
+                    _hash.ComputeHash(
                         Encoding.UTF8.GetBytes(checksumInput)));
             return checksumString;
         }

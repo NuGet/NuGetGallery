@@ -58,17 +58,15 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 return;
             }
 
-            string baseAddress = string.Format("{0}{1}/", _storage.BaseAddress, _storage.Container);
-
             IDictionary<Uri, Tuple<Uri, IGraph>> pageItems = new Dictionary<Uri, Tuple<Uri, IGraph>>();
             List<Task> tasks = null;
             foreach (CatalogItem item in _batch)
             {
                 item.SetTimeStamp(timeStamp);
                 item.SetCommitId(commitId);
-                item.SetBaseAddress(baseAddress);
+                item.SetBaseAddress(_storage.BaseAddress);
 
-                Uri resourceUri = new Uri(item.GetBaseAddress() + item.GetRelativeAddress());
+                Uri resourceUri = new Uri(item.GetBaseAddress(), item.GetRelativeAddress());
                 StorageContent content = item.CreateContent(_context);
                 IGraph pageContent = item.CreatePageContent(_context);
 
@@ -90,7 +88,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 await Task.WhenAll(tasks.ToArray());
             }
 
-            Uri rootResourceUri = new Uri(baseAddress + "catalog/index.json");
+            Uri rootResourceUri = _storage.ResolveUri("index.json");
 
             string rootContent = null;
             if (!_first || _first && _append)
@@ -165,8 +163,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         static Uri GetRootResourceUri(Storage storage)
         {
-            string baseAddress = string.Format("{0}{1}/", storage.BaseAddress, storage.Container);
-            return new Uri(baseAddress + "catalog/index.json");
+            return storage.ResolveUri("index.json");
         }
 
         void Check()

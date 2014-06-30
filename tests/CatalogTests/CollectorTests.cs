@@ -3,6 +3,7 @@ using NuGet.Services.Metadata.Catalog.Collecting.Test;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
 
 namespace CatalogTests
 {
@@ -11,13 +12,8 @@ namespace CatalogTests
 
         public static async Task Test0Async()
         {
-            Storage storage = new AzureStorage
-            {
-                AccountName = "nuget3",
-                AccountKey = "",
-                Container = "export",
-                BaseAddress = "http://nuget3.blob.core.windows.net/"
-            };
+            Storage storage = new AzureStorage(
+                CloudStorageAccount.Parse("AccountName=nuget3;AccountKey=;DefaultEndpointsProtocol=https"), "export");
 
             //Storage storage = new FileStorage
             //{

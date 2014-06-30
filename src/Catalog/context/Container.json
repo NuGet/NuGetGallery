@@ -2,7 +2,11 @@
 	"@context" : { 
 		"@vocab" : "http://nuget.org/catalog#",
 		"nuget" : "http://nuget.org/schema#",
+        "gallery" : "http://nuget.org/gallery#",
         "item" : { "@container" : "@set" },
-		"url" : "@id"
+		"url" : "@id",
+        "timeStamp" : {
+            "@type" : "http://www.w3.org/2001/XMLSchema#dateTime"
+        }
 	}
 }

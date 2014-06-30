@@ -27,8 +27,8 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
         protected override async Task ProcessStore(TripleStore store)
         {
-            string baseAddress = _storage.BaseAddress + _storage.Container + "/range/";
-
+            Uri baseAddress = _storage.ResolveUri("range/");
+            
             int PageSize = 10000;
 
             HashSet<Uri> distinctResourceUri = new HashSet<Uri>();
@@ -43,7 +43,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
                 int pageNumber = key / PageSize;
 
-                Uri resourceUri = new Uri(string.Format("{0}page{1}.json", baseAddress, pageNumber));
+                Uri resourceUri = new Uri(baseAddress, String.Format("page{0}.json", pageNumber));
 
                 distinctResourceUri.Add(resourceUri);
 
@@ -76,8 +76,8 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
         async Task UpdateRangePages(HashSet<Uri> distinctResourceUri, IDictionary<Uri, IGraph> adds, IDictionary<Uri, IGraph> deletes)
         {
-            string baseAddress = _storage.BaseAddress + _storage.Container + "/range/";
-
+            Uri baseAddress = _storage.ResolveUri("range/");
+            
             foreach (Uri resourceUri in distinctResourceUri)
             {
                 IGraph g = null;
@@ -111,7 +111,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                 await _storage.Save(resourceUri, content);
             }
 
-            Uri rangeIndexUri = new Uri(baseAddress + "index.json");
+            Uri rangeIndexUri = new Uri(baseAddress, "index.json");
             string rangeIndexJson = await _storage.LoadString(rangeIndexUri);
 
             IGraph indexGraph = (rangeIndexJson != null) ? Utils.CreateGraph(rangeIndexJson) : new Graph();

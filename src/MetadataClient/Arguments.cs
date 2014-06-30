@@ -43,6 +43,11 @@ namespace MetadataClient
         [ArgActionMethod]
         public void UpdateCatalog(UpdateCatalogArgs args)
         {
+            if (!args.BaseAddress.ToString().EndsWith("/"))
+            {
+                args.BaseAddress = new Uri(args.BaseAddress.ToString() + "/");
+            }
+
             // Create HttpClient
             var handler = new FileSystemEmulatorHandler(
                 new WebRequestHandler { AllowPipelining = true })
@@ -51,13 +56,18 @@ namespace MetadataClient
                 BaseAddress = args.BaseAddress
             };
 
+            var writer = new CatalogWriter(
+                new FileStorage(args.BaseAddress, args.CatalogFolder),
+                new CatalogContext());
+            var batcher = new GalleryExportBatcher(2000, writer);
+
             using (var client = new CollectorHttpClient(handler))
             {
                 var startMB = GetMemoryInMB();
                 Console.WriteLine("Memory Usage {0:0.00}MB", startMB);
 
                 // Locate and load checksum data
-                var checksumUrl = new Uri(args.CatalogRootUrl, "checksums.v1.json");
+                var checksumUrl = new Uri(args.BaseAddress, "checksums.v1.json");
                 var checksumFile = client.GetJObjectAsync(checksumUrl).Result;
                 var catalogChecksums = checksumFile
                         .Value<JObject>("data")
@@ -100,7 +110,19 @@ namespace MetadataClient
                 Console.WriteLine("Memory Usage {0:0.00}MB.", dbMB);
                 Console.WriteLine(" Used ~{0:0.00}MB for db checksum storage", dbMB - catMB);
                 Console.WriteLine(" Used ~{0:0.00}MB for total checksum storage", dbMB - startMB);
-            }   
+
+                Console.WriteLine("Adding new data to catalog");
+                foreach (var diff in diffs)
+                {
+                    if (diff.Result == ComparisonResult.DifferentInCatalog || diff.Result == ComparisonResult.PresentInDatabaseOnly)
+                    {
+                        Console.WriteLine("Updating package {0} from database ...", diff.Key);
+                        GalleryExport.WritePackage(args.SqlConnectionString, diff.Key, batcher).Wait();
+                    }
+                }
+                batcher.Complete().Wait();
+                writer.Commit().Wait();
+            }
         }
 
         private double GetMemoryInMB()
@@ -111,6 +133,15 @@ namespace MetadataClient
         [ArgActionMethod]
         public void CollectChecksums(CollectChecksumsArgs args)
         {
+            if (!args.BaseAddress.ToString().EndsWith("/"))
+            {
+                args.BaseAddress = new Uri(args.BaseAddress.ToString() + "/");
+            }
+
+            // Load the existing file
+            var checksums = new LocalFileChecksumRecords(args.DestinationFile);
+            checksums.Load().Wait();
+
             // Create HttpClient
             var handler = new FileSystemEmulatorHandler(
                 new WebRequestHandler { AllowPipelining = true })
@@ -119,7 +150,7 @@ namespace MetadataClient
                 BaseAddress = args.BaseAddress
             };
 
-            var collector = new ChecksumCollector(1000);
+            var collector = new ChecksumCollector(1000, checksums);
             collector.Trace.Listeners.Add(new ConsoleTraceListener()
             {
                 Filter = new EventTypeFilter(SourceLevels.All)
@@ -127,32 +158,28 @@ namespace MetadataClient
             collector.Trace.Switch.Level = SourceLevels.All;
 
             var timestamp = DateTime.UtcNow;
+            Console.WriteLine("Collecting new checksums since: {0} UTC", checksums.TimestampUtc);
             using (var client = new CollectorHttpClient(handler))
             {
-                collector.Run(client, args.IndexUrl, DateTime.MinValue).Wait();
+                collector.Run(client, args.IndexUrl, checksums.TimestampUtc).Wait();
             }
+            checksums.TimestampUtc = timestamp;
 
-            var obj = collector.Complete();
-            var document = new JObject(
-                new JProperty("commitTimestamp", timestamp.ToString("O")),
-                new JProperty("data", obj));
-
-            Console.WriteLine("Writing output file...");
-            using (var stream = new FileStream(args.DestinationFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
-            using (var sw = new StreamWriter(stream))
-            using (var writer = new JsonTextWriter(sw))
-            {
-                document.WriteTo(writer);
-            }
+            collector.Checksums.Save().Wait();
         }
 
         [ArgActionMethod]
         public void Rebuild(RebuildArgs args)
         {
+            if (!args.BaseAddress.ToString().EndsWith("/"))
+            {
+                args.BaseAddress = new Uri(args.BaseAddress.ToString() + "/");
+            }
+
             var writer = new CatalogWriter(
                 new FileStorage(args.BaseAddress, args.DestinationFolder),
                 new CatalogContext());
-            var batcher = new GalleryExportBatcher(1000, writer);
+            var batcher = new GalleryExportBatcher(2000, writer);
             int lastHighest = 0;
             while(true) {
                 var range = GalleryExport.GetNextRange(

@@ -10,7 +10,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
     class CatalogRoot : CatalogContainer
     {
         IDictionary<string, string> _commitUserData;
-        string _baseAddress;
+        Uri _baseAddress;
         int _nextPageNumber;
 
         Uri _latestUri;
@@ -31,12 +31,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             }
 
             string s = root.ToString();
-            _baseAddress = s.Substring(0, s.LastIndexOf('/') + 1);
+            _baseAddress = new Uri(s.Substring(0, s.LastIndexOf('/') + 1));
         }
 
         public Uri AddNextPage(DateTime timeStamp, Guid commitId, int count)
         {
-            Uri nextPageAddress = new Uri(_baseAddress + string.Format("page{0}.json", _nextPageNumber++));
+            Uri nextPageAddress = new Uri(_baseAddress, String.Format("page{0}.json", _nextPageNumber++));
             _items.Add(nextPageAddress, new CatalogContainerItem
             {
                 Type = Constants.CatalogPage,

@@ -12,6 +12,11 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 {
     public class GalleryExportCatalogItem : CatalogItem
     {
+        private static readonly Uri GalleryKeyPredicateUri = new Uri("http://nuget.org/gallery#key");
+        private static readonly Uri GalleryChecksumPredicateUri = new Uri("http://nuget.org/gallery#checksum");
+        private static readonly Uri IntegerDatatypeUri = new Uri("http://www.w3.org/2001/XMLSchema#integer");
+        private static readonly Uri StringDatatypeUri = new Uri("http://www.w3.org/2001/XMLSchema#string");
+
         GalleryExportPackage _export;
         string _identity;
 
@@ -45,12 +50,14 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             Graph graph = new Graph();
 
             INode subject = graph.CreateUriNode(resourceUri);
-            INode galleryKeyPredicate = graph.CreateUriNode(new Uri("http://nuget.org/gallery#key"));
+            INode galleryKeyPredicate = graph.CreateUriNode(GalleryKeyPredicateUri);
+            INode galleryChecksumPredicate = graph.CreateUriNode(GalleryChecksumPredicateUri);
 
-            string key = _export.Package["Key"].ToString();
+            string key = _export.Package.Value<string>("Key");
+            string checksum = _export.Package.Value<string>("DatabaseChecksum");
 
-            Uri integerDatatype = new Uri("http://www.w3.org/2001/XMLSchema#integer");
-            graph.Assert(subject, galleryKeyPredicate, graph.CreateLiteralNode(key, integerDatatype));
+            graph.Assert(subject, galleryKeyPredicate, graph.CreateLiteralNode(key, IntegerDatatypeUri));
+            graph.Assert(subject, galleryChecksumPredicate, graph.CreateLiteralNode(checksum));
 
             return graph;
         }

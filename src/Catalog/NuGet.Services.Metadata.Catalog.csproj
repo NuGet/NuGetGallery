@@ -100,6 +100,7 @@
     <Compile Include="GalleryIntegration\GalleryKeyRangeCollector.cs" />
     <Compile Include="Maintenance\CatalogContainer.cs" />
     <Compile Include="Maintenance\CatalogContainerItem.cs" />
+    <Compile Include="Maintenance\ChecksumRecords.cs" />
     <Compile Include="Persistence\StreamStorageContent.cs" />
     <Compile Include="Persistence\StringStorageContent.cs" />
     <Compile Include="Persistence\StorageContent.cs" />

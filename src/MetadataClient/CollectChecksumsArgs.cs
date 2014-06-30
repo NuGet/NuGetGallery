@@ -10,14 +10,14 @@ namespace MetadataClient
         [ArgDescription("The folder containing the catalog")]
         public string CatalogFolder { get; set; }
 
+        [ArgRequired]
         [ArgShortcut("base")]
-        [ArgDescription("The base address to use for the URIs, defaults to http://api.nuget.org")]
-        [DefaultValue("http://api.nuget.org")]
+        [ArgDescription("The base address to use for URIs")]
         public Uri BaseAddress { get; set; }
 
-        [ArgRequired]
         [ArgShortcut("i")]
         [ArgDescription("The Url for the index document")]
+        [DefaultValue("http://api.nuget.org/catalogs/primary/index.json")]
         public Uri IndexUrl { get; set; }
 
         [ArgRequired]

@@ -40,7 +40,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                     SparqlParameterizedString sparql = new SparqlParameterizedString();
                     sparql.CommandText = Utils.GetResource("sparql.ConstructResolverGraph.rq");
 
-                    string baseAddress = _storage.BaseAddress + _storage.Container + "/resolver/";
+                    string baseAddress = _storage.BaseAddress + "/resolver/";
 
                     sparql.SetLiteral("id", id);
                     sparql.SetLiteral("base", baseAddress);

@@ -11,13 +11,8 @@ namespace MetadataClient
         public string SqlConnectionString { get; set; }
 
         [ArgRequired]
-        [ArgShortcut("c")]
-        [ArgDescription("The root URL to the catalog, EXCLUDING index.json segment")]
-        public Uri CatalogRootUrl { get; set; }
-
         [ArgShortcut("base")]
-        [ArgDescription("The base address to use for the URIs, defaults to http://api.nuget.org")]
-        [DefaultValue("http://api.nuget.org")]
+        [ArgDescription("The base address to use with the folder specified in -CatalogFolder")]
         public Uri BaseAddress { get; set; }
 
         [ArgRequired]

@@ -7,58 +7,39 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGet.Services.Metadata.Catalog.Maintenance;
 using VDS.RDF;
 using VDS.RDF.Query;
 
 namespace NuGet.Services.Metadata.Catalog.Collecting
 {
-    public class ChecksumCollector : StoreCollector
+    public class ChecksumCollector : BatchCollector
     {
         public static readonly Uri[] Types = new Uri[] {
             new Uri("http://nuget.org/schema#Package")
         };
 
-        private Dictionary<string, string> _collected = new Dictionary<string, string>();
-
+        public ChecksumRecords Checksums { get; private set; }
         public TraceSource Trace { get; private set; }
 
-        public ChecksumCollector(int batchSize) : base(batchSize, Types)
+        public ChecksumCollector(int batchSize, ChecksumRecords checksums) : base(batchSize)
         {
             Trace = new TraceSource(typeof(ChecksumCollector).FullName);
+            Checksums = checksums;
         }
 
-        public IDictionary<string, string> GetResults()
-        {
-            var ret = _collected;
-            _collected = null;
-            return ret;
-        }
-
-        public JObject Complete()
-        {
-            return JObject.FromObject(_collected);
-        }
-
-        protected override Task ProcessStore(TripleStore store)
+        protected override Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
         {
             Trace.TraceInformation("Processing batch {0}...", BatchCount);
-            if (_collected == null)
+            
+            foreach (var item in items)
             {
-                throw new ObjectDisposedException("ChecksumCollector");
+                var key = Int32.Parse(item.Value<string>("gallery:key"));
+                var checksum = item.Value<string>("gallery:checksum");
+
+                Checksums.Data[key] = checksum;
             }
 
-            using (store)
-            {
-                SparqlResultSet results = SparqlHelpers.Select(store, Utils.GetResource("sparql.SelectChecksums.rq"));
-
-                foreach (var result in results)
-                {
-                    string key = result["key"].ToString();
-                    string checksum = result["checksum"].ToString();
-
-                    _collected[key] = checksum;
-                }
-            }
             Trace.TraceInformation("Processed batch {0}...", BatchCount);
             return Task.FromResult(0);
         }

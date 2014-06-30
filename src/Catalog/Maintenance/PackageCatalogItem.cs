@@ -52,10 +52,10 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return result;
         }
 
-        static IGraph CreateNuspecGraph(XDocument nuspec, string baseAddress, XslCompiledTransform xslt)
+        static IGraph CreateNuspecGraph(XDocument nuspec, Uri baseAddress, XslCompiledTransform xslt)
         {
             XsltArgumentList arguments = new XsltArgumentList();
-            arguments.AddParam("base", "", baseAddress);
+            arguments.AddParam("base", "", baseAddress.ToString());
             arguments.AddParam("extension", "", ".json");
 
             arguments.AddExtensionObject("urn:helper", new XsltHelper());
