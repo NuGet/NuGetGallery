@@ -36,7 +36,6 @@ namespace MetadataClient
             foreach (var record in data.Properties().Where(p => Int32.Parse(p.Name) == args.PackageKey))
             {
                 Console.WriteLine("Checksum record: " + record.ToString());
-                Console.WriteLine("Checksum Value: {0}", record.ToObject<string>());
             }
         }
 
@@ -72,7 +71,7 @@ namespace MetadataClient
                 var catalogChecksums = checksumFile
                         .Value<JObject>("data")
                         .Properties()
-                        .ToDictionary(p => Int32.Parse(p.Name), p => p.Value.ToObject<string>());
+                        .ToDictionary(p => Int32.Parse(p.Name), p => (JObject)p.Value);
                 Console.WriteLine("Loaded {0} checksums from catalog...", catalogChecksums.Count);
                 var catMB = GetMemoryInMB();
                 Console.WriteLine("Memory Usage {0:0.00}MB, used ~{0:0.00}MB for catalog checksum storage", catMB, catMB - startMB);
@@ -118,6 +117,17 @@ namespace MetadataClient
                     {
                         Console.WriteLine("Updating package {0} from database ...", diff.Key);
                         GalleryExport.WritePackage(args.SqlConnectionString, diff.Key, batcher).Wait();
+                    }
+                    else
+                    {
+                        // Write a deletion of this package
+                        Console.WriteLine("Package {0} was removed from database. Adding a deletion to the catalog.", diff.Key);
+
+                        var package = client.GetJObjectAsync(diff.CatalogUrl).Result;
+                        
+                        string id = package.Value<string>("id");
+                        string version = package.Value<string>("version");
+                        batcher.Add(new DeletePackageCatalogItem(id, version, diff.Key.ToString())).Wait();
                     }
                 }
                 batcher.Complete().Wait();

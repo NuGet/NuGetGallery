@@ -34,10 +34,21 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             
             foreach (var item in items)
             {
+                string type = item.Value<string>("@type");
                 var key = Int32.Parse(item.Value<string>("gallery:key"));
-                var checksum = item.Value<string>("gallery:checksum");
+                if (String.Equals(type, "nuget:Package", StringComparison.Ordinal))
+                {
+                    var checksum = item.Value<string>("gallery:checksum");
+                    var url = item.Value<string>("url");
 
-                Checksums.Data[key] = checksum;
+                    Checksums.Data[key] = new JObject(
+                        new JProperty("checksum", checksum),
+                        new JProperty("url", url));
+                }
+                else if (String.Equals(type, "nuget:DeletePackage", StringComparison.Ordinal))
+                {
+                    Checksums.Data.Remove(key);
+                }
             }
 
             Trace.TraceInformation("Processed batch {0}...", BatchCount);

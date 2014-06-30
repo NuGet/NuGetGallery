@@ -4,18 +4,19 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     public abstract class ChecksumRecords
     {
-        public IDictionary<int, string> Data { get; private set; }
+        public IDictionary<int, JObject> Data { get; private set; }
         public DateTime TimestampUtc { get; set; }
 
         protected ChecksumRecords()
         {
-            Data = new Dictionary<int, string>();
+            Data = new Dictionary<int, JObject>();
             TimestampUtc = DateTime.MinValue;
         }
 
@@ -27,12 +28,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 TimestampUtc = json.Value<DateTime>("commitTimestamp");
                 Data = json.Value<JObject>("data").Properties().ToDictionary(
                     p => Int32.Parse(p.Name),
-                    p => p.Value.Value<string>());
+                    p => p.Value.Value<JObject>());
             }
             else
             {
                 TimestampUtc = DateTime.MinValue;
-                Data = new Dictionary<int, string>();
+                Data = new Dictionary<int, JObject>();
             }
         }
 
@@ -81,7 +82,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             using (var writer = new StreamWriter(FilePath, append: false))
             {
-                await writer.WriteAsync(obj.ToString());
+                await writer.WriteAsync(obj.ToString(Formatting.None));
             }
         }
     }

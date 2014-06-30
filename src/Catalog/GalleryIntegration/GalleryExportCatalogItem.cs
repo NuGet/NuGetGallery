@@ -12,10 +12,10 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 {
     public class GalleryExportCatalogItem : CatalogItem
     {
-        private static readonly Uri GalleryKeyPredicateUri = new Uri("http://nuget.org/gallery#key");
-        private static readonly Uri GalleryChecksumPredicateUri = new Uri("http://nuget.org/gallery#checksum");
-        private static readonly Uri IntegerDatatypeUri = new Uri("http://www.w3.org/2001/XMLSchema#integer");
-        private static readonly Uri StringDatatypeUri = new Uri("http://www.w3.org/2001/XMLSchema#string");
+        internal static readonly Uri GalleryKeyPredicateUri = new Uri("http://nuget.org/gallery#key");
+        internal static readonly Uri GalleryChecksumPredicateUri = new Uri("http://nuget.org/gallery#checksum");
+        internal static readonly Uri IntegerDatatypeUri = new Uri("http://www.w3.org/2001/XMLSchema#integer");
+        internal static readonly Uri StringDatatypeUri = new Uri("http://www.w3.org/2001/XMLSchema#string");
 
         GalleryExportPackage _export;
         string _identity;

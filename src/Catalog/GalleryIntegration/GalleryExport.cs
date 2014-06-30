@@ -89,7 +89,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             INNER JOIN Packages ON PackageFrameworks.[Package_Key] = Packages.[Key]
             WHERE Packages.[Key] >= @MinKey AND Packages.[Key] <= @MaxKey";
 
-        public static IEnumerable<ChecksumComparisonResult> CompareChecksums(IDictionary<int, string> catalogChecksums, IDictionary<int, string> databaseChecksums)
+        public static IEnumerable<ChecksumComparisonResult> CompareChecksums(IDictionary<int, JObject> catalogChecksums, IDictionary<int, string> databaseChecksums)
         {
             foreach (var catalogPair in catalogChecksums)
             {
@@ -98,15 +98,17 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                 {
                     yield return new ChecksumComparisonResult(
                         catalogPair.Key,
+                        new Uri(catalogPair.Value.Value<string>("url")),
                         ComparisonResult.PresentInCatalogOnly);
                 }
                 else
                 {
                     databaseChecksums.Remove(catalogPair.Key);
-                    if (!String.Equals(databaseChecksum, catalogPair.Value, StringComparison.Ordinal))
+                    if (!String.Equals(databaseChecksum, catalogPair.Value.Value<string>("checksum"), StringComparison.Ordinal))
                     {
                         yield return new ChecksumComparisonResult(
                             catalogPair.Key,
+                            null,
                             ComparisonResult.DifferentInCatalog);
                     }
                 }
@@ -117,6 +119,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             {
                 yield return new ChecksumComparisonResult(
                     databasePair.Key,
+                    null,
                     ComparisonResult.PresentInDatabaseOnly);
             }
         }
@@ -176,6 +179,11 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
         public static Task WritePackage(string sqlConnectionString, int key, GalleryExportBatcher batcher)
         {
             return WriteRange(sqlConnectionString, Tuple.Create(key, key), batcher);
+        }
+
+        public static async Task<JObject> FetchPackage(string sqlConnectionString, int key)
+        {
+            return (await FetchPackages(sqlConnectionString, Tuple.Create(key, key)))[key];
         }
 
         public static async Task<IDictionary<int, JObject>> FetchPackages(string sqlConnectionString, Tuple<int, int> range)
@@ -365,11 +373,13 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
     {
         public int Key { get; private set; }
         public ComparisonResult Result { get; private set; }
+        public Uri CatalogUrl { get; private set; }
 
-        public ChecksumComparisonResult(int key, ComparisonResult result)
+        public ChecksumComparisonResult(int key, Uri catalogUrl, ComparisonResult result)
         {
             Key = key;
             Result = result;
+            CatalogUrl = catalogUrl;
         }
     }
 

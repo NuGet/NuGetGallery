@@ -8,64 +8,21 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 {
-    public class GalleryExportBatcher
+    public class GalleryExportBatcher : CatalogBatcher
     {
-        int _batchSize;
-        List<GalleryExportPackage> _currentBatch;
-        CatalogWriter _writer;
+        public GalleryExportBatcher(int batchSize, CatalogWriter writer) : base(batchSize, writer) { }
 
-        public GalleryExportBatcher(int batchSize, CatalogWriter writer)
+        public Task Process(JObject package, string registration, List<JObject> dependencies, List<string> targetFrameworks)
         {
-            _batchSize = batchSize;
-            _writer = writer;
-            _currentBatch = new List<GalleryExportPackage>();
-            Total = 0;
-        }
-
-        public async Task Process(JObject package, string registration, List<JObject> dependencies, List<string> targetFrameworks)
-        {
-            GalleryExportPackage export = new GalleryExportPackage
+            var export = new GalleryExportPackage
             {
                 Package = package,
                 Id = registration,
                 Dependencies = dependencies,
                 TargetFrameworks = targetFrameworks
             };
-
-            _currentBatch.Add(export);
-
-            if (_currentBatch.Count == _batchSize)
-            {
-                await SubmitCurrentBatch();
-                _currentBatch.Clear();
-            }
-        }
-
-        public async Task Complete()
-        {
-            if (_currentBatch.Count > 0)
-            {
-                await SubmitCurrentBatch();
-                _currentBatch.Clear();
-            }
-        }
-
-        public int Total
-        {
-            get;
-            private set;
-        }
-
-        Task SubmitCurrentBatch()
-        {
-            Total += _currentBatch.Count;
-
-            foreach (GalleryExportPackage export in _currentBatch)
-            {
-                _writer.Add(new GalleryExportCatalogItem(export));
-            }
-
-            return _writer.Commit();
+            var item = new GalleryExportCatalogItem(export);
+            return Add(item);
         }
     }
 }

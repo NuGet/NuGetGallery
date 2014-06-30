@@ -98,6 +98,7 @@
     <Compile Include="GalleryIntegration\GalleryExportPackage.cs" />
     <Compile Include="GalleryIntegration\GalleryKeyCollector.cs" />
     <Compile Include="GalleryIntegration\GalleryKeyRangeCollector.cs" />
+    <Compile Include="Maintenance\CatalogBatcher.cs" />
     <Compile Include="Maintenance\CatalogContainer.cs" />
     <Compile Include="Maintenance\CatalogContainerItem.cs" />
     <Compile Include="Maintenance\ChecksumRecords.cs" />
