@@ -17,12 +17,10 @@ namespace MetadataClient
 
         [ArgShortcut("i")]
         [ArgDescription("The Url for the index document")]
-        [DefaultValue("http://api.nuget.org/catalogs/primary/index.json")]
         public Uri IndexUrl { get; set; }
 
-        [ArgRequired]
-        [ArgShortcut("d")]
+        [ArgShortcut("chk")]
         [ArgDescription("The file to write the checksum data to")]
-        public string DestinationFile { get; set; }
+        public string ChecksumFile { get; set; }
     }
 }

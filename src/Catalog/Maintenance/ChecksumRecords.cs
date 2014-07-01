@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Collecting;
 
 namespace NuGet.Services.Metadata.Catalog.Maintenance
 {

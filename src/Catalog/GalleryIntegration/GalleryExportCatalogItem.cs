@@ -14,6 +14,8 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
     {
         internal static readonly Uri GalleryKeyPredicateUri = new Uri("http://nuget.org/gallery#key");
         internal static readonly Uri GalleryChecksumPredicateUri = new Uri("http://nuget.org/gallery#checksum");
+        internal static readonly Uri IdPredicateUri = new Uri("http://nuget.org/schema#id");
+        internal static readonly Uri VersionPredicateUri = new Uri("http://nuget.org/schema#version");
         internal static readonly Uri IntegerDatatypeUri = new Uri("http://www.w3.org/2001/XMLSchema#integer");
         internal static readonly Uri StringDatatypeUri = new Uri("http://www.w3.org/2001/XMLSchema#string");
 
@@ -52,12 +54,18 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             INode subject = graph.CreateUriNode(resourceUri);
             INode galleryKeyPredicate = graph.CreateUriNode(GalleryKeyPredicateUri);
             INode galleryChecksumPredicate = graph.CreateUriNode(GalleryChecksumPredicateUri);
+            INode idPredicate = graph.CreateUriNode(IdPredicateUri);
+            INode versionPredicate = graph.CreateUriNode(VersionPredicateUri);
 
             string key = _export.Package.Value<string>("Key");
             string checksum = _export.Package.Value<string>("DatabaseChecksum");
+            string id = _export.Id;
+            string version = _export.Package.Value<string>("Version");
 
             graph.Assert(subject, galleryKeyPredicate, graph.CreateLiteralNode(key, IntegerDatatypeUri));
             graph.Assert(subject, galleryChecksumPredicate, graph.CreateLiteralNode(checksum));
+            graph.Assert(subject, idPredicate, graph.CreateLiteralNode(id));
+            graph.Assert(subject, versionPredicate, graph.CreateLiteralNode(version));
 
             return graph;
         }

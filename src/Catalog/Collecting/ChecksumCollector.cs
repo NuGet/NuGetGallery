@@ -39,11 +39,13 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                 if (String.Equals(type, "nuget:Package", StringComparison.Ordinal))
                 {
                     var checksum = item.Value<string>("gallery:checksum");
-                    var url = item.Value<string>("url");
+                    var id = item.Value<string>("nuget:id");
+                    var version = item.Value<string>("nuget:version");
 
                     Checksums.Data[key] = new JObject(
                         new JProperty("checksum", checksum),
-                        new JProperty("url", url));
+                        new JProperty("id", id),
+                        new JProperty("version", version));
                 }
                 else if (String.Equals(type, "nuget:DeletePackage", StringComparison.Ordinal))
                 {

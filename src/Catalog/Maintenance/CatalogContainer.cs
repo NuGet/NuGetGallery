@@ -88,7 +88,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             }
 
             JObject frame = context.GetJsonLdContext("context.Container.json", GetContainerType());
-
+            
             StorageContent content = new StringStorageContent(Utils.CreateJson(graph, frame), "application/json");
 
             return content;

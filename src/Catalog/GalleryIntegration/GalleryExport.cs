@@ -98,7 +98,8 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                 {
                     yield return new ChecksumComparisonResult(
                         catalogPair.Key,
-                        new Uri(catalogPair.Value.Value<string>("url")),
+                        catalogPair.Value.Value<string>("id"),
+                        catalogPair.Value.Value<string>("version"),
                         ComparisonResult.PresentInCatalogOnly);
                 }
                 else
@@ -108,7 +109,8 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                     {
                         yield return new ChecksumComparisonResult(
                             catalogPair.Key,
-                            null,
+                            catalogPair.Value.Value<string>("id"),
+                            catalogPair.Value.Value<string>("version"),
                             ComparisonResult.DifferentInCatalog);
                     }
                 }
@@ -119,6 +121,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             {
                 yield return new ChecksumComparisonResult(
                     databasePair.Key,
+                    null,
                     null,
                     ComparisonResult.PresentInDatabaseOnly);
             }
@@ -373,13 +376,15 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
     {
         public int Key { get; private set; }
         public ComparisonResult Result { get; private set; }
-        public Uri CatalogUrl { get; private set; }
+        public string Id { get; private set; }
+        public string Version { get; private set; }
 
-        public ChecksumComparisonResult(int key, Uri catalogUrl, ComparisonResult result)
+        public ChecksumComparisonResult(int key, string id, string version, ComparisonResult result)
         {
             Key = key;
             Result = result;
-            CatalogUrl = catalogUrl;
+            Id = id;
+            Version = version;
         }
     }
 

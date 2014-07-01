@@ -74,7 +74,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         protected override string GetItemIdentity()
         {
-            return "delete/" + _id + "." + _version;
+            return "delete/" + _id.ToLowerInvariant() + "." + _version.ToLowerInvariant();
         }
     }
 }

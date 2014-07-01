@@ -46,92 +46,34 @@ namespace MetadataClient
             {
                 args.BaseAddress = new Uri(args.BaseAddress.ToString() + "/");
             }
-
-            // Create HttpClient
-            var handler = new FileSystemEmulatorHandler(
-                new WebRequestHandler { AllowPipelining = true })
+            if (args.IndexUrl == null)
             {
-                RootFolder = args.CatalogFolder,
-                BaseAddress = args.BaseAddress
-            };
+                args.IndexUrl = new Uri(args.BaseAddress, "index.json");
+            }
+            if (String.IsNullOrEmpty(args.ChecksumFile))
+            {
+                args.ChecksumFile = Path.Combine(args.CatalogFolder, "checksums.v1.json");
+            }
 
             var writer = new CatalogWriter(
                 new FileStorage(args.BaseAddress, args.CatalogFolder),
                 new CatalogContext());
-            var batcher = new GalleryExportBatcher(2000, writer);
-
-            using (var client = new CollectorHttpClient(handler))
+            var client = new CollectorHttpClient(
+                new FileSystemEmulatorHandler(new WebRequestHandler() { AllowPipelining = true })
             {
-                var startMB = GetMemoryInMB();
-                Console.WriteLine("Memory Usage {0:0.00}MB", startMB);
+                BaseAddress = args.BaseAddress,
+                RootFolder = args.CatalogFolder
+            });
+            var checksums = new LocalFileChecksumRecords(args.ChecksumFile);
 
-                // Locate and load checksum data
-                var checksumUrl = new Uri(args.BaseAddress, "checksums.v1.json");
-                var checksumFile = client.GetJObjectAsync(checksumUrl).Result;
-                var catalogChecksums = checksumFile
-                        .Value<JObject>("data")
-                        .Properties()
-                        .ToDictionary(p => Int32.Parse(p.Name), p => (JObject)p.Value);
-                Console.WriteLine("Loaded {0} checksums from catalog...", catalogChecksums.Count);
-                var catMB = GetMemoryInMB();
-                Console.WriteLine("Memory Usage {0:0.00}MB, used ~{0:0.00}MB for catalog checksum storage", catMB, catMB - startMB);
-
-                // Load checksums from database
-                var databaseChecksums = new Dictionary<int, string>(catalogChecksums.Count);
-                int lastKey = 0;
-                while (true)
+            using (var updater = new CatalogUpdater(writer, checksums, client))
+            {
+                updater.Trace.Listeners.Add(new ConsoleTraceListener()
                 {
-                    const int BatchSize = 10000;
-                    var range = GalleryExport.FetchChecksums(args.SqlConnectionString, lastKey, BatchSize).Result;
-                    foreach (var pair in range)
-                    {
-                        databaseChecksums[pair.Key] = pair.Value;
-                    }
-                    if (range.Count < BatchSize)
-                    {
-                        break;
-                    }
-                    lastKey = range.Max(p => p.Key);
-                    Console.WriteLine("Loaded {0} total checksums from database...", databaseChecksums.Count);
-                }
-                Console.WriteLine("Loaded all checksums from database.");
-                var dbMB = GetMemoryInMB();
-
-                // Diff the checksums
-                var diffs = GalleryExport.CompareChecksums(catalogChecksums, databaseChecksums).ToList();
-
-                // Print the diffs
-                foreach (var diff in diffs)
-                {
-                    Console.WriteLine("{0} - {1}", diff.Key, diff.Result.ToString());
-                }
-                Console.WriteLine("Found {0} differences", diffs.Count);
-                Console.WriteLine("Memory Usage {0:0.00}MB.", dbMB);
-                Console.WriteLine(" Used ~{0:0.00}MB for db checksum storage", dbMB - catMB);
-                Console.WriteLine(" Used ~{0:0.00}MB for total checksum storage", dbMB - startMB);
-
-                Console.WriteLine("Adding new data to catalog");
-                foreach (var diff in diffs)
-                {
-                    if (diff.Result == ComparisonResult.DifferentInCatalog || diff.Result == ComparisonResult.PresentInDatabaseOnly)
-                    {
-                        Console.WriteLine("Updating package {0} from database ...", diff.Key);
-                        GalleryExport.WritePackage(args.SqlConnectionString, diff.Key, batcher).Wait();
-                    }
-                    else
-                    {
-                        // Write a deletion of this package
-                        Console.WriteLine("Package {0} was removed from database. Adding a deletion to the catalog.", diff.Key);
-
-                        var package = client.GetJObjectAsync(diff.CatalogUrl).Result;
-                        
-                        string id = package.Value<string>("id");
-                        string version = package.Value<string>("version");
-                        batcher.Add(new DeletePackageCatalogItem(id, version, diff.Key.ToString())).Wait();
-                    }
-                }
-                batcher.Complete().Wait();
-                writer.Commit().Wait();
+                    Filter = new EventTypeFilter(SourceLevels.All)
+                });
+                updater.Trace.Switch.Level = SourceLevels.All;
+                updater.Update(args.SqlConnectionString, args.IndexUrl).Wait();
             }
         }
 
@@ -147,9 +89,17 @@ namespace MetadataClient
             {
                 args.BaseAddress = new Uri(args.BaseAddress.ToString() + "/");
             }
+            if (args.IndexUrl == null)
+            {
+                args.IndexUrl = new Uri(args.BaseAddress, "index.json");
+            }
+            if (String.IsNullOrEmpty(args.ChecksumFile))
+            {
+                args.ChecksumFile = Path.Combine(args.CatalogFolder, "checksums.v1.json");
+            }
 
             // Load the existing file
-            var checksums = new LocalFileChecksumRecords(args.DestinationFile);
+            var checksums = new LocalFileChecksumRecords(args.ChecksumFile);
             checksums.Load().Wait();
 
             // Create HttpClient

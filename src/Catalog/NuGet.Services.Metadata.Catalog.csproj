@@ -101,6 +101,7 @@
     <Compile Include="Maintenance\CatalogBatcher.cs" />
     <Compile Include="Maintenance\CatalogContainer.cs" />
     <Compile Include="Maintenance\CatalogContainerItem.cs" />
+    <Compile Include="Maintenance\CatalogUpdater.cs" />
     <Compile Include="Maintenance\ChecksumRecords.cs" />
     <Compile Include="Persistence\StreamStorageContent.cs" />
     <Compile Include="Persistence\StringStorageContent.cs" />
