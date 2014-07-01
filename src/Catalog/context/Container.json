@@ -1,8 +1,8 @@
 ﻿{ 
 	"@context" : { 
-		"@vocab" : "http://nuget.org/catalog#",
-		"nuget" : "http://nuget.org/schema#",
-        "gallery" : "http://nuget.org/gallery#",
+		"@vocab" : "http://schema.nuget.org/catalog#",
+		"nuget" : "http://schema.nuget.org/package#",
+        "gallery" : "http://schema.nuget.org/gallery#",
         "item" : { "@container" : "@set" },
 		"url" : "@id",
         "timeStamp" : {

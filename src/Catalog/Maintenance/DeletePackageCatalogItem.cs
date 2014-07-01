@@ -59,9 +59,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             if (!String.IsNullOrEmpty(_galleryKey))
             {
                 INode subject = graph.CreateUriNode(resourceUri);
-                INode galleryKeyPredicate = graph.CreateUriNode(GalleryExportCatalogItem.GalleryKeyPredicateUri);
+                INode galleryKeyPredicate = graph.CreateUriNode(Schema.Predicates.GalleryKey);
 
-                graph.Assert(subject, galleryKeyPredicate, graph.CreateLiteralNode(_galleryKey, GalleryExportCatalogItem.IntegerDatatypeUri));
+                graph.Assert(subject, galleryKeyPredicate, graph.CreateLiteralNode(_galleryKey, Schema.DataTypes.Integer));
             }
 
             return graph;
@@ -69,7 +69,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public override Uri GetItemType()
         {
-            return Constants.DeletePackage;
+            return Schema.DataTypes.DeletePackage;
         }
 
         protected override string GetItemIdentity()

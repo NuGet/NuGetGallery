@@ -61,41 +61,5 @@ namespace CatalogTests
 
             Console.WriteLine(batcher.Total);
         }
-
-        public static async Task Test1Async()
-        {
-            HashSet<int> keys = new HashSet<int>();
-
-            GalleryKeyCollector collector = new GalleryKeyCollector(keys);
-
-            await collector.Run(new Uri("http://localhost:8000/export/catalog/index.json"), DateTime.MinValue);
-            Console.WriteLine("http requests: {0}", collector.RequestCount);
-
-            Console.WriteLine(keys.Count);
-        }
-
-        public static void Test1()
-        {
-            Console.WriteLine("ExportTests.Test1");
-
-            Test1Async().Wait();
-        }
-
-        public static async Task Test2Async()
-        {
-            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\export");
-
-            GalleryKeyRangeCollector collector = new GalleryKeyRangeCollector(storage, 200);
-
-            await collector.Run(new Uri("http://localhost:8000/export/catalog/index.json"), DateTime.MinValue);
-            Console.WriteLine("http requests: {0}", collector.RequestCount);
-        }
-
-        public static void Test2()
-        {
-            Console.WriteLine("ExportTests.Test2");
-
-            Test2Async().Wait();
-        }
     }
 }

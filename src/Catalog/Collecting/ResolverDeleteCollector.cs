@@ -15,7 +15,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         JObject _resolverFrame;
 
         public ResolverDeleteCollector(Storage storage, int batchSize = 200)
-            : base(batchSize, new Uri[] { Constants.DeletePackage, Constants.DeleteRegistration })
+            : base(batchSize, new Uri[] { Schema.DataTypes.DeletePackage, Schema.DataTypes.DeleteRegistration })
         {
             Options.InternUris = false;
 

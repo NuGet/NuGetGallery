@@ -39,7 +39,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             Uri nextPageAddress = new Uri(_baseAddress, String.Format("page{0}.json", _nextPageNumber++));
             _items.Add(nextPageAddress, new CatalogContainerItem
             {
-                Type = Constants.CatalogPage,
+                Type = Schema.DataTypes.CatalogPage,
                 TimeStamp = timeStamp,
                 CommitId = commitId,
                 Count = count
@@ -56,7 +56,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         {
             _items[pageUri] = new CatalogContainerItem
             {
-                Type = Constants.CatalogPage,
+                Type = Schema.DataTypes.CatalogPage,
                 TimeStamp = timeStamp,
                 CommitId = commitId,
                 Count = count
@@ -72,11 +72,13 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         {
             IGraph graph = Utils.CreateGraph(content);
 
-            graph.NamespaceMap.AddNamespace("catalog", new Uri("http://nuget.org/catalog#"));
-
             IDictionary<string, string> commitUserData = null;
 
-            foreach (Triple commitUserDataSetTriples in graph.GetTriplesWithSubjectPredicate(graph.CreateUriNode(resourceUri), graph.CreateUriNode("catalog:commitUserData")))
+            var triples = graph.GetTriplesWithSubjectPredicate(
+                graph.CreateUriNode(resourceUri), 
+                graph.CreateUriNode(Schema.Predicates.CatalogCommitUserData));
+
+            foreach (Triple commitUserDataSetTriples in triples)
             {
                 foreach (Triple commitUserDataTriple in graph.GetTriplesWithSubject(commitUserDataSetTriples.Object))
                 {
@@ -99,19 +101,23 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         public static DateTime GetLastCommitTimeStamp(Uri resourceUri, string content)
         {
             IGraph graph = Utils.CreateGraph(content);
-            graph.NamespaceMap.AddNamespace("catalog", new Uri("http://nuget.org/catalog#"));
-            Triple timeStampTriple = graph.GetTriplesWithSubjectPredicate(graph.CreateUriNode(resourceUri), graph.CreateUriNode("catalog:timeStamp")).First();
+            Triple timeStampTriple = graph.GetTriplesWithSubjectPredicate(
+                graph.CreateUriNode(resourceUri), 
+                graph.CreateUriNode(Schema.Predicates.CatalogTimestamp)).First();
             return DateTime.Parse(((ILiteralNode)timeStampTriple.Object).Value);
         }
 
         public static int GetCount(Uri resourceUri, string content)
         {
             IGraph graph = Utils.CreateGraph(content);
-            graph.NamespaceMap.AddNamespace("catalog", new Uri("http://nuget.org/catalog#"));
-
+            
             int total = 0;
 
-            foreach (Triple itemTriples in graph.GetTriplesWithSubjectPredicate(graph.CreateUriNode(resourceUri), graph.CreateUriNode("catalog:item")))
+            var triples = graph.GetTriplesWithSubjectPredicate(
+                graph.CreateUriNode(resourceUri), 
+                graph.CreateUriNode(Schema.Predicates.CatalogItem));
+
+            foreach (Triple itemTriples in triples)
             {
                 foreach (Triple countTriple in graph.GetTriplesWithSubjectPredicate(itemTriples.Object, graph.CreateUriNode("catalog:count")))
                 {
@@ -129,17 +135,20 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             {
                 string baseAddress = ((IUriNode)resource).Uri.ToString();
                 INode commitUserData = graph.CreateUriNode(new Uri(baseAddress + "#commitUserData"));
-                graph.Assert(resource, graph.CreateUriNode("catalog:commitUserData"), commitUserData);
+                graph.Assert(resource, graph.CreateUriNode(Schema.Predicates.CatalogCommitUserData), commitUserData);
                 foreach (KeyValuePair<string, string> item in _commitUserData)
                 {
-                    graph.Assert(commitUserData, graph.CreateUriNode("catalog:property$" + item.Key), graph.CreateLiteralNode(item.Value));
+                    graph.Assert(
+                        commitUserData, 
+                        graph.CreateUriNode(Schema.Predicates.CatalogPropertyPrefix + item.Key), 
+                        graph.CreateLiteralNode(item.Value));
                 }
             }
         }
 
         protected override Uri GetContainerType()
         {
-            return Constants.CatalogRoot;
+            return Schema.DataTypes.CatalogRoot;
         }
 
         Tuple<int, Uri, int> ExtractLatest()

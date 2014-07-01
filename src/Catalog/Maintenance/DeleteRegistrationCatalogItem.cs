@@ -35,7 +35,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public override Uri GetItemType()
         {
-            return Constants.DeleteRegistration;
+            return Schema.DataTypes.DeleteRegistration;
         }
 
         protected override string GetItemIdentity()

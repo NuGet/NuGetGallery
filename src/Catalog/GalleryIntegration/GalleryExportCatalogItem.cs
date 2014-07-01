@@ -12,13 +12,6 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 {
     public class GalleryExportCatalogItem : CatalogItem
     {
-        internal static readonly Uri GalleryKeyPredicateUri = new Uri("http://nuget.org/gallery#key");
-        internal static readonly Uri GalleryChecksumPredicateUri = new Uri("http://nuget.org/gallery#checksum");
-        internal static readonly Uri IdPredicateUri = new Uri("http://nuget.org/schema#id");
-        internal static readonly Uri VersionPredicateUri = new Uri("http://nuget.org/schema#version");
-        internal static readonly Uri IntegerDatatypeUri = new Uri("http://www.w3.org/2001/XMLSchema#integer");
-        internal static readonly Uri StringDatatypeUri = new Uri("http://www.w3.org/2001/XMLSchema#string");
-
         GalleryExportPackage _export;
         string _identity;
 
@@ -42,7 +35,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
         public override Uri GetItemType()
         {
-            return Constants.Package;
+            return Schema.DataTypes.Package;
         }
 
         public override IGraph CreatePageContent(CatalogContext context)
@@ -52,17 +45,17 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             Graph graph = new Graph();
 
             INode subject = graph.CreateUriNode(resourceUri);
-            INode galleryKeyPredicate = graph.CreateUriNode(GalleryKeyPredicateUri);
-            INode galleryChecksumPredicate = graph.CreateUriNode(GalleryChecksumPredicateUri);
-            INode idPredicate = graph.CreateUriNode(IdPredicateUri);
-            INode versionPredicate = graph.CreateUriNode(VersionPredicateUri);
+            INode galleryKeyPredicate = graph.CreateUriNode(Schema.Predicates.GalleryKey);
+            INode galleryChecksumPredicate = graph.CreateUriNode(Schema.Predicates.GalleryChecksum);
+            INode idPredicate = graph.CreateUriNode(Schema.Predicates.PackageId);
+            INode versionPredicate = graph.CreateUriNode(Schema.Predicates.PackageVersion);
 
             string key = _export.Package.Value<string>("Key");
             string checksum = _export.Package.Value<string>("DatabaseChecksum");
             string id = _export.Id;
             string version = _export.Package.Value<string>("Version");
 
-            graph.Assert(subject, galleryKeyPredicate, graph.CreateLiteralNode(key, IntegerDatatypeUri));
+            graph.Assert(subject, galleryKeyPredicate, graph.CreateLiteralNode(key, Schema.DataTypes.Integer));
             graph.Assert(subject, galleryChecksumPredicate, graph.CreateLiteralNode(checksum));
             graph.Assert(subject, idPredicate, graph.CreateLiteralNode(id));
             graph.Assert(subject, versionPredicate, graph.CreateLiteralNode(version));
@@ -94,19 +87,19 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
             JObject obj = new JObject();
 
-            obj.Add("http://nuget.org/gallery#key", export.Package["Key"].ToObject<int>());
-            obj.Add("http://nuget.org/gallery#checksum", export.Package["DatabaseChecksum"].ToObject<string>());
+            obj.Add(Schema.Predicates.GalleryKey.ToString(), export.Package["Key"].ToObject<int>());
+            obj.Add(Schema.Predicates.GalleryChecksum.ToString(), export.Package["DatabaseChecksum"].ToObject<string>());
 
             obj.Add("url", resourceUri);
 
             obj.Add("@type", "Package");
 
-            obj.Add("http://nuget.org/catalog#commitId", commitId);
+            obj.Add(Schema.Predicates.CatalogCommitId.ToString(), commitId);
 
-            obj.Add("http://nuget.org/catalog#timeStamp", 
+            obj.Add(Schema.Predicates.CatalogTimestamp.ToString(), 
                 new JObject
                 { 
-                    { "@type", "http://www.w3.org/2001/XMLSchema#dateTime" },
+                    { "@type", Schema.DataTypes.DateTime },
                     { "@value", timeStamp.ToString() }
                 });
 
