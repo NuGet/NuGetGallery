@@ -73,7 +73,7 @@ namespace MetadataClient
                     Filter = new EventTypeFilter(SourceLevels.All)
                 });
                 updater.Trace.Switch.Level = SourceLevels.All;
-                updater.Update(args.SqlConnectionString, args.IndexUrl).Wait();
+                updater.Update(args.SqlConnectionString, args.IndexUrl, args.GalleryBaseUrl, args.DownloadBaseUrl).Wait();
             }
         }
 
@@ -137,9 +137,9 @@ namespace MetadataClient
             }
 
             var writer = new CatalogWriter(
-                new FileStorage(args.BaseAddress, args.DestinationFolder),
+                new FileStorage(args.BaseAddress, args.CatalogFolder),
                 new CatalogContext());
-            var batcher = new GalleryExportBatcher(2000, writer);
+            var batcher = new GalleryExportBatcher(2000, writer, args.GalleryBaseUrl, args.DownloadBaseUrl);
             int lastHighest = 0;
             while(true) {
                 var range = GalleryExport.GetNextRange(

@@ -15,21 +15,21 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
         private const string CollectChecksumsSql = @"
             WITH cte AS (
-	            SELECT
-		            p.[Key],
-		            (
-			            SELECT cf.Name + ',' 
-			            FROM CuratedPackages cp
-			            INNER JOIN CuratedFeeds cf ON cp.CuratedFeedKey = cf.[Key]
-			            WHERE cp.PackageRegistrationKey = p.PackageRegistrationKey
-			            FOR XML PATH('')
-		            ) AS [Feeds],
-		            p.[LastEdited], 
-		            p.[Published], 
-		            p.[Listed], 
-		            p.[IsLatestStable], 
-		            p.[IsLatest]
-	            FROM Packages p
+                SELECT
+                    p.[Key],
+                    (
+                        SELECT cf.Name + ',' 
+                        FROM CuratedPackages cp
+                        INNER JOIN CuratedFeeds cf ON cp.CuratedFeedKey = cf.[Key]
+                        WHERE cp.PackageRegistrationKey = p.PackageRegistrationKey
+                        FOR XML PATH('')
+                    ) AS [Feeds],
+                    p.[LastEdited], 
+                    p.[Published], 
+                    p.[Listed], 
+                    p.[IsLatestStable], 
+                    p.[IsLatest]
+                FROM Packages p
             )
             SELECT TOP(@ChunkSize)
                 *
@@ -39,15 +39,15 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
         private const string CollectPackageDataSql = @"
             WITH cte AS (
-	            SELECT
-		            p.*,
-		            (
-			            SELECT cf.Name + ',' 
-			            FROM CuratedPackages cp
-			            INNER JOIN CuratedFeeds cf ON cp.CuratedFeedKey = cf.[Key]
-			            WHERE cp.PackageRegistrationKey = p.PackageRegistrationKey
-			            FOR XML PATH('')
-		            ) AS [Feeds]
+                SELECT
+                    p.*,
+                    (
+                        SELECT cf.Name + ',' 
+                        FROM CuratedPackages cp
+                        INNER JOIN CuratedFeeds cf ON cp.CuratedFeedKey = cf.[Key]
+                        WHERE cp.PackageRegistrationKey = p.PackageRegistrationKey
+                        FOR XML PATH('')
+                    ) AS [Feeds]
                 FROM Packages p
             )
             SELECT *
@@ -358,12 +358,14 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             bool listed = reader.GetBoolean(reader.GetOrdinal("Listed"));
             bool latestStable = reader.GetBoolean(reader.GetOrdinal("IsLatestStable"));
             bool latest = reader.GetBoolean(reader.GetOrdinal("IsLatest"));
+            string feeds = reader.GetString(reader.GetOrdinal("Feeds"));
             string checksumInput = String.Concat(
                 lastEdited == null ? String.Empty : lastEdited.Value.ToString("O"), "|",
                 published.ToString("O"), "|",
                 listed.ToString(), "|",
                 latestStable.ToString(), "|",
-                latest.ToString(), "|");
+                latest.ToString(), "|",
+                feeds);
             string checksumString =
                 Convert.ToBase64String(
                     _hash.ComputeHash(

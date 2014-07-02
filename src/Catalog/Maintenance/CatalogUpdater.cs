@@ -34,7 +34,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             Trace = new TraceSource(typeof(CatalogUpdater).FullName);
         }
 
-        public async Task Update(string packageDatabaseConnectionString, Uri catalogIndexUrl)
+        public async Task Update(string packageDatabaseConnectionString, Uri catalogIndexUrl, Uri galleryBaseUrl, Uri downloadBaseUrl)
         {
             // Collect Memory Usage Snapshot
             Trace.TraceInformation("Memory Usage {0:0.00}MB", GetMemoryInMB());
@@ -72,7 +72,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             Trace.TraceInformation("Found {0} differences", diffs.Count);
 
             // Update the catalog
-            var batcher = new GalleryExportBatcher(CatalogAddBatchSize, _writer);
+            var batcher = new GalleryExportBatcher(CatalogAddBatchSize, _writer, galleryBaseUrl, downloadBaseUrl);
             Trace.TraceInformation("Adding new data to catalog");
             foreach (var diff in diffs)
             {

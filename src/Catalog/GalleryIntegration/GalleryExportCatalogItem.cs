@@ -68,47 +68,75 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             return _identity;
         }
 
+        private static readonly IDictionary<string, string> FieldMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "NormalizedVersion", "version" },
+            { "Authors", "authors" },
+            { "Copyright", "copyright" },
+            { "Created", "created" },
+            { "Description", "description" },
+            { "IconUrl", "iconUrl" },
+            { "IsLatest", "isLatest" },
+            { "IsLatestStable", "isLatestStable" },
+            { "IsPrerelease", "isPrerelese" },
+            { "Language", "language" },
+            { "Published", "published" },
+            { "LastEdited", "lastEdited" },
+            { "PackageHash", "packageHash" },
+            { "PackageHashAlgorithm", "packageHashAlgorithm" },
+            { "PackageSize", "packageSize" },
+            { "ProjectUrl", "projectUrl" },
+            { "ReleaseNotes", "releaseNotes"},
+            { "RequireLicenseAcceptance", "requireLicenseAcceptance"},
+            { "Summary", "summary" },
+            { "Title", "title" },
+            { "LicenseUrl", "licenseUrl" },
+            { "LicenseReportUrl", "licenseReportUrl" },
+            { "MinClientVersion", "minClientVersion" },
+        };
+        private static readonly IDictionary<string, string> ListFieldNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Tags", "tag" },
+            { "LicenseNames", "licenseName" }
+        };
+
         static JObject CreateContent(string resourceUri, GalleryExportPackage export, DateTime timeStamp, Guid commitId)
         {
-            IDictionary<string, string> Lookup = new Dictionary<string, string>
-            {
-                { "Title", "title" },
-                { "Version", "version" },
-                { "Description", "description" },
-                { "Summary", "summary" },
-                { "Authors", "authors" },
-                { "LicenseUrl", "licenseUrl" },
-                { "ProjectUrl", "projectUrl" },
-                { "IconUrl", "iconUrl" },
-                { "RequireLicenseAcceptance", "requireLicenseAcceptance"},
-                { "Language", "language" },
-                { "ReleaseNotes", "releaseNotes"}
-            };
-
             JObject obj = new JObject();
 
-            obj.Add(Schema.Predicates.GalleryKey.ToString(), export.Package["Key"].ToObject<int>());
-            obj.Add(Schema.Predicates.GalleryChecksum.ToString(), export.Package["DatabaseChecksum"].ToObject<string>());
+            obj.Add("gallery:key", export.Package["Key"].ToObject<int>());
+            obj.Add("gallery:checksum", export.Package["DatabaseChecksum"].ToObject<string>());
 
             obj.Add("url", resourceUri);
 
             obj.Add("@type", "Package");
 
-            obj.Add(Schema.Predicates.CatalogCommitId.ToString(), commitId);
+            obj.Add("catalog:commitId", commitId);
 
-            obj.Add(Schema.Predicates.CatalogTimestamp.ToString(), 
-                new JObject
-                { 
-                    { "@type", Schema.DataTypes.DateTime },
-                    { "@value", timeStamp.ToString() }
-                });
+            obj.Add("catalog:commitTimestamp", timeStamp.ToString());
 
             obj.Add("id", export.Id);
 
+            if (export.ReportAbuseUrl != null)
+            {
+                obj.Add("gallery:reportAbuse", export.ReportAbuseUrl.ToString());
+            }
+
+            if (export.GalleryDetailsUrl != null)
+            {
+                obj.Add("gallery:html", export.GalleryDetailsUrl.ToString());
+            }
+
+            if (export.DownloadUrl != null)
+            {
+                obj.Add("nupkg", export.DownloadUrl.ToString());
+            }
+
             foreach (JProperty property in export.Package.Properties())
             {
-                if (property.Name == "Tags")
+                if (ListFieldNames.ContainsKey(property.Name))
                 {
+                    var name = ListFieldNames[property.Name];
                     char[] trimChar = { ',', ' ', '\t', '|', ';' };
 
                     IEnumerable<string> fields = property.Value.ToString()
@@ -116,17 +144,17 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                         .Select((w) => w.Trim(trimChar))
                         .Where((w) => w.Length > 0);
 
-                    JArray tagArray = new JArray();
+                    JArray valueArray = new JArray();
                     foreach (string field in fields)
                     {
-                        tagArray.Add(field);
+                        valueArray.Add(field);
                     }
-                    obj.Add("tag", tagArray);
+                    obj.Add(name, valueArray);
                 }
                 else
                 {
                     string name;
-                    if (Lookup.TryGetValue(property.Name, out name))
+                    if (FieldMappings.TryGetValue(property.Name, out name))
                     {
                         obj.Add(name, property.Value);
                     }

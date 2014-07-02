@@ -1,12 +1,10 @@
 ﻿{ 
 	"@context" : { 
 		"@vocab" : "http://schema.nuget.org/catalog#",
-		"nuget" : "http://schema.nuget.org/package#",
+		"nuget" : "http://schema.nuget.org/schema#",
         "gallery" : "http://schema.nuget.org/gallery#",
         "item" : { "@container" : "@set" },
 		"url" : "@id",
-        "timeStamp" : {
-            "@type" : "http://www.w3.org/2001/XMLSchema#dateTime"
-        }
+        "timeStamp" : { "@type" : "http://www.w3.org/2001/XMLSchema#dateTime" }
 	}
 }

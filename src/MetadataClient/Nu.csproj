@@ -79,6 +79,7 @@
     <Compile Include="BlobStorageArgs.cs" />
     <Compile Include="MakeMetadataArgs.cs" />
     <Compile Include="CollectChecksumsArgs.cs" />
+    <Compile Include="CatalogArgs.cs" />
     <Compile Include="ReadChecksumArgs.cs" />
     <Compile Include="UpdateCatalogArgs.cs" />
     <Compile Include="RebuildArgs.cs" />

@@ -13,5 +13,8 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
         public string Id { get; set; }
         public List<JObject> Dependencies { get; set; }
         public List<string> TargetFrameworks { get; set; }
+        public Uri GalleryDetailsUrl { get; set; }
+        public Uri ReportAbuseUrl { get; set; }
+        public Uri DownloadUrl { get; set; }
     }
 }

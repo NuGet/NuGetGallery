@@ -39,31 +39,25 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         {
             IGraph graph = new Graph();
 
-            graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
-            graph.NamespaceMap.AddNamespace("catalog", new Uri("http://nuget.org/catalog#"));
-            graph.NamespaceMap.AddNamespace("gallery", new Uri("http://nuget.org/gallery#"));
-
-            INode rdfTypePredicate = graph.CreateUriNode("rdf:type");
-            INode timeStampPredicate = graph.CreateUriNode("catalog:timeStamp");
-            INode commitIdPredicate = graph.CreateUriNode("catalog:commitId");
-
-            Uri dateTimeDatatype = new Uri("http://www.w3.org/2001/XMLSchema#dateTime");
+            INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
+            INode timeStampPredicate = graph.CreateUriNode(Schema.Predicates.CatalogTimestamp);
+            INode commitIdPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCommitId);
 
             INode container = graph.CreateUriNode(_resourceUri);
 
             graph.Assert(container, rdfTypePredicate, graph.CreateUriNode(GetContainerType()));
-            graph.Assert(container, timeStampPredicate, graph.CreateLiteralNode(_timeStamp.ToString(), dateTimeDatatype));
+            graph.Assert(container, timeStampPredicate, graph.CreateLiteralNode(_timeStamp.ToString(), Schema.DataTypes.DateTime));
             graph.Assert(container, commitIdPredicate, graph.CreateLiteralNode(_commitId.ToString()));
 
             if (_parent != null)
             {
-                graph.Assert(container, graph.CreateUriNode("catalog:parent"), graph.CreateUriNode(_parent));
+                graph.Assert(container, graph.CreateUriNode(Schema.Predicates.CatalogParent), graph.CreateUriNode(_parent));
             }
 
             AddCustomContent(container, graph);
 
-            INode itemPredicate = graph.CreateUriNode("catalog:item");
-            INode countPredicate = graph.CreateUriNode("catalog:count");
+            INode itemPredicate = graph.CreateUriNode(Schema.Predicates.CatalogItem);
+            INode countPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCount);
 
             foreach (KeyValuePair<Uri, CatalogContainerItem> item in _items)
             {
@@ -77,17 +71,20 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                     graph.Merge(item.Value.PageContent);
                 }
 
-                graph.Assert(itemNode, timeStampPredicate, graph.CreateLiteralNode(item.Value.TimeStamp.ToString(), dateTimeDatatype));
+                graph.Assert(itemNode, timeStampPredicate, graph.CreateLiteralNode(item.Value.TimeStamp.ToString(), Schema.DataTypes.DateTime));
                 graph.Assert(itemNode, commitIdPredicate, graph.CreateLiteralNode(item.Value.CommitId.ToString()));
 
                 if (item.Value.Count != null)
                 {
-                    Uri integerDatatype = new Uri("http://www.w3.org/2001/XMLSchema#integer");
-                    graph.Assert(itemNode, countPredicate, graph.CreateLiteralNode(item.Value.Count.ToString(), integerDatatype));
+                    graph.Assert(itemNode, countPredicate, graph.CreateLiteralNode(item.Value.Count.ToString(), Schema.DataTypes.Integer));
                 }
             }
 
             JObject frame = context.GetJsonLdContext("context.Container.json", GetContainerType());
+
+            // The below code could be used to compact data storage by using relative URIs.
+            //frame = (JObject)frame.DeepClone();
+            //frame["@context"]["@base"] = _resourceUri.ToString();
             
             StorageContent content = new StringStorageContent(Utils.CreateJson(graph, frame), "application/json");
 
@@ -102,13 +99,11 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         {
             IGraph graph = Utils.CreateGraph(content);
 
-            graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
-            graph.NamespaceMap.AddNamespace("catalog", new Uri("http://nuget.org/catalog#"));
-            INode rdfTypePredicate = graph.CreateUriNode("rdf:type");
-            INode itemPredicate = graph.CreateUriNode("catalog:item");
-            INode timeStampPredicate = graph.CreateUriNode("catalog:timeStamp");
-            INode commitIdPredicate = graph.CreateUriNode("catalog:commitId");
-            INode countPredicate = graph.CreateUriNode("catalog:count");
+            INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
+            INode itemPredicate = graph.CreateUriNode(Schema.Predicates.CatalogItem);
+            INode timeStampPredicate = graph.CreateUriNode(Schema.Predicates.CatalogTimestamp);
+            INode commitIdPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCommitId);
+            INode countPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCount);
 
             foreach (Triple itemTriple in graph.GetTriplesWithPredicate(itemPredicate))
             {
