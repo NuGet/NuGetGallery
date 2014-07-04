@@ -61,6 +61,6 @@ var fetchIndex = function (address, callback) {
   });
 }
 
-fetchIndex('http://localhost:8000/test/catalog/index.json', function () {
+fetchIndex('http://localhost:8000/full/catalog/index.json', function () {
   console.log('...');
 });
