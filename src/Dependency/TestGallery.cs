@@ -31,7 +31,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "4.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "4.0.0") } }
                 }
             });
 
@@ -41,7 +41,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "[1.0.0,2.0.0)") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "[1.0.0,2.0.0)") } }
                 }
             });
 
@@ -49,7 +49,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "[2.0.0]") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "[2.0.0]") } }
                 }
             });
 
@@ -57,7 +57,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "[2.0.0,4.0.0)") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "[2.0.0,4.0.0)") } }
                 }
             });
 
@@ -103,7 +103,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -111,7 +111,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -119,7 +119,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -127,7 +127,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -135,7 +135,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -143,7 +143,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -151,7 +151,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -159,7 +159,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -169,7 +169,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "(2.0.0,4.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "(2.0.0,4.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -177,7 +177,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "(2.0.0,4.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "(2.0.0,4.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -185,7 +185,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "(2.0.0,4.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "(2.0.0,4.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -193,7 +193,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "(2.0.0,4.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "(2.0.0,4.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -201,7 +201,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "(2.0.0,4.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "(2.0.0,4.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -209,7 +209,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "(2.0.0,4.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "(2.0.0,4.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -217,7 +217,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "(2.0.0,4.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "(2.0.0,4.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -225,7 +225,7 @@ namespace Resolver
             //{
             //    DependencyGroups =
             //    {
-            //        { "all", new Group { Dependencies = { new Dependency("A", "[2.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+            //        new Group("all") { Dependencies = { new Dependency("A", "[2.0.0]"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
             //    }
             //});
 
@@ -233,7 +233,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -241,7 +241,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -249,7 +249,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -257,7 +257,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -265,7 +265,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -273,7 +273,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -281,7 +281,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -289,7 +289,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -297,7 +297,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("A", "2.0.0"), new Dependency("B", "2.0.0"), new Dependency("C", "2.0.0") } }
                 }
             });
 
@@ -318,7 +318,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("G", "1.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("G", "1.0.0") } }
                 }
             });
 
@@ -326,7 +326,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("G", "1.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("G", "1.0.0") } }
                 }
             });
 
@@ -334,7 +334,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("G", "1.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("G", "1.0.0") } }
                 }
             });
 
@@ -342,7 +342,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("G", "1.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("G", "1.0.0") } }
                 }
             });
 
@@ -350,7 +350,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("G", "1.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("G", "1.0.0") } }
                 }
             });
 
@@ -358,7 +358,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("G", "1.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("G", "1.0.0") } }
                 }
             });
 
@@ -366,7 +366,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("G", "1.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("G", "1.0.0") } }
                 }
             });
 
@@ -374,7 +374,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("G", "1.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("G", "1.0.0") } }
                 }
             });
 
@@ -382,7 +382,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("G", "1.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("G", "1.0.0") } }
                 }
             });
 
@@ -390,7 +390,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("G", "1.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("G", "1.0.0") } }
                 }
             });
 
@@ -398,7 +398,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("G", "1.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("G", "1.0.0") } }
                 }
             });
 
@@ -406,7 +406,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("G", "1.0.0") } } }
+                    new Group("all") { Dependencies = { new Dependency("G", "1.0.0") } }
                 }
             });
 
@@ -440,7 +440,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } } }
+                    new Group("all") { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } }
                 }
             });
 
@@ -448,7 +448,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } } }
+                    new Group("all") { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } }
                 }
             });
 
@@ -456,7 +456,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } } }
+                    new Group("all") { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } }
                 }
             });
 
@@ -464,7 +464,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } } }
+                    new Group("all") { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } }
                 }
             });
 
@@ -472,7 +472,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } } }
+                    new Group("all") { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } }
                 }
             });
 
@@ -480,7 +480,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } } }
+                    new Group("all") { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } }
                 }
             });
 
@@ -488,7 +488,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } } }
+                    new Group("all") { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } }
                 }
             });
 
@@ -496,7 +496,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } } }
+                    new Group("all") { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } }
                 }
             });
 
@@ -504,7 +504,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } } }
+                    new Group("all") { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } }
                 }
             });
 
@@ -512,7 +512,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } } }
+                    new Group("all") { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } }
                 }
             });
 
@@ -520,7 +520,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } } }
+                    new Group("all") { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } }
                 }
             });
 
@@ -528,7 +528,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } } }
+                    new Group("all") { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } }
                 }
             });
 
@@ -536,7 +536,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } } }
+                    new Group("all") { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } }
                 }
             });
 
@@ -544,7 +544,7 @@ namespace Resolver
             {
                 DependencyGroups =
                 {
-                    { "all", new Group { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } } }
+                    new Group("all") { Dependencies = { new Dependency("I", "[1.0.0,5.0.0]"), new Dependency("J", "[3.0.0,6.0.0]") } }
                 }
             });
 

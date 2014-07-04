@@ -84,9 +84,18 @@ namespace Resolver.Metadata
                                 groupTargetFramework = jtokenTargetFramework.ToObject<string>();
                             }
 
-                            Group group = new Group();
+                            Group group = new Group(groupTargetFramework);
 
-                            package.DependencyGroups.Add(groupTargetFramework, group);
+                            package.DependencyGroups.Add(group);
+
+                            JToken properties;
+                            if (jobjectGroup.TryGetValue("property", out properties))
+                            {
+                                foreach (JToken property in properties)
+                                {
+                                    group.Properties.Add((string)property["name"], (string)property["value"]);
+                                }
+                            }
 
                             JArray jarrayDependency = (JArray)jobjectGroup["dependency"];
 
@@ -101,7 +110,18 @@ namespace Resolver.Metadata
                                     dependencyRange = jtokenRange.ToObject<string>();
                                 }
 
-                                group.Dependencies.Add(new Dependency(dependencyId, dependencyRange));
+                                Dependency dependency = new Dependency(dependencyId, dependencyRange);
+
+                                JToken jtokenProperties;
+                                if (jobjectDependencyPart.TryGetValue("property", out jtokenProperties))
+                                {
+                                    foreach (JToken property in jtokenProperties)
+                                    {
+                                        dependency.Properties.Add((string)property["name"], (string)property["value"]);
+                                    }
+                                }
+
+                                group.Dependencies.Add(dependency);
                             }
                         }
                     }

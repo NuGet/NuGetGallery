@@ -1,4 +1,5 @@
 ﻿
+using System.Collections.Generic;
 using System.IO;
 
 namespace Resolver.Metadata
@@ -9,10 +10,14 @@ namespace Resolver.Metadata
 
         public SemanticVersionRange Range { get; private set; }
 
+        public IDictionary<string, string> Properties { get; private set; }
+
         public Dependency(string id, SemanticVersionRange range)
         {
             Id = id;
             Range = range;
+
+            Properties = new Dictionary<string, string>();
         }
 
         public Dependency(string id, string range)
