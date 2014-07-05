@@ -84,6 +84,7 @@
         <li>@ReadOnlyField("MinClient Version", "MinClientVersion", Model.MinClientVersion.ToStringSafe())</li>
         <li>@ReadOnlyField("Development Dependency", "DevelopmentDependency", Model.DevelopmentDependency.ToStringOrDefault())</li>
         <li>@ReadOnlyField("License URL", "LicenseUrl", Model.LicenseUrl, link: true)</li>
+        <li>@ReadOnlyField("Language", "Language", Model.Language)</li>
         <li>@EditableField("Title", m => m.Edit.VersionTitle)</li>
         <li>@EditableField("Description", m => m.Edit.Description)</li>
         <li>@EditableField("Summary", m => m.Edit.Summary)</li>

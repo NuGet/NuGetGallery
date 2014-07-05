@@ -12,5 +12,7 @@ namespace NuGetGallery
         public EditPackageVersionRequest Edit { get; set; }
         public Version MinClientVersion { get; set; }
         public bool DevelopmentDependency { get; set; }
+
+        public string Language { get; set; }
     }
 }
