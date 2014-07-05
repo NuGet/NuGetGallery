@@ -2,12 +2,14 @@
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
+using System.Runtime.Versioning;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
+using Ninject.Infrastructure.Language;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
@@ -1034,6 +1036,109 @@ namespace NuGetGallery
                 var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
                 Assert.Equal("1.0.42", model.Version);
+                fakeUploadFileStream.Dispose();
+            }
+
+            [Fact]
+            public async Task WillPassMinClientVersionToTheView()
+            {
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeUploadFileStream));
+                var fakeNuGetPackage = new Mock<INupkg>();
+                fakeNuGetPackage.Setup(x => x.Metadata.MinClientVersion).Returns(new Version(1,2, 3, 4));
+                var controller = CreateController(
+                    uploadFileService: fakeUploadFileService,
+                    fakeNuGetPackage: fakeNuGetPackage);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
+
+                Assert.Equal(new Version(1, 2, 3, 4), model.MinClientVersion);
+                fakeUploadFileStream.Dispose();
+            }
+
+            [Fact]
+            public async Task WillPassLanguageToTheView()
+            {
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeUploadFileStream));
+                var fakeNuGetPackage = new Mock<INupkg>();
+                fakeNuGetPackage.Setup(x => x.Metadata.Language).Returns("de-DE");
+                var controller = CreateController(
+                    uploadFileService: fakeUploadFileService,
+                    fakeNuGetPackage: fakeNuGetPackage);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
+
+                Assert.Equal("de-DE", model.Language);
+                fakeUploadFileStream.Dispose();
+            }
+
+            [Fact]
+            public async Task WillPassDeveloperDependencyToTheView()
+            {
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeUploadFileStream));
+                var fakeNuGetPackage = new Mock<INupkg>();
+                fakeNuGetPackage.Setup(x => x.Metadata.DevelopmentDependency).Returns(true);
+                var controller = CreateController(
+                    uploadFileService: fakeUploadFileService,
+                    fakeNuGetPackage: fakeNuGetPackage);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
+
+                Assert.Equal(true, model.DevelopmentDependency);
+                fakeUploadFileStream.Dispose();
+            }
+
+            [Fact]
+            public async Task WillPassFrameworkAssembliesToTheView()
+            {
+                var frameworkAssemblies = new List<FrameworkAssemblyReference>();
+                var reference = new FrameworkAssemblyReference("System.Net.Http");
+                frameworkAssemblies.Add(reference);
+
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeUploadFileStream));
+                var fakeNuGetPackage = new Mock<INupkg>();
+                fakeNuGetPackage.Setup(x => x.Metadata.FrameworkAssemblies).Returns(frameworkAssemblies);
+                var controller = CreateController(
+                    uploadFileService: fakeUploadFileService,
+                    fakeNuGetPackage: fakeNuGetPackage);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
+
+                Assert.Equal(frameworkAssemblies, model.FrameworkAssemblies);
+                fakeUploadFileStream.Dispose();
+            }
+
+            [Fact]
+            public async Task WillPassDependenciesToTheView()
+            {
+                var dependencySet = new List<PackageDependencySet>();
+                var dependency = new PackageDependencySet(new FrameworkName(".NETFramework, Version=4.5"), new List<NuGet.PackageDependency>());
+                dependencySet.Add(dependency);
+
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeUploadFileStream));
+                var fakeNuGetPackage = new Mock<INupkg>();
+                fakeNuGetPackage.Setup(x => x.Metadata.DependencySets).Returns(dependencySet);
+                var controller = CreateController(
+                    uploadFileService: fakeUploadFileService,
+                    fakeNuGetPackage: fakeNuGetPackage);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
+
+                Assert.Equal(dependencySet, model.DependencySets);
                 fakeUploadFileStream.Dispose();
             }
 
