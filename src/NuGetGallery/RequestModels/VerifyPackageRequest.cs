@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using NuGet;
 
 namespace NuGetGallery
 {
@@ -14,5 +16,8 @@ namespace NuGetGallery
         public bool DevelopmentDependency { get; set; }
 
         public string Language { get; set; }
+
+        public IEnumerable<NuGet.PackageDependencySet> DependencySets { get; set; }
+        public IEnumerable<FrameworkAssemblyReference> FrameworkAssemblies { get; set; }
     }
 }

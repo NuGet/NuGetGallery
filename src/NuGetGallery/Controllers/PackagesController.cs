@@ -781,7 +781,6 @@ namespace NuGetGallery
                     packageMetadata = package.Metadata;
                 }
             }
-
             var model = new VerifyPackageRequest
             {
                 Id = packageMetadata.Id,
@@ -791,6 +790,8 @@ namespace NuGetGallery
                 Language = packageMetadata.Language,
                 MinClientVersion = packageMetadata.MinClientVersion,
                 DevelopmentDependency = packageMetadata.DevelopmentDependency,
+                DependencySets = packageMetadata.DependencySets,
+                FrameworkAssemblies = packageMetadata.FrameworkAssemblies,
                 Edit = new EditPackageVersionRequest
                 {
                     Authors = packageMetadata.Authors.Flatten(),
