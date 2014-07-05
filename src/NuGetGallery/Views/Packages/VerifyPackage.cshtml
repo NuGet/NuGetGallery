@@ -1,4 +1,5 @@
 ﻿@using System.Linq.Expressions
+@using Glimpse.Core.Extensions
 @model VerifyPackageRequest
 @{
     ViewBag.Title = "Verify Package";
@@ -80,6 +81,8 @@
     <ul id="packageDetails" style="border-bottom: 1px solid gray; margin-bottom: 1em;">
         <li>@ReadOnlyField("Package ID", "Id", Model.Id)</li>
         <li>@ReadOnlyField("Version", "Version", Model.Version)</li>
+        <li>@ReadOnlyField("MinClient Version", "MinClientVersion", Model.MinClientVersion.ToStringSafe())</li>
+        <li>@ReadOnlyField("Development Dependency", "DevelopmentDependency", Model.DevelopmentDependency.ToStringOrDefault())</li>
         <li>@ReadOnlyField("License URL", "LicenseUrl", Model.LicenseUrl, link: true)</li>
         <li>@EditableField("Title", m => m.Edit.VersionTitle)</li>
         <li>@EditableField("Description", m => m.Edit.Description)</li>

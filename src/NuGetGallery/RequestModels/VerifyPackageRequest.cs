@@ -1,4 +1,6 @@
-﻿namespace NuGetGallery
+﻿using System;
+
+namespace NuGetGallery
 {
     public class VerifyPackageRequest
     {
@@ -8,5 +10,7 @@
 
         public bool Listed { get; set; }
         public EditPackageVersionRequest Edit { get; set; }
+        public Version MinClientVersion { get; set; }
+        public bool DevelopmentDependency { get; set; }
     }
 }

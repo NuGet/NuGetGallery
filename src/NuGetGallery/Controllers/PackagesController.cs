@@ -788,6 +788,8 @@ namespace NuGetGallery
                 Version = packageMetadata.Version.ToNormalizedStringSafe(),
                 LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
                 Listed = true,
+                MinClientVersion = packageMetadata.MinClientVersion,
+                DevelopmentDependency = packageMetadata.DevelopmentDependency,
                 Edit = new EditPackageVersionRequest
                 {
                     Authors = packageMetadata.Authors.Flatten(),
