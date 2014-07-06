@@ -23,8 +23,10 @@ namespace NuGetGallery
             // note, format blocks {xxx} are matched by ordinal-case-sensitive comparison
             var builder = new StringBuilder(subject);
             
+            string packageIdMarkdownEscaped = Package.PackageRegistration.Id.Replace("_", "\\_");
+
             Substitute(builder, "{GalleryOwnerName}", config.GalleryOwner.DisplayName);
-            Substitute(builder, "{Id}", Package.PackageRegistration.Id);
+            Substitute(builder, "{Id}", packageIdMarkdownEscaped);
             Substitute(builder, "{Version}", Package.Version);
             Substitute(builder, "{Reason}", Reason);
             if (RequestingUser != null)
@@ -44,8 +46,9 @@ namespace NuGetGallery
             Substitute(builder, "{Name}", FromAddress.DisplayName);
             Substitute(builder, "{Address}", FromAddress.Address);
             Substitute(builder, "{AlreadyContactedOwners}", AlreadyContactedOwners ? "Yes" : "No");
-            Substitute(builder, "{PackageUrl}", Url.Package(Package.PackageRegistration.Id, null, scheme: "http"));
-            Substitute(builder, "{VersionUrl}", Url.Package(Package.PackageRegistration.Id, Package.Version, scheme: "http"));
+            // Fix for Markdown Mailer compatible urls containing _
+            Substitute(builder, "{PackageUrl}", Url.Package(packageIdMarkdownEscaped, null, scheme: "http").Replace("%5C", "\\"));
+            Substitute(builder, "{VersionUrl}", Url.Package(packageIdMarkdownEscaped, Package.Version, scheme: "http").Replace("%5C", "\\"));
             Substitute(builder, "{Reason}", Reason);
             Substitute(builder, "{Message}", Message);
 
