@@ -1,5 +1,5 @@
-﻿PREFIX nuget: <http://schema.nuget.org/schema/>
-PREFIX catalog: <http://schema.nuget.org/catalog/>
+﻿PREFIX nuget: <http://schema.nuget.org/schema#>
+PREFIX catalog: <http://schema.nuget.org/catalog#>
 
 CONSTRUCT
 {

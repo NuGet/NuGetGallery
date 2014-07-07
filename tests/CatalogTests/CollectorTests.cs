@@ -12,23 +12,10 @@ namespace CatalogTests
 
         public static async Task Test0Async()
         {
-            Storage storage = new AzureStorage(
-                CloudStorageAccount.Parse("AccountName=nuget3;AccountKey=;DefaultEndpointsProtocol=https"), "export");
+            //Storage storage = new AzureStorage(
+            //    CloudStorageAccount.Parse("AccountName=nuget3;AccountKey=;DefaultEndpointsProtocol=https"), "export");
 
-            //Storage storage = new FileStorage
-            //{
-            //    AccountName = "nuget3",
-            //    AccountKey = "",
-            //    Container = "export",
-            //    BaseAddress = "http://nuget3.blob.core.windows.net/"
-            //};
-
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\full",
-                Container = "full",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\full");
 
             ResolverCollector collector = new ResolverCollector(storage, 1);
 

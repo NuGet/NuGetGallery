@@ -35,11 +35,11 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             foreach (var item in items)
             {
                 string type = item.Value<string>("@type");
-                var key = Int32.Parse(item.Value<string>("gallery:key"));
+                var key = Int32.Parse(item.Value<string>("galleryKey"));
                 if (String.Equals(type, "nuget:Package", StringComparison.Ordinal))
                 {
-                    var checksum = item.Value<string>("gallery:checksum");
-                    var id = item.Value<string>("nuget:id");
+                    var checksum = item.Value<string>("galleryChecksum");
+                    var id = item.Value<string>("nuget:packageId");
                     var version = item.Value<string>("nuget:version");
 
                     Checksums.Data[key] = new JObject(

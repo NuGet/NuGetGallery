@@ -10,8 +10,8 @@ namespace NuGet.Services.Metadata.Catalog
     {
         public static class Prefixes
         {
-            public static readonly string NuGet = "http://schema.nuget.org/schema/";
-            public static readonly string Catalog = "http://schema.nuget.org/catalog/";
+            public static readonly string NuGet = "http://schema.nuget.org/schema#";
+            public static readonly string Catalog = "http://schema.nuget.org/catalog#";
             public static readonly string Xsd = "http://www.w3.org/2001/XMLSchema#";
             public static readonly string Rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
         }

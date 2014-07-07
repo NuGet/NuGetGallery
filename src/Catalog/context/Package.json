@@ -1,9 +1,9 @@
 ﻿{
     "@context": {
-        "nuget": "http://schema.nuget.org/schema/",
-        "catalog": "http://schema.nuget.org/catalog/",
+        "nuget": "http://schema.nuget.org/schema#",
+        "catalog": "http://schema.nuget.org/catalog#",
         "xsd": "http://www.w3.org/2001/XMLSchema#",
-        "@vocab": "http://schema.nuget.org/schema/",
+        "@vocab": "http://schema.nuget.org/schema#",
 
         "url": "@id",
         "created": { "@type": "xsd:dateTime" },

@@ -1,7 +1,7 @@
 ﻿{ 
 	"@context" : { 
-		"@vocab" : "http://schema.nuget.org/schema/",
-        "catalog": "http://schema.nuget.org/catalog/",
+		"@vocab" : "http://schema.nuget.org/schema#",
+        "catalog": "http://schema.nuget.org/catalog#",
 		"url" : "@id"
 	}
 }
