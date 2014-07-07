@@ -68,11 +68,6 @@ namespace MetadataClient
 
             using (var updater = new CatalogUpdater(writer, checksums, client))
             {
-                updater.Trace.Listeners.Add(new ConsoleTraceListener()
-                {
-                    Filter = new EventTypeFilter(SourceLevels.All)
-                });
-                updater.Trace.Switch.Level = SourceLevels.All;
                 updater.Update(args.SqlConnectionString, args.IndexUrl).Wait();
             }
         }
