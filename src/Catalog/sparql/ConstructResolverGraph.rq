@@ -34,7 +34,7 @@ WHERE
 	BIND (IRI(CONCAT(@base, @id, @extension)) AS ?resource)
 
     ?package a nuget:Package ;
-	         nuget:version ?version ;
+	         nuget:packageVersion ?version ;
              nuget:packageId ?id ;
 			 catalog:commitId ?commitId ;
 			 catalog:commitTimestamp ?timeStamp .

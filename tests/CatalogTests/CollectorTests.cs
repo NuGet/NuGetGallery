@@ -15,11 +15,11 @@ namespace CatalogTests
             //Storage storage = new AzureStorage(
             //    CloudStorageAccount.Parse("AccountName=nuget3;AccountKey=;DefaultEndpointsProtocol=https"), "export");
 
-            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\full");
+            Storage storage = new FileStorage("http://localhost:8000/resolver", @"c:\data\site\resolver");
 
             ResolverCollector collector = new ResolverCollector(storage, 1);
 
-            await collector.Run(new Uri("http://localhost:8000/full/catalog/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
 

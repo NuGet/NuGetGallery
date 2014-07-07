@@ -59,9 +59,9 @@ namespace CatalogTests
 
         public static async Task Test1Async()
         {
-            string nuspecs = @"c:\data\nuspecs";
+            string nuspecs = @"c:\data\nuget\nuspecs";
 
-            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\full");
+            Storage storage = new FileStorage("http://localhost:8000/full/", @"c:\data\site\full");
 
             CatalogContext context = new CatalogContext();
 

@@ -3,7 +3,7 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:nuget="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd"
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-  xmlns:ng="http://schema.nuget.org/"
+  xmlns:ng="http://schema.nuget.org/schema#"
   xmlns:obj="urn:helper"
   exclude-result-prefixes="nuget obj"
   version="1.0">
