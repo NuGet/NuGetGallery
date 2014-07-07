@@ -1,6 +1,0 @@
-﻿SELECT ?type ?key
-WHERE
-{
-	?resource a ?type ;
-	          <http://nuget.org/gallery#key> ?key .
-}

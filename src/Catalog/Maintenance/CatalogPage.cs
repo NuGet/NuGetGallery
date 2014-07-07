@@ -28,7 +28,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         protected override Uri GetContainerType()
         {
-            return Constants.CatalogPage;
+            return Schema.DataTypes.CatalogPage;
         }
     }
 }

@@ -13,12 +13,7 @@ namespace CatalogTests
     {
         public static async Task Test0Async()
         {
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\test",
-                Container = "test",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\test");
 
             //  first save the delete into the catalog
 
@@ -46,12 +41,7 @@ namespace CatalogTests
 
         public static async Task Test1Async()
         {
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\full",
-                Container = "full",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\full");
 
             //  first save the delete into the catalog
 

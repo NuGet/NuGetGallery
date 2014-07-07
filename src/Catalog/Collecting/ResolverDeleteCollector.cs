@@ -15,7 +15,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         JObject _resolverFrame;
 
         public ResolverDeleteCollector(Storage storage, int batchSize = 200)
-            : base(batchSize, new Uri[] { Constants.DeletePackage, Constants.DeleteRegistration })
+            : base(batchSize, new Uri[] { Schema.DataTypes.DeletePackage, Schema.DataTypes.DeleteRegistration })
         {
             Options.InternUris = false;
 
@@ -28,14 +28,14 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         {
             try
             {
-                string baseAddress = _storage.BaseAddress + _storage.Container + "/resolver/";
-
+                Uri baseAddress = _storage.ResolveUri("resolver/");
+                
                 SparqlResultSet registrationDeletes = SparqlHelpers.Select(store, Utils.GetResource("sparql.SelectDeleteRegistration.rq"));
                 foreach (SparqlResult row in registrationDeletes)
                 {
                     string id = row["id"].ToString();
 
-                    Uri resourceUri = new Uri(baseAddress + id + ".json");
+                    Uri resourceUri = new Uri(baseAddress, id + ".json");
 
                     await _storage.Delete(resourceUri);
                 }
@@ -46,7 +46,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                     string id = row["id"].ToString();
                     string version = row["version"].ToString();
 
-                    Uri resourceUri = new Uri(baseAddress + id + ".json");
+                    Uri resourceUri = new Uri(baseAddress, id + ".json");
 
                     await DeletePackage(resourceUri, version);
                 }

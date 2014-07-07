@@ -18,10 +18,10 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         public ICollectorLogger Logger { get; set; }
 
         public ResolverCollector(Storage storage, int batchSize)
-            : base(batchSize, new Uri[] { Constants.Package })
+            : base(batchSize, new Uri[] { Schema.DataTypes.Package })
         {
             _resolverFrame = JObject.Parse(Utils.GetResource("context.Resolver.json"));
-            _resolverFrame["@type"] = Constants.Resolver.ToString();
+            _resolverFrame["@type"] = Schema.DataTypes.Resolver.ToString();
             _storage = storage;
         }
 
@@ -40,7 +40,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                     SparqlParameterizedString sparql = new SparqlParameterizedString();
                     sparql.CommandText = Utils.GetResource("sparql.ConstructResolverGraph.rq");
 
-                    string baseAddress = _storage.BaseAddress + _storage.Container + "/resolver/";
+                    string baseAddress = _storage.BaseAddress + "/resolver/";
 
                     sparql.SetLiteral("id", id);
                     sparql.SetLiteral("base", baseAddress);

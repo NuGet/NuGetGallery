@@ -9,30 +9,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AzureStorage : Storage
     {
-        public AzureStorage()
+        private CloudBlobContainer _container;
+        public AzureStorage(CloudStorageAccount account, string container)
         {
-        }
-
-        // "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}"
-
-        public string ConnectionString
-        {
-            get;
-            set;
-        }
-
-        // if the ConnectionString is null the follow are used 
-
-        public string AccountName
-        {
-            get;
-            set;
-        }
-
-        public string AccountKey
-        {
-            get;
-            set;
+            _container = account.CreateCloudBlobClient().GetContainerReference(container);
+            BaseAddress = new UriBuilder(_container.Uri)
+            {
+                Scheme = "http" // Convert base address to http. 'https' can be used for communication but is not part of the names.
+            }.Uri;
         }
 
         //  save
@@ -41,30 +25,24 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             SaveCount++;
 
-            string name = GetName(resourceUri, BaseAddress, Container);
+            string name = GetName(resourceUri);
 
             if (Verbose)
             {
                 Console.WriteLine("save {0}", name);
             }
 
-            CloudStorageAccount account = ConnectionString != null ?
-                CloudStorageAccount.Parse(ConnectionString) : new CloudStorageAccount(new StorageCredentials(AccountName, AccountKey), true);
-
-            CloudBlobClient client = account.CreateCloudBlobClient();
-            CloudBlobContainer container = client.GetContainerReference(Container);
-
-            if (container.CreateIfNotExists())
+            if (_container.CreateIfNotExists())
             {
-                container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+                _container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
                 if (Verbose)
                 {
-                    Console.WriteLine("Created '{0}' publish container", Container);
+                    Console.WriteLine("Created '{0}' publish container", _container.Name);
                 }
             }
 
-            CloudBlockBlob blob = container.GetBlockBlobReference(name);
+            CloudBlockBlob blob = _container.GetBlockBlobReference(name);
             blob.Properties.ContentType = content.ContentType;
             blob.Properties.CacheControl = "no-store";  // no for production, just helps with debugging
 
@@ -80,15 +58,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             LoadCount++;
 
-            string name = GetName(resourceUri, BaseAddress, Container);
+            string name = GetName(resourceUri);
 
-            CloudStorageAccount account = ConnectionString != null ?
-                CloudStorageAccount.Parse(ConnectionString) : new CloudStorageAccount(new StorageCredentials(AccountName, AccountKey), true);
-
-            CloudBlobClient client = account.CreateCloudBlobClient();
-            CloudBlobContainer container = client.GetContainerReference(Container);
-
-            CloudBlockBlob blob = container.GetBlockBlobReference(name);
+            CloudBlockBlob blob = _container.GetBlockBlobReference(name);
 
             if (blob.Exists())
             {
@@ -105,15 +77,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             DeleteCount++;
 
-            string name = GetName(resourceUri, BaseAddress, Container);
+            string name = GetName(resourceUri);
 
-            CloudStorageAccount account = ConnectionString != null ?
-                CloudStorageAccount.Parse(ConnectionString) : new CloudStorageAccount(new StorageCredentials(AccountName, AccountKey), true);
-
-            CloudBlobClient client = account.CreateCloudBlobClient();
-            CloudBlobContainer container = client.GetContainerReference(Container);
-
-            CloudBlockBlob blob = container.GetBlockBlobReference(name);
+            CloudBlockBlob blob = _container.GetBlockBlobReference(name);
 
             await blob.DeleteAsync();
         }

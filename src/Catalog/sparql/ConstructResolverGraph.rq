@@ -1,16 +1,16 @@
-﻿PREFIX nuget: <http://nuget.org/schema#>
-PREFIX catalog: <http://nuget.org/catalog#>
+﻿PREFIX nuget: <http://schema.nuget.org/schema#>
+PREFIX catalog: <http://schema.nuget.org/catalog#>
 
 CONSTRUCT
 {
     ?resource a nuget:Resolver ;
-	          nuget:id @id ;
+	          nuget:packageId @id ;
 			  nuget:package ?resource_package .
 
 	?resource_package nuget:version ?version ;
 	                  nuget:dependencies ?resource_dependencies ;
 					  catalog:commitId ?commitId ;
-					  catalog:timeStamp ?timeStamp .
+					  catalog:commitTimestamp ?timeStamp .
 
     ?resource_dependencies nuget:group ?resource_dependency_group .
 
@@ -22,7 +22,7 @@ CONSTRUCT
     ?resource_dependency_group_property nuget:name ?dependency_group_property_name ;
                                         nuget:value ?dependency_group_property_value .
 
-	?resource_dependency nuget:id ?dependency_id ;
+	?resource_dependency nuget:packageId ?dependency_id ;
 				         nuget:range ?dependency_version ;
 				         nuget:property ?resource_dependency_property .
 
@@ -35,9 +35,9 @@ WHERE
 
     ?package a nuget:Package ;
 	         nuget:version ?version ;
-             nuget:id ?id ;
+             nuget:packageId ?id ;
 			 catalog:commitId ?commitId ;
-			 catalog:timeStamp ?timeStamp .
+			 catalog:commitTimestamp ?timeStamp .
 
 	FILTER (LCASE(?id) = @id)
 
@@ -60,7 +60,7 @@ WHERE
 			       ?dependency_group_property nuget:name ?dependency_group_property_name ;
 								              nuget:value ?dependency_group_property_value . }
 		
-		?dependency nuget:id ?dependency_id .
+		?dependency nuget:packageId ?dependency_id .
 		OPTIONAL { ?dependency nuget:range ?dependency_version . }
 
 		OPTIONAL { ?dependency nuget:property ?dependency_property .

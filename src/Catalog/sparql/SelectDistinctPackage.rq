@@ -1,10 +1,10 @@
-﻿PREFIX nuget: <http://nuget.org/schema#> 
+﻿PREFIX nuget: <http://schema.nuget.org/schema#> 
 
 SELECT DISTINCT ?id
 WHERE
 {
 	?package a nuget:Package ;
-	         nuget:id ?s .
+	         nuget:packageId ?s .
 
 	BIND (LCASE(?s) AS ?id)
 }

@@ -1,10 +1,10 @@
-﻿PREFIX nuget: <http://nuget.org/schema#> 
+﻿PREFIX nuget: <http://schema.nuget.org/schema#> 
 
 SELECT ?id ?version
 WHERE
 {
 	?package a nuget:DeletePackage ;
-	         nuget:id ?s ;
+	         nuget:packageId ?s ;
 	         nuget:version ?t .
 
 	BIND (LCASE(?s) AS ?id)

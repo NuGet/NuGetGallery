@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.IO;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -10,11 +11,155 @@ using System.IO.Packaging;
 using System.Net.Mime;
 using System.Diagnostics;
 using System.Data.SqlClient;
+using NuGet.Services.Metadata.Catalog.GalleryIntegration;
+using NuGet.Services.Metadata.Catalog.Maintenance;
+using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Metadata.Catalog.Collecting;
+using NuGet.Services.Metadata.Catalog;
+using System.Net.Http;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace MetadataClient
 {
     public class Arguments
     {
+        [ArgActionMethod]
+        public void ReadChecksum(ReadChecksumArgs args)
+        {
+            // Load the checksum file
+            var file = JObject.Parse(File.ReadAllText(args.ChecksumFile));
+            var data = file.Value<JObject>("data");
+            
+            // Fetch all records matching the key
+            foreach (var record in data.Properties().Where(p => Int32.Parse(p.Name) == args.PackageKey))
+            {
+                Console.WriteLine("Checksum record: " + record.ToString());
+            }
+        }
+
+        [ArgActionMethod]
+        public void UpdateCatalog(UpdateCatalogArgs args)
+        {
+            if (!args.BaseAddress.ToString().EndsWith("/"))
+            {
+                args.BaseAddress = new Uri(args.BaseAddress.ToString() + "/");
+            }
+            if (args.IndexUrl == null)
+            {
+                args.IndexUrl = new Uri(args.BaseAddress, "index.json");
+            }
+            if (String.IsNullOrEmpty(args.ChecksumFile))
+            {
+                args.ChecksumFile = Path.Combine(args.CatalogFolder, "checksums.v1.json");
+            }
+
+            var writer = new CatalogWriter(
+                new FileStorage(args.BaseAddress, args.CatalogFolder),
+                new CatalogContext());
+            var client = new CollectorHttpClient(
+                new FileSystemEmulatorHandler(new WebRequestHandler() { AllowPipelining = true })
+            {
+                BaseAddress = args.BaseAddress,
+                RootFolder = args.CatalogFolder
+            });
+            var checksums = new LocalFileChecksumRecords(args.ChecksumFile);
+
+            using (var updater = new CatalogUpdater(writer, checksums, client))
+            {
+                updater.Trace.Listeners.Add(new ConsoleTraceListener()
+                {
+                    Filter = new EventTypeFilter(SourceLevels.All)
+                });
+                updater.Trace.Switch.Level = SourceLevels.All;
+                updater.Update(args.SqlConnectionString, args.IndexUrl).Wait();
+            }
+        }
+
+        private double GetMemoryInMB()
+        {
+            return (double)GC.GetTotalMemory(forceFullCollection: true) / (1024 * 1024);
+        }
+
+        [ArgActionMethod]
+        public void CollectChecksums(CollectChecksumsArgs args)
+        {
+            if (!args.BaseAddress.ToString().EndsWith("/"))
+            {
+                args.BaseAddress = new Uri(args.BaseAddress.ToString() + "/");
+            }
+            if (args.IndexUrl == null)
+            {
+                args.IndexUrl = new Uri(args.BaseAddress, "index.json");
+            }
+            if (String.IsNullOrEmpty(args.ChecksumFile))
+            {
+                args.ChecksumFile = Path.Combine(args.CatalogFolder, "checksums.v1.json");
+            }
+
+            // Load the existing file
+            var checksums = new LocalFileChecksumRecords(args.ChecksumFile);
+            checksums.Load().Wait();
+
+            // Create HttpClient
+            var handler = new FileSystemEmulatorHandler(
+                new WebRequestHandler { AllowPipelining = true })
+            {
+                RootFolder = args.CatalogFolder,
+                BaseAddress = args.BaseAddress
+            };
+
+            var collector = new ChecksumCollector(1000, checksums);
+            collector.Trace.Listeners.Add(new ConsoleTraceListener()
+            {
+                Filter = new EventTypeFilter(SourceLevels.All)
+            });
+            collector.Trace.Switch.Level = SourceLevels.All;
+
+            var timestamp = DateTime.UtcNow;
+            Console.WriteLine("Collecting new checksums since: {0} UTC", checksums.TimestampUtc);
+            using (var client = new CollectorHttpClient(handler))
+            {
+                collector.Run(client, args.IndexUrl, checksums.TimestampUtc).Wait();
+            }
+            checksums.TimestampUtc = timestamp;
+
+            collector.Checksums.Save().Wait();
+        }
+
+        [ArgActionMethod]
+        public void Rebuild(RebuildArgs args)
+        {
+            if (!args.BaseAddress.ToString().EndsWith("/"))
+            {
+                args.BaseAddress = new Uri(args.BaseAddress.ToString() + "/");
+            }
+
+            var writer = new CatalogWriter(
+                new FileStorage(args.BaseAddress, args.CatalogFolder),
+                new CatalogContext());
+            var batcher = new GalleryExportBatcher(2000, writer);
+            int lastHighest = 0;
+            while(true) {
+                var range = GalleryExport.GetNextRange(
+                    args.SqlConnectionString,
+                    lastHighest,
+                    2000).Result;
+                if (range.Item1 == 0 && range.Item2 == 0)
+                {
+                    break;
+                }
+                Console.WriteLine("Writing packages with Keys {0}-{1} to catalog...", range.Item1, range.Item2);
+                GalleryExport.WriteRange(
+                    args.SqlConnectionString,
+                    range,
+                    batcher).Wait();
+                lastHighest = range.Item2;
+            }
+            batcher.Complete().Wait();
+        }
+
         [ArgActionMethod]
         public void UploadPackage(UploadPackageArgs args)
         {

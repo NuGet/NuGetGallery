@@ -1,9 +1,32 @@
-﻿{ 
-	"@context" : { 
-		"@vocab" : "http://nuget.org/schema#",
-        "group" : { "@container" : "@set" },
-        "dependency" : { "@container" : "@set" },
-        "property" : { "@container" : "@set" },
-		"url" : "@id"
-	}
+﻿{
+    "@context": {
+        "nuget": "http://schema.nuget.org/schema#",
+        "catalog": "http://schema.nuget.org/catalog#",
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "@vocab": "http://schema.nuget.org/schema#",
+
+        "url": "@id",
+        "created": { "@type": "xsd:dateTime" },
+        "lastEdited": { "@type": "xsd:dateTime" },
+        "published": { "@type": "xsd:dateTime" },
+        "isLatest": { "@type": "xsd:boolean" },
+        "isLatestStable": { "@type": "xsd:boolean" },
+        "isPrerelease": { "@type": "xsd:boolean" },
+        "requireLicenseAcceptance": { "@type": "xsd:boolean" },
+        "packageSize": { "@type": "xsd:integer" },
+        "galleryKey" : { "@type": "xsd:integer" },
+        "version": { "@type": "nuget:SemanticVersion" },
+        "minClientVersion": { "@type": "nuget:SemanticVersion" },
+        "range": { "@id": "nuget:versionRange", "@type": "nuget:SemanticVersionRange" },
+        "packageId": { "@type": "nuget:PackageIdentifier" },
+        "galleryChecksum" : { "@type": "xsd:string" },
+        "groups": { "@id": "nuget:dependencyGroup", "@container": "@set" },
+        "dependencyGroups": { "@id": "nuget:dependencyGroups", "@container": "@set" },
+        "dependencies": { "@id": "nuget:dependency", "@container": "@set" },
+        "property": { "@container": "@set" },
+        "licenseNames": { "@id": "nuget:licenseName", "@container": "@set" },
+        "tags": { "@id": "nuget:tag", "@container": "@set" },
+        "targetFrameworks": { "@id": "nuget:targetFramework", "@container": "@set", "@type": "nuget:FrameworkName" },
+        "targetFramework": { "@id": "nuget:targetFramework", "@type": "nuget:FrameworkName" }
+    }
 }

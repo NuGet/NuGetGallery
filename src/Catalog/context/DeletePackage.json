@@ -1,6 +1,7 @@
 ﻿{ 
 	"@context" : { 
-		"@vocab" : "http://nuget.org/schema#",
+		"@vocab" : "http://schema.nuget.org/schema#",
+        "catalog": "http://schema.nuget.org/catalog#",
 		"url" : "@id"
 	}
 }

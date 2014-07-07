@@ -20,14 +20,11 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             XDocument nuspec = NormalizeNuspecNamespace(original, context.GetXslt("xslt.normalizeNuspecNamespace.xslt"));
             IGraph graph = CreateNuspecGraph(nuspec, GetBaseAddress(), context.GetXslt("xslt.nuspec.xslt"));
 
-            graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
-            graph.NamespaceMap.AddNamespace("catalog", new Uri("http://nuget.org/catalog#"));
-            INode rdfTypePredicate = graph.CreateUriNode("rdf:type");
-            INode timeStampPredicate = graph.CreateUriNode("catalog:timeStamp");
-            INode commitIdPredicate = graph.CreateUriNode("catalog:commitId");
-            Uri dateTimeDatatype = new Uri("http://www.w3.org/2001/XMLSchema#dateTime");
+            INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
+            INode timeStampPredicate = graph.CreateUriNode(Schema.Predicates.CatalogTimestamp);
+            INode commitIdPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCommitId);
             Triple resource = graph.GetTriplesWithPredicateObject(rdfTypePredicate, graph.CreateUriNode(GetItemType())).First();
-            graph.Assert(resource.Subject, timeStampPredicate, graph.CreateLiteralNode(GetTimeStamp().ToString("O"), dateTimeDatatype));
+            graph.Assert(resource.Subject, timeStampPredicate, graph.CreateLiteralNode(GetTimeStamp().ToString("O"), Schema.DataTypes.DateTime));
             graph.Assert(resource.Subject, commitIdPredicate, graph.CreateLiteralNode(GetCommitId().ToString()));
 
             JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
@@ -39,7 +36,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public override Uri GetItemType()
         {
-            return Constants.Package;
+            return Schema.DataTypes.Package;
         }
 
         static XDocument NormalizeNuspecNamespace(XDocument original, XslCompiledTransform xslt)
@@ -52,10 +49,10 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return result;
         }
 
-        static IGraph CreateNuspecGraph(XDocument nuspec, string baseAddress, XslCompiledTransform xslt)
+        static IGraph CreateNuspecGraph(XDocument nuspec, Uri baseAddress, XslCompiledTransform xslt)
         {
             XsltArgumentList arguments = new XsltArgumentList();
-            arguments.AddParam("base", "", baseAddress);
+            arguments.AddParam("base", "", baseAddress.ToString());
             arguments.AddParam("extension", "", ".json");
 
             arguments.AddExtensionObject("urn:helper", new XsltHelper());

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using VDS.RDF;
+using Newtonsoft.Json;
 
 namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
 {
@@ -21,7 +22,7 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
         {
             JToken flattened = MakeExpandedForm(g);
 
-            output.Write(flattened);
+            output.Write(flattened.ToString(Formatting.None));
             output.Flush();
         }
 

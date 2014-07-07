@@ -7,7 +7,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
     public abstract class CatalogItem
     {
         DateTime _timeStamp;
-        string _baseAddress;
+        Uri _baseAddress;
         Guid _commitId;
 
         public void SetTimeStamp(DateTime timeStamp)
@@ -20,7 +20,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             _commitId = commitId;
         }
 
-        public void SetBaseAddress(string baseAddress)
+        public void SetBaseAddress(Uri baseAddress)
         {
             _baseAddress = baseAddress;
         }
@@ -36,9 +36,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         protected abstract string GetItemIdentity();
 
-        public string GetBaseAddress()
+        public Uri GetBaseAddress()
         {
-            return _baseAddress + "catalog/item/" + MakeTimeStampPathComponent(_timeStamp);
+            return new Uri(_baseAddress, "data/" + MakeTimeStampPathComponent(_timeStamp));
         }
 
         public string GetRelativeAddress()
@@ -58,7 +58,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         protected static string MakeTimeStampPathComponent(DateTime timeStamp)
         {
-            return string.Format("{0}.{1}.{2}.{3}.{4}.{5}/", timeStamp.Year, timeStamp.Month, timeStamp.Day, timeStamp.Hour, timeStamp.Minute, timeStamp.Second);
+            return string.Format("{0:0000}.{1:00}.{2:00}.{3:00}.{4:00}.{5:00}/", timeStamp.Year, timeStamp.Month, timeStamp.Day, timeStamp.Hour, timeStamp.Minute, timeStamp.Second);
         }
     }
 }
