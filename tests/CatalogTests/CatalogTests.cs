@@ -24,7 +24,7 @@ namespace CatalogTests
             string indexJson = await client.GetStringAsync(address);
             JObject indexObj = JObject.Parse(indexJson);
 
-            foreach (JToken indexItem in indexObj["item"])
+            foreach (JToken indexItem in indexObj["items"])
             {
                 DateTime indexItemTimeStamp = indexItem["commitTimestamp"].ToObject<DateTime>();
 
@@ -33,7 +33,7 @@ namespace CatalogTests
                     string pageJson = await client.GetStringAsync(indexItem["url"].ToObject<Uri>());
                     JObject pageObj = JObject.Parse(pageJson);
 
-                    foreach (JToken pageItem in pageObj["item"])
+                    foreach (JToken pageItem in pageObj["items"])
                     {
                         DateTime pageItemTimeStamp = pageItem["commitTimestamp"].ToObject<DateTime>();
 
