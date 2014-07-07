@@ -91,20 +91,6 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             }
             await batcher.Complete();
             await _writer.Commit();
-
-            // Set up to forward trace events from the collector.
-            var collector = new ChecksumCollector(1000, _checksums);
-            collector.Trace.Listeners.AddRange(Trace.Listeners);
-            collector.Trace.Switch.Level = Trace.Switch.Level;
-
-            // Update checksums
-            var timestamp = DateTime.UtcNow;
-            Trace.TraceInformation("Collecting new checksums since: {0} UTC", _checksums.TimestampUtc);
-            await collector.Run(_client, catalogIndexUrl, _checksums.TimestampUtc);
-
-            // Update the timestamp and save the checksum data
-            _checksums.TimestampUtc = timestamp;
-            await _checksums.Save();
         }
 
         public void Dispose()
