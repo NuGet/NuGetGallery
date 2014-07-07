@@ -22,7 +22,7 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
         {
             JToken flattened = MakeExpandedForm(g);
 
-            output.Write(flattened.ToString(Formatting.None));
+            output.Write(flattened.ToString());
             output.Flush();
         }
 

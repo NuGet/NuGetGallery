@@ -83,7 +83,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             using (var writer = new StreamWriter(FilePath, append: false))
             {
-                await writer.WriteAsync(obj.ToString(Formatting.None));
+                await writer.WriteAsync(obj.ToString());
             }
         }
     }

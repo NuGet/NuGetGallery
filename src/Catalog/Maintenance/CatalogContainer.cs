@@ -47,7 +47,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             INode container = graph.CreateUriNode(_resourceUri);
 
             graph.Assert(container, rdfTypePredicate, graph.CreateUriNode(GetContainerType()));
-            graph.Assert(container, timeStampPredicate, graph.CreateLiteralNode(_timeStamp.ToString(), Schema.DataTypes.DateTime));
+            graph.Assert(container, timeStampPredicate, graph.CreateLiteralNode(_timeStamp.ToString("O"), Schema.DataTypes.DateTime));
             graph.Assert(container, commitIdPredicate, graph.CreateLiteralNode(_commitId.ToString()));
 
             if (_parent != null)
@@ -72,7 +72,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                     graph.Merge(item.Value.PageContent);
                 }
 
-                graph.Assert(itemNode, timeStampPredicate, graph.CreateLiteralNode(item.Value.TimeStamp.ToString(), Schema.DataTypes.DateTime));
+                graph.Assert(itemNode, timeStampPredicate, graph.CreateLiteralNode(item.Value.TimeStamp.ToString("O"), Schema.DataTypes.DateTime));
                 graph.Assert(itemNode, commitIdPredicate, graph.CreateLiteralNode(item.Value.CommitId.ToString()));
 
                 if (item.Value.Count != null)

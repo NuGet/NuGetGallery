@@ -121,7 +121,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             Level = EventLevel.Verbose,
             Opcode = EventOpcode.Stop,
             Task = Tasks.CollectingItem,
-            Message = "Collecting {0} item {1}")]
+            Message = "Collected Item")]
         public void CollectedItem() { WriteEvent(6); }
 
         public class Tasks

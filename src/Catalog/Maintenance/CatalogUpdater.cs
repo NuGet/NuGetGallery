@@ -152,7 +152,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         [Event(
             eventId: 7,
-            Level = EventLevel.Informational,
+            Level = EventLevel.Verbose,
             Opcode = EventOpcode.Start,
             Task = Tasks.WriteItem,
             Message = "Writing {0} of record #{1} ({2} v{3}) to catalog.")]
@@ -160,7 +160,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         [Event(
             eventId: 8,
-            Level = EventLevel.Informational,
+            Level = EventLevel.Verbose,
             Opcode = EventOpcode.Stop,
             Task = Tasks.WriteItem,
             Message = "Wrote item to catalog.")]

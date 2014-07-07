@@ -29,7 +29,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
             obj.Add("@context", frame["@context"]);
             
-            StorageContent content = new StringStorageContent(obj.ToString(Formatting.None), "application/json");
+            StorageContent content = new StringStorageContent(obj.ToString(), "application/json");
 
             return content;
         }
@@ -97,8 +97,8 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
         };
         private static readonly IDictionary<string, string> ListFieldNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            { "Tags", "tags" },
-            { "LicenseNames", "licenseNames" }
+            { "Tags", "tag" },
+            { "LicenseNames", "licenseName" }
         };
 
         static JObject CreateContent(string resourceUri, GalleryExportPackage export, DateTime timeStamp, Guid commitId)
@@ -114,7 +114,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
             obj.Add("catalog:commitId", commitId);
 
-            obj.Add("catalog:commitTimestamp", timeStamp.ToString());
+            obj.Add("catalog:commitTimestamp", timeStamp.ToString("O"));
 
             obj.Add("packageId", export.Id);
 
@@ -183,20 +183,20 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                         string dependencyGroupDependencyUri = dependencyGroupUri + "/" + id;
 
                         dependencyGroupDependency.Add("url", dependencyGroupDependencyUri);
-                        dependencyGroupDependency.Add("id", id);
+                        dependencyGroupDependency.Add("packageId", id);
                         dependencyGroupDependency.Add("range", value["VersionSpec"].ToString());
 
                         dependencyGroupDependencies.Add(dependencyGroupDependency);
                     }
 
-                    dependencyGroup.Add("dependencies", dependencyGroupDependencies);
+                    dependencyGroup.Add("dependency", dependencyGroupDependencies);
 
                     dependencyGroups.Add(dependencyGroup);
                 }
 
-                dependenciesObj.Add("groups", dependencyGroups);
+                dependenciesObj.Add("group", dependencyGroups);
 
-                obj.Add("dependencyGroups", dependenciesObj);
+                obj.Add("dependencies", dependenciesObj);
             }
 
             if (export.TargetFrameworks != null)
@@ -206,7 +206,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                 {
                     array.Add(targetFramework);
                 }
-                obj.Add("targetFrameworks", array);
+                obj.Add("targetFramework", array);
             }
 
             return obj;
