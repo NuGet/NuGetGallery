@@ -1,10 +1,10 @@
-﻿PREFIX nuget: <http://schema.nuget.org/> 
+﻿PREFIX nuget: <http://schema.nuget.org/schema#> 
 
 SELECT ?id
 WHERE
 {
 	?package a nuget:DeleteRegistration ;
-	         nuget:id ?s .
+	         nuget:packageId ?s .
 
 	BIND (LCASE(?s) AS ?id)
 }

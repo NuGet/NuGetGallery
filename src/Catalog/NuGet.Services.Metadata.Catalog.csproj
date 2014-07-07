@@ -157,7 +157,6 @@
     <EmbeddedResource Include="sparql\DeletePackage.rq" />
     <EmbeddedResource Include="sparql\SelectPackageCount.rq" />
     <EmbeddedResource Include="sparql\SelectDeleteRegistration.rq" />
-    <EmbeddedResource Include="sparql\SelectChecksums.rq" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
