@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -28,13 +29,23 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             Checksums = checksums;
         }
 
+        protected override async Task<CollectorCursor> Fetch(CollectorHttpClient client, Uri index, CollectorCursor last)
+        {
+            ChecksumCollectorEventSource.Log.Collecting(index.ToString(), ((DateTime)last).ToString("O"));
+            var cursor = await base.Fetch(client, index, last);
+            ChecksumCollectorEventSource.Log.Collected();
+            return cursor;
+        }
+
         protected override Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
         {
-            Trace.TraceInformation("Processing batch {0}...", BatchCount);
+            ChecksumCollectorEventSource.Log.ProcessingBatch(BatchCount, items.Count);
             
             foreach (var item in items)
             {
                 string type = item.Value<string>("@type");
+                string url = item.Value<string>("url");
+                ChecksumCollectorEventSource.Log.CollectingItem(type, url);
                 var key = Int32.Parse(item.Value<string>("galleryKey"));
                 if (String.Equals(type, "nuget:Package", StringComparison.Ordinal))
                 {
@@ -51,10 +62,73 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                 {
                     Checksums.Data.Remove(key);
                 }
+                ChecksumCollectorEventSource.Log.CollectedItem();
             }
 
-            Trace.TraceInformation("Processed batch {0}...", BatchCount);
+            ChecksumCollectorEventSource.Log.ProcessedBatch();
             return Task.FromResult(0);
+        }
+    }
+
+    [EventSource(Name="Outercurve-NuGet-Catalog-ChecksumCollector")]
+    public class ChecksumCollectorEventSource : EventSource
+    {
+        public static readonly ChecksumCollectorEventSource Log = new ChecksumCollectorEventSource();
+        private ChecksumCollectorEventSource() { }
+
+        [Event(
+            eventId: 1,
+            Level = EventLevel.Informational,
+            Opcode = EventOpcode.Start,
+            Task = Tasks.Collecting,
+            Message = "Collecting catalog nodes from {0} since {1}")]
+        public void Collecting(string indexUri, string cursor) { WriteEvent(1, indexUri, cursor); }
+
+        [Event(
+            eventId: 2,
+            Level = EventLevel.Informational,
+            Opcode = EventOpcode.Stop,
+            Task = Tasks.Collecting,
+            Message = "Collection completed.")]
+        public void Collected() { WriteEvent(2); }
+
+        [Event(
+            eventId: 3,
+            Level = EventLevel.Informational,
+            Opcode = EventOpcode.Start,
+            Task = Tasks.ProcessingBatch,
+            Message = "Processing Batch #{0}, containing {1} items.")]
+        public void ProcessingBatch(int count, int items) { WriteEvent(3, count, items); }
+
+        [Event(
+            eventId: 4,
+            Level = EventLevel.Informational,
+            Opcode = EventOpcode.Stop,
+            Task = Tasks.ProcessingBatch,
+            Message = "Processed Batch.")]
+        public void ProcessedBatch() { WriteEvent(4); }
+
+        [Event(
+            eventId: 5,
+            Level = EventLevel.Verbose,
+            Opcode = EventOpcode.Start,
+            Task = Tasks.CollectingItem,
+            Message = "Collecting {0} item {1}")]
+        public void CollectingItem(string type, string uri) { WriteEvent(5, type, uri); }
+
+        [Event(
+            eventId: 6,
+            Level = EventLevel.Verbose,
+            Opcode = EventOpcode.Stop,
+            Task = Tasks.CollectingItem,
+            Message = "Collecting {0} item {1}")]
+        public void CollectedItem() { WriteEvent(6); }
+
+        public class Tasks
+        {
+            public const EventTask Collecting = (EventTask)0x1;
+            public const EventTask ProcessingBatch = (EventTask)0x2;
+            public const EventTask CollectingItem = (EventTask)0x3;
         }
     }
 }

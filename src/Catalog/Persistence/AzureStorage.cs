@@ -9,11 +9,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AzureStorage : Storage
     {
-        private CloudBlobContainer _container;
-        public AzureStorage(CloudStorageAccount account, string container)
+        private CloudBlobDirectory _directory;
+
+        public AzureStorage(CloudStorageAccount account, string containerName) : this(account, containerName, String.Empty) { }
+        public AzureStorage(CloudStorageAccount account, string containerName, string path)
         {
-            _container = account.CreateCloudBlobClient().GetContainerReference(container);
-            BaseAddress = new UriBuilder(_container.Uri)
+            var container = account.CreateCloudBlobClient().GetContainerReference(containerName);
+            _directory = container.GetDirectoryReference(path);
+            BaseAddress = new UriBuilder(_directory.Uri)
             {
                 Scheme = "http" // Convert base address to http. 'https' can be used for communication but is not part of the names.
             }.Uri;
@@ -32,17 +35,17 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 Console.WriteLine("save {0}", name);
             }
 
-            if (_container.CreateIfNotExists())
+            if (_directory.Container.CreateIfNotExists())
             {
-                _container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+                _directory.Container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
                 if (Verbose)
                 {
-                    Console.WriteLine("Created '{0}' publish container", _container.Name);
+                    Console.WriteLine("Created '{0}' publish container", _directory.Container.Name);
                 }
             }
 
-            CloudBlockBlob blob = _container.GetBlockBlobReference(name);
+            CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
             blob.Properties.ContentType = content.ContentType;
             blob.Properties.CacheControl = "no-store";  // no for production, just helps with debugging
 
@@ -60,7 +63,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             string name = GetName(resourceUri);
 
-            CloudBlockBlob blob = _container.GetBlockBlobReference(name);
+            CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
 
             if (blob.Exists())
             {
@@ -79,7 +82,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             string name = GetName(resourceUri);
 
-            CloudBlockBlob blob = _container.GetBlockBlobReference(name);
+            CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
 
             await blob.DeleteAsync();
         }
