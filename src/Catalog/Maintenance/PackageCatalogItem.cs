@@ -24,7 +24,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             INode timeStampPredicate = graph.CreateUriNode(Schema.Predicates.CatalogTimestamp);
             INode commitIdPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCommitId);
             Triple resource = graph.GetTriplesWithPredicateObject(rdfTypePredicate, graph.CreateUriNode(GetItemType())).First();
-            graph.Assert(resource.Subject, timeStampPredicate, graph.CreateLiteralNode(GetTimeStamp().ToString(), Schema.DataTypes.DateTime));
+            graph.Assert(resource.Subject, timeStampPredicate, graph.CreateLiteralNode(GetTimeStamp().ToString("O"), Schema.DataTypes.DateTime));
             graph.Assert(resource.Subject, commitIdPredicate, graph.CreateLiteralNode(GetCommitId().ToString()));
 
             JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());

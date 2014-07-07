@@ -1,4 +1,5 @@
-﻿PREFIX nuget: <http://schema.nuget.org/>
+﻿PREFIX nuget: <http://schema.nuget.org/schema/>
+PREFIX catalog: <http://schema.nuget.org/catalog/>
 
 CONSTRUCT
 {
@@ -7,7 +8,9 @@ CONSTRUCT
 			  nuget:package ?resource_package .
 
 	?resource_package nuget:version ?version ;
-	                  nuget:dependencies ?resource_dependencies .
+	                  nuget:dependencies ?resource_dependencies ;
+					  catalog:commitId ?commitId ;
+					  catalog:timeStamp ?timeStamp .
 
     ?resource_dependencies nuget:group ?resource_dependency_group .
 
@@ -32,7 +35,9 @@ WHERE
 
     ?package a nuget:Package ;
 	         nuget:version ?version ;
-             nuget:id ?id .
+             nuget:id ?id ;
+			 catalog:commitId ?commitId ;
+			 catalog:timeStamp ?timeStamp .
 
 	FILTER (LCASE(?id) = @id)
 

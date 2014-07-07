@@ -87,7 +87,7 @@ namespace CatalogTests
 
                 if (++i == commitSize[commitCount])
                 {
-                    await writer.Commit(DateTime.Now);
+                    await writer.Commit(DateTime.UtcNow);
 
                     Console.WriteLine("commit number {0}", commitCount);
 

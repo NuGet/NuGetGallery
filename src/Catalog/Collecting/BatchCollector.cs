@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using JsonLD.Core;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,8 +24,11 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             get;
         }
 
-        protected override async Task Fetch(CollectorHttpClient client, Uri index, DateTime last)
+        protected override async Task<CollectorCursor> Fetch(CollectorHttpClient client, Uri index, CollectorCursor last)
         {
+            CollectorCursor cursor = last;
+            DateTime lastDateTime = (DateTime)last;
+
             IList<JObject> items = new List<JObject>();
 
             JObject root = await client.GetJObjectAsync(index);
@@ -38,7 +42,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             {
                 DateTime pageTimeStamp = rootItem["timeStamp"].ToObject<DateTime>();
 
-                if (pageTimeStamp > last)
+                if (pageTimeStamp > lastDateTime)
                 {
                     Uri pageUri = rootItem["url"].ToObject<Uri>();
                     JObject page = await client.GetJObjectAsync(pageUri);
@@ -49,8 +53,10 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                     {
                         DateTime itemTimeStamp = pageItem["timeStamp"].ToObject<DateTime>();
 
-                        if (itemTimeStamp > last)
+                        if (itemTimeStamp > lastDateTime)
                         {
+                            cursor = itemTimeStamp;
+
                             Uri itemUri = pageItem["url"].ToObject<Uri>();
 
                             items.Add(pageItem);
@@ -71,6 +77,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                 await ProcessBatch(client, items, (JObject)context);
                 BatchCount++;
             }
+
+            return cursor;
         }
 
         protected abstract Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context);

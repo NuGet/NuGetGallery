@@ -8,6 +8,8 @@ namespace Resolver.Resolver
     {
         public SemanticVersion Version { get; private set; }
 
+        public IList<string> Properties { get; private set; }
+
         private List<PNode> _children;
 
         public IReadOnlyList<PNode> Children

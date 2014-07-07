@@ -33,6 +33,8 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
                 // Perform actual parsing
                 using (JsonReader jsonReader = new JsonTextReader(input))
                 {
+                    jsonReader.DateParseHandling = DateParseHandling.None;
+
                     JToken json = JToken.Load(jsonReader);
 
                     foreach (JObject subjectJObject in json)

@@ -2,6 +2,7 @@
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using VDS.RDF;
 
@@ -146,7 +147,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 }
 
                 Triple timeStampTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, timeStampPredicate).First();
-                DateTime timeStamp = DateTime.Parse(((ILiteralNode)timeStampTriple.Object).Value);
+                DateTime timeStamp = DateTime.Parse(((ILiteralNode)timeStampTriple.Object).Value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
 
                 Triple commitIdTriple = graph.GetTriplesWithSubjectPredicate(itemTriple.Object, commitIdPredicate).First();
                 Guid commitId = Guid.Parse(((ILiteralNode)commitIdTriple.Object).Value);

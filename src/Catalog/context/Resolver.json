@@ -6,6 +6,7 @@
         "group" : { "@container" : "@set" },
         "dependency" : { "@container" : "@set" },
         "property" : { "@container" : "@set" },
-		"url" : "@id"
+		"url" : "@id",
+		"catalog:commitTimestamp": { "@type": "http://www.w3.org/2001/XMLSchema#dateTime" }
 	}
 }
