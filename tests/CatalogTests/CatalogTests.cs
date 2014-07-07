@@ -26,7 +26,7 @@ namespace CatalogTests
 
             foreach (JToken indexItem in indexObj["item"])
             {
-                DateTime indexItemTimeStamp = indexItem["timeStamp"]["@value"].ToObject<DateTime>();
+                DateTime indexItemTimeStamp = indexItem["commitTimestamp"].ToObject<DateTime>();
 
                 if (indexItemTimeStamp > lastReadTime)
                 {
@@ -35,7 +35,7 @@ namespace CatalogTests
 
                     foreach (JToken pageItem in pageObj["item"])
                     {
-                        DateTime pageItemTimeStamp = pageItem["timeStamp"]["@value"].ToObject<DateTime>();
+                        DateTime pageItemTimeStamp = pageItem["commitTimestamp"].ToObject<DateTime>();
 
                         if (pageItemTimeStamp > lastReadTime)
                         {
