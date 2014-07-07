@@ -1,5 +1,5 @@
-﻿PREFIX nuget: <http://schema.nuget.org/schema#> 
-PREFIX gallery: <http://schema.nuget.org/gallery#> 
+﻿PREFIX nuget: <http://schema.nuget.org/> 
+PREFIX gallery: <http://schema.nuget.org/> 
 
 SELECT ?key ?checksum
 WHERE

@@ -51,7 +51,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             if (_parent != null)
             {
-                graph.Assert(container, graph.CreateUriNode(Schema.Predicates.CatalogParent), graph.CreateUriNode(_parent));
+                graph.Assert(container, graph.CreateUriNode(Schema.Predicates.Parent), graph.CreateUriNode(_parent));
             }
 
             AddCustomContent(container, graph);

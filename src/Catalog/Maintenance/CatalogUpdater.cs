@@ -16,7 +16,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         private CatalogWriter _writer;
         private ChecksumRecords _checksums;
         private CollectorHttpClient _client;
-
+        
         public int DatabaseChecksumBatchSize { get; set; }
         public int CatalogAddBatchSize { get; set; }
 
@@ -34,7 +34,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             Trace = new TraceSource(typeof(CatalogUpdater).FullName);
         }
 
-        public async Task Update(string packageDatabaseConnectionString, Uri catalogIndexUrl, Uri galleryBaseUrl, Uri downloadBaseUrl)
+        public async Task Update(string sqlConnectionString, Uri catalogIndexUrl)
         {
             // Collect Memory Usage Snapshot
             Trace.TraceInformation("Memory Usage {0:0.00}MB", GetMemoryInMB());
@@ -52,7 +52,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             int batchSize = DatabaseChecksumBatchSize; // Capture the value to prevent the caller from tinkering with it :)
             while (true)
             {
-                var range = await GalleryExport.FetchChecksums(packageDatabaseConnectionString, lastKey, batchSize);
+                var range = await GalleryExport.FetchChecksums(sqlConnectionString, lastKey, batchSize);
                 foreach (var pair in range)
                 {
                     databaseChecksums[pair.Key] = pair.Value;
@@ -72,14 +72,14 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             Trace.TraceInformation("Found {0} differences", diffs.Count);
 
             // Update the catalog
-            var batcher = new GalleryExportBatcher(CatalogAddBatchSize, _writer, galleryBaseUrl, downloadBaseUrl);
+            var batcher = new GalleryExportBatcher(CatalogAddBatchSize, _writer);
             Trace.TraceInformation("Adding new data to catalog");
             foreach (var diff in diffs)
             {
                 if (diff.Result == ComparisonResult.DifferentInCatalog || diff.Result == ComparisonResult.PresentInDatabaseOnly)
                 {
                     Trace.TraceInformation("Updating package {0} from database ...", diff.Key);
-                    GalleryExport.WritePackage(packageDatabaseConnectionString, diff.Key, batcher).Wait();
+                    GalleryExport.WritePackage(sqlConnectionString, diff.Key, batcher).Wait();
                 }
                 else
                 {

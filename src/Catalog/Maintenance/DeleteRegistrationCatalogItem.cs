@@ -18,13 +18,10 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         {
             IGraph graph = new Graph();
 
-            graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
-            graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
-
             INode subject = graph.CreateUriNode(new Uri(GetBaseAddress() + GetItemIdentity()));
 
-            graph.Assert(subject, graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:DeleteRegistration"));
-            graph.Assert(subject, graph.CreateUriNode("nuget:id"), graph.CreateLiteralNode(_id));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.DeletePackage));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.PackageId), graph.CreateLiteralNode(_id));
 
             JObject frame = context.GetJsonLdContext("context.DeletePackage.json", GetItemType());
 

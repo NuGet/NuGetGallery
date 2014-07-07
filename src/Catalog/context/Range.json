@@ -1,8 +1,0 @@
-﻿{ 
-	"@context" : { 
-		"@vocab" : "http://schema.nuget.org/gallery#",
-        "key" : { "@container" : "@set" },
-        "range" : { "@container" : "@set" },
-		"url" : "@id"
-	}
-}

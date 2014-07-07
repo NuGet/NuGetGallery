@@ -155,7 +155,7 @@ namespace NuGet.Services.Metadata.Catalog
                 JObject framed = JsonLdProcessor.Frame(flattened, frame, new JsonLdOptions());
                 JObject compacted = JsonLdProcessor.Compact(framed, framed["@context"], new JsonLdOptions());
 
-                return compacted.ToString();
+                return compacted.ToString(Newtonsoft.Json.Formatting.None);
             }
         }
 

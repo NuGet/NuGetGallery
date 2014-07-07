@@ -17,41 +17,22 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             WITH cte AS (
                 SELECT
                     p.[Key],
-                    (
-                        SELECT cf.Name + ',' 
-                        FROM CuratedPackages cp
-                        INNER JOIN CuratedFeeds cf ON cp.CuratedFeedKey = cf.[Key]
-                        WHERE cp.PackageRegistrationKey = p.PackageRegistrationKey
-                        FOR XML PATH('')
-                    ) AS [Feeds],
                     p.[LastEdited], 
                     p.[Published], 
                     p.[Listed], 
                     p.[IsLatestStable], 
-                    p.[IsLatest]
+                    p.[IsLatest],
+                    p.[HideLicenseReport]
                 FROM Packages p
             )
-            SELECT TOP(@ChunkSize)
-                *
+            SELECT TOP(@ChunkSize) *
             FROM cte
             WHERE [Key] > @LastHighestPackageKey
             ORDER BY [Key]";
 
         private const string CollectPackageDataSql = @"
-            WITH cte AS (
-                SELECT
-                    p.*,
-                    (
-                        SELECT cf.Name + ',' 
-                        FROM CuratedPackages cp
-                        INNER JOIN CuratedFeeds cf ON cp.CuratedFeedKey = cf.[Key]
-                        WHERE cp.PackageRegistrationKey = p.PackageRegistrationKey
-                        FOR XML PATH('')
-                    ) AS [Feeds]
-                FROM Packages p
-            )
             SELECT *
-            FROM cte
+            FROM Packages
             WHERE [Key] >= @MinKey
             AND [Key] <= @MaxKey
             ORDER BY [Key]";
@@ -175,8 +156,28 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                 List<string> targetFramework = null;
                 targetFrameworks.TryGetValue(key, out targetFramework);
 
-                await batcher.Process(packages[key], registration, dependency, targetFramework);
+                var export = BuildPackage(
+                    packages[key], 
+                    registration, 
+                    dependency, 
+                    targetFramework);
+
+                await batcher.Process(export);
             }
+        }
+
+        private static GalleryExportPackage BuildPackage(JObject package, string id, IList<JObject> dependencies, IList<string> targetFrameworks)
+        {
+            string version = package.Value<string>("NormalizedVersion").ToLowerInvariant();
+            id = id.ToLowerInvariant();
+            var export = new GalleryExportPackage
+            {
+                Package = package,
+                Id = id,
+                Dependencies = dependencies,
+                TargetFrameworks = targetFrameworks
+            };
+            return export;
         }
 
         public static Task WritePackage(string sqlConnectionString, int key, GalleryExportBatcher batcher)
@@ -208,11 +209,16 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                     int key = reader.GetInt32(reader.GetOrdinal("Key"));
 
                     JObject obj = new JObject();
-                    for (int i = 0;
-                    i < reader.FieldCount;
-                    i++)
+                    for (int i = 0; i < reader.FieldCount; i++)
                     {
                         obj.Add(reader.GetName(i), new JValue(reader.GetValue(i)));
+                    }
+
+                    // Fix up the license reports
+                    if (obj.Value<bool>("HideLicenseReport"))
+                    {
+                        obj.Remove("LicenseNames");
+                        obj.Remove("LicenseReportUrl");
                     }
 
                     // Fill in the checksum
@@ -354,18 +360,19 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             {
                 lastEdited = reader.GetDateTime(lastEditedOrdinal);
             }
+            
             DateTime published = reader.GetDateTime(reader.GetOrdinal("Published"));
             bool listed = reader.GetBoolean(reader.GetOrdinal("Listed"));
             bool latestStable = reader.GetBoolean(reader.GetOrdinal("IsLatestStable"));
             bool latest = reader.GetBoolean(reader.GetOrdinal("IsLatest"));
-            string feeds = reader.GetString(reader.GetOrdinal("Feeds"));
+            bool hideLicenseReport = reader.GetBoolean(reader.GetOrdinal("HideLicenseReport"));
             string checksumInput = String.Concat(
                 lastEdited == null ? String.Empty : lastEdited.Value.ToString("O"), "|",
                 published.ToString("O"), "|",
                 listed.ToString(), "|",
                 latestStable.ToString(), "|",
                 latest.ToString(), "|",
-                feeds);
+                hideLicenseReport.ToString(), "|");
             string checksumString =
                 Convert.ToBase64String(
                     _hash.ComputeHash(

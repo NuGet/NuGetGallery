@@ -1,4 +1,4 @@
-﻿PREFIX nuget: <http://schema.nuget.org/schema#> 
+﻿PREFIX nuget: <http://schema.nuget.org/> 
 
 SELECT COUNT(?package) AS ?count
 WHERE

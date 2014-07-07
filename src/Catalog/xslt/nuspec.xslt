@@ -3,7 +3,7 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:nuget="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd"
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-  xmlns:ng="http://nuget.org/schema#"
+  xmlns:ng="http://schema.nuget.org/"
   xmlns:obj="urn:helper"
   exclude-result-prefixes="nuget obj"
   version="1.0">
@@ -107,6 +107,18 @@
             </xsl:when>
 
             <xsl:when test="self::nuget:owners">
+            </xsl:when>
+
+            <xsl:when test="self::nuget:id">
+              <ng:packageId>
+                <xsl:value-of select="."/>
+              </ng:packageId>
+            </xsl:when>
+
+            <xsl:when test="self::nuget:version">
+              <ng:packageVersion>
+                <xsl:value-of select="."/>
+              </ng:packageVersion>
             </xsl:when>
               
             <xsl:otherwise>

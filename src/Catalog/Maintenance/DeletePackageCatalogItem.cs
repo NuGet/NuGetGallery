@@ -29,18 +29,14 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         {
             IGraph graph = new Graph();
 
-            graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
-            graph.NamespaceMap.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
-            graph.NamespaceMap.AddNamespace("gallery", new Uri("http://nuget.org/gallery#"));
-
             INode subject = graph.CreateUriNode(new Uri(GetBaseAddress() + GetItemIdentity()));
 
-            graph.Assert(subject, graph.CreateUriNode("rdf:type"), graph.CreateUriNode("nuget:DeletePackage"));
-            graph.Assert(subject, graph.CreateUriNode("nuget:id"), graph.CreateLiteralNode(_id));
-            graph.Assert(subject, graph.CreateUriNode("nuget:version"), graph.CreateLiteralNode(_version));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.DeletePackage));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.PackageId), graph.CreateLiteralNode(_id));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.PackageVersion), graph.CreateLiteralNode(_version));
             if (!String.IsNullOrEmpty(_galleryKey))
             {
-                graph.Assert(subject, graph.CreateUriNode("gallery:key"), graph.CreateLiteralNode(_galleryKey));
+                graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.GalleryKey), graph.CreateLiteralNode(_galleryKey));
             }
 
             JObject frame = context.GetJsonLdContext("context.DeletePackage.json", GetItemType());

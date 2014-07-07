@@ -15,7 +15,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         bool _append;
         bool _first;
         bool _open;
-
+        
         public CatalogWriter(Storage storage, CatalogContext context, int maxPageSize = 1000, bool append = true)
         {
             Options.InternUris = false;

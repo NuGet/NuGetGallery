@@ -95,6 +95,7 @@
     <Compile Include="GalleryIntegration\GalleryExportBatcher.cs" />
     <Compile Include="GalleryIntegration\GalleryExportCatalogItem.cs" />
     <Compile Include="GalleryIntegration\GalleryExportPackage.cs" />
+    <Compile Include="GraphExtensions.cs" />
     <Compile Include="Maintenance\CatalogBatcher.cs" />
     <Compile Include="Maintenance\CatalogContainer.cs" />
     <Compile Include="Maintenance\CatalogContainerItem.cs" />
@@ -144,7 +145,6 @@
     <EmbeddedResource Include="context\Package.json" />
     <EmbeddedResource Include="context\Resolver.json" />
     <EmbeddedResource Include="context\DeletePackage.json" />
-    <EmbeddedResource Include="context\Range.json" />
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />

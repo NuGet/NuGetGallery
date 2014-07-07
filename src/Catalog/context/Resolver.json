@@ -1,6 +1,7 @@
 ﻿{ 
 	"@context" : { 
-		"@vocab" : "http://schema.nuget.org/schema#",
+		"@vocab" : "http://schema.nuget.org/schema/",
+        "catalog": "http://schema.nuget.org/catalog/",
         "package" : { "@container" : "@set" },
         "group" : { "@container" : "@set" },
         "dependency" : { "@container" : "@set" },

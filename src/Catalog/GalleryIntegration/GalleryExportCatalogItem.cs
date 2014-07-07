@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VDS.RDF;
+using Newtonsoft.Json;
 
 namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 {
@@ -27,8 +28,8 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             JObject obj = CreateContent(resourceUri, _export, GetTimeStamp(), GetCommitId());
             JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
             obj.Add("@context", frame["@context"]);
-
-            StorageContent content = new StringStorageContent(obj.ToString(), "application/json");
+            
+            StorageContent content = new StringStorageContent(obj.ToString(Formatting.None), "application/json");
 
             return content;
         }
@@ -78,7 +79,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             { "IconUrl", "iconUrl" },
             { "IsLatest", "isLatest" },
             { "IsLatestStable", "isLatestStable" },
-            { "IsPrerelease", "isPrerelese" },
+            { "IsPrerelease", "isPrerelease" },
             { "Language", "language" },
             { "Published", "published" },
             { "LastEdited", "lastEdited" },
@@ -96,16 +97,16 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
         };
         private static readonly IDictionary<string, string> ListFieldNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            { "Tags", "tag" },
-            { "LicenseNames", "licenseName" }
+            { "Tags", "tags" },
+            { "LicenseNames", "licenseNames" }
         };
 
         static JObject CreateContent(string resourceUri, GalleryExportPackage export, DateTime timeStamp, Guid commitId)
         {
             JObject obj = new JObject();
 
-            obj.Add("gallery:key", export.Package["Key"].ToObject<int>());
-            obj.Add("gallery:checksum", export.Package["DatabaseChecksum"].ToObject<string>());
+            obj.Add("catalog:galleryKey", export.Package["Key"].ToObject<int>());
+            obj.Add("catalog:galleryChecksum", export.Package["DatabaseChecksum"].ToObject<string>());
 
             obj.Add("url", resourceUri);
 
@@ -115,22 +116,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
             obj.Add("catalog:commitTimestamp", timeStamp.ToString());
 
-            obj.Add("id", export.Id);
-
-            if (export.ReportAbuseUrl != null)
-            {
-                obj.Add("gallery:reportAbuse", export.ReportAbuseUrl.ToString());
-            }
-
-            if (export.GalleryDetailsUrl != null)
-            {
-                obj.Add("gallery:html", export.GalleryDetailsUrl.ToString());
-            }
-
-            if (export.DownloadUrl != null)
-            {
-                obj.Add("nupkg", export.DownloadUrl.ToString());
-            }
+            obj.Add("packageId", export.Id);
 
             foreach (JProperty property in export.Package.Properties())
             {
@@ -203,14 +189,14 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                         dependencyGroupDependencies.Add(dependencyGroupDependency);
                     }
 
-                    dependencyGroup.Add("dependency", dependencyGroupDependencies);
+                    dependencyGroup.Add("dependencies", dependencyGroupDependencies);
 
                     dependencyGroups.Add(dependencyGroup);
                 }
 
-                dependenciesObj.Add("group", dependencyGroups);
+                dependenciesObj.Add("groups", dependencyGroups);
 
-                obj.Add("dependencies", dependenciesObj);
+                obj.Add("dependencyGroups", dependenciesObj);
             }
 
             if (export.TargetFrameworks != null)
@@ -220,7 +206,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                 {
                     array.Add(targetFramework);
                 }
-                obj.Add("targetFramework", array);
+                obj.Add("targetFrameworks", array);
             }
 
             return obj;
