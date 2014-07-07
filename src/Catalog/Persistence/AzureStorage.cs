@@ -13,9 +13,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public AzureStorage(CloudStorageAccount account, string containerName) : this(account, containerName, String.Empty) { }
         public AzureStorage(CloudStorageAccount account, string containerName, string path)
+            : this(account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path))
         {
-            var container = account.CreateCloudBlobClient().GetContainerReference(containerName);
-            _directory = container.GetDirectoryReference(path);
+        }
+
+        public AzureStorage(CloudBlobDirectory directory)
+        {
+            _directory = directory;
             BaseAddress = new UriBuilder(_directory.Uri)
             {
                 Scheme = "http" // Convert base address to http. 'https' can be used for communication but is not part of the names.
