@@ -8,7 +8,7 @@ CONSTRUCT
 	          nuget:packageId @id ;
 			  nuget:package ?resource_package .
 
-	?resource_package nuget:version ?version ;
+	?resource_package nuget:packageVersion ?version ;
 	                  nuget:dependencies ?resource_dependencies ;
 					  catalog:commitId ?commitId ;
 					  catalog:commitTimestamp ?timeStamp .
@@ -37,7 +37,7 @@ WHERE
 	BIND (IRI(CONCAT(@base, @id, @extension)) AS ?resource)
 
     ?package a nuget:Package ;
-	         nuget:version ?version ;
+	         nuget:packageVersion ?version ;
              nuget:packageId ?id ;
 			 catalog:commitId ?commitId ;
 			 catalog:commitTimestamp ?timeStamp .

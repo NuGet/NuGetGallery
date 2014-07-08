@@ -5,7 +5,7 @@ WHERE
 {
 	?package a nuget:DeletePackage ;
 	         nuget:packageId ?s ;
-	         nuget:version ?t .
+	         nuget:packageVersion ?t .
 
 	BIND (LCASE(?s) AS ?id)
 	BIND (LCASE(?t) AS ?version)
