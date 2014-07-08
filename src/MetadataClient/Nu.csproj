@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="Arguments.cs" />
     <Compile Include="BlobStorageArgs.cs" />
+    <Compile Include="UploadCatalogArgs.cs" />
     <Compile Include="CreateResolverBlobsArgs.cs" />
     <Compile Include="MakeMetadataArgs.cs" />
     <Compile Include="CollectChecksumsArgs.cs" />
