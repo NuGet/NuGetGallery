@@ -110,15 +110,15 @@
             </xsl:when>
 
             <xsl:when test="self::nuget:id">
-              <ng:packageId>
+              <ng:id>
                 <xsl:value-of select="."/>
-              </ng:packageId>
+              </ng:id>
             </xsl:when>
 
             <xsl:when test="self::nuget:version">
-              <ng:packageVersion>
+              <ng:version>
                 <xsl:value-of select="."/>
-              </ng:packageVersion>
+              </ng:version>
             </xsl:when>
               
             <xsl:otherwise>

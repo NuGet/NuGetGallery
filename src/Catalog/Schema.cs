@@ -23,7 +23,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri DeleteRegistration = new Uri(Prefixes.NuGet + "PackageRegistrationDeletion");
             public static readonly Uri CatalogRoot = new Uri(Prefixes.Catalog + "CatalogRoot");
             public static readonly Uri CatalogPage = new Uri(Prefixes.Catalog + "CatalogPage");
-            public static readonly Uri Resolver = new Uri(Prefixes.Catalog + "DependencyResolverData");
+            public static readonly Uri PackageRegistration = new Uri(Prefixes.Catalog + "PackageRegistration");
 
             public static readonly Uri Integer = new Uri(Prefixes.Xsd + "integer");
             public static readonly Uri DateTime = new Uri(Prefixes.Xsd + "dateTime");
@@ -43,8 +43,8 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Parent = new Uri(Prefixes.Catalog + "parent");
             public static readonly Uri CatalogCount = new Uri(Prefixes.Catalog + "count");
 
-            public static readonly Uri PackageId = new Uri(Prefixes.NuGet + "packageId");
-            public static readonly Uri PackageVersion = new Uri(Prefixes.NuGet + "version");
+            public static readonly Uri Id = new Uri(Prefixes.NuGet + "id");
+            public static readonly Uri Version = new Uri(Prefixes.NuGet + "version");
 
             // General-purpose fields
             

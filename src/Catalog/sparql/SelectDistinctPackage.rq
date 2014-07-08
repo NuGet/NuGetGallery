@@ -4,7 +4,7 @@ SELECT DISTINCT ?id
 WHERE
 {
 	?package a nuget:Package ;
-	         nuget:packageId ?s .
+	         nuget:id ?s .
 
 	BIND (LCASE(?s) AS ?id)
 }

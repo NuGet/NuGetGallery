@@ -4,11 +4,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 CONSTRUCT
 {
-    ?resource a nuget:DependencyResolverData ;
-	          nuget:packageId @id ;
+    ?resource a nuget:PackageRegistration ;
+	          nuget:id @id ;
 			  nuget:package ?resource_package .
 
-	?resource_package nuget:packageVersion ?version ;
+	?resource_package nuget:version ?version ;
 	                  nuget:dependencies ?resource_dependencies ;
 					  catalog:commitId ?commitId ;
 					  catalog:commitTimestamp ?timeStamp .
@@ -37,8 +37,8 @@ WHERE
 	BIND (IRI(CONCAT(@base, @id, @extension)) AS ?resource)
 
     ?package a nuget:Package ;
-	         nuget:packageVersion ?version ;
-             nuget:packageId ?id ;
+	         nuget:version ?version ;
+             nuget:id ?id ;
 			 catalog:commitId ?commitId ;
 			 catalog:commitTimestamp ?timeStamp .
 

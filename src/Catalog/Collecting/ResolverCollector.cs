@@ -21,7 +21,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             : base(batchSize, new Uri[] { Schema.DataTypes.Package })
         {
             _resolverFrame = JObject.Parse(Utils.GetResource("context.Resolver.json"));
-            _resolverFrame["@type"] = "DependencyResolverData";
+            _resolverFrame["@type"] = "PackageRegistration";
             _storage = storage;
         }
 

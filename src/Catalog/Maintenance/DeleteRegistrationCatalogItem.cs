@@ -21,7 +21,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             INode subject = graph.CreateUriNode(new Uri(GetBaseAddress() + GetItemIdentity()));
 
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.DeletePackage));
-            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.PackageId), graph.CreateLiteralNode(_id));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Id), graph.CreateLiteralNode(_id));
 
             JObject frame = context.GetJsonLdContext("context.DeletePackage.json", GetItemType());
 

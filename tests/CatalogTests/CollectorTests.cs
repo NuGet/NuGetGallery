@@ -15,7 +15,7 @@ namespace CatalogTests
             //Storage storage = new AzureStorage(
             //    CloudStorageAccount.Parse("AccountName=nuget3;AccountKey=;DefaultEndpointsProtocol=https"), "export");
 
-            Storage storage = new FileStorage("http://localhost:8000/resolver", @"c:\data\site\resolver");
+            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site");
 
             ResolverCollector collector = new ResolverCollector(storage, 1);
 

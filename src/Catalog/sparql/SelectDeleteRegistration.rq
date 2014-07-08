@@ -4,7 +4,7 @@ SELECT ?id
 WHERE
 {
 	?package a nuget:DeleteRegistration ;
-	         nuget:packageId ?s .
+	         nuget:id ?s .
 
 	BIND (LCASE(?s) AS ?id)
 }

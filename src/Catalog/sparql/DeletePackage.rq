@@ -12,6 +12,6 @@ WHERE
     {
         ?s a nuget:PackageRegistration ; 
            nuget:package ?o .
-        ?o nuget:packageVersion @version .
+        ?o nuget:version @version .
     }
 }

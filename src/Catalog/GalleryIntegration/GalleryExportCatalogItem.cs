@@ -48,8 +48,8 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             INode subject = graph.CreateUriNode(resourceUri);
             INode galleryKeyPredicate = graph.CreateUriNode(Schema.Predicates.GalleryKey);
             INode galleryChecksumPredicate = graph.CreateUriNode(Schema.Predicates.GalleryChecksum);
-            INode idPredicate = graph.CreateUriNode(Schema.Predicates.PackageId);
-            INode versionPredicate = graph.CreateUriNode(Schema.Predicates.PackageVersion);
+            INode idPredicate = graph.CreateUriNode(Schema.Predicates.Id);
+            INode versionPredicate = graph.CreateUriNode(Schema.Predicates.Version);
 
             string key = _export.Package.Value<string>("Key");
             string checksum = _export.Package.Value<string>("DatabaseChecksum");
@@ -116,7 +116,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
             obj.Add("catalog:commitTimestamp", timeStamp.ToString("O"));
 
-            obj.Add("packageId", export.Id);
+            obj.Add("id", export.Id);
 
             foreach (JProperty property in export.Package.Properties())
             {
