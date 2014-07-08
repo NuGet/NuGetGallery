@@ -4,6 +4,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
 
 namespace CatalogTests
 {
@@ -12,14 +13,12 @@ namespace CatalogTests
 
         public static async Task Test0Async()
         {
-            //Storage storage = new AzureStorage(
-            //    CloudStorageAccount.Parse("AccountName=nuget3;AccountKey=;DefaultEndpointsProtocol=https"), "export");
-
             Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site");
 
             ResolverCollector collector = new ResolverCollector(storage, 1);
 
-            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
+            //await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("https://nuget3.blob.core.windows.net/test20140708/index.json"), DateTime.MinValue);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
 

@@ -11,16 +11,24 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     {
         private CloudBlobDirectory _directory;
 
-        public AzureStorage(CloudStorageAccount account, string containerName) : this(account, containerName, String.Empty) { }
+        public AzureStorage(CloudStorageAccount account, string containerName) 
+            : this(account, containerName, String.Empty) { }
         public AzureStorage(CloudStorageAccount account, string containerName, string path)
             : this(account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path))
         {
         }
 
-        public AzureStorage(CloudBlobDirectory directory)
+        public AzureStorage(CloudBlobDirectory directory) 
+            : base(GetDirectoryUri(directory))
         {
             _directory = directory;
-            BaseAddress = new UriBuilder(_directory.Uri)
+
+            ResetStatistics();
+        }
+
+        static Uri GetDirectoryUri(CloudBlobDirectory directory)
+        {
+            return new UriBuilder(directory.Uri)
             {
                 Scheme = "http" // Convert base address to http. 'https' can be used for communication but is not part of the names.
             }.Uri;

@@ -6,12 +6,19 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class FileStorage : Storage
     {
-        public FileStorage(string baseAddress, string path) : this(new Uri(baseAddress), path) { }
+        public FileStorage(string baseAddress, string path) 
+            : this(new Uri(baseAddress), path) { }
 
         public FileStorage(Uri baseAddress, string path)
+            : base(baseAddress)
         {
             Path = path;
-            BaseAddress = baseAddress;
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(path);
+            if (!directoryInfo.Exists)
+            {
+                directoryInfo.Create();
+            }
 
             ResetStatistics();
         }

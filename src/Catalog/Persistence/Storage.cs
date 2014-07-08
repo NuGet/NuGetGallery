@@ -6,6 +6,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public abstract class Storage
     {
+        public Storage(Uri baseAddress)
+        {
+            string s = baseAddress.OriginalString.TrimEnd('/') + '/';
+            BaseAddress = new Uri(s);
+        }
+
         public abstract Task Save(Uri resourceUri, StorageContent content);
         public abstract Task<StorageContent> Load(Uri resourceUri);
         public abstract Task Delete(Uri resourceUri);
@@ -27,7 +33,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
         }
 
-        public Uri BaseAddress { get; set; }
+        public Uri BaseAddress { get; private set; }
         
         public bool Verbose
         {
