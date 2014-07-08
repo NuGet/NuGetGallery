@@ -2,11 +2,12 @@
 	"@context" : { 
 		"@vocab" : "http://schema.nuget.org/schema#",
         "catalog": "http://schema.nuget.org/catalog#",
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
         "package" : { "@container" : "@set" },
         "group" : { "@container" : "@set" },
         "dependency" : { "@container" : "@set" },
         "property" : { "@container" : "@set" },
 		"url" : "@id",
-		"catalog:commitTimestamp": { "@type": "http://www.w3.org/2001/XMLSchema#dateTime" }
+        "catalog:commitTimestamp" : { "@type" : "xsd:dateTime" }
 	}
 }

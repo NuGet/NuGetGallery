@@ -26,6 +26,20 @@ namespace MetadataClient
     public class Arguments
     {
         [ArgActionMethod]
+        public void CreateResolverBlobs(CreateResolverBlobsArgs args)
+        {
+            var storage = new FileStorage(args.ResolverBase, args.ResolverFolder);
+            var collector = new ResolverCollector(storage, 1000);
+            var client = new CollectorHttpClient(
+                new FileSystemEmulatorHandler(new WebRequestHandler() { AllowPipelining = true })
+            {
+                BaseAddress = args.BaseAddress,
+                RootFolder = args.CatalogFolder
+            });
+            collector.Run(client, args.IndexUrl, DateTime.MinValue).Wait();
+        }
+
+        [ArgActionMethod]
         public void ReadChecksum(ReadChecksumArgs args)
         {
             // Load the checksum file

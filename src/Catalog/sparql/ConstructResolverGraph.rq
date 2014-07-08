@@ -1,9 +1,10 @@
 ﻿PREFIX nuget: <http://schema.nuget.org/schema#>
 PREFIX catalog: <http://schema.nuget.org/catalog#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 CONSTRUCT
 {
-    ?resource a nuget:Resolver ;
+    ?resource a nuget:DependencyResolverData ;
 	          nuget:packageId @id ;
 			  nuget:package ?resource_package .
 
@@ -11,6 +12,8 @@ CONSTRUCT
 	                  nuget:dependencies ?resource_dependencies ;
 					  catalog:commitId ?commitId ;
 					  catalog:commitTimestamp ?timeStamp .
+
+    ?timestamp a xsd:dateTime .
 
     ?resource_dependencies nuget:group ?resource_dependency_group .
 
@@ -34,7 +37,7 @@ WHERE
 	BIND (IRI(CONCAT(@base, @id, @extension)) AS ?resource)
 
     ?package a nuget:Package ;
-	         nuget:packageVersion ?version ;
+	         nuget:version ?version ;
              nuget:packageId ?id ;
 			 catalog:commitId ?commitId ;
 			 catalog:commitTimestamp ?timeStamp .

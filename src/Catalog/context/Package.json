@@ -8,6 +8,7 @@
         "url": "@id",
         "group" : { "@container" : "@set" },
         "dependency" : { "@container" : "@set" },
-        "property" : { "@container" : "@set" }
+        "property" : { "@container" : "@set" },
+        "catalog:commitTimestamp" : { "@type" : "xsd:dateTime" }
     }
 }
