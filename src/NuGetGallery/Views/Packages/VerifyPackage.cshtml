@@ -82,7 +82,6 @@
             <li>@ReadOnlyField("Package ID", "Id", Model.Id)</li>
             <li>@ReadOnlyField("Version", "Version", Model.Version)</li>
             <li>@ReadOnlyField("Minimum NuGet Client Version", "MinClientVersion", Model.MinClientVersion.ToStringSafe())</li>
-            <li>@ReadOnlyField("Development Dependency", "DevelopmentDependency", Model.DevelopmentDependency.ToStringOrDefault())</li>
             <li>@ReadOnlyField("License URL", "LicenseUrl", Model.LicenseUrl, link: true)</li>
             <li>@ReadOnlyField("Language", "Language", Model.Language)</li>
             <li>@EditableField("Title", m => m.Edit.VersionTitle)</li>
@@ -186,6 +185,33 @@
                     </div>
                 </li>
             }
+            
+            <li>
+                <h4>
+                    Development Dependency
+                    @{
+        var formidDevDep = "Edit_DevelopmentDependency";
+        <button type="button" class="edit-button" id="@(formidDevDep + "Button")"><span class="icon-edit"></span></button>
+                        <button type="button" class="undo-button" id="@("Undo" + formidDevDep)" style="display: none"><span class="icon-undo"></span></button>
+                    }
+                </h4>
+                <div style="position: relative">
+                    <div id="Edit_DevelopmentDependencyText">
+                        <p>@(Model.Edit.DevelopmentDependency ? "Yes" : "No")</p>
+                    </div>
+                    <div id="Edit_DevelopmentDependencyField" style="display: none; width: 100%">
+                        <div class="form-field" style="display: inline">
+                            @Html.DropDownList("Edit.DevelopmentDependency",
+                                new List<SelectListItem>
+                                {
+                                    new SelectListItem { Text = "Yes", Value = "true" },
+                                    new SelectListItem { Text = "No", Value = "false" },
+                                })
+                            @Html.ValidationMessageFor(model => model.Edit.DevelopmentDependency)
+                        </div>
+                    </div>
+                </div>
+            </li>
 
             <li>
                 <h4>Listed in Search Results</h4>
@@ -283,6 +309,10 @@
             $("#Edit_RequiresLicenseAcceptance")[0].defaultValue = "@(Model.Edit.RequiresLicenseAcceptance ? "true" : "false")";
             </text>
             }
+            
+            SetupInput('Edit_DevelopmentDependency');
+            $("#Edit_DevelopmentDependency")[0].defaultValue = "@(Model.Edit.DevelopmentDependency ? "true" : "false")";
+
         });
     </script>
 }

@@ -42,6 +42,7 @@ namespace NuGetGallery
         public string ProjectUrl { get; set; }
         public string ReleaseNotes { get; set; }
         public bool RequiresLicenseAcceptance { get; set; }
+        public bool DevelopmentDependency { get; set; }
         public string Summary { get; set; }
         public string Tags { get; set; }
 

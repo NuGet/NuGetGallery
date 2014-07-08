@@ -13,8 +13,6 @@ namespace NuGetGallery
         public bool Listed { get; set; }
         public EditPackageVersionRequest Edit { get; set; }
         public Version MinClientVersion { get; set; }
-        public bool DevelopmentDependency { get; set; }
-
         public string Language { get; set; }
 
         public IEnumerable<NuGet.PackageDependencySet> DependencySets { get; set; }

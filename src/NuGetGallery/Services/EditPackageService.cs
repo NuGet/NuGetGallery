@@ -42,10 +42,11 @@ namespace NuGetGallery
                 ProjectUrl = request.ProjectUrl,
                 ReleaseNotes = request.ReleaseNotes,
                 RequiresLicenseAcceptance = request.RequiresLicenseAcceptance,
+                DevelopmentDependency = request.DevelopmentDependency,
                 Summary = request.Summary,
                 Tags = request.Tags,
                 Title = request.VersionTitle,
-
+                
                 // Other
                 Package = p,
                 Timestamp = DateTime.UtcNow,

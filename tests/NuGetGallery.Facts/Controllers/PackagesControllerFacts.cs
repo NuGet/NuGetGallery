@@ -1092,7 +1092,7 @@ namespace NuGetGallery
 
                 var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
-                Assert.Equal(true, model.DevelopmentDependency);
+                Assert.Equal(true, model.Edit.DevelopmentDependency);
                 fakeUploadFileStream.Dispose();
             }
 
