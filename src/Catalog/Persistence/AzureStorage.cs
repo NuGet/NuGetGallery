@@ -30,7 +30,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             return new UriBuilder(directory.Uri)
             {
-                Scheme = "http" // Convert base address to http. 'https' can be used for communication but is not part of the names.
+                Scheme = "http", // Convert base address to http. 'https' can be used for communication but is not part of the names.
+                Port = 80
             }.Uri;
         }
 
