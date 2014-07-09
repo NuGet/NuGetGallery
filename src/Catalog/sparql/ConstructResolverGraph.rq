@@ -11,7 +11,23 @@ CONSTRUCT
 	?resource_package nuget:version ?version ;
 	                  nuget:dependencies ?resource_dependencies ;
 					  catalog:commitId ?commitId ;
-					  catalog:commitTimestamp ?timeStamp .
+					  catalog:commitTimestamp ?timeStamp ;
+					  nuget:authors ?authors ;
+					  nuget:description ?description ;
+					  nuget:isLatestVersion ?isLatestVersion ;
+					  nuget:isAbsoluteLatestVersion ?isAbsoluteLatestVersion ;
+					  nuget:isPrerelease ?isPrerelease ;
+					  nuget:requireLicenseAcceptance ?requireLicenseAcceptance ;
+					  nuget:licenseUrl ?licenseUrl ;
+					  nuget:iconUrl ?iconUrl ;
+					  nuget:downloadCount ?downloadCount ;
+					  nuget:galleryDetailsUrl ?galleryDetailsUrl ;
+					  nuget:nupkgUrl ?nupkgUrl ;
+					  nuget:reportAbuseUrl ?reportAbuseUrl ;
+					  nuget:published ?published ;
+					  nuget:tag ?tag ;
+					  nuget:releaseNotes ?releaseNotes ;
+					  nuget:title ?title .
 
     ?timestamp a xsd:dateTime .
 
@@ -42,6 +58,20 @@ WHERE
 			 catalog:commitId ?commitId ;
 			 catalog:commitTimestamp ?timeStamp .
 
+	OPTIONAL { ?package nuget:authors ?authors . }
+	OPTIONAL { ?package nuget:description ?description . }
+	OPTIONAL { ?package nuget:isLatestStable ?isLatestVersion . }
+	OPTIONAL { ?package nuget:isLatest ?isAbsoluteLatestVersion . }
+	OPTIONAL { ?package nuget:isPrerelease ?isPrerelease . }
+	OPTIONAL { ?package nuget:requireLicenseAcceptance ?requireLicenseAcceptance . }
+	OPTIONAL { ?package nuget:licenseUrl ?licenseUrl . }
+	OPTIONAL { ?package nuget:iconUrl ?iconUrl . }
+	OPTIONAL { ?package nuget:downloadCount ?downloadCount . }
+	OPTIONAL { ?package nuget:published ?published . }
+	OPTIONAL { ?package nuget:tag ?tag . }
+	OPTIONAL { ?package nuget:releaseNotes ?releaseNotes . }
+	OPTIONAL { ?package nuget:title ?title . }
+
 	FILTER (LCASE(?id) = @id)
 
 	BIND (IRI(CONCAT(STR(?resource), "#", ?version)) AS ?resource_package)
@@ -50,6 +80,11 @@ WHERE
 	BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_group_property), "#"))) AS ?resource_dependency_group_property)
 	BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency), "#"))) AS ?resource_dependency)
 	BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_property), "#"))) AS ?resource_dependency_property)
+
+	BIND (IRI(CONCAT(@galleryBase, "/packages/", ?id, "/", ?version )) AS ?galleryDetailsUrl)
+	BIND (IRI(CONCAT(STR(?galleryDetailsUrl), "/ReportAbuse" )) AS ?reportAbuseUrl)
+
+	BIND (IRI(CONCAT(@cdnBase, "/packages/", LCASE(?id), ".", ?version, ".nupkg" )) AS ?nupkgUrl)
 
 	OPTIONAL
 	{

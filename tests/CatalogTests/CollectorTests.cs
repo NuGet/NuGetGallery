@@ -15,7 +15,7 @@ namespace CatalogTests
         {
             Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site");
 
-            ResolverCollector collector = new ResolverCollector(storage, 1);
+            ResolverCollector collector = new ResolverCollector(storage, 1) { GalleryBaseAddress = "http://dev.nugettest.org", CdnBaseAddress = "http://az320820.vo.msecnd.net" };
 
             //await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
             await collector.Run(new Uri("https://nuget3.blob.core.windows.net/test20140708/index.json"), DateTime.MinValue);
@@ -89,9 +89,14 @@ namespace CatalogTests
             //    BaseAddress = "http://nuget3.blob.core.windows.net"
             //};
 
-            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\test");
+            // Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\test");
+            Storage storage = new AzureStorage(
+                CloudStorageAccount.Parse("AccountName=nugetdev0;AccountKey=;DefaultEndpointsProtocol=https"),
+                "cdn-public",
+                "v3/resolver",
+                new Uri("http://preview-api.dev.nugettest.org/v3/resolver/"));
 
-            ResolverCollector collector = new ResolverCollector(storage, 200);
+            ResolverCollector collector = new ResolverCollector(storage, 200) { GalleryBaseAddress = "http://dev.nugettest.org", CdnBaseAddress = "http://az320820.vo.msecnd.net" };
 
             await collector.Run(new Uri("http://localhost:8000/test/catalog/index.json"), DateTime.MinValue);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);

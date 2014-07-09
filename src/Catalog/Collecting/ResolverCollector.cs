@@ -17,6 +17,9 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         public ICollectorLogger Logger { get; set; }
 
+        public string GalleryBaseAddress { get; set; }
+        public string CdnBaseAddress { get; set; }
+
         public ResolverCollector(Storage storage, int batchSize)
             : base(batchSize, new Uri[] { Schema.DataTypes.Package })
         {
@@ -40,11 +43,13 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                     SparqlParameterizedString sparql = new SparqlParameterizedString();
                     sparql.CommandText = Utils.GetResource("sparql.ConstructResolverGraph.rq");
 
-                    string baseAddress = _storage.BaseAddress + "/resolver/";
+                    string baseAddress = _storage.BaseAddress.ToString();
 
                     sparql.SetLiteral("id", id);
                     sparql.SetLiteral("base", baseAddress);
                     sparql.SetLiteral("extension", ".json");
+                    sparql.SetLiteral("galleryBase", GalleryBaseAddress);
+                    sparql.SetLiteral("cdnBase", CdnBaseAddress);
 
                     IGraph packageRegistration = SparqlHelpers.Construct(store, sparql.ToString());
 

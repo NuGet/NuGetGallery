@@ -7,6 +7,9 @@
         "group" : { "@container" : "@set" },
         "dependency" : { "@container" : "@set" },
         "property" : { "@container" : "@set" },
+        "nupkgUrl": {"@type": "@id"},
+        "galleryDetailsUrl": {"@type": "@id"},
+        "reportAbuseUrl": {"@type": "@id"},
         "url" : "@id",
         "catalog:commitTimestamp" : { "@type" : "xsd:dateTime" }
     }
