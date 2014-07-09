@@ -23,40 +23,36 @@
         @RenderSection("TopScripts", required: false)
         @ViewHelpers.ReleaseMeta()
     </head>
-    <body class="s-noclickonce">
-        <div id="service-alert"></div>
-        <div id="outer-wrapper">
-            <div id="content-wrapper">
-                <header class="main">
-                    <div id="logo"><a href="@Url.Home()">@(Config.Current.Brand)</a></div>
-                    <div id="header-sidebox">
-                        <div id="searchBox" role="search">
-                            <form action="@Url.PackageList()" method="get">
-                                <input name="q" id="searchBoxInput" class="expanding-search" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" autocomplete="off" />
-                                <input id="searchBoxSubmit" type="submit" value="Submit" />
-                            </form>
-                        </div>
-                        @Html.Partial("UserDisplay")
-                    </div>
-                </header>
-                <nav class="main">
-                    @Html.Partial( "SiteMenu")
-                </nav>
-                <div id="body" role="main">
-                    @if (TempData.ContainsKey("Message"))
-                    {
-                        <p class="message">@TempData["Message"]</p>
-                    }
-                    @RenderBody()
-                </div>
-            </div>
-            <div id="layout-footer" class="group">
-                <footer id="footer">
-                    @Html.Partial("LayoutFooter")
-                </footer>
-            </div>
+<body class="s-noclickonce">
+    <div id="service-alert"></div>
+    <header class="header">
+        <a href="/"><img class="logo" src="/images/logo.png" border="0" /></a>
+        <div class="search">
+            <form action="@Url.PackageList()" method="get" novalidate="novalidate">
+                <input id="searchbox" type="search" name="q" placeholder="SEARCH PACKAGES" autocomplete="off" />
+                <input type="submit" id="searchbutton" value=" " />
+            </form>
         </div>
-        @Scripts.Render("~/Scripts/all")
-        @RenderSection("BottomScripts", required: false)
-    </body>
+        <nav>
+            @Html.Partial("SiteMenu")
+        </nav>
+        <div id="user-display">
+            @Html.Partial("UserDisplay")
+        </div>
+        <div style="clear:both"></div>
+    </header>
+
+    @if (TempData.ContainsKey("Message"))
+    {
+        <p class="message">@TempData["Message"]</p>
+    }
+    @RenderBody()
+
+    <footer id="footer" class="page">
+        @Html.Partial("LayoutFooter")
+    </footer>
+    @Scripts.Render("~/Scripts/all")
+    @RenderSection("BottomScripts", required: false)
+</body>
+
 </html>

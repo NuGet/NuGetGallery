@@ -118,7 +118,7 @@ namespace NuGetGallery
         private static void BundlingPostStart()
         {
             var jQueryBundle = new ScriptBundle("~/Scripts/jquery")
-                .Include("~/Scripts/jquery-{version}.js");
+                .Include("~/Public/js/jquery-{version}.js");
             BundleTable.Bundles.Add(jQueryBundle);
 
             ScriptManager.ScriptResourceMapping.AddDefinition("jquery",
@@ -128,38 +128,26 @@ namespace NuGetGallery
                 });
 
             var scriptBundle = new ScriptBundle("~/Scripts/all")
-                .Include("~/Scripts/jquery-{version}.js")
-                .Include("~/Scripts/jquery.validate.js")
-                .Include("~/Scripts/jquery.validate.unobtrusive.js")
-                .Include("~/Scripts/jquery.timeago.js")
-                .Include("~/Scripts/nugetgallery.js")
-                .Include("~/Scripts/stats.js");
+                .Include("~/Public/js/jquery-{version}.js")
+                .Include("~/Public/js/stats.js");
             BundleTable.Bundles.Add(scriptBundle);
 
             // Modernizr needs to be delivered at the top of the page but putting it in a bundle gets us a cache-buster.
             // TODO: Use minified modernizr!
             var modernizrBundle = new ScriptBundle("~/Scripts/modernizr")
-                .Include("~/Scripts/modernizr-{version}.js");
+                .Include("~/Public/js/modernizr-{version}.js");
             BundleTable.Bundles.Add(modernizrBundle);
 
-            Bundle stylesBundle = new StyleBundle("~/Content/css");
-            foreach (string filename in new[] {
-                    "Site.css",
-                    "Layout.css",
-                    "PageStylings.css"
-                })
-            {
-                stylesBundle
-                    .Include("~/Content/" + filename)
-                    .Include("~/Branding/Content/" + filename);
-            }
+            Bundle stylesBundle = new StyleBundle("~/Content/css")
+                .Include("~/Public/css/nuget.css")
+                .Include("~/Public/css/nugetgallery.css");
 
             BundleTable.Bundles.Add(stylesBundle);
 
             // Needs a) a separate bundle because of relative pathing in the @font-face directive
             // b) To be a bundle for auto-selection of ".min.css"
-            var fontAwesomeBundle = new StyleBundle("~/Content/font-awesome/css");
-            fontAwesomeBundle.Include("~/Content/font-awesome/font-awesome.css");
+            var fontAwesomeBundle = new StyleBundle("~/components/font-awesome/css")
+                .Include("~/Public/components/font-awesome/css/font-awesome.css");
             BundleTable.Bundles.Add(fontAwesomeBundle);
         }
 

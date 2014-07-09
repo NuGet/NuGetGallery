@@ -1,0 +1,183 @@
+﻿html {
+    /* Stop Windows Phone from resizing fonts and messing them up */
+   -ms-text-size-adjust: none;
+}
+
+body {
+    background-color: #D4D6D7;
+    min-width: 600px;
+    margin: 0px auto;
+    font-family: 'Segoe UI', 'Trebuchet MS', 'Verdana', 'Helvetica', 'Sans-Serif';
+}
+
+a {
+    color: #0072C6;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+@media all and (min-width: 1368px) {
+    body {
+        padding: 0px 20px;
+    }
+}
+
+.header, .subnav, .content {
+    padding-left: 85px;
+    padding-right: 85px;
+}
+
+@media all and (max-width: 1367px) {
+    .header, .subnav, .content {
+        padding-left: 65px;
+        padding-right: 65px;
+    }
+}
+
+@media all and (max-width: 1023px) {
+    .header, .subnav, .content {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+}
+
+.header {
+    background-color: white;
+    border-bottom: 1px solid #BDBDBD;
+}
+
+.header .logo {
+    margin: 20px 20px 0px 0px;
+    width: 120px;
+}
+
+.header .search {
+    float: right;
+    margin: 24px 0px 0px 0px;
+    height: 30px;
+    border: 1px solid #0085B2;
+    white-space: nowrap;
+}
+
+#searchbox {
+    padding: 0px 0px 0px 19px;
+    width: 592px;
+    border: 0px;
+    height: 30px;
+}
+
+@media all and (max-width: 961px) {
+    #searchbox {
+        width: 492px;
+    }
+}
+
+@media all and (max-width: 861px) {
+    #searchbox {
+        width: 392px;
+    }
+}
+
+@media all and (max-width: 761px) {
+    #searchbox {
+        width: 292px;
+    }
+}
+
+@media all and (max-width: 661px) {
+    #searchbox {
+        width: 192px;
+    }
+}
+
+#searchbutton {
+    width: 33px;
+    height: 30px;
+    background-image: url(../images/search-button.png);
+    border: 0px;
+    margin: 0px 0px 0px -4px;
+    padding: 0px;
+}
+
+nav {
+    clear: both;
+}
+
+nav ul {
+    margin: 0px;
+    padding: 0px;
+}
+
+nav ul li {
+    display: block;
+    float: left;
+    list-style-type: none;
+    margin-right: 40px;
+    margin-top: 21px;
+    margin-bottom: 10px;
+}
+
+nav.sub ul li {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+nav ul li:last-child {
+    margin-right: 0px;
+}
+
+nav ul li a {
+    font-family: 'Segoe UI Semibold','Segoe UI','Arial';
+    font-size: 13pt;
+    text-transform: uppercase;
+    color: #838383;
+}
+
+nav.sub ul li a {
+    text-transform: none;
+}
+
+nav ul li.current a {
+    color: black;
+}
+
+nav ul li a:hover {
+    color: #0077A0;
+}
+
+.twitter {
+    float: right;
+}
+
+.content {
+    clear: both;
+    background-color: #ECEEEF;
+    padding-top: 5px;
+    padding-bottom: 100px;
+    margin-top: 4px;
+}
+
+.content section {
+    clear: both;
+}
+
+.content article {
+    background-color: white;
+    padding: 0px 40px 20px 40px;
+}
+
+footer {
+    background-color: white;
+    border-top: 1px solid #D2D2D2;
+    padding-top: 10px;
+    padding-bottom: 30px;
+}
+
+footer p {
+    text-align: center;
+    margin: 0px auto 5px auto;
+    font-size: .7em;
+}

@@ -1,0 +1,125 @@
+﻿/* The Sign In/Register / [Username]/Sign out links */
+#user-display {
+    float: right;
+    font-family: 'Segoe UI Semibold','Segoe UI','Arial';
+    font-size: 13pt;
+    text-transform: uppercase;
+}
+
+#mainstage {
+    height: 250px;
+    background-color: #0085B2;
+}
+
+    #mainstage #mainstage-border {
+        background-color: black;
+        opacity: 0.1;
+        height: 10px;
+        margin: 0;
+        padding: 0;
+    }
+
+    #mainstage #mainstage-content {
+        margin: 0;
+        padding: 0;
+        height: 210px;
+    }
+
+    #mainstage #mainstage-nav {
+        margin: 0;
+        padding: 0;
+        height: 24px;
+        width: 782px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+        #mainstage #mainstage-nav .mainstage-nav-item {
+            display: block;
+            float: left;
+            list-style-type: none;
+            background-color: #1B6B86;
+            text-align: center;
+        }
+
+            #mainstage #mainstage-nav .mainstage-nav-item a.mainstage-nav-item-link {
+                width: 260px;
+                display: inline-block;
+                color: white;
+                font-size: 16pt;
+            }
+
+            #mainstage #mainstage-nav .mainstage-nav-item:hover {
+                background-color: #43C4F1;
+            }
+
+            #mainstage #mainstage-nav .mainstage-nav-item a.mainstage-nav-item-link:hover {
+                text-decoration: none;
+            }
+
+.content {
+    padding-bottom: 40px;
+}
+
+#blocks {
+}
+
+    #blocks .blocks-row {
+        width: 1366px;
+        margin-top: 20px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+        #blocks .blocks-row .blocks-cell {
+            background-color: #F7F9F9;
+            display: inline-block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 590px;
+            height: 225px;
+            padding-left: 40px;
+            padding-right: 40px;
+            vertical-align: top;
+            border-bottom: 1px solid #D2D2D2;
+        }
+
+        #blocks .blocks-row .blocks-cell-2 {
+            margin-left: 20px;
+        }
+
+        #blocks .blocks-row #stats.blocks-cell {
+            border: none;
+            background-color: #ECEEEF;
+            padding: 0;
+        }
+
+            #blocks .blocks-row #stats.blocks-cell .stats-row {
+            }
+
+                #blocks .blocks-row #stats.blocks-cell .stats-row .stats-item {
+                    background-color: #F7F9F9;
+                    display: inline-block;
+                    margin-left: auto;
+                    margin-right: auto;
+                    width: 290px;
+                    height: 107px;
+                    vertical-align: top;
+                }
+
+                #blocks .blocks-row #stats.blocks-cell .stats-row .stats-item-2 {
+                    margin-left: 10px;
+                }
+
+.link-list {
+    margin: 0;
+    padding: 0;
+}
+
+    .link-list .link-list-item {
+        list-style-type: none;
+    }
+
+footer {
+    text-align: center;
+}
