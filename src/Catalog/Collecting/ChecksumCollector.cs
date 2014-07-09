@@ -50,7 +50,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                 if (String.Equals(type, "nuget:Package", StringComparison.Ordinal))
                 {
                     var checksum = item.Value<string>("galleryChecksum");
-                    var id = item.Value<string>("nuget:packageId");
+                    var id = item.Value<string>("nuget:id");
                     var version = item.Value<string>("nuget:version");
 
                     Checksums.Data[key] = new JObject(
