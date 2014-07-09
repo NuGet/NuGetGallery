@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using JsonLD.Core;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Maintenance;
@@ -58,7 +59,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                         new JProperty("id", id),
                         new JProperty("version", version));
                 }
-                else if (String.Equals(type, "nuget:DeletePackage", StringComparison.Ordinal))
+                else if (String.Equals(type, "nuget:PackageDeletion", StringComparison.Ordinal))
                 {
                     Checksums.Data.Remove(key);
                 }
