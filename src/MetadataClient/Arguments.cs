@@ -59,8 +59,7 @@ namespace MetadataClient
                 
                 var blob = blobDir.GetBlockBlobReference(relativePath);
 
-                const int thirtyMinutesInSeconds = 30 * 60;
-                blob.Properties.CacheControl = "max-age=" + thirtyMinutesInSeconds + ", s-maxage=" + thirtyMinutesInSeconds;
+                blob.Properties.CacheControl = "no-store";
                 blob.Properties.ContentType = "application/json";
                 blob.UploadFromFile(file.FullName, FileMode.Open);
                 Console.WriteLine("Uploaded {0} files", Interlocked.Increment(ref counter));
