@@ -17,14 +17,56 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Metadata.Catalog.Collecting;
 using NuGet.Services.Metadata.Catalog;
 using System.Net.Http;
-using Newtonsoft.Json;
-using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace MetadataClient
 {
     public class Arguments
     {
+        [ArgActionMethod]
+        public void UploadCatalog(UploadCatalogArgs args)
+        {
+            var account = CloudStorageAccount.Parse(args.CatalogStorage);
+            var directory = new DirectoryInfo(args.CatalogFolder);
+
+            string containerName;
+            string path;
+            string[] segments = args.CatalogPath.Split('/');
+            if (segments.Length > 1)
+            {
+                containerName = segments[0];
+                path = String.Join("/", segments.Skip(1));
+            }
+            else
+            {
+                containerName = args.CatalogPath;
+                path = String.Empty;
+            }
+            var container = account.CreateCloudBlobClient().GetContainerReference(containerName);
+            var blobDir = container.GetDirectoryReference(path);
+
+            Console.WriteLine("Uploading directory from {0} to {1}", directory.FullName, blobDir.Uri.ToString());
+
+            int counter = 0;
+            Parallel.ForEach(
+                directory.GetFiles("*", SearchOption.AllDirectories),
+                new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount * 4 },
+                file =>
+            {
+                string relativePath = file.FullName.Substring(directory.FullName.Length + 1).Replace('\\', '/');
+                
+                var blob = blobDir.GetBlockBlobReference(relativePath);
+
+                const int thirtyMinutesInSeconds = 30 * 60;
+                blob.Properties.CacheControl = "max-age=" + thirtyMinutesInSeconds + ", s-maxage=" + thirtyMinutesInSeconds;
+                blob.Properties.ContentType = "application/json";
+                blob.UploadFromFile(file.FullName, FileMode.Open);
+                Console.WriteLine("Uploaded {0} files", Interlocked.Increment(ref counter));
+            });
+        }
+
         [ArgActionMethod]
         public void CreateResolverBlobs(CreateResolverBlobsArgs args)
         {

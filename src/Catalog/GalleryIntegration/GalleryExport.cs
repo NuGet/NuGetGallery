@@ -211,7 +211,13 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                     JObject obj = new JObject();
                     for (int i = 0; i < reader.FieldCount; i++)
                     {
-                        obj.Add(reader.GetName(i), new JValue(reader.GetValue(i)));
+                        var value = reader.GetValue(i);
+                        if (value is DateTime)
+                        {
+                            // Recreate the date to force it to be assumed to be in UTC (which it is)
+                            value = new DateTime(((DateTime)value).Ticks, DateTimeKind.Utc);
+                        }
+                        obj.Add(reader.GetName(i), new JValue(value));
                     }
 
                     // Fix up the license reports

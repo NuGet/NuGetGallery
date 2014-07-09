@@ -72,7 +72,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
         private static readonly IDictionary<string, string> FieldMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { "NormalizedVersion", "version" },
-            { "Authors", "authors" },
+            { "FlattenedAuthors", "authors" },
             { "Copyright", "copyright" },
             { "Created", "created" },
             { "Description", "description" },
@@ -94,6 +94,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             { "LicenseUrl", "licenseUrl" },
             { "LicenseReportUrl", "licenseReportUrl" },
             { "MinClientVersion", "minClientVersion" },
+            { "DownloadCount", "downloadCount" }
         };
         private static readonly IDictionary<string, string> ListFieldNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -118,7 +119,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
             obj.Add("id", export.Id);
 
-            foreach (JProperty property in export.Package.Properties())
+            foreach (JProperty property in export.Package.Properties().Where(p => p.Value != null && p.Value.Type != JTokenType.Null))
             {
                 if (ListFieldNames.ContainsKey(property.Name))
                 {
