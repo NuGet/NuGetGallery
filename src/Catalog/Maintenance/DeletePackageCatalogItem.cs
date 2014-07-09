@@ -70,7 +70,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         protected override string GetItemIdentity()
         {
-            return "delete/" + _id.ToLowerInvariant() + "." + _version.ToLowerInvariant();
+            string identity = "delete/" + _id.ToLowerInvariant() + "." + _version.ToLowerInvariant();
+            if (_galleryKey != null)
+            {
+                identity += "_" + _galleryKey;
+            }
+            return identity;
         }
     }
 }
