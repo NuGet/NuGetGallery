@@ -188,7 +188,7 @@ namespace MetadataClient
 
             // Load storage
             Storage storage;
-            if (String.IsNullOrEmpty(args.CatalogFolder))
+            if (!String.IsNullOrEmpty(args.CatalogFolder))
             {
                 if (args.BaseAddress == null)
                 {
@@ -215,7 +215,11 @@ namespace MetadataClient
                     {
                         dirUrl += "/";
                     }
-                    args.BaseAddress = new Uri(dirUrl);
+                    args.BaseAddress = new UriBuilder(dirUrl)
+                    {
+                        Scheme = "http",
+                        Port = 80
+                    }.Uri;
                 }
                 storage = new AzureStorage(dir, args.BaseAddress);
             }

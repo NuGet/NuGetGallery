@@ -64,19 +64,22 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             var batcher = new GalleryExportBatcher(CatalogAddBatchSize, _writer);
             foreach (var diff in diffs)
             {
-                if (diff.Result == ComparisonResult.DifferentInCatalog || diff.Result == ComparisonResult.PresentInDatabaseOnly)
+                // Temporarily ignoring updates to avoid the resolver collector going a little wonky
+                //  diff.Result == ComparisonResult.DifferentInCatalog ||
+                if (diff.Result == ComparisonResult.PresentInDatabaseOnly)
                 {
                     CatalogUpdaterEventSource.Log.WritingItem(
                         "Update", diff.Key, diff.Id, diff.Version);
                     await GalleryExport.WritePackage(sqlConnectionString, diff.Key, batcher);
                 }
-                else
-                {
-                    CatalogUpdaterEventSource.Log.WritingItem(
-                        "Delete", diff.Key, diff.Id, diff.Version);
+                // Also disabling deletes due to some edge cases.
+                //else if(diff.Result == ComparisonResult.PresentInCatalogOnly)
+                //{
+                //    CatalogUpdaterEventSource.Log.WritingItem(
+                //        "Delete", diff.Key, diff.Id, diff.Version);
 
-                    await batcher.Add(new DeletePackageCatalogItem(diff.Id, diff.Version, diff.Key.ToString()));
-                }
+                //    await batcher.Add(new DeletePackageCatalogItem(diff.Id, diff.Version, diff.Key.ToString()));
+                //}
                 CatalogUpdaterEventSource.Log.WroteItem();
             }
             await batcher.Complete();
