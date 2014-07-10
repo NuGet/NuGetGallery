@@ -80,6 +80,21 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
                                     {
                                         datatype = datatypeJToken.ToString();
                                     }
+                                    else
+                                    {
+                                        switch (value.Type)
+                                        {
+                                            case JTokenType.Boolean:
+                                                datatype = "http://www.w3.org/2001/XMLSchema#boolean";
+                                                break;
+                                            case JTokenType.Float:
+                                                datatype = "http://www.w3.org/2001/XMLSchema#double";
+                                                break;
+                                            case JTokenType.Integer:
+                                                datatype = "http://www.w3.org/2001/XMLSchema#integer";
+                                                break;
+                                        }
+                                    }
                                     if (!HandleTriple(handler, subject, property.Name, value.ToString(), datatype)) return;
                                 }
                             }
