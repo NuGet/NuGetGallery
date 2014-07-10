@@ -181,14 +181,47 @@ namespace MetadataClient
         [ArgActionMethod]
         public void Rebuild(RebuildArgs args)
         {
-            if (!args.BaseAddress.ToString().EndsWith("/"))
+            if (args.BaseAddress != null && !args.BaseAddress.ToString().EndsWith("/"))
             {
                 args.BaseAddress = new Uri(args.BaseAddress.ToString() + "/");
             }
 
-            var writer = new CatalogWriter(
-                new FileStorage(args.BaseAddress, args.CatalogFolder),
-                new CatalogContext());
+            // Load storage
+            Storage storage;
+            if (String.IsNullOrEmpty(args.CatalogFolder))
+            {
+                if (args.BaseAddress == null)
+                {
+                    throw new ArgumentNullException("BaseAddress");
+                }
+                storage = new FileStorage(args.BaseAddress, args.CatalogFolder);
+            }
+            else
+            {
+                if (String.IsNullOrEmpty(args.CatalogStorage))
+                {
+                    throw new ArgumentNullException("CatalogStorage");
+                }
+                if (String.IsNullOrEmpty(args.CatalogStoragePath))
+                {
+                    throw new ArgumentNullException("CatalogStoragePath");
+                }
+                var acct = CloudStorageAccount.Parse(args.CatalogStorage);
+                var dir = GetBlobDirectory(acct, args.CatalogStoragePath);
+                if (args.BaseAddress == null)
+                {
+                    string dirUrl = dir.Uri.ToString();
+                    if (!dirUrl.EndsWith("/"))
+                    {
+                        dirUrl += "/";
+                    }
+                    args.BaseAddress = new Uri(dirUrl);
+                }
+                storage = new AzureStorage(dir, args.BaseAddress);
+            }
+            Console.WriteLine("Using {0} with base address {1}", storage.GetType().Name, storage.BaseAddress);
+
+            var writer = new CatalogWriter(storage, new CatalogContext());
             var batcher = new GalleryExportBatcher(2000, writer);
             int lastHighest = 0;
             while(true) {
@@ -312,6 +345,32 @@ namespace MetadataClient
             XmlNamespaceManager namespaceManager = new XmlNamespaceManager(new NameTable());
             namespaceManager.AddNamespace("nuget", Nuget);
             return namespaceManager;
+        }
+
+        public static CloudBlobDirectory GetBlobDirectory(CloudStorageAccount account, string path)
+        {
+            var client = account.CreateCloudBlobClient();
+
+            string[] segments = path.Split('/');
+            string containerName;
+            string prefix;
+
+            if (segments.Length < 2)
+            {
+                // No "/" segments, so the path is a container and the catalog is at the root...
+                containerName = path;
+                prefix = String.Empty;
+            }
+            else
+            {
+                // Found "/" segments, but we need to get the first segment to use as the container...
+                containerName = segments[0];
+                prefix = String.Join("/", segments.Skip(1)) + "/";
+            }
+
+            var container = client.GetContainerReference(containerName);
+            var dir = container.GetDirectoryReference(prefix);
+            return dir;
         }
     }
 }

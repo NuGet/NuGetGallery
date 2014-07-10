@@ -8,13 +8,18 @@ namespace MetadataClient
     {
         private Uri _indexUrl;
 
-        [ArgRequired]
         [ArgShortcut("c")]
         [ArgDescription("The folder containing the catalog")]
-        public string CatalogFolder
-        { get; set; }
+        public string CatalogFolder { get; set; }
 
-        [ArgRequired]
+        [ArgShortcut("cst")]
+        [ArgDescription("Connection string to a storage account to hold the catalog")]
+        public string CatalogStorage { get; set; }
+
+        [ArgShortcut("cp")]
+        [ArgDescription("The path within the storage account to place the catalog")]
+        public string CatalogStoragePath { get; set; }
+
         [ArgShortcut("base")]
         [ArgDescription("The base address to use for URIs")]
         public Uri BaseAddress { get; set; }
