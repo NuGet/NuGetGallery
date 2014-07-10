@@ -109,6 +109,12 @@
             <xsl:when test="self::nuget:owners">
             </xsl:when>
 
+            <xsl:when test="self::nuget:requireLicenseAcceptance">
+              <ng:requireLicenseAcceptance rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">
+                <xsl:value-of select="."/>
+              </ng:requireLicenseAcceptance>
+            </xsl:when>
+
             <xsl:when test="self::nuget:id">
               <ng:id>
                 <xsl:value-of select="."/>

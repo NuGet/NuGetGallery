@@ -13,12 +13,12 @@ namespace CatalogTests
 
         public static async Task Test0Async()
         {
-            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site");
+            Storage storage = new FileStorage("http://localhost:8000/resolver/", @"c:\data\site\resolver");
 
             ResolverCollector collector = new ResolverCollector(storage, 1) { GalleryBaseAddress = "http://dev.nugettest.org", CdnBaseAddress = "http://az320820.vo.msecnd.net" };
 
-            //await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
-            await collector.Run(new Uri("https://nuget3.blob.core.windows.net/test20140708/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
+            //await collector.Run(new Uri("https://nuget3.blob.core.windows.net/test20140708/index.json"), DateTime.MinValue);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
 

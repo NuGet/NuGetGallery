@@ -30,7 +30,7 @@ namespace CatalogTests
             {
                 DateTime before = DateTime.Now;
                
-                //BuilderTests.Test1();
+                BuilderTests.Test1();
                 
                 CollectorTests.Test0();
                 
