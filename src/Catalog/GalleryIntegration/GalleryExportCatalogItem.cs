@@ -88,7 +88,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             { "PackageSize", "packageSize" },
             { "ProjectUrl", "projectUrl" },
             { "ReleaseNotes", "releaseNotes"},
-            { "RequireLicenseAcceptance", "requireLicenseAcceptance"},
+            { "RequiresLicenseAcceptance", "requireLicenseAcceptance"},
             { "Summary", "summary" },
             { "Title", "title" },
             { "LicenseUrl", "licenseUrl" },
