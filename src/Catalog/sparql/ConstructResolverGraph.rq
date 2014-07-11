@@ -27,7 +27,8 @@ CONSTRUCT
 					  nuget:published ?published ;
 					  nuget:tag ?tag ;
 					  nuget:releaseNotes ?releaseNotes ;
-					  nuget:title ?title .
+					  nuget:title ?title ;
+					  nuget:projectUrl ?projectUrl .
 
     ?timestamp a xsd:dateTime .
 
@@ -71,6 +72,7 @@ WHERE
 	OPTIONAL { ?package nuget:tag ?tag . }
 	OPTIONAL { ?package nuget:releaseNotes ?releaseNotes . }
 	OPTIONAL { ?package nuget:title ?title . }
+	OPTIONAL { ?package nuget:projectUrl ?projectUrl . }
 
 	FILTER (LCASE(?id) = @id)
 

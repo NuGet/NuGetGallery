@@ -29,10 +29,11 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             return cursor;
         }
 
-        public async Task Run(CollectorHttpClient client, Uri index, DateTime last)
+        public async Task<CollectorCursor> Run(CollectorHttpClient client, Uri index, CollectorCursor last)
         {
-            await Fetch(client, index, last);
+            CollectorCursor cursor = await Fetch(client, index, last);
             RequestCount = client.RequestCount;
+            return cursor;
         }
 
         public int RequestCount
