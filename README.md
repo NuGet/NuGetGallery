@@ -21,8 +21,8 @@ website for the NuGet client. For information about the NuGet clients, visit htt
     .\build
     ```
 4. Set up the website in IIS Express!
- 1. We highly recommend using IIS Express. Use the [Web Platform Installer](microsoft.com/web) to install it if you don't have it already (it comes with recent versions of VS and WebMatrix though)
- 2. In an ADMIN powershell prompt, run the .\tools\Enable-LocalTestMe.ps1 file. It allows non-admins to host websites at: http://nuget.localtest.me, it configures an IIS Express site at that URL and creates a self-signed SSL certificate. For more information on localtest.me, check out [readme.localtest.me](readme.localtest.me)
+ 1. We highly recommend using IIS Express. Use the [Web Platform Installer](http://microsoft.com/web) to install it if you don't have it already (it comes with recent versions of VS and WebMatrix though)
+ 2. In an ADMIN powershell prompt, run the .\tools\Enable-LocalTestMe.ps1 file. It allows non-admins to host websites at: http://nuget.localtest.me, it configures an IIS Express site at that URL and creates a self-signed SSL certificate. For more information on localtest.me, check out [readme.localtest.me](http://readme.localtest.me)
  3. If you're having trouble, go to the Project Properties for the Website project, click on the Web tab and change the URL to localhost:port where _port_ is some port number above 1024.
 
 5. Create the Database!
