@@ -128,6 +128,10 @@
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Helpers\XmlHtmlWriter.cs" />
     <Compile Include="Helpers\XsltHelper.cs" />
+    <Compile Include="Registration\Entry.cs" />
+    <Compile Include="Registration\RegistrationBuilder.cs" />
+    <Compile Include="Registration\Segment.cs" />
+    <Compile Include="Registration\SegmentIndex.cs" />
     <Compile Include="Schema.cs" />
   </ItemGroup>
   <ItemGroup>
