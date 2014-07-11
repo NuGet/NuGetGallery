@@ -1,9 +1,11 @@
-﻿using NuGet.Services.Metadata.Catalog.Persistence;
+﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Metadata.Catalog.Registration;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -103,6 +105,53 @@ namespace CatalogTests
         public static void Test0()
         {
             Test0Async().Wait();
+        }
+        static async Task Test1Async()
+        {
+            Uri indexUri = new Uri("https://nuget3.blob.core.windows.net/allversions/segment_index.json");
+
+            HttpClient client = new HttpClient();
+
+            HttpResponseMessage indexResponse = await client.GetAsync(indexUri);
+            string indexJson = await indexResponse.Content.ReadAsStringAsync();
+            JObject index = JObject.Parse(indexJson);
+
+            SortedList<string, Uri> segments = new SortedList<string, Uri>();
+
+            foreach (JObject entry in index["entry"])
+            {
+                segments.Add(entry["lowest"].ToString(), entry["url"].ToObject<Uri>());
+            }
+
+            foreach (var item in segments)
+            {
+                HttpResponseMessage segmentResponse = await client.GetAsync(item.Value);
+                string segmentJson = await segmentResponse.Content.ReadAsStringAsync();
+                JObject segment = JObject.Parse(segmentJson);
+
+                SortedList<string, JObject> packages = new SortedList<string, JObject>();
+
+                foreach (JObject entry in segment["entry"])
+                {
+                    packages.Add(entry["id"].ToString() + "." + entry["version"].ToString(), entry);
+                }
+
+                foreach (var package in packages)
+                {
+                    string description = package.Value["description"].ToString();
+                    description = description.Substring(0, Math.Min(description.Length, 25)) + "...";
+
+                    Console.WriteLine("{0} {1} {2}", package.Value["id"], package.Value["version"], description);
+                }
+            }
+        }
+        static void Test1()
+        {
+            DateTime before = DateTime.Now;
+            Test1Async().Wait();
+            DateTime after = DateTime.Now;
+
+            Console.WriteLine("duration: {0} seconds", (after - before).TotalSeconds);
         }
     }
 }
