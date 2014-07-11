@@ -72,34 +72,31 @@ namespace CatalogTests
             string connectionString = "...";
 
             string islatest = @"
-                SELECT PackageRegistrations.[Id], Packages.[NormalizedVersion], Packages.[Description] 
-                FROM Packages
-                INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
-                WHERE Packages.Listed = 1
-                  AND Packages.IsLatest = 1
-                ORDER BY PackageRegistrations.[Id]
-            ";
+                        SELECT PackageRegistrations.[Id], Packages.[NormalizedVersion], Packages.[Description] 
+                        FROM Packages
+                        INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
+                        WHERE Packages.Listed = 1
+                          AND Packages.IsLatest = 1
+                    ";
 
             string islateststable = @"
-                SELECT PackageRegistrations.[Id], Packages.[NormalizedVersion], Packages.[Description] 
-                FROM Packages
-                INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
-                WHERE Packages.Listed = 1
-                  AND Packages.IsLatestStable = 1
-                ORDER BY PackageRegistrations.[Id]
-            ";
+                        SELECT PackageRegistrations.[Id], Packages.[NormalizedVersion], Packages.[Description] 
+                        FROM Packages
+                        INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
+                        WHERE Packages.Listed = 1
+                          AND Packages.IsLatestStable = 1
+                    ";
 
             string allversions = @"
-                SELECT PackageRegistrations.[Id], Packages.[NormalizedVersion], Packages.[Description] 
-                FROM Packages
-                INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
-                WHERE Packages.Listed = 1
-                ORDER BY PackageRegistrations.[Id]
-            ";
+                        SELECT PackageRegistrations.[Id], Packages.[NormalizedVersion], Packages.[Description] 
+                        FROM Packages
+                        INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
+                        WHERE Packages.Listed = 1
+                    ";
 
             await CreateRegistrationAsync(CreateStorage("islatest"), resolverBaseAddress, connectionString, islatest);
-            //await CreateRegistrationAsync(CreateStorage("islateststable"), resolverBaseAddress, connectionString, islateststable);
-            //await CreateRegistrationAsync(CreateStorage("allversions"), resolverBaseAddress, connectionString, allversions);
+            await CreateRegistrationAsync(CreateStorage("islateststable"), resolverBaseAddress, connectionString, islateststable);
+            await CreateRegistrationAsync(CreateStorage("allversions"), resolverBaseAddress, connectionString, allversions);
         }
 
         public static void Test0()

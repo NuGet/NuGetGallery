@@ -12,7 +12,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public class RegistrationBuilder
     {
-        SortedList<string, Entry> _entries = new SortedList<string,Entry>();
+        SortedList<string, Entry> _entries = new SortedList<string, Entry>(StringComparer.InvariantCultureIgnoreCase);
         Storage _storage;
         int _segmentSize;
 
@@ -48,7 +48,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             Uri segmentIndexUri = _storage.ResolveUri("segment_index.json");
             SegmentIndex segmentIndex = new SegmentIndex(segmentIndexUri);
 
-            SortedList<string, Entry> batch = new SortedList<string, Entry>();
+            SortedList<string, Entry> batch = new SortedList<string, Entry>(StringComparer.InvariantCultureIgnoreCase);
             foreach (var item in _entries)
             {
                 batch.Add(item.Key, item.Value);
