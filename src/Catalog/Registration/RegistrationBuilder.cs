@@ -26,9 +26,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             _segmentSize = segmentSize;
             _storage = storage;
 
-            _segmentFrame = JObject.Parse((new StreamReader(@"context\Registration.json").ReadToEnd()));
+            _segmentFrame = JObject.Parse(Utils.GetResource("context.Registration.json"));
             _segmentFrame["@type"] = "http://schema.nuget.org/catalog#Segment";
-            _segmentIndexFrame = JObject.Parse((new StreamReader(@"context\Registration.json").ReadToEnd()));
+            _segmentIndexFrame = JObject.Parse(Utils.GetResource("context.Registration.json"));
             _segmentIndexFrame["@type"] = "http://schema.nuget.org/catalog#SegmentIndex";
 
             _verbose = verbose;

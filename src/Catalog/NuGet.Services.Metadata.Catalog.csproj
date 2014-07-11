@@ -152,6 +152,7 @@
     <EmbeddedResource Include="context\Package.json" />
     <EmbeddedResource Include="context\Resolver.json" />
     <EmbeddedResource Include="context\DeletePackage.json" />
+    <EmbeddedResource Include="context\Registration.json" />
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />

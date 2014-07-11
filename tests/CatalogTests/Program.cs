@@ -33,7 +33,7 @@ namespace CatalogTests
                 BuilderTests.Test1();
                 
                 CollectorTests.Test0();
-                
+
                 DateTime after = DateTime.Now;
 
                 Console.WriteLine("Total duration {0} seconds", (after - before).TotalSeconds);

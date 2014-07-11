@@ -91,6 +91,7 @@
     <Compile Include="MakeTestData.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RegistrationTests.cs" />
     <Compile Include="TestCatalogItem.cs" />
     <Compile Include="TestItemCollector.cs" />
   </ItemGroup>
