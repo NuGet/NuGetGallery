@@ -130,7 +130,7 @@
                 </li>
             }
 
-            @if (Model.FrameworkAssemblies != null && Model.FrameworkAssemblies.Any())
+            @if (Model.FrameworkAssembliesBySupportedFrameworks.Any())
             {
                 <li>
                     <h4>
@@ -138,15 +138,15 @@
                     </h4>
                     <div style="position: relative">
                         <ul>
-                            @foreach (var frameworkAssembly in Model.FrameworkAssemblies)
+                            @foreach (var framework in Model.FrameworkAssembliesBySupportedFrameworks)
                             {
                                 <li>
-                                    <b>@frameworkAssembly.AssemblyName</b>
+                                    <b>@framework.Key</b>
 
                                     <ul style="padding-left: 15px">
-                                        @foreach (var supportedFramework in frameworkAssembly.SupportedFrameworks)
+                                        @foreach (var assembly in framework.Value)
                                         {
-                                            <li>@supportedFramework.FullName</li>
+                                            <li>@assembly</li>
                                         }
                                     </ul>
                                 </li>

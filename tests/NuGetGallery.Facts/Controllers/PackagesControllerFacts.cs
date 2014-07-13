@@ -1097,11 +1097,18 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillPassFrameworkAssembliesToTheView()
+            public async Task WillPassFrameworkAssembliesWithSupportedFrameworkGroupingToTheView()
             {
                 var frameworkAssemblies = new List<FrameworkAssemblyReference>();
-                var reference = new FrameworkAssemblyReference("System.Net.Http");
-                frameworkAssemblies.Add(reference);
+
+                var supportedFrameworkMonoTouch = new FrameworkName("MonoTouch,Version=v0.0");
+                var supportedFrameworkMonoAndroid = new FrameworkName("MonoAndroid,Version=v0.0");
+                var supportedFrameworkv45 = new FrameworkName(".NETFramework,Version=v4.5");
+
+                frameworkAssemblies.Add(new FrameworkAssemblyReference("System.Net.Http", new List<FrameworkName> { supportedFrameworkv45 }));
+                frameworkAssemblies.Add(new FrameworkAssemblyReference("System.Net.Http.WebRequest", new List<FrameworkName> { supportedFrameworkv45 }));
+                frameworkAssemblies.Add(new FrameworkAssemblyReference("System.Net", new List<FrameworkName> { supportedFrameworkMonoAndroid }));
+                frameworkAssemblies.Add(new FrameworkAssemblyReference("System.Net", new List<FrameworkName> { supportedFrameworkMonoTouch }));
 
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 var fakeUploadFileStream = new MemoryStream();
@@ -1116,6 +1123,10 @@ namespace NuGetGallery
                 var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
                 Assert.Equal(frameworkAssemblies, model.FrameworkAssemblies);
+
+                Assert.Equal(3, model.FrameworkAssembliesBySupportedFrameworks.Count());
+
+
                 fakeUploadFileStream.Dispose();
             }
 

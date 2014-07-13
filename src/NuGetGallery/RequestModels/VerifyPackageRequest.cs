@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NuGet;
 
 namespace NuGetGallery
@@ -17,5 +18,47 @@ namespace NuGetGallery
 
         public IEnumerable<NuGet.PackageDependencySet> DependencySets { get; set; }
         public IEnumerable<FrameworkAssemblyReference> FrameworkAssemblies { get; set; }
+
+        public IEnumerable<KeyValuePair<string, IEnumerable<string>>> FrameworkAssembliesBySupportedFrameworks
+        {
+            get
+            {
+                if (FrameworkAssemblies == null || FrameworkAssemblies.Any() == false)
+                    return new List<KeyValuePair<string, IEnumerable<string>>>();
+
+                var resultList = new List<KeyValuePair<string, IEnumerable<string>>>();
+
+                foreach (var frameworkAssemblyReference in FrameworkAssemblies)
+                {
+                    if (frameworkAssemblyReference.SupportedFrameworks != null)
+                    {
+                        foreach (var supportedFramework in frameworkAssemblyReference.SupportedFrameworks)
+                        {
+                            if (resultList.Any(x => x.Key == supportedFramework.FullName))
+                            {
+                                var frameworkAlreadyInResultlist = resultList.Single();
+                                resultList.Remove(frameworkAlreadyInResultlist);
+
+                                var assemblyList = new List<string> { frameworkAssemblyReference.AssemblyName };
+                                assemblyList.AddRange(frameworkAlreadyInResultlist.Value);
+
+                                var groupedElement = new KeyValuePair<string, IEnumerable<string>>(supportedFramework.FullName, assemblyList);
+                                resultList.Add(groupedElement);
+                            }
+                            else
+                            {
+                                var assemblyList = new List<string> { frameworkAssemblyReference.AssemblyName };
+                                var groupedElement = new KeyValuePair<string, IEnumerable<string>>(supportedFramework.FullName, assemblyList);
+                                resultList.Add(groupedElement);
+                            }
+
+                        }
+                    }
+                }
+
+                return resultList;
+            }
+        }
+
     }
 }
