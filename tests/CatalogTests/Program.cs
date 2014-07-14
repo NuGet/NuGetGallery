@@ -32,7 +32,7 @@ namespace CatalogTests
                
                 BuilderTests.Test1();
                 
-                CollectorTests.Test0();
+                //CollectorTests.Test0();
 
                 DateTime after = DateTime.Now;
 
