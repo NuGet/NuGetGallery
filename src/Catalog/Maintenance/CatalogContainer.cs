@@ -86,8 +86,8 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             // The below code could be used to compact data storage by using relative URIs.
             //frame = (JObject)frame.DeepClone();
             //frame["@context"]["@base"] = _resourceUri.ToString();
-            
-            StorageContent content = new StringStorageContent(Utils.CreateJson(graph, frame), "application/json");
+
+            StorageContent content = new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
 
             return content;
         }

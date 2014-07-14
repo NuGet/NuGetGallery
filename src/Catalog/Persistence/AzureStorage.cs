@@ -71,7 +71,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
             blob.Properties.ContentType = content.ContentType;
-            blob.Properties.CacheControl = "no-store";  // no for production, just helps with debugging
+            blob.Properties.CacheControl = content.CacheControl;
 
             using (Stream stream = content.GetContentStream())
             {

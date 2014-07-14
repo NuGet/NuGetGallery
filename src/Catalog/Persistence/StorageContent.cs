@@ -10,6 +10,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             set;
         }
 
+        public string CacheControl
+        {
+            get;
+            set;
+        }
+
         public abstract Stream GetContentStream();
     }
 }
