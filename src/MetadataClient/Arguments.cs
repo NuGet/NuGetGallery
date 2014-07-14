@@ -168,12 +168,12 @@ namespace MetadataClient
             collector.Trace.Switch.Level = SourceLevels.All;
 
             var timestamp = DateTime.UtcNow;
-            Console.WriteLine("Collecting new checksums since: {0} UTC", checksums.TimestampUtc);
+            Console.WriteLine("Collecting new checksums since: {0} UTC", checksums.Cursor);
             using (var client = new CollectorHttpClient(handler))
             {
-                collector.Run(client, args.IndexUrl, checksums.TimestampUtc).Wait();
+                collector.Run(client, args.IndexUrl, checksums.Cursor).Wait();
             }
-            checksums.TimestampUtc = timestamp;
+            checksums.Cursor = timestamp;
 
             collector.Checksums.Save().Wait();
         }

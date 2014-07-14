@@ -22,6 +22,7 @@ var fetchItem = function (pageItem, index, callback) {
 }
 
 var fetchPage = function (indexItem, index, callback) {
+    debugger;
   if (indexItem.length == index) {
     callback();
     return;
@@ -33,7 +34,7 @@ var fetchPage = function (indexItem, index, callback) {
     });
     res.on('end', function () {
       var page = JSON.parse(data);
-      fetchItem(page.item, 0, function () {
+      fetchItem(page.items, 0, function () {
         fetchPage(indexItem, index + 1, callback);
       });
     });
@@ -51,7 +52,7 @@ var fetchIndex = function (address, callback) {
     });
     res.on('end', function () {
       var index = JSON.parse(data);
-      fetchPage(index.item, 0, function () {
+      fetchPage(index.items, 0, function () {
         callback();
       });
     });
@@ -61,6 +62,6 @@ var fetchIndex = function (address, callback) {
   });
 }
 
-fetchIndex('http://localhost:8000/test/catalog/index.json', function () {
+fetchIndex('http://localhost:8000/full/index.json', function () {
   console.log('...');
 });
