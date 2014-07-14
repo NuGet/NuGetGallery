@@ -13,12 +13,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
     public abstract class ChecksumRecords
     {
         public IDictionary<int, JObject> Data { get; private set; }
-        public DateTime TimestampUtc { get; set; }
+        public CollectorCursor Cursor { get; set; }
 
         protected ChecksumRecords()
         {
             Data = new Dictionary<int, JObject>();
-            TimestampUtc = DateTime.MinValue;
+            Cursor = DateTime.MinValue;
         }
 
         public async Task Load()
@@ -26,14 +26,14 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             var json = await LoadJson();
             if (json != null)
             {
-                TimestampUtc = json.Value<DateTime>("commitTimestamp");
-                Data = json.Value<JObject>("data").Properties().ToDictionary(
+                Cursor = new CollectorCursor(json.Value<string>("http://schema.nuget.org/collectors/checksums#cursor"));
+                Data = json.Value<JObject>("http://schema.nuget.org/collectors/resolver#data").Properties().ToDictionary(
                     p => Int32.Parse(p.Name),
                     p => p.Value.Value<JObject>());
             }
             else
             {
-                TimestampUtc = DateTime.MinValue;
+                Cursor = DateTime.MinValue;
                 Data = new Dictionary<int, JObject>();
             }
         }
@@ -41,8 +41,8 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         public Task Save()
         {
             var document = new JObject(
-                new JProperty("commitTimestamp", TimestampUtc.ToString("O")),
-                new JProperty("data", new JObject(
+                new JProperty("http://schema.nuget.org/collectors/checksums#cursor", Cursor.Value),
+                new JProperty("http://schema.nuget.org/collectors/resolver#data", new JObject(
                     Data.Select(p =>
                         new JProperty(p.Key.ToString(), p.Value)))));
             return SaveJson(document);
