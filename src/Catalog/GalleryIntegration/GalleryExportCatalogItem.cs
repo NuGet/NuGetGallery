@@ -150,18 +150,12 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 
             if (export.Dependencies != null)
             {
-                string dependenciesUri = resourceUri + "#dependencies";
-
-                JObject dependenciesObj = new JObject();
-
-                dependenciesObj.Add("url", dependenciesUri);
-
                 JArray dependencyGroups = new JArray();
                 foreach (IGrouping<JToken, JObject> group in export.Dependencies.GroupBy(d => d["TargetFramework"]))
                 {
                     string targetFramework = group.Key.ToString();
 
-                    string dependencyGroupUri = dependenciesUri + "/group";
+                    string dependencyGroupUri = resourceUri + "#dependencyGroup";
 
                     JObject dependencyGroup = new JObject();
 
@@ -184,7 +178,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                         string dependencyGroupDependencyUri = dependencyGroupUri + "/" + id;
 
                         dependencyGroupDependency.Add("url", dependencyGroupDependencyUri);
-                        dependencyGroupDependency.Add("packageId", id);
+                        dependencyGroupDependency.Add("id", id);
                         dependencyGroupDependency.Add("range", value["VersionSpec"].ToString());
 
                         dependencyGroupDependencies.Add(dependencyGroupDependency);
@@ -195,9 +189,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                     dependencyGroups.Add(dependencyGroup);
                 }
 
-                dependenciesObj.Add("group", dependencyGroups);
-
-                obj.Add("dependencies", dependenciesObj);
+                obj.Add("dependencyGroup", dependencyGroups);
             }
 
             if (export.TargetFrameworks != null)

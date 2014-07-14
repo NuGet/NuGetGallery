@@ -6,7 +6,7 @@
         "@vocab": "http://schema.nuget.org/schema#",
 
         "url": "@id",
-        "group" : { "@container" : "@set" },
+        "dependencyGroup" : { "@container" : "@set" },
         "dependency" : { "@container" : "@set" },
         "property" : { "@container" : "@set" },
         "catalog:commitTimestamp" : { "@type" : "xsd:dateTime" }
