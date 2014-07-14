@@ -29,7 +29,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
 
-            StorageContent content = new StringStorageContent(Utils.CreateJson(graph, frame), "application/json");
+            StorageContent content = new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
 
             return content;
         }

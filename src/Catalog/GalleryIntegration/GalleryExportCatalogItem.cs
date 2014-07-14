@@ -29,7 +29,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
             JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
             obj.Add("@context", frame["@context"]);
             
-            StorageContent content = new StringStorageContent(obj.ToString(), "application/json");
+            StorageContent content = new StringStorageContent(obj.ToString(), "application/json", "no-store");
 
             return content;
         }
