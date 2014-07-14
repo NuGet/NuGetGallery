@@ -17,10 +17,6 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 {
     public class ChecksumCollector : BatchCollector
     {
-        public static readonly Uri[] Types = new Uri[] {
-            new Uri("http://nuget.org/schema#Package")
-        };
-
         public ChecksumRecords Checksums { get; private set; }
         public TraceSource Trace { get; private set; }
 
@@ -33,7 +29,13 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         protected override async Task<CollectorCursor> Fetch(CollectorHttpClient client, Uri index, CollectorCursor last)
         {
             ChecksumCollectorEventSource.Log.Collecting(index.ToString(), ((DateTime)last).ToString("O"));
+            
+            // Run the collector
             var cursor = await base.Fetch(client, index, last);
+            
+            // Update the cursor
+            Checksums.Cursor = cursor;
+
             ChecksumCollectorEventSource.Log.Collected();
             return cursor;
         }
