@@ -27,6 +27,7 @@ CONSTRUCT
 					  nuget:reportAbuseUrl ?reportAbuseUrl ;
 					  nuget:published ?published ;
 					  nuget:tag ?tag ;
+					  nuget:packageTargetFramework ?targetFramework ;
 					  nuget:releaseNotes ?releaseNotes ;
 					  nuget:title ?title ;
 					  nuget:projectUrl ?projectUrl .
@@ -41,7 +42,7 @@ CONSTRUCT
     ?resource_dependency_group_property nuget:name ?dependency_group_property_name ;
                                         nuget:value ?dependency_group_property_value .
 
-	?resource_dependency nuget:packageId ?dependency_id ;
+	?resource_dependency nuget:id ?dependency_id ;
 				         nuget:registration ?dependency_registration ;
 				         nuget:range ?dependency_version ;
 				         nuget:property ?resource_dependency_property .
@@ -71,6 +72,7 @@ WHERE
 	OPTIONAL { ?package nuget:downloadCount ?downloadCount . }
 	OPTIONAL { ?package nuget:published ?published . }
 	OPTIONAL { ?package nuget:tag ?tag . }
+	OPTIONAL { ?package nuget:targetFramework ?targetFramework . }
 	OPTIONAL { ?package nuget:releaseNotes ?releaseNotes . }
 	OPTIONAL { ?package nuget:title ?title . }
 	OPTIONAL { ?package nuget:projectUrl ?projectUrl . }
@@ -78,7 +80,6 @@ WHERE
 	FILTER (LCASE(?id) = @id)
 
 	BIND (IRI(CONCAT(STR(?resource), "#", ?version)) AS ?resource_package)
-    BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependencies), "#"))) AS ?resource_dependencies)
 	BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_group), "#"))) AS ?resource_dependency_group)
 	BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_group_property), "#"))) AS ?resource_dependency_group_property)
 	BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency), "#"))) AS ?resource_dependency)
@@ -100,7 +101,7 @@ WHERE
 			       ?dependency_group_property nuget:name ?dependency_group_property_name ;
 								              nuget:value ?dependency_group_property_value . }
 		
-		?dependency nuget:packageId ?dependency_id .
+		?dependency nuget:id ?dependency_id .
 		BIND (IRI(CONCAT(@base, STR(?dependency_id), @extension)) AS ?dependency_registration)
 		OPTIONAL { ?dependency nuget:range ?dependency_version . }
 

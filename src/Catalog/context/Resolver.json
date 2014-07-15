@@ -10,6 +10,7 @@
         "licenseNames" : { "@container" : "@set", "@id": "licenseName" },
         "properties" : { "@container" : "@set", "@id": "property" },
         "tags":  { "@container": "@set", "@id": "tag" },
+        "packageTargetFrameworks":  { "@container": "@set", "@id": "packageTargetFramework" },
         "nupkgUrl": { "@type": "@id" },
         "galleryDetailsUrl": { "@type": "@id" },
         "reportAbuseUrl": { "@type": "@id" },
