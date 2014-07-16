@@ -83,7 +83,7 @@ namespace CatalogTests
             }
 
             //Storage storage = new FileStorage("http://localhost:8000/partition", @"c:\data\site\partition");
-            //CloudStorageAccount account = new CloudStorageAccount(new StorageCredentials("partitions", ""), false);
+            CloudStorageAccount account = new CloudStorageAccount(new StorageCredentials("partitions", ""), false);
 
             IList<Task> createTasks = new List<Task>();
 
