@@ -89,7 +89,10 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                 resource.Value.Merge(existingGraph);
             }
 
-            StorageContent content = new StringStorageContent(Utils.CreateJson(resource.Value, _resolverFrame), "application/json");
+            StorageContent content = new StringStorageContent(
+                Utils.CreateJson(resource.Value, _resolverFrame), 
+                contentType: "application/json", 
+                cacheControl: "public, max-age=300, s-maxage=300");
             await _storage.Save(resource.Key, content);
         }
     }

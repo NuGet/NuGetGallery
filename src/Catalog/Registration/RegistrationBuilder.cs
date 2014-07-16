@@ -15,16 +15,18 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         SortedList<string, Entry> _entries = new SortedList<string, Entry>(StringComparer.InvariantCultureIgnoreCase);
         Storage _storage;
         int _segmentSize;
+        string _name;
 
         JObject _segmentFrame;
         JObject _segmentIndexFrame;
 
         bool _verbose;
  
-        public RegistrationBuilder(Storage storage, int segmentSize, bool verbose = false)
+        public RegistrationBuilder(Storage storage, string name, int segmentSize, bool verbose = false)
         {
             _segmentSize = segmentSize;
             _storage = storage;
+            _name = name.Trim('/') + '/';
 
             _segmentFrame = JObject.Parse(Utils.GetResource("context.Registration.json"));
             _segmentFrame["@type"] = "http://schema.nuget.org/catalog#Segment";
@@ -45,7 +47,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         public async Task Commit()
         {
-            Uri segmentIndexUri = _storage.ResolveUri("segment_index.json");
+            Uri segmentIndexUri = _storage.ResolveUri(_name + "segment_index.json");
             SegmentIndex segmentIndex = new SegmentIndex(segmentIndexUri);
 
             SortedList<string, Entry> batch = new SortedList<string, Entry>(StringComparer.InvariantCultureIgnoreCase);
@@ -77,7 +79,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 return;
             }
 
-            Uri segmentUri = _storage.ResolveUri(segmentIndex.GetNextSegmentName());
+            Uri segmentUri = _storage.ResolveUri(_name + segmentIndex.GetNextSegmentName());
 
             Segment segment = new Segment();
             segment.Uri = segmentUri;

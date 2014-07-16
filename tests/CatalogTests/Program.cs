@@ -31,8 +31,10 @@ namespace CatalogTests
                 DateTime before = DateTime.Now;
                
                 BuilderTests.Test1();
-                
-                CollectorTests.Test0();
+                //CollectorTests.Test0();
+
+                //PartitioningTests.Test0();
+                //PartitioningTests.Test1();
 
                 DateTime after = DateTime.Now;
 

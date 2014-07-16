@@ -99,6 +99,7 @@
     <Compile Include="GalleryIntegration\GalleryExportCatalogItem.cs" />
     <Compile Include="GalleryIntegration\GalleryExportPackage.cs" />
     <Compile Include="GraphExtensions.cs" />
+    <Compile Include="Helpers\IndexingHelpers.cs" />
     <Compile Include="Maintenance\AzureStorageChecksumRecords.cs" />
     <Compile Include="Maintenance\CatalogBatcher.cs" />
     <Compile Include="Maintenance\CatalogContainer.cs" />

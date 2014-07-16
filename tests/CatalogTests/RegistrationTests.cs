@@ -20,7 +20,7 @@ namespace CatalogTests
 
         static async Task CreateRegistrationAsync(Storage storage, string resolverBaseAddress, string connectionString, string sql, Func<Entry, string> key)
         {
-            RegistrationBuilder builder = new RegistrationBuilder(storage, 1000, true);
+            RegistrationBuilder builder = new RegistrationBuilder(storage, "registration", 1000, true);
 
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
