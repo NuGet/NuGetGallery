@@ -89,6 +89,7 @@
     <Compile Include="DeleteTests.cs" />
     <Compile Include="End2EndTests.cs" />
     <Compile Include="MakeTestData.cs" />
+    <Compile Include="PartitioningTests.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegistrationTests.cs" />

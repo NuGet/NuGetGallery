@@ -23,9 +23,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
             INode timeStampPredicate = graph.CreateUriNode(Schema.Predicates.CatalogTimestamp);
             INode commitIdPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCommitId);
+            INode publishedPredicate = graph.CreateUriNode(Schema.Predicates.Published);
+
             Triple resource = graph.GetTriplesWithPredicateObject(rdfTypePredicate, graph.CreateUriNode(GetItemType())).First();
             graph.Assert(resource.Subject, timeStampPredicate, graph.CreateLiteralNode(GetTimeStamp().ToString("O"), Schema.DataTypes.DateTime));
             graph.Assert(resource.Subject, commitIdPredicate, graph.CreateLiteralNode(GetCommitId().ToString()));
+            graph.Assert(resource.Subject, publishedPredicate, graph.CreateLiteralNode(GetTimeStamp().ToString("O"), Schema.DataTypes.DateTime));
 
             JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
 

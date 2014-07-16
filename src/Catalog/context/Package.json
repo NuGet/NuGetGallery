@@ -1,14 +1,14 @@
 ﻿{
     "@context": {
-        "nuget": "http://schema.nuget.org/schema#",
+        "@vocab": "http://schema.nuget.org/schema#",
         "catalog": "http://schema.nuget.org/catalog#",
         "xsd": "http://www.w3.org/2001/XMLSchema#",
-        "@vocab": "http://schema.nuget.org/schema#",
 
         "url": "@id",
-        "dependencyGroup" : { "@container" : "@set" },
         "dependency" : { "@container" : "@set" },
+        "dependencyGroup" : { "@container" : "@set" },
         "property" : { "@container" : "@set" },
+        "published" : { "@type" : "xsd:dateTime" },
         "catalog:commitTimestamp" : { "@type" : "xsd:dateTime" }
     }
 }

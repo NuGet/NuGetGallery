@@ -29,40 +29,32 @@
           <xsl:choose>
 
             <xsl:when test="self::nuget:dependencies">
-              <ng:dependencies>
-                <rdf:Description>
                   
-                  <xsl:attribute name="rdf:about">
-                    <xsl:value-of select="translate(concat($base, $path, $extension, '#dependencies'), $uppercase, $lowercase)"/>
-                  </xsl:attribute>
+              <xsl:choose>
                   
-                  <xsl:choose>
-                  
-                    <xsl:when test="nuget:group">
-                      <xsl:apply-templates select="nuget:group">
-                        <xsl:with-param name="path" select="$path" />
-                        <xsl:with-param name="parent_fragment" select="'#dependencies/group'" />
-                      </xsl:apply-templates>
-                    </xsl:when>
+                <xsl:when test="nuget:group">
+                  <xsl:apply-templates select="nuget:group">
+                    <xsl:with-param name="path" select="$path" />
+                    <xsl:with-param name="parent_fragment" select="'#dependencyGroup'" />
+                  </xsl:apply-templates>
+                </xsl:when>
                     
-                    <xsl:otherwise>
-                      <ng:group>
-                        <rdf:Description>
-                          <xsl:attribute name="rdf:about">
-                            <xsl:value-of select="translate(concat($base, $path, $extension, '#dependencies/group'), $uppercase, $lowercase)"/>
-                          </xsl:attribute>
-                          <xsl:apply-templates select="nuget:dependency">
-                            <xsl:with-param name="path" select="$path" />
-                            <xsl:with-param name="parent_fragment" select="'#dependencies/group'" />
-                          </xsl:apply-templates>
-                        </rdf:Description>
-                      </ng:group>
-                    </xsl:otherwise>
+                <xsl:otherwise>
+                  <ng:dependencyGroup>
+                    <rdf:Description>
+                      <xsl:attribute name="rdf:about">
+                        <xsl:value-of select="translate(concat($base, $path, $extension, '#dependencyGroup'), $uppercase, $lowercase)"/>
+                      </xsl:attribute>
+                      <xsl:apply-templates select="nuget:dependency">
+                        <xsl:with-param name="path" select="$path" />
+                        <xsl:with-param name="parent_fragment" select="'#dependencyGroup'" />
+                      </xsl:apply-templates>
+                    </rdf:Description>
+                  </ng:dependencyGroup>
+                </xsl:otherwise>
                   
-                  </xsl:choose>
+              </xsl:choose>
                   
-                </rdf:Description>
-              </ng:dependencies>
             </xsl:when>
 
             <xsl:when test="self::nuget:references">
@@ -143,7 +135,7 @@
   <xsl:template match="nuget:group">
     <xsl:param name="path" />
     <xsl:param name="parent_fragment" />
-    <ng:group>
+    <ng:dependencyGroup>
       <rdf:Description>
 
         <xsl:variable name="fragment">
@@ -192,7 +184,7 @@
         </xsl:apply-templates>
 
       </rdf:Description>
-    </ng:group>
+    </ng:dependencyGroup>
   </xsl:template>
 
   <xsl:template match="nuget:dependency">
