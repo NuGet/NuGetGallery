@@ -20,12 +20,12 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         public CollectorCursor(DateTime rawValue)
         {
-            _rawValue = rawValue;
+            _rawValue = rawValue.ToUniversalTime();
         }
 
         public static CollectorCursor FromString(string str)
         {
-            return DateTime.Parse(str, CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal);
+            return DateTime.Parse(str, CultureInfo.CurrentCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal);
         }
 
         public static explicit operator DateTime(CollectorCursor cur)
