@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using VDS.RDF;
 using VDS.RDF.Query;
 using System.Diagnostics.Tracing;
+using System.Text;
 
 namespace NuGet.Services.Metadata.Catalog.Collecting
 {
@@ -99,12 +100,14 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                 resource.Value.Merge(existingGraph);
             }
 
+            string json = Utils.CreateJson(resource.Value, _resolverFrame);
             StorageContent content = new StringStorageContent(
-                Utils.CreateJson(resource.Value, _resolverFrame), 
+                json, 
                 contentType: "application/json", 
                 cacheControl: "public, max-age=300, s-maxage=300");
-            
-            ResolverCollectorEventSource.Log.EmittingBlob(resource.Key.ToString());
+
+            // Estimate the file size and report it
+            ResolverCollectorEventSource.Log.EmittingBlob(resource.Key.ToString(), Encoding.UTF8.GetByteCount(json) / 1024);
             try
             {
                 await _storage.Save(resource.Key, content);
@@ -157,8 +160,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             Level = EventLevel.Informational,
             Opcode = EventOpcode.Start,
             Task = Tasks.EmittingBlob,
-            Message = "Emitting blob: {0}")]
-        public void EmittingBlob(string blob) { WriteEvent(5, blob); }
+            Message = "Emitting blob: {0} (~{1:0.00}KB)")]
+        public void EmittingBlob(string blob, double sizeInKB) { WriteEvent(5, blob, sizeInKB); }
 
         [Event(
             eventId: 6,
