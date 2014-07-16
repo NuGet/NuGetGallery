@@ -15,11 +15,13 @@ using NuGet;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public partial class ApiController : AppController
     {
+        private readonly IAppConfiguration _config;
         public IEntitiesContext EntitiesContext { get; set; }
         public INuGetExeDownloaderService NugetExeDownloaderService { get; set; }
         public IPackageFileService PackageFileService { get; set; }
@@ -44,7 +46,8 @@ namespace NuGetGallery
             IIndexingService indexingService,
             ISearchService searchService,
             IAutomaticallyCuratePackageCommand autoCuratePackage,
-            IStatusService statusService)
+            IStatusService statusService,
+            IAppConfiguration config)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -57,6 +60,7 @@ namespace NuGetGallery
             SearchService = searchService;
             AutoCuratePackage = autoCuratePackage;
             StatusService = statusService;
+            _config = config;
         }
 
         public ApiController(
@@ -70,8 +74,9 @@ namespace NuGetGallery
             ISearchService searchService,
             IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatusService statusService,
-            IStatisticsService statisticsService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService)
+            IStatisticsService statisticsService,
+            IAppConfiguration config)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, searchService, autoCuratePackage, statusService, config)
         {
             StatisticsService = statisticsService;
         }
@@ -336,8 +341,19 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> ServiceAlert()
         {
+            string alertString = null;
             var alert = await ContentService.GetContentItemAsync(Constants.ContentNames.Alert, TimeSpan.Zero);
-            return Content(alert == null ? (string)null : alert.ToString(), "text/html");
+            if (alert != null)
+            {
+                alertString = alert.ToString();
+            }
+            
+            if (String.IsNullOrEmpty(alertString) && _config.ReadOnlyMode)
+            {
+                var readOnly = await ContentService.GetContentItemAsync(Constants.ContentNames.ReadOnly, TimeSpan.Zero);
+                alertString = (readOnly == null) ? (string)null : readOnly.ToString();
+            }
+            return Content(alertString, "text/html");
         }
 
         public virtual async Task<ActionResult> Team()
