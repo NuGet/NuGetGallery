@@ -1,18 +1,38 @@
-﻿PREFIX nuget: <http://nuget.org/schema#>
-PREFIX catalog: <http://nuget.org/catalog#>
+﻿PREFIX nuget: <http://schema.nuget.org/schema#>
+PREFIX catalog: <http://schema.nuget.org/catalog#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 CONSTRUCT
 {
-    ?resource a nuget:Resolver ;
+    ?resource a nuget:PackageRegistration ;
 	          nuget:id @id ;
 			  nuget:package ?resource_package .
 
 	?resource_package nuget:version ?version ;
-	                  nuget:dependencies ?resource_dependencies ;
+					  nuget:dependencyGroup ?resource_dependency_group ;
 					  catalog:commitId ?commitId ;
-					  catalog:timeStamp ?timeStamp .
+					  catalog:commitTimestamp ?timeStamp ;
+					  nuget:authors ?authors ;
+					  nuget:description ?description ;
+					  nuget:isLatestVersion ?isLatestVersion ;
+					  nuget:isAbsoluteLatestVersion ?isAbsoluteLatestVersion ;
+					  nuget:isPrerelease ?isPrerelease ;
+					  nuget:requireLicenseAcceptance ?requireLicenseAcceptance ;
+					  nuget:licenseUrl ?licenseUrl ;
+					  nuget:licenseName ?licenseName ;
+					  nuget:iconUrl ?iconUrl ;
+					  nuget:downloadCount ?downloadCount ;
+					  nuget:galleryDetailsUrl ?galleryDetailsUrl ;
+					  nuget:nupkgUrl ?nupkgUrl ;
+					  nuget:reportAbuseUrl ?reportAbuseUrl ;
+					  nuget:published ?published ;
+					  nuget:tag ?tag ;
+					  nuget:packageTargetFramework ?targetFramework ;
+					  nuget:releaseNotes ?releaseNotes ;
+					  nuget:title ?title ;
+					  nuget:projectUrl ?projectUrl .
 
-    ?resource_dependencies nuget:group ?resource_dependency_group .
+    ?timestamp a xsd:dateTime .
 
     ?resource_dependency_group nuget:dependency ?resource_dependency ;
                                nuget:targetFramework ?dependency_group_targetFramework ;
@@ -23,6 +43,7 @@ CONSTRUCT
                                         nuget:value ?dependency_group_property_value .
 
 	?resource_dependency nuget:id ?dependency_id ;
+				         nuget:registration ?dependency_registration ;
 				         nuget:range ?dependency_version ;
 				         nuget:property ?resource_dependency_property .
 
@@ -37,21 +58,41 @@ WHERE
 	         nuget:version ?version ;
              nuget:id ?id ;
 			 catalog:commitId ?commitId ;
-			 catalog:timeStamp ?timeStamp .
+			 catalog:commitTimestamp ?timeStamp .
+
+	OPTIONAL { ?package nuget:authors ?authors . }
+	OPTIONAL { ?package nuget:description ?description . }
+	OPTIONAL { ?package nuget:isLatestStable ?isLatestVersion . }
+	OPTIONAL { ?package nuget:isLatest ?isAbsoluteLatestVersion . }
+	OPTIONAL { ?package nuget:isPrerelease ?isPrerelease . }
+	OPTIONAL { ?package nuget:requireLicenseAcceptance ?requireLicenseAcceptance . }
+	OPTIONAL { ?package nuget:licenseUrl ?licenseUrl . }
+	OPTIONAL { ?package nuget:licenseName ?licenseName . }
+	OPTIONAL { ?package nuget:iconUrl ?iconUrl . }
+	OPTIONAL { ?package nuget:downloadCount ?downloadCount . }
+	OPTIONAL { ?package nuget:published ?published . }
+	OPTIONAL { ?package nuget:tag ?tag . }
+	OPTIONAL { ?package nuget:targetFramework ?targetFramework . }
+	OPTIONAL { ?package nuget:releaseNotes ?releaseNotes . }
+	OPTIONAL { ?package nuget:title ?title . }
+	OPTIONAL { ?package nuget:projectUrl ?projectUrl . }
 
 	FILTER (LCASE(?id) = @id)
 
 	BIND (IRI(CONCAT(STR(?resource), "#", ?version)) AS ?resource_package)
-    BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependencies), "#"))) AS ?resource_dependencies)
 	BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_group), "#"))) AS ?resource_dependency_group)
 	BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_group_property), "#"))) AS ?resource_dependency_group_property)
 	BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency), "#"))) AS ?resource_dependency)
 	BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_property), "#"))) AS ?resource_dependency_property)
 
+	BIND (IRI(CONCAT(@galleryBase, "/packages/", ?id, "/", ?version )) AS ?galleryDetailsUrl)
+	BIND (IRI(CONCAT(STR(?galleryDetailsUrl), "/ReportAbuse" )) AS ?reportAbuseUrl)
+
+	BIND (IRI(CONCAT(@cdnBase, "/packages/", LCASE(?id), ".", ?version, ".nupkg" )) AS ?nupkgUrl)
+
 	OPTIONAL
 	{
-        ?package nuget:dependencies ?dependencies .
-		?dependencies nuget:group ?dependency_group .
+        ?package nuget:dependencyGroup ?dependency_group .
 		?dependency_group nuget:dependency ?dependency .
 
 		OPTIONAL { ?dependency_group nuget:targetFramework ?dependency_group_targetFramework . }
@@ -61,6 +102,7 @@ WHERE
 								              nuget:value ?dependency_group_property_value . }
 		
 		?dependency nuget:id ?dependency_id .
+		BIND (IRI(CONCAT(@base, STR(?dependency_id), @extension)) AS ?dependency_registration)
 		OPTIONAL { ?dependency nuget:range ?dependency_version . }
 
 		OPTIONAL { ?dependency nuget:property ?dependency_property .

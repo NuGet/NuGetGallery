@@ -36,22 +36,22 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             JToken context = null;
             root.TryGetValue("@context", out context);
 
-            IEnumerable<JToken> rootItems = root["item"].OrderBy(item => item["timeStamp"].ToObject<DateTime>());
+            IEnumerable<JToken> rootItems = root["items"].OrderBy(item => item["commitTimestamp"].ToObject<DateTime>());
 
             foreach (JObject rootItem in rootItems)
             {
-                DateTime pageTimeStamp = rootItem["timeStamp"].ToObject<DateTime>();
+                DateTime pageTimeStamp = rootItem["commitTimestamp"].ToObject<DateTime>();
 
                 if (pageTimeStamp > lastDateTime)
                 {
                     Uri pageUri = rootItem["url"].ToObject<Uri>();
                     JObject page = await client.GetJObjectAsync(pageUri);
 
-                    IEnumerable<JToken> pageItems = page["item"].OrderBy(item => item["timeStamp"].ToObject<DateTime>());
+                    IEnumerable<JToken> pageItems = page["items"].OrderBy(item => item["commitTimestamp"].ToObject<DateTime>());
 
                     foreach (JObject pageItem in pageItems)
                     {
-                        DateTime itemTimeStamp = pageItem["timeStamp"].ToObject<DateTime>();
+                        DateTime itemTimeStamp = pageItem["commitTimestamp"].ToObject<DateTime>();
 
                         if (itemTimeStamp > lastDateTime)
                         {

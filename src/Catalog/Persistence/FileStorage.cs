@@ -6,8 +6,20 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class FileStorage : Storage
     {
-        public FileStorage()
+        public FileStorage(string baseAddress, string path) 
+            : this(new Uri(baseAddress), path) { }
+
+        public FileStorage(Uri baseAddress, string path)
+            : base(baseAddress)
         {
+            Path = path;
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(path);
+            if (!directoryInfo.Exists)
+            {
+                directoryInfo.Create();
+            }
+
             ResetStatistics();
         }
 
@@ -21,7 +33,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             SaveCount++;
 
-            string name = GetName(resourceUri, BaseAddress, Container);
+            string name = GetName(resourceUri);
 
             if (Verbose)
             {
@@ -63,7 +75,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             LoadCount++;
 
-            string name = GetName(resourceUri, BaseAddress, Container);
+            string name = GetName(resourceUri);
 
             if (Verbose)
             {
@@ -101,7 +113,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             DeleteCount++;
 
-            string name = GetName(resourceUri, BaseAddress, Container);
+            string name = GetName(resourceUri);
 
             if (Verbose)
             {

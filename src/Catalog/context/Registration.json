@@ -1,0 +1,11 @@
+﻿{ 
+	"@context" : { 
+		"@vocab" : "http://schema.nuget.org/catalog#",
+		"nuget" : "http://schema.nuget.org/schema#",
+		"id" : "nuget:id",
+		"version" : "nuget:version",
+		"description" : "nuget:description",
+        "entry" : { "@container" : "@set" },
+		"url" : "@id"
+	}
+}

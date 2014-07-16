@@ -29,31 +29,10 @@ namespace CatalogTests
             try
             {
                 DateTime before = DateTime.Now;
-
-                //MakeTestData.Test0();
-                //BuilderTests.Test0();
-                //BuilderTests.Test1();
-                //BuilderTests.Test2();
-                //BuilderTests.Test3();
-                //BuilderTests.Test4();
-
+               
+                BuilderTests.Test1();
+                
                 CollectorTests.Test0();
-                //CollectorTests.Test1();
-                //CollectorTests.Test2();
-                //CollectorTests.Test3();
-                //CollectorTests.Test4();
-
-                //End2EndTests.Test0();
-                //End2EndTests.Test1();
-
-                //CheckResults.Test0();
-
-                //DeleteTests.Test0();
-                //DeleteTests.Test1();
-
-                //ExportTests.Test0();
-                //ExportTests.Test1();
-                //ExportTests.Test2();
 
                 DateTime after = DateTime.Now;
 

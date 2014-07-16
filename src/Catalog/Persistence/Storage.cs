@@ -6,7 +6,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public abstract class Storage
     {
-        string _baseAddress;
+        public Storage(Uri baseAddress)
+        {
+            string s = baseAddress.OriginalString.TrimEnd('/') + '/';
+            BaseAddress = new Uri(s);
+        }
 
         public abstract Task Save(Uri resourceUri, StorageContent content);
         public abstract Task<StorageContent> Load(Uri resourceUri);
@@ -29,18 +33,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
         }
 
-        public string Container
-        {
-            get;
-            set;
-        }
-
-        public string BaseAddress
-        {
-            get { return _baseAddress; }
-            set { _baseAddress = value.TrimEnd('/') + '/'; }
-        }
-
+        public Uri BaseAddress { get; private set; }
+        
         public bool Verbose
         {
             get;
@@ -72,9 +66,18 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             DeleteCount = 0;
         }
 
-        protected static string GetName(Uri uri, string baseAddress, string container)
+        public Uri ResolveUri(string relativeUri)
         {
-            string address = string.Format("{0}{1}/", baseAddress, container);
+            return new Uri(BaseAddress, relativeUri);
+        }
+
+        protected string GetName(Uri uri)
+        {
+            string address = BaseAddress.GetLeftPart(UriPartial.Path);
+            if (!address.EndsWith("/"))
+            {
+                address += "/";
+            }
             string s = uri.ToString();
             string name = s.Substring(address.Length);
             return name;

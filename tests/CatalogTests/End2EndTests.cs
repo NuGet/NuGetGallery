@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
 
 namespace CatalogTests
 {
@@ -24,13 +25,8 @@ namespace CatalogTests
             //    BaseAddress = "http://localhost:8000/"
             //};
 
-            Storage storage = new AzureStorage
-            {
-                AccountName = "",
-                AccountKey = "",
-                Container = "test",
-                BaseAddress = "http://nuget3.blob.core.windows.net/"
-            };
+            Storage storage = new AzureStorage(
+                CloudStorageAccount.Parse("AccountName=nuget3;AccountKey=;DefaultEndpointsProtocol=https"), "test");
 
             CatalogContext context = new CatalogContext();
 
@@ -59,9 +55,7 @@ namespace CatalogTests
 
             //  collection...
 
-            string baseAddress = storage.BaseAddress + storage.Container + "/";
-
-            Uri index = new Uri(baseAddress + "catalog/index.json");
+            Uri index = storage.ResolveUri("index.json");
 
             TestItemCollector collector = new TestItemCollector();
 
@@ -85,12 +79,7 @@ namespace CatalogTests
 
         public static async Task Test1Async()
         {
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\test",
-                Container = "test",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000", @"c:\data\site\test");
 
             //Storage storage = new AzureStorage
             //{
@@ -111,7 +100,7 @@ namespace CatalogTests
             }
             await writer.Commit(new DateTime(2010, 12, 25, 12, 0, 0));
 
-            string baseAddress = storage.BaseAddress + storage.Container + "/";
+            string baseAddress = storage.BaseAddress + "/";
             Uri index = new Uri(baseAddress + "catalog/index.json");
             TestItemCollector collector = new TestItemCollector();
             CollectorCursor cursor = await collector.Run(index, DateTime.MinValue);

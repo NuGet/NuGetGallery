@@ -1,4 +1,6 @@
-﻿using NuGet.Services.Metadata.Catalog.Maintenance;
+﻿using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
+using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
@@ -13,12 +15,7 @@ namespace CatalogTests
         {
             string nuspecs = @"c:\data\nuspecs";
 
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\pub",
-                Container = "pub",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\pub");
 
             //Storage storage = new AzureStorage
             //{
@@ -64,14 +61,9 @@ namespace CatalogTests
 
         public static async Task Test1Async()
         {
-            string nuspecs = @"c:\data\nuspecs";
+            string nuspecs = @"c:\data\nuget\nuspecs";
 
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\full",
-                Container = "full",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000/full/", @"c:\data\site\full");
 
             CatalogContext context = new CatalogContext();
 
@@ -120,12 +112,7 @@ namespace CatalogTests
         {
             string nuspecs = @"c:\data\test_nuspecs";
 
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\test",
-                Container = "test",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\test");
 
             //Storage storage = new AzureStorage
             //{
@@ -171,12 +158,7 @@ namespace CatalogTests
 
         public static async Task Test3Async()
         {
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\test",
-                Container = "test",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\test");
 
             CatalogContext context = new CatalogContext();
 
@@ -235,12 +217,7 @@ namespace CatalogTests
 
         public static async Task Test4Async()
         {
-            Storage storage = new FileStorage
-            {
-                Path = @"c:\data\site\test",
-                Container = "test",
-                BaseAddress = "http://localhost:8000/"
-            };
+            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\test");
 
             CatalogContext context = new CatalogContext();
 

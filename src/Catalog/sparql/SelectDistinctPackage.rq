@@ -1,4 +1,4 @@
-﻿PREFIX nuget: <http://nuget.org/schema#> 
+﻿PREFIX nuget: <http://schema.nuget.org/schema#> 
 
 SELECT DISTINCT ?id
 WHERE

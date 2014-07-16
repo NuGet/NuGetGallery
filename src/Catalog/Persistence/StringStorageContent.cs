@@ -4,10 +4,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class StringStorageContent : StorageContent
     {
-        public StringStorageContent(string content, string contentType = "")
+        public StringStorageContent(string content, string contentType = "", string cacheControl = "")
         {
             Content = content;
             ContentType = contentType;
+            CacheControl = cacheControl;
         }
 
         public string Content

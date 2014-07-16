@@ -28,9 +28,9 @@ namespace NuGet.Services.Metadata.Catalog.Collecting.Test
 
             List<Task<JObject>> tasks = new List<Task<JObject>>();
 
-            foreach (JObject rootItem in root["item"])
+            foreach (JObject rootItem in root["items"])
             {
-                DateTime pageTimeStamp = rootItem["timeStamp"]["@value"].ToObject<DateTime>();
+                DateTime pageTimeStamp = rootItem["commitTimestamp"].ToObject<DateTime>();
 
                 if (pageTimeStamp > lastDateTime)
                 {

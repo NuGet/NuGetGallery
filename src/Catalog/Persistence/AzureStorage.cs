@@ -9,30 +9,41 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AzureStorage : Storage
     {
-        public AzureStorage()
+        private CloudBlobDirectory _directory;
+
+        public AzureStorage(CloudStorageAccount account, string containerName)
+            : this(account, containerName, String.Empty) { }
+
+        public AzureStorage(CloudStorageAccount account, string containerName, string path, Uri baseAddress)
+            : this(account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path), baseAddress)
         {
         }
 
-        // "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}"
-
-        public string ConnectionString
+        public AzureStorage(CloudStorageAccount account, string containerName, string path)
+            : this(account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path))
         {
-            get;
-            set;
         }
 
-        // if the ConnectionString is null the follow are used 
-
-        public string AccountName
+        public AzureStorage(CloudBlobDirectory directory)
+            : this(directory, GetDirectoryUri(directory))
         {
-            get;
-            set;
         }
 
-        public string AccountKey
+        public AzureStorage(CloudBlobDirectory directory, Uri baseAddress)
+            : base(baseAddress)
         {
-            get;
-            set;
+            _directory = directory;
+
+            ResetStatistics();
+        }
+
+        static Uri GetDirectoryUri(CloudBlobDirectory directory)
+        {
+            return new UriBuilder(directory.Uri)
+            {
+                Scheme = "http", // Convert base address to http. 'https' can be used for communication but is not part of the names.
+                Port = 80
+            }.Uri;
         }
 
         //  save
@@ -41,32 +52,26 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             SaveCount++;
 
-            string name = GetName(resourceUri, BaseAddress, Container);
+            string name = GetName(resourceUri);
 
             if (Verbose)
             {
                 Console.WriteLine("save {0}", name);
             }
 
-            CloudStorageAccount account = ConnectionString != null ?
-                CloudStorageAccount.Parse(ConnectionString) : new CloudStorageAccount(new StorageCredentials(AccountName, AccountKey), true);
-
-            CloudBlobClient client = account.CreateCloudBlobClient();
-            CloudBlobContainer container = client.GetContainerReference(Container);
-
-            if (container.CreateIfNotExists())
+            if (_directory.Container.CreateIfNotExists())
             {
-                container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+                _directory.Container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
                 if (Verbose)
                 {
-                    Console.WriteLine("Created '{0}' publish container", Container);
+                    Console.WriteLine("Created '{0}' publish container", _directory.Container.Name);
                 }
             }
 
-            CloudBlockBlob blob = container.GetBlockBlobReference(name);
+            CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
             blob.Properties.ContentType = content.ContentType;
-            blob.Properties.CacheControl = "no-store";  // no for production, just helps with debugging
+            blob.Properties.CacheControl = content.CacheControl;
 
             using (Stream stream = content.GetContentStream())
             {
@@ -80,15 +85,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             LoadCount++;
 
-            string name = GetName(resourceUri, BaseAddress, Container);
+            string name = GetName(resourceUri);
 
-            CloudStorageAccount account = ConnectionString != null ?
-                CloudStorageAccount.Parse(ConnectionString) : new CloudStorageAccount(new StorageCredentials(AccountName, AccountKey), true);
-
-            CloudBlobClient client = account.CreateCloudBlobClient();
-            CloudBlobContainer container = client.GetContainerReference(Container);
-
-            CloudBlockBlob blob = container.GetBlockBlobReference(name);
+            CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
 
             if (blob.Exists())
             {
@@ -105,15 +104,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             DeleteCount++;
 
-            string name = GetName(resourceUri, BaseAddress, Container);
+            string name = GetName(resourceUri);
 
-            CloudStorageAccount account = ConnectionString != null ?
-                CloudStorageAccount.Parse(ConnectionString) : new CloudStorageAccount(new StorageCredentials(AccountName, AccountKey), true);
-
-            CloudBlobClient client = account.CreateCloudBlobClient();
-            CloudBlobContainer container = client.GetContainerReference(Container);
-
-            CloudBlockBlob blob = container.GetBlockBlobReference(name);
+            CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
 
             await blob.DeleteAsync();
         }
