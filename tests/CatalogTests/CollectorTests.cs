@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using System.Diagnostics;
+using NuGet.Services.Metadata.Catalog;
+using Newtonsoft.Json.Linq;
+using System.Net.Http;
 
 namespace CatalogTests
 {
@@ -147,7 +150,50 @@ namespace CatalogTests
 
         public static void Test5()
         {
+            Console.WriteLine("CollectorTests.Test6");
+
             Test5Async().Wait();
         }
+
+        public static async Task Test6Async()
+        {
+            //Storage storage = new FileStorage("http://localhost:8000/resolver/", @"c:\data\site\resolver");
+
+            //ResolverCollector collector = new ResolverCollector(storage, 200) { GalleryBaseAddress = "http://dev.nugettest.org", CdnBaseAddress = "http://az320820.vo.msecnd.net" };
+
+            //await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
+            //Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
+
+            FileSystemEmulatorHandler handler = new FileSystemEmulatorHandler
+            {
+                BaseAddress = new Uri("http://localhost:8000"),
+                RootFolder = @"c:\data\site",
+                InnerHandler = new HttpClientHandler()
+            };
+
+            //CollectorHttpClient client = new CollectorHttpClient(handler);
+            //JObject index = await client.GetJObjectAsync(new Uri("http://localhost:8000/full/index.json"));
+            //Console.WriteLine(index);
+
+            Storage storage = new FileStorage("http://localhost:8000/resolver/", @"c:\data\site\resolver");
+
+            ResolverCollector collector = new ResolverCollector(storage, 200)
+            { 
+                GalleryBaseAddress = "http://dev.nugettest.org", 
+                CdnBaseAddress = "http://az320820.vo.msecnd.net" 
+            };
+
+            //await collector.Run(new Uri("http://localhost:8000/partition/partition1/index.json"), DateTime.MinValue, handler);
+            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue, handler);
+            Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
+        }
+
+        public static void Test6()
+        {
+            Console.WriteLine("CollectorTests.Test6");
+
+            Test6Async().Wait();
+        }
+
     }
 }

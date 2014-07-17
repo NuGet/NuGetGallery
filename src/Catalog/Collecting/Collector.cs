@@ -17,10 +17,10 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             ServicePointManager.MaxServicePointIdleTime = 10000;
         }
 
-        public async Task<CollectorCursor> Run(Uri index, CollectorCursor last)
+        public async Task<CollectorCursor> Run(Uri index, CollectorCursor last, HttpMessageHandler handler = null)
         {
             CollectorCursor cursor;
-            using (CollectorHttpClient client = new CollectorHttpClient())
+            using (CollectorHttpClient client = handler == null ? new CollectorHttpClient() : new CollectorHttpClient(handler))
             {
                 cursor = await Fetch(client, index, last);
                 RequestCount = client.RequestCount;

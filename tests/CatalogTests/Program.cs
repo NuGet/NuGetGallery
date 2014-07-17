@@ -33,7 +33,7 @@ namespace CatalogTests
                 //BuilderTests.Test1();
                 //CollectorTests.Test0();
                 
-                CollectorTests.Test5();
+                CollectorTests.Test6();
 
                 //PartitioningTests.Test0();
                 //PartitioningTests.Test1();
