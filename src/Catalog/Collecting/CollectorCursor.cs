@@ -12,7 +12,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         /// Cursor value that is guaranteed to compare as lower than all other cursor values. Can be used as an
         /// initial value for a cursor.
         /// </summary>
-        public static readonly CollectorCursor None = DateTime.MinValue;
+        public static readonly CollectorCursor None = DateTime.MinValue.ToUniversalTime();
 
         private DateTime _rawValue;
 
