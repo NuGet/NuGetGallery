@@ -67,11 +67,18 @@ namespace CatalogTests
 
             CatalogContext context = new CatalogContext();
 
-            CatalogWriter writer = new CatalogWriter(storage, context, 150);
+            CatalogWriter writer = new CatalogWriter(storage, context, 200);
 
             int total = 0;
 
-            int[] commitSize = { 50, 40, 25, 50, 10, 30, 40, 5, 400, 30, 10 };
+            int[] commitSize = { 50, 40, 25, 50, 10, 30, 40, 5, 400, 30, 10, 20, 40, 50, 90, 70, 50, 50, 50, 50, 60, 70 };
+            //int[] commitSize = { 
+            //    200, 200, 200, 200, 200, 
+            //    200, 200, 200, 200, 200, 
+            //    200, 200, 200, 200, 200, 
+            //    200, 200, 200, 200, 200, 
+            //    200, 200, 200, 200, 200
+            //};
             int i = 0;
 
             int commitCount = 0;

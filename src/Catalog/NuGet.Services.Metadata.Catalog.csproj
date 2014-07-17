@@ -63,6 +63,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="NuGet.Versioning">
+      <HintPath>..\..\packages\NuGet.Versioning.0.1.0-alpha\lib\portable-net40+win\NuGet.Versioning.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Services.Client" />

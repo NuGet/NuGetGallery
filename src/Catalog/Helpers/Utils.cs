@@ -160,7 +160,7 @@ namespace NuGet.Services.Metadata.Catalog
             {
                 JToken flattened = JToken.Parse(writer.ToString());
                 JObject framed = JsonLdProcessor.Frame(flattened, frame, new JsonLdOptions());
-                JObject compacted = JsonLdProcessor.Compact(framed, framed["@context"], new JsonLdOptions());
+                JObject compacted = JsonLdProcessor.Compact(framed, frame["@context"], new JsonLdOptions());
 
                 return compacted.ToString();
             }

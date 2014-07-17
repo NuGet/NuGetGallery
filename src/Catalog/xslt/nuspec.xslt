@@ -109,13 +109,13 @@
 
             <xsl:when test="self::nuget:id">
               <ng:id>
-                <xsl:value-of select="."/>
+                <xsl:value-of select="translate(., $uppercase, $lowercase)"/>
               </ng:id>
             </xsl:when>
 
             <xsl:when test="self::nuget:version">
               <ng:version>
-                <xsl:value-of select="."/>
+                <xsl:value-of select="obj:NormalizeVersion(.)"/>
               </ng:version>
             </xsl:when>
               

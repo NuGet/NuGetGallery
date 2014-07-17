@@ -1,7 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -114,6 +116,13 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
         static JObject MakeCatalogIndex(Storage storage, IList<JObject> pages)
         {
+            JToken context;
+            using (JsonReader jsonReader = new JsonTextReader(new StreamReader(Utils.GetResourceStream("context.Container.json"))))
+            {
+                JObject obj = JObject.Load(jsonReader);
+                context = obj["@context"];
+            }
+
             JObject newIndex = new JObject();
 
             newIndex["@type"] = "CatalogIndex";
@@ -132,6 +141,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 Uri pageUri = storage.ResolveUri(string.Format("page{0}.json", pageNumber++));
                 page["url"] = pageUri.ToString();
                 page["parent"] = newIndex["url"];
+                page["@context"] = context;
 
                 JObject indexItem = new JObject();
                 indexItem["url"] = page["url"];
@@ -149,6 +159,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
             newIndex["items"] = items;
             newIndex["commitTimestamp"] = indexTimestamp.ToString("O");
+
+            newIndex["@context"] = context;
 
             return newIndex;
         }
