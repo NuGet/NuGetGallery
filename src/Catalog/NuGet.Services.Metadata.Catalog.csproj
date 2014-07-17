@@ -91,7 +91,6 @@
     <Compile Include="Collecting\CollectorCursor.cs" />
     <Compile Include="Collecting\CollectorHttpClient.cs" />
     <Compile Include="Collecting\StoreCollector.cs" />
-    <Compile Include="Collecting\ICollectorLogger.cs" />
     <Compile Include="Collecting\Test\DistinctPackageIdCollector.cs" />
     <Compile Include="Collecting\Test\CheckLinksCollector.cs" />
     <Compile Include="Collecting\Test\CountCollector.cs" />

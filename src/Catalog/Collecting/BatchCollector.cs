@@ -24,11 +24,12 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             get;
         }
 
-        protected override async Task<CollectorCursor> Fetch(CollectorHttpClient client, Uri index, CollectorCursor last)
-        {
-            CollectorCursor cursor = last;
-            DateTime lastDateTime = (DateTime)last;
+        public event Action<CollectorCursor> ProcessedCommit;
 
+        protected override async Task<CollectorCursor> Fetch(CollectorHttpClient client, Uri index, CollectorCursor startFrom)
+        {
+            CollectorCursor cursor = startFrom;
+            
             IList<JObject> items = new List<JObject>();
 
             JObject root = await client.GetJObjectAsync(index);
@@ -40,9 +41,9 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
             foreach (JObject rootItem in rootItems)
             {
-                DateTime pageTimeStamp = rootItem["commitTimestamp"].ToObject<DateTime>();
+                CollectorCursor pageCursor = (CollectorCursor)rootItem["commitTimestamp"].ToObject<DateTime>();
 
-                if (pageTimeStamp > lastDateTime)
+                if (pageCursor > startFrom)
                 {
                     Uri pageUri = rootItem["url"].ToObject<Uri>();
                     JObject page = await client.GetJObjectAsync(pageUri);
@@ -51,11 +52,17 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
                     foreach (JObject pageItem in pageItems)
                     {
-                        DateTime itemTimeStamp = pageItem["commitTimestamp"].ToObject<DateTime>();
+                        CollectorCursor itemCursor = (CollectorCursor)pageItem["commitTimestamp"].ToObject<DateTime>();
 
-                        if (itemTimeStamp > lastDateTime)
+                        if (itemCursor > startFrom)
                         {
-                            cursor = itemTimeStamp;
+                            if (itemCursor > cursor)
+                            {
+                                // Item timestamp is higher than the previous cursor, so report the previous commit as "processed"
+                                OnProcessedCommit(cursor);
+                            }
+                            // Update the cursor
+                            cursor = itemCursor;
 
                             Uri itemUri = pageItem["url"].ToObject<Uri>();
 
@@ -79,6 +86,15 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             }
 
             return cursor;
+        }
+
+        protected virtual void OnProcessedCommit(CollectorCursor cursor)
+        {
+            var handler = ProcessedCommit;
+            if (handler != null)
+            {
+                handler(cursor);
+            }
         }
 
         protected abstract Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context);

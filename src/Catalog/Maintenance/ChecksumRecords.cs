@@ -26,7 +26,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             var json = await LoadJson();
             if (json != null)
             {
-                Cursor = new CollectorCursor(json.Value<string>("http://schema.nuget.org/collectors/checksums#cursor"));
+                Cursor = CollectorCursor.FromString(json.Value<string>("http://schema.nuget.org/collectors/checksums#cursor"));
                 Data = json.Value<JObject>("http://schema.nuget.org/collectors/resolver#data").Properties().ToDictionary(
                     p => Int32.Parse(p.Name),
                     p => p.Value.Value<JObject>());
