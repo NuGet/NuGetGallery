@@ -108,6 +108,7 @@
     <Compile Include="Maintenance\CatalogContainerItem.cs" />
     <Compile Include="Maintenance\CatalogUpdater.cs" />
     <Compile Include="Maintenance\ChecksumRecords.cs" />
+    <Compile Include="Maintenance\NupkgCatalogItem.cs" />
     <Compile Include="Persistence\StreamStorageContent.cs" />
     <Compile Include="Persistence\StringStorageContent.cs" />
     <Compile Include="Persistence\StorageContent.cs" />

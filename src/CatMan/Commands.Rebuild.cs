@@ -8,6 +8,8 @@ using NuGet.Services.Metadata.Catalog.GalleryIntegration;
 using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using PowerArgs;
+using NuGet.Services.Metadata.Catalog.Collecting;
+using System.Diagnostics;
 
 namespace CatMan
 {
@@ -17,9 +19,9 @@ namespace CatMan
         [ArgDescription("Database connection string")]
         public string DatabaseConnection { get; set; }
 
-        [ArgShortcut("nuspecs")]
-        [ArgDescription("Path to folder filled with nuspecs")]
-        public string NuSpecFolder { get; set; }
+        [ArgShortcut("nupkgs")]
+        [ArgDescription("Path to folder filled with nupkgs and/or nuspecs")]
+        public string NuPkgFolder { get; set; }
 
         [ArgShortcut("base")]
         [ArgDescription("Base address for the generated catalog data")]
@@ -37,6 +39,8 @@ namespace CatMan
         [ArgActionMethod]
         public void Rebuild(RebuildArgs args)
         {
+            const int batchSize = 2000;
+
             if (Directory.Exists(args.CatalogFolder))
             {
                 Console.WriteLine("Catalog folder exists. Deleting!");
@@ -49,14 +53,14 @@ namespace CatMan
             {
                 if (!String.IsNullOrEmpty(args.DatabaseConnection))
                 {
-                    var batcher = new GalleryExportBatcher(2000, writer);
+                    var batcher = new GalleryExportBatcher(batchSize, writer);
                     int lastHighest = 0;
                     while (true)
                     {
                         var range = GalleryExport.GetNextRange(
                             args.DatabaseConnection,
                             lastHighest,
-                            2000).Result;
+                            batchSize).Result;
                         if (range.Item1 == 0 && range.Item2 == 0)
                         {
                             break;
@@ -70,9 +74,75 @@ namespace CatMan
                     }
                     batcher.Complete().Wait();
                 }
-                else
+                else if (!String.IsNullOrEmpty(args.NuPkgFolder))
                 {
-                    throw new NotImplementedException("TODO: Build from NuSpecs");
+                    Stopwatch timer = new Stopwatch();
+                    timer.Start();
+
+                    // files are sorted by GetFiles
+                    Queue<string> files = new Queue<string>(Directory.GetFiles(args.NuPkgFolder, "*.nu*", SearchOption.TopDirectoryOnly)
+                        .Where(s => s.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase) || s.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase)));
+
+                    int total = files.Count;
+
+                    ParallelOptions options = new ParallelOptions();
+                    options.MaxDegreeOfParallelism = 8;
+
+                    Task commitTask = null;
+
+                    while (files.Count > 0)
+                    {
+                        Queue<PackageCatalogItem> currentBatch = new Queue<PackageCatalogItem>(batchSize);
+
+                        // create the batch
+                        while (currentBatch.Count < batchSize && files.Count > 0)
+                        {
+                            string file = files.Dequeue();
+
+                            if (file.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase))
+                            {
+                                currentBatch.Enqueue(new NupkgCatalogItem(file));
+                            }
+                            else
+                            {
+                                currentBatch.Enqueue(new NuspecPackageCatalogItem(file));
+                            }
+                        }
+
+                        // process the nupkgs and nuspec files in parallel
+                        Parallel.ForEach(currentBatch, options, nupkg =>
+                        {
+                            nupkg.Load();
+                        });
+
+                        // wait for the previous commit to finish before adding more
+                        if (commitTask != null)
+                        {
+                            commitTask.Wait();
+                        }
+
+                        // add everything from the queue
+                        foreach(PackageCatalogItem item in currentBatch)
+                        {
+                            writer.Add(item);
+                        }
+
+                        // commit
+                        commitTask = Task.Run(async () => await writer.Commit(DateTime.UtcNow));
+                        Console.WriteLine("committing {0}/{1}", total - files.Count, total);
+                    }
+
+                    // wait for the final commit
+                    if (commitTask != null)
+                    {
+                        commitTask.Wait();
+                    }
+
+                    timer.Stop();
+
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("Committed {0} catalog items in {1}", total, timer.Elapsed);
+                    Console.ResetColor();
                 }
             }
         }
