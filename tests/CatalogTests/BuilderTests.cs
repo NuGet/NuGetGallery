@@ -37,7 +37,7 @@ namespace CatalogTests
             DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
             foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
             {
-                writer.Add(new NuspecPackageCatalogItem(fileInfo));
+                writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
 
                 if (++i % BatchSize == 0)
                 {
@@ -91,7 +91,7 @@ namespace CatalogTests
                     break;
                 }
 
-                writer.Add(new NuspecPackageCatalogItem(fileInfo));
+                writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
                 total++;
 
                 if (++i == commitSize[commitCount])
@@ -141,7 +141,7 @@ namespace CatalogTests
             DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
             foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
             {
-                writer.Add(new NuspecPackageCatalogItem(fileInfo));
+                writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
 
                 if (++i % BatchSize == 0)
                 {

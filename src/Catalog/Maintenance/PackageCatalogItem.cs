@@ -116,5 +116,15 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             return graph;
         }
+
+        /// <summary>
+        /// Ensure this item has been fully loaded if it was lazy loaded.
+        /// </summary>
+        public virtual void Load()
+        {
+            // get the nuspec and throw it away
+            XDocument nuspec = GetNuspec();
+            nuspec = null;
+        }
     }
 }

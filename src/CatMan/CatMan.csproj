@@ -66,6 +66,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands.Full.cs" />
     <Compile Include="Commands.Rebuild.cs" />
     <Compile Include="Commands.Serve.cs" />
     <Compile Include="Program.cs" />
