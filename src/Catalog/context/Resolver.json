@@ -3,6 +3,7 @@
         "@vocab" : "http://schema.nuget.org/schema#",
         "catalog": "http://schema.nuget.org/catalog#",
         "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "published" : { "@type" : "xsd:dateTime" },
         "authors": { "@container": "@set" },
         "packages" : { "@container" : "@set", "@id": "package" },
         "dependencyGroups": { "@container" : "@set", "@id": "dependencyGroup" },

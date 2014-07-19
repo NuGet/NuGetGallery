@@ -29,11 +29,13 @@ namespace CatalogTests
             try
             {
                 DateTime before = DateTime.Now;
-               
+
                 //BuilderTests.Test1();
-                //CollectorTests.Test0();
+                //BuilderTests.Test0();
                 
-                CollectorTests.Test6();
+                CollectorTests.Test0();
+                
+                //CollectorTests.Test6();
 
                 //PartitioningTests.Test0();
                 //PartitioningTests.Test1();

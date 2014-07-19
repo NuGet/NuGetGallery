@@ -5,108 +5,107 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 CONSTRUCT
 {
     ?resource a nuget:PackageRegistration ;
-	          nuget:id @id ;
-			  nuget:package ?resource_package .
+              nuget:id @id ;
+              nuget:package ?resource_package .
 
-	?resource_package nuget:version ?version ;
-					  nuget:dependencyGroup ?resource_dependency_group ;
-					  catalog:commitId ?commitId ;
-					  catalog:commitTimestamp ?timeStamp ;
-					  nuget:authors ?authors ;
-					  nuget:description ?description ;
-					  nuget:isLatestVersion ?isLatestVersion ;
-					  nuget:isAbsoluteLatestVersion ?isAbsoluteLatestVersion ;
-					  nuget:isPrerelease ?isPrerelease ;
-					  nuget:requireLicenseAcceptance ?requireLicenseAcceptance ;
-					  nuget:licenseUrl ?licenseUrl ;
-					  nuget:licenseName ?licenseName ;
-					  nuget:iconUrl ?iconUrl ;
-					  nuget:downloadCount ?downloadCount ;
-					  nuget:galleryDetailsUrl ?galleryDetailsUrl ;
-					  nuget:nupkgUrl ?nupkgUrl ;
-					  nuget:reportAbuseUrl ?reportAbuseUrl ;
-					  nuget:published ?published ;
-					  nuget:tag ?tag ;
-					  nuget:packageTargetFramework ?targetFramework ;
-					  nuget:releaseNotes ?releaseNotes ;
-					  nuget:title ?title ;
-					  nuget:projectUrl ?projectUrl .
-
-    ?timestamp a xsd:dateTime .
+    ?resource_package a nuget:Package ;
+                      nuget:version ?version ;
+                      nuget:dependencyGroup ?resource_dependency_group ;
+                      catalog:commitId ?commitId ;
+                      catalog:commitTimestamp ?timeStamp ;
+                      nuget:authors ?authors ;
+                      nuget:description ?description ;
+                      nuget:isPrerelease ?isPrerelease ;
+                      nuget:requireLicenseAcceptance ?requireLicenseAcceptance ;
+                      nuget:licenseUrl ?licenseUrl ;
+                      nuget:licenseName ?licenseName ;
+                      nuget:iconUrl ?iconUrl ;
+                      nuget:downloadCount ?downloadCount ;
+                      nuget:galleryDetailsUrl ?galleryDetailsUrl ;
+                      nuget:nupkgUrl ?nupkgUrl ;
+                      nuget:reportAbuseUrl ?reportAbuseUrl ;
+                      nuget:published ?published ;
+                      nuget:tag ?tag ;
+                      nuget:packageTargetFramework ?targetFramework ;
+                      nuget:releaseNotes ?releaseNotes ;
+                      nuget:title ?title ;
+                      nuget:projectUrl ?projectUrl ;
+                      nuget:minClientVersion ?minClientVersion .
 
     ?resource_dependency_group nuget:dependency ?resource_dependency ;
                                nuget:targetFramework ?dependency_group_targetFramework ;
-					           nuget:name ?dependency_group_name ;
-					           nuget:property ?resource_dependency_group_property .
+                               nuget:name ?dependency_group_name ;
+                               nuget:property ?resource_dependency_group_property .
 
     ?resource_dependency_group_property nuget:name ?dependency_group_property_name ;
                                         nuget:value ?dependency_group_property_value .
 
-	?resource_dependency nuget:id ?dependency_id ;
-				         nuget:registration ?dependency_registration ;
-				         nuget:range ?dependency_version ;
-				         nuget:property ?resource_dependency_property .
+    ?resource_dependency nuget:id ?dependency_id ;
+                         nuget:registration ?dependency_registration ;
+                         nuget:range ?dependency_version ;
+                         nuget:property ?resource_dependency_property .
 
-	?resource_dependency_property nuget:name ?dependency_property_name ;
-					              nuget:value ?dependency_property_value .
+    ?resource_dependency_property nuget:name ?dependency_property_name ;
+                                  nuget:value ?dependency_property_value .
 }
 WHERE
 {
-	BIND (IRI(CONCAT(@base, @id, @extension)) AS ?resource)
+    BIND (IRI(CONCAT(@base, @id, @extension)) AS ?resource)
 
     ?package a nuget:Package ;
-	         nuget:version ?version ;
+             nuget:version ?version ;
              nuget:id ?id ;
-			 catalog:commitId ?commitId ;
-			 catalog:commitTimestamp ?timeStamp .
+             nuget:isPrerelease ?isPrerelease ;
+             nuget:published ?published ;
+             catalog:commitId ?commitId ;
+             catalog:commitTimestamp ?timeStamp .
 
-	OPTIONAL { ?package nuget:authors ?authors . }
-	OPTIONAL { ?package nuget:description ?description . }
-	OPTIONAL { ?package nuget:isLatestStable ?isLatestVersion . }
-	OPTIONAL { ?package nuget:isLatest ?isAbsoluteLatestVersion . }
-	OPTIONAL { ?package nuget:isPrerelease ?isPrerelease . }
-	OPTIONAL { ?package nuget:requireLicenseAcceptance ?requireLicenseAcceptance . }
-	OPTIONAL { ?package nuget:licenseUrl ?licenseUrl . }
-	OPTIONAL { ?package nuget:licenseName ?licenseName . }
-	OPTIONAL { ?package nuget:iconUrl ?iconUrl . }
-	OPTIONAL { ?package nuget:downloadCount ?downloadCount . }
-	OPTIONAL { ?package nuget:published ?published . }
-	OPTIONAL { ?package nuget:tag ?tag . }
-	OPTIONAL { ?package nuget:targetFramework ?targetFramework . }
-	OPTIONAL { ?package nuget:releaseNotes ?releaseNotes . }
-	OPTIONAL { ?package nuget:title ?title . }
-	OPTIONAL { ?package nuget:projectUrl ?projectUrl . }
+    OPTIONAL { ?package nuget:authors ?authors . }
+    OPTIONAL { ?package nuget:description ?description . }
+    OPTIONAL { ?package nuget:title ?title . }
+    OPTIONAL { ?package nuget:tag ?tag . }
+    OPTIONAL { ?package nuget:targetFramework ?targetFramework . }
+    OPTIONAL { ?package nuget:requireLicenseAcceptance ?requireLicenseAcceptance . }
+    OPTIONAL { ?package nuget:licenseUrl ?licenseUrl . }
+    OPTIONAL { ?package nuget:licenseName ?licenseName . }
+    OPTIONAL { ?package nuget:iconUrl ?iconUrl . }
+    OPTIONAL { ?package nuget:projectUrl ?projectUrl . }
+    OPTIONAL { ?package nuget:releaseNotes ?releaseNotes . }
+    OPTIONAL { ?package nuget:downloadCount ?downloadCount . }
+    OPTIONAL { ?package nuget:minClientVersion ?minClientVersion . }
 
-	FILTER (LCASE(?id) = @id)
+    FILTER (LCASE(?id) = @id)
 
-	BIND (IRI(CONCAT(STR(?resource), "#", ?version)) AS ?resource_package)
-	BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_group), "#"))) AS ?resource_dependency_group)
-	BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_group_property), "#"))) AS ?resource_dependency_group_property)
-	BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency), "#"))) AS ?resource_dependency)
-	BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_property), "#"))) AS ?resource_dependency_property)
+    BIND (IRI(CONCAT(STR(?resource), "#", ?version)) AS ?resource_package)
+    BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_group), "#"))) AS ?resource_dependency_group)
+    BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_group_property), "#"))) AS ?resource_dependency_group_property)
+    BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency), "#"))) AS ?resource_dependency)
+    BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_property), "#"))) AS ?resource_dependency_property)
 
-	BIND (IRI(CONCAT(@galleryBase, "/packages/", ?id, "/", ?version )) AS ?galleryDetailsUrl)
-	BIND (IRI(CONCAT(STR(?galleryDetailsUrl), "/ReportAbuse" )) AS ?reportAbuseUrl)
+    BIND (IRI(CONCAT(@galleryBase, "/packages/", ?id, "/", ?version )) AS ?galleryDetailsUrl)
+    BIND (IRI(CONCAT(STR(?galleryDetailsUrl), "/ReportAbuse" )) AS ?reportAbuseUrl)
 
-	BIND (IRI(CONCAT(@cdnBase, "/packages/", LCASE(?id), ".", ?version, ".nupkg" )) AS ?nupkgUrl)
+    BIND (IRI(CONCAT(@contentBase, "/packages/", LCASE(?id), ".", ?version, ".nupkg" )) AS ?nupkgUrl)
 
-	OPTIONAL
-	{
+    OPTIONAL
+    {
         ?package nuget:dependencyGroup ?dependency_group .
-		?dependency_group nuget:dependency ?dependency .
+        ?dependency_group nuget:dependency ?dependency .
 
-		OPTIONAL { ?dependency_group nuget:targetFramework ?dependency_group_targetFramework . }
-		OPTIONAL { ?dependency_group nuget:name ?dependency_group_name . }
-		OPTIONAL { ?dependency_group nuget:property ?dependency_group_property .
-			       ?dependency_group_property nuget:name ?dependency_group_property_name ;
-								              nuget:value ?dependency_group_property_value . }
-		
-		?dependency nuget:id ?dependency_id .
-		BIND (IRI(CONCAT(@base, STR(?dependency_id), @extension)) AS ?dependency_registration)
-		OPTIONAL { ?dependency nuget:range ?dependency_version . }
+        OPTIONAL { ?dependency_group nuget:targetFramework ?dependency_group_targetFramework . }
+        OPTIONAL { ?dependency_group nuget:name ?dependency_group_name . }
+        OPTIONAL { ?dependency_group nuget:property ?dependency_group_property .
+                   ?dependency_group_property nuget:name ?dependency_group_property_name ;
+                                              nuget:value ?dependency_group_property_value . }
+        
+        ?dependency nuget:id ?dependency_id .
+        
+        BIND (IRI(CONCAT(@base, STR(?dependency_id), @extension)) AS ?dependency_registration)
+        
+        OPTIONAL { ?dependency nuget:range ?dependency_version . }
 
-		OPTIONAL { ?dependency nuget:property ?dependency_property .
-			       ?dependency_property nuget:name ?dependency_property_name ;
-								        nuget:value ?dependency_property_value . }
-	}
+        OPTIONAL { ?dependency nuget:property ?dependency_property .
+                   ?dependency_property nuget:name ?dependency_property_name ;
+                                        nuget:value ?dependency_property_value . }
+    }
 }

@@ -40,5 +40,15 @@ namespace NuGet.Services.Metadata.Catalog
             }
             return original;
         }
+        
+        public string IsPrerelease(string original)
+        {
+            NuGetVersion nugetVersion;
+            if (NuGetVersion.TryParse(original, out nugetVersion))
+            {
+                return nugetVersion.IsPrerelease ? "true" : "false";
+            }
+            return "true";
+        }
     }
 }

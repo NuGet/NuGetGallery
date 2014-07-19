@@ -19,11 +19,11 @@ namespace CatalogTests
         {
             Storage storage = new FileStorage("http://localhost:8000/resolver/", @"c:\data\site\resolver");
 
-            ResolverCollector collector = new ResolverCollector(storage, 200) { GalleryBaseAddress = "http://dev.nugettest.org", CdnBaseAddress = "http://az320820.vo.msecnd.net" };
+            ResolverCollector collector = new ResolverCollector(storage, 1);
 
-            //await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
             //await collector.Run(new Uri("http://partitions.blob.core.windows.net/partition0/index.json"), DateTime.MinValue);
-            await collector.Run(new Uri("http://localhost:8000/partition/partition0/index.json"), DateTime.MinValue);
+            //await collector.Run(new Uri("http://localhost:8000/partition/partition0/index.json"), DateTime.MinValue);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
 
@@ -101,7 +101,7 @@ namespace CatalogTests
                 "v3/resolver",
                 new Uri("http://preview-api.dev.nugettest.org/v3/resolver/"));
 
-            ResolverCollector collector = new ResolverCollector(storage, 200) { GalleryBaseAddress = "http://dev.nugettest.org", CdnBaseAddress = "http://az320820.vo.msecnd.net" };
+            ResolverCollector collector = new ResolverCollector(storage, 200);
 
             await collector.Run(new Uri("http://localhost:8000/test/catalog/index.json"), DateTime.MinValue);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
@@ -128,7 +128,7 @@ namespace CatalogTests
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
                 
-                ResolverCollector collector = new ResolverCollector(storage, 200) { GalleryBaseAddress = "http://dev.nugettest.org", CdnBaseAddress = "http://az320820.vo.msecnd.net" };
+                ResolverCollector collector = new ResolverCollector(storage, 200);
                 await collector.Run(indexUri, DateTime.MinValue);
                 Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
                 
@@ -157,13 +157,6 @@ namespace CatalogTests
 
         public static async Task Test6Async()
         {
-            //Storage storage = new FileStorage("http://localhost:8000/resolver/", @"c:\data\site\resolver");
-
-            //ResolverCollector collector = new ResolverCollector(storage, 200) { GalleryBaseAddress = "http://dev.nugettest.org", CdnBaseAddress = "http://az320820.vo.msecnd.net" };
-
-            //await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
-            //Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
-
             FileSystemEmulatorHandler handler = new FileSystemEmulatorHandler
             {
                 BaseAddress = new Uri("http://localhost:8000"),
@@ -171,19 +164,10 @@ namespace CatalogTests
                 InnerHandler = new HttpClientHandler()
             };
 
-            //CollectorHttpClient client = new CollectorHttpClient(handler);
-            //JObject index = await client.GetJObjectAsync(new Uri("http://localhost:8000/full/index.json"));
-            //Console.WriteLine(index);
-
             Storage storage = new FileStorage("http://localhost:8000/resolver/", @"c:\data\site\resolver");
 
-            ResolverCollector collector = new ResolverCollector(storage, 200)
-            { 
-                GalleryBaseAddress = "http://dev.nugettest.org", 
-                CdnBaseAddress = "http://az320820.vo.msecnd.net" 
-            };
+            ResolverCollector collector = new ResolverCollector(storage, 200);
 
-            //await collector.Run(new Uri("http://localhost:8000/partition/partition1/index.json"), DateTime.MinValue, handler);
             await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue, handler);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
