@@ -27,6 +27,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             public static readonly Uri Integer = new Uri(Prefixes.Xsd + "integer");
             public static readonly Uri DateTime = new Uri(Prefixes.Xsd + "dateTime");
+            public static readonly Uri Boolean = new Uri(Prefixes.Xsd + "boolean");
         }
 
         public static class Predicates
@@ -56,6 +57,10 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri IsLatest = new Uri(Prefixes.NuGet + "isLatest");
             public static readonly Uri IsLatestStable = new Uri(Prefixes.NuGet + "isLatestStable");
             public static readonly Uri IsPrerelease = new Uri(Prefixes.NuGet + "isPrerelease");
+
+		    public static readonly Uri IsLatestVersion = new Uri(Prefixes.NuGet + "isLatestVersion");
+			public static readonly Uri IsAbsoluteLatestVersion = new Uri(Prefixes.NuGet + "isAbsoluteLatestVersion");
+
             public static readonly Uri Language = new Uri(Prefixes.NuGet + "language");
             public static readonly Uri Published = new Uri(Prefixes.NuGet + "published");
             public static readonly Uri LastEdited = new Uri(Prefixes.NuGet + "lastEdited");

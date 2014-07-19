@@ -15,8 +15,9 @@
   <xsl:variable name="uppercase" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'" />
 
   <xsl:template match="/nuget:package/nuget:metadata">
-    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+
       <ng:Package>
 
         <xsl:variable name="path" select="concat(nuget:id, '.', nuget:version)" />
@@ -24,7 +25,13 @@
         <xsl:attribute name="rdf:about">
           <xsl:value-of select="translate(concat($base, $path, $extension), $uppercase, $lowercase)"/>
         </xsl:attribute>
-        
+
+        <xsl:if test="@minClientVersion">
+          <ng:minClientVersion>
+            <xsl:value-of select="@minClientVersion" />
+          </ng:minClientVersion>
+        </xsl:if>
+          
         <xsl:for-each select="*">
           <xsl:choose>
 
@@ -109,14 +116,17 @@
 
             <xsl:when test="self::nuget:id">
               <ng:id>
-                <xsl:value-of select="."/>
+                <xsl:value-of select="translate(., $uppercase, $lowercase)"/>
               </ng:id>
             </xsl:when>
 
             <xsl:when test="self::nuget:version">
               <ng:version>
-                <xsl:value-of select="."/>
+                <xsl:value-of select="obj:NormalizeVersion(.)"/>
               </ng:version>
+              <ng:isPrerelease rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">
+                <xsl:value-of select="obj:IsPrerelease(.)"/>
+              </ng:isPrerelease>
             </xsl:when>
               
             <xsl:otherwise>

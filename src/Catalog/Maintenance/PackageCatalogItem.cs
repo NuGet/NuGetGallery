@@ -12,6 +12,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     public abstract class PackageCatalogItem : CatalogItem
     {
+        string _id;
+        string _version;
+
         protected abstract XDocument GetNuspec();
 
         public override StorageContent CreateContent(CatalogContext context)
@@ -30,6 +33,21 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             graph.Assert(resource.Subject, commitIdPredicate, graph.CreateLiteralNode(GetCommitId().ToString()));
             graph.Assert(resource.Subject, publishedPredicate, graph.CreateLiteralNode(GetTimeStamp().ToString("O"), Schema.DataTypes.DateTime));
 
+            INode idPredicate = graph.CreateUriNode(Schema.Predicates.Id);
+            INode versionPredicate = graph.CreateUriNode(Schema.Predicates.Version);
+
+            Triple id = graph.GetTriplesWithSubjectPredicate(resource.Subject, idPredicate).FirstOrDefault();
+            if (id != null)
+            {
+                _id = ((ILiteralNode)id.Object).Value;
+            }
+
+            Triple version = graph.GetTriplesWithSubjectPredicate(resource.Subject, versionPredicate).FirstOrDefault();
+            if (version != null)
+            {
+                _version = ((ILiteralNode)version.Object).Value;
+            }
+
             JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
 
             StorageContent content = new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
@@ -40,6 +58,29 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         public override Uri GetItemType()
         {
             return Schema.DataTypes.Package;
+        }
+
+        public override IGraph CreatePageContent(CatalogContext context)
+        {
+            Uri resourceUri = new Uri(GetBaseAddress() + GetRelativeAddress());
+
+            Graph graph = new Graph();
+
+            INode subject = graph.CreateUriNode(resourceUri);
+            INode idPredicate = graph.CreateUriNode(Schema.Predicates.Id);
+            INode versionPredicate = graph.CreateUriNode(Schema.Predicates.Version);
+
+            if (_id != null)
+            {
+                graph.Assert(subject, idPredicate, graph.CreateLiteralNode(_id));
+            }
+
+            if (_version != null)
+            {
+                graph.Assert(subject, versionPredicate, graph.CreateLiteralNode(_version));
+            }
+
+            return graph;
         }
 
         static XDocument NormalizeNuspecNamespace(XDocument original, XslCompiledTransform xslt)
@@ -74,6 +115,16 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             rdfXmlParser.Load(graph, doc);
 
             return graph;
+        }
+
+        /// <summary>
+        /// Ensure this item has been fully loaded if it was lazy loaded.
+        /// </summary>
+        public virtual void Load()
+        {
+            // get the nuspec and throw it away
+            XDocument nuspec = GetNuspec();
+            nuspec = null;
         }
     }
 }

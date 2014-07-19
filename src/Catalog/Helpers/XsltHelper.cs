@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using NuGet.Versioning;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using System.Xml.XPath;
@@ -28,6 +29,26 @@ namespace NuGet.Services.Metadata.Catalog
             }
 
             return xmlDoc.CreateNavigator();
+        }
+
+        public string NormalizeVersion(string original)
+        {
+            NuGetVersion nugetVersion;
+            if (NuGetVersion.TryParse(original, out nugetVersion))
+            {
+                return nugetVersion.ToNormalizedString();
+            }
+            return original;
+        }
+        
+        public string IsPrerelease(string original)
+        {
+            NuGetVersion nugetVersion;
+            if (NuGetVersion.TryParse(original, out nugetVersion))
+            {
+                return nugetVersion.IsPrerelease ? "true" : "false";
+            }
+            return "true";
         }
     }
 }

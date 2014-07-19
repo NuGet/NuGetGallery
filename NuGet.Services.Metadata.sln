@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Metadata.Cat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogTests", "tests\CatalogTests\CatalogTests.csproj", "{4D0B6BAB-5A33-4A7F-B007-93194FC2E2E3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatMan", "src\CatMan\CatMan.csproj", "{EB4E4130-851B-4F04-B23B-B94F12031E53}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{4D0B6BAB-5A33-4A7F-B007-93194FC2E2E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D0B6BAB-5A33-4A7F-B007-93194FC2E2E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D0B6BAB-5A33-4A7F-B007-93194FC2E2E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB4E4130-851B-4F04-B23B-B94F12031E53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB4E4130-851B-4F04-B23B-B94F12031E53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB4E4130-851B-4F04-B23B-B94F12031E53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB4E4130-851B-4F04-B23B-B94F12031E53}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

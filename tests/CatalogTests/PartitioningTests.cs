@@ -82,15 +82,16 @@ namespace CatalogTests
                 partitions[batchNumber++] = new Dictionary<string, IList<JObject>>(batch);
             }
 
-            //Storage storage = new FileStorage("http://localhost:8000/partition", @"c:\data\site\partition");
-            CloudStorageAccount account = new CloudStorageAccount(new StorageCredentials("partitions", ""), false);
+            //CloudStorageAccount account = new CloudStorageAccount(new StorageCredentials("partitions", ""), false);
 
             IList<Task> createTasks = new List<Task>();
 
             int partitionNumber = 0;
             foreach (IDictionary<string, IList<JObject>> partition in partitions)
             {
-                Storage storage = new AzureStorage(account, string.Format("partition{0}", partitionNumber++));
+                string name = string.Format("partition{0}", partitionNumber++);
+                Storage storage = new FileStorage("http://localhost:8000/partition/" + name, @"c:\data\site\partition\" + name);
+                //Storage storage = new AzureStorage(account, name);
                 createTasks.Add(IndexingHelpers.CreateNewCatalog(storage, partition));
             }
 

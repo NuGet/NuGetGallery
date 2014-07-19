@@ -63,6 +63,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="NuGet.Versioning">
+      <HintPath>..\..\packages\NuGet.Versioning.0.1.0-alpha\lib\portable-net40+win\NuGet.Versioning.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Services.Client" />
@@ -88,7 +91,6 @@
     <Compile Include="Collecting\CollectorCursor.cs" />
     <Compile Include="Collecting\CollectorHttpClient.cs" />
     <Compile Include="Collecting\StoreCollector.cs" />
-    <Compile Include="Collecting\ICollectorLogger.cs" />
     <Compile Include="Collecting\Test\DistinctPackageIdCollector.cs" />
     <Compile Include="Collecting\Test\CheckLinksCollector.cs" />
     <Compile Include="Collecting\Test\CountCollector.cs" />
@@ -106,6 +108,7 @@
     <Compile Include="Maintenance\CatalogContainerItem.cs" />
     <Compile Include="Maintenance\CatalogUpdater.cs" />
     <Compile Include="Maintenance\ChecksumRecords.cs" />
+    <Compile Include="Maintenance\NupkgCatalogItem.cs" />
     <Compile Include="Persistence\StreamStorageContent.cs" />
     <Compile Include="Persistence\StringStorageContent.cs" />
     <Compile Include="Persistence\StorageContent.cs" />

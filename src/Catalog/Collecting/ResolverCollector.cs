@@ -7,6 +7,9 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using VDS.RDF;
 using VDS.RDF.Query;
+using System.Diagnostics.Tracing;
+using System.Text;
+using NuGet.Versioning;
 
 namespace NuGet.Services.Metadata.Catalog.Collecting
 {
@@ -15,10 +18,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         Storage _storage;
         JObject _resolverFrame;
 
-        public ICollectorLogger Logger { get; set; }
-
         public string GalleryBaseAddress { get; set; }
-        public string CdnBaseAddress { get; set; }
+        public string ContentBaseAddress { get; set; }
 
         public ResolverCollector(Storage storage, int batchSize)
             : base(batchSize, new Uri[] { Schema.DataTypes.Package })
@@ -26,10 +27,15 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             _resolverFrame = JObject.Parse(Utils.GetResource("context.Resolver.json"));
             _resolverFrame["@type"] = "PackageRegistration";
             _storage = storage;
+
+            GalleryBaseAddress = "http://tempuri.org";
+            ContentBaseAddress = "http://tempuri.org";
         }
 
         protected override async Task ProcessStore(TripleStore store)
         {
+            ResolverCollectorEventSource.Log.ProcessingBatch(BatchCount);
+
             try
             {
                 SparqlResultSet distinctIds = SparqlHelpers.Select(store, Utils.GetResource("sparql.SelectDistinctPackage.rq"));
@@ -49,9 +55,14 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                     sparql.SetLiteral("base", baseAddress);
                     sparql.SetLiteral("extension", ".json");
                     sparql.SetLiteral("galleryBase", GalleryBaseAddress);
-                    sparql.SetLiteral("cdnBase", CdnBaseAddress);
+                    sparql.SetLiteral("contentBase", ContentBaseAddress);
 
                     IGraph packageRegistration = SparqlHelpers.Construct(store, sparql.ToString());
+
+                    if (packageRegistration.Triples.Count == 0)
+                    {
+                        throw new Exception("packageRegistration.Triples.Count == 0");
+                    }
 
                     Uri registrationUri = new Uri(baseAddress + id.ToLowerInvariant() + ".json");
                     resolverResources.Add(registrationUri, packageRegistration);
@@ -66,6 +77,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             }
             finally
             {
+                ResolverCollectorEventSource.Log.ProcessedBatch(BatchCount);
                 store.Dispose();
             }
         }
@@ -82,18 +94,201 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         async Task Merge(KeyValuePair<Uri, IGraph> resource)
         {
-            string existingJson = await _storage.LoadString(resource.Key);
+            string existingJson;
+            ResolverCollectorEventSource.Log.LoadingBlob(resource.Key.ToString());
+            try {
+                existingJson = await _storage.LoadString(resource.Key);
+            } catch(Exception ex) {
+                ResolverCollectorEventSource.Log.ErrorLoadingBlob(resource.Key.ToString(), ex.ToString());
+                throw;
+            }
+            ResolverCollectorEventSource.Log.LoadedBlob(resource.Key.ToString());
+            
             if (existingJson != null)
             {
                 IGraph existingGraph = Utils.CreateGraph(existingJson);
                 resource.Value.Merge(existingGraph);
             }
 
+            UpdateIsLatest(resource);
+
+            string json = Utils.CreateJson(resource.Value, _resolverFrame);
             StorageContent content = new StringStorageContent(
-                Utils.CreateJson(resource.Value, _resolverFrame), 
+                json, 
                 contentType: "application/json", 
                 cacheControl: "public, max-age=300, s-maxage=300");
-            await _storage.Save(resource.Key, content);
+
+            // Estimate the file size and report it
+            ResolverCollectorEventSource.Log.EmittingBlob(resource.Key.ToString(), Encoding.UTF8.GetByteCount(json) / 1024);
+            try
+            {
+                await _storage.Save(resource.Key, content);
+            } catch(Exception ex) {
+                ResolverCollectorEventSource.Log.ErrorEmittingBlob(resource.Key.ToString(), ex.ToString());
+                throw;
+            }
+            ResolverCollectorEventSource.Log.EmittedBlob(resource.Key.ToString());
+        }
+
+        static void UpdateIsLatest(KeyValuePair<Uri, IGraph> resource)
+        {
+            RemoveLatestFlags(resource);
+            AddLatestFlags(resource);
+        }
+
+        static void RemoveLatestFlags(KeyValuePair<Uri, IGraph> resource)
+        {
+            IGraph graph = resource.Value;
+
+            IList<Triple> triplesToRetract = new List<Triple>();
+
+            foreach (Triple triple in graph.GetTriplesWithPredicate(graph.CreateUriNode(Schema.Predicates.IsAbsoluteLatestVersion)))
+            {
+                triplesToRetract.Add(triple);
+            }
+
+            foreach (Triple triple in graph.GetTriplesWithPredicate(graph.CreateUriNode(Schema.Predicates.IsLatestVersion)))
+            {
+                triplesToRetract.Add(triple);
+            }
+
+            foreach (Triple triple in triplesToRetract)
+            {
+                graph.Retract(triple);
+            }
+        }
+
+        static void AddLatestFlags(KeyValuePair<Uri, IGraph> resource)
+        {
+            IGraph graph = resource.Value;
+
+            NuGetVersion latestVersion = null;
+            NuGetVersion absoluteLatestVersion = null;
+
+            Uri latestPackage = null;
+            Uri absoluteLatestPackage = null;
+
+            foreach (Triple triple in graph.GetTriplesWithPredicate(graph.CreateUriNode(Schema.Predicates.Version)))
+            {
+                Uri package = ((IUriNode)triple.Subject).Uri;
+
+                NuGetVersion version = NuGetVersion.Parse(((ILiteralNode)triple.Object).Value);
+
+                if (version.IsPrerelease)
+                {
+                    if (absoluteLatestVersion == null || version > absoluteLatestVersion)
+                    {
+                        absoluteLatestVersion = version;
+                        absoluteLatestPackage = package;
+                    }
+                }
+                else
+                {
+                    if (latestVersion == null || version > latestVersion)
+                    {
+                        latestVersion = version;
+                        latestPackage = package;
+                    }
+                }
+            }
+
+            if (absoluteLatestVersion == null || latestVersion > absoluteLatestVersion)
+            {
+                absoluteLatestPackage = latestPackage;
+            }
+
+            INode subject = graph.CreateUriNode(resource.Key);
+
+            if (absoluteLatestPackage != null)
+            {
+                graph.Assert(
+                    graph.CreateUriNode(absoluteLatestPackage),
+                    graph.CreateUriNode(Schema.Predicates.IsAbsoluteLatestVersion),
+                    graph.CreateLiteralNode("true", Schema.DataTypes.Boolean));
+            }
+
+            if (latestPackage != null)
+            {
+                graph.Assert(
+                    graph.CreateUriNode(latestPackage),
+                    graph.CreateUriNode(Schema.Predicates.IsLatestVersion),
+                    graph.CreateLiteralNode("true", Schema.DataTypes.Boolean));
+            }
+        }
+    }
+
+    public class ResolverCollectorEventSource : EventSource {
+        public static readonly ResolverCollectorEventSource Log = new ResolverCollectorEventSource();
+        private ResolverCollectorEventSource() {}
+
+        [Event(
+            eventId: 1,
+            Level = EventLevel.Informational,
+            Opcode = EventOpcode.Start,
+            Task = Tasks.ProcessingBatch,
+            Message = "Processing batch #{0}")]
+        public void ProcessingBatch(int batchNumber) { WriteEvent(1, batchNumber); }
+
+        [Event(
+            eventId: 2,
+            Level = EventLevel.Informational,
+            Opcode = EventOpcode.Stop,
+            Task = Tasks.ProcessingBatch,
+            Message = "Processed batch #{0}")]
+        public void ProcessedBatch(int batchNumber) { WriteEvent(2, batchNumber); }
+
+        [Event(
+            eventId: 3,
+            Level = EventLevel.Informational,
+            Opcode = EventOpcode.Start,
+            Task = Tasks.LoadingBlob,
+            Message = "Loading existing blob: {0}")]
+        public void LoadingBlob(string blob) { WriteEvent(3, blob); }
+
+        [Event(
+            eventId: 4,
+            Level = EventLevel.Informational,
+            Opcode = EventOpcode.Stop,
+            Task = Tasks.LoadingBlob,
+            Message = "Loaded blob: {0}")]
+        public void LoadedBlob(string blob) { WriteEvent(4, blob); }
+
+        [Event(
+            eventId: 5,
+            Level = EventLevel.Informational,
+            Opcode = EventOpcode.Start,
+            Task = Tasks.EmittingBlob,
+            Message = "Emitting blob: {0} (~{1:0.00}KB)")]
+        public void EmittingBlob(string blob, double sizeInKB) { WriteEvent(5, blob, sizeInKB); }
+
+        [Event(
+            eventId: 6,
+            Level = EventLevel.Informational,
+            Opcode = EventOpcode.Stop,
+            Task = Tasks.EmittingBlob,
+            Message = "Emitted blob: {0}")]
+        public void EmittedBlob(string blob) { WriteEvent(6, blob); }
+
+        [Event(
+            eventId: 7,
+            Level = EventLevel.Error,
+            Opcode = EventOpcode.Stop,
+            Task = Tasks.EmittingBlob,
+            Message = "Error emitting blob '{0}': {1}")]
+        public void ErrorEmittingBlob(string blob, string exception) { WriteEvent(7, blob, exception); }
+
+        [Event(
+            eventId: 8,
+            Level = EventLevel.Error,
+            Opcode = EventOpcode.Stop,
+            Task = Tasks.LoadingBlob,
+            Message = "Error loading blob '{0}': {1}")]
+        public void ErrorLoadingBlob(string blob, string exception) { WriteEvent(8, blob, exception); }
+
+        public static class Tasks {
+            public const EventTask ProcessingBatch = (EventTask)0x1;
+            public const EventTask LoadingBlob = (EventTask)0x2;
+            public const EventTask EmittingBlob = (EventTask)0x3;
         }
     }
 }

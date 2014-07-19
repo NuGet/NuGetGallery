@@ -13,23 +13,15 @@ namespace CatalogTests
     {
         public static async Task Test0Async()
         {
-            string nuspecs = @"c:\data\nuspecs";
+            string nuspecs = @"c:\data\nuget\versions";
 
-            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\pub");
-
-            //Storage storage = new AzureStorage
-            //{
-            //    AccountName = "nuget3",
-            //    AccountKey = "",
-            //    Container = "pub",
-            //    BaseAddress = "http://nuget3.blob.core.windows.net"
-            //};
+            Storage storage = new FileStorage("http://localhost:8000/full", @"c:\data\site\full");
 
             CatalogContext context = new CatalogContext();
 
-            CatalogWriter writer = new CatalogWriter(storage, context, 1000);
+            CatalogWriter writer = new CatalogWriter(storage, context, 10);
 
-            const int BatchSize = 1000;
+            const int BatchSize = 1;
             int i = 0;
 
             int commitCount = 0;
@@ -37,17 +29,17 @@ namespace CatalogTests
             DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
             foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
             {
-                writer.Add(new NuspecPackageCatalogItem(fileInfo));
+                writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
 
                 if (++i % BatchSize == 0)
                 {
-                    await writer.Commit(DateTime.Now);
+                    await writer.Commit(DateTime.UtcNow);
 
                     Console.WriteLine("commit number {0}", commitCount++);
                 }
             }
 
-            await writer.Commit(DateTime.Now);
+            await writer.Commit(DateTime.UtcNow);
 
             Console.WriteLine("commit number {0}", commitCount++);
         }
@@ -67,11 +59,19 @@ namespace CatalogTests
 
             CatalogContext context = new CatalogContext();
 
-            CatalogWriter writer = new CatalogWriter(storage, context, 150);
+            CatalogWriter writer = new CatalogWriter(storage, context, 200);
 
             int total = 0;
 
-            int[] commitSize = { 50, 40, 25, 50, 10, 30, 40, 5, 400, 30, 10 };
+            //int[] commitSize = { 50, 40, 25, 50, 10, 30, 40, 5, 400, 30, 10, 20, 40, 50, 90, 70, 50, 50, 50, 50, 60, 70 };
+            int[] commitSize = { 
+                200, 200, 200, 200, 200, 
+                //200, 200, 200, 200, 200, 
+                //200, 200, 200, 200, 200, 
+                //200, 200, 200, 200, 200, 
+                //200, 200, 200, 200, 200,
+                //200, 200, 200, 200, 200
+            };
             int i = 0;
 
             int commitCount = 0;
@@ -84,7 +84,7 @@ namespace CatalogTests
                     break;
                 }
 
-                writer.Add(new NuspecPackageCatalogItem(fileInfo));
+                writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
                 total++;
 
                 if (++i == commitSize[commitCount])
@@ -134,7 +134,7 @@ namespace CatalogTests
             DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
             foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
             {
-                writer.Add(new NuspecPackageCatalogItem(fileInfo));
+                writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
 
                 if (++i % BatchSize == 0)
                 {
