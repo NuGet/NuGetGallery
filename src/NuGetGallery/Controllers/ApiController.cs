@@ -192,6 +192,7 @@ namespace NuGetGallery
         private const string DependentPackageKey = "dependentPackage";
         private const string ProjectGuidsKey = "projectGuids";
         private const string HTTPPost = "POST";
+        private const string MetricsDownloadEventMethod = "/DownloadEvent";
         private const string ContentTypeJson = "application/json";
 
         private static JObject GetJObject(string id, string version, string ipAddress, string userAgent, string operation, string dependentPackage, string projectGuids)
@@ -219,7 +220,7 @@ namespace NuGetGallery
 
                 using (var httpClient = new System.Net.Http.HttpClient())
                 {
-                    await httpClient.PostAsync(_config.MetricsServiceUri, new StringContent(jObject.ToString(), Encoding.UTF8, ContentTypeJson));
+                    await httpClient.PostAsync(new Uri(_config.MetricsServiceUri, MetricsDownloadEventMethod), new StringContent(jObject.ToString(), Encoding.UTF8, ContentTypeJson));
                 }
             }
             catch (WebException ex)
