@@ -41,6 +41,11 @@ namespace NuGetGallery.Configuration
         public Uri SearchServiceUri { get; set; }
 
         /// <summary>
+        /// Gets the URI to the metrics service
+        /// </summary>
+        public Uri MetricsServiceUri { get; set; }
+
+        /// <summary>
         /// Gets a boolean indicating if the site requires that email addresses be confirmed
         /// </summary>
         [DefaultValue(true)]

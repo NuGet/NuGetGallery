@@ -16,6 +16,8 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
 using NuGetGallery.Configuration;
+using System.Text;
+using System.Net.Http;
 
 namespace NuGetGallery
 {
@@ -134,7 +136,17 @@ namespace NuGetGallery
                         ProjectGuids = Request.Headers["NuGet-ProjectGuids"],
                     };
 
-                    PackageService.AddDownloadStatistics(stats);
+                    if (_config == null || _config.MetricsServiceUri == null)
+                    {
+                        PackageService.AddDownloadStatistics(stats);
+                    }
+                    else
+                    {
+                        // Disable warning about not awaiting async calls because we are _intentionally_ not awaiting this.
+#pragma warning disable 4014
+                        Task.Run(() => PostDownloadStatistics(id, package.NormalizedVersion, stats.IPAddress, stats.UserAgent, stats.Operation, stats.DependentPackage, stats.ProjectGuids));
+#pragma warning restore 4014
+                    }
                 }
                 catch (ReadOnlyModeException)
                 {
@@ -171,6 +183,56 @@ namespace NuGetGallery
                 id, 
                 String.IsNullOrEmpty(version) ? package.NormalizedVersion : version);
         }
+
+        private const string IdKey = "id";
+        private const string VersionKey = "version";
+        private const string IPAddressKey = "ipAddress";
+        private const string UserAgentKey = "userAgent";
+        private const string OperationKey = "operation";
+        private const string DependentPackageKey = "dependentPackage";
+        private const string ProjectGuidsKey = "projectGuids";
+        private const string HTTPPost = "POST";
+        private const string MetricsDownloadEventMethod = "/DownloadEvent";
+        private const string ContentTypeJson = "application/json";
+
+        private static JObject GetJObject(string id, string version, string ipAddress, string userAgent, string operation, string dependentPackage, string projectGuids)
+        {
+            var jObject = new JObject();
+            jObject.Add(IdKey, id);
+            jObject.Add(VersionKey, version);
+            if (!String.IsNullOrEmpty(ipAddress)) jObject.Add(IPAddressKey, ipAddress);
+            if (!String.IsNullOrEmpty(userAgent)) jObject.Add(UserAgentKey, userAgent);
+            if (!String.IsNullOrEmpty(operation)) jObject.Add(OperationKey, operation);
+            if (!String.IsNullOrEmpty(dependentPackage)) jObject.Add(DependentPackageKey, dependentPackage);
+            if (!String.IsNullOrEmpty(projectGuids)) jObject.Add(ProjectGuidsKey, projectGuids);
+
+            return jObject;
+        }
+
+        private async Task PostDownloadStatistics(string id, string version, string ipAddress, string userAgent, string operation, string dependentPackage, string projectGuids)
+        {
+            if (_config == null || _config.MetricsServiceUri == null)
+                return;
+
+            try
+            {
+                var jObject = GetJObject(id, version, ipAddress, userAgent, operation, dependentPackage, projectGuids);
+
+                using (var httpClient = new System.Net.Http.HttpClient())
+                {
+                    await httpClient.PostAsync(new Uri(_config.MetricsServiceUri, MetricsDownloadEventMethod), new StringContent(jObject.ToString(), Encoding.UTF8, ContentTypeJson));
+                }
+            }
+            catch (WebException ex)
+            {
+                QuietLog.LogHandledException(ex);
+            }
+            catch(AggregateException ex)
+            {
+                QuietLog.LogHandledException(ex.InnerException ?? ex);
+            }
+        }
+
 
         [HttpGet]
         [ActionName("GetNuGetExeApi")]
