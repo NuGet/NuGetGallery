@@ -135,7 +135,7 @@ namespace NuGetGallery
                         ProjectGuids = Request.Headers["NuGet-ProjectGuids"],
                     };
 
-                    if (_config.MetricsServiceUri == null)
+                    if (_config == null || _config.MetricsServiceUri == null)
                     {
                         PackageService.AddDownloadStatistics(stats);
                     }
@@ -207,7 +207,7 @@ namespace NuGetGallery
 
         private async Task PostDownloadStatistics(string id, string version, string ipAddress, string userAgent, string operation, string dependentPackage, string projectGuids)
         {
-            if (_config.MetricsServiceUri == null)
+            if (_config == null || _config.MetricsServiceUri == null)
                 return;
 
             try
