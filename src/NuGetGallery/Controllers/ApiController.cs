@@ -191,7 +191,7 @@ namespace NuGetGallery
         private const string HTTPPost = "POST";
         private const string ContentTypeJson = "application/json";
 
-        private JObject GetJObject(string id, string version, string ipAddress, string userAgent, string operation, string dependentPackage, string projectGuids)
+        private static JObject GetJObject(string id, string version, string ipAddress, string userAgent, string operation, string dependentPackage, string projectGuids)
         {
             var jObject = new JObject();
             jObject.Add(IdKey, id);
