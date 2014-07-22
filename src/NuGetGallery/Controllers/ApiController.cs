@@ -17,6 +17,7 @@ using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
 using NuGetGallery.Configuration;
 using System.Text;
+using System.Net.Http;
 
 namespace NuGetGallery
 {
@@ -141,8 +142,10 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        // TODO: Consider doing Task.Run, since, it is a fire and forget anyways
-                        await PostDownloadStatistics(id, package.NormalizedVersion, stats.IPAddress, stats.UserAgent, stats.Operation, stats.DependentPackage, stats.ProjectGuids);
+                        // Disable warning about not awaiting async calls because we are _intentionally_ not awaiting this.
+#pragma warning disable 4014
+                        Task.Run(() => PostDownloadStatistics(id, package.NormalizedVersion, stats.IPAddress, stats.UserAgent, stats.Operation, stats.DependentPackage, stats.ProjectGuids));
+#pragma warning restore 4014
                     }
                 }
                 catch (ReadOnlyModeException)
@@ -214,15 +217,9 @@ namespace NuGetGallery
             {
                 var jObject = GetJObject(id, version, ipAddress, userAgent, operation, dependentPackage, projectGuids);
 
-                var request = WebRequest.Create(_config.MetricsServiceUri);
-
-                request.Method = HTTPPost;
-                request.ContentType = ContentTypeJson;
-                using (var requestStream = request.GetRequestStream())
+                using (var httpClient = new System.Net.Http.HttpClient())
                 {
-                    var bytes = Encoding.UTF8.GetBytes(jObject.ToString());
-                    requestStream.Write(bytes, 0, bytes.Length);
-                    var response = await request.GetResponseAsync();
+                    await httpClient.PostAsync(_config.MetricsServiceUri, new StringContent(jObject.ToString(), Encoding.UTF8, ContentTypeJson));
                 }
             }
             catch (WebException ex)
