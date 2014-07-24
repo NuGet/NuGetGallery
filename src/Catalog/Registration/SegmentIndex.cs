@@ -70,14 +70,17 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         {
             public Uri Uri { get; set; }
             public string Lowest { get; set; }
-            public string Highest { get; set; }
             public int Count { get; set; }
+            public bool Dirty { get; set; } 
+
             public SegmentSummary()
             {
+                Dirty = true;
             }
             public SegmentSummary(Triple segment, IGraph graph)
             {
                 FromGraph(segment, graph);
+                Dirty = false;
             }
             public IGraph ToGraph()
             {
@@ -88,7 +91,6 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 INode subject = graph.CreateUriNode(Uri);
 
                 graph.Assert(subject, graph.CreateUriNode("catalog:lowest"), graph.CreateLiteralNode(Lowest));
-                graph.Assert(subject, graph.CreateUriNode("catalog:highest"), graph.CreateLiteralNode(Highest));
                 graph.Assert(subject, graph.CreateUriNode("catalog:count"), graph.CreateLiteralNode(Count.ToString(), new Uri("http://www.w3.org/2001/XMLSchema#integer")));
 
                 return graph;
@@ -100,7 +102,6 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
                 Uri = ((IUriNode)segment.Object).Uri;
                 Lowest = graph.GetTriplesWithSubjectPredicate(segment.Object, graph.CreateUriNode("catalog:lowest")).First().Object.ToString();
-                Highest = graph.GetTriplesWithSubjectPredicate(segment.Object, graph.CreateUriNode("catalog:highest")).First().Object.ToString();
                 Count = int.Parse(((ILiteralNode)graph.GetTriplesWithSubjectPredicate(segment.Object, graph.CreateUriNode("catalog:count")).First().Object).Value);
             }
         }

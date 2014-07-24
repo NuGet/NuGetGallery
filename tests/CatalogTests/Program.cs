@@ -33,12 +33,17 @@ namespace CatalogTests
                 //BuilderTests.Test1();
                 //BuilderTests.Test0();
                 
-                CollectorTests.Test0();
+                //CollectorTests.Test0();
                 
                 //CollectorTests.Test6();
 
                 //PartitioningTests.Test0();
                 //PartitioningTests.Test1();
+
+                //RegistrationTests.Test1();
+                
+                RegistrationTests.Test2();
+                //RegistrationTests.Test3();
 
                 DateTime after = DateTime.Now;
 

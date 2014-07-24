@@ -81,8 +81,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             Uri segmentUri = _storage.ResolveUri(_name + segmentIndex.GetNextSegmentName());
 
-            Segment segment = new Segment();
-            segment.Uri = segmentUri;
+            Segment segment = new Segment(segmentUri);
 
             foreach (var item in batch)
             {

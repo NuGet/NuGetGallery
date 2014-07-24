@@ -117,7 +117,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (Verbose)
             {
-                Console.WriteLine("load {0}", name);
+                Console.WriteLine("delete {0}", name);
             }
 
             string path = Path.Trim('\\') + '\\';

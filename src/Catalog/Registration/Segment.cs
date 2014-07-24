@@ -10,13 +10,17 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         IList<SegmentEntry> _entries = new List<SegmentEntry>();
         public Uri Uri { get; set; }
         public IList<SegmentEntry> Entries { get { return _entries; } }
-        public Segment()
+        
+        public Segment(Uri uri)
         {
+            Uri = uri;
         }
+
         public Segment(IGraph graph)
         {
             FromGraph(graph);
         }
+        
         public IGraph ToGraph()
         {
             IGraph graph = new Graph();
@@ -30,12 +34,16 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             foreach (SegmentEntry entry in Entries)
             {
-                graph.Assert(subject, graph.CreateUriNode("catalog:entry"), graph.CreateUriNode(entry.Uri));
+                INode entryNode = graph.CreateUriNode(entry.Uri);
+
+                graph.Assert(subject, graph.CreateUriNode("catalog:entry"), entryNode);
+                graph.Assert(entryNode, graph.CreateUriNode("catalog:key"), graph.CreateLiteralNode(entry.Key));
                 graph.Merge(entry.ToGraph(), true);
             }
 
             return graph;
         }
+
         void FromGraph(IGraph graph)
         {
             graph.NamespaceMap.AddNamespace("rdf", new Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
@@ -43,47 +51,56 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             INode subject = graph.GetTriplesWithPredicateObject(graph.CreateUriNode("rdf:type"), graph.CreateUriNode("catalog:Segment")).First().Subject;
 
+            Uri = ((IUriNode)subject).Uri;
+
             foreach (Triple entry in graph.GetTriplesWithSubjectPredicate(subject, graph.CreateUriNode("catalog:entry")))
             {
-                Entries.Add(new SegmentEntry(entry, graph));
+                Entries.Add(new SegmentEntry(((IUriNode)entry.Object).Uri, graph));
             }
-
         }
-        public class SegmentEntry : Entry
+        
+        public class SegmentEntry
         {
+            IGraph _graph;
+
+            public Uri Uri { get; set; }
+
+            public string Key { get; set; }
+
             public SegmentEntry()
             {
             }
 
-            public SegmentEntry(Triple entry, IGraph graph)
+            public SegmentEntry(Uri subject, IGraph graph)
             {
-                FromGraph(entry, graph);
+                FromGraph(subject, graph);
+            }
+
+            public SegmentEntry(IGraph graph)
+            {
+                _graph = graph;
             }
 
             public IGraph ToGraph()
             {
-                IGraph graph = new Graph();
-
-                graph.NamespaceMap.AddNamespace("nuget", new Uri("http://schema.nuget.org/schema#"));
-
-                INode subject = graph.CreateUriNode(Uri);
-
-                graph.Assert(subject, graph.CreateUriNode("nuget:id"), graph.CreateLiteralNode(Id));
-                graph.Assert(subject, graph.CreateUriNode("nuget:version"), graph.CreateLiteralNode(Version));
-                graph.Assert(subject, graph.CreateUriNode("nuget:description"), graph.CreateLiteralNode(Description));
-
-                return graph;
+                return _graph;
             }
 
-            void FromGraph(Triple entry, IGraph graph)
+            void FromGraph(Uri subjectUri, IGraph original)
             {
-                graph.NamespaceMap.AddNamespace("nuget", new Uri("http://schema.nuget.org/schema#"));
+                _graph = new Graph();
 
-                Uri = ((IUriNode)entry.Object).Uri;
+                INode subject = original.CreateUriNode(subjectUri);
 
-                Id = graph.GetTriplesWithSubjectPredicate(entry.Object, graph.CreateUriNode("nuget:id")).First().Object.ToString();
-                Version = graph.GetTriplesWithSubjectPredicate(entry.Object, graph.CreateUriNode("nuget:version")).First().Object.ToString();
-                Description = graph.GetTriplesWithSubjectPredicate(entry.Object, graph.CreateUriNode("nuget:description")).First().Object.ToString();
+                foreach (Triple triple in original.GetTriplesWithSubject(subject))
+                {
+                    _graph.Assert(triple);
+                }
+
+                INode predicate = original.CreateUriNode("catalog:key");
+
+                Key = ((ILiteralNode)original.GetTriplesWithSubjectPredicate(subject, predicate).First().Object).Value;
+                Uri = subjectUri;
             }
         }
     }

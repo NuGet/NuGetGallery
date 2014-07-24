@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Metadata.Catalog.Registration;
 using System;
@@ -8,11 +9,23 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using VDS.RDF;
 
 namespace CatalogTests
 {
     class RegistrationTests
     {
+        static Storage CreateStorage(string name)
+        {
+            Storage storage = new FileStorage("http://localhost:8000/" + name + "/", @"c:\data\site\" + name);
+
+            //CloudStorageAccount account = new CloudStorageAccount(new StorageCredentials(...), false);
+            //Storage storage = new AzureStorage(account, name);
+
+            return storage;
+        }
+
+        /*
         static async Task CreateRegistrationAsync(Storage storage, string resolverBaseAddress, string connectionString, string sql)
         {
             await CreateRegistrationAsync(storage, resolverBaseAddress, connectionString, sql, (entry) => entry.Id);
@@ -57,15 +70,7 @@ namespace CatalogTests
 
             await builder.Commit();
         }
-        static Storage CreateStorage(string name)
-        {
-            Storage storage = new FileStorage("http://localhost:8000/" + name + "/", @"c:\data\site\" + name);
 
-            //CloudStorageAccount account = new CloudStorageAccount(new StorageCredentials(...), false);
-            //Storage storage = new AzureStorage(account, name);
-
-            return storage;
-        }
         public static async Task Test0Async()
         {
             string resolverBaseAddress = "http://nugetdev0.blob.core.windows.net/cdn-public/v3/resolver/";
@@ -103,11 +108,18 @@ namespace CatalogTests
         {
             Test0Async().Wait();
         }
-        static async Task Test1Async()
-        {
-            Uri indexUri = new Uri("https://nuget3.blob.core.windows.net/allversions/segment_index.json");
+        */
 
-            HttpClient client = new HttpClient();
+        static async Task PrintAsync(Uri indexUri)
+        {
+            FileSystemEmulatorHandler handler = new FileSystemEmulatorHandler
+            {
+                BaseAddress = new Uri("http://localhost:8000"),
+                RootFolder = @"c:\data\site",
+                InnerHandler = new HttpClientHandler()
+            };
+
+            HttpClient client = new HttpClient(handler);
 
             HttpResponseMessage indexResponse = await client.GetAsync(indexUri);
             string indexJson = await indexResponse.Content.ReadAsStringAsync();
@@ -138,17 +150,130 @@ namespace CatalogTests
                     string description = package.Value["description"].ToString();
                     description = description.Substring(0, Math.Min(description.Length, 25)) + "...";
 
-                    Console.WriteLine("{0} {1} {2}", package.Value["id"], package.Value["version"], description);
+                    Console.WriteLine("{0}\t{1}\t{2}", package.Value["id"], package.Value["version"], description);
                 }
             }
         }
-        static void Test1()
-        {
-            DateTime before = DateTime.Now;
-            Test1Async().Wait();
-            DateTime after = DateTime.Now;
 
-            Console.WriteLine("duration: {0} seconds", (after - before).TotalSeconds);
+        static async Task Test2Async()
+        {
+            Storage storage = CreateStorage("test");
+
+            SegmentWriter writer = new SegmentWriter(storage, "registration", 4, true);
+
+            writer.Add(new TestSegmentEntry("a", "1.0.0", "A"));
+            writer.Add(new TestSegmentEntry("b", "1.0.0", "B"));
+            writer.Add(new TestSegmentEntry("c", "1.0.0", "C"));
+            writer.Add(new TestSegmentEntry("d", "1.0.0", "D"));
+            writer.Add(new TestSegmentEntry("e", "1.0.0", "E"));
+            writer.Add(new TestSegmentEntry("f", "1.0.0", "F"));
+            writer.Add(new TestSegmentEntry("g", "1.0.0", "G"));
+            writer.Add(new TestSegmentEntry("h", "1.0.0", "H"));
+            writer.Add(new TestSegmentEntry("i", "1.0.0", "I"));
+            writer.Add(new TestSegmentEntry("j", "1.0.0", "J"));
+            writer.Add(new TestSegmentEntry("k", "1.0.0", "K"));
+
+            await writer.Commit();
+
+            //SegmentWriter writer2 = new SegmentWriter(storage, "registration", 4, true);
+
+            //writer2.Add(new TestSegmentEntry("bb", "1.0.0", "BB"));
+            //writer2.Add(new TestSegmentEntry("dd", "1.0.0", "DD"));
+
+            //await writer2.Commit();
+
+            SegmentWriter writer3 = new SegmentWriter(storage, "registration", 4, true);
+
+            writer3.Add(new TestSegmentEntry("aa", "1.0.0", "AA"));
+            writer3.Add(new TestSegmentEntry("ab", "1.0.0", "AB"));
+            writer3.Add(new TestSegmentEntry("ac", "1.0.0", "AC"));
+            writer3.Add(new TestSegmentEntry("ad", "1.0.0", "AD"));
+            writer3.Add(new TestSegmentEntry("ae", "1.0.0", "AE"));
+            writer3.Add(new TestSegmentEntry("af", "1.0.0", "AF"));
+            writer3.Add(new TestSegmentEntry("ag", "1.0.0", "AG"));
+            writer3.Add(new TestSegmentEntry("ah", "1.0.0", "AH"));
+
+            await writer3.Commit();
+
+            SegmentWriter writer4 = new SegmentWriter(storage, "registration", 4, true);
+
+            writer4.Add(new TestSegmentEntry("jj", "1.0.0", "JJ"));
+
+            await writer4.Commit();
+
+            await PrintAsync(new Uri("http://localhost:8000/test/registration/segment_index.json"));
+        }
+
+        public static void Test2()
+        {
+            Test2Async().Wait();
+        }
+
+        static async Task Test3Async()
+        {
+            Storage storage = new FileStorage("http://localhost:8000/test/", @"c:\data\site\test");
+
+            storage.Verbose = true;
+
+            SegmentWriter writer = new SegmentWriter(storage, "registration", 10, true);
+
+            writer.Add(new TestSegmentEntry("a", "1.0.0", "A"));
+            writer.Add(new TestSegmentEntry("b", "1.0.0", "B"));
+            writer.Add(new TestSegmentEntry("c", "1.0.0", "C"));
+            writer.Add(new TestSegmentEntry("d", "1.0.0", "D"));
+
+            await writer.Commit();
+
+            SegmentWriter writer2 = new SegmentWriter(storage, "registration", 10, true);
+
+            writer2.Add(new TestSegmentEntry("aa", "1.0.0", "AA"));
+
+            await writer2.Commit();
+
+            await PrintAsync(new Uri("http://localhost:8000/test/registration/segment_index.json"));
+        }
+
+        public static void Test3()
+        {
+            Test3Async().Wait();
+        }
+
+        class TestSegmentEntry : SegmentEntry
+        {
+            string _key;
+
+            public TestSegmentEntry(string id, string version, string description)
+            {
+                _key = id;
+
+                Id = id;
+                Version = version;
+                Description = description;
+            }
+
+            public override string Key
+            {
+                get { return _key; }
+            }
+
+            public string Id { get; set; }
+            public string Version { get; set; }
+            public string Description { get; set; }
+
+            public override IGraph GetSegmentContent(Uri uri)
+            {
+                IGraph graph = new Graph();
+
+                graph.NamespaceMap.AddNamespace("nuget", new Uri("http://schema.nuget.org/schema#"));
+
+                INode subject = graph.CreateUriNode(uri);
+
+                graph.Assert(subject, graph.CreateUriNode("nuget:id"), graph.CreateLiteralNode(Id));
+                graph.Assert(subject, graph.CreateUriNode("nuget:version"), graph.CreateLiteralNode(Version));
+                graph.Assert(subject, graph.CreateUriNode("nuget:description"), graph.CreateLiteralNode(Description));
+
+                return graph;
+            }
         }
     }
 }
