@@ -48,12 +48,12 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
                             {
                                 foreach (JToken t in (JArray) type)
                                 {
-                                    if (!HandleTriple(handler, subject, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", new Uri(t.ToString()), null)) return;
+                                    if (!HandleTriple(handler, subject, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", t.ToString(), null, false)) return;
                                 }
                             }
                             else
                             {
-                                if (!HandleTriple(handler, subject, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", new Uri(type.ToString()), null)) return;
+                                if (!HandleTriple(handler, subject, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", type.ToString(), null, false)) return;
                             }
                         }
 
@@ -70,7 +70,7 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
                                 JToken value;
                                 if (objectJObject.TryGetValue("@id", out id))
                                 {
-                                    if (!HandleTriple(handler, subject, property.Name, new Uri(id.ToString()), null)) return;
+                                    if (!HandleTriple(handler, subject, property.Name, id.ToString(), null, false)) return;
                                 }
                                 else if (objectJObject.TryGetValue("@value", out value))
                                 {
@@ -95,7 +95,8 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
                                                 break;
                                         }
                                     }
-                                    if (!HandleTriple(handler, subject, property.Name, value.ToString(), datatype)) return;
+
+                                    if (!HandleTriple(handler, subject, property.Name, value.ToString(), datatype, true)) return;
                                 }
                             }
                         }
@@ -155,7 +156,7 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
         /// <param name="obj">Object</param>
         /// <param name="datatype">Object Datatype</param>
         /// <returns>True if parsing should continue, false otherwise</returns>
-        bool HandleTriple(IRdfHandler handler, string subject, string predicate, object obj, string datatype)
+        bool HandleTriple(IRdfHandler handler, string subject, string predicate, string obj, string datatype, bool isLiteral)
         {
             INode subjectNode;
             if (subject.StartsWith("_"))
@@ -171,14 +172,21 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
             INode predicateNode = handler.CreateUriNode(new Uri(predicate));
             
             INode objNode;
-
-            if (obj is Uri)
+            if (isLiteral)
             {
-                objNode = handler.CreateUriNode((Uri)obj);
+                objNode = (datatype == null) ? handler.CreateLiteralNode((string)obj) : handler.CreateLiteralNode((string)obj, new Uri(datatype));
             }
             else
             {
-                objNode = (datatype == null) ? handler.CreateLiteralNode((string)obj) : handler.CreateLiteralNode((string)obj, new Uri(datatype));
+                if (obj.StartsWith("_"))
+                {
+                    string nodeId = obj.Substring(obj.IndexOf(":") + 1);
+                    objNode = handler.CreateBlankNode(nodeId);
+                }
+                else
+                {
+                    objNode = handler.CreateUriNode(new Uri(obj));
+                }
             }
 
             return handler.HandleTriple(new Triple(subjectNode, predicateNode, objNode));
