@@ -155,6 +155,7 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
         /// <param name="predicate">Predicate</param>
         /// <param name="obj">Object</param>
         /// <param name="datatype">Object Datatype</param>
+        /// <param name="isLiteral">isLiteral Object</param>
         /// <returns>True if parsing should continue, false otherwise</returns>
         bool HandleTriple(IRdfHandler handler, string subject, string predicate, string obj, string datatype, bool isLiteral)
         {
