@@ -1,7 +1,7 @@
 ﻿using System;
 using VDS.RDF;
 
-namespace NuGet.Services.Metadata.Catalog.Registration
+namespace NuGet.Services.Metadata.Catalog.Segmentation
 {
     public class IdKeyEntry : Entry
     {

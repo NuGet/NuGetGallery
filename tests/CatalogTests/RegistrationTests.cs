@@ -1,16 +1,14 @@
 ﻿using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Collecting;
 using NuGet.Services.Metadata.Catalog.Persistence;
-using NuGet.Services.Metadata.Catalog.Registration;
+using NuGet.Services.Metadata.Catalog.Segmentation;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using VDS.RDF;
 
 namespace CatalogTests
 {
@@ -199,7 +197,7 @@ namespace CatalogTests
 
                 int count = 1;
 
-                int i = 1;
+                //int i = 1;
 
                 while (reader.Read())
                 {
@@ -289,6 +287,37 @@ namespace CatalogTests
         public static void Test6()
         {
             CountAsync(new Uri("http://localhost:8000/test/registration/segment_index.json")).Wait();
+        }
+
+        public static async Task Test7Async()
+        {
+            //  destination - we will build the segmentation into here
+
+            Storage storage = new FileStorage("http://localhost:8000/test/", @"c:\data\site\test");
+
+            //  source - we will read the data from here
+
+            FileSystemEmulatorHandler handler = new FileSystemEmulatorHandler
+            {
+                BaseAddress = new Uri("http://localhost:8000"),
+                RootFolder = @"c:\data\site",
+                InnerHandler = new HttpClientHandler()
+            };
+
+            string registrationBaseAddress = "http://tempuri.org/registration";
+
+            SegmentCollector collector = new SegmentCollector(200, storage, registrationBaseAddress);
+
+            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue, handler);
+
+            await CountAsync(new Uri("http://localhost:8000/test/allversions/segment_index.json"));
+
+            await PrintAsync(new Uri("http://localhost:8000/test/allversions/segment_index.json"));
+        }
+
+        public static void Test7()
+        {
+            Test7Async().Wait();
         }
     }
 }

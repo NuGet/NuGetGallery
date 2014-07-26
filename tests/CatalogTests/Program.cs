@@ -44,9 +44,10 @@ namespace CatalogTests
                 
                 //RegistrationTests.Test2();
                 //RegistrationTests.Test3();
-                RegistrationTests.Test4();
+                //RegistrationTests.Test4();
                 //RegistrationTests.Test5();
-                RegistrationTests.Test6();
+                //RegistrationTests.Test6();
+                RegistrationTests.Test7();
 
                 DateTime after = DateTime.Now;
 

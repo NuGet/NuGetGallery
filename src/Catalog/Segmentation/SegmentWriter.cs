@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VDS.RDF;
 
-namespace NuGet.Services.Metadata.Catalog.Registration
+namespace NuGet.Services.Metadata.Catalog.Segmentation
 {
     public class SegmentWriter
     {
