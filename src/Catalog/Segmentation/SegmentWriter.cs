@@ -3,7 +3,6 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -11,8 +10,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public class SegmentWriter
     {
-        SortedList<string, SegmentEntry> _entries = new SortedList<string, SegmentEntry>();
-        IDictionary<string, SegmentEntry> _data = new Dictionary<string, SegmentEntry>();
+        SortedList<string, Entry> _entries = new SortedList<string, Entry>();
+        IDictionary<string, Entry> _data = new Dictionary<string, Entry>();
 
         Storage _storage;
         int _segmentSize;
@@ -29,20 +28,25 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             _storage = storage;
             _name = name.Trim('/') + '/';
 
-            _segmentFrame = JObject.Parse(Utils.GetResource("context.Registration.json"));
+            _segmentFrame = JObject.Parse(Utils.GetResource("context.Segment.json"));
             _segmentFrame["@type"] = "http://schema.nuget.org/catalog#Segment";
-            _segmentIndexFrame = JObject.Parse(Utils.GetResource("context.Registration.json"));
+            _segmentIndexFrame = JObject.Parse(Utils.GetResource("context.Segment.json"));
             _segmentIndexFrame["@type"] = "http://schema.nuget.org/catalog#SegmentIndex";
 
             _verbose = verbose;
         }
         
-        public void Add(SegmentEntry entry)
+        public void Add(Entry entry)
         {
             _entries.Add(entry.Key, entry);
             _data.Add(entry.Key, entry);
         }
-        
+
+        public int ReadyCount
+        {
+            get { return _entries.Count; }
+        }
+
         public async Task Commit()
         {
             if (_entries.Count == 0)
@@ -83,58 +87,26 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             RemoveEmptyBuckets(buckets);
 
-            // if the commit can fit in one segment then the rewriting can be optimized
+            HashSet<Uri> segmentsToDelete = new HashSet<Uri>();
 
-            SegmentIndex.SegmentSummary existingSegmentSummary;
-            if (TryCommitScopedToSingleSegment(buckets, segmentIndex.Segments, out existingSegmentSummary))
+            // process the buckets, potentially by splitting them up to create more segments, for transactional reasons this process always renames segments
+
+            await ProcessBuckets(buckets, segmentIndex, segmentsToDelete);
+
+            // clean any old SegmentSummary items out of the SegmentIndex
+
+            CleanUpSegmentIndex(segmentIndex, segmentsToDelete);
+
+            // finally save the index - saving the index confirms the transaction because it will be saved with new segment names
+
+            await _storage.Save(segmentIndex.Uri, new StringStorageContent(Utils.CreateJson(segmentIndex.ToGraph(), _segmentIndexFrame), "application/json"));
+
+            //TODO: this delete should be done at >> cache-timeout of index page
+            // rewriting segments will leave us with old segments to delete - this is clean up - at this point the transaction is committed
+
+            foreach (Uri segmentUri in segmentsToDelete)
             {
-                SegmentBucket segmentBucket = buckets.Values.First();
-
-                // load the existing segment and merge the data into teh bucket
-
-                string segmentContent = await _storage.LoadString(existingSegmentSummary.Uri);
-
-                Segment oldSegment = new Segment(Utils.CreateGraph(segmentContent));
-
-                foreach (Segment.SegmentEntry segmentEntry in oldSegment.Entries)
-                {
-                    if (!segmentBucket.Entries.ContainsKey(segmentEntry.Key))
-                    {
-                        // items with the same key will be replaced with new data
-                        segmentBucket.Entries.Add(segmentEntry.Key, new LoadedSegmentEntry(segmentEntry));
-                    }
-                }
-
-                // create the new segment from the data in the bucket
-
-                Segment newSegment = MakeSegmentFromBucket(existingSegmentSummary.Uri, buckets.Values.First());
-
-                // save will overwrite the odl segment with the new
-
-                await _storage.Save(newSegment.Uri, new StringStorageContent(Utils.CreateJson(newSegment.ToGraph(), _segmentFrame), "application/json"));
-            }
-            else
-            {
-                HashSet<Uri> segmentsToDelete = new HashSet<Uri>();
-
-                // process the buckets, potentially by splitting them up to create more segments, for transactional reasons this process always renames segments
-
-                await ProcessBuckets(buckets, segmentIndex, segmentsToDelete);
-
-                // clean any old SegmentSummary items out of the SegmentIndex
-
-                CleanUpSegmentIndex(segmentIndex, segmentsToDelete);
-
-                // finally save the index - saving the index confirms the transaction because it will be saved with new segment names
-
-                await _storage.Save(segmentIndex.Uri, new StringStorageContent(Utils.CreateJson(segmentIndex.ToGraph(), _segmentIndexFrame), "application/json"));
-
-                // rewriting segments will leave us with old segments to delete - this is clean up - at this point the transaction is committed
-
-                foreach (Uri segmentUri in segmentsToDelete)
-                {
-                    await _storage.Delete(segmentUri);
-                }
+                await _storage.Delete(segmentUri);
             }
 
             _entries.Clear();
@@ -153,9 +125,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             }
         }
 
-        void FillBuckets(SortedDictionary<string, SegmentBucket> buckets, IList<SegmentEntry> values)
+        void FillBuckets(SortedDictionary<string, SegmentBucket> buckets, IList<Entry> values)
         {
-            foreach (SegmentEntry entry in values)
+            foreach (Entry entry in values)
             {
                 SegmentBucket segmentBucket = GetSegmentBucket(buckets, entry.Key);
                 segmentBucket.Entries.Add(entry.Key, entry);
@@ -203,41 +175,11 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             }
         }
 
-        bool TryCommitScopedToSingleSegment(SortedDictionary<string, SegmentBucket> buckets, IList<SegmentIndex.SegmentSummary> existingSegments, out SegmentIndex.SegmentSummary existingSegmentSummary)
-        {
-            existingSegmentSummary = null;
-
-            if (buckets.Count > 1)
-            {
-                return false;
-            }
-
-            if (buckets.Count == 0)
-            {
-                //  it shouldn't be possible to get here
-                return false;
-            }
-
-            string bucketKey = buckets.First().Key;
-            int bucketCount = buckets.First().Value.Entries.Count;
-
-            // check whether this bucket corresponds to an existing segment
-            foreach (SegmentIndex.SegmentSummary segment in existingSegments)
-            {
-                if (segment.Lowest == bucketKey && segment.Count + bucketCount < _segmentSize)
-                {
-                    existingSegmentSummary = segment;
-                    return true;
-                }
-            }
-            return false;
-        }
-
         Segment MakeSegmentFromBucket(Uri uri, SegmentBucket bucket)
         {
             Segment segment = new Segment(uri);
 
-            foreach (SegmentEntry segmentEntry in bucket.Entries.Values)
+            foreach (Entry segmentEntry in bucket.Entries.Values)
             {
                 Uri segmentEntryUri = new Uri(segment.Uri.ToString() + "#" + segmentEntry.Key);
                 IGraph graph = segmentEntry.GetSegmentContent(segmentEntryUri);
@@ -291,7 +233,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                     }
 
                     int j = 0;
-                    foreach (KeyValuePair<string, SegmentEntry> entry in bucket.Value.Entries)
+                    foreach (KeyValuePair<string, Entry> entry in bucket.Value.Entries)
                     {
                         int subBucketIndex = j++ / _segmentSize;
 
@@ -359,7 +301,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             }
         }
 
-        class LoadedSegmentEntry : SegmentEntry
+        class LoadedSegmentEntry : Entry
         {
             IGraph _graph;
             string _key;

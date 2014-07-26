@@ -8,9 +8,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 {
     class SegmentBucket
     {
-        SortedList<string, SegmentEntry> _entries = new SortedList<string, SegmentEntry>();
+        SortedList<string, Entry> _entries = new SortedList<string, Entry>();
 
-        public SortedList<string, SegmentEntry> Entries { get { return _entries; } }
+        public SortedList<string, Entry> Entries { get { return _entries; } }
 
         public int Count { get; set; }
 

@@ -5,6 +5,7 @@ using NuGet.Services.Metadata.Catalog.Registration;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -15,101 +16,6 @@ namespace CatalogTests
 {
     class RegistrationTests
     {
-        static Storage CreateStorage(string name)
-        {
-            Storage storage = new FileStorage("http://localhost:8000/" + name + "/", @"c:\data\site\" + name);
-
-            //CloudStorageAccount account = new CloudStorageAccount(new StorageCredentials(...), false);
-            //Storage storage = new AzureStorage(account, name);
-
-            return storage;
-        }
-
-        /*
-        static async Task CreateRegistrationAsync(Storage storage, string resolverBaseAddress, string connectionString, string sql)
-        {
-            await CreateRegistrationAsync(storage, resolverBaseAddress, connectionString, sql, (entry) => entry.Id);
-        }
-
-        static async Task CreateRegistrationAsync(Storage storage, string resolverBaseAddress, string connectionString, string sql, Func<Entry, string> key)
-        {
-            RegistrationBuilder builder = new RegistrationBuilder(storage, "registration", 1000, true);
-
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                connection.Open();
-
-                SqlCommand command = new SqlCommand(sql, connection);
-
-                SqlDataReader reader = command.ExecuteReader();
-
-                while (reader.Read())
-                {
-                    string id = reader.GetString(0);
-                    string version = reader.GetString(1);
-                    string description = reader.GetString(2);
-
-                    try
-                    {
-                        builder.Add(new Entry
-                        {
-                            Uri = new Uri(resolverBaseAddress + id.ToLowerInvariant() + ".json#" + version),
-                            Id = id,
-                            Version = version,
-                            Description = description
-                        },
-                        key);
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("exception on id: {0})", id);
-                        //throw;
-                    }
-                }
-            }
-
-            await builder.Commit();
-        }
-
-        public static async Task Test0Async()
-        {
-            string resolverBaseAddress = "http://nugetdev0.blob.core.windows.net/cdn-public/v3/resolver/";
-            string connectionString = "...";
-
-            string islatest = @"
-                        SELECT PackageRegistrations.[Id], Packages.[NormalizedVersion], Packages.[Description] 
-                        FROM Packages
-                        INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
-                        WHERE Packages.Listed = 1
-                          AND Packages.IsLatest = 1
-                    ";
-
-            string islateststable = @"
-                        SELECT PackageRegistrations.[Id], Packages.[NormalizedVersion], Packages.[Description] 
-                        FROM Packages
-                        INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
-                        WHERE Packages.Listed = 1
-                          AND Packages.IsLatestStable = 1
-                    ";
-
-            string allversions = @"
-                        SELECT PackageRegistrations.[Id], Packages.[NormalizedVersion], Packages.[Description] 
-                        FROM Packages
-                        INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
-                        WHERE Packages.Listed = 1
-                    ";
-
-            await CreateRegistrationAsync(CreateStorage("islatest"), resolverBaseAddress, connectionString, islatest);
-            await CreateRegistrationAsync(CreateStorage("islateststable"), resolverBaseAddress, connectionString, islateststable);
-            await CreateRegistrationAsync(CreateStorage("allversions"), resolverBaseAddress, connectionString, allversions);
-        }
-
-        public static void Test0()
-        {
-            Test0Async().Wait();
-        }
-        */
-
         static async Task PrintAsync(Uri indexUri)
         {
             FileSystemEmulatorHandler handler = new FileSystemEmulatorHandler
@@ -155,49 +61,89 @@ namespace CatalogTests
             }
         }
 
+        static async Task CountAsync(Uri indexUri)
+        {
+            FileSystemEmulatorHandler handler = new FileSystemEmulatorHandler
+            {
+                BaseAddress = new Uri("http://localhost:8000"),
+                RootFolder = @"c:\data\site",
+                InnerHandler = new HttpClientHandler()
+            };
+
+            HttpClient client = new HttpClient(handler);
+
+            HttpResponseMessage indexResponse = await client.GetAsync(indexUri);
+            string indexJson = await indexResponse.Content.ReadAsStringAsync();
+            JObject index = JObject.Parse(indexJson);
+
+            SortedList<string, Uri> segments = new SortedList<string, Uri>();
+
+            int count1 = 0;
+
+            foreach (JObject entry in index["entry"])
+            {
+                count1 += entry["count"].ToObject<int>();
+
+                segments.Add(entry["lowest"].ToString(), entry["url"].ToObject<Uri>());
+            }
+
+            int count2 = 0;
+
+            foreach (var item in segments)
+            {
+                HttpResponseMessage segmentResponse = await client.GetAsync(item.Value);
+                string segmentJson = await segmentResponse.Content.ReadAsStringAsync();
+                JObject segment = JObject.Parse(segmentJson);
+
+                count2 += ((JArray)segment["entry"]).Count;
+            }
+
+            Console.WriteLine("{0} {1}", count1, count2);
+        }
+
         static async Task Test2Async()
         {
-            Storage storage = CreateStorage("test");
+            Storage storage = new FileStorage("http://localhost:8000/test/", @"c:\data\site\test");
 
             SegmentWriter writer = new SegmentWriter(storage, "registration", 4, true);
 
-            writer.Add(new TestSegmentEntry("a", "1.0.0", "A"));
-            writer.Add(new TestSegmentEntry("b", "1.0.0", "B"));
-            writer.Add(new TestSegmentEntry("c", "1.0.0", "C"));
-            writer.Add(new TestSegmentEntry("d", "1.0.0", "D"));
-            writer.Add(new TestSegmentEntry("e", "1.0.0", "E"));
-            writer.Add(new TestSegmentEntry("f", "1.0.0", "F"));
-            writer.Add(new TestSegmentEntry("g", "1.0.0", "G"));
-            writer.Add(new TestSegmentEntry("h", "1.0.0", "H"));
-            writer.Add(new TestSegmentEntry("i", "1.0.0", "I"));
-            writer.Add(new TestSegmentEntry("j", "1.0.0", "J"));
-            writer.Add(new TestSegmentEntry("k", "1.0.0", "K"));
+            writer.Add(new IdKeyEntry("a", "1.0.0", "A", "http://tempuri.org/registration"));
+            writer.Add(new IdKeyEntry("b", "1.0.0", "B", "http://tempuri.org/registration"));
+            writer.Add(new IdKeyEntry("c", "1.0.0", "C", "http://tempuri.org/registration"));
+            writer.Add(new IdKeyEntry("d", "1.0.0", "D", "http://tempuri.org/registration"));
+            writer.Add(new IdKeyEntry("e", "1.0.0", "E", "http://tempuri.org/registration"));
+            writer.Add(new IdKeyEntry("f", "1.0.0", "F", "http://tempuri.org/registration"));
+            writer.Add(new IdKeyEntry("g", "1.0.0", "G", "http://tempuri.org/registration"));
+            writer.Add(new IdKeyEntry("h", "1.0.0", "H", "http://tempuri.org/registration"));
+            writer.Add(new IdKeyEntry("i", "1.0.0", "I", "http://tempuri.org/registration"));
+            writer.Add(new IdKeyEntry("j", "1.0.0", "J", "http://tempuri.org/registration"));
+            writer.Add(new IdKeyEntry("k", "1.0.0", "K", "http://tempuri.org/registration"));
 
             await writer.Commit();
 
-            //SegmentWriter writer2 = new SegmentWriter(storage, "registration", 4, true);
+            SegmentWriter writer2 = new SegmentWriter(storage, "registration", 4, true);
 
-            //writer2.Add(new TestSegmentEntry("bb", "1.0.0", "BB"));
-            //writer2.Add(new TestSegmentEntry("dd", "1.0.0", "DD"));
+            writer2.Add(new IdKeyEntry("bb", "1.0.0", "BB", "http://tempuri.org/registration"));
+            writer2.Add(new IdKeyEntry("dd", "1.0.0", "DD", "http://tempuri.org/registration"));
 
-            //await writer2.Commit();
+            await writer2.Commit();
 
             SegmentWriter writer3 = new SegmentWriter(storage, "registration", 4, true);
 
-            writer3.Add(new TestSegmentEntry("aa", "1.0.0", "AA"));
-            writer3.Add(new TestSegmentEntry("ab", "1.0.0", "AB"));
-            writer3.Add(new TestSegmentEntry("ac", "1.0.0", "AC"));
-            writer3.Add(new TestSegmentEntry("ad", "1.0.0", "AD"));
-            writer3.Add(new TestSegmentEntry("ae", "1.0.0", "AE"));
-            writer3.Add(new TestSegmentEntry("af", "1.0.0", "AF"));
-            writer3.Add(new TestSegmentEntry("ag", "1.0.0", "AG"));
-            writer3.Add(new TestSegmentEntry("ah", "1.0.0", "AH"));
+            writer3.Add(new IdKeyEntry("aa", "1.0.0", "AA", "http://tempuri.org/registration"));
+            writer3.Add(new IdKeyEntry("ab", "1.0.0", "AB", "http://tempuri.org/registration"));
+            writer3.Add(new IdKeyEntry("ac", "1.0.0", "AC", "http://tempuri.org/registration"));
+            writer3.Add(new IdKeyEntry("ad", "1.0.0", "AD", "http://tempuri.org/registration"));
+            writer3.Add(new IdKeyEntry("ae", "1.0.0", "AE", "http://tempuri.org/registration"));
+            writer3.Add(new IdKeyEntry("af", "1.0.0", "AF", "http://tempuri.org/registration"));
+            writer3.Add(new IdKeyEntry("ag", "1.0.0", "AG", "http://tempuri.org/registration"));
+            writer3.Add(new IdKeyEntry("ah", "1.0.0", "AH", "http://tempuri.org/registration"));
 
             await writer3.Commit();
 
             SegmentWriter writer4 = new SegmentWriter(storage, "registration", 4, true);
 
-            writer4.Add(new TestSegmentEntry("jj", "1.0.0", "JJ"));
+            writer4.Add(new IdKeyEntry("jj", "1.0.0", "JJ", "http://tempuri.org/registration"));
 
             await writer4.Commit();
 
@@ -215,18 +161,19 @@ namespace CatalogTests
 
             storage.Verbose = true;
 
-            SegmentWriter writer = new SegmentWriter(storage, "registration", 10, true);
+            SegmentWriter writer = new SegmentWriter(storage, "registration", 3, true);
 
-            writer.Add(new TestSegmentEntry("a", "1.0.0", "A"));
-            writer.Add(new TestSegmentEntry("b", "1.0.0", "B"));
-            writer.Add(new TestSegmentEntry("c", "1.0.0", "C"));
-            writer.Add(new TestSegmentEntry("d", "1.0.0", "D"));
+            writer.Add(new IdVersionKeyEntry("a", "1.0.0", "A1", "http://tempuri.org/registration"));
+            writer.Add(new IdVersionKeyEntry("a", "2.0.0", "A2", "http://tempuri.org/registration"));
+            writer.Add(new IdVersionKeyEntry("a", "3.0.0", "A3", "http://tempuri.org/registration"));
+            writer.Add(new IdVersionKeyEntry("b", "1.0.0", "B1", "http://tempuri.org/registration"));
 
             await writer.Commit();
 
-            SegmentWriter writer2 = new SegmentWriter(storage, "registration", 10, true);
+            SegmentWriter writer2 = new SegmentWriter(storage, "registration", 3, true);
 
-            writer2.Add(new TestSegmentEntry("aa", "1.0.0", "AA"));
+            writer2.Add(new IdVersionKeyEntry("a", "4.0.0", "A4", "http://tempuri.org/registration"));
+            writer2.Add(new IdVersionKeyEntry("b", "2.0.0", "B2", "http://tempuri.org/registration"));
 
             await writer2.Commit();
 
@@ -238,42 +185,110 @@ namespace CatalogTests
             Test3Async().Wait();
         }
 
-        class TestSegmentEntry : SegmentEntry
+        static async Task CreateRegistrationAsync(Storage storage, string connectionString, string sql, Func<string, string, string, Entry> factory)
         {
-            string _key;
+            SegmentWriter writer = new SegmentWriter(storage, "registration", 1000, true);
 
-            public TestSegmentEntry(string id, string version, string description)
+            using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                _key = id;
+                connection.Open();
 
-                Id = id;
-                Version = version;
-                Description = description;
+                SqlCommand command = new SqlCommand(sql, connection);
+
+                SqlDataReader reader = command.ExecuteReader();
+
+                int count = 1;
+
+                int i = 1;
+
+                while (reader.Read())
+                {
+                    string id = reader.GetString(0);
+                    string version = reader.GetString(1);
+                    string description = reader.GetString(2);
+
+                    try
+                    {
+                        Console.WriteLine("add({0},{1})", id, version);
+
+                        writer.Add(factory(id, version, description));
+
+                        //if (i++ % 1000 == 0)
+                        //{
+                        //    Console.WriteLine("commit {0}", count++);
+                        //    await writer.Commit();
+                        //}
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("exception on id: {0})", id);
+                        //throw;
+                    }
+                }
+
+                if (writer.ReadyCount > 0)
+                {
+                    Console.WriteLine("commit {0}", count++);
+
+                    await writer.Commit();
+                }
             }
+        }
 
-            public override string Key
-            {
-                get { return _key; }
-            }
+        static async Task Test4Async()
+        {
+            Storage storage = new FileStorage("http://localhost:8000/test/", @"c:\data\site\test");
 
-            public string Id { get; set; }
-            public string Version { get; set; }
-            public string Description { get; set; }
+            storage.Verbose = true;
 
-            public override IGraph GetSegmentContent(Uri uri)
-            {
-                IGraph graph = new Graph();
+            string islateststable = @"
+                SELECT PackageRegistrations.[Id], Packages.[NormalizedVersion], Packages.[Description] 
+                FROM Packages
+                INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
+                WHERE Packages.Listed = 1
+                    AND Packages.IsLatestStable = 1
+                ORDER BY PackageRegistrations.[Id], Packages.[NormalizedVersion]
+            ";
 
-                graph.NamespaceMap.AddNamespace("nuget", new Uri("http://schema.nuget.org/schema#"));
+            string connectionString = (new StreamReader(@"c:\data\config.txt")).ReadToEnd();
 
-                INode subject = graph.CreateUriNode(uri);
+            await CreateRegistrationAsync(storage, connectionString, islateststable, 
+                (id, version, description) => new IdKeyEntry(id, version, description, "http://tempuri.org/registration"));
+        }
 
-                graph.Assert(subject, graph.CreateUriNode("nuget:id"), graph.CreateLiteralNode(Id));
-                graph.Assert(subject, graph.CreateUriNode("nuget:version"), graph.CreateLiteralNode(Version));
-                graph.Assert(subject, graph.CreateUriNode("nuget:description"), graph.CreateLiteralNode(Description));
+        public static void Test4()
+        {
+            Test4Async().Wait();
+        }
 
-                return graph;
-            }
+        static async Task Test5Async()
+        {
+            Storage storage = new FileStorage("http://localhost:8000/test/", @"c:\data\site\test");
+
+            storage.Verbose = true;
+
+            string allversions = @"
+                SELECT PackageRegistrations.[Id], Packages.[NormalizedVersion], Packages.[Description] 
+                FROM Packages
+                INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[Key]
+                WHERE Packages.Listed = 1
+                ORDER BY PackageRegistrations.[Id], Packages.[NormalizedVersion]
+            ";
+
+            string connectionString = (new StreamReader(@"c:\data\config.txt")).ReadToEnd();
+
+            await CreateRegistrationAsync(storage, connectionString, allversions,
+                (id, version, description) => new IdVersionKeyEntry(id, version, description, "http://tempuri.org/registration"));
+        }
+
+        public static void Test5()
+        {
+            Test5Async().Wait();
+        }
+
+        public static void Test6()
+        {
+            CountAsync(new Uri("http://localhost:8000/test/registration/segment_index.json")).Wait();
         }
     }
 }

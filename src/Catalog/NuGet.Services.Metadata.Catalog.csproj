@@ -133,13 +133,13 @@
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Helpers\XmlHtmlWriter.cs" />
     <Compile Include="Helpers\XsltHelper.cs" />
-    <Compile Include="Registration\Entry.cs" />
-    <None Include="Registration\RegistrationBuilder.cs" />
-    <Compile Include="Registration\Segment.cs" />
-    <Compile Include="Registration\SegmentBucket.cs" />
-    <Compile Include="Registration\SegmentEntry.cs" />
-    <Compile Include="Registration\SegmentIndex.cs" />
-    <Compile Include="Registration\SegmentWriter.cs" />
+    <Compile Include="Segmentation\IdVersionKeyEntry.cs" />
+    <Compile Include="Segmentation\IdKeyEntry.cs" />
+    <Compile Include="Segmentation\Segment.cs" />
+    <Compile Include="Segmentation\SegmentBucket.cs" />
+    <Compile Include="Segmentation\Entry.cs" />
+    <Compile Include="Segmentation\SegmentIndex.cs" />
+    <Compile Include="Segmentation\SegmentWriter.cs" />
     <Compile Include="Schema.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -160,7 +160,7 @@
     <EmbeddedResource Include="context\Package.json" />
     <EmbeddedResource Include="context\Resolver.json" />
     <EmbeddedResource Include="context\DeletePackage.json" />
-    <EmbeddedResource Include="context\Registration.json" />
+    <EmbeddedResource Include="context\Segment.json" />
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />
