@@ -9,26 +9,25 @@ namespace Resolver.Resolver
 {
     class Participants
     {
-        public static List<Tuple<string, SemanticVersion>>[] Collect(PNode pnode)
+        public static List<Package>[] Collect(PNode pnode)
         {
             return SortParticipants(GetParticipants(pnode));
         }
 
-        private static List<Tuple<string, SemanticVersion>>[] SortParticipants(IDictionary<string, ISet<SemanticVersion>> participants)
+        private static List<Package>[] SortParticipants(IDictionary<string, ISet<Package>> participants)
         {
-            List<Tuple<string, SemanticVersion>>[] result = new List<Tuple<string, SemanticVersion>>[participants.Count];
+            List<Package>[] result = new List<Package>[participants.Count];
 
             int i = 0;
 
-            foreach (KeyValuePair<string, ISet<SemanticVersion>> participant in participants)
+            foreach (KeyValuePair<string, ISet<Package>> participant in participants)
             {
-                List<SemanticVersion> versions = new List<SemanticVersion>(participant.Value);
-                versions.Sort(SemanticVersionRange.DefaultComparer);
+                List<Package> versions = new List<Package>(participant.Value);
 
-                List<Tuple<string, SemanticVersion>> candidates = new List<Tuple<string, SemanticVersion>>();
-                foreach (SemanticVersion version in versions)
+                List<Package> candidates = new List<Package>();
+                foreach (Package version in versions.OrderBy(v => v.Version, SemanticVersionRange.DefaultComparer))
                 {
-                    candidates.Add(new Tuple<string, SemanticVersion>(participant.Key, version));
+                    candidates.Add(version);
                 }
 
                 result[i++] = candidates;
@@ -37,9 +36,9 @@ namespace Resolver.Resolver
             return result;
         }
 
-        private static IDictionary<string, ISet<SemanticVersion>> GetParticipants(PNode pnode)
+        private static IDictionary<string, ISet<Package>> GetParticipants(PNode pnode)
         {
-            IDictionary<string, ISet<SemanticVersion>> participants = new Dictionary<string, ISet<SemanticVersion>>();
+            IDictionary<string, ISet<Package>> participants = new Dictionary<string, ISet<Package>>();
             foreach (PVNode child in pnode.Children)
             {
                 GetParticipants(child, participants);
@@ -47,7 +46,7 @@ namespace Resolver.Resolver
             return participants;
         }
 
-        private static void GetParticipants(PVNode pvnode, IDictionary<string, ISet<SemanticVersion>> participants)
+        private static void GetParticipants(PVNode pvnode, IDictionary<string, ISet<Package>> participants)
         {
             foreach (PNode child in pvnode.Children)
             {
@@ -55,7 +54,7 @@ namespace Resolver.Resolver
             }
         }
 
-        private static void GetParticipants(PNode pnode, IDictionary<string, ISet<SemanticVersion>> participants)
+        private static void GetParticipants(PNode pnode, IDictionary<string, ISet<Package>> participants)
         {
             foreach (PVNode child in pnode.Children)
             {
@@ -63,15 +62,15 @@ namespace Resolver.Resolver
             }
         }
 
-        private static void GetParticipants(PVNode pvnode, string id, IDictionary<string, ISet<SemanticVersion>> participants)
+        private static void GetParticipants(PVNode pvnode, string id, IDictionary<string, ISet<Package>> participants)
         {
-            ISet<SemanticVersion> versions;
+            ISet<Package> versions;
             if (!participants.TryGetValue(id, out versions))
             {
-                versions = new HashSet<SemanticVersion>();
+                versions = new HashSet<Package>();
                 participants.Add(id, versions);
             }
-            versions.Add(pvnode.Version);
+            versions.Add(pvnode.Package);
 
             foreach (PNode child in pvnode.Children)
             {

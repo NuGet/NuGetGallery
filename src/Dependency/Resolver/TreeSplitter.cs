@@ -60,7 +60,7 @@ namespace Resolver.Resolver
             foreach (Subtree subtree in subtrees)
             {
                 PNode newRoot = new PNode("$");
-                PVNode newRootVersion = new PVNode(new SemanticVersion(0));
+                PVNode newRootVersion = new PVNode(new SemanticVersion(0), new Package("$", SemanticVersion.Min, null));
                 newRoot.Children.Add(newRootVersion);
 
                 foreach (PNode newRootChild in subtree.Roots)

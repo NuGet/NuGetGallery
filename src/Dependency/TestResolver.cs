@@ -17,21 +17,21 @@ namespace Resolver
 
             List<PNode> independentTrees = TreeSplitter.FindIndependentTrees(pnode);
 
-            IDictionary<string, SemanticVersion> solution = new Dictionary<string, SemanticVersion>();
+            IList<Package> solution = new List<Package>();
 
             foreach (PNode tree in independentTrees)
             {
-                List<Tuple<string, SemanticVersion>>[] lineup = Participants.Collect(tree);
+                List<Package>[] lineup = Participants.Collect(tree);
 
                 // apply policy, where policy is strictly filtering and sorting on the lineup structiure
 
                 // lineup registrations are ordered low to high version - reverse the order to find a solution using the latest
-                foreach (List<Tuple<string, SemanticVersion>> registration in lineup)
+                foreach (List<Package> registration in lineup)
                 {
                     registration.Reverse();
                 }
 
-                IDictionary<string, SemanticVersion> partial = Runner.FindFirst(tree, lineup);
+                IList<Package> partial = Runner.FindFirst(tree, lineup);
 
                 if (partial == null)
                 {
@@ -41,7 +41,7 @@ namespace Resolver
                 }
                 else
                 {
-                    foreach (KeyValuePair<string, SemanticVersion> item in partial)
+                    foreach (Package item in partial)
                     {
                         solution.Add(item);
                     }
@@ -72,18 +72,18 @@ namespace Resolver
 
             List<PNode> independentTrees = TreeSplitter.FindIndependentTrees(pnode);
 
-            IDictionary<string, SemanticVersion> solution = new Dictionary<string, SemanticVersion>();
+            IList<Package> solution = new List<Package>();
 
             foreach (PNode tree in independentTrees)
             {
-                List<Tuple<string, SemanticVersion>>[] lineup = Participants.Collect(tree);
+                List<Package>[] lineup = Participants.Collect(tree);
 
-                foreach (List<Tuple<string, SemanticVersion>> registration in lineup)
+                foreach (List<Package> registration in lineup)
                 {
                     registration.Reverse();
                 }
 
-                IDictionary<string, SemanticVersion> partial = Runner.FindFirst(tree, lineup);
+                IList<Package> partial = Runner.FindFirst(tree, lineup);
 
                 if (partial == null)
                 {
@@ -93,7 +93,7 @@ namespace Resolver
                 }
                 else
                 {
-                    foreach (KeyValuePair<string, SemanticVersion> item in partial)
+                    foreach (Package item in partial)
                     {
                         solution.Add(item);
                     }
@@ -125,18 +125,18 @@ namespace Resolver
 
             List<PNode> independentTrees = TreeSplitter.FindIndependentTrees(pnode);
 
-            IDictionary<string, SemanticVersion> solution = new Dictionary<string, SemanticVersion>();
+            IList<Package> solution = new List<Package>();
 
             foreach (PNode tree in independentTrees)
             {
-                List<Tuple<string, SemanticVersion>>[] lineup = Participants.Collect(tree);
+                List<Package>[] lineup = Participants.Collect(tree);
 
-                foreach (List<Tuple<string, SemanticVersion>> registration in lineup)
+                foreach (List<Package> registration in lineup)
                 {
                     registration.Reverse();
                 }
 
-                IDictionary<string, SemanticVersion> partial = Runner.FindFirst(tree, lineup);
+                IList<Package> partial = Runner.FindFirst(tree, lineup);
 
                 if (partial == null)
                 {
@@ -146,7 +146,7 @@ namespace Resolver
                 }
                 else
                 {
-                    foreach (KeyValuePair<string, SemanticVersion> item in partial)
+                    foreach (Package item in partial)
                     {
                         solution.Add(item);
                     }

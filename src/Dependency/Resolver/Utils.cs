@@ -29,19 +29,19 @@ namespace Resolver.Resolver
             return iterations;
         }
 
-        public static void PrintPackages(IDictionary<string, SemanticVersion> packages)
+        public static void PrintPackages(IList<Package> packages)
         {
-            foreach (KeyValuePair<string, SemanticVersion> package in packages)
+            foreach (Package package in packages)
             {
-                Console.WriteLine("{0}/{1} ", package.Key, package.Value);
+                Console.WriteLine("{0}/{1} ", package.Id, package.Version);
             }
         }
 
-        public static void PrintDistinctRegistrations(List<Tuple<string, SemanticVersion>>[] lineup)
+        public static void PrintDistinctRegistrations(List<Package>[] lineup)
         {
-            foreach (List<Tuple<string, SemanticVersion>> registration in lineup)
+            foreach (List<Package> registration in lineup)
             {
-                Console.Write("{0} ", registration.First().Item1);
+                Console.Write("{0} ", registration.First().Id);
             }
         }
     }

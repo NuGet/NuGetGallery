@@ -14,7 +14,7 @@ namespace Resolver.Resolver
         public static async Task<PNode> GetTree(string[] registrationIds, IGallery gallery, string name)
         {
             PNode root = new PNode("$");
-            PVNode rootVersion = new PVNode(SemanticVersion.Min);
+            PVNode rootVersion = new PVNode(SemanticVersion.Min, new Package("$", SemanticVersion.Min, null));
             root.Children.Add(rootVersion);
 
             foreach (string registrationId in registrationIds)
@@ -41,7 +41,7 @@ namespace Resolver.Resolver
         {
             try
             {
-                PVNode pvnode = new PVNode(package.Version);
+                PVNode pvnode = new PVNode(package.Version, package);
                 parent.Children.Add(pvnode);
 
                 ICollection<Dependency> dependencies = GetDependencies(package, name);
@@ -102,24 +102,33 @@ namespace Resolver.Resolver
 
         //  Testing a candidate solution against a tree
 
-        public static bool Satisfy(PNode pnode, List<Tuple<string, SemanticVersion>> candidate, IDictionary<string, SemanticVersion> result)
+        public static bool Satisfy(PNode pnode, List<Package> candidate, IList<Package> result)
         {
-            IDictionary<string, SemanticVersion> dictionary = new Dictionary<string, SemanticVersion>();
-            foreach (Tuple<string, SemanticVersion> item in candidate)
+            IDictionary<string,Package> dictionary = new Dictionary<string,Package>();
+            foreach (Package item in candidate)
             {
-                dictionary.Add(item.Item1, item.Item2);
+                dictionary.Add(item.Id,item);
             }
-            dictionary.Add("$", new SemanticVersion(0));
+
+            Package root = new Package("$", SemanticVersion.Min, null);
+            dictionary.Add("$",root);
 
             if (Satisfy(pnode, dictionary, result))
             {
-                result.Remove("$");
+                foreach (var r in result)
+                {
+                    if (r.Id == "$")
+                    {
+                        result.Remove(r);
+                        break;
+                    }
+                }
                 return true;
             }
             return false;
         }
 
-        static bool Satisfy(PNode pnode, IDictionary<string, SemanticVersion> dictionary, IDictionary<string, SemanticVersion> result)
+        static bool Satisfy(PNode pnode, IDictionary<string, Package> dictionary, IList<Package> result)
         {
             if (pnode.Children.Count == 0)
             {
@@ -139,11 +148,11 @@ namespace Resolver.Resolver
             return false;
         }
 
-        static bool Satisfy(PVNode pvnode, string id, IDictionary<string, SemanticVersion> dictionary, IDictionary<string, SemanticVersion> result)
+        static bool Satisfy(PVNode pvnode, string id, IDictionary<string, Package> dictionary, IList<Package> result)
         {
-            if (dictionary.Contains(new KeyValuePair<string, SemanticVersion>(id, pvnode.Version), new KeySemantciVersionEqualityComparer()))
+            if (dictionary.Contains(new KeyValuePair<string, Package>(id, pvnode.Package), new KeySemantciVersionEqualityComparer()))
             {
-                result[id] = pvnode.Version;
+                result.Add(pvnode.Package);
 
                 if (pvnode.Children.Count == 0)
                 {
@@ -165,13 +174,15 @@ namespace Resolver.Resolver
             return false;
         }
 
-        class KeySemantciVersionEqualityComparer : EqualityComparer<KeyValuePair<string, SemanticVersion>>
+        class KeySemantciVersionEqualityComparer : EqualityComparer<KeyValuePair<string, Package>>
         {
-            public override bool Equals(KeyValuePair<string, SemanticVersion> x, KeyValuePair<string, SemanticVersion> y)
+            public override bool Equals(KeyValuePair<string, Package> x, KeyValuePair<string, Package> y)
             {
-                return (x.Key == y.Key) && (SemanticVersionRange.DefaultComparer.Compare(x.Value, y.Value) == 0);
+                if (x.Value == null || y.Value == null) return false;
+
+                return (x.Key == y.Key) && (SemanticVersionRange.DefaultComparer.Compare(x.Value.Version, y.Value.Version) == 0);
             }
-            public override int GetHashCode(KeyValuePair<string, SemanticVersion> obj)
+            public override int GetHashCode(KeyValuePair<string, Package> obj)
             {
                 return obj.GetHashCode(); 
             }

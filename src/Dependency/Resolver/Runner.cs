@@ -9,7 +9,43 @@ namespace Resolver.Resolver
 {
     public class Runner
     {
-        public static void Simulate(PNode pnode, List<Tuple<string, SemanticVersion>>[] lineup, bool verbose)
+        public static async Task<IList<Package>> ResolveDependencies(IGallery gallery, List<string> installed)
+        {
+            PNode pnode = await MetadataTree.GetTree(installed.ToArray(), gallery, "net40-Client");
+
+            List<PNode> independentTrees = TreeSplitter.FindIndependentTrees(pnode);
+
+            List<Package> solution = new List<Package>();
+
+            foreach (PNode tree in independentTrees)
+            {
+                List<Package>[] lineup = Participants.Collect(tree);
+
+                foreach (List<Package> registration in lineup)
+                {
+                    registration.Reverse();
+                }
+
+                IList<Package> partial = Runner.FindFirst(tree, lineup);
+
+                if (partial == null)
+                {
+                    Console.Write("unable to find solution between: ");
+                    Utils.PrintDistinctRegistrations(lineup);
+                    Console.WriteLine();
+                }
+                else
+                {
+                    foreach (var item in partial)
+                    {
+                        solution.Add(item);
+                    }
+                }
+            }
+            return solution;
+        }
+
+        public static void Simulate(PNode pnode, List<Package>[] lineup, bool verbose)
         {
             int good = 0;
             int bad = 0;
@@ -18,7 +54,7 @@ namespace Resolver.Resolver
 
             Permutations.Run(lineup, (candidate) =>
             {
-                IDictionary<string, SemanticVersion> result = new Dictionary<string, SemanticVersion>();
+                List<Package> result = new List<Package>();
                 if (MetadataTree.Satisfy(pnode, candidate, result))
                 {
                     if (verbose)
@@ -49,12 +85,12 @@ namespace Resolver.Resolver
             Console.WriteLine("good: {0} bad: {1}", good, bad);
         }
 
-        public static IDictionary<string, SemanticVersion> FindFirst(PNode pnode, List<Tuple<string, SemanticVersion>>[] lineup)
+        public static IList<Package> FindFirst(PNode pnode, List<Package>[] lineup)
         {
-            IDictionary<string, SemanticVersion> solution = null;
+            IList<Package> solution = null;
             Permutations.Run(lineup, (candidate) =>
             {
-                IDictionary<string, SemanticVersion> result = new Dictionary<string, SemanticVersion>();
+                IList<Package> result = new List<Package>();
                 if (MetadataTree.Satisfy(pnode, candidate, result))
                 {
                     solution = result;
@@ -65,11 +101,11 @@ namespace Resolver.Resolver
             return solution;
         }
 
-        static void Print(List<Tuple<string, SemanticVersion>> list)
+        static void Print(List<Package> list)
         {
-            foreach (Tuple<string, SemanticVersion> item in list)
+            foreach (Package item in list)
             {
-                Console.Write("{0}/{1} ", item.Item1, item.Item2);
+                Console.Write("{0}/{1} ", item.Id, item.Version);
             }
         }
 

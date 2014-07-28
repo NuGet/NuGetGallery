@@ -1,0 +1,44 @@
+{
+  "packages": [
+    {
+      "package": "http://api.nuget.org/packages/resolver/dotNetRDF.json#1.0.5.3315",
+      "id": "dotNetRDF",
+      "version": "1.0.5.3315",
+      "targetFramework": "net45",
+      "allowedVersions": "1.0.2",
+      "explicitlyInstalled": true,
+      "packageRestoreHints":  {
+        "metadataSources":  ["http://api.nuget.org/packages/dotNetRDF/1.0.5.3315.json","http://api.myget.org/nuget.org/dotNetRDF/1.0.5.3315.json"],
+        "downloadLocations": ["http://api.nuget.org/packages/dotNetRDF/1.0.5.3315/dotNetRDF.1.0.5.3315.nupkg"]
+      }
+    },
+    {
+      "package": "http://api.nuget.org/packages/resolver/HtmlAgilityPack.json#1.4.6",
+      "id": "HtmlAgilityPack",
+      "version": "1.4.6",
+      "explicitlyInstalled": false,
+      "packageRestoreHints":  {
+        "metadataSources":  ["http://api.nuget.org/packages/HtmlAgilityPack/1.4.6.json","http://api.myget.org/nuget.org/HtmlAgilityPack/1.4.6.json"],
+        "downloadLocations": ["http://api.nuget.org/packages/HtmlAgilityPack/1.4.6/HtmlAgilityPack.1.4.6.nupkg"]
+      }
+    },
+    {
+      "package": "http://api.nuget.org/packages/resolver/VDS.Common/1.3.0",
+      "id": "VDS.Common",
+      "version": "1.3.0",
+      "explicitlyInstalled": false,
+      "packageRestoreHints":  {
+        "metadataSources":  ["http://api.nuget.org/packages/VDS.Common/1.3.0.json","http://api.myget.org/nuget.org/VDS.Common/1.3.0.json"],
+        "downloadLocations": ["http://api.nuget.org/packages/VDS.Common/1.3.0/VDS.Common.1.3.0.nupkg"]
+      }
+    }
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/packagesConfig/",
+    "pc": "http://schema.nuget.org/packagesConfig/",
+    "package": "@id",
+    "packages": {"@id": "pc:package", "@container": "@set" },
+    "metadataSources": {"@id": "pc:metadataSource", "@container": "@set", "@type":  "@id" },
+    "downloadLocations": {"@id": "pc:downloadLocation", "@container": "@set", "@type": "@id" }
+  }
+}

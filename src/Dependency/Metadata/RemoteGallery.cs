@@ -59,21 +59,20 @@ namespace Resolver.Metadata
                 Registration registration = new Registration();
                 registration.Id = id;
 
-                JArray jarrayPackages = (JArray)jobjectRegistration["package"];
+                JArray jarrayPackages = (JArray)jobjectRegistration["packages"];
 
                 foreach (JObject jobjectPackage in jarrayPackages)
                 {
+                    var localJobjectPackage = jobjectPackage;
                     string version = jobjectPackage["version"].ToObject<string>();
 
-                    Package package = new Package(id, version);
+                    Package package = new Package(id, version, localJobjectPackage);
                     registration.Packages.Add(package);
 
                     JToken jtokenDependencies;
-                    if (jobjectPackage.TryGetValue("dependencies", out jtokenDependencies))
+                    if (jobjectPackage.TryGetValue("dependencyGroups", out jtokenDependencies))
                     {
-                        JObject dependencies = (JObject)jtokenDependencies;
-
-                        JArray jarrayGroups = (JArray)dependencies["group"];
+                        JArray jarrayGroups = (JArray)jtokenDependencies;
 
                         foreach (JObject jobjectGroup in jarrayGroups)
                         {
@@ -97,7 +96,7 @@ namespace Resolver.Metadata
                                 }
                             }
 
-                            JArray jarrayDependency = (JArray)jobjectGroup["dependency"];
+                            JArray jarrayDependency = (JArray)jobjectGroup["dependencies"];
 
                             foreach (JObject jobjectDependencyPart in jarrayDependency)
                             {

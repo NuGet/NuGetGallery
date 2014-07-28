@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogTests", "tests\Catal
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatMan", "src\CatMan\CatMan.csproj", "{EB4E4130-851B-4F04-B23B-B94F12031E53}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet3.Client.Core", "src\NuGet3.Client.Core\NuGet3.Client.Core.csproj", "{C34D30AB-DF92-44FD-91CF-F331C97D0473}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet3.CommandLine", "src\NuGet3.CommandLine\NuGet3.CommandLine.csproj", "{057126D4-2AA0-4054-B2D2-C8DF3475A204}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +49,14 @@ Global
 		{EB4E4130-851B-4F04-B23B-B94F12031E53}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB4E4130-851B-4F04-B23B-B94F12031E53}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB4E4130-851B-4F04-B23B-B94F12031E53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C34D30AB-DF92-44FD-91CF-F331C97D0473}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C34D30AB-DF92-44FD-91CF-F331C97D0473}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C34D30AB-DF92-44FD-91CF-F331C97D0473}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C34D30AB-DF92-44FD-91CF-F331C97D0473}.Release|Any CPU.Build.0 = Release|Any CPU
+		{057126D4-2AA0-4054-B2D2-C8DF3475A204}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{057126D4-2AA0-4054-B2D2-C8DF3475A204}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{057126D4-2AA0-4054-B2D2-C8DF3475A204}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{057126D4-2AA0-4054-B2D2-C8DF3475A204}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

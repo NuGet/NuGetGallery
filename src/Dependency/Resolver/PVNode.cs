@@ -1,4 +1,5 @@
-﻿using Resolver.Metadata;
+﻿using Newtonsoft.Json.Linq;
+using Resolver.Metadata;
 using System.Collections.Generic;
 using System.IO;
 
@@ -9,6 +10,7 @@ namespace Resolver.Resolver
         public SemanticVersion Version { get; private set; }
 
         public IList<string> Properties { get; private set; }
+        public Package Package { get; private set; }
 
         private List<PNode> _children;
 
@@ -28,9 +30,10 @@ namespace Resolver.Resolver
             }
         }
 
-        public PVNode(SemanticVersion version)
+        public PVNode(SemanticVersion version, Package package)
         {
             Version = version;
+            Package = package;
             _children = new List<PNode>();
         }
 
