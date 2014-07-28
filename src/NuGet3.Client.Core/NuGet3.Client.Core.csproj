@@ -30,9 +30,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Dependency">
-      <HintPath>..\..\..\..\nuget\prototype\NuGet.Services.Metadata\src\Dependency\bin\Release\Dependency.exe</HintPath>
-    </Reference>
     <Reference Include="JsonLD, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\json-ld.net.1.0.2\lib\net40\JsonLD.dll</HintPath>
@@ -67,6 +64,12 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Dependency\Dependency.csproj">
+      <Project>{ebc62955-6bdc-4403-af33-dccc999d89aa}</Project>
+      <Name>Dependency</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
