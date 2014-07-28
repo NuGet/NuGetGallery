@@ -121,6 +121,7 @@
     <None Include="ODataTests\LoadTests\Metrics.loadtest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="ODataTests\LoadTests\Search.loadtest" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
