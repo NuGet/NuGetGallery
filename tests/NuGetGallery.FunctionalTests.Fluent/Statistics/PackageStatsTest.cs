@@ -12,7 +12,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
         public void PackageStats()
         {
             // We'll use NuGet.Core as the basic test package. 
-            I.Open(UrlHelper.BaseUrl + "/stats/packages/Nuget.Core");
+            I.Open(UrlHelper.BaseUrl + "/stats/packages/jQuery");
 
             // Verify basic elements of the default page layout, including checkboxes.
             I.Expect.Count(2).Of("label:contains('Version')");  // expect 2, becuase search string also matches "client version"
