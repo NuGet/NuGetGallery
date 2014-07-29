@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json.Linq;
 using NuGetGallery.FunctionTests.Helpers;
 using System;
 using System.IO;
@@ -63,5 +64,20 @@ namespace NuGetGallery.FunctionalTests.ODataTests.Statistics
             packageCount = responseText.Split(separators, StringSplitOptions.RemoveEmptyEntries).Length;
             Assert.IsTrue(packageCount == 5, "Expected feed to contain 5 packages. Actual count: " + packageCount);
         }
+
+        /// <summary>
+        /// Send a bogus request to Metrices Service endpoint and make sure the service is not broken by it.
+        /// </summary>
+        [TestMethod]
+        [Description("Verify the result is Accepted after sending a bogus request to Metrices Service endpoint")]
+        [Priority(1)]
+       public void SendBogusToMetricsEndPoint()
+       {
+           string basics = "\"title\": \"Sample Konfabulator Widget\"," + "\"name\": \"main_window\"," + "\"width\": 500," + "\"height\": 500,";
+           string jstring = "{" + basics + basics + basics + basics + "\"id\": \"dotnetrdf\"," + "\"version\": \"1.0.3\"" + "}";
+           JObject bogus = JObject.Parse(jstring);
+           bool Value = MetricsServiceHelper.TryHitMetricsEndPoint(bogus).Result;
+           Assert.IsTrue(Value);
+       }
     }
 }

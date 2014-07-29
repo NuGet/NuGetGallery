@@ -56,6 +56,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Web.Xdt.1.0.0\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="NuGet.Core, Version=2.8.50320.36, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.Core.2.8.1\lib\net40-Client\NuGet.Core.dll</HintPath>
@@ -79,6 +82,7 @@
     <Compile Include="EnvironmentSettings.cs" />
     <Compile Include="FeedType.cs" />
     <Compile Include="MailHelper.cs" />
+    <Compile Include="MetricsServiceHelper.cs" />
     <Compile Include="NuspecHelper.cs" />
     <Compile Include="ODataHelper.cs" />
     <Compile Include="PackageCreationHelper.cs" />
