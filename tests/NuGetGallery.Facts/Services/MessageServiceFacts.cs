@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Net.Mail;
-using AnglicanGeek.MarkdownMailer;
 using Moq;
 using NuGetGallery.Areas.Admin.DynamicData;
+using NuGetGallery.Services;
 using Xunit;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
@@ -505,6 +505,10 @@ namespace NuGetGallery
             public void Send(string fromAddress, string toAddress, string subject, string markdownBody)
             {
                 Send(new MailMessage(fromAddress, toAddress, subject, markdownBody));
+            }
+
+            public void Dispose()
+            {
             }
         }
     }

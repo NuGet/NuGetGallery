@@ -5,7 +5,6 @@ using System.Security.Principal;
 using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
-using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Ninject;
@@ -16,6 +15,7 @@ using NuGetGallery.Infrastructure;
 using System.Diagnostics;
 using NuGetGallery.Auditing;
 using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {

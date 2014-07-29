@@ -93,10 +93,6 @@
     <CodeAnalysisRuleSet>..\Frontend.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AnglicanGeek.MarkdownMailer, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\AnglicanGeek.MarkdownMailer.1.2\lib\net40\AnglicanGeek.MarkdownMailer.dll</HintPath>
-    </Reference>
     <Reference Include="Antlr3.Runtime, Version=3.3.1.7705, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\WebGrease.1.1.0\lib\Antlr3.Runtime.dll</HintPath>
@@ -973,6 +969,7 @@
     <Compile Include="Services\ContentService.cs" />
     <Compile Include="Services\IContentService.cs" />
     <Compile Include="Services\IFileReference.cs" />
+    <Compile Include="Services\IMailSender.cs" />
     <Compile Include="Services\IStatusService.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
     <Compile Include="Services\CloudReportService.cs" />
@@ -995,6 +992,8 @@
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />
     <Compile Include="Services\LocalFileReference.cs" />
+    <Compile Include="Services\MailSender.cs" />
+    <Compile Include="Services\MailSenderConfiguration.cs" />
     <Compile Include="Services\NuGetExeDownloaderService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="Filters\RequireSslAttribute.cs" />
