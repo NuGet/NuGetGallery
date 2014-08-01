@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json.Linq;
+
 namespace NuGet3.Client
 {
     public class SimpleGraph
@@ -23,6 +25,47 @@ namespace NuGet3.Client
             AddToIndex(_spoIndex, subj, pred, obj);
             AddToIndex(_posIndex, pred, obj, subj);
             AddToIndex(_ospIndex, obj, subj, pred);
+        }
+
+        public JObject FindIdInJson(JToken tree, string id)
+        {
+            return FindIdInJson(tree, id, "@id");
+        }
+
+        public JObject FindIdInJson(JToken tree, string id, string idName)
+        {
+            if (tree is JObject)
+            {
+                JToken idVal;
+                if (((JObject)tree).TryGetValue(idName, out idVal))
+                {
+                    if (idVal.Type == JTokenType.String && (string)idVal == id)
+                    {
+                        return (JObject)tree;
+                    }
+                }
+            }
+
+            if (tree.Type == JTokenType.Array || tree.Type == JTokenType.Object)
+            {
+                foreach (JToken token in tree)
+                {
+                    JToken localToken = token;
+                    if (localToken.Type == JTokenType.Property)
+                    {
+                        localToken = ((JProperty)localToken).Value;
+                    }
+                    if (localToken.Type == JTokenType.Object || localToken.Type == JTokenType.Array)
+                    {
+                        JObject result = FindIdInJson(localToken, id, idName);
+                        if (result != null)
+                        {
+                            return result;
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         private void AddToIndex(Dictionary<string, Dictionary<string, HashSet<string>>> index, string a, string b, string c)
