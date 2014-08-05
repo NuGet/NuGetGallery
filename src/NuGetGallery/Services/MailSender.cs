@@ -8,18 +8,25 @@ namespace NuGetGallery.Services
 {
     public class MailSender : IMailSender
     {
-        readonly SmtpClient smtpClient;
+        readonly ISmtpClient smtpClient;
 
         public MailSender()
+            : this(new SmtpClientWrapper(new SmtpClient()), null)
         {
         }
 
         public MailSender(MailSenderConfiguration configuration)
+            : this(new SmtpClientWrapper(new SmtpClient()), configuration)
+        {
+        }
+
+        public MailSender(SmtpClient smtpClient)
+            : this(new SmtpClientWrapper(smtpClient), null)
         {
         }
 
         internal MailSender(
-            SmtpClient smtpClient,
+            ISmtpClient smtpClient,
             MailSenderConfiguration configuration)
         {
             if (smtpClient == null)
@@ -32,7 +39,7 @@ namespace NuGetGallery.Services
         }
 
         static internal void ConfigureSmtpClient(
-            SmtpClient smtpClient,
+            ISmtpClient smtpClient,
             MailSenderConfiguration configuration)
         {
             if (configuration.Host != null)
