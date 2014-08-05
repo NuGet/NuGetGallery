@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands.cs" />
+    <Compile Include="JsonLdPageCache.cs" />
     <Compile Include="MetadataClient.cs" />
     <Compile Include="MetadataClientExtensions.cs" />
     <Compile Include="PackageConfig.cs" />
