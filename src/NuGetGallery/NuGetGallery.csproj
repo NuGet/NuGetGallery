@@ -970,6 +970,7 @@
     <Compile Include="Services\IContentService.cs" />
     <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\IMailSender.cs" />
+    <Compile Include="Services\ISmtpClient.cs" />
     <Compile Include="Services\IStatusService.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
     <Compile Include="Services\CloudReportService.cs" />
@@ -999,6 +1000,7 @@
     <Compile Include="Filters\RequireSslAttribute.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\JsonAggregateStatsService.cs" />
+    <Compile Include="Services\SmtpClientWrapper.cs" />
     <Compile Include="Services\SqlAggregateStatsService.cs" />
     <Compile Include="Services\ReportPackageRequest.cs" />
     <Compile Include="Services\SearchFilter.cs" />
