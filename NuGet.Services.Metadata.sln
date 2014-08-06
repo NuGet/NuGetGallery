@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonLDIntegrationTests", "tests\JsonLDIntegrationTests\JsonLDIntegrationTests\JsonLDIntegrationTests.csproj", "{6A4E128E-B06D-4541-AA78-C32A66B2AD9B}"
 EndProject
@@ -18,6 +18,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet3.Client.Core", "src\NuGet3.Client.Core\NuGet3.Client.Core.csproj", "{C34D30AB-DF92-44FD-91CF-F331C97D0473}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet3.CommandLine", "src\NuGet3.CommandLine\NuGet3.CommandLine.csproj", "{057126D4-2AA0-4054-B2D2-C8DF3475A204}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetFeed", "src\NuGetFeed\NuGetFeed.csproj", "{BE1E746F-725F-43FE-AA6A-076F19E76602}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetFeedTests", "tests\NuGetFeedTests\NuGetFeedTests.csproj", "{C2318A2C-BBD3-4BDE-B742-EC3EF8C3E5FD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +61,14 @@ Global
 		{057126D4-2AA0-4054-B2D2-C8DF3475A204}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{057126D4-2AA0-4054-B2D2-C8DF3475A204}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{057126D4-2AA0-4054-B2D2-C8DF3475A204}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE1E746F-725F-43FE-AA6A-076F19E76602}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE1E746F-725F-43FE-AA6A-076F19E76602}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE1E746F-725F-43FE-AA6A-076F19E76602}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE1E746F-725F-43FE-AA6A-076F19E76602}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2318A2C-BBD3-4BDE-B742-EC3EF8C3E5FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2318A2C-BBD3-4BDE-B742-EC3EF8C3E5FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2318A2C-BBD3-4BDE-B742-EC3EF8C3E5FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2318A2C-BBD3-4BDE-B742-EC3EF8C3E5FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
