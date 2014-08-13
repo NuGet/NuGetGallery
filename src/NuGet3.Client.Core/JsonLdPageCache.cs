@@ -32,7 +32,12 @@ namespace NuGet3.Client.Core
             });
         }
 
-        public Task<JToken> Fetch(JToken obj, string property)
+        public Task<JToken> FetchArrayItem(JToken obj)
+        {
+            return Fetch(new Uri(obj["@id"].ToString()));
+        }
+
+        public Task<JToken> FetchProperty(JToken obj, string property)
         {
             return Fetch(GetUri(obj, property));
         }
@@ -127,7 +132,7 @@ namespace NuGet3.Client.Core
                             Mark(value, ref marker, nodes);
                         }
                     }
-                    else if (item is JArray)
+                    else if (item is JObject || item is JArray)
                     {
                         Mark(item, ref marker, nodes);
                     }

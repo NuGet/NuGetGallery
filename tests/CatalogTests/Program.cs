@@ -50,7 +50,9 @@ namespace CatalogTests
                 //RegistrationTests.Test7();
 
                 //WarehouseCatalogTests.Test0();
-                WarehouseCatalogTests.Test1();
+                //WarehouseCatalogTests.Test1();
+                
+                JsonLdCacheTests.Test0();
 
                 DateTime after = DateTime.Now;
 
