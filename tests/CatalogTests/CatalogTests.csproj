@@ -95,6 +95,7 @@
     <Compile Include="RegistrationTests.cs" />
     <Compile Include="TestCatalogItem.cs" />
     <Compile Include="TestItemCollector.cs" />
+    <Compile Include="WarehouseCatalogTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

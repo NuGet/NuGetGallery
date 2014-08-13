@@ -9,21 +9,37 @@ using System.Diagnostics;
 using NuGet.Services.Metadata.Catalog;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
+using System.Threading;
 
 namespace CatalogTests
 {
+    class VerboseHandler : FileSystemEmulatorHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Console.WriteLine(request.RequestUri);
+            return base.SendAsync(request, cancellationToken);
+        }
+    }
+
     class CollectorTests
     {
-
         public static async Task Test0Async()
         {
             Storage storage = new FileStorage("http://localhost:8000/resolver/", @"c:\data\site\resolver");
 
-            ResolverCollector collector = new ResolverCollector(storage, 1);
+            FileSystemEmulatorHandler handler = new VerboseHandler
+            {
+                BaseAddress = new Uri("http://localhost:8000"),
+                RootFolder = @"c:\data\site",
+                InnerHandler = new HttpClientHandler()
+            };
 
-            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
+            ResolverCollector collector = new ResolverCollector(storage, 200);
+
+            //await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
             //await collector.Run(new Uri("http://partitions.blob.core.windows.net/partition0/index.json"), DateTime.MinValue);
-            //await collector.Run(new Uri("http://localhost:8000/partition/partition0/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://localhost:8000/partition/partition0/index.json"), DateTime.MinValue, handler);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
 

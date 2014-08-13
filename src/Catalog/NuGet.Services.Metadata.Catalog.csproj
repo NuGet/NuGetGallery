@@ -142,6 +142,11 @@
     <Compile Include="Segmentation\SegmentIndex.cs" />
     <Compile Include="Segmentation\SegmentWriter.cs" />
     <Compile Include="Schema.cs" />
+    <Compile Include="WarehouseIntegration\StatisticsCatalogItem.cs" />
+    <Compile Include="WarehouseIntegration\StatsCountCollector.cs" />
+    <Compile Include="WarehouseIntegration\StatsGreaterThanCountCollector.cs" />
+    <Compile Include="WarehouseIntegration\StatsLessThanCountCollector.cs" />
+    <Compile Include="WarehouseIntegration\WarehouseHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="content\d3.v3.min.js" />
