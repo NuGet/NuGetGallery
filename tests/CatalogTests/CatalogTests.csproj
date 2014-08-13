@@ -88,6 +88,7 @@
     <Compile Include="CollectorTests.cs" />
     <Compile Include="DeleteTests.cs" />
     <Compile Include="End2EndTests.cs" />
+    <Compile Include="JsonLdCacheTests.cs" />
     <Compile Include="MakeTestData.cs" />
     <Compile Include="PartitioningTests.cs" />
     <Compile Include="Program.cs" />
@@ -98,12 +99,20 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Data\MyPackage.json" />
+    <None Include="Data\MyPackage_1_0_0.json" />
+    <None Include="Data\MyPackage_2_0_0.json" />
+    <None Include="Data\MyPackage_2_0_0_details.json" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Catalog\NuGet.Services.Metadata.Catalog.csproj">
       <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGet3.Client.Core\NuGet3.Client.Core.csproj">
+      <Project>{c34d30ab-df92-44fd-91cf-f331c97d0473}</Project>
+      <Name>NuGet3.Client.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

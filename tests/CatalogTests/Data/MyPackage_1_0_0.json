@@ -1,0 +1,14 @@
+{
+  "url": "http://localhost:8000/MyPackage_1_0_0.json",
+  "@type": "Package",
+  "details": {
+    "url": "http://localhost:8000/MyPackage_1_0_0.json#details",
+    "@type": "PackageDetails",
+    "description": "This is version 1.0.0 of MyPackage"
+  },
+  "version": "1.0.0",
+  "@context": {
+    "@vocab": "http://nuget.org/schema#",
+    "url": "@id"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "url": "http://localhost:8000/MyPackage.json",
+  "@type": "PackageRegistration",
+  "id": "MyPackage",
+  "package": [
+    {
+      "url": "http://localhost:8000/MyPackage_1_0_0.json"
+    },
+    {
+      "url": "http://localhost:8000/MyPackage_2_0_0.json"
+    },
+    {
+      "url": "http://localhost:8000/MyPackage.json#version_3_0_0",
+      "@type": "Package",
+      "details": {
+        "url": "http://localhost:8000/MyPackage.json#version_3_0_0_details",
+        "@type": "PackageDetails",
+        "description": "This is version 3.0.0 of MyPackage"
+      },
+      "version": "3.0.0"
+    }
+  ],
+  "@context": {
+    "@vocab": "http://nuget.org/schema#",
+    "url": "@id"
+  }
+}
