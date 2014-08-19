@@ -10,7 +10,9 @@ namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
     /// <summary>
     /// Tries to download and upload package from the gallery using NuGet.exe client.
     /// </summary>
-    [TestClass]
+    // All the tests in this class fail due to the following error
+    // The package upload via Nuget.exe didnt succeed properly OR package download from V2 feed didnt work. Could not establish trust relationship for the SSL/TLS secure channel
+    //[TestClass]
     public class NugetCommandLineTests : GalleryTestBase
     {
         [TestMethod]
