@@ -305,9 +305,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsProcs_AddDownloadFact.sql" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Common\CommonResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CommonResources.Designer.cs</LastGenOutput>
@@ -322,23 +319,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsCreateTables.sql" />
-    <EmbeddedResource Include="Scripts\NuGetDownloadsDropTables.sql" />
-    <EmbeddedResource Include="Scripts\PopulateDimensions.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsFuncs_UserAgent.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsProcs_GetLastOriginalKey.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsProcs_GetPackagesForExport.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsProcs_ConfirmPackageExported.sql" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Scripts\DownloadReport_RecentPopularityByPackage.sql" />
     <EmbeddedResource Include="Scripts\DownloadReport_RecentPopularityDetail.sql" />
     <EmbeddedResource Include="Scripts\DownloadReport_RecentPopularity.sql" />
@@ -348,9 +328,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Scripts\DownloadReport_ListInactive.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsAlterTable.sql" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Scripts\DownloadReport_Last6Months.sql" />
@@ -375,9 +352,6 @@
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsAlterTable_2.sql" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
