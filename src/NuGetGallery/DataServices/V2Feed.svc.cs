@@ -55,7 +55,7 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Where(p => p.Listed);
-            return SearchAdaptor.SearchCore(
+            var query = SearchAdaptor.SearchCore(
                 SearchService, 
                 HttpContext.Request, 
                 packages, 
@@ -66,6 +66,8 @@ namespace NuGetGallery
                 // TODO: Async this when I can figure out OData async stuff...
                 .Result
                 .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
+            var result = query.ToList();
+            return query;
         }
 
         [WebGet]

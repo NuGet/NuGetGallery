@@ -57,6 +57,7 @@ namespace NuGetGallery
             }
 
             // For relevance search, Lucene returns us a paged\sorted list. OData tries to apply default ordering and Take \ Skip on top of this.
+            // It also tries to filter to latest versions, but the search service already did that!
             // We avoid it by yanking these expressions out of out the tree.
             return result.Data.InterceptWith(new DisregardODataInterceptor());
         }
@@ -79,8 +80,7 @@ namespace NuGetGallery
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = includePrerelease;
                 searchFilter.CuratedFeed = curatedFeed;
-
-                Trace.WriteLine("TODO: use target framework parameter - see #856" + targetFramework);
+                searchFilter.SupportedFramework = targetFramework;
 
                 var results = await GetResultsFromSearchService(searchService, searchFilter);
 

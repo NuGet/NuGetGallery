@@ -22,6 +22,8 @@ namespace NuGetGallery
 
         public SortOrder SortOrder { get; set; }
 
+        public string SupportedFramework { get; set; }
+
         /// <summary>
         ///     Determines if only this is a count only query and does not process the source queryable.
         /// </summary>
