@@ -7,10 +7,12 @@ namespace NuGetGallery
 {
     public class DisregardODataInterceptor : ExpressionVisitor
     {
+        // Strip out these OData query operations because the search service already did them
+        private static readonly HashSet<string> methodsToIgnore = new HashSet<string>(
+                new[] { "Skip", "Take", "OrderBy", "ThenBy", "OrderByDescending", "ThenByDescending", "Where" }, StringComparer.Ordinal);
+
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            var methodsToIgnore = new HashSet<string>(
-                new[] { "Skip", "OrderBy", "ThenBy", "OrderByDescending", "ThenByDescending" }, StringComparer.Ordinal);
             var method = node.Method;
             if ((method.DeclaringType == typeof(Queryable)) && methodsToIgnore.Contains(method.Name))
             {

@@ -102,7 +102,8 @@ namespace NuGetGallery.Infrastructure.Lucene
                 isLuceneQuery: raw,
                 countOnly: filter.CountOnly,
                 explain: false,
-                getAllVersions: filter.IncludeAllVersions);
+                getAllVersions: filter.IncludeAllVersions,
+                supportedFramework: filter.SupportedFramework);
 			sw.Stop();
 
             SearchResults results = null;
