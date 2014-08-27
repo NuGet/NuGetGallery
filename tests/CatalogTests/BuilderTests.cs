@@ -59,13 +59,14 @@ namespace CatalogTests
 
             CatalogContext context = new CatalogContext();
 
-            CatalogWriter writer = new CatalogWriter(storage, context, 200);
+            CatalogWriter writer = new CatalogWriter(storage, context, 20);
 
             int total = 0;
 
             //int[] commitSize = { 50, 40, 25, 50, 10, 30, 40, 5, 400, 30, 10, 20, 40, 50, 90, 70, 50, 50, 50, 50, 60, 70 };
             int[] commitSize = { 
-                200, 200, 200, 200, 200, 
+                20, 20, 20, 20, 20, 
+                20, 20, 20, 20, 20, 
                 //200, 200, 200, 200, 200, 
                 //200, 200, 200, 200, 200, 
                 //200, 200, 200, 200, 200, 
@@ -77,7 +78,7 @@ namespace CatalogTests
             int commitCount = 0;
 
             DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
-            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
+            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("dotnetrdf.*.xml"))
             {
                 if (commitCount == commitSize.Length)
                 {
@@ -96,6 +97,11 @@ namespace CatalogTests
                     commitCount++;
                     i = 0;
                 }
+            }
+
+            if (i > 0)
+            {
+                await writer.Commit(DateTime.UtcNow);
             }
 
             Console.WriteLine("total: {0}", total);
@@ -266,6 +272,61 @@ namespace CatalogTests
             Console.WriteLine("BuilderTests.Test4 - commit TimeStamp");
 
             Test4Async().Wait();
+        }
+
+        public static async Task Test5Async(string id)
+        {
+            string nuspecs = @"c:\data\nuget\nuspecs";
+
+            Storage storage = new FileStorage("http://localhost:8000/full/", @"c:\data\site\full");
+
+            CatalogContext context = new CatalogContext();
+
+            CatalogWriter writer = new CatalogWriter(storage, context, 20);
+
+            int total = 0;
+
+            int CommitSize = 20;
+
+            int i = 0;
+
+            int commitCount = 0;
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
+            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles(id + ".*.xml"))
+            {
+                writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
+                total++;
+
+                if (++i == CommitSize)
+                {
+                    await writer.Commit(DateTime.UtcNow);
+
+                    Console.WriteLine("commit number {0}", commitCount);
+
+                    commitCount++;
+                    i = 0;
+                }
+            }
+
+            if (i > 0)
+            {
+                await writer.Commit(DateTime.UtcNow);
+
+                Console.WriteLine("commit number {0}", commitCount);
+            }
+
+            Console.WriteLine("total: {0}", total);
+        }
+
+        public static void Test5()
+        {
+            Console.WriteLine("BuilderTests.Test5");
+
+            Test5Async("dotnetrdf").Wait();
+            //Test5Async("htmlagilitypack").Wait();
+            //Test5Async("newtonsoft.json").Wait();
+            //Test5Async("vds.common").Wait();
         }
     }
 }

@@ -18,12 +18,18 @@ namespace NuGet.Services.Metadata.Catalog
 
         public static class DataTypes
         {
+            public static readonly Uri PackageRegistration = new Uri(Prefixes.NuGet + "PackageRegistration");
             public static readonly Uri Package = new Uri(Prefixes.NuGet + "Package");
+            public static readonly Uri PackageOverview = new Uri(Prefixes.NuGet + "PackageOverview");
+            public static readonly Uri PackageInfo = new Uri(Prefixes.NuGet + "PackageInfo");
+            public static readonly Uri PackageDependencyGroup = new Uri(Prefixes.NuGet + "PackageDependencyGroup");
+            public static readonly Uri PackageDependency = new Uri(Prefixes.NuGet + "PackageDependency");
+
             public static readonly Uri DeletePackage = new Uri(Prefixes.NuGet + "PackageDeletion");
             public static readonly Uri DeleteRegistration = new Uri(Prefixes.NuGet + "PackageRegistrationDeletion");
+
             public static readonly Uri CatalogRoot = new Uri(Prefixes.Catalog + "CatalogRoot");
             public static readonly Uri CatalogPage = new Uri(Prefixes.Catalog + "CatalogPage");
-            public static readonly Uri PackageRegistration = new Uri(Prefixes.Catalog + "PackageRegistration");
 
             public static readonly Uri Integer = new Uri(Prefixes.Xsd + "integer");
             public static readonly Uri DateTime = new Uri(Prefixes.Xsd + "dateTime");
@@ -47,6 +53,9 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Id = new Uri(Prefixes.NuGet + "id");
             public static readonly Uri Version = new Uri(Prefixes.NuGet + "version");
 
+            public static readonly Uri Info = new Uri(Prefixes.NuGet + "info");
+            public static readonly Uri Overview = new Uri(Prefixes.NuGet + "overview");
+
             // General-purpose fields
             
             public static readonly Uri Author = new Uri(Prefixes.NuGet + "author");
@@ -68,6 +77,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri PackageHashAlgorithm = new Uri(Prefixes.NuGet + "packageHashAlgorithm");
             public static readonly Uri PackageSize = new Uri(Prefixes.NuGet + "packageSize");
             public static readonly Uri ProjectUrl = new Uri(Prefixes.NuGet + "projectUrl");
+            public static readonly Uri GalleryDetailsUrl = new Uri(Prefixes.NuGet + "galleryDetailsUrl");
             public static readonly Uri ReleaseNotes = new Uri(Prefixes.NuGet + "releaseNotes");
             public static readonly Uri RequireLicenseAcceptance = new Uri(Prefixes.NuGet + "requireLicenseAcceptance");
             public static readonly Uri Summary = new Uri(Prefixes.NuGet + "summary");

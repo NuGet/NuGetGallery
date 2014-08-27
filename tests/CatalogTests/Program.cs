@@ -32,8 +32,10 @@ namespace CatalogTests
 
                 //BuilderTests.Test1();
                 //BuilderTests.Test0();
+
+                //BuilderTests.Test5();
                 
-                //CollectorTests.Test0();
+                CollectorTests.Test0();
                 
                 //CollectorTests.Test6();
 
@@ -52,7 +54,7 @@ namespace CatalogTests
                 //WarehouseCatalogTests.Test0();
                 //WarehouseCatalogTests.Test1();
                 
-                JsonLdCacheTests.Test0();
+                //JsonLdCacheTests.Test0();
 
                 DateTime after = DateTime.Now;
 

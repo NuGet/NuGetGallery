@@ -3,6 +3,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using VDS.RDF;
@@ -112,6 +113,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
             UpdateIsLatest(resource);
 
+            CreatePackageOverview(resource);
+
             string json = Utils.CreateJson(resource.Value, _resolverFrame);
             StorageContent content = new StringStorageContent(
                 json, 
@@ -213,6 +216,79 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                     graph.CreateUriNode(latestPackage),
                     graph.CreateUriNode(Schema.Predicates.IsLatestVersion),
                     graph.CreateLiteralNode("true", Schema.DataTypes.Boolean));
+            }
+        }
+
+        static void CreatePackageOverview(KeyValuePair<Uri, IGraph> resource)
+        {
+            IGraph graph = resource.Value;
+
+            //  find and remove all the current overview properties
+
+            Triple currentLiftedInfo = graph.GetTriplesWithSubjectPredicate(
+                graph.CreateUriNode(resource.Key),
+                graph.CreateUriNode(Schema.Predicates.Overview)).FirstOrDefault();
+
+            if (currentLiftedInfo != null)
+            {
+                IList<Triple> currentOverview = new List<Triple>(graph.GetTriplesWithSubject(currentLiftedInfo.Object));
+                foreach (Triple currentOverviewTriple in currentOverview)
+                {
+                    graph.Retract(currentOverviewTriple);
+                }
+            }
+
+            //  create a new overview by lifting some of the data of the latest version
+
+            Triple latestPackage = graph.GetTriplesWithPredicate(graph.CreateUriNode(Schema.Predicates.IsLatestVersion)).FirstOrDefault();
+
+            if (latestPackage != null)
+            {
+                Triple latestPackageInfo = graph.GetTriplesWithSubjectPredicate(
+                    latestPackage.Subject,
+                    graph.CreateUriNode(Schema.Predicates.Info)).FirstOrDefault();
+
+                if (latestPackageInfo != null)
+                {
+                    INode overview = graph.CreateUriNode(new Uri(resource.Key.AbsoluteUri + "#overview"));
+
+                    graph.Assert(
+                        graph.CreateUriNode(resource.Key),
+                        graph.CreateUriNode(Schema.Predicates.Overview),
+                        overview);
+
+                    graph.Assert(overview, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.PackageOverview));
+
+                    Triple description = graph.GetTriplesWithSubjectPredicate(latestPackageInfo.Object, graph.CreateUriNode(Schema.Predicates.Description)).FirstOrDefault();
+                    if (description != null)
+                    {
+                        graph.Assert(overview, graph.CreateUriNode(Schema.Predicates.Description), description.Object);
+                    }
+
+                    Triple title = graph.GetTriplesWithSubjectPredicate(latestPackageInfo.Object, graph.CreateUriNode(Schema.Predicates.Title)).FirstOrDefault();
+                    if (title != null)
+                    {
+                        graph.Assert(overview, graph.CreateUriNode(Schema.Predicates.Title), title.Object);
+                    }
+
+                    Triple summary = graph.GetTriplesWithSubjectPredicate(latestPackageInfo.Object, graph.CreateUriNode(Schema.Predicates.Summary)).FirstOrDefault();
+                    if (summary != null)
+                    {
+                        graph.Assert(overview, graph.CreateUriNode(Schema.Predicates.Summary), summary.Object);
+                    }
+
+                    Triple iconUrl = graph.GetTriplesWithSubjectPredicate(latestPackageInfo.Object, graph.CreateUriNode(Schema.Predicates.IconUrl)).FirstOrDefault();
+                    if (iconUrl != null)
+                    {
+                        graph.Assert(overview, graph.CreateUriNode(Schema.Predicates.IconUrl), iconUrl.Object);
+                    }
+
+                    Triple galleryDetailsUrl = graph.GetTriplesWithSubjectPredicate(latestPackageInfo.Object, graph.CreateUriNode(Schema.Predicates.GalleryDetailsUrl)).FirstOrDefault();
+                    if (iconUrl != null)
+                    {
+                        graph.Assert(overview, graph.CreateUriNode(Schema.Predicates.GalleryDetailsUrl), galleryDetailsUrl.Object);
+                    }
+                }
             }
         }
     }

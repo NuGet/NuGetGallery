@@ -37,9 +37,9 @@ namespace CatalogTests
 
             ResolverCollector collector = new ResolverCollector(storage, 200);
 
-            //await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue, handler);
             //await collector.Run(new Uri("http://partitions.blob.core.windows.net/partition0/index.json"), DateTime.MinValue);
-            await collector.Run(new Uri("http://localhost:8000/partition/partition0/index.json"), DateTime.MinValue, handler);
+            //await collector.Run(new Uri("http://localhost:8000/partition/partition0/index.json"), DateTime.MinValue, handler);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
 
