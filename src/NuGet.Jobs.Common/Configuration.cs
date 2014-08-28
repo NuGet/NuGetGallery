@@ -9,8 +9,8 @@ namespace NuGet.Jobs.Common
     /// </summary>
     public static class EnvironmentVariableKeys
     {
-        public const string SqlGallery = "Sql.Gallery";
-        public const string StorageGallery = "Storage.Gallery";
+        public const string SqlGallery = "NUGETJOBS_SQL_GALLERY";
+        public const string StorageGallery = "NUGETJOBS_STORAGE_GALLERY";
     }
     /// <summary>
     /// This class is used to retrieve and expose the known azure configuration settings 
@@ -26,13 +26,12 @@ namespace NuGet.Jobs.Common
         {
             if (args.Length == 0)
             {
-                var argsEnvVariable = jobName + "-Args";
+                var argsEnvVariable = "NUGETJOBS_" + jobName + "_ARGS";
                 Console.WriteLine("No command-line arguments provided. Picking it from Environment variable: " + argsEnvVariable);
                 var argsArray = Environment.GetEnvironmentVariable(argsEnvVariable);
                 if (String.IsNullOrEmpty(argsArray))
                 {
-                    Console.WriteLine("Command-line parameters are not provided. And, the following env variable is not set either: " + argsEnvVariable);
-                    return args;
+                    throw new ArgumentException("Command-line parameters are not provided. And, the following env variable is not set either: " + argsEnvVariable);
                 }
 
                 args = argsArray.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);

@@ -10,7 +10,6 @@ namespace Catalog.Updater
             var job = new Job();
             if(!job.Init(args))
             {
-                job.ShowHelp();
                 return;
             }
 
