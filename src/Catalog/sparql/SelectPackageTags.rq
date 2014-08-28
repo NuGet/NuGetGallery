@@ -1,0 +1,7 @@
+﻿PREFIX nuget: <http://schema.nuget.org/schema#> 
+
+SELECT ?tag
+WHERE
+{
+	@package nuget:tag ?tag .
+}

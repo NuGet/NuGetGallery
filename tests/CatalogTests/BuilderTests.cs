@@ -274,7 +274,7 @@ namespace CatalogTests
             Test4Async().Wait();
         }
 
-        public static async Task Test5Async(string id)
+        public static async Task Test5Async(string searchPattern)
         {
             string nuspecs = @"c:\data\nuget\nuspecs";
 
@@ -293,7 +293,7 @@ namespace CatalogTests
             int commitCount = 0;
 
             DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
-            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles(id + ".*.xml"))
+            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles(searchPattern))
             {
                 writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
                 total++;
@@ -323,10 +323,11 @@ namespace CatalogTests
         {
             Console.WriteLine("BuilderTests.Test5");
 
-            Test5Async("dotnetrdf").Wait();
-            //Test5Async("htmlagilitypack").Wait();
-            //Test5Async("newtonsoft.json").Wait();
-            //Test5Async("vds.common").Wait();
+            Test5Async("dotnetrdf.*.xml").Wait();
+            Test5Async("htmlagilitypack.*.xml").Wait();
+            Test5Async("newtonsoft.json.*.xml").Wait();
+            Test5Async("vds.common.*.xml").Wait();
+            Test5Async("entityframework.*.xml").Wait();
         }
     }
 }

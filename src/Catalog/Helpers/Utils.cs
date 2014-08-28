@@ -12,6 +12,7 @@ using System.Xml.Xsl;
 using VDS.RDF;
 using VDS.RDF.Parsing;
 using VDS.RDF.Writing;
+using System.Collections.Generic;
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -222,6 +223,37 @@ namespace NuGet.Services.Metadata.Catalog
             }
 
             return new Uri(context["@vocab"] + term);
+        }
+
+        public static string GetNuspecRelativeAddress(XDocument document)
+        {
+            XNamespace nuget = XNamespace.Get("http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd");
+
+            XElement package = document.Element(nuget.GetName("package"));
+
+            if (package == null)
+            {
+                throw new ArgumentException("document, missing <package>");
+            }
+
+            XElement metadata = package.Element(nuget.GetName("metadata"));
+
+            if (metadata == null)
+            {
+                throw new ArgumentException("document, missing <metadata>");
+            }
+
+            string id = metadata.Element(nuget.GetName("id")).Value;
+            string version = metadata.Element(nuget.GetName("version")).Value;
+
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(version))
+            {
+                throw new ArgumentException("document, missing <id> or <version>");
+            }
+
+            string relativeAddress = id.ToLowerInvariant() + "." + version.ToLowerInvariant() + ".xml";
+
+            return relativeAddress;
         }
     }
 }

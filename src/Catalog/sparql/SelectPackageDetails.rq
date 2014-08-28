@@ -1,0 +1,36 @@
+﻿PREFIX nuget: <http://schema.nuget.org/schema#> 
+
+SELECT 
+	?id 
+	?version 
+	?published 
+	?description 
+	?authors
+	?title
+	?targetFramework
+	?requireLicenseAcceptance
+	?licenseUrl
+	?iconUrl
+	?projectUrl
+	?releaseNotes
+	?minClientVersion
+WHERE
+{
+	@package nuget:id ?id ;
+	         nuget:version ?version ;
+			 nuget:published ?published .
+
+    OPTIONAL { @package nuget:authors ?authors . }
+    OPTIONAL { @package nuget:description ?description . }
+    OPTIONAL { @package nuget:summary ?summary . }
+    OPTIONAL { @package nuget:language ?language . }
+    OPTIONAL { @package nuget:title ?title . }
+    OPTIONAL { @package nuget:targetFramework ?targetFramework . }
+    OPTIONAL { @package nuget:requireLicenseAcceptance ?requireLicenseAcceptance . }
+    OPTIONAL { @package nuget:licenseUrl ?licenseUrl . }
+    OPTIONAL { @package nuget:licenseName ?licenseName . }
+    OPTIONAL { @package nuget:iconUrl ?iconUrl . }
+    OPTIONAL { @package nuget:projectUrl ?projectUrl . }
+    OPTIONAL { @package nuget:releaseNotes ?releaseNotes . }
+    OPTIONAL { @package nuget:minClientVersion ?minClientVersion . }
+}

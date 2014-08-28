@@ -195,5 +195,29 @@ namespace CatalogTests
             Test6Async().Wait();
         }
 
+        public static async Task Test7Async()
+        {
+            FileSystemEmulatorHandler handler = new FileSystemEmulatorHandler
+            {
+                BaseAddress = new Uri("http://localhost:8000"),
+                RootFolder = @"c:\data\site",
+                InnerHandler = new HttpClientHandler()
+            };
+
+            Storage storage = new FileStorage("http://localhost:8000/nuspec/", @"c:\data\site\nuspec");
+
+            BatchCollector collector = new NuspecCollector(storage, 1);
+
+            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue, handler);
+            
+            Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
+        }
+
+        public static void Test7()
+        {
+            Console.WriteLine("CollectorTests.Test7");
+
+            Test7Async().Wait();
+        }
     }
 }

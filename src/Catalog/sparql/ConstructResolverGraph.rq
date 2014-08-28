@@ -9,6 +9,7 @@ CONSTRUCT
               nuget:package ?resource_package .
 
     ?resource_package a nuget:Package ;
+                      nuget:registration ?resource ;
                       nuget:version ?version ;
                       nuget:dependencyGroup ?resource_dependency_group ;
 					  nuget:info ?resource_package_info ;
