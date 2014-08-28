@@ -181,6 +181,7 @@
     <EmbeddedResource Include="sparql\SelectPackageDetails.rq" />
     <EmbeddedResource Include="sparql\SelectPackageTags.rq" />
     <EmbeddedResource Include="sparql\SelectPackageDependencies.rq" />
+    <EmbeddedResource Include="sparql\SelectPackageFrameworkAssembly.rq" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

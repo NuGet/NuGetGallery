@@ -333,6 +333,7 @@ namespace CatalogTests
             Test5Async("dotnetrdf.1.0.3.xml").Wait();
             Test5Async("entityframework.5.0.0.xml").Wait();
             Test5Async("BrightstarDB.1.0.0.xml").Wait();
+            Test5Async("Antlr4.4.1.0-alpha002.xml").Wait();
         }
     }
 }

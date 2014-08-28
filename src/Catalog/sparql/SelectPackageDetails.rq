@@ -14,6 +14,8 @@ SELECT
 	?projectUrl
 	?releaseNotes
 	?minClientVersion
+	?copyright
+	?developmentDependency
 WHERE
 {
 	@package nuget:id ?id ;
@@ -33,4 +35,6 @@ WHERE
     OPTIONAL { @package nuget:projectUrl ?projectUrl . }
     OPTIONAL { @package nuget:releaseNotes ?releaseNotes . }
     OPTIONAL { @package nuget:minClientVersion ?minClientVersion . }
+    OPTIONAL { @package nuget:copyright ?copyright . }
+    OPTIONAL { @package nuget:developmentDependency ?developmentDependency . }
 }

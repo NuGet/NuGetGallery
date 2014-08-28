@@ -59,7 +59,12 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                     }
 
                     //TODO: references, reference groups etc.
-                    //TODO: framework assemblies (this is completely missing)
+
+                    XElement frameworkAssemblies = CreateNuspecMetadataFrameworkAssembly(store, packageUri);
+                    if (frameworkAssemblies != null)
+                    {
+                        metadata.Add(frameworkAssemblies);
+                    }
 
                     nuspec.Add(new XElement(nuget.GetName("package"), metadata));
 
@@ -155,9 +160,20 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                 metadata.Add(new XElement(nuget.GetName("releaseNotes"), packageInfo["releaseNotes"].ToString()));
             }
 
+            if (packageInfo.HasBoundValue("copyright"))
+            {
+                metadata.Add(new XElement(nuget.GetName("copyright"), packageInfo["copyright"].ToString()));
+            }
+
             if (packageInfo.HasBoundValue("minClientVersion"))
             {
-                metadata.Add(new XElement(nuget.GetName("minClientVersion"), packageInfo["minClientVersion"].ToString()));
+                metadata.Add(new XAttribute("minClientVersion", packageInfo["minClientVersion"].ToString()));
+            }
+
+            if (packageInfo.HasBoundValue("developmentDependency"))
+            {
+                bool val = bool.Parse(((ILiteralNode)packageInfo["developmentDependency"]).Value);
+                metadata.Add(new XElement(nuget.GetName("developmentDependency"), val));
             }
 
             return metadata;
@@ -261,6 +277,36 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
                 parent.Add(dependency);
             }
+        }
+
+        static XElement CreateNuspecMetadataFrameworkAssembly(TripleStore store, Uri packageUri)
+        {
+            SparqlParameterizedString sparql = new SparqlParameterizedString();
+            sparql.CommandText = Utils.GetResource("sparql.SelectPackageFrameworkAssembly.rq");
+            sparql.SetUri("package", packageUri);
+            SparqlResultSet packageFrameworkAssembly = SparqlHelpers.Select(store, sparql.ToString());
+
+            if (packageFrameworkAssembly.Count > 0)
+            {
+                XElement frameworkAssemblies = new XElement(nuget.GetName("frameworkAssemblies"));
+
+                foreach (SparqlResult row in packageFrameworkAssembly)
+                {
+                    string targetFramework = row["targetFramework"].ToString();
+                    string assembly = row["assembly"].ToString();
+
+                    XElement frameworkAssembly = new XElement(nuget.GetName("frameworkAssembly"));
+
+                    frameworkAssembly.Add(new XAttribute("assemblyName", assembly));
+                    frameworkAssembly.Add(new XAttribute("targetFramework", targetFramework));
+
+                    frameworkAssemblies.Add(frameworkAssembly);
+                }
+
+                return frameworkAssemblies;
+            }
+
+            return null;
         }
 
         async Task SaveAllNuspecs(IList<XDocument> nuspecs)
