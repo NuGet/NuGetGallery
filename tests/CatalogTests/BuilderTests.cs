@@ -323,11 +323,16 @@ namespace CatalogTests
         {
             Console.WriteLine("BuilderTests.Test5");
 
-            Test5Async("dotnetrdf.*.xml").Wait();
-            Test5Async("htmlagilitypack.*.xml").Wait();
-            Test5Async("newtonsoft.json.*.xml").Wait();
-            Test5Async("vds.common.*.xml").Wait();
-            Test5Async("entityframework.*.xml").Wait();
+            //Test5Async("dotnetrdf.*.xml").Wait();
+            //Test5Async("htmlagilitypack.*.xml").Wait();
+            //Test5Async("newtonsoft.json.*.xml").Wait();
+            //Test5Async("vds.common.*.xml").Wait();
+            //Test5Async("entityframework.*.xml").Wait();
+
+            Test5Async("Acknowledgements.1.0.0.xml").Wait();
+            Test5Async("dotnetrdf.1.0.3.xml").Wait();
+            Test5Async("entityframework.5.0.0.xml").Wait();
+            Test5Async("BrightstarDB.1.0.0.xml").Wait();
         }
     }
 }

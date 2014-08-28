@@ -128,7 +128,13 @@
                 <xsl:value-of select="obj:IsPrerelease(.)"/>
               </ng:isPrerelease>
             </xsl:when>
-              
+            
+            <xsl:when test="self::nuget:frameworkAssemblies">
+              <xsl:apply-templates select=".">
+                <xsl:with-param name="path" select="$path" />
+              </xsl:apply-templates>
+            </xsl:when>
+            
             <xsl:otherwise>
               <xsl:element name="{concat('ng:', local-name())}">
                 <xsl:value-of select="."/>
@@ -275,4 +281,49 @@
     </ng:property>
   </xsl:template>
 
+  <xsl:template match="nuget:frameworkAssemblies">
+    <xsl:param name="path" />
+    <xsl:apply-templates select="nuget:frameworkAssembly">
+      <xsl:with-param name="path" select="$path" />
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template match="nuget:frameworkAssembly">
+    <xsl:param name="path" />
+
+      <xsl:choose>
+        <xsl:when test="string-length(@targetFramework) &gt; 0">
+          <xsl:variable name="assemblyName" select="@assemblyName" />
+          <xsl:for-each select="obj:Split(@targetFramework)//item">
+            <ng:frameworkAssemblyGroup>
+              <rdf:Description>
+                <xsl:attribute name="rdf:about">
+                  <xsl:value-of select="translate(concat($base, $path, $extension, '#frameworkAssemblyGroup/', .), $uppercase, $lowercase)"/>
+                </xsl:attribute>
+                <ng:assembly>
+                  <xsl:value-of select="$assemblyName" />
+                </ng:assembly>
+                <ng:targetFramework>
+                  <xsl:value-of select="." />
+                </ng:targetFramework>
+              </rdf:Description>
+            </ng:frameworkAssemblyGroup>
+          </xsl:for-each>
+        </xsl:when>
+        <xsl:otherwise>
+          <ng:frameworkAssemblyGroup>
+            <rdf:Description>
+              <xsl:attribute name="rdf:about">
+                <xsl:value-of select="translate(concat($base, $path, $extension, '#frameworkAssemblyGroup'), $uppercase, $lowercase)"/>
+              </xsl:attribute>
+              <ng:assembly>
+                <xsl:value-of select="@assemblyName" />
+              </ng:assembly>
+            </rdf:Description>
+          </ng:frameworkAssemblyGroup>
+        </xsl:otherwise>
+      </xsl:choose>
+          
+  </xsl:template>
+  
 </xsl:stylesheet>

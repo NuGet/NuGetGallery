@@ -60,6 +60,11 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
                     IGraph packageRegistration = SparqlHelpers.Construct(store, sparql.ToString());
 
+                    //DEBUG
+                    //Utils.Dump(SparqlHelpers.Construct(store, Utils.GetResource("sparql.All.rq")), Console.Out);
+                    //Console.WriteLine("---------------------------");
+                    //Utils.Dump(packageRegistration, Console.Out);
+
                     if (packageRegistration.Triples.Count == 0)
                     {
                         throw new Exception("packageRegistration.Triples.Count == 0");

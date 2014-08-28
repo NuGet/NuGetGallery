@@ -35,9 +35,9 @@ namespace CatalogTests
 
                 //BuilderTests.Test5();
                 
-                //CollectorTests.Test0();
+                CollectorTests.Test0();
                 //CollectorTests.Test6();
-                CollectorTests.Test7();
+                //CollectorTests.Test7();
 
                 //PartitioningTests.Test0();
                 //PartitioningTests.Test1();
