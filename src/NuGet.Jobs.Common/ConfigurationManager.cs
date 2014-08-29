@@ -2,6 +2,7 @@
 using System.Data.SqlClient;
 using Microsoft.WindowsAzure.Storage;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace NuGet.Jobs.Common
 {
@@ -15,15 +16,25 @@ namespace NuGet.Jobs.Common
         public const string StoragePrimary = "NUGETJOBS_STORAGE_PRIMARY";
     }
 
+    /// <summary>
+    /// Keep the argument names as lower case for simple string match
+    /// </summary>
     public static class JobArgumentNames
     {
+        // Keep ALL the argument names as lower case for simple string match
+        // User need not enter in lower case, because, before populating the dictionary
+        // we will lower case it
+
+        // Job argument names
+        public const string Sleep = "sleep";
+
         // Database argument names
-        public const string SourceDatabase = "SourceDatabase";
+        public const string SourceDatabase = "sourcedatabase";
 
         // Catalog argument names
-        public const string CatalogStorage = "CatalogStorage";
-        public const string CatalogPath = "CatalogPath";
-        public const string CatalogPageSize = "CatalogPageSize";
+        public const string CatalogStorage = "catalogstorage";
+        public const string CatalogPath = "catalogpath";
+        public const string CatalogPageSize = "catalogpagesize";
 
         // Catalog Collector argument names
         public const string ChecksumCollectorBatchSize = "ChecksumCollectorBatchSize";
@@ -41,12 +52,12 @@ namespace NuGet.Jobs.Common
         /// <param name="args">Arguments passed to the job via commandline or environment variable settings</param>
         /// <param name="jobName">Jobname to be used to infer environment variable settings</param>
         /// <returns>Returns a dictionary of arguments</returns>
-        public static IDictionary<string, string> GetJobArgsDictionary(string[] args, string jobName)
+        public static IDictionary<string, string> GetJobArgsDictionary(JobTraceLogger logger, string[] args, string jobName)
         {
             if (args.Length == 0)
             {
                 var argsEnvVariable = "NUGETJOBS_ARGS_" + jobName;
-                Console.WriteLine("No command-line arguments provided. Picking it from Environment variable: " + argsEnvVariable);
+                logger.Log(TraceLevel.Warning, "No command-line arguments provided. Picking it from Environment variable: " + argsEnvVariable);
                 var argsArray = Environment.GetEnvironmentVariable(argsEnvVariable);
                 if (String.IsNullOrEmpty(argsArray))
                 {
@@ -55,7 +66,7 @@ namespace NuGet.Jobs.Common
 
                 args = argsArray.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             }
-            Console.WriteLine("Number of arguments : " + args.Length);
+            logger.Log(TraceLevel.Warning, "Number of arguments : " + args.Length);
             
             // For simplicity, there is strict limitation on how the job args can be
             // Arguments are expected to be a set of pairs, where each pair is of the form '-<argName> <argValue>'
@@ -86,7 +97,7 @@ namespace NuGet.Jobs.Common
                     throw new ArgumentException("Argument Value is null or empty");
                 }
 
-                argsDictionary.Add(argName, argValue);
+                argsDictionary.Add(argName.ToLowerInvariant(), argValue);
             }
 
             return argsDictionary;

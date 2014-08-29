@@ -4,6 +4,7 @@ using NuGet.Services.Metadata.Catalog.Collecting;
 using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
@@ -14,34 +15,33 @@ namespace Catalog.Updater
 {
     internal class Job
     {
-        public static readonly int DefaultChecksumCollectorBatchSize = 2000;
-        public static readonly int DefaultCatalogPageSize = 1000;
+        private static readonly int DefaultChecksumCollectorBatchSize = 2000;
+        private static readonly int DefaultCatalogPageSize = 1000;
         private static readonly JobEventSource JobEventSourceLog = JobEventSource.Log;
 
-        private JobTraceLogger Logger { get; set; }
+        public string JobName { get; private set; }
+        public JobTraceLogger Logger { get; private set; }
         private JobTraceEventListener Listener { get; set; }
         private SqlConnectionStringBuilder SourceDatabase { get; set; }
         private CloudStorageAccount CatalogStorage { get; set; }
         private string CatalogPath { get; set; }
-        public int? ChecksumCollectorBatchSize { get; set; }
+        private int? ChecksumCollectorBatchSize { get; set; }
         private int? CatalogPageSize { get; set; }
 
-        public Job() { }
-
-        public bool Init(string[] args)
+        public Job()
         {
-            // Get the jobName and setup the logger. If this fails, don't catch it
-            var jobName = this.GetType().ToString();
-            Logger = new JobTraceLogger(jobName);
-
+            JobName = this.GetType().ToString();
+            // Setup the logger. If this fails, don't catch it
+            Logger = new JobTraceLogger(JobName);
             // Initialize EventSources if any
-            // The following
             Listener = new JobTraceEventListener(Logger);
             Listener.EnableEvents(JobEventSourceLog, EventLevel.LogAlways);
+        }
+
+        public bool Init(IDictionary<string, string> jobArgsDictionary)
+        {
             try
             {
-                var jobArgsDictionary = JobConfigManager.GetJobArgsDictionary(args, jobName);
-
                 // Init member variables
                 CatalogPath =
                     JobConfigManager.GetArgument(jobArgsDictionary,
@@ -60,15 +60,13 @@ namespace Catalog.Updater
                     JobConfigManager.TryGetIntArgument(jobArgsDictionary,
                     JobArgumentNames.ChecksumCollectorBatchSize);
 
-                // Initialized successfully, return true
-                return true;
+                 // Initialized successfully, return true
+                 return true;
             }
             catch (Exception ex)
             {
                 Logger.Log(TraceLevel.Error, ex.ToString());
             }
-
-            ShowHelp();
             return false;
         }
 
