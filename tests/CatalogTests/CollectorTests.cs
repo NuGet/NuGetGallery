@@ -10,6 +10,7 @@ using NuGet.Services.Metadata.Catalog;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace CatalogTests
 {
@@ -81,7 +82,7 @@ namespace CatalogTests
         public static async Task Test3Async()
         {
             DistinctPackageIdCollector collector = new DistinctPackageIdCollector(200);
-            await collector.Run(new Uri("http://nuget3.blob.core.windows.net/pub/catalog/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://nugetprod0.blob.core.windows.net/ng-catalogs/0/index.json"), DateTime.MinValue);
 
             foreach (string s in collector.Result)
             {
@@ -219,5 +220,28 @@ namespace CatalogTests
 
             Test7Async().Wait();
         }
+
+        public static async Task Test8Async()
+        {
+            DistinctPackageIdCollector collector = new DistinctPackageIdCollector(200) { DependentCollections = new List<Uri> { new Uri("http://localhost:8000/test1/"), new Uri("http://localhost:8000/test2/") } };
+            await collector.Run(new Uri("http://nugetprod0.blob.core.windows.net/ng-catalogs/0/index.json"), DateTime.MinValue);
+
+            foreach (string s in collector.Result)
+            {
+                Console.WriteLine(s);
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("count = {0}", collector.Result.Count);
+            Console.WriteLine("http requests: {0}", collector.RequestCount);
+        }
+
+        public static void Test8()
+        {
+            Console.WriteLine("CollectorTests.Test8");
+
+            Test8Async().Wait();
+        }
+
     }
 }

@@ -28,8 +28,10 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         protected override async Task<CollectorCursor> Fetch(CollectorHttpClient client, Uri index, CollectorCursor startFrom)
         {
+            CollectorCursor minDependencyCursor = DependentCollections == null ? DateTime.MaxValue : (await GetDependencyCursors(client)).Min();
+
             CollectorCursor cursor = startFrom;
-            
+
             IList<JObject> items = new List<JObject>();
 
             JObject root = await client.GetJObjectAsync(index);
@@ -39,8 +41,15 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
             IEnumerable<JToken> rootItems = root["items"].OrderBy(item => item["commitTimestamp"].ToObject<DateTime>());
 
+            bool hasPassedDependencies = false;
+
             foreach (JObject rootItem in rootItems)
             {
+                if (hasPassedDependencies)
+                {
+                    break;
+                }
+
                 CollectorCursor pageCursor = (CollectorCursor)rootItem["commitTimestamp"].ToObject<DateTime>();
 
                 if (pageCursor > startFrom)
@@ -53,6 +62,16 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                     foreach (JObject pageItem in pageItems)
                     {
                         CollectorCursor itemCursor = (CollectorCursor)pageItem["commitTimestamp"].ToObject<DateTime>();
+
+                        if (itemCursor > minDependencyCursor)
+                        {
+                            minDependencyCursor = (await GetDependencyCursors(client)).Min();
+                            if (itemCursor > minDependencyCursor)
+                            {
+                                hasPassedDependencies = true;
+                                break;
+                            }
+                        }
 
                         if (itemCursor > startFrom)
                         {
@@ -86,6 +105,20 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             }
 
             return cursor;
+        }
+
+        private async Task<IEnumerable<CollectorCursor>> GetDependencyCursors(CollectorHttpClient client)
+        {
+            Task<CollectorCursor>[] cursorValueTasks = DependentCollections.Select(async (cursorUri) =>
+            {
+                string cursorString = await client.GetStringAsync(cursorUri + "meta/cursor.json");
+                JObject cursorObj = JObject.Parse(cursorString);
+                return new CollectorCursor(cursorObj["http://schema.nuget.org/collectors/resolver#cursor"]["@value"].ToObject<DateTime>());
+            }).ToArray();
+
+            await Task.WhenAll(cursorValueTasks);
+
+            return cursorValueTasks.Select(t => t.Result);
         }
 
         protected virtual void OnProcessedCommit(CollectorCursor cursor)
