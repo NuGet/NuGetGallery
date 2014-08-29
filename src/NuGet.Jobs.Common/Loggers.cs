@@ -9,19 +9,19 @@ namespace NuGet.Jobs.Common
     /// All the jobs MUST use this logger. Since logs from  all the jobs get written to the same file
     /// We want to ensure that the logs are prefixed with jobName, startTime and more as needed
     /// </summary>
-    public class TraceLogger
+    public class JobTraceLogger
     {
         private readonly string LogPrefix;
         /// <summary>
-        /// {0} would be the log prefix. Currently, the prefix is '/<jobName>/Started at <startTime>/'
+        /// {0} would be the log prefix. Currently, the prefix is '/<jobName>-<startTime>/'
         /// {1} would be the actual log message
-        /// Formatted message would be of the form '/<jobName>/Started at <startTime>//<message>'
+        /// Formatted message would be of the form '/<jobName>-<startTime>//<message>'
         /// </summary>
         private const string LogFormat = "{0}/{1}";
-        public TraceLogger(string logName)
+        public JobTraceLogger(string logName)
         {
             Trace.Listeners.Add(new ConsoleTraceListener());
-            LogPrefix = String.Format("/{0}/Started at {1}/", logName, DateTime.UtcNow.ToString("O"));
+            LogPrefix = String.Format("/{0}-{1}/", logName, DateTime.UtcNow.ToString("O"));
         }
 
         public string GetFormattedMessage(string message)
@@ -43,13 +43,13 @@ namespace NuGet.Jobs.Common
                     Trace.TraceError(GetFormattedMessage(message));
                     break;
                 case TraceLevel.Warning:
-                    Trace.TraceError(GetFormattedMessage(message));
+                    Trace.TraceWarning(GetFormattedMessage(message));
                     break;
                 case TraceLevel.Info:
-                    Trace.TraceError(GetFormattedMessage(message));
+                    Trace.TraceInformation(GetFormattedMessage(message));
                     break;
                 case TraceLevel.Verbose:
-                    Trace.TraceError(GetFormattedMessage(message));
+                    Trace.WriteLine(GetFormattedMessage(message));
                     break;
                 case TraceLevel.Off:
                 default:
@@ -69,15 +69,15 @@ namespace NuGet.Jobs.Common
     /// <summary>
     /// This event listener may be used by jobs to channel event logs into standard tracing
     /// </summary>
-    public class TraceEventListener : EventListener
+    public class JobTraceEventListener : EventListener
     {
-        private readonly TraceLogger Logger;
+        private readonly JobTraceLogger Logger;
         /// <summary>
         /// {0} would be eventId. {1} would be the formatted event message
         /// Formatted event would be '[<eventId>]: <message>'
         /// </summary>
         private const string EventLogFormat = "[{0}]: {1}";
-        public TraceEventListener(TraceLogger logger)
+        public JobTraceEventListener(JobTraceLogger logger)
         {
             Logger = logger;
         }
