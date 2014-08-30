@@ -1,18 +1,22 @@
 ﻿using NuGet.Jobs.Common;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace Stats.Replicator
 {
     internal class Job
     {
         private static readonly JobEventSource JobEventSourceLog = JobEventSource.Log;
-        private const int MinBatchSize = 100;
-        private const int  MaxBatchSize = 10000;
+        private static int MinBatchSize = 100;
+        private static int MaxBatchSize = 10000;
         private static Dictionary<double, int> BatchTimes = new Dictionary<double, int>();
         private static TimeSpan MaxBatchTime = TimeSpan.FromSeconds(
             30 + // Get the LastOriginalKey from the warehouse
@@ -83,8 +87,256 @@ namespace Stats.Replicator
 
         private async Task<int> Replicate()
         {
-            return 0;
+            int total = 0;
+            int replicated = 0;
+
+            JobEventSourceLog.GettingMaxSourceKey(Source.DataSource, Source.InitialCatalog);
+            var sourceMaxKey = await GetMaxSourceKey(Source);
+            JobEventSourceLog.GotMaxSourceKey(Source.DataSource, Source.InitialCatalog, sourceMaxKey);
+
+            Stopwatch totalTime = new Stopwatch();
+            totalTime.Start();
+
+            do
+            {
+                JobEventSourceLog.ReplicatingBatch();
+
+                JobEventSourceLog.GettingLastReplicatedKey(Destination.DataSource, Destination.InitialCatalog);
+                var targetMaxKey = await GetMaxTargetKey(Destination);
+                JobEventSourceLog.GotLastReplicatedKey(Destination.DataSource, Destination.InitialCatalog, targetMaxKey);
+
+                if (targetMaxKey >= sourceMaxKey)
+                {
+                    JobEventSourceLog.LastReplicatedKeyNotChanged();
+                    break;
+                }
+
+                double recordsPerSecond;
+                int batchSize = GetNextBatchSize(out recordsPerSecond);
+
+                if (recordsPerSecond > 0)
+                {
+                    int recordsRemaining = sourceMaxKey - targetMaxKey;
+                    double secondsRemaining = recordsRemaining / recordsPerSecond;
+                    JobEventSourceLog.WorkRemaining(recordsRemaining, (int)recordsPerSecond, TimeSpan.FromSeconds(secondsRemaining).ToString("g"));
+                }
+
+                try
+                {
+                    var watch = new Stopwatch();
+                    watch.Start();
+
+                    replicated = await ReplicateBatch(targetMaxKey, batchSize);
+
+                    watch.Stop();
+                    RecordSuccessfulBatchTime(batchSize, watch.Elapsed);
+                }
+                catch (SqlException sqlException)
+                {
+                    JobEventSourceLog.BatchFailed(Source.DataSource, Source.InitialCatalog, Destination.DataSource, Destination.InitialCatalog, batchSize, sourceMaxKey, targetMaxKey, sqlException.ToString());
+
+                    // If we can't even process the min batch size, then give up
+                    if (batchSize <= MinBatchSize)
+                    {
+                        JobEventSourceLog.UnableToProcessMinimumBatchSize(Source.DataSource, Source.InitialCatalog, Destination.DataSource, Destination.InitialCatalog, batchSize, sourceMaxKey, targetMaxKey);
+                        throw;
+                    }
+
+                    // Otherwise, let's reduce our batch size range
+                    ReduceBatchSizes(batchSize);
+                }
+
+                if (replicated > 0)
+                {
+                    total += replicated;
+                }
+
+                recordsPerSecond = total / totalTime.Elapsed.TotalSeconds;
+                JobEventSourceLog.ReplicatedBatch(total, TimeSpan.FromSeconds(totalTime.Elapsed.TotalSeconds).ToString("g"), (int)recordsPerSecond);
+            }
+            while (replicated > 0);
+
+            return total;
         }
+
+
+        private void RecordSuccessfulBatchTime(int batchSize, TimeSpan elapsedTime)
+        {
+            double perSecond = batchSize / elapsedTime.TotalSeconds;
+            BatchTimes[perSecond] = batchSize;
+
+            JobEventSourceLog.SuccessfulBatch(batchSize, elapsedTime.TotalSeconds, perSecond);
+        }
+
+        private void ReduceBatchSizes(int batchSize)
+        {
+            if (BatchTimes.Any())
+            {
+                int maxSuccessfulMatch = BatchTimes.Values.Max();
+
+                if (MaxBatchSize > maxSuccessfulMatch)
+                {
+                    // Split the difference between the max successful batch size and our batch size that just failed
+                    MaxBatchSize = (maxSuccessfulMatch + batchSize) / 2;
+                }
+                else
+                {
+                    MaxBatchSize = MaxBatchSize * 2 / 3;
+                }
+
+                // Ensure the Max doesn't fall below the Min
+                MaxBatchSize = Math.Max(MaxBatchSize, MinBatchSize);
+                JobEventSourceLog.CappingMaxBatchSize(maxSuccessfulMatch, batchSize, MaxBatchSize);
+            }
+            else
+            {
+                MinBatchSize = MinBatchSize / 2;
+                MaxBatchSize = MaxBatchSize * 2 / 3;
+
+                // Ensure the Max doesn't fall below the Min
+                MaxBatchSize = Math.Max(MaxBatchSize, MinBatchSize);
+                JobEventSourceLog.ReducingBatchSizes(MinBatchSize, MaxBatchSize);
+            }
+        }
+
+        private async Task<int> ReplicateBatch(int originalKey, int batchSize)
+        {
+            JobEventSourceLog.FetchingStatisticsChunk(Source.DataSource, Source.InitialCatalog, batchSize);
+            var batch = await GetDownloadRecords(originalKey, batchSize);
+            var batchCount = batch.Root.Nodes().Count();
+            JobEventSourceLog.FetchedStatisticsChunk(Source.DataSource, Source.InitialCatalog, batchCount);
+
+            if (batchCount > 0)
+            {
+                JobEventSourceLog.SavingDownloadFacts(Destination.InitialCatalog, Destination.DataSource, batchCount);
+                // Should consider enabling WhatIf
+                //if (!WhatIf)
+                {
+                    await PutDownloadRecords(batch, originalKey);
+                }
+                JobEventSourceLog.SavedDownloadFacts(Destination.InitialCatalog, Destination.DataSource, batchCount);
+            }
+
+            return batchCount;
+        }
+
+        public static async Task<int> GetMaxSourceKey(SqlConnectionStringBuilder connectionString)
+        {
+            using (var connection = await connectionString.ConnectTo())
+            {
+                SqlCommand command = new SqlCommand("SELECT MAX([Key]) AS MaxOriginalKey FROM PackageStatistics", connection);
+                int? maxOriginalKey = await command.ExecuteScalarAsync() as int?;
+
+                return maxOriginalKey ?? -1;
+            }
+        }
+
+        public static async Task<int> GetMaxTargetKey(SqlConnectionStringBuilder connectionString)
+        {
+            using (var connection = await connectionString.ConnectTo())
+            {
+                SqlCommand command = new SqlCommand("GetLastOriginalKey", connection) { CommandType = CommandType.StoredProcedure };
+                SqlParameter param = new SqlParameter("@OriginalKey", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                command.Parameters.Add(param);
+
+                await command.ExecuteNonQueryAsync();
+                int? maxOriginalKey = param.Value as int?;
+
+                return maxOriginalKey ?? -1;
+            }
+        }
+
+        private async Task<XDocument> GetDownloadRecords(int originalKey, int batchSize)
+        {
+            using (var connection = await Source.ConnectTo())
+            {
+                using (var command = new SqlCommand(@"
+                        SELECT TOP(@batchSize) 
+                            PackageStatistics.[Key] 'originalKey', 
+                            PackageRegistrations.[Id] 'packageId', 
+                            Packages.[Version] 'packageVersion', 
+	                        Packages.[Listed] 'packageListed',
+                            Packages.[Title] 'packageTitle',
+                            Packages.[Description] 'packageDescription',
+                            Packages.[IconUrl] 'packageIconUrl',
+                            ISNULL(PackageStatistics.[UserAgent], '') 'downloadUserAgent', 
+                            ISNULL(PackageStatistics.[Operation], '') 'downloadOperation', 
+                            PackageStatistics.[Timestamp] 'downloadTimestamp',
+                            PackageStatistics.[ProjectGuids] 'downloadProjectTypes',
+                            PackageStatistics.[DependentPackage] 'downloadDependentPackageId'
+                        FROM PackageStatistics 
+                        INNER JOIN Packages ON PackageStatistics.PackageKey = Packages.[Key] 
+                        INNER JOIN PackageRegistrations ON PackageRegistrations.[Key] = Packages.PackageRegistrationKey 
+                        WHERE PackageStatistics.[Key] > @originalKey 
+                        ORDER BY PackageStatistics.[Key]
+                        FOR XML RAW('fact'), ELEMENTS, ROOT('facts')
+                        ", connection))
+                {
+                    command.Parameters.Add(new SqlParameter("@originalKey", originalKey));
+                    command.Parameters.Add(new SqlParameter("@batchSize", batchSize));
+
+                    var factsReader = await command.ExecuteXmlReaderAsync();
+                    var factsDocument = XDocument.Load(factsReader);
+
+                    return factsDocument;
+                }
+            }
+        }
+
+        private async Task PutDownloadRecords(XDocument batch, int expectedLastOriginalKey)
+        {
+            using (var connection = await Destination.ConnectTo())
+            {
+                using (var command = new SqlCommand("AddDownloadFacts", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.Add(new SqlParameter("@facts", batch.ToString()));
+                    command.Parameters.Add(new SqlParameter("@expectedLastOriginalKey", expectedLastOriginalKey));
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        private int GetNextBatchSize(out double recordsPerSecond)
+        {
+            // Every 100 runs, we will reset our time recordings and find a new best time all over
+            if (BatchTimes.Count >= 100)
+            {
+                BatchTimes.Clear();
+            }
+
+            int nextBatchSize;
+
+            if (BatchTimes.Count == 0)
+            {
+                nextBatchSize = MinBatchSize;
+                recordsPerSecond = 0;
+                JobEventSourceLog.UsingFirstSampleBatchSize(MinBatchSize, MaxBatchSize);
+            }
+            else if (BatchTimes.Count < 11)
+            {
+                // We'll run through 11 iterations of our possible range, with 10% increments along the way.
+                // Yes, 11. Because fenceposts.
+                KeyValuePair<double, int> bestSoFar = BatchTimes.OrderByDescending(batch => batch.Key).First();
+                nextBatchSize = MinBatchSize + ((MaxBatchSize - MinBatchSize) / 10 * BatchTimes.Count);
+                recordsPerSecond = bestSoFar.Key; // Optimistically, we'll match the best time after it all levels out
+                JobEventSourceLog.UsingNextSampleBatchSize(BatchTimes.Count, nextBatchSize, bestSoFar.Value, bestSoFar.Key);
+            }
+            else
+            {
+                IEnumerable<KeyValuePair<double, int>> bestBatches = BatchTimes.OrderByDescending(batch => batch.Key).Take(BatchTimes.Count / 4);
+                string bestSizes = String.Join(", ", bestBatches.Select(batch => batch.Value));
+                string bestPaces = String.Join(", ", bestBatches.Select(batch => (int)batch.Key));
+
+                nextBatchSize = (int)bestBatches.Select(batch => batch.Value).Average();
+                recordsPerSecond = bestBatches.First().Key; // Optimistically, we'll match the best time
+                JobEventSourceLog.UsingCalculatedBatchSize(nextBatchSize, BatchTimes.Count, bestSizes, bestPaces);
+            }
+
+            // Ensure the next batch size is within the allowable range
+            return Math.Max(Math.Min(nextBatchSize, MaxBatchSize), MinBatchSize);
+        }
+
     }
 
     [EventSource(Name = "Outercurve-NuGet-Jobs-ReplicatePackageStatistics")]

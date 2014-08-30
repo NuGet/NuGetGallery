@@ -66,3 +66,22 @@ namespace NuGet.Jobs.Common
         }
     }
 }
+
+namespace System.Data.SqlClient
+{
+    public static class SqlConnectionStringBuilderExtensions
+    {
+        public static Task<SqlConnection> ConnectTo(this SqlConnectionStringBuilder self)
+        {
+            return ConnectTo(self.ConnectionString);
+        }
+
+        private static async Task<SqlConnection> ConnectTo(string connection)
+        {
+            var c = new SqlConnection(connection);
+            await c.OpenAsync().ConfigureAwait(continueOnCapturedContext: false);
+            return c;
+        }
+    }
+}
+
