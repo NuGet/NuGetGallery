@@ -12,6 +12,7 @@ namespace NuGet.Jobs.Common
     public static class EnvironmentVariableKeys
     {
         public const string SqlGallery = "NUGETJOBS_SQL_GALLERY";
+        public const string SqlWarehouse = "NUGETJOBS_SQL_WAREHOUSE";
         public const string StorageGallery = "NUGETJOBS_STORAGE_GALLERY";
         public const string StoragePrimary = "NUGETJOBS_STORAGE_PRIMARY";
     }
@@ -21,20 +22,17 @@ namespace NuGet.Jobs.Common
     /// </summary>
     public static class JobArgumentNames
     {
-        // Keep ALL the argument names as lower case for simple string match
-        // User need not enter in lower case, because, before populating the dictionary
-        // we will lower case it
-
         // Job argument names
-        public const string Sleep = "sleep";
+        public const string Sleep = "Sleep";
 
         // Database argument names
-        public const string SourceDatabase = "sourcedatabase";
+        public const string SourceDatabase = "SourceDatabase";
+        public const string DestinationDatabase = "DestinationDatabase";
 
         // Catalog argument names
-        public const string CatalogStorage = "catalogstorage";
-        public const string CatalogPath = "catalogpath";
-        public const string CatalogPageSize = "catalogpagesize";
+        public const string CatalogStorage = "CatalogStorage";
+        public const string CatalogPath = "CatalogPath";
+        public const string CatalogPageSize = "CatalogPageSize";
 
         // Catalog Collector argument names
         public const string ChecksumCollectorBatchSize = "ChecksumCollectorBatchSize";
@@ -61,10 +59,12 @@ namespace NuGet.Jobs.Common
                 var argsArray = Environment.GetEnvironmentVariable(argsEnvVariable);
                 if (String.IsNullOrEmpty(argsArray))
                 {
-                    throw new ArgumentException("Command-line parameters are not provided. And, the following env variable is not set either: " + argsEnvVariable);
+                    logger.Log(TraceLevel.Warning, "No environment variable arguments provided either");
                 }
-
-                args = argsArray.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                else
+                {
+                    args = argsArray.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                }
             }
             logger.Log(TraceLevel.Warning, "Number of arguments : " + args.Length);
             
@@ -76,7 +76,7 @@ namespace NuGet.Jobs.Common
                 throw new ArgumentException("Number of arguments is not a multiple of 2. Arguments are expected to be a set of pairs, where each pair is of the form '-<argName> <argValue>'");
             }
 
-            IDictionary<string, string> argsDictionary = new Dictionary<string, string>();
+            IDictionary<string, string> argsDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             for(int i = 0; i < args.Length; i+=2)
             {
                 if(!args[i].StartsWith("-"))
@@ -97,7 +97,7 @@ namespace NuGet.Jobs.Common
                     throw new ArgumentException("Argument Value is null or empty");
                 }
 
-                argsDictionary.Add(argName.ToLowerInvariant(), argValue);
+                argsDictionary.Add(argName, argValue);
             }
 
             return argsDictionary;

@@ -9,6 +9,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Catalog", "Catalog", "{A33A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Common", "src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj", "{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Statistics", "Statistics", "{3B227DEE-B610-440F-866E-6F79D413B21F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.Replicator", "src\Stats.Replicator\Stats.Replicator.csproj", "{2EB38FC7-C2EA-4BB3-93FE-059856AD40A4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,11 +27,16 @@ Global
 		{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2EB38FC7-C2EA-4BB3-93FE-059856AD40A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EB38FC7-C2EA-4BB3-93FE-059856AD40A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EB38FC7-C2EA-4BB3-93FE-059856AD40A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EB38FC7-C2EA-4BB3-93FE-059856AD40A4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5825F5A5-6584-473B-BB64-1409FAF3C814} = {A33AB7AB-EFC8-4B3F-9D54-01692EAF981F}
+		{2EB38FC7-C2EA-4BB3-93FE-059856AD40A4} = {3B227DEE-B610-440F-866E-6F79D413B21F}
 	EndGlobalSection
 EndGlobal

@@ -5,9 +5,9 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Catalog-Updater")]
+[assembly: AssemblyTitle("Stats.Replicator")]
 [assembly: AssemblyDescription("")]
-[assembly: AssemblyProduct("Catalog-Updater")]
+[assembly: AssemblyProduct("Stats.Replicator")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
@@ -15,7 +15,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("7b6ccc5d-b4b6-4077-81aa-6552a5b48163")]
+[assembly: Guid("665f32f8-9e87-4880-9926-90078ad727d2")]
 
 // Version information for an assembly consists of the following four values:
 //
