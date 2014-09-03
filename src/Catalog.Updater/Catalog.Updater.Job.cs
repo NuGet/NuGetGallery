@@ -13,14 +13,12 @@ using System.Threading.Tasks;
 
 namespace Catalog.Updater
 {
-    internal class Job
+    internal class Job : JobBase
     {
         private static readonly int DefaultChecksumCollectorBatchSize = 2000;
         private static readonly int DefaultCatalogPageSize = 1000;
         private static readonly JobEventSource JobEventSourceLog = JobEventSource.Log;
 
-        public string JobName { get; private set; }
-        public JobTraceLogger Logger { get; private set; }
         private JobTraceEventListener Listener { get; set; }
         private SqlConnectionStringBuilder SourceDatabase { get; set; }
         private CloudStorageAccount CatalogStorage { get; set; }
@@ -28,20 +26,16 @@ namespace Catalog.Updater
         private int? ChecksumCollectorBatchSize { get; set; }
         private int? CatalogPageSize { get; set; }
 
-        public Job()
-        {
-            JobName = this.GetType().ToString();
-            // Setup the logger. If this fails, don't catch it
-            Logger = new JobTraceLogger(JobName);
-            // Initialize EventSources if any
-            Listener = new JobTraceEventListener(Logger);
-            Listener.EnableEvents(JobEventSourceLog, EventLevel.LogAlways);
-        }
+        public Job() { }
 
-        public bool Init(IDictionary<string, string> jobArgsDictionary)
+        public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
             try
             {
+                // Initialize EventSources if any
+                Listener = new JobTraceEventListener(Logger);
+                Listener.EnableEvents(JobEventSourceLog, EventLevel.LogAlways);
+
                 // Init member variables
                 CatalogPath =
                     JobConfigManager.GetArgument(jobArgsDictionary,
@@ -70,7 +64,7 @@ namespace Catalog.Updater
             return false;
         }
 
-        public async Task Run()
+        public override async Task Run()
         {
             var collectorBatchSize = ChecksumCollectorBatchSize ?? DefaultChecksumCollectorBatchSize;
             var catalogPageSize = CatalogPageSize ?? DefaultCatalogPageSize;

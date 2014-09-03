@@ -124,7 +124,7 @@ namespace NuGet.Jobs.Common
             {
                 if (String.IsNullOrEmpty(fallbackEnvVariable))
                 {
-                    throw new ArgumentNullException(String.Format("Argument '{0}' was not passed"));
+                    throw new ArgumentNullException(String.Format("Argument '{0}' was not passed", argName));
                 }
                 else
                 {

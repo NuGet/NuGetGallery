@@ -12,7 +12,7 @@ using System.Xml.Linq;
 
 namespace Stats.Replicator
 {
-    internal class Job
+    internal class Job : JobBase
     {
         private static readonly JobEventSource JobEventSourceLog = JobEventSource.Log;
         private static int MinBatchSize = 100;
@@ -24,8 +24,6 @@ namespace Stats.Replicator
             30 + // Put the batch into the destination
             30); // Some buffer time
 
-        public string JobName { get; private set; }
-        public JobTraceLogger Logger { get; private set; }
         private JobTraceEventListener Listener { get; set; }
 
         /// <summary>
@@ -38,20 +36,16 @@ namespace Stats.Replicator
         /// </summary>
         public SqlConnectionStringBuilder Destination { get; set; }
 
-        public Job()
-        {
-            JobName = this.GetType().ToString();
-            // Setup the logger. If this fails, don't catch it
-            Logger = new JobTraceLogger(JobName);
-            // Initialize EventSources if any
-            Listener = new JobTraceEventListener(Logger);
-            Listener.EnableEvents(JobEventSourceLog, EventLevel.LogAlways);
-        }
+        public Job() { }
 
-        public bool Init(IDictionary<string, string> jobArgsDictionary)
+        public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
             try
             {
+                // Initialize EventSources if any
+                Listener = new JobTraceEventListener(Logger);
+                Listener.EnableEvents(JobEventSourceLog, EventLevel.LogAlways);
+
                 // Init member variables
                 Source =
                     new SqlConnectionStringBuilder(
@@ -72,7 +66,7 @@ namespace Stats.Replicator
             return false;
         }
 
-        public async Task Run()
+        public override async Task Run()
         {
             JobEventSourceLog.ReplicatingStatistics(Source.DataSource, Source.InitialCatalog, Destination.DataSource, Destination.InitialCatalog);
 
