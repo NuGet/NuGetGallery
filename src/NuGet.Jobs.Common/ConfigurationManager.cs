@@ -23,6 +23,7 @@ namespace NuGet.Jobs.Common
     public static class JobArgumentNames
     {
         // Job argument names
+        public const string Once = "Once";
         public const string Sleep = "Sleep";
 
         // Database argument names
@@ -67,17 +68,12 @@ namespace NuGet.Jobs.Common
                 }
             }
             logger.Log(TraceLevel.Warning, "Number of arguments : " + args.Length);
-            
-            // For simplicity, there is strict limitation on how the job args can be
+
             // Arguments are expected to be a set of pairs, where each pair is of the form '-<argName> <argValue>'
-            // So, Number of arguments should be even. And, every odd numbered argument which is an argName must start with a '-'
-            if(args.Length % 2 != 0)
-            {
-                throw new ArgumentException("Number of arguments is not a multiple of 2. Arguments are expected to be a set of pairs, where each pair is of the form '-<argName> <argValue>'");
-            }
+            // Or, in singles as a switch '-<switch>'
 
             IDictionary<string, string> argsDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            for(int i = 0; i < args.Length; i+=2)
+            for(int i = 0; i < args.Length; i++)
             {
                 if(!args[i].StartsWith("-"))
                 {
@@ -85,19 +81,28 @@ namespace NuGet.Jobs.Common
                 }
 
                 var argName = args[i].Substring(1);
-                var argValue = args[i+1];
-
                 if(String.IsNullOrEmpty(argName))
                 {
                     throw new ArgumentException("Argument Name is null or empty");
                 }
 
-                if(String.IsNullOrEmpty(argValue))
+                var nextString = args.Length > i + 1 ? args[i + 1] : null;
+                if(String.IsNullOrEmpty(nextString) || nextString.StartsWith("-"))
                 {
-                    throw new ArgumentException("Argument Value is null or empty");
+                    // nextString startWith hyphen, the current one is a switch
+                    argsDictionary.Add(argName, Boolean.TrueString);
                 }
+                else
+                {
+                    var argValue = nextString;
+                    if (String.IsNullOrEmpty(argValue))
+                    {
+                        throw new ArgumentException("Argument Value is null or empty");
+                    }
 
-                argsDictionary.Add(argName, argValue);
+                    argsDictionary.Add(argName, argValue);
+                    i++; // skip next string since it was added as an argument value
+                }
             }
 
             return argsDictionary;
@@ -170,6 +175,24 @@ namespace NuGet.Jobs.Common
                 return intArgument;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Just calls TryGetArgument, but returns an bool, if parsable, otherwise, false
+        /// </summary>
+        /// <param name="jobArgsDictionary">This is the dictionary of commandline args passed to the exe</param>
+        /// <param name="argName">Name of the argument for which value is needed</param>
+        /// <param name="fallbackEnvVariable">Name of the environment variable to be used when the argName was not found in the dictionary</param>
+        /// <returns>Returns the argument value as a string</returns>
+        public static bool TryGetBoolArgument(IDictionary<string, string> jobArgsDictionary, string argName, string fallbackEnvVariable = null)
+        {
+            bool switchValue;
+            string argumentString = TryGetArgument(jobArgsDictionary, argName, fallbackEnvVariable);
+            if (!String.IsNullOrEmpty(argumentString) && Boolean.TryParse(argumentString, out switchValue))
+            {
+                return switchValue;
+            }
+            return false;
         }
     }
 }

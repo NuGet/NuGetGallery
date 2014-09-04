@@ -19,36 +19,28 @@ namespace NuGet.Jobs.Common
         /// <returns></returns>
         public static async Task Run(JobBase job, string[] args)
         {
-            bool runContinuously = true;
             if (args.Length > 0 && String.Equals(args[0], "dbg", StringComparison.OrdinalIgnoreCase))
             {
                 args = args.Skip(1).ToArray();
                 Debugger.Launch();
             }
 
-            if (args.Length > 0 && String.Equals(args[0], "once", StringComparison.OrdinalIgnoreCase))
-            {
-                args = args.Skip(1).ToArray();
-                runContinuously = false;
-            }
-
             job.Logger.Log(TraceLevel.Warning, "Started...");
-            job.Logger.Log(TraceLevel.Warning, "Running " + (runContinuously ? " continuously..." : " once..."));
 
             try
             {
                 // Get the args passed in or provided as an env variable based on jobName as a dictionary of <string argName, string argValue>
                 var jobArgsDictionary = JobConfigManager.GetJobArgsDictionary(job.Logger, args, job.JobName);
 
+                bool runContinuously = !JobConfigManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.Once);
+                job.Logger.Log(TraceLevel.Warning, "Running " + (runContinuously ? " continuously..." : " once..."));
+
                 // Try and get the sleep duration provided, if any. Default is 5000 milliSeconds
-                string sleepDurationString;
-                int sleepDuration = 5000;
-                if (jobArgsDictionary.TryGetValue(JobArgumentNames.Sleep, out sleepDurationString))
+                int? sleepDuration = JobConfigManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Sleep);
+                if(sleepDuration == null)
                 {
-                    if (!Int32.TryParse(sleepDurationString, out sleepDuration))
-                    {
-                        job.Logger.Log(TraceLevel.Warning, "SleepDuration is not a valid integer. SleepDuration should be in milliseconds and a valid integer");
-                    }
+                    job.Logger.Log(TraceLevel.Warning, "SleepDuration is not provided or is not a valid integer. Unit is milliSeconds. Assuming default of 5000 ms...");
+                    sleepDuration = 5000;
                 }
                 job.Logger.Log(TraceLevel.Warning, "SleepDuration is {0}", sleepDuration);
 
@@ -65,7 +57,7 @@ namespace NuGet.Jobs.Common
                 {
                     await job.Run();
                     // Wait for <sleepDuration> milliSeconds and run the job again
-                    Thread.Sleep(sleepDuration);
+                    Thread.Sleep(sleepDuration.Value);
                 } while (runContinuously);
             }
             catch (AggregateException ex)
