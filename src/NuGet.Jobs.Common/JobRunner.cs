@@ -19,7 +19,7 @@ namespace NuGet.Jobs.Common
         /// <returns></returns>
         public static async Task Run(JobBase job, string[] args)
         {
-            if (args.Length > 0 && String.Equals(args[0], "dbg", StringComparison.OrdinalIgnoreCase))
+            if (args.Length > 0 && String.Equals(args[0], "-dbg", StringComparison.OrdinalIgnoreCase))
             {
                 args = args.Skip(1).ToArray();
                 Debugger.Launch();
@@ -31,6 +31,11 @@ namespace NuGet.Jobs.Common
             {
                 // Get the args passed in or provided as an env variable based on jobName as a dictionary of <string argName, string argValue>
                 var jobArgsDictionary = JobConfigManager.GetJobArgsDictionary(job.Logger, args, job.JobName);
+
+                if(JobConfigManager.TryGetBoolArgument(jobArgsDictionary, "-dbg"))
+                {
+                    job.Logger.Log(TraceLevel.Warning, "-dbg is a special argument and should only be passed in as the first argument. Ignoring here...");
+                }
 
                 bool runContinuously = !JobConfigManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.Once);
                 job.Logger.Log(TraceLevel.Warning, "Running " + (runContinuously ? " continuously..." : " once..."));

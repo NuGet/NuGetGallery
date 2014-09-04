@@ -30,13 +30,26 @@ namespace NuGet.Jobs.Common
         public const string SourceDatabase = "SourceDatabase";
         public const string DestinationDatabase = "DestinationDatabase";
 
+        // Storage Argument names
+        public const string TargetStorageAccount = "TargetStorageAccount";
+        public const string TargetStoragePath = "TargetStoragePath";
+
         // Catalog argument names
         public const string CatalogStorage = "CatalogStorage";
         public const string CatalogPath = "CatalogPath";
         public const string CatalogPageSize = "CatalogPageSize";
+        public const string CatalogIndexUrl = "CatalogIndexUrl";
 
         // Catalog Collector argument names
         public const string ChecksumCollectorBatchSize = "ChecksumCollectorBatchSize";
+
+        // Target Argument names
+        public const string TargetBaseAddress = "TargetBaseAddress";
+        public const string TargetLocalDirectory = "TargetLocalDirectory";
+
+        // Other Argument names
+        public const string CdnBaseAddress = "CdnBaseAddress";
+        public const string GalleryBaseAddress = "GalleryBaseAddress";
     }
     /// <summary>
     /// This class is used to retrieve and expose the known azure configuration settings 
