@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Data.SqlClient;
-using Microsoft.WindowsAzure.Storage;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace NuGet.Jobs.Common
 {
@@ -61,49 +60,56 @@ namespace NuGet.Jobs.Common
         /// Parses the string[] of <c>args</c> passed into the job into a dictionary of string, string.
         /// Expects the string[] to be set of pairs of argumentName and argumentValue, where, argumentName start with a hyphen
         /// </summary>
-        /// <param name="args">Arguments passed to the job via commandline or environment variable settings</param>
+        /// <param name="argsList">Arguments passed to the job via commandline or environment variable settings</param>
         /// <param name="jobName">Jobname to be used to infer environment variable settings</param>
         /// <returns>Returns a dictionary of arguments</returns>
-        public static IDictionary<string, string> GetJobArgsDictionary(JobTraceLogger logger, string[] args, string jobName)
+        public static IDictionary<string, string> GetJobArgsDictionary(JobTraceLogger logger, string[] commandLineArgs, string jobName)
         {
-            if (args.Length == 0)
+            var allArgsList = commandLineArgs.ToList();
+            if (allArgsList.Count == 0)
             {
-                var argsEnvVariable = "NUGETJOBS_ARGS_" + jobName;
-                logger.Log(TraceLevel.Warning, "No command-line arguments provided. Picking it from Environment variable: " + argsEnvVariable);
-                var argsArray = Environment.GetEnvironmentVariable(argsEnvVariable);
-                if (String.IsNullOrEmpty(argsArray))
-                {
-                    logger.Log(TraceLevel.Warning, "No environment variable arguments provided either");
-                }
-                else
-                {
-                    args = argsArray.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                }
+                logger.Log(TraceLevel.Warning, "No command-line arguments provided. Trying to pick up from environment variable for the job...");
             }
-            logger.Log(TraceLevel.Warning, "Number of arguments : " + args.Length);
+
+            string argsEnvVariable = "NUGETJOBS_ARGS_" + jobName;
+            string envArgString = Environment.GetEnvironmentVariable(argsEnvVariable);
+            if (String.IsNullOrEmpty(envArgString))
+            {
+                logger.Log(TraceLevel.Warning, "No environment variable for the job arguments was provided");
+            }
+            else
+            {
+                allArgsList.AddRange(envArgString.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+            }
+            logger.Log(TraceLevel.Warning, "Total number of arguments : " + allArgsList.Count);
 
             // Arguments are expected to be a set of pairs, where each pair is of the form '-<argName> <argValue>'
             // Or, in singles as a switch '-<switch>'
 
             IDictionary<string, string> argsDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            for(int i = 0; i < args.Length; i++)
+            for(int i = 0; i < allArgsList.Count; i++)
             {
-                if(!args[i].StartsWith("-"))
+                if(!allArgsList[i].StartsWith("-"))
                 {
                     throw new ArgumentException("Argument Name does not start with a hyphen ('-')");
                 }
 
-                var argName = args[i].Substring(1);
+                var argName = allArgsList[i].Substring(1);
                 if(String.IsNullOrEmpty(argName))
                 {
                     throw new ArgumentException("Argument Name is null or empty");
                 }
 
-                var nextString = args.Length > i + 1 ? args[i + 1] : null;
+                var nextString = allArgsList.Count > i + 1 ? allArgsList[i + 1] : null;
                 if(String.IsNullOrEmpty(nextString) || nextString.StartsWith("-"))
                 {
-                    // nextString startWith hyphen, the current one is a switch
-                    argsDictionary.Add(argName, Boolean.TrueString);
+                    // If the key already exists, don't add. This means that first added value is preferred
+                    // Since command line args are added before args from environment variable, this is the desired behavior
+                    if (!argsDictionary.ContainsKey(argName))
+                    {
+                        // nextString startWith hyphen, the current one is a switch
+                        argsDictionary.Add(argName, Boolean.TrueString);
+                    }
                 }
                 else
                 {
@@ -113,7 +119,12 @@ namespace NuGet.Jobs.Common
                         throw new ArgumentException("Argument Value is null or empty");
                     }
 
-                    argsDictionary.Add(argName, argValue);
+                    // If the key already exists, don't add. This means that first added value is preferred
+                    // Since command line args are added before args from environment variable, this is the desired behavior
+                    if (!argsDictionary.ContainsKey(argName))
+                    {
+                        argsDictionary.Add(argName, argValue);
+                    }
                     i++; // skip next string since it was added as an argument value
                 }
             }

@@ -15,13 +15,13 @@ namespace NuGet.Jobs.Common
         ///     b) The sleep duration between each run when running continuously is 5000 milliSeconds. Could be overridden using '-Sleep' argument
         /// </summary>
         /// <param name="job">Job to run</param>
-        /// <param name="args">Args contains args to the job runner like (dbg, once and so on) and for the job itself</param>
+        /// <param name="commandLineArgs">Args contains args to the job runner like (dbg, once and so on) and for the job itself</param>
         /// <returns></returns>
-        public static async Task Run(JobBase job, string[] args)
+        public static async Task Run(JobBase job, string[] commandLineArgs)
         {
-            if (args.Length > 0 && String.Equals(args[0], "-dbg", StringComparison.OrdinalIgnoreCase))
+            if (commandLineArgs.Length > 0 && String.Equals(commandLineArgs[0], "-dbg", StringComparison.OrdinalIgnoreCase))
             {
-                args = args.Skip(1).ToArray();
+                commandLineArgs = commandLineArgs.Skip(1).ToArray();
                 Debugger.Launch();
             }
 
@@ -30,7 +30,7 @@ namespace NuGet.Jobs.Common
             try
             {
                 // Get the args passed in or provided as an env variable based on jobName as a dictionary of <string argName, string argValue>
-                var jobArgsDictionary = JobConfigManager.GetJobArgsDictionary(job.Logger, args, job.JobName);
+                var jobArgsDictionary = JobConfigManager.GetJobArgsDictionary(job.Logger, commandLineArgs, job.JobName);
 
                 if(JobConfigManager.TryGetBoolArgument(jobArgsDictionary, "-dbg"))
                 {
@@ -61,9 +61,11 @@ namespace NuGet.Jobs.Common
                 do
                 {
                     await job.Run();
+                    if (!runContinuously) break;
+
                     // Wait for <sleepDuration> milliSeconds and run the job again
                     Thread.Sleep(sleepDuration.Value);
-                } while (runContinuously);
+                } while (true);
             }
             catch (AggregateException ex)
             {
