@@ -14,6 +14,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
     public class Job : JobBase
     {
         private JobEventSource JobEventSourceLog = JobEventSource.Log;
+        private JobTraceEventListener Listener { get; set; }
         public CloudStorageAccount TargetStorageAccount { get; set; }
         public string TargetStoragePath { get; set; }
         public string TargetBaseAddress { get; set; }
@@ -26,6 +27,11 @@ namespace CatalogCollector.PackageRegistrationBlobs
         {
             try
             {
+                // Initialize EventSources if any
+                Listener = new JobTraceEventListener(Logger);
+                Listener.EnableEvents(JobEventSourceLog, EventLevel.LogAlways);
+
+                // Init member variables
                 // This is mandatory. Don't try to get it. Let it throw if not found
                 TargetBaseAddress =
                     JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.TargetBaseAddress);
@@ -50,7 +56,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
                     JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.TargetStoragePath);
 
                 TargetLocalDirectory =
-                    JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.TargetLocalDirectory);
+                    JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.TargetLocalDirectory);
 
                 // Initialized successfully, return true
                 return true;
