@@ -16,7 +16,6 @@ namespace Stats.AggregateInGallery
     public class Job : JobBase
     {
         private JobEventSource JobEventSourceLog = JobEventSource.Log;
-
         /// <summary>
         /// Gets or sets a connection string to the database containing package data.
         /// </summary>
@@ -31,7 +30,6 @@ namespace Stats.AggregateInGallery
                 PackageDatabase =
                     new SqlConnectionStringBuilder(
                         JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase, EnvironmentVariableKeys.SqlGallery));
-
                 return true;
             }
             catch(Exception ex)
