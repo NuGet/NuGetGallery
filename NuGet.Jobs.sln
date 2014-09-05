@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21322.0
+VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.Updater", "src\Catalog.Updater\Catalog.Updater.csproj", "{5825F5A5-6584-473B-BB64-1409FAF3C814}"
 EndProject
@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{05F997
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogCollector.PackageRegistrationBlobs", "src\CatalogCollector.PackageRegistrationBlobs\CatalogCollector.PackageRegistrationBlobs.csproj", "{6091F819-830A-4B3D-88BC-3289C17DE127}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.AggregateInGallery", "src\Stats.AggregateInGallery\Stats.AggregateInGallery.csproj", "{7E66CECA-2CA7-4435-AF78-8207AB6AD0AD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,6 +44,10 @@ Global
 		{6091F819-830A-4B3D-88BC-3289C17DE127}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6091F819-830A-4B3D-88BC-3289C17DE127}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6091F819-830A-4B3D-88BC-3289C17DE127}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E66CECA-2CA7-4435-AF78-8207AB6AD0AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E66CECA-2CA7-4435-AF78-8207AB6AD0AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E66CECA-2CA7-4435-AF78-8207AB6AD0AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E66CECA-2CA7-4435-AF78-8207AB6AD0AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -50,5 +56,6 @@ Global
 		{5825F5A5-6584-473B-BB64-1409FAF3C814} = {A33AB7AB-EFC8-4B3F-9D54-01692EAF981F}
 		{6091F819-830A-4B3D-88BC-3289C17DE127} = {A33AB7AB-EFC8-4B3F-9D54-01692EAF981F}
 		{2EB38FC7-C2EA-4BB3-93FE-059856AD40A4} = {3B227DEE-B610-440F-866E-6F79D413B21F}
+		{7E66CECA-2CA7-4435-AF78-8207AB6AD0AD} = {3B227DEE-B610-440F-866E-6F79D413B21F}
 	EndGlobalSection
 EndGlobal
