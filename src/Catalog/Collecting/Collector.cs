@@ -11,10 +11,17 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 {
     public abstract class Collector
     {
+        public IList<Uri> DependentCollections { get; set; }
+
         static Collector()
         {
             ServicePointManager.DefaultConnectionLimit = 4;
             ServicePointManager.MaxServicePointIdleTime = 10000;
+        }
+
+        public Collector()
+        {
+            DependentCollections = null;
         }
 
         public async Task<CollectorCursor> Run(Uri index, CollectorCursor last, HttpMessageHandler handler = null)
