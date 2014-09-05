@@ -175,6 +175,12 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
             INode objNode;
             if (isLiteral)
             {
+                if (datatype == "http://www.w3.org/2001/XMLSchema#boolean")
+                {
+                    //  sometimes newtonsoft.json appears to return boolean as string True and dotNetRdf doesn't appear to recognize that
+                    obj = ((string)obj).ToLowerInvariant();
+                }
+
                 objNode = (datatype == null) ? handler.CreateLiteralNode((string)obj) : handler.CreateLiteralNode((string)obj, new Uri(datatype));
             }
             else
