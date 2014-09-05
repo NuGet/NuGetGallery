@@ -28,6 +28,7 @@ namespace NuGet.Jobs.Common
         // Database argument names
         public const string SourceDatabase = "SourceDatabase";
         public const string DestinationDatabase = "DestinationDatabase";
+        public const string PackageDatabase = "PackageDatabase";
 
         // Storage Argument names
         public const string TargetStorageAccount = "TargetStorageAccount";
