@@ -14,7 +14,6 @@ namespace CatalogCollector.PackageRegistrationBlobs
     public class Job : JobBase
     {
         private JobEventSource JobEventSourceLog = JobEventSource.Log;
-        private JobTraceEventListener Listener { get; set; }
         public CloudStorageAccount TargetStorageAccount { get; set; }
         public string TargetStoragePath { get; set; }
         public string TargetBaseAddress { get; set; }
@@ -23,14 +22,12 @@ namespace CatalogCollector.PackageRegistrationBlobs
         public string CdnBaseAddress { get; set; }
         public string GalleryBaseAddress { get; set; }
 
+        public Job() : base(JobEventSource.Log) { }
+
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
             try
             {
-                // Initialize EventSources if any
-                Listener = new JobTraceEventListener(Logger);
-                Listener.EnableEvents(JobEventSourceLog, EventLevel.LogAlways);
-
                 // Init member variables
                 // This is mandatory. Don't try to get it. Let it throw if not found
                 TargetBaseAddress =

@@ -17,25 +17,20 @@ namespace Catalog.Updater
     {
         private static readonly int DefaultChecksumCollectorBatchSize = 2000;
         private static readonly int DefaultCatalogPageSize = 1000;
-        private static readonly JobEventSource JobEventSourceLog = JobEventSource.Log;
+        private JobEventSource JobEventSourceLog = JobEventSource.Log;
 
-        private JobTraceEventListener Listener { get; set; }
         private SqlConnectionStringBuilder SourceDatabase { get; set; }
         private CloudStorageAccount CatalogStorage { get; set; }
         private string CatalogPath { get; set; }
         private int? ChecksumCollectorBatchSize { get; set; }
         private int? CatalogPageSize { get; set; }
 
-        public Job() { }
+        public Job() : base(JobEventSource.Log) { }
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
             try
             {
-                // Initialize EventSources if any
-                Listener = new JobTraceEventListener(Logger);
-                Listener.EnableEvents(JobEventSourceLog, EventLevel.LogAlways);
-
                 // Init member variables
                 CatalogPath =
                     JobConfigManager.GetArgument(jobArgsDictionary,

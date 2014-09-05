@@ -24,8 +24,6 @@ namespace Stats.Replicator
             30 + // Put the batch into the destination
             30); // Some buffer time
 
-        private JobTraceEventListener Listener { get; set; }
-
         /// <summary>
         /// Gets or sets a connection string to the database containing package data.
         /// </summary>
@@ -36,16 +34,12 @@ namespace Stats.Replicator
         /// </summary>
         public SqlConnectionStringBuilder Destination { get; set; }
 
-        public Job() { }
+        public Job() : base(JobEventSource.Log) { }
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
             try
             {
-                // Initialize EventSources if any
-                Listener = new JobTraceEventListener(Logger);
-                Listener.EnableEvents(JobEventSourceLog, EventLevel.LogAlways);
-
                 // Init member variables
                 Source =
                     new SqlConnectionStringBuilder(
