@@ -11,13 +11,13 @@ namespace NuGet.Jobs.Common
     /// </summary>
     public class JobTraceLogger
     {
-        private readonly string LogPrefix;
+        protected readonly string LogPrefix;
         /// <summary>
         /// {0} would be the log prefix. Currently, the prefix is '/<jobName>-<startTime>/'
         /// {1} would be the actual log message
         /// Formatted message would be of the form '/<jobName>-<startTime>//<message>'
         /// </summary>
-        private const string LogFormat = "{0}/{1}";
+        protected const string LogFormat = "{0}/{1}";
         public JobTraceLogger(string logName)
         {
             Trace.Listeners.Add(new ConsoleTraceListener());
@@ -35,7 +35,7 @@ namespace NuGet.Jobs.Common
         }
 
         [Conditional("TRACE")]
-        public void Log(TraceLevel traceLevel, string message)
+        public virtual void Log(TraceLevel traceLevel, string message)
         {
             switch (traceLevel)
             {
@@ -59,11 +59,17 @@ namespace NuGet.Jobs.Common
         }
 
         [Conditional("TRACE")]
-        public void Log(TraceLevel traceLevel, string format, params object[] args)
+        public virtual void Log(TraceLevel traceLevel, string format, params object[] args)
         {
             var message = String.Format(format, args);
             Log(traceLevel, message);
         }
+
+        [Conditional("TRACE")]
+        public virtual void Flush() { }
+
+        [Conditional("TRACE")]
+        public virtual void FlushAll() { }
     }
 
     /// <summary>

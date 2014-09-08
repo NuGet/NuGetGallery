@@ -11,8 +11,6 @@ namespace NuGet.Jobs.Common
         public JobBase(EventSource jobEventSource)
         {
             JobName = this.GetType().ToString();
-            // Setup the logger. If this fails, don't catch it
-            Logger = new JobTraceLogger(JobName);
 
             if(jobEventSource != null)
             {
@@ -26,6 +24,11 @@ namespace NuGet.Jobs.Common
         public JobTraceLogger Logger { get; protected set; }
 
         public JobTraceEventListener Listener { get; protected set; }
+
+        public void SetLogger(JobTraceLogger logger)
+        {
+            Logger = logger;
+        }
 
         public abstract bool Init(IDictionary<string, string> jobArgsDictionary);
 

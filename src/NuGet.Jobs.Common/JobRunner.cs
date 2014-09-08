@@ -25,12 +25,22 @@ namespace NuGet.Jobs.Common
                 Debugger.Launch();
             }
 
-            job.Logger.Log(TraceLevel.Warning, "Started...");
-
             try
             {
                 // Get the args passed in or provided as an env variable based on jobName as a dictionary of <string argName, string argValue>
                 var jobArgsDictionary = JobConfigManager.GetJobArgsDictionary(job.Logger, commandLineArgs, job.JobName);
+
+                if (JobConfigManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.ConsoleLogOnly))
+                {
+                    job.SetLogger(new JobTraceLogger(job.JobName));
+                }
+                else
+                {
+                    job.SetLogger(new AzureBlobJobTraceLogger(job.JobName));
+                }
+
+
+                job.Logger.Log(TraceLevel.Warning, "Started...");
 
                 if(JobConfigManager.TryGetBoolArgument(jobArgsDictionary, "-dbg"))
                 {
@@ -84,6 +94,7 @@ namespace NuGet.Jobs.Common
                 job.Logger.Log(TraceLevel.Error, ex.ToString());
             }
 
+            job.Logger.FlushAll();
         }
     }
 }
