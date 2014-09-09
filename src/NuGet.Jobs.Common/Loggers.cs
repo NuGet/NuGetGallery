@@ -17,16 +17,16 @@ namespace NuGet.Jobs.Common
         /// {1} would be the actual log message
         /// Formatted message would be of the form '/<jobName>-<startTime>//<message>'
         /// </summary>
-        protected const string LogFormat = "{0}-{1}-{2}";
-        public JobTraceLogger(string logName)
+        protected const string LogFormat = "{0}//{1}";
+        public JobTraceLogger(string jobName)
         {
             Trace.Listeners.Add(new ConsoleTraceListener());
-            LogPrefix = String.Format("-{0}-{1}-", logName, DateTime.UtcNow.ToString("O"));
+            LogPrefix = String.Format("/{0}-{1}/", jobName, DateTime.UtcNow.ToString("O"));
         }
 
         public string GetFormattedMessage(string message)
         {
-            return String.Format(LogFormat, LogPrefix, DateTime.UtcNow.ToString("O"), message);
+            return String.Format(LogFormat, DateTime.UtcNow.ToString("O"), message);
         }
 
         public string GetFormattedMessage(string format, params object[] args)
@@ -65,8 +65,14 @@ namespace NuGet.Jobs.Common
             Log(traceLevel, message);
         }
 
+        /// <summary>
+        /// FlushAll should NEVER get called until after all the logging is done
+        /// </summary>
         [Conditional("TRACE")]
-        public virtual void FlushAll() { }
+        public virtual void FlushAll()
+        {
+            Trace.Listeners.Clear();
+        }
     }
 
     /// <summary>

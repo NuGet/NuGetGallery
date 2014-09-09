@@ -8,6 +8,26 @@ namespace NuGet.Jobs.Common
 {
     public static class JobRunner
     {
+        private static string PrettyPrintTime(double milliSeconds)
+        {
+            const string PrecisionSpecifier = "F3";
+            return String.Format("'{0}' ms (or '{1}' seconds or '{2}' mins)",
+                milliSeconds.ToString(PrecisionSpecifier),  // Time in milliSeconds
+                (milliSeconds / 1000.0).ToString(PrecisionSpecifier),  // Time in seconds
+                (milliSeconds / 60000.0).ToString(PrecisionSpecifier));  // Time in minutes
+        }
+        private static void SetLogger(JobBase job, bool consoleLogOnly)
+        {
+            if(consoleLogOnly)
+            {
+                job.SetLogger(new JobTraceLogger(job.JobName));
+            }
+            else
+            {
+                job.SetLogger(new AzureBlobJobTraceLogger(job.JobName));
+            }
+        }
+
         /// <summary>
         /// This is a static method to run a job whose args are passed in
         /// By default,
@@ -25,15 +45,15 @@ namespace NuGet.Jobs.Common
                 Debugger.Launch();
             }
 
+            bool consoleLogOnly = false;
             if (commandLineArgs.Length > 0 && String.Equals(commandLineArgs[0], "-ConsoleLogOnly", StringComparison.OrdinalIgnoreCase))
             {
                 commandLineArgs = commandLineArgs.Skip(1).ToArray();
-                job.SetLogger(new JobTraceLogger(job.JobName));
+                consoleLogOnly = true;
             }
-            else
-            {
-                job.SetLogger(new AzureBlobJobTraceLogger(job.JobName));
-            }
+
+            // Set logger. Doing this on every invocation is useful too
+            SetLogger(job, consoleLogOnly);
 
             try
             {
@@ -67,13 +87,27 @@ namespace NuGet.Jobs.Common
                 }
 
                 // Run the job now
+                Stopwatch stopWatch = new Stopwatch();
                 do
                 {
+                    job.Logger.Log(TraceLevel.Info, "Job run started...");
+                    stopWatch.Restart();
                     await job.Run();
+                    stopWatch.Stop();
+                    job.Logger.Log(TraceLevel.Info, "Job run ended...");
+                    job.Logger.Log(TraceLevel.Info, "Job run took {0}", PrettyPrintTime(stopWatch.ElapsedMilliseconds));
+
                     if (!runContinuously) break;
 
                     // Wait for <sleepDuration> milliSeconds and run the job again
+                    job.Logger.Log(TraceLevel.Info, "Sleeping for {0} before the next Job run", PrettyPrintTime(sleepDuration.Value));
+
+                    // Flush All the logs for this run
+                    job.Logger.FlushAll();
+
                     Thread.Sleep(sleepDuration.Value);
+
+                    SetLogger(job, consoleLogOnly);
                 } while (true);
             }
             catch (AggregateException ex)

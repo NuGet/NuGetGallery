@@ -12,23 +12,27 @@ namespace NuGet.Jobs.Common
     public sealed class AzureBlobJobTraceLogger : JobTraceLogger
     {
         // 'const's
-        private const int MaxQueueSize = 1000;
-        private const string JobLogNameFormat = "{0}-{1}.txt";
+        private const int MaxQueueSize = 10;
+        private const string JobLogNameFormat = "{0}/{1}.txt";
         private const string LogStorageContainerName = "ng-jobs-logs";
         private const string MessageWithTraceLevelFormat = "[{0}]:{1}";
 
         // Static members
-        private readonly static ConcurrentQueue<ConcurrentQueue<string>> LogQueues = new ConcurrentQueue<ConcurrentQueue<string>>();
-        private static ConcurrentQueue<string> CurrentLogQueue = new ConcurrentQueue<string>();
-        private static int JobLogBatchCounter = 1;
+        private static ConcurrentQueue<ConcurrentQueue<string>> LogQueues;
+        private static ConcurrentQueue<string> CurrentLogQueue;
+        private static int JobLogBatchCounter;
 
         // Instance members
         private CloudStorageAccount LogStorageAccount { get; set; }
         private CloudBlobContainer LogStorageContainer { get; set; }
         private string JobLogNamePrefix { get; set; }
 
-        public AzureBlobJobTraceLogger(string logName) : base(logName)
+        public AzureBlobJobTraceLogger(string jobName) : base(jobName)
         {
+            Interlocked.Exchange(ref LogQueues, new ConcurrentQueue<ConcurrentQueue<string>>());
+            Interlocked.Exchange(ref CurrentLogQueue, new ConcurrentQueue<string>());
+            Interlocked.Exchange(ref JobLogBatchCounter, 1);
+
             var cstr = Environment.GetEnvironmentVariable(EnvironmentVariableKeys.StoragePrimary);
             if(cstr == null)
             {
@@ -39,7 +43,8 @@ namespace NuGet.Jobs.Common
             LogStorageContainer = LogStorageAccount.CreateCloudBlobClient().GetContainerReference(LogStorageContainerName);
             LogStorageContainer.CreateIfNotExists();
 
-            JobLogNamePrefix = String.Format("{0}-{1}", DateTime.UtcNow.ToString("yyyy-MM-dd-hh"), LogPrefix);
+            var dt = DateTime.UtcNow;
+            JobLogNamePrefix = String.Format("{0}/{1}", jobName, dt.ToString("yyyy/MM/dd/hh/mm/ss/fffffff"));
 
             Task.Run(() => FlushRunner());
         }
@@ -73,12 +78,15 @@ namespace NuGet.Jobs.Common
                 // Consider using IDisposable pattern
                 throw new ArgumentException("CurrentLogQueue cannot be null. It is likely that FlushAll has been called");
             }
+
+            // FlushAll should never get called until after all the logging is done
+            // This method is not thread-safe. If there was multi threading, CurrentLogQueue even after this point could be null
+            // Let NullReferenceException be thrown, if this happens
             if(CurrentLogQueue.Count >= MaxQueueSize)
             {
                 // Don't use the other overload of base.Log with format and args. That will call back into this class
                 base.Log(TraceLevel.Warning, "Creating a new concurrent log queue...");
-                LogQueues.Enqueue(CurrentLogQueue);
-                CurrentLogQueue = new ConcurrentQueue<string>();
+                LogQueues.Enqueue(Interlocked.Exchange(ref CurrentLogQueue, new ConcurrentQueue<string>()));
             }
 
             CurrentLogQueue.Enqueue(messageWithTraceLevel);
@@ -123,15 +131,25 @@ namespace NuGet.Jobs.Common
         public override void FlushAll()
         {
             base.FlushAll();
-            LogQueues.Enqueue(CurrentLogQueue);
-            CurrentLogQueue = null;
+            var logQueue = Interlocked.Exchange(ref CurrentLogQueue, null);
+            if(logQueue != null)
+            {
+                LogQueues.Enqueue(logQueue);
+            }
 
-            while(JobLogBatchCounter != -1)
+            while (JobLogBatchCounter != -1)
             {
                 // Don't use the other overload of base.Log with format and args. That will call back into this class
                 base.Log(TraceLevel.Warning, "Waiting for flush runner loop to terminate...");
                 Thread.Sleep(2000);
             }
+
+            if(!LogQueues.IsEmpty)
+            {
+                throw new ArgumentException("LogQueues should be empty at the end of FlushAll...");
+            }
+
+            Interlocked.Exchange(ref LogQueues, null);
         }
 
         private void Save(string blobName, ConcurrentQueue<string> eventMessages)
