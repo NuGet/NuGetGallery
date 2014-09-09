@@ -65,12 +65,19 @@ namespace NuGet.Jobs.Common
             Log(traceLevel, message);
         }
 
+        [Conditional("TRACE")]
+        public virtual void Flush(bool skipCurrentBatch)
+        {
+            // Check AzureBlobJobTraceLogger
+        }
+
         /// <summary>
         /// FlushAll should NEVER get called until after all the logging is done
         /// </summary>
         [Conditional("TRACE")]
         public virtual void FlushAll()
         {
+            // Check AzureBlobJobTraceLogger
             Trace.Listeners.Clear();
         }
     }

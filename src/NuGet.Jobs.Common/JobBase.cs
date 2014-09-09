@@ -24,6 +24,12 @@ namespace NuGet.Jobs.Common
         public void SetLogger(JobTraceLogger logger)
         {
             Logger = logger;
+
+            if(Listener != null)
+            {
+                Listener.Dispose();
+            }
+
             if(JobEventSource != null)
             {
                 Listener = new JobTraceEventListener(Logger);

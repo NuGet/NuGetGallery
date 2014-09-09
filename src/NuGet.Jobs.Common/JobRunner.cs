@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -58,57 +59,18 @@ namespace NuGet.Jobs.Common
             try
             {
                 job.Logger.Log(TraceLevel.Warning, "Started...");
+
                 // Get the args passed in or provided as an env variable based on jobName as a dictionary of <string argName, string argValue>
                 var jobArgsDictionary = JobConfigManager.GetJobArgsDictionary(job.Logger, commandLineArgs, job.JobName);
 
-                if(JobConfigManager.TryGetBoolArgument(jobArgsDictionary, "-dbg"))
-                {
-                    job.Logger.Log(TraceLevel.Warning, "-dbg is a special argument and should only be passed in as the first argument. Ignoring here...");
-                }
-
                 bool runContinuously = !JobConfigManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.Once);
-                job.Logger.Log(TraceLevel.Warning, "Running " + (runContinuously ? " continuously..." : " once..."));
-
-                // Try and get the sleep duration provided, if any. Default is 5000 milliSeconds
                 int? sleepDuration = JobConfigManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Sleep);
-                if(sleepDuration == null)
-                {
-                    job.Logger.Log(TraceLevel.Warning, "SleepDuration is not provided or is not a valid integer. Unit is milliSeconds. Assuming default of 5000 ms...");
-                    sleepDuration = 5000;
-                }
-                job.Logger.Log(TraceLevel.Warning, "SleepDuration is {0}", sleepDuration);
 
-                // Initialize the job once with everything needed. Logger(s) are already initialized
-                if (!job.Init(jobArgsDictionary))
-                {
-                    // If the job could not be initialized successfully, STOP!
-                    job.Logger.Log(TraceLevel.Error, "Exiting. The job could not be initialized successfully with the arguments passed");
-                    return;
-                }
+                // Setup the job for running
+                JobSetup(job, jobArgsDictionary, sleepDuration);
 
-                // Run the job now
-                Stopwatch stopWatch = new Stopwatch();
-                do
-                {
-                    job.Logger.Log(TraceLevel.Info, "Job run started...");
-                    stopWatch.Restart();
-                    await job.Run();
-                    stopWatch.Stop();
-                    job.Logger.Log(TraceLevel.Info, "Job run ended...");
-                    job.Logger.Log(TraceLevel.Info, "Job run took {0}", PrettyPrintTime(stopWatch.ElapsedMilliseconds));
-
-                    if (!runContinuously) break;
-
-                    // Wait for <sleepDuration> milliSeconds and run the job again
-                    job.Logger.Log(TraceLevel.Info, "Sleeping for {0} before the next Job run", PrettyPrintTime(sleepDuration.Value));
-
-                    // Flush All the logs for this run
-                    job.Logger.FlushAll();
-
-                    Thread.Sleep(sleepDuration.Value);
-
-                    SetLogger(job, consoleLogOnly);
-                } while (true);
+                // Run the job loop
+                await JobLoop(job, runContinuously, sleepDuration.Value, consoleLogOnly);
             }
             catch (AggregateException ex)
             {
@@ -127,7 +89,73 @@ namespace NuGet.Jobs.Common
                 job.Logger.Log(TraceLevel.Error, ex.ToString());
             }
 
+            // Call FlushAll here. This is VERY IMPORTANT
+            // Exception message(s) when the job faults are still in the queue. Need to be flushed
+            // Also, when the job is only run once, FlushAll is important again
             job.Logger.FlushAll();
+        }
+
+        private static void JobSetup(JobBase job, IDictionary<string, string> jobArgsDictionary, int? sleepDuration)
+        {
+            if (JobConfigManager.TryGetBoolArgument(jobArgsDictionary, "-dbg"))
+            {
+                job.Logger.Log(TraceLevel.Warning, "-dbg is a special argument and should only be passed in as the first argument. Ignoring here...");
+            }
+
+            if (JobConfigManager.TryGetBoolArgument(jobArgsDictionary, "-ConsoleLogOnly"))
+            {
+                job.Logger.Log(TraceLevel.Warning, "-ConsoleLogOnly is a special argument and should only be passed in as the first argument or second if 'dbg' is used. Ignoring here...");
+            }
+
+            if (sleepDuration == null)
+            {
+                job.Logger.Log(TraceLevel.Warning, "SleepDuration is not provided or is not a valid integer. Unit is milliSeconds. Assuming default of 5000 ms...");
+                sleepDuration = 5000;
+            }
+
+            // Initialize the job once with everything needed. Logger(s) are already initialized
+            if (!job.Init(jobArgsDictionary))
+            {
+                // If the job could not be initialized successfully, STOP!
+                job.Logger.Log(TraceLevel.Error, "Exiting. The job could not be initialized successfully with the arguments passed");
+                return;
+            }
+        }
+
+        private static async Task JobLoop(JobBase job, bool runContinuously, int sleepDuration, bool consoleLogOnly)
+        {
+            // Run the job now
+            Stopwatch stopWatch = new Stopwatch();
+            do
+            {
+                job.Logger.Log(TraceLevel.Warning, "Running " + (runContinuously ? " continuously..." : " once..."));
+                job.Logger.Log(TraceLevel.Warning, "SleepDuration is {0}", sleepDuration);
+                job.Logger.Log(TraceLevel.Info, "Job run started...");
+
+                // Force a flush here to create a blob corresponding to run indicating that the run has started
+                job.Logger.Flush(skipCurrentBatch: false);
+
+                stopWatch.Restart();
+                await job.Run();
+                stopWatch.Stop();
+
+                job.Logger.Log(TraceLevel.Info, "Job run ended...");
+                job.Logger.Log(TraceLevel.Info, "Job run took {0}", PrettyPrintTime(stopWatch.ElapsedMilliseconds));
+
+                // At this point, FlushAll is not called, So, what happens when the job is run only once?
+                // Since, FlushAll is called right at the end of the program, this is no issue
+                if (!runContinuously) break;
+
+                // Wait for <sleepDuration> milliSeconds and run the job again
+                job.Logger.Log(TraceLevel.Info, "Sleeping for {0} before the next Job run", PrettyPrintTime(sleepDuration));
+
+                // Flush All the logs for this run
+                job.Logger.FlushAll();
+
+                Thread.Sleep(sleepDuration);
+
+                SetLogger(job, consoleLogOnly);
+            } while (true);
         }
     }
 }
