@@ -24,7 +24,6 @@ namespace NuGet.Jobs.Common
         // Job argument names
         public const string Once = "Once";
         public const string Sleep = "Sleep";
-        public const string ConsoleLogOnly = "ConsoleLogOnly";
 
         // Database argument names
         public const string SourceDatabase = "SourceDatabase";

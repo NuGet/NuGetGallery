@@ -17,16 +17,16 @@ namespace NuGet.Jobs.Common
         /// {1} would be the actual log message
         /// Formatted message would be of the form '/<jobName>-<startTime>//<message>'
         /// </summary>
-        protected const string LogFormat = "{0}/{1}";
+        protected const string LogFormat = "{0}-{1}-{2}";
         public JobTraceLogger(string logName)
         {
             Trace.Listeners.Add(new ConsoleTraceListener());
-            LogPrefix = String.Format("/{0}-{1}/", logName, DateTime.UtcNow.ToString("O"));
+            LogPrefix = String.Format("-{0}-{1}-", logName, DateTime.UtcNow.ToString("O"));
         }
 
         public string GetFormattedMessage(string message)
         {
-            return String.Format(LogFormat, LogPrefix, message);
+            return String.Format(LogFormat, LogPrefix, DateTime.UtcNow.ToString("O"), message);
         }
 
         public string GetFormattedMessage(string format, params object[] args)
@@ -64,9 +64,6 @@ namespace NuGet.Jobs.Common
             var message = String.Format(format, args);
             Log(traceLevel, message);
         }
-
-        [Conditional("TRACE")]
-        public virtual void Flush() { }
 
         [Conditional("TRACE")]
         public virtual void FlushAll() { }

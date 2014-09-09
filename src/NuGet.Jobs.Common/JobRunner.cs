@@ -25,22 +25,21 @@ namespace NuGet.Jobs.Common
                 Debugger.Launch();
             }
 
+            if (commandLineArgs.Length > 0 && String.Equals(commandLineArgs[0], "-ConsoleLogOnly", StringComparison.OrdinalIgnoreCase))
+            {
+                commandLineArgs = commandLineArgs.Skip(1).ToArray();
+                job.SetLogger(new JobTraceLogger(job.JobName));
+            }
+            else
+            {
+                job.SetLogger(new AzureBlobJobTraceLogger(job.JobName));
+            }
+
             try
             {
+                job.Logger.Log(TraceLevel.Warning, "Started...");
                 // Get the args passed in or provided as an env variable based on jobName as a dictionary of <string argName, string argValue>
                 var jobArgsDictionary = JobConfigManager.GetJobArgsDictionary(job.Logger, commandLineArgs, job.JobName);
-
-                if (JobConfigManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.ConsoleLogOnly))
-                {
-                    job.SetLogger(new JobTraceLogger(job.JobName));
-                }
-                else
-                {
-                    job.SetLogger(new AzureBlobJobTraceLogger(job.JobName));
-                }
-
-
-                job.Logger.Log(TraceLevel.Warning, "Started...");
 
                 if(JobConfigManager.TryGetBoolArgument(jobArgsDictionary, "-dbg"))
                 {

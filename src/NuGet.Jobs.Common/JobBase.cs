@@ -7,16 +7,12 @@ namespace NuGet.Jobs.Common
 {
     public abstract class JobBase
     {
+        private EventSource JobEventSource { get; set; }
         public JobBase() : this(null) { }
         public JobBase(EventSource jobEventSource)
         {
             JobName = this.GetType().ToString();
-
-            if(jobEventSource != null)
-            {
-                Listener = new JobTraceEventListener(Logger);
-                Listener.EnableEvents(jobEventSource, EventLevel.LogAlways);
-            }
+            JobEventSource = jobEventSource;
         }
 
         public string JobName { get; protected set; }
@@ -28,6 +24,11 @@ namespace NuGet.Jobs.Common
         public void SetLogger(JobTraceLogger logger)
         {
             Logger = logger;
+            if(JobEventSource != null)
+            {
+                Listener = new JobTraceEventListener(Logger);
+                Listener.EnableEvents(JobEventSource, EventLevel.LogAlways);
+            }
         }
 
         public abstract bool Init(IDictionary<string, string> jobArgsDictionary);
