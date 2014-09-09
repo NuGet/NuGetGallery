@@ -78,6 +78,7 @@ namespace Catalog.Updater
             var http = CreateHttpClient();
             var indexBlob = catalogDirectory.GetBlockBlobReference("index.json");
             var storage = new AzureStorage(catalogDirectory);
+            storage.Verbose = true;
 
             // Disposing of CatalogUpdater will dispose the HTTP client, 
             // so don't move this 'using' further in or we might dispose the HTTP client before we actually finish with it!

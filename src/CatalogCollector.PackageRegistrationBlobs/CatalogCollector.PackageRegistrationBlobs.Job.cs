@@ -100,6 +100,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
                 storage = new FileStorage(TargetBaseAddress, TargetLocalDirectory);
                 storageDesc = TargetLocalDirectory;
             }
+            storage.Verbose = true;
 
 
             Uri cursorUri = new Uri(resolverBaseUri, "meta/cursor.json");
