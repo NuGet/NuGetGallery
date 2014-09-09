@@ -210,7 +210,7 @@ namespace NuGet.Jobs.Common
         /// <param name="jobArgsDictionary">This is the dictionary of commandline args passed to the exe</param>
         /// <param name="argName">Name of the argument for which value is needed</param>
         /// <param name="fallbackEnvVariable">Name of the environment variable to be used when the argName was not found in the dictionary</param>
-        /// <returns>Returns the argument value as a string</returns>
+        /// <returns>Returns the argument value as a bool</returns>
         public static bool TryGetBoolArgument(IDictionary<string, string> jobArgsDictionary, string argName, string fallbackEnvVariable = null)
         {
             bool switchValue;
@@ -220,6 +220,24 @@ namespace NuGet.Jobs.Common
                 return switchValue;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Just calls TryGetArgument, but returns a DateTime?, if parsable, otherwise, null
+        /// </summary>
+        /// <param name="jobArgsDictionary">This is the dictionary of commandline args passed to the exe</param>
+        /// <param name="argName">Name of the argument for which value is needed</param>
+        /// <param name="fallbackEnvVariable">Name of the environment variable to be used when the argName was not found in the dictionary</param>
+        /// <returns>Returns the argument value as a DateTime?</returns>
+        public static DateTime? TryGetDateTimeArgument(IDictionary<string, string> jobArgsDictionary, string argName, string fallbackEnvVariable = null)
+        {
+            DateTime switchValue;
+            string argumentString = TryGetArgument(jobArgsDictionary, argName, fallbackEnvVariable);
+            if (!String.IsNullOrEmpty(argumentString) && DateTime.TryParse(argumentString, out switchValue))
+            {
+                return switchValue;
+            }
+            return (DateTime?)null;
         }
     }
 }
