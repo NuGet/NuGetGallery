@@ -127,9 +127,9 @@ namespace NuGet.Jobs.Common
             Stopwatch stopWatch = new Stopwatch();
             do
             {
-                Trace.TraceInformation("Running " + (runContinuously ? " continuously..." : " once..."));
-                Trace.TraceInformation("SleepDuration is {0}", PrettyPrintTime(sleepDuration));
-                Trace.TraceInformation("Job run started...");
+                Trace.WriteLine("Running " + (runContinuously ? " continuously..." : " once..."));
+                Trace.WriteLine("SleepDuration is {0}", PrettyPrintTime(sleepDuration));
+                Trace.WriteLine("Job run started...");
 
                 // Force a flush here to create a blob corresponding to run indicating that the run has started
                 job.Logger.Flush(skipCurrentBatch: false);
@@ -138,7 +138,7 @@ namespace NuGet.Jobs.Common
                 await job.Run();
                 stopWatch.Stop();
 
-                Trace.TraceInformation("Job run ended...");
+                Trace.WriteLine("Job run ended...");
                 Trace.TraceInformation("Job run took {0}", PrettyPrintTime(stopWatch.ElapsedMilliseconds));
 
                 // At this point, FlushAll is not called, So, what happens when the job is run only once?
@@ -146,7 +146,7 @@ namespace NuGet.Jobs.Common
                 if (!runContinuously) break;
 
                 // Wait for <sleepDuration> milliSeconds and run the job again
-                Trace.TraceInformation("Will sleep for {0} before the next Job run", PrettyPrintTime(sleepDuration));
+                Trace.WriteLine("Will sleep for {0} before the next Job run", PrettyPrintTime(sleepDuration));
 
                 // Flush All the logs for this run
                 job.Logger.FlushAll();
