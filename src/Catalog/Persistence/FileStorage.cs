@@ -38,7 +38,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (Verbose)
             {
-                Trace.WriteLine("save {0}", name);
+                Trace.WriteLine(String.Format("save {0}", name));
             }
 
             string path = Path.Trim('\\') + '\\';
@@ -80,7 +80,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (Verbose)
             {
-                Trace.WriteLine("load {0}", name);
+                Trace.WriteLine(String.Format("load {0}", name));
             }
 
             string path = Path.Trim('\\') + '\\';
@@ -118,7 +118,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (Verbose)
             {
-                Trace.WriteLine("delete {0}", name);
+                Trace.WriteLine(String.Format("delete {0}", name));
             }
 
             string path = Path.Trim('\\') + '\\';
