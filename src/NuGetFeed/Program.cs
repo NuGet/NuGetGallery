@@ -12,6 +12,7 @@ namespace NuGetFeed
     {
         static void Main(string[] args)
         {
+            Trace.Listeners.Add(new ConsoleTraceListener());
             if (args.Length > 0 && String.Equals("dbg", args[0], StringComparison.OrdinalIgnoreCase))
             {
                 args = args.Skip(1).ToArray();

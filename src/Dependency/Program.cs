@@ -22,6 +22,7 @@ namespace Resolver
 
         static void Main(string[] args)
         {
+            Trace.Listeners.Add(new ConsoleTraceListener());
             try
             {
                 //TestSemanticVersion.Test0();

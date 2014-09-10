@@ -4,6 +4,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -87,7 +88,7 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
                     batch.Add(row);
                 }
 
-                Console.WriteLine("{0} {1}", lastKey, count);
+                Trace.TraceInformation("{0} {1}", lastKey, count);
 
                 if (count == 0)
                 {

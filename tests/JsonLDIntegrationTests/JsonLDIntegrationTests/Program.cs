@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using VDS.RDF;
 using VDS.RDF.Parsing;
 using VDS.RDF.Writing;
+using System.Diagnostics;
 
 namespace JsonLDIntegrationTests
 {
@@ -64,6 +65,7 @@ namespace JsonLDIntegrationTests
 
         static void Main(string[] args)
         {
+            Trace.Listeners.Add(new ConsoleTraceListener());
             try
             {
                 Test0();
