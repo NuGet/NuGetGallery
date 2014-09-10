@@ -82,7 +82,7 @@ namespace NuGet.Jobs.Common
             {
                 allArgsList.AddRange(envArgString.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
             }
-            Trace.TraceWarning("Total number of arguments : " + allArgsList.Count);
+            Trace.TraceInformation("Total number of arguments : " + allArgsList.Count);
 
             // Arguments are expected to be a set of pairs, where each pair is of the form '-<argName> <argValue>'
             // Or, in singles as a switch '-<switch>'

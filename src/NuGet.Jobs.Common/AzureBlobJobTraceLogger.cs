@@ -66,7 +66,30 @@ namespace NuGet.Jobs.Common
 
         private void LogConsoleOnly(TraceEventType traceEventType, string message)
         {
+            ConsoleColor currentConsoleForegroundColor = Console.ForegroundColor;
+            ConsoleColor consoleForegroundColor;
+            switch(traceEventType)
+            {
+                case TraceEventType.Critical:
+                case TraceEventType.Error:
+                    consoleForegroundColor = ConsoleColor.Red;
+                    break;
+                case TraceEventType.Warning:
+                    consoleForegroundColor = ConsoleColor.Yellow;
+                    break;
+                case TraceEventType.Information:
+                    consoleForegroundColor = ConsoleColor.DarkGreen;
+                    break;
+                case TraceEventType.Verbose:
+                    consoleForegroundColor = ConsoleColor.DarkGray;
+                    break;
+                default:
+                    consoleForegroundColor = ConsoleColor.White;
+                    break;
+            }
+            Console.ForegroundColor = consoleForegroundColor;
             Console.WriteLine(MessageWithTraceEventType(traceEventType, message));
+            Console.ForegroundColor = currentConsoleForegroundColor;
         }
 
         private void Log(TraceEventType traceEventType, string message)
@@ -160,7 +183,7 @@ namespace NuGet.Jobs.Common
             while (JobLogBatchCounter != -1)
             {
                 // Don't use the other overload of base.Log with format and args. That will call back into this class
-                LogConsoleOnly(TraceEventType.Warning, "Waiting for log flush runner loop to terminate...");
+                LogConsoleOnly(TraceEventType.Information, "Waiting for log flush runner loop to terminate...");
                 Thread.Sleep(2000);
             }
 
@@ -170,7 +193,7 @@ namespace NuGet.Jobs.Common
             }
 
             Interlocked.Exchange(ref LogQueues, null);
-            LogConsoleOnly(TraceEventType.Warning, "Successfully completed flushing of logs");
+            LogConsoleOnly(TraceEventType.Information, "Successfully completed flushing of logs");
         }
 
         private void Save(string blobName, ConcurrentQueue<string> eventMessages)
@@ -183,7 +206,7 @@ namespace NuGet.Jobs.Common
 
             // Don't use the other overload of base.Log with format and args. That will call back into this class
             var blob = LogStorageContainer.GetBlockBlobReference(blobName);
-            LogConsoleOnly(TraceEventType.Information, "Uploading to " + blob.Uri.ToString());
+            LogConsoleOnly(TraceEventType.Verbose, "Uploading to " + blob.Uri.ToString());
             blob.UploadText(builder.ToString());
         }
 
