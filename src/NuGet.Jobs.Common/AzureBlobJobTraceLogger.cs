@@ -64,35 +64,7 @@ namespace NuGet.Jobs.Common
             Task.Run(() => FlushRunner());
         }
 
-        private void LogConsoleOnly(TraceEventType traceEventType, string message)
-        {
-            ConsoleColor currentConsoleForegroundColor = Console.ForegroundColor;
-            ConsoleColor consoleForegroundColor;
-            switch(traceEventType)
-            {
-                case TraceEventType.Critical:
-                case TraceEventType.Error:
-                    consoleForegroundColor = ConsoleColor.Red;
-                    break;
-                case TraceEventType.Warning:
-                    consoleForegroundColor = ConsoleColor.Yellow;
-                    break;
-                case TraceEventType.Information:
-                    consoleForegroundColor = ConsoleColor.DarkGreen;
-                    break;
-                case TraceEventType.Verbose:
-                    consoleForegroundColor = ConsoleColor.DarkGray;
-                    break;
-                default:
-                    consoleForegroundColor = ConsoleColor.White;
-                    break;
-            }
-            Console.ForegroundColor = consoleForegroundColor;
-            Console.WriteLine(MessageWithTraceEventType(traceEventType, message));
-            Console.ForegroundColor = currentConsoleForegroundColor;
-        }
-
-        private void Log(TraceEventType traceEventType, string message)
+        protected override void Log(TraceEventType traceEventType, string message)
         {
             LogConsoleOnly(traceEventType, message);
             QueueLog(
@@ -101,7 +73,7 @@ namespace NuGet.Jobs.Common
                     message));
         }
 
-        private void Log(TraceEventType traceEventType, string format, params object[] args)
+        protected override void Log(TraceEventType traceEventType, string format, params object[] args)
         {
             var message = String.Format(format, args);
             Log(traceEventType, message);
@@ -208,36 +180,6 @@ namespace NuGet.Jobs.Common
             var blob = LogStorageContainer.GetBlockBlobReference(blobName);
             LogConsoleOnly(TraceEventType.Verbose, "Uploading to " + blob.Uri.ToString());
             blob.UploadText(builder.ToString());
-        }
-
-        public override void Write(string message)
-        {
-            WriteLine(message);
-        }
-
-        public override void WriteLine(string message)
-        {
-            Log(TraceEventType.Verbose, GetFormattedMessage(message));
-        }
-
-        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
-        {
-            Log(eventType, GetFormattedMessage(message));
-        }
-
-        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
-        {
-            TraceEvent(eventCache, source, eventType, id, String.Format(format, args));
-        }
-
-        public override void Fail(string message)
-        {
-            Log(TraceEventType.Critical, GetFormattedMessage(message));
-        }
-
-        public override void Fail(string message, string detailMessage)
-        {
-            Fail(message + ". Detailed: " + detailMessage);
         }
     }
 }
