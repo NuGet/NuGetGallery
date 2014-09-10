@@ -60,7 +60,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
             }
             catch (Exception ex)
             {
-                Logger.Log(TraceLevel.Error, ex.ToString());
+                Trace.TraceError(ex.ToString());
             }
             return false;
         }
@@ -100,6 +100,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
                 storage = new FileStorage(TargetBaseAddress, TargetLocalDirectory);
                 storageDesc = TargetLocalDirectory;
             }
+            storage.Verbose = true;
 
 
             Uri cursorUri = new Uri(resolverBaseUri, "meta/cursor.json");

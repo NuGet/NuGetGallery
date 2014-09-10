@@ -65,6 +65,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AzureBlobJobTraceLogger.cs" />
     <Compile Include="ConfigurationManager.cs" />
     <Compile Include="JobBase.cs" />
     <Compile Include="JobRunner.cs" />

@@ -9,24 +9,26 @@ namespace NuGet.Jobs.Common
     /// All the jobs MUST use this logger. Since logs from  all the jobs get written to the same file
     /// We want to ensure that the logs are prefixed with jobName, startTime and more as needed
     /// </summary>
-    public class JobTraceLogger
+    public class JobTraceLogger : TraceListener
     {
-        private readonly string LogPrefix;
+        protected readonly string LogPrefix;
         /// <summary>
         /// {0} would be the log prefix. Currently, the prefix is '/<jobName>-<startTime>/'
         /// {1} would be the actual log message
         /// Formatted message would be of the form '/<jobName>-<startTime>//<message>'
         /// </summary>
-        private const string LogFormat = "{0}/{1}";
-        public JobTraceLogger(string logName)
+        protected const string LogFormat = "[{0}]: {1}";
+        private const string MessageWithTraceEventTypeFormat = "[{0}]: {1}";
+        public JobTraceLogger(string jobName)
         {
-            Trace.Listeners.Add(new ConsoleTraceListener());
-            LogPrefix = String.Format("/{0}-{1}/", logName, DateTime.UtcNow.ToString("O"));
+            this.TraceOutputOptions = TraceOptions.DateTime;
+            Trace.Listeners.Add(this);
+            LogPrefix = String.Format("/{0}-{1}/", jobName, DateTime.UtcNow.ToString("O"));
         }
 
         public string GetFormattedMessage(string message)
         {
-            return String.Format(LogFormat, LogPrefix, message);
+            return String.Format(LogFormat, DateTime.UtcNow.ToString("O"), message);
         }
 
         public string GetFormattedMessage(string format, params object[] args)
@@ -34,35 +36,35 @@ namespace NuGet.Jobs.Common
             return GetFormattedMessage(String.Format(format, args));
         }
 
-        [Conditional("TRACE")]
-        public void Log(TraceLevel traceLevel, string message)
+        protected string MessageWithTraceEventType(TraceEventType traceEventType, string message)
         {
-            switch (traceLevel)
-            {
-                case TraceLevel.Error:
-                    Trace.TraceError(GetFormattedMessage(message));
-                    break;
-                case TraceLevel.Warning:
-                    Trace.TraceWarning(GetFormattedMessage(message));
-                    break;
-                case TraceLevel.Info:
-                    Trace.TraceInformation(GetFormattedMessage(message));
-                    break;
-                case TraceLevel.Verbose:
-                    Trace.WriteLine(GetFormattedMessage(message));
-                    break;
-                case TraceLevel.Off:
-                default:
-                    // Trace nothing
-                    break;
-            }
+            return String.Format(MessageWithTraceEventTypeFormat, traceEventType.ToString(), message);
         }
 
         [Conditional("TRACE")]
-        public void Log(TraceLevel traceLevel, string format, params object[] args)
+        public virtual void Flush(bool skipCurrentBatch)
         {
-            var message = String.Format(format, args);
-            Log(traceLevel, message);
+            // Check AzureBlobJobTraceLogger
+        }
+
+        /// <summary>
+        /// FlushAll should NEVER get called until after all the logging is done
+        /// </summary>
+        [Conditional("TRACE")]
+        public virtual void FlushAll()
+        {
+            // Check AzureBlobJobTraceLogger
+            Trace.Listeners.Clear();
+        }
+
+        public override void Write(string message)
+        {
+            // Do Nothing
+        }
+
+        public override void WriteLine(string message)
+        {
+            // Do Nothing
         }
     }
 
@@ -93,17 +95,17 @@ namespace NuGet.Jobs.Common
             {
                 case EventLevel.Critical:
                 case EventLevel.Error:
-                    Logger.Log(TraceLevel.Error, GetFormattedEventLog(eventData));
+                    Trace.TraceError(Logger.GetFormattedMessage(GetFormattedEventLog(eventData)));
                     break;
                 case EventLevel.Warning:
-                    Logger.Log(TraceLevel.Warning, GetFormattedEventLog(eventData));
+                    Trace.TraceWarning(Logger.GetFormattedMessage(GetFormattedEventLog(eventData)));
                     break;
                 case EventLevel.LogAlways:
                 case EventLevel.Informational:
-                    Logger.Log(TraceLevel.Info, GetFormattedEventLog(eventData));
+                    Trace.TraceInformation(Logger.GetFormattedMessage(GetFormattedEventLog(eventData)));
                     break;
                 case EventLevel.Verbose:
-                    Logger.Log(TraceLevel.Verbose, GetFormattedEventLog(eventData));
+                    Trace.WriteLine(Logger.GetFormattedMessage(GetFormattedEventLog(eventData)));
                     break;
                 default:
                     // DO Nothing
