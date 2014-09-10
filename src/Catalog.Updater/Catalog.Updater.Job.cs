@@ -54,7 +54,7 @@ namespace Catalog.Updater
             }
             catch (Exception ex)
             {
-                Logger.Log(TraceLevel.Error, ex.ToString());
+                Trace.TraceError(ex.ToString());
             }
             return false;
         }
@@ -131,22 +131,22 @@ namespace Catalog.Updater
 
         private void ShowHelp()
         {
-            Logger.Log(TraceLevel.Info, "\n\nHelp...");
+            Trace.TraceInformation("\n\nHelp...");
             if(SourceDatabase == null)
             {
-                Logger.Log(TraceLevel.Error, "SourceDatabase is invalid or not provided");
+                Trace.TraceError("SourceDatabase is invalid or not provided");
             }
             else if(CatalogStorage == null)
             {
-                Logger.Log(TraceLevel.Error, "CatalogStorage is invalid or not provided");
+                Trace.TraceError("CatalogStorage is invalid or not provided");
             }
             else if(String.IsNullOrEmpty(CatalogPath))
             {
-                Logger.Log(TraceLevel.Error, "CatalogPath is invalid or not provided");
+                Trace.TraceError("CatalogPath is invalid or not provided");
             }
             else
             {
-                Logger.Log(TraceLevel.Error, "No help available");
+                Trace.TraceError("No help available");
             }
         }
     }

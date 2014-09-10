@@ -34,7 +34,7 @@ namespace Stats.AggregateInGallery
             }
             catch(Exception ex)
             {
-                Logger.Log(TraceLevel.Error, ex.ToString());
+                Trace.TraceError(ex.ToString());
             }
             return false;
         }

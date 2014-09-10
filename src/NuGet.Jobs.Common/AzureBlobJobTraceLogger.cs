@@ -9,6 +9,11 @@ using System.Threading.Tasks;
 
 namespace NuGet.Jobs.Common
 {
+    /// <summary>
+    /// This logger helps log to Azure Blob Storage
+    /// NOTE: For logging within this class which is rare, try using LogConsoleOnly method
+    ///       such that any logging from within this class does not hit storage
+    /// </summary>
     public sealed class AzureBlobJobTraceLogger : JobTraceLogger
     {
         // 'const's
@@ -16,7 +21,6 @@ namespace NuGet.Jobs.Common
         private const int MaxLogBatchSize = 100;
         private const string JobLogNameFormat = "{0}/{1}.txt";
         private const string LogStorageContainerName = "ng-jobs-logs";
-        private const string MessageWithTraceLevelFormat = "[{0}]:{1}";
 
         // Static members
         private static ConcurrentQueue<ConcurrentQueue<string>> LogQueues;
@@ -25,6 +29,7 @@ namespace NuGet.Jobs.Common
 
         // For example, if MaxExpectedLogsPerRun is a million, and MaxLogBatchSize is 100, then maximum possible log batch counter would be 10000
         // That is a maximum of 5 digits. So, leadingzero specifier string would be "00000"
+        // (Actually, 5 digits can handle upto 99999 which is roughly 10 times the expected. We are being, roughly, 10 times lenient)
         private static readonly string JobLogBatchCounterLeadingZeroSpecifier =
             new String('0',
                 1 + Convert.ToInt32(
@@ -59,26 +64,24 @@ namespace NuGet.Jobs.Common
             Task.Run(() => FlushRunner());
         }
 
-        public override void Log(TraceLevel traceLevel, string message)
+        private void LogConsoleOnly(TraceEventType traceEventType, string message)
         {
-            // Don't use the other overload of base.Log with format and args. That will call back into this class
-            base.Log(traceLevel, message);
-            QueueLog(
-                GetFormattedMessage(
-                    MessageWithTraceLevel(
-                        traceLevel,
-                        message)));
+            Console.WriteLine(MessageWithTraceEventType(traceEventType, message));
         }
 
-        public override void Log(TraceLevel traceLevel, string format, params object[] args)
+        private void Log(TraceEventType traceEventType, string message)
+        {
+            LogConsoleOnly(traceEventType, message);
+            QueueLog(
+                MessageWithTraceEventType(
+                    traceEventType,
+                    message));
+        }
+
+        private void Log(TraceEventType traceEventType, string format, params object[] args)
         {
             var message = String.Format(format, args);
-            this.Log(traceLevel, message);
-        }
-
-        private string MessageWithTraceLevel(TraceLevel traceLevel, string message)
-        {
-            return String.Format(MessageWithTraceLevelFormat, traceLevel.ToString(), message);
+            Log(traceEventType, message);
         }
 
         private void QueueLog(string messageWithTraceLevel)
@@ -100,7 +103,7 @@ namespace NuGet.Jobs.Common
             CurrentLogQueue.Enqueue(messageWithTraceLevel);
         }
 
-        public void FlushRunner()
+        private void FlushRunner()
         {
             Thread.Sleep(1000);
             while (CurrentLogQueue != null)
@@ -118,8 +121,7 @@ namespace NuGet.Jobs.Common
 
         private void FlushCurrentQueue()
         {
-            // Don't use the other overload of base.Log with format and args. That will call back into this class
-            base.Log(TraceLevel.Warning, "Creating a new concurrent log queue...");
+            LogConsoleOnly(TraceEventType.Verbose, "Creating a new concurrent log queue...");
             LogQueues.Enqueue(Interlocked.Exchange(ref CurrentLogQueue, new ConcurrentQueue<string>()));
         }
 
@@ -136,15 +138,13 @@ namespace NuGet.Jobs.Common
                 while (LogQueues.TryDequeue(out headQueue))
                 {
                     string blobName = String.Format(JobLogNameFormat, JobLogNamePrefix, JobLogBatchCounter.ToString(JobLogBatchCounterLeadingZeroSpecifier));
-                    // Don't use the other overload of base.Log with format and args. That will call back into this class
-                    base.Log(TraceLevel.Warning, "Saving " + blobName);
                     Save(blobName, headQueue);
                     Interlocked.Increment(ref JobLogBatchCounter);
                 }
             }
             catch (Exception ex)
             {
-                this.Log(TraceLevel.Error, ex.ToString());
+                LogConsoleOnly(TraceEventType.Error, ex.ToString());
             }
         }
 
@@ -160,7 +160,7 @@ namespace NuGet.Jobs.Common
             while (JobLogBatchCounter != -1)
             {
                 // Don't use the other overload of base.Log with format and args. That will call back into this class
-                base.Log(TraceLevel.Warning, "Waiting for flush runner loop to terminate...");
+                LogConsoleOnly(TraceEventType.Warning, "Waiting for log flush runner loop to terminate...");
                 Thread.Sleep(2000);
             }
 
@@ -170,6 +170,7 @@ namespace NuGet.Jobs.Common
             }
 
             Interlocked.Exchange(ref LogQueues, null);
+            LogConsoleOnly(TraceEventType.Warning, "Successfully completed flushing of logs");
         }
 
         private void Save(string blobName, ConcurrentQueue<string> eventMessages)
@@ -180,8 +181,40 @@ namespace NuGet.Jobs.Common
                 builder.AppendLine(eventMessage);
             }
 
+            // Don't use the other overload of base.Log with format and args. That will call back into this class
             var blob = LogStorageContainer.GetBlockBlobReference(blobName);
+            LogConsoleOnly(TraceEventType.Information, "Uploading to " + blob.Uri.ToString());
             blob.UploadText(builder.ToString());
+        }
+
+        public override void Write(string message)
+        {
+            WriteLine(message);
+        }
+
+        public override void WriteLine(string message)
+        {
+            Log(TraceEventType.Verbose, GetFormattedMessage(message));
+        }
+
+        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
+        {
+            Log(eventType, GetFormattedMessage(message));
+        }
+
+        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
+        {
+            TraceEvent(eventCache, source, eventType, id, String.Format(format, args));
+        }
+
+        public override void Fail(string message)
+        {
+            Log(TraceEventType.Critical, GetFormattedMessage(message));
+        }
+
+        public override void Fail(string message, string detailMessage)
+        {
+            Fail(message + ". Detailed: " + detailMessage);
         }
     }
 }
