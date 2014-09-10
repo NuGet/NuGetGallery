@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace NuGet.Jobs.Common
     /// </summary>
     public class JobTraceLogger : TraceListener
     {
+        protected const int LogTraceEventTypeHeaderLength = 12;
         protected readonly string LogPrefix;
         /// <summary>
         /// {0} would be the log prefix. Currently, the prefix is '/<jobName>-<startTime>/'
@@ -18,7 +20,17 @@ namespace NuGet.Jobs.Common
         /// Formatted message would be of the form '/<jobName>-<startTime>//<message>'
         /// </summary>
         protected const string LogFormat = "[{0}]: {1}";
-        private const string MessageWithTraceEventTypeFormat = "[{0}]: {1}";
+
+        private static readonly string MessageWithTraceEventTypeFormat = "{0, -" + LogTraceEventTypeHeaderLength + "}{1}";
+        private static readonly Dictionary<TraceEventType, string> TraceEventTypeStrings = new Dictionary<TraceEventType, string>()
+        {
+          { TraceEventType.Critical, "[Err]:" },
+          { TraceEventType.Error, "[Err]:" },
+          { TraceEventType.Information, "[Info]:" },
+          { TraceEventType.Verbose, "[Verbose]:" },
+          { TraceEventType.Warning, "[Warn]:" },
+        };
+
         public JobTraceLogger(string jobName)
         {
             this.TraceOutputOptions = TraceOptions.DateTime;
@@ -26,8 +38,12 @@ namespace NuGet.Jobs.Common
             LogPrefix = String.Format("/{0}-{1}/", jobName, DateTime.UtcNow.ToString("O"));
         }
 
-        public string GetFormattedMessage(string message)
+        public string GetFormattedMessage(string message, bool excludeTimestamp = false)
         {
+            if(excludeTimestamp)
+            {
+                return message;
+            }
             return String.Format(LogFormat, DateTime.UtcNow.ToString("O"), message);
         }
 
@@ -38,7 +54,62 @@ namespace NuGet.Jobs.Common
 
         protected string MessageWithTraceEventType(TraceEventType traceEventType, string message)
         {
-            return String.Format(MessageWithTraceEventTypeFormat, traceEventType.ToString(), message);
+            string traceEventTypeString;
+            if (!TraceEventTypeStrings.TryGetValue(traceEventType, out traceEventTypeString))
+            {
+                traceEventTypeString = traceEventType.ToString();
+            }
+            return String.Format(MessageWithTraceEventTypeFormat, traceEventTypeString, message);
+        }
+
+        protected void LogConsoleOnly(TraceEventType traceEventType, string message)
+        {
+            ConsoleColor currentConsoleForegroundColor = Console.ForegroundColor;
+            ConsoleColor traceEventTypeHeaderColor;
+            ConsoleColor logMessageColor;
+            switch (traceEventType)
+            {
+                case TraceEventType.Critical:
+                case TraceEventType.Error:
+                    traceEventTypeHeaderColor = ConsoleColor.Red;
+                    break;
+                case TraceEventType.Warning:
+                    traceEventTypeHeaderColor = ConsoleColor.Yellow;
+                    break;
+                case TraceEventType.Information:
+                    traceEventTypeHeaderColor = ConsoleColor.Cyan;
+                    break;
+                case TraceEventType.Verbose:
+                    traceEventTypeHeaderColor = ConsoleColor.DarkGray;
+                    break;
+                default:
+                    traceEventTypeHeaderColor = ConsoleColor.White;
+                    break;
+            }
+
+            if (traceEventType < TraceEventType.Information)
+            {
+                // If TraceEventType is less than Information, that is, if it is Criticial, Error or Warning
+                // Use differentiating color on the entire message
+                logMessageColor = traceEventTypeHeaderColor;
+            }
+            else
+            {
+                logMessageColor = ConsoleColor.DarkGray;
+            }
+
+            string fullMessage = MessageWithTraceEventType(traceEventType, message);
+
+            // Set Console foregroundcolor to the color determined for the header
+            Console.ForegroundColor = traceEventTypeHeaderColor;
+            Console.Write(fullMessage.Substring(0, LogTraceEventTypeHeaderLength));
+
+            // Set Console foregroundcolor to the color determined for the message
+            Console.ForegroundColor = logMessageColor;
+            Console.WriteLine(fullMessage.Substring(LogTraceEventTypeHeaderLength));
+
+            // Set Console foregroundcolor back to the original color as used by the console
+            Console.ForegroundColor = currentConsoleForegroundColor;
         }
 
         [Conditional("TRACE")]
@@ -57,14 +128,45 @@ namespace NuGet.Jobs.Common
             Trace.Listeners.Clear();
         }
 
+        protected virtual void Log(TraceEventType traceEventType, string message)
+        {
+            LogConsoleOnly(traceEventType, message);
+        }
+
+        protected virtual void Log(TraceEventType traceEventType, string format, params object[] args)
+        {
+            var message = String.Format(format, args);
+            LogConsoleOnly(traceEventType, message);
+        }
+
         public override void Write(string message)
         {
-            // Do Nothing
+            WriteLine(message);
         }
 
         public override void WriteLine(string message)
         {
-            // Do Nothing
+            Log(TraceEventType.Verbose, GetFormattedMessage(message));
+        }
+
+        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
+        {
+            Log(eventType, GetFormattedMessage(message));
+        }
+
+        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
+        {
+            TraceEvent(eventCache, source, eventType, id, String.Format(format, args));
+        }
+
+        public override void Fail(string message)
+        {
+            Log(TraceEventType.Critical, GetFormattedMessage(message));
+        }
+
+        public override void Fail(string message, string detailMessage)
+        {
+            Fail(message + ". Detailed: " + detailMessage);
         }
     }
 
@@ -95,17 +197,17 @@ namespace NuGet.Jobs.Common
             {
                 case EventLevel.Critical:
                 case EventLevel.Error:
-                    Trace.TraceError(Logger.GetFormattedMessage(GetFormattedEventLog(eventData)));
+                    Trace.TraceError(Logger.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
                     break;
                 case EventLevel.Warning:
-                    Trace.TraceWarning(Logger.GetFormattedMessage(GetFormattedEventLog(eventData)));
+                    Trace.TraceWarning(Logger.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
                     break;
                 case EventLevel.LogAlways:
                 case EventLevel.Informational:
-                    Trace.TraceInformation(Logger.GetFormattedMessage(GetFormattedEventLog(eventData)));
+                    Trace.TraceInformation(Logger.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
                     break;
                 case EventLevel.Verbose:
-                    Trace.WriteLine(Logger.GetFormattedMessage(GetFormattedEventLog(eventData)));
+                    Trace.WriteLine(Logger.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
                     break;
                 default:
                     // DO Nothing

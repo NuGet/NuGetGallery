@@ -64,12 +64,7 @@ namespace NuGet.Jobs.Common
             Task.Run(() => FlushRunner());
         }
 
-        private void LogConsoleOnly(TraceEventType traceEventType, string message)
-        {
-            Console.WriteLine(MessageWithTraceEventType(traceEventType, message));
-        }
-
-        private void Log(TraceEventType traceEventType, string message)
+        protected override void Log(TraceEventType traceEventType, string message)
         {
             LogConsoleOnly(traceEventType, message);
             QueueLog(
@@ -78,7 +73,7 @@ namespace NuGet.Jobs.Common
                     message));
         }
 
-        private void Log(TraceEventType traceEventType, string format, params object[] args)
+        protected override void Log(TraceEventType traceEventType, string format, params object[] args)
         {
             var message = String.Format(format, args);
             Log(traceEventType, message);
@@ -160,7 +155,7 @@ namespace NuGet.Jobs.Common
             while (JobLogBatchCounter != -1)
             {
                 // Don't use the other overload of base.Log with format and args. That will call back into this class
-                LogConsoleOnly(TraceEventType.Warning, "Waiting for log flush runner loop to terminate...");
+                LogConsoleOnly(TraceEventType.Information, "Waiting for log flush runner loop to terminate...");
                 Thread.Sleep(2000);
             }
 
@@ -170,7 +165,7 @@ namespace NuGet.Jobs.Common
             }
 
             Interlocked.Exchange(ref LogQueues, null);
-            LogConsoleOnly(TraceEventType.Warning, "Successfully completed flushing of logs");
+            LogConsoleOnly(TraceEventType.Information, "Successfully completed flushing of logs");
         }
 
         private void Save(string blobName, ConcurrentQueue<string> eventMessages)
@@ -183,38 +178,8 @@ namespace NuGet.Jobs.Common
 
             // Don't use the other overload of base.Log with format and args. That will call back into this class
             var blob = LogStorageContainer.GetBlockBlobReference(blobName);
-            LogConsoleOnly(TraceEventType.Information, "Uploading to " + blob.Uri.ToString());
+            LogConsoleOnly(TraceEventType.Verbose, "Uploading to " + blob.Uri.ToString());
             blob.UploadText(builder.ToString());
-        }
-
-        public override void Write(string message)
-        {
-            WriteLine(message);
-        }
-
-        public override void WriteLine(string message)
-        {
-            Log(TraceEventType.Verbose, GetFormattedMessage(message));
-        }
-
-        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
-        {
-            Log(eventType, GetFormattedMessage(message));
-        }
-
-        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
-        {
-            TraceEvent(eventCache, source, eventType, id, String.Format(format, args));
-        }
-
-        public override void Fail(string message)
-        {
-            Log(TraceEventType.Critical, GetFormattedMessage(message));
-        }
-
-        public override void Fail(string message, string detailMessage)
-        {
-            Fail(message + ". Detailed: " + detailMessage);
         }
     }
 }

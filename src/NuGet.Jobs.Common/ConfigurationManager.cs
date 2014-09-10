@@ -69,7 +69,7 @@ namespace NuGet.Jobs.Common
             var allArgsList = commandLineArgs.ToList();
             if (allArgsList.Count == 0)
             {
-                Trace.TraceWarning("No command-line arguments provided. Trying to pick up from environment variable for the job...");
+                Trace.TraceInformation("No command-line arguments provided. Trying to pick up from environment variable for the job...");
             }
 
             string argsEnvVariable = "NUGETJOBS_ARGS_" + jobName;
@@ -82,7 +82,7 @@ namespace NuGet.Jobs.Common
             {
                 allArgsList.AddRange(envArgString.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
             }
-            Trace.TraceWarning("Total number of arguments : " + allArgsList.Count);
+            Trace.TraceInformation("Total number of arguments : " + allArgsList.Count);
 
             // Arguments are expected to be a set of pairs, where each pair is of the form '-<argName> <argValue>'
             // Or, in singles as a switch '-<switch>'

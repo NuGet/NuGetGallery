@@ -22,6 +22,7 @@ namespace NuGet.Jobs.Common
             if(consoleLogOnly)
             {
                 job.SetLogger(new JobTraceLogger(job.JobName));
+                Trace.TraceWarning("You have chosen not to log in Azure blob storage. Note that this is NOT recommended");
             }
             else
             {
@@ -76,16 +77,16 @@ namespace NuGet.Jobs.Common
                 var innerEx = ex.InnerExceptions.Count > 0 ? ex.InnerExceptions[0] : null;
                 if (innerEx != null)
                 {
-                    Trace.TraceError(innerEx.ToString());
+                    Trace.TraceError("[FAILED]: " + innerEx.ToString());
                 }
                 else
                 {
-                    Trace.TraceError(ex.ToString());
+                    Trace.TraceError("[FAILED]: " + ex.ToString());
                 }
             }
             catch (Exception ex)
             {
-                Trace.TraceError(ex.ToString());
+                Trace.TraceError("[FAILED]: " + ex.ToString());
             }
 
             // Call FlushAll here. This is VERY IMPORTANT
@@ -96,14 +97,14 @@ namespace NuGet.Jobs.Common
 
         private static void JobSetup(JobBase job, IDictionary<string, string> jobArgsDictionary, int? sleepDuration)
         {
-            if (JobConfigManager.TryGetBoolArgument(jobArgsDictionary, "-dbg"))
+            if (JobConfigManager.TryGetBoolArgument(jobArgsDictionary, "dbg"))
             {
-                Trace.TraceWarning("-dbg is a special argument and should only be passed in as the first argument. Ignoring here...");
+                throw new ArgumentException("-dbg is a special argument and should be the first argument...");
             }
 
-            if (JobConfigManager.TryGetBoolArgument(jobArgsDictionary, "-ConsoleLogOnly"))
+            if (JobConfigManager.TryGetBoolArgument(jobArgsDictionary, "ConsoleLogOnly"))
             {
-                Trace.TraceWarning("-ConsoleLogOnly is a special argument and should only be passed in as the first argument or second if 'dbg' is used. Ignoring here...");
+                throw new ArgumentException("-ConsoleLogOnly is a special argument and should be the first argument (can be the second if '-dbg' is used)...");
             }
 
             if (sleepDuration == null)
@@ -127,9 +128,9 @@ namespace NuGet.Jobs.Common
             Stopwatch stopWatch = new Stopwatch();
             do
             {
-                Trace.TraceInformation("Running " + (runContinuously ? " continuously..." : " once..."));
-                Trace.TraceInformation("SleepDuration is {0}", PrettyPrintTime(sleepDuration));
-                Trace.TraceInformation("Job run started...");
+                Trace.WriteLine("Running " + (runContinuously ? " continuously..." : " once..."));
+                Trace.WriteLine("SleepDuration is " + PrettyPrintTime(sleepDuration));
+                Trace.WriteLine("Job run started...");
 
                 // Force a flush here to create a blob corresponding to run indicating that the run has started
                 job.Logger.Flush(skipCurrentBatch: false);
@@ -138,15 +139,15 @@ namespace NuGet.Jobs.Common
                 await job.Run();
                 stopWatch.Stop();
 
-                Trace.TraceInformation("Job run ended...");
-                Trace.TraceInformation("Job run took {0}", PrettyPrintTime(stopWatch.ElapsedMilliseconds));
+                Trace.WriteLine("Job run ended...");
+                Trace.TraceInformation("[Succeeded]: Job run took {0}", PrettyPrintTime(stopWatch.ElapsedMilliseconds));
 
                 // At this point, FlushAll is not called, So, what happens when the job is run only once?
                 // Since, FlushAll is called right at the end of the program, this is no issue
                 if (!runContinuously) break;
 
                 // Wait for <sleepDuration> milliSeconds and run the job again
-                Trace.TraceInformation("Will sleep for {0} before the next Job run", PrettyPrintTime(sleepDuration));
+                Trace.WriteLine(String.Format("Will sleep for {0} before the next Job run", PrettyPrintTime(sleepDuration)));
 
                 // Flush All the logs for this run
                 job.Logger.FlushAll();
