@@ -62,7 +62,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
                     //DEBUG
                     //Utils.Dump(SparqlHelpers.Construct(store, Utils.GetResource("sparql.All.rq")), Console.Out);
-                    //Console.WriteLine("---------------------------");
+                    //Trace.TraceInformation("---------------------------");
                     //Utils.Dump(packageRegistration, Console.Out);
 
                     if (packageRegistration.Triples.Count == 0)

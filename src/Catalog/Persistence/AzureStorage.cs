@@ -2,6 +2,7 @@
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -56,7 +57,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (Verbose)
             {
-                Console.WriteLine("save {0}", name);
+                Trace.WriteLine("save {0}", name);
             }
 
             if (_directory.Container.CreateIfNotExists())
@@ -65,7 +66,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
                 if (Verbose)
                 {
-                    Console.WriteLine("Created '{0}' publish container", _directory.Container.Name);
+                    Trace.WriteLine("Created '{0}' publish container", _directory.Container.Name);
                 }
             }
 

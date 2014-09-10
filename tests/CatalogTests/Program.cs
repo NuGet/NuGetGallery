@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CatalogTests
 {
@@ -26,6 +27,7 @@ namespace CatalogTests
 
         static void Main(string[] args)
         {
+            Trace.Listeners.Add(new ConsoleTraceListener());
             try
             {
                 DateTime before = DateTime.Now;

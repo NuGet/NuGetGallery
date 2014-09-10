@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -35,7 +36,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting.Test
             await Task.WhenAll(tasks.ToArray());
 
             //DEBUG
-            Console.WriteLine("{0}", client.RequestCount);
+            Trace.TraceInformation("{0}", client.RequestCount);
 
             foreach (Task<JObject> task in tasks)
             {

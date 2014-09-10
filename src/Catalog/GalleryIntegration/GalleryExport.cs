@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Data.SqlTypes;
 using System.Security.Cryptography;
 using System.Text;
+using System.Diagnostics;
 
 namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 {
@@ -146,7 +147,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
                 string registration = null;
                 if (!registrations.TryGetValue(key, out registration))
                 {
-                    Console.WriteLine("could not find registration for {0}", key);
+                    Trace.TraceWarning("could not find registration for {0}", key);
                     continue;
                 }
 

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Net.Http;
 
 using NuGet3.Client.Core;
+using System.Diagnostics;
 
 namespace NuGet3.CommandLine
 {
@@ -23,6 +24,7 @@ namespace NuGet3.CommandLine
 
         static void Main(string[] args)
         {
+            Trace.Listeners.Add(new ConsoleTraceListener());
             if (args.Length < 1)
             {
                 PrintUsage();

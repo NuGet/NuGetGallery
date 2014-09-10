@@ -3,6 +3,7 @@ using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -75,7 +76,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Trace.TraceError(e.Message);
             }
         }
 

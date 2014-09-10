@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -20,7 +21,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
             if (verbose)
             {
-                Console.WriteLine(indexUri);
+                Trace.WriteLine(indexUri);
             }
 
             HttpResponseMessage indexResponse = await client.GetAsync(indexUri);
@@ -35,7 +36,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
                 if (verbose)
                 {
-                    Console.WriteLine(pageUri);
+                    Trace.WriteLine(pageUri);
                 }
 
                 tasks.Add(client.GetAsync(pageUri));
