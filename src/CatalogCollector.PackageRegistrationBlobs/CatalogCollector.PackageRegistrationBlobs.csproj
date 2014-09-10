@@ -62,8 +62,9 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Metadata.Catalog">
-      <HintPath>..\..\packages\NuGet.Services.Metadata.Catalog.3.0.103-r-master\lib\net45\NuGet.Services.Metadata.Catalog.dll</HintPath>
+    <Reference Include="NuGet.Services.Metadata.Catalog, Version=3.0.106.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\NuGet.Services.Metadata.Catalog.3.0.106-r-master\lib\net45\NuGet.Services.Metadata.Catalog.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Versioning">
       <HintPath>..\..\packages\NuGet.Versioning.0.1.0-alpha\lib\portable-net40+win\NuGet.Versioning.dll</HintPath>
