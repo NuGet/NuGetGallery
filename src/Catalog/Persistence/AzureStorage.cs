@@ -57,7 +57,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (Verbose)
             {
-                Trace.WriteLine("save {0}", name);
+                Trace.WriteLine(String.Format("save {0}", name));
             }
 
             if (_directory.Container.CreateIfNotExists())
@@ -66,7 +66,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
                 if (Verbose)
                 {
-                    Trace.WriteLine("Created '{0}' publish container", _directory.Container.Name);
+                    Trace.WriteLine(String.Format("Created '{0}' publish container", _directory.Container.Name));
                 }
             }
 
