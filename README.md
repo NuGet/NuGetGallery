@@ -1,4 +1,4 @@
-NuGet.WebJobs
+NuGet.Jobs
 ==============
 
 1. Each job would be an exe with 2 main classes Program and Job
