@@ -59,7 +59,7 @@ namespace Catalog.Updater
             return false;
         }
 
-        public override async Task Run()
+        public override async Task<bool> Run()
         {
             var collectorBatchSize = ChecksumCollectorBatchSize ?? DefaultChecksumCollectorBatchSize;
             var catalogPageSize = CatalogPageSize ?? DefaultCatalogPageSize;
@@ -80,35 +80,50 @@ namespace Catalog.Updater
             var storage = new AzureStorage(catalogDirectory);
             storage.Verbose = true;
 
-            // Disposing of CatalogUpdater will dispose the HTTP client, 
-            // so don't move this 'using' further in or we might dispose the HTTP client before we actually finish with it!
-            using (var updater = new CatalogUpdater(new CatalogWriter(storage, new CatalogContext(), catalogPageSize), checksums, http))
+            try
             {
-                // 1. Load Checkums
-                JobEventSourceLog.LoadingChecksums(checksums.Uri.ToString());
-                await checksums.Load();
-                JobEventSourceLog.LoadedChecksums(checksums.Data.Count);
+                // Disposing of CatalogUpdater will dispose the HTTP client, 
+                // so don't move this 'using' further in or we might dispose the HTTP client before we actually finish with it!
+                using (var updater = new CatalogUpdater(new CatalogWriter(storage, new CatalogContext(), catalogPageSize), checksums, http))
+                {
+                    // 1. Load Checkums
+                    JobEventSourceLog.LoadingChecksums(checksums.Uri.ToString());
+                    await checksums.Load();
+                    JobEventSourceLog.LoadedChecksums(checksums.Data.Count);
 
-                // 2. Collect new checksums
-                JobEventSourceLog.CollectingChecksums(catalogDirectory.Uri.ToString());
-                await checksumCollector.Run(http, indexBlob.Uri, checksums.Cursor);
-                JobEventSourceLog.CollectedChecksums(checksums.Data.Count);
+                    // 2. Collect new checksums
+                    JobEventSourceLog.CollectingChecksums(catalogDirectory.Uri.ToString());
+                    await checksumCollector.Run(http, indexBlob.Uri, checksums.Cursor);
+                    JobEventSourceLog.CollectedChecksums(checksums.Data.Count);
 
-                // 3. Process updates
-                JobEventSourceLog.UpdatingCatalog();
-                await updater.Update(SourceDatabase.ConnectionString, indexBlob.Uri);
-                JobEventSourceLog.UpdatedCatalog();
+                    // 3. Process updates
+                    JobEventSourceLog.UpdatingCatalog();
+                    await updater.Update(SourceDatabase.ConnectionString, indexBlob.Uri);
+                    JobEventSourceLog.UpdatedCatalog();
 
-                // 4. Collect new checksums
-                JobEventSourceLog.CollectingChecksums(catalogDirectory.Uri.ToString());
-                await checksumCollector.Run(http, indexBlob.Uri, checksums.Cursor);
-                JobEventSourceLog.CollectedChecksums(checksums.Data.Count);
+                    // 4. Collect new checksums
+                    JobEventSourceLog.CollectingChecksums(catalogDirectory.Uri.ToString());
+                    await checksumCollector.Run(http, indexBlob.Uri, checksums.Cursor);
+                    JobEventSourceLog.CollectedChecksums(checksums.Data.Count);
 
-                // 5. Save existing checksums file
-                JobEventSourceLog.SavingChecksums(checksums.Uri.ToString());
-                await checksums.Save();
-                JobEventSourceLog.SavedChecksums();
+                    // 5. Save existing checksums file
+                    JobEventSourceLog.SavingChecksums(checksums.Uri.ToString());
+                    await checksums.Save();
+                    JobEventSourceLog.SavedChecksums();
+                }
             }
+            catch (SqlException ex)
+            {
+                Trace.TraceError(ex.ToString());
+                return false;
+            }
+            catch(StorageException ex)
+            {
+                Trace.TraceError(ex.ToString());
+                return false;
+            }
+
+            return true;
         }
 
         private CollectorHttpClient CreateHttpClient()

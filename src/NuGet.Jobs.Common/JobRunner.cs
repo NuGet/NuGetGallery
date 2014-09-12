@@ -136,11 +136,19 @@ namespace NuGet.Jobs.Common
                 job.Logger.Flush(skipCurrentBatch: false);
 
                 stopWatch.Restart();
-                await job.Run();
+                bool success = await job.Run();
                 stopWatch.Stop();
 
                 Trace.WriteLine("Job run ended...");
-                Trace.TraceInformation("[Succeeded]: Job run took {0}", PrettyPrintTime(stopWatch.ElapsedMilliseconds));
+                Trace.TraceInformation("Job run took {0}", PrettyPrintTime(stopWatch.ElapsedMilliseconds));
+                if(success)
+                {
+                    Trace.TraceInformation("Job Succeeded");
+                }
+                else
+                {
+                    Trace.TraceWarning("Job Failed");
+                }
 
                 // At this point, FlushAll is not called, So, what happens when the job is run only once?
                 // Since, FlushAll is called right at the end of the program, this is no issue
