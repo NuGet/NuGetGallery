@@ -147,7 +147,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
             {
                 if (!Equals(cursor, lastCursor))
                 {
-                    //StoreCursor(storage, cursorUri, cursor).Wait();
+                    StoreCursor(storage, cursorUri, cursor).Wait();
                     lastCursor = cursor;
                 }
             };
