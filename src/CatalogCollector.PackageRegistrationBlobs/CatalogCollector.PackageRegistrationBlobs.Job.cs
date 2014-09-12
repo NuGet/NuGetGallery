@@ -45,7 +45,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
                 GalleryBaseAddress =
                     JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryBaseAddress);
 
-                string targetStorageConnectionString = JobConfigManager.GetArgument(
+                string targetStorageConnectionString = JobConfigManager.TryGetArgument(
                             jobArgsDictionary, JobArgumentNames.TargetStorageAccount, EnvironmentVariableKeys.StoragePrimary);
                 TargetStorageAccount = String.IsNullOrEmpty(targetStorageConnectionString) ? null : CloudStorageAccount.Parse(targetStorageConnectionString);
 
@@ -76,6 +76,11 @@ namespace CatalogCollector.PackageRegistrationBlobs
 
         public override async Task<bool> Run()
         {
+            if (DontStoreCursor)
+            {
+                Trace.TraceWarning("REMEMBER that you requested NOT to store cursor at the end");
+            }
+
             // Set defaults
 
             // Check required payload
@@ -156,7 +161,11 @@ namespace CatalogCollector.PackageRegistrationBlobs
 
             collector.ProcessedCommit += cursor =>
             {
-                if (!Equals(cursor, lastCursor) && !DontStoreCursor)
+                if(DontStoreCursor)
+                {
+                    Trace.TraceWarning("Not storing cursor as requested");
+                }
+                else if (!Equals(cursor, lastCursor))
                 {
                     StoreCursor(storage, cursorUri, cursor).Wait();
                     lastCursor = cursor;
