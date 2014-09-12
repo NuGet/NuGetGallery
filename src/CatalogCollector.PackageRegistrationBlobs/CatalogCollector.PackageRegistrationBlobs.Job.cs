@@ -1,12 +1,14 @@
 ﻿using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
 using NuGet.Jobs.Common;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Collecting;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace CatalogCollector.PackageRegistrationBlobs
@@ -19,6 +21,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
         public string TargetBaseAddress { get; set; }
         public string TargetLocalDirectory { get; set; }
         public string CatalogIndexUrl { get; set; }
+        public string CatalogIndexPath { get; set; }
         public string CdnBaseAddress { get; set; }
         public string GalleryBaseAddress { get; set; }
 
@@ -34,10 +37,6 @@ namespace CatalogCollector.PackageRegistrationBlobs
                     JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.TargetBaseAddress);
 
                 // This is mandatory. Don't try to get it. Let it throw if not found
-                CatalogIndexUrl =
-                    JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.CatalogIndexUrl);
-
-                // This is mandatory. Don't try to get it. Let it throw if not found
                 CdnBaseAddress =
                     JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.CdnBaseAddress);
 
@@ -49,8 +48,14 @@ namespace CatalogCollector.PackageRegistrationBlobs
                             jobArgsDictionary, JobArgumentNames.TargetStorageAccount, EnvironmentVariableKeys.StoragePrimary);
                 TargetStorageAccount = String.IsNullOrEmpty(targetStorageConnectionString) ? null : CloudStorageAccount.Parse(targetStorageConnectionString);
 
+                CatalogIndexUrl =
+                    JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.CatalogIndexUrl);
+
                 TargetStoragePath =
                     JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.TargetStoragePath);
+
+                CatalogIndexPath =
+                    JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.CatalogIndexPath);
 
                 TargetLocalDirectory =
                     JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.TargetLocalDirectory);
@@ -71,7 +76,6 @@ namespace CatalogCollector.PackageRegistrationBlobs
 
             // Check required payload
             ArgCheck.Require(TargetBaseAddress, "TargetBaseAddress");
-            ArgCheck.Require(CatalogIndexUrl, "CatalogIndexUrl");
             ArgCheck.Require(CdnBaseAddress, "CdnBaseAddress");
             ArgCheck.Require(GalleryBaseAddress, "GalleryBaseAddress");
 
@@ -87,18 +91,31 @@ namespace CatalogCollector.PackageRegistrationBlobs
             // Load Storage
             NuGet.Services.Metadata.Catalog.Persistence.Storage storage;
             string storageDesc;
+            HttpMessageHandler httpMessageHandler = null;
             if (String.IsNullOrEmpty(TargetLocalDirectory))
             {
                 ArgCheck.Require(TargetStorageAccount, "ResolverStorage");
                 ArgCheck.Require(TargetStoragePath, "ResolverPath");
+                ArgCheck.Require(CatalogIndexUrl, "CatalogIndexUrl");
                 var dir = StorageHelpers.GetBlobDirectory(TargetStorageAccount, TargetStoragePath);
                 storage = new AzureStorage(dir, resolverBaseUri);
                 storageDesc = dir.Uri.ToString();
             }
             else
             {
+                ArgCheck.Require(CatalogIndexPath, "CatalogIndexPath");
+                ArgCheck.Require(TargetLocalDirectory, "TargetLocalDirectory");
                 storage = new FileStorage(TargetBaseAddress, TargetLocalDirectory);
                 storageDesc = TargetLocalDirectory;
+                var localHostUri = new Uri("http://localhost:8000");
+                httpMessageHandler = new FileSystemEmulatorHandler
+                {
+                    BaseAddress = localHostUri,
+                    RootFolder = @"c:\data\site",
+                    InnerHandler = new HttpClientHandler()
+                };
+
+                CatalogIndexUrl = String.Join(String.Empty, localHostUri.ToString(), CatalogIndexPath);
             }
             storage.Verbose = true;
 
@@ -130,7 +147,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
             {
                 if (!Equals(cursor, lastCursor))
                 {
-                    StoreCursor(storage, cursorUri, cursor).Wait();
+                    //StoreCursor(storage, cursorUri, cursor).Wait();
                     lastCursor = cursor;
                 }
             };
@@ -142,7 +159,8 @@ namespace CatalogCollector.PackageRegistrationBlobs
                 GalleryBaseAddress);
             lastCursor = (DateTime)await collector.Run(
                 new Uri(CatalogIndexUrl),
-                lastCursor);
+                lastCursor,
+                httpMessageHandler);
             JobEventSourceLog.EmittedResolverBlobs();
         }
 
