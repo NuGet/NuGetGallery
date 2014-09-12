@@ -39,6 +39,6 @@ namespace NuGet.Jobs.Common
 
         public abstract bool Init(IDictionary<string, string> jobArgsDictionary);
 
-        public abstract Task Run();
+        public abstract Task<bool> Run();
     }
 }

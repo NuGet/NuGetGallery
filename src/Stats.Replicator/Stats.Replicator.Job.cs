@@ -60,7 +60,7 @@ namespace Stats.Replicator
             return false;
         }
 
-        public override async Task Run()
+        public override async Task<bool> Run()
         {
             JobEventSourceLog.ReplicatingStatistics(Source.DataSource, Source.InitialCatalog, Destination.DataSource, Destination.InitialCatalog);
 
@@ -71,6 +71,8 @@ namespace Stats.Replicator
 
             double perSecond = count / watch.Elapsed.TotalSeconds;
             JobEventSourceLog.ReplicatedStatistics(Source.DataSource, Source.InitialCatalog, Destination.DataSource, Destination.InitialCatalog, count, watch.Elapsed.TotalSeconds, (int)perSecond);
+
+            return true;
         }
 
         private async Task<int> Replicate()

@@ -74,7 +74,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
             return false;
         }
 
-        public override async Task Run()
+        public override async Task<bool> Run()
         {
             // Set defaults
 
@@ -105,7 +105,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
                 storageDesc = dir.Uri.ToString();
             }
             else
-            {
+            {                
                 ArgCheck.Require(TargetLocalDirectory, "TargetLocalDirectory");
                 storage = new FileStorage(TargetBaseAddress, TargetLocalDirectory);
                 storageDesc = TargetLocalDirectory;
@@ -173,6 +173,8 @@ namespace CatalogCollector.PackageRegistrationBlobs
                 lastCursor,
                 httpMessageHandler);
             JobEventSourceLog.EmittedResolverBlobs();
+
+            return true;
         }
 
         private async Task StoreCursor(NuGet.Services.Metadata.Catalog.Persistence.Storage storage, Uri cursorUri, CollectorCursor value)

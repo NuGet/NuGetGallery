@@ -39,20 +39,29 @@ namespace Stats.AggregateInGallery
             return false;
         }
 
-        public override async Task Run()
+        public override async Task<bool> Run()
         {
-            using (var connection = await PackageDatabase.ConnectTo())
+            try
             {
-                JobEventSourceLog.AggregatingStatistics(PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
-                //if (!WhatIf)
+                using (var connection = await PackageDatabase.ConnectTo())
                 {
-                    SqlCommand cmd = connection.CreateCommand();
-                    cmd.CommandText = AggregateStatsSql;
-                    cmd.CommandType = CommandType.Text;
-                    await cmd.ExecuteNonQueryAsync();
+                    JobEventSourceLog.AggregatingStatistics(PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
+                    //if (!WhatIf)
+                    {
+                        SqlCommand cmd = connection.CreateCommand();
+                        cmd.CommandText = AggregateStatsSql;
+                        cmd.CommandType = CommandType.Text;
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                    JobEventSourceLog.AggregatedStatistics(PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
                 }
-                JobEventSourceLog.AggregatedStatistics(PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
             }
+            catch (SqlException ex)
+            {
+                Trace.TraceError(ex.ToString());
+                return false;
+            }
+            return true;
         }
 
         private const string AggregateStatsSql = @"
