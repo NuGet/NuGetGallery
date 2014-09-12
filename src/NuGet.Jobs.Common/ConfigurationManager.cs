@@ -40,6 +40,7 @@ namespace NuGet.Jobs.Common
         public const string CatalogPageSize = "CatalogPageSize";
         public const string CatalogIndexUrl = "CatalogIndexUrl";
         public const string CatalogIndexPath = "CatalogIndexPath";
+        public const string DontStoreCursor = "DontStoreCursor";
 
         // Catalog Collector argument names
         public const string ChecksumCollectorBatchSize = "ChecksumCollectorBatchSize";

@@ -24,6 +24,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
         public string CatalogIndexPath { get; set; }
         public string CdnBaseAddress { get; set; }
         public string GalleryBaseAddress { get; set; }
+        public bool DontStoreCursor { get; set; }
 
         public Job() : base(JobEventSource.Log) { }
 
@@ -59,6 +60,9 @@ namespace CatalogCollector.PackageRegistrationBlobs
 
                 TargetLocalDirectory =
                     JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.TargetLocalDirectory);
+
+                DontStoreCursor =
+                    JobConfigManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.DontStoreCursor);
 
                 // Initialized successfully, return true
                 return true;
@@ -96,17 +100,24 @@ namespace CatalogCollector.PackageRegistrationBlobs
             {
                 ArgCheck.Require(TargetStorageAccount, "ResolverStorage");
                 ArgCheck.Require(TargetStoragePath, "ResolverPath");
-                ArgCheck.Require(CatalogIndexUrl, "CatalogIndexUrl");
                 var dir = StorageHelpers.GetBlobDirectory(TargetStorageAccount, TargetStoragePath);
                 storage = new AzureStorage(dir, resolverBaseUri);
                 storageDesc = dir.Uri.ToString();
             }
             else
             {
-                ArgCheck.Require(CatalogIndexPath, "CatalogIndexPath");
                 ArgCheck.Require(TargetLocalDirectory, "TargetLocalDirectory");
                 storage = new FileStorage(TargetBaseAddress, TargetLocalDirectory);
                 storageDesc = TargetLocalDirectory;
+            }
+
+            if(String.IsNullOrEmpty(CatalogIndexPath))
+            {
+                ArgCheck.Require(CatalogIndexUrl, "CatalogIndexUrl");
+            }
+            else
+            {
+                ArgCheck.Require(CatalogIndexPath, "CatalogIndexPath");
                 var localHostUri = new Uri("http://localhost:8000");
                 httpMessageHandler = new FileSystemEmulatorHandler
                 {
@@ -145,7 +156,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
 
             collector.ProcessedCommit += cursor =>
             {
-                if (!Equals(cursor, lastCursor))
+                if (!Equals(cursor, lastCursor) && !DontStoreCursor)
                 {
                     StoreCursor(storage, cursorUri, cursor).Wait();
                     lastCursor = cursor;
