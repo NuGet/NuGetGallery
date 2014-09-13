@@ -13,21 +13,21 @@ namespace CatalogTests
     {
         public static async Task Test0Async()
         {
-            string nuspecs = @"c:\data\nuget\versions";
+            string nuspecs = @"c:\data\nuget\nuspecs";
 
             Storage storage = new FileStorage("http://localhost:8000/full", @"c:\data\site\full");
 
             CatalogContext context = new CatalogContext();
 
-            CatalogWriter writer = new CatalogWriter(storage, context, 10);
+            CatalogWriter writer = new CatalogWriter(storage, context, 600);
 
-            const int BatchSize = 1;
+            const int BatchSize = 200;
             int i = 0;
 
             int commitCount = 0;
 
             DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
-            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
+            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("ravendb.*.xml"))
             {
                 writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
 

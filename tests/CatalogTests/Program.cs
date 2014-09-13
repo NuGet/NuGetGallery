@@ -32,14 +32,15 @@ namespace CatalogTests
             {
                 DateTime before = DateTime.Now;
 
-                //BuilderTests.Test1();
                 //BuilderTests.Test0();
+                //BuilderTests.Test1();
 
-                BuilderTests.Test5();
+                //BuilderTests.Test5();
                 
                 //CollectorTests.Test0();
                 //CollectorTests.Test6();
-                CollectorTests.Test7();
+                //CollectorTests.Test7();
+                CollectorTests.Test9();
 
                 //PartitioningTests.Test0();
                 //PartitioningTests.Test1();

@@ -1,0 +1,9 @@
+﻿PREFIX nuget: <http://schema.nuget.org/schema#> 
+
+SELECT ?id ?version
+WHERE
+{
+	?package a nuget:Package ;
+	         nuget:id ?id ;
+	         nuget:version ?version .
+}

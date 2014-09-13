@@ -243,5 +243,30 @@ namespace CatalogTests
             Test8Async().Wait();
         }
 
+        public static async Task Test9Async()
+        {
+            Storage storage = new FileStorage("http://localhost:8000/test/", @"c:\data\site\test");
+
+            FileSystemEmulatorHandler handler = new VerboseHandler
+            {
+                BaseAddress = new Uri("http://localhost:8000"),
+                RootFolder = @"c:\data\site",
+                InnerHandler = new HttpClientHandler()
+            };
+
+            RegistrationCollector collector = new RegistrationCollector(storage, 200);
+
+            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue, handler);
+            //await collector.Run(new Uri("http://partitions.blob.core.windows.net/partition0/index.json"), DateTime.MinValue);
+            //await collector.Run(new Uri("http://localhost:8000/partition/partition0/index.json"), DateTime.MinValue, handler);
+            Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
+        }
+
+        public static void Test9()
+        {
+            Console.WriteLine("CollectorTests.Test9");
+
+            Test9Async().Wait();
+        }
     }
 }

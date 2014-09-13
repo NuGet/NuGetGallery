@@ -55,6 +55,10 @@ namespace NuGet.Services.Metadata.Catalog
 
             public static readonly Uri Info = new Uri(Prefixes.NuGet + "info");
             public static readonly Uri Overview = new Uri(Prefixes.NuGet + "overview");
+            public static readonly Uri Range = new Uri(Prefixes.NuGet + "range");
+            public static readonly Uri Low = new Uri(Prefixes.NuGet + "low");
+            public static readonly Uri High = new Uri(Prefixes.NuGet + "high");
+            public static readonly Uri RangePackages = new Uri(Prefixes.NuGet + "rangePackages");
 
             // General-purpose fields
             
@@ -70,6 +74,7 @@ namespace NuGet.Services.Metadata.Catalog
 		    public static readonly Uri IsLatestVersion = new Uri(Prefixes.NuGet + "isLatestVersion");
 			public static readonly Uri IsAbsoluteLatestVersion = new Uri(Prefixes.NuGet + "isAbsoluteLatestVersion");
 
+            public static readonly Uri Package = new Uri(Prefixes.NuGet + "package");
             public static readonly Uri Language = new Uri(Prefixes.NuGet + "language");
             public static readonly Uri Published = new Uri(Prefixes.NuGet + "published");
             public static readonly Uri LastEdited = new Uri(Prefixes.NuGet + "lastEdited");

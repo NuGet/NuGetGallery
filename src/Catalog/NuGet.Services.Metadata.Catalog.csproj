@@ -91,6 +91,7 @@
     <Compile Include="Collecting\CollectorCursor.cs" />
     <Compile Include="Collecting\CollectorHttpClient.cs" />
     <Compile Include="Collecting\NuspecCollector.cs" />
+    <Compile Include="Collecting\RegistrationCollector.cs" />
     <Compile Include="Collecting\SegmentCollector.cs" />
     <Compile Include="Collecting\StoreCollector.cs" />
     <Compile Include="Collecting\Test\DistinctPackageIdCollector.cs" />
@@ -182,6 +183,8 @@
     <EmbeddedResource Include="sparql\SelectPackageTags.rq" />
     <EmbeddedResource Include="sparql\SelectPackageDependencies.rq" />
     <EmbeddedResource Include="sparql\SelectPackageFrameworkAssembly.rq" />
+    <EmbeddedResource Include="sparql\SelectPackages.rq" />
+    <EmbeddedResource Include="sparql\ConstructPackageGraph.rq" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

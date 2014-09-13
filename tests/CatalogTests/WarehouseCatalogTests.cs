@@ -15,7 +15,7 @@ namespace CatalogTests
     {
         public static void Test0()
         {
-            Storage storage = new FileStorage("http://localhost:8000/stats", @"c:\data\site\stats");
+            Storage storage = new FileStorage("http://localhost:8000/demo", @"c:\data\site\demo");
 
             SqlConnectionStringBuilder connStrBldr = new SqlConnectionStringBuilder();
             connStrBldr.IntegratedSecurity = true;

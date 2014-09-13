@@ -119,5 +119,43 @@ namespace CatalogTests
         {
             Test1Async().Wait();
         }
+
+        public static async Task Test2Async()
+        {
+            Storage storage = new FileStorage("http://localhost:8000", @"c:\data\site\test");
+
+            //Storage storage = new AzureStorage
+            //{
+            //    AccountName = "",
+            //    AccountKey = "",
+            //    Container = "test",
+            //    BaseAddress = "http://nuget3.blob.core.windows.net"
+            //};
+
+            CatalogContext context = new CatalogContext();
+
+            CatalogWriter writer = new CatalogWriter(storage, context, 4, false);
+
+            string[] first = { "john", "paul", "ringo", "george" };
+            foreach (string item in first)
+            {
+                writer.Add(new TestCatalogItem(item));
+            }
+            await writer.Commit(new DateTime(2010, 12, 25, 12, 0, 0));
+
+            HttpClientHandler handler = new HttpClientHandler();
+
+            Uri index = new Uri("http://localhost:8000/index.html");
+
+            CollectorCursor before = new CollectorCursor(DateTime.UtcNow);
+
+            TestItemCollector collector = new TestItemCollector();
+            CollectorCursor after = await collector.Run(index, before, handler);
+        }
+
+        public static void Test2()
+        {
+            Test2Async().Wait();
+        }
     }
 }
