@@ -17,6 +17,8 @@ namespace Stats.Replicator
         private static readonly JobEventSource JobEventSourceLog = JobEventSource.Log;
         private const int MinBatchSize = 100;
         private const int MaxBatchSize = 10000;
+        private const int MaxFailures = 10;
+        private static int CurrentFailures = 0;
         private static int CurrentMinBatchSize = MinBatchSize;
         private static int CurrentMaxBatchSize = MaxBatchSize;
         private static Dictionary<double, int> BatchTimes = new Dictionary<double, int>();
@@ -99,9 +101,15 @@ namespace Stats.Replicator
             var count = await Replicate();
             watch.Stop();
 
-            double perSecond = count / watch.Elapsed.TotalSeconds;
-            JobEventSourceLog.ReplicatedStatistics(Source.DataSource, Source.InitialCatalog, Destination.DataSource, Destination.InitialCatalog, count, watch.Elapsed.TotalSeconds, (int)perSecond);
+            if (count > 0)
+            {
+                double perSecond = count / watch.Elapsed.TotalSeconds;
+                JobEventSourceLog.ReplicatedStatistics(Source.DataSource, Source.InitialCatalog, Destination.DataSource, Destination.InitialCatalog, count, watch.Elapsed.TotalSeconds, (int)perSecond);
+            }
 
+            // In case we're running continuously, modify some parameters for the next run
+            MinTimestamp = MaxTimestamp;
+            ClearExistingRecords = false;
             return true;
         }
 
@@ -113,21 +121,28 @@ namespace Stats.Replicator
             int totalReplicated = 0;
 
             // Get information about the source for the configured time window
-            JobEventSourceLog.GettingSourceReplicationMarker(Source.DataSource, Source.InitialCatalog);
+            JobEventSourceLog.GettingSourceReplicationMarker();
             var replicationSourceMarker = await GetReplicationSourceMarker(Source, MinTimestamp, MaxTimestamp);
-            JobEventSourceLog.GotSourceReplicationMarker(replicationSourceMarker.MinKey, replicationSourceMarker.MaxKey, replicationSourceMarker.RecordsToReplicate, replicationSourceMarker.MinTimestamp, replicationSourceMarker.MaxTimestamp);
+
+            if (replicationSourceMarker.RecordsToReplicate > 0)
+            {
+                JobEventSourceLog.GotSourceReplicationMarker(replicationSourceMarker.MinKey, replicationSourceMarker.MaxKey, replicationSourceMarker.RecordsToReplicate, replicationSourceMarker.MinTimestamp, replicationSourceMarker.MaxTimestamp);
+            }
+            else
+            {
+                JobEventSourceLog.NothingToReplicate();
+                return 0;
+            }
 
             // If we're replaying a time window (with both a min and max configured), then clear any existing records
             // that exist within that time window to start fresh.
-            if (MinTimestamp.HasValue && MaxTimestamp.HasValue && ClearExistingRecords)
+            if (MinTimestamp.HasValue && ClearExistingRecords)
             {
-                JobEventSourceLog.ClearingDownloadFacts(Destination.DataSource, Destination.InitialCatalog, MinTimestamp.Value, MaxTimestamp.Value);
-                int factsCleared = await ClearDownloadFacts(Destination, MinTimestamp.Value, MaxTimestamp.Value);
-                JobEventSourceLog.ClearedDownloadFacts(factsCleared);
+                await ClearDownloadFacts(Destination, MinTimestamp.Value, MaxTimestamp ?? replicationSourceMarker.MaxTimestamp);
             }
 
             // Using the time window from the source that has data, find the time window from the target where there's missing data
-            JobEventSourceLog.GettingNextTargetTimeWindow(Destination.DataSource, Destination.InitialCatalog, replicationSourceMarker.MinTimestamp, replicationSourceMarker.MaxTimestamp);
+            JobEventSourceLog.GettingNextTargetTimeWindow(replicationSourceMarker.MinTimestamp, replicationSourceMarker.MaxTimestamp);
             var replicationTargetMarker = await GetReplicationTargetMarker(Destination, replicationSourceMarker);
             JobEventSourceLog.GotNextTargetTimeWindow(replicationTargetMarker.MinTimestamp, replicationTargetMarker.MaxTimestamp, replicationTargetMarker.TimeWindowNeedsReplication ? "Replication Needed" : "No Replication Needed");
 
@@ -135,62 +150,73 @@ namespace Stats.Replicator
             {
                 // Now refresh our source marker to be within the bounds of the target marker to be crystal clear about what we're replicating
                 // This prevents us from replicating an incomplete hour (more specifically, the current hour)
-                JobEventSourceLog.GettingSourceReplicationMarker(Source.DataSource, Source.InitialCatalog);
+                JobEventSourceLog.GettingSourceReplicationMarker();
                 replicationSourceMarker = await GetReplicationSourceMarker(Source, replicationTargetMarker.MinTimestamp, replicationTargetMarker.MaxTimestamp);
-                JobEventSourceLog.GotSourceReplicationMarker(replicationSourceMarker.MinKey, replicationSourceMarker.MaxKey, replicationSourceMarker.RecordsToReplicate, replicationSourceMarker.MinTimestamp, replicationSourceMarker.MaxTimestamp);
+
+                if (replicationSourceMarker.RecordsToReplicate > 0)
+                {
+                    JobEventSourceLog.GotSourceReplicationMarker(replicationSourceMarker.MinKey, replicationSourceMarker.MaxKey, replicationSourceMarker.RecordsToReplicate, replicationSourceMarker.MinTimestamp, replicationSourceMarker.MaxTimestamp);
+                }
+                else
+                {
+                    JobEventSourceLog.NothingToReplicate();
+                    return 0;
+                }
             }
 
-            if (replicationTargetMarker.TimeWindowNeedsReplication)
+            Stopwatch totalTime = new Stopwatch();
+            totalTime.Start();
+
+            while (replicationTargetMarker.TimeWindowNeedsReplication)
             {
-                Stopwatch totalTime = new Stopwatch();
-                totalTime.Start();
+                JobEventSourceLog.ReplicatingBatch();
 
-                do
+                double recordsPerSecond;
+                int batchSize = GetNextBatchSize(out recordsPerSecond);
+                int recordsRemaining = replicationSourceMarker.RecordsToReplicate - totalReplicated;
+                string timeRemaining = "<unknown>";
+
+                if (recordsPerSecond > 0)
                 {
-                    JobEventSourceLog.ReplicatingBatch();
-
-                    double recordsPerSecond;
-                    int batchSize = GetNextBatchSize(out recordsPerSecond);
-                    int recordsRemaining = replicationSourceMarker.RecordsToReplicate - totalReplicated;
-                    string timeRemaining = "<unknown>";
-
-                    if (recordsPerSecond > 0)
-                    {
-                        double secondsRemaining = recordsRemaining / recordsPerSecond;
-                        timeRemaining = TimeSpan.FromSeconds(secondsRemaining).ToString("g");
-                    }
-
-                    JobEventSourceLog.WorkRemaining(recordsRemaining, (int)recordsPerSecond, timeRemaining);
-
-                    try
-                    {
-                        var watch = new Stopwatch();
-                        watch.Start();
-                        replicationTargetMarker = await ReplicateBatch(replicationSourceMarker, replicationTargetMarker, batchSize);
-                        watch.Stop();
-
-                        RecordBatchTime(replicationTargetMarker.LastBatchCount, watch.Elapsed);
-                        totalReplicated += replicationTargetMarker.LastBatchCount;
-                    }
-                    catch (SqlException sqlException)
-                    {
-                        JobEventSourceLog.BatchFailed(Source.DataSource, Source.InitialCatalog, Destination.DataSource, Destination.InitialCatalog, batchSize, replicationSourceMarker.MaxKey, replicationTargetMarker.Cursor.HasValue ? replicationTargetMarker.Cursor.ToString() : "<null>", sqlException.ToString());
-
-                        // If we can't even process the min batch size, then give up
-                        if (batchSize <= CurrentMinBatchSize)
-                        {
-                            JobEventSourceLog.UnableToProcessMinimumBatchSize(Source.DataSource, Source.InitialCatalog, Destination.DataSource, Destination.InitialCatalog, batchSize, replicationSourceMarker.MaxKey, replicationTargetMarker.Cursor.HasValue ? replicationTargetMarker.Cursor.ToString() : "<null>");
-                            throw;
-                        }
-
-                        // Otherwise, let's reduce our batch size range
-                        RecordFailedBatchSize(batchSize);
-                    }
-
-                    recordsPerSecond = totalReplicated / totalTime.Elapsed.TotalSeconds;
-                    JobEventSourceLog.ReplicatedBatch(totalReplicated, TimeSpan.FromSeconds(totalTime.Elapsed.TotalSeconds).ToString("g"), (int)recordsPerSecond);
+                    double secondsRemaining = recordsRemaining / recordsPerSecond;
+                    timeRemaining = TimeSpan.FromSeconds(secondsRemaining).ToString("g");
                 }
-                while (replicationTargetMarker.LastBatchCount > 0);
+
+                JobEventSourceLog.WorkRemaining(recordsRemaining, (int)recordsPerSecond, timeRemaining);
+
+                var watch = new Stopwatch();
+                watch.Start();
+                replicationTargetMarker = await ReplicateBatch(replicationSourceMarker, replicationTargetMarker, batchSize);
+                watch.Stop();
+
+                if (!replicationTargetMarker.TimeWindowNeedsReplication)
+                {
+                    JobEventSourceLog.NothingToReplicate();
+                    break;
+                }
+                else if (replicationTargetMarker.LastBatchCount > 0)
+                {
+                    // The batch succeeded
+                    RecordSuccessfulBatchTime(replicationTargetMarker.LastBatchCount, watch.Elapsed);
+                    totalReplicated += replicationTargetMarker.LastBatchCount;
+                }
+                else
+                {
+                    JobEventSourceLog.BatchFailed(batchSize, replicationSourceMarker.MaxKey, replicationTargetMarker.Cursor.HasValue ? replicationTargetMarker.Cursor.ToString() : "<null>");
+
+                    // If we can't even process the min batch size, then give up
+                    if (batchSize <= CurrentMinBatchSize)
+                    {
+                        JobEventSourceLog.UnableToProcessMinimumBatchSize(batchSize, replicationSourceMarker.MaxKey, replicationTargetMarker.Cursor.HasValue ? replicationTargetMarker.Cursor.ToString() : "<null>");
+                        break;
+                    }
+
+                    // Otherwise, let's reduce our batch size range
+                    RecordFailedBatchSize(batchSize);
+                }
+
+                recordsPerSecond = totalReplicated / totalTime.Elapsed.TotalSeconds;
+                JobEventSourceLog.ReplicatedBatch(totalReplicated, TimeSpan.FromSeconds(totalTime.Elapsed.TotalSeconds).ToString("g"), (int)recordsPerSecond);
             }
 
             return totalReplicated;
@@ -200,12 +226,20 @@ namespace Stats.Replicator
         {
             targetMarker.LastBatchCount = 0;
 
-            JobEventSourceLog.FetchingStatisticsChunk(Source.DataSource, Source.InitialCatalog, batchSize);
-            var batch = await GetDownloadRecords(Source, sourceMarker, targetMarker, batchSize);
-            JobEventSourceLog.FetchedStatisticsChunk();
-
-            if (batch != null)
+            try
             {
+                JobEventSourceLog.FetchingStatisticsChunk(batchSize);
+                var batch = await GetDownloadRecords(Source, sourceMarker, targetMarker, batchSize);
+                JobEventSourceLog.FetchedStatisticsChunk();
+
+                // If there's nothing else to process, then return the specified target marker,
+                // indicating we're done.
+                if (batch == null || !batch.Descendants("fact").Any())
+                {
+                    targetMarker.TimeWindowNeedsReplication = false;
+                    return targetMarker;
+                }
+
                 JobEventSourceLog.VerifyingCursor(targetMarker.MinTimestamp, targetMarker.MaxTimestamp, targetMarker.Cursor.HasValue ? targetMarker.Cursor.ToString() : "<null>");
                 var cursor = await GetTargetCursor(Destination, targetMarker);
 
@@ -229,9 +263,12 @@ namespace Stats.Replicator
                               select originalKey).First()
                 };
 
-                JobEventSourceLog.SavingDownloadFacts(Destination.InitialCatalog, Destination.DataSource, newCursor.LastBatchCount);
+                var minBatchTime = batch.Descendants("fact").Min(f => DateTime.Parse(f.Element("downloadTimestamp").Value));
+                var maxBatchTime = batch.Descendants("fact").Max(f => DateTime.Parse(f.Element("downloadTimestamp").Value));
 
-                Exception potentialException = null;
+                JobEventSourceLog.SavingDownloadFacts(newCursor.LastBatchCount, minBatchTime, maxBatchTime);
+
+                SqlException potentialException = null;
 
                 try
                 {
@@ -245,27 +282,50 @@ namespace Stats.Replicator
                 }
 
                 // See if our new cursor was committed
+                JobEventSourceLog.CheckingCursor();
                 var committedCursor = await GetTargetCursor(Destination, newCursor);
+                JobEventSourceLog.CheckedCursor(committedCursor.HasValue ? committedCursor.Value.ToString() : "<null>");
+
+                if (potentialException != null)
+                {
+                    // An exception occurred. It's possible that the batch actually succeeded though.
+                    if (committedCursor == newCursor.Cursor)
+                    {
+                        // Yep, the batch actually succeeded despite the reported exception
+                        // A known scenarios for this is when a timeout is reported but the
+                        // batch is actually committed
+                        JobEventSourceLog.RecoveredFromErrorSavingDownloadFacts(targetMarker.MinTimestamp, targetMarker.MaxTimestamp, targetMarker.Cursor.HasValue ? targetMarker.Cursor.Value.ToString() : "<null>", newCursor.Cursor.HasValue ? newCursor.Cursor.Value.ToString() : "<null>", committedCursor.HasValue ? committedCursor.Value.ToString() : "<null>", potentialException.ToString());
+                    }
+                    else if (committedCursor == targetMarker.Cursor)
+                    {
+                        // Nope, the batch actually failed. Re-throw the exception, and we'll try
+                        // to recover by retrying up to the max failure count.
+                        throw potentialException;
+                    }
+                }
 
                 if (committedCursor != newCursor.Cursor)
                 {
-                    // The batch was not committed. Throw the captured exception.
-                    // But if there wasn't actually an exception (and we thought it succeeded) but the cursor didn't get updated
-                    // properly, then throw an InvalidOperationException that will completely abort the process.
-                    // We can't recover from that.
-                    throw potentialException ?? new InvalidOperationException(String.Format("Expected cursor for {0} to {1} to have the value of {2} but it had the value for {3}. Aborting.", newCursor.MinTimestamp, newCursor.MaxTimestamp, newCursor.Cursor.HasValue ? newCursor.Cursor.ToString() : "<null>", committedCursor.HasValue ? committedCursor.Value.ToString() : "<null>"));
-                }
-                else if (potentialException != null)
-                {
-                    // An exception occurred but the commit was successful
-                    JobEventSourceLog.RecoveredFromErrorSavingDownloadFacts(targetMarker.MinTimestamp, targetMarker.MaxTimestamp, targetMarker.Cursor.HasValue ? targetMarker.Cursor.Value.ToString() : "<null>", newCursor.Cursor.HasValue ? newCursor.Cursor.Value.ToString() : "<null>", committedCursor.HasValue ? committedCursor.Value.ToString() : "<null>", potentialException.ToString());
+                    // We didn't get an exception, but our committed cursor doesn't match expectations
+                    // Let's abort because we don't know what just happened
+                    throw new InvalidOperationException(String.Format("Expected cursor for {0} to {1} to have the value of {2} but it had the value for {3}. Aborting.", newCursor.MinTimestamp, newCursor.MaxTimestamp, newCursor.Cursor.HasValue ? newCursor.Cursor.ToString() : "<null>", committedCursor.HasValue ? committedCursor.Value.ToString() : "<null>"));
                 }
 
-                JobEventSourceLog.SavedDownloadFacts(Destination.InitialCatalog, Destination.DataSource, newCursor.LastBatchCount);
+                JobEventSourceLog.SavedDownloadFacts(newCursor.LastBatchCount);
+                CurrentFailures = 0;
                 return newCursor;
             }
+            catch (SqlException exception)
+            {
+                // We will ignore failures up to the max failure count, at which time we abort.
+                if (++CurrentFailures == MaxFailures)
+                {
+                    throw;
+                }
 
-            return targetMarker;
+                JobEventSourceLog.RecoveredFromFailedBatch(CurrentFailures, MaxFailures, exception.ToString());
+                return targetMarker;
+            }
         }
 
         private int GetNextBatchSize(out double recordsPerSecond)
@@ -303,15 +363,18 @@ namespace Stats.Replicator
                 string bestPaces = String.Join(", ", bestBatches.Select(batch => (int)batch.Key));
 
                 nextBatchSize = (int)bestBatches.Select(batch => batch.Value).Average();
-                recordsPerSecond = bestBatches.First().Key; // Optimistically, we'll match the best time
+
+                // Ensure the next batch size is within the allowable range
+                nextBatchSize = Math.Max(Math.Min(nextBatchSize, CurrentMaxBatchSize), CurrentMinBatchSize);
+
+                recordsPerSecond = bestBatches.Average(b => b.Key); // Optimistically, we'll match the average time of the best batches
                 JobEventSourceLog.UsingCalculatedBatchSize(nextBatchSize, BatchTimes.Count, bestSizes, bestPaces);
             }
 
-            // Ensure the next batch size is within the allowable range
-            return Math.Max(Math.Min(nextBatchSize, CurrentMaxBatchSize), CurrentMinBatchSize);
+            return nextBatchSize;
         }
 
-        private void RecordBatchTime(int batchSize, TimeSpan elapsedTime)
+        private void RecordSuccessfulBatchTime(int batchSize, TimeSpan elapsedTime)
         {
             double perSecond = batchSize / elapsedTime.TotalSeconds;
             BatchTimes[perSecond] = batchSize;
@@ -323,30 +386,21 @@ namespace Stats.Replicator
         {
             if (BatchTimes.Any())
             {
-                if (BatchTimes.Count() < 11)
+                int maxSuccessfulMatch = BatchTimes.Values.Max();
+
+                if (CurrentMaxBatchSize > maxSuccessfulMatch)
                 {
-                    // If we're still sampling, record this sample with a high elapsed time to make it not preferrable
-                    // But don't cap the batch sizes because we want to finish taking samples.
-                    RecordBatchTime(batchSize, TimeSpan.FromDays(1));
+                    // Split the difference between the max successful batch size and our batch size that just failed
+                    CurrentMaxBatchSize = (maxSuccessfulMatch + batchSize) / 2;
                 }
                 else
                 {
-                    int maxSuccessfulMatch = BatchTimes.Values.Max();
-
-                    if (CurrentMaxBatchSize > maxSuccessfulMatch)
-                    {
-                        // Split the difference between the max successful batch size and our batch size that just failed
-                        CurrentMaxBatchSize = (maxSuccessfulMatch + batchSize) / 2;
-                    }
-                    else
-                    {
-                        CurrentMaxBatchSize = CurrentMaxBatchSize * 2 / 3;
-                    }
-
-                    // Ensure the Max doesn't fall below the Min
-                    CurrentMaxBatchSize = Math.Max(CurrentMaxBatchSize, CurrentMinBatchSize);
-                    JobEventSourceLog.CappingMaxBatchSize(maxSuccessfulMatch, batchSize, CurrentMaxBatchSize);
+                    CurrentMaxBatchSize = CurrentMaxBatchSize * 2 / 3;
                 }
+
+                // Ensure the Max doesn't fall below the Min
+                CurrentMaxBatchSize = Math.Max(CurrentMaxBatchSize, CurrentMinBatchSize);
+                JobEventSourceLog.CappingMaxBatchSize(maxSuccessfulMatch, batchSize, CurrentMaxBatchSize);
             }
             else
             {
@@ -381,16 +435,23 @@ namespace Stats.Replicator
                 {
                     if (result.HasRows && result.Read())
                     {
-                        return new ReplicationSourceMarker
+                        if (!result.IsDBNull(result.GetOrdinal("MinKey")) && !result.IsDBNull(result.GetOrdinal("MaxKey")))
                         {
-                            MinKey = result.GetInt32(result.GetOrdinal("MinKey")),
-                            MaxKey = result.GetInt32(result.GetOrdinal("MaxKey")),
-                            // Keep the original timestamp min/max values if specified
-                            // Otherwise we lose the boundary values and might not process the window (thinking it's incomplete)
-                            MinTimestamp = minTimestamp ?? result.GetDateTime(result.GetOrdinal("MinTimestamp")),
-                            MaxTimestamp = maxTimestamp ?? result.GetDateTime(result.GetOrdinal("MaxTimestamp")),
-                            RecordsToReplicate = result.GetInt32(result.GetOrdinal("Records"))
-                        };
+                            return new ReplicationSourceMarker
+                            {
+                                MinKey = result.GetInt32(result.GetOrdinal("MinKey")),
+                                MaxKey = result.GetInt32(result.GetOrdinal("MaxKey")),
+                                // Keep the original timestamp min/max values if specified
+                                // Otherwise we lose the boundary values and might not process the window (thinking it's incomplete)
+                                MinTimestamp = minTimestamp ?? result.GetDateTime(result.GetOrdinal("MinTimestamp")),
+                                MaxTimestamp = maxTimestamp ?? result.GetDateTime(result.GetOrdinal("MaxTimestamp")),
+                                RecordsToReplicate = result.GetInt32(result.GetOrdinal("Records"))
+                            };
+                        }
+                        else
+                        {
+                            return new ReplicationSourceMarker { RecordsToReplicate = 0 };
+                        }
                     }
                 }
             }
@@ -448,13 +509,15 @@ namespace Stats.Replicator
             }
         }
 
-        private static async Task<int> ClearDownloadFacts(SqlConnectionStringBuilder target, DateTime minTimestamp, DateTime maxTimestamp)
+        private static async Task ClearDownloadFacts(SqlConnectionStringBuilder target, DateTime minTimestamp, DateTime maxTimestamp)
         {
             int totalRecordsCleared = 0;
             int recordsClearedInBatch = 0;
 
             do
             {
+                JobEventSourceLog.ClearingDownloadFacts(minTimestamp, maxTimestamp);
+
                 using (var connection = await target.ConnectTo())
                 {
                     // This proc will delete 5000 records at a time, so we have to run in a loop until there's nothing more to delete
@@ -473,10 +536,12 @@ namespace Stats.Replicator
                         totalRecordsCleared += recordsClearedInBatch;
                     }
                 }
-            }
-            while (recordsClearedInBatch > 0);
 
-            return totalRecordsCleared;
+                JobEventSourceLog.ClearedDownloadFacts(recordsClearedInBatch, "Batch Completed.");
+            }
+            while (recordsClearedInBatch == 5000); // Hard-coded to match the stored proc - allows us to stop when done
+
+            JobEventSourceLog.ClearedDownloadFacts(totalRecordsCleared, "Finished.");
         }
 
         private static async Task<XDocument> GetDownloadRecords(SqlConnectionStringBuilder source, ReplicationSourceMarker sourceMarker, ReplicationTargetMarker targetMarker, int batchSize)
@@ -593,7 +658,7 @@ namespace Stats.Replicator
             Task = Tasks.ReplicatingStatistics,
             Opcode = EventOpcode.Stop,
             Level = EventLevel.Informational,
-            Message = "===== Replicated {4:n0} records from {0}/{1} to {2}/{3}. Duration: {5}. Pace: {6}. =====")]
+            Message = "===== Replicated {4:n0} records from {0}/{1} to {2}/{3}. Duration: {5}. Pace: {6}/second. =====")]
         public void ReplicatedStatistics(string sourceServer, string sourceDatabase, string destServer, string destDatabase, int count, double seconds, int perSecond)
         { WriteEvent(2, sourceServer, sourceDatabase, destServer, destDatabase, count.ToString("#,###"), TimeSpan.FromSeconds(seconds).ToString(), perSecond); }
 
@@ -602,9 +667,9 @@ namespace Stats.Replicator
             Task = Tasks.FetchingStatisticsChunk,
             Opcode = EventOpcode.Start,
             Level = EventLevel.Informational,
-            Message = "Fetching {2} statistics entries from {0}/{1}")]
-        public void FetchingStatisticsChunk(string server, string database, int limit)
-        { WriteEvent(5, server, database, limit); }
+            Message = "Fetching up to {0} statistics entries.")]
+        public void FetchingStatisticsChunk(int limit)
+        { WriteEvent(5, limit); }
 
         [Event(
             eventId: 6,
@@ -620,18 +685,18 @@ namespace Stats.Replicator
             Task = Tasks.SavingDownloadFacts,
             Opcode = EventOpcode.Start,
             Level = EventLevel.Informational,
-            Message = "Saving {2} records to {0}/{1}")]
-        public void SavingDownloadFacts(string server, string database, int count)
-        { WriteEvent(7, server, database, count); }
+            Message = "Saving {0} records from {1} to {2}")]
+        public void SavingDownloadFacts(int count, DateTime minBatchTime, DateTime maxBatchTime)
+        { WriteEvent(7, count, minBatchTime, maxBatchTime); }
 
         [Event(
             eventId: 8,
             Task = Tasks.SavingDownloadFacts,
             Opcode = EventOpcode.Stop,
             Level = EventLevel.Informational,
-            Message = "Saved {2} records to {0}/{1}")]
-        public void SavedDownloadFacts(string server, string database, int count)
-        { WriteEvent(8, server, database, count); }
+            Message = "Saved {0} records")]
+        public void SavedDownloadFacts(int count)
+        { WriteEvent(8, count); }
 
         [Event(
             eventId: 9,
@@ -665,9 +730,9 @@ namespace Stats.Replicator
         [Event(
             eventId: 16,
             Level = EventLevel.Warning,
-            Message = "An error occurring replicating a batch. Source: {0}/{1}. Destination: {2}/{3}. Batch Size: {4}. Source Max Original Key: {5}; Destination Cursor: {6}. Exception: {7}")]
-        public void BatchFailed(string sourceServer, string sourceDatabase, string destinationServer, string destinationDatabase, int batchSize, int sourceMaxKey, string destinationCursor, string exception)
-        { WriteEvent(16, sourceServer, sourceDatabase, destinationServer, destinationDatabase, batchSize, sourceMaxKey, destinationCursor, exception); }
+            Message = "An error occurring replicating a batch. Batch Size: {0}. Source Max Original Key: {1}; Destination Cursor: {2}.")]
+        public void BatchFailed(int batchSize, int sourceMaxKey, string destinationCursor)
+        { WriteEvent(16, batchSize, sourceMaxKey, destinationCursor); }
 
         [Event(
             eventId: 17,
@@ -693,9 +758,9 @@ namespace Stats.Replicator
         [Event(
             eventId: 20,
             Level = EventLevel.Error,
-            Message = "Aborting - Unable to process minimum batch size. Source: {0}/{1}. Destination: {2}/{3}. Batch Size: {4}. Source Max Original Key: {5}; Destination Cursor: {6}")]
-        public void UnableToProcessMinimumBatchSize(string sourceServer, string sourceDatabase, string destinationServer, string destinationDatabase, int batchSize, int sourceMaxKey, string destinationCursor)
-        { WriteEvent(20, sourceServer, sourceDatabase, destinationServer, destinationDatabase, batchSize, sourceMaxKey, destinationCursor); }
+            Message = "Aborting - Unable to process minimum batch size. Batch Size: {0}. Source Max Original Key: {1}; Destination Cursor: {2}")]
+        public void UnableToProcessMinimumBatchSize(int batchSize, int sourceMaxKey, string destinationCursor)
+        { WriteEvent(20, batchSize, sourceMaxKey, destinationCursor); }
 
         [Event(
             eventId: 21,
@@ -731,9 +796,9 @@ namespace Stats.Replicator
             Task = Tasks.GettingSourceReplicationMarker,
             Opcode = EventOpcode.Start,
             Level = EventLevel.Informational,
-            Message = "Getting replication source marker from {0}/{1}")]
-        public void GettingSourceReplicationMarker(string server, string database)
-        { WriteEvent(24, server, database); }
+            Message = "Getting replication source marker")]
+        public void GettingSourceReplicationMarker()
+        { WriteEvent(24); }
 
         [Event(
             eventId: 25,
@@ -749,27 +814,27 @@ namespace Stats.Replicator
             Task = Tasks.ClearingDownloadFacts,
             Opcode = EventOpcode.Start,
             Level = EventLevel.Informational,
-            Message = "Clearing existing records from {0}/{1} for the specified time window of {2} to {3}.")]
-        public void ClearingDownloadFacts(string server, string database, DateTime minTime, DateTime maxTime)
-        { WriteEvent(26, server, database, minTime, maxTime); }
+            Message = "Clearing existing records for the specified time window of {0} to {1}.")]
+        public void ClearingDownloadFacts(DateTime minTime, DateTime maxTime)
+        { WriteEvent(26, minTime, maxTime); }
 
         [Event(
             eventId: 27,
             Task = Tasks.ClearingDownloadFacts,
             Opcode = EventOpcode.Stop,
             Level = EventLevel.Informational,
-            Message = "Cleared {0} existing records.")]
-        public void ClearedDownloadFacts(int factsCleared)
-        { WriteEvent(27, factsCleared); }
+            Message = "Cleared {0} existing records. {1}")]
+        public void ClearedDownloadFacts(int factsCleared, string extraMessage)
+        { WriteEvent(27, factsCleared, extraMessage); }
 
         [Event(
             eventId: 28,
             Task = Tasks.GettingTargetTimeWindowToProcess,
             Opcode = EventOpcode.Start,
             Level = EventLevel.Informational,
-            Message = "Getting the next target time window (where no target records exist) from {0}/{1} within the range of {2} to {3} where the source has records.")]
-        public void GettingNextTargetTimeWindow(string server, string database, DateTime minTimestamp, DateTime maxTimestamp)
-        { WriteEvent(28, server, database, minTimestamp, maxTimestamp); }
+            Message = "Getting the next target time window within the range of {0} to {1} where the source has records.")]
+        public void GettingNextTargetTimeWindow(DateTime minTimestamp, DateTime maxTimestamp)
+        { WriteEvent(28, minTimestamp, maxTimestamp); }
 
         [Event(
             eventId: 29,
@@ -800,6 +865,34 @@ namespace Stats.Replicator
             Message = "An error occurred while saving a batch, but the batch was in fact committed. Recovering. Cursor min timestamp: {0}, max timestamp: {1}. Previous cursor value: {2}. New cursor value from the new batch: {3}. Committed cursor value: {4}. Exception that occurred: {5}")]
         public void RecoveredFromErrorSavingDownloadFacts(DateTime minTimestamp, DateTime maxTimestamp, string previousCursor, string newCursor, string committedCursor, string exceptionMessage)
         { WriteEvent(32, minTimestamp, maxTimestamp, previousCursor, newCursor, committedCursor, exceptionMessage); }
+
+        [Event(
+            eventId: 33,
+            Level = EventLevel.Informational,
+            Message = "Checking the committed cursor.")]
+        public void CheckingCursor()
+        { WriteEvent(33); }
+
+        [Event(
+            eventId: 34,
+            Level = EventLevel.Informational,
+            Message = "The committed cursor value is {0}.")]
+        public void CheckedCursor(string committedCursor)
+        { WriteEvent(34, committedCursor); }
+
+        [Event(
+            eventId: 35,
+            Level = EventLevel.Informational,
+            Message = "The batch failed, but we're going to recover. Current failure count: {0}. We'll give up after {1} failures in a row. Error: {2}")]
+        public void RecoveredFromFailedBatch(int failureCount, int maxFailures, string error)
+        { WriteEvent(35, failureCount, maxFailures, error); }
+
+        [Event(
+            eventId: 36,
+            Level = EventLevel.Informational,
+            Message = "There are no records to replicate. Finished.")]
+        public void NothingToReplicate()
+        { WriteEvent(36); }
 
         public static class Tasks
         {
