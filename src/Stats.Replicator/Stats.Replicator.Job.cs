@@ -138,7 +138,23 @@ namespace Stats.Replicator
             // that exist within that time window to start fresh.
             if (MinTimestamp.HasValue && ClearExistingRecords)
             {
-                await ClearDownloadFacts(Destination, MinTimestamp.Value, MaxTimestamp ?? replicationSourceMarker.MaxTimestamp);
+                int failures = 0;
+
+                while (true)
+                {
+                    try
+                    {
+                        await ClearDownloadFacts(Destination, MinTimestamp.Value, MaxTimestamp ?? replicationSourceMarker.MaxTimestamp);
+                        break;
+                    }
+                    catch
+                    {
+                        if (++failures == MaxFailures)
+                        {
+                            throw;
+                        }
+                    }
+                }
             }
 
             // Using the time window from the source that has data, find the time window from the target where there's missing data
