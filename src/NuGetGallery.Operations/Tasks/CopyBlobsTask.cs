@@ -75,10 +75,10 @@ namespace NuGetGallery.Operations
                 Prefix ?? String.Empty,
                 condition: b => (!PackageBlobsOnly || (!b.Name.StartsWith("/", StringComparison.Ordinal) && String.Equals(b.Name.ToLowerInvariant(), b.Name, StringComparison.Ordinal))),
                 countEstimate: 250000);
-            var count = blobs.Count;
+            var count = sourceBlobs.Count;
             int index = 0;
 
-            Parallel.ForEach(blobs, new ParallelOptions { MaxDegreeOfParallelism = 10 }, blob =>
+            Parallel.ForEach(sourceBlobs, new ParallelOptions { MaxDegreeOfParallelism = 10 }, blob =>
             {
                 int currentIndex = Interlocked.Increment(ref index);
                 var percentage = (((double)currentIndex / (double)count) * 100);
