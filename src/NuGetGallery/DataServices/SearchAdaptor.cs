@@ -14,7 +14,7 @@ namespace NuGetGallery
         /// <summary>
         ///     Determines the maximum number of packages returned in a single page of an OData result.
         /// </summary>
-        internal const int MaxPageSize = 40;
+        internal const int MaxPageSize = 100;
 
         public static SearchFilter GetSearchFilter(string q, int page, string sortOrder, string context)
         {
@@ -160,13 +160,23 @@ namespace NuGetGallery
                 return false;
             }
 
-            string skip;
-            if (queryTerms.TryGetValue("$skip", out skip))
+            string skipStr;
+            if (queryTerms.TryGetValue("$skip", out skipStr))
             {
-                int result;
-                if (int.TryParse(skip, out result))
+                int skip;
+                if (int.TryParse(skipStr, out skip))
                 {
-                    searchFilter.Skip = result;
+                    searchFilter.Skip = skip;
+                }
+            }
+
+            string topStr;
+            if (queryTerms.TryGetValue("$top", out topStr))
+            {
+                int top;
+                if(int.TryParse(topStr, out top))
+                {
+                    searchFilter.Take = Math.Min(top, SearchAdaptor.MaxPageSize);
                 }
             }
 
