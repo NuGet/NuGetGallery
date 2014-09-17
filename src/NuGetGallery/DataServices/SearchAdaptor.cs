@@ -176,7 +176,7 @@ namespace NuGetGallery
                 int top;
                 if(int.TryParse(topStr, out top))
                 {
-                    searchFilter.Take = top;
+                    searchFilter.Take = Math.Min(top, SearchAdaptor.MaxPageSize);
                 }
             }
 
