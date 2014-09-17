@@ -245,7 +245,7 @@ namespace CatalogTests
 
         public static async Task Test9Async()
         {
-            Storage storage = new FileStorage("http://localhost:8000/test/", @"c:\data\site\test");
+            Storage storage = new FileStorage("http://localhost:8000/test2/", @"c:\data\site\test2");
 
             FileSystemEmulatorHandler handler = new VerboseHandler
             {

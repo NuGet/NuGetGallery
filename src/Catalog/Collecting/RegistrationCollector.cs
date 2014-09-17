@@ -45,65 +45,115 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         async Task ProcessRegistration(TripleStore store, string id, SortedSet<NuGetVersion> versions)
         {
-            IList<Tuple<string, string, IList<KeyValuePair<Uri, IGraph>>>> ranges = new List<Tuple<string, string, IList<KeyValuePair<Uri, IGraph>>>>(); 
+            Uri registrationUri = CreateRegistrationUri(id);
+
+            IGraph registrationGraph = await LoadRegistration(registrationUri);
+
+            if (registrationGraph == null)
+            {
+                registrationGraph = CreateRegistrationGraph(registrationUri, id);
+            }
+
+            IGraph packagesGraph = CreatePackagesGraph(store, id);
+
+            registrationGraph.Merge(packagesGraph, true);
+
+            IDictionary<string, Uri> packageUriLookup = CreatePackageUriLookup(packagesGraph);
+
+            AddRangesToRegistration(registrationUri, registrationGraph, versions, packageUriLookup);
+
+            await SaveRegistration(registrationUri, registrationGraph);
+        }
+
+        async Task<IGraph> LoadRegistration(Uri registrationUri)
+        {
+            string registrationJson = await _storage.LoadString(registrationUri);
+            if (registrationJson == null)
+            {
+                return null;
+            }
+
+            IGraph registrationGraph = Utils.CreateGraph(registrationJson);
+
+            return registrationGraph;
+        }
+
+        async Task SaveRegistration(Uri registrationUri, IGraph registrationGraph)
+        {
+            string json = Utils.CreateJson(registrationGraph, _registrationFrame);
+
+            StorageContent content = new StringStorageContent(
+                json,
+                contentType: "application/json",
+                cacheControl: "public, max-age=300, s-maxage=300");
+
+            await _storage.Save(registrationUri, content);
+        }
+
+        void AddRangesToRegistration(Uri registrationUri, IGraph registrationGraph, SortedSet<NuGetVersion> versions, IDictionary<string, Uri> packageUriLookup)
+        {
+            IList<Range> ranges = new List<Range>();
 
             foreach (IEnumerable<NuGetVersion> partition in Partition(versions, 10))
             {
-                IList<KeyValuePair<Uri, IGraph>> packages = new List<KeyValuePair<Uri, IGraph>>();
+                IList<Uri> packageUris = new List<Uri>();
                 foreach (NuGetVersion version in partition)
                 {
-                    packages.Add(CreatePackageGraph(store, id, version));
+                    packageUris.Add(packageUriLookup[version.ToString()]);
                 }
-                ranges.Add(Tuple.Create(partition.First().ToString(), partition.Last().ToString(), packages));
+                ranges.Add(new Range { Low = partition.First().ToString(), High = partition.Last().ToString(), Packages = packageUris });
             }
 
-            KeyValuePair<Uri, IGraph> registration = CreateRegistrationGraph(id);
-
-            Console.WriteLine(id);
-            foreach (Tuple<string, string, IList<KeyValuePair<Uri, IGraph>>> range in ranges)
+            foreach (Range range in ranges)
             {
-                Uri rangeUri = new Uri(registration.Key.ToString() + "#range/" + range.Item1 + "/" + range.Item2);
-                Uri rangePackagesUri = new Uri(registration.Key.ToString() + "#range/" + range.Item1 + "/" + range.Item2 + "/packages");
+                Uri rangeUri = new Uri((registrationUri.ToString() + "#range/" + range.Low + "/" + range.High).ToLowerInvariant());
+                Uri rangePackagesUri = new Uri((registrationUri.ToString() + "#range/" + range.Low + "/" + range.High + "/packages").ToLowerInvariant());
 
-                INode rangeNode = registration.Value.CreateUriNode(rangeUri);
-                INode rangePackagesNode = registration.Value.CreateUriNode(rangePackagesUri);
+                INode rangeNode = registrationGraph.CreateUriNode(rangeUri);
+                INode rangePackagesNode = registrationGraph.CreateUriNode(rangePackagesUri);
 
-                registration.Value.Assert(registration.Value.CreateUriNode(registration.Key), registration.Value.CreateUriNode(Schema.Predicates.Range), rangeNode);
-                registration.Value.Assert(rangeNode, registration.Value.CreateUriNode(Schema.Predicates.Low), registration.Value.CreateLiteralNode(range.Item1));
-                registration.Value.Assert(rangeNode, registration.Value.CreateUriNode(Schema.Predicates.High), registration.Value.CreateLiteralNode(range.Item2));
+                registrationGraph.Assert(registrationGraph.CreateUriNode(registrationUri), registrationGraph.CreateUriNode(Schema.Predicates.PackageRange), rangeNode);
+                registrationGraph.Assert(rangeNode, registrationGraph.CreateUriNode(Schema.Predicates.Low), registrationGraph.CreateLiteralNode(range.Low));
+                registrationGraph.Assert(rangeNode, registrationGraph.CreateUriNode(Schema.Predicates.High), registrationGraph.CreateLiteralNode(range.High));
 
-                registration.Value.Assert(rangeNode, registration.Value.CreateUriNode(Schema.Predicates.RangePackages), rangePackagesNode);
+                registrationGraph.Assert(rangeNode, registrationGraph.CreateUriNode(Schema.Predicates.RangePackages), rangePackagesNode);
 
-                foreach (KeyValuePair<Uri, IGraph> package in range.Item3)
+                registrationGraph.Assert(rangePackagesNode, registrationGraph.CreateUriNode(Schema.Predicates.Type), registrationGraph.CreateUriNode(Schema.DataTypes.RangePackages));
+
+                foreach (Uri package in range.Packages)
                 {
-                    registration.Value.Assert(rangePackagesNode, registration.Value.CreateUriNode(Schema.Predicates.Package), registration.Value.CreateUriNode(package.Key));
-                    registration.Value.Merge(package.Value, true);
+                    registrationGraph.Assert(rangePackagesNode, registrationGraph.CreateUriNode(Schema.Predicates.Package), registrationGraph.CreateUriNode(package));
                 }
             }
-
-            string json = Utils.CreateJson(registration.Value, _registrationFrame);
-
-            StorageContent content = new StringStorageContent(
-                json, 
-                contentType: "application/json", 
-                cacheControl: "public, max-age=300, s-maxage=300");
-
-            await _storage.Save(registration.Key, content);
         }
 
-        KeyValuePair<Uri, IGraph> CreateRegistrationGraph(string id)
+        Uri CreateRegistrationUri(string id)
         {
             string baseAddress = _storage.BaseAddress.ToString();
             Uri resourceUri = new Uri(baseAddress + id + ".json");
-
-            IGraph graph = new Graph();
-            INode resource = graph.CreateUriNode(resourceUri);
-            graph.Assert(resource, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.PackageRegistration));
-            graph.Assert(resource, graph.CreateUriNode(Schema.Predicates.Id), graph.CreateLiteralNode(id));
-            return new KeyValuePair<Uri, IGraph>(resourceUri, graph);
+            return resourceUri;
         }
 
-        KeyValuePair<Uri, IGraph> CreatePackageGraph(TripleStore store, string id, NuGetVersion version)
+        IGraph CreateRegistrationGraph(Uri registrationUri, string id)
+        {
+            IGraph graph = new Graph();
+            INode resource = graph.CreateUriNode(registrationUri);
+            graph.Assert(resource, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.PackageRegistration));
+            graph.Assert(resource, graph.CreateUriNode(Schema.Predicates.Id), graph.CreateLiteralNode(id));
+            return graph;
+        }
+
+        IDictionary<string, Uri> CreatePackageUriLookup(IGraph packagesGraph)
+        {
+            IDictionary<string, Uri> result = new Dictionary<string, Uri>();
+            foreach (KeyValuePair<string, Uri> item in packagesGraph.GetTriplesWithPredicate(Schema.Predicates.Version).Select((t) => new KeyValuePair<string, Uri>(((ILiteralNode)t.Object).Value, ((IUriNode)t.Subject).Uri)))
+            {
+                result.Add(item);
+            }
+            return result;
+        }
+
+        IGraph CreatePackagesGraph(TripleStore store, string id)
         {
             SparqlParameterizedString sparql = new SparqlParameterizedString();
             sparql.CommandText = Utils.GetResource("sparql.ConstructPackageGraph.rq");
@@ -111,7 +161,6 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             string baseAddress = _storage.BaseAddress.ToString();
 
             sparql.SetLiteral("id", id);
-            sparql.SetLiteral("version", version.ToString());
             sparql.SetLiteral("base", baseAddress);
             sparql.SetLiteral("extension", ".json");
             sparql.SetLiteral("galleryBase", GalleryBaseAddress);
@@ -119,11 +168,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
             IGraph graph = SparqlHelpers.Construct(store, sparql.ToString());
 
-            Uri resourceUri = ((IUriNode)graph.GetTriplesWithPredicateObject(graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.Package)).First().Subject).Uri;
-
-            Console.WriteLine("resource = {0}", resourceUri);
-
-            return new KeyValuePair<Uri, IGraph>(resourceUri, graph);
+            return graph;
         }
 
         public static IEnumerable<IEnumerable<T>> Partition<T>(IEnumerable<T> source, int size)
@@ -174,6 +219,13 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             }
 
             return packages;
+        }
+
+        class Range
+        {
+            public string Low { get; set; }
+            public string High { get; set; }
+            public IList<Uri> Packages { get; set; }
         }
     }
 }

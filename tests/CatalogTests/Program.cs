@@ -38,8 +38,10 @@ namespace CatalogTests
                 //BuilderTests.Test5();
                 
                 //CollectorTests.Test0();
+                
                 //CollectorTests.Test6();
                 //CollectorTests.Test7();
+                
                 CollectorTests.Test9();
 
                 //PartitioningTests.Test0();

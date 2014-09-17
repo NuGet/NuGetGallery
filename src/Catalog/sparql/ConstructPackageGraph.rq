@@ -60,7 +60,6 @@ CONSTRUCT
 WHERE
 {
     BIND (IRI(CONCAT(@base, @id, @extension)) AS ?resource)
-    BIND (@version AS ?version)
 
     ?package a nuget:Package ;
              nuget:version ?version ;

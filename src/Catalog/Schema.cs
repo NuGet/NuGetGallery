@@ -24,6 +24,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri PackageInfo = new Uri(Prefixes.NuGet + "PackageInfo");
             public static readonly Uri PackageDependencyGroup = new Uri(Prefixes.NuGet + "PackageDependencyGroup");
             public static readonly Uri PackageDependency = new Uri(Prefixes.NuGet + "PackageDependency");
+            public static readonly Uri RangePackages = new Uri(Prefixes.NuGet + "RangePackages");
 
             public static readonly Uri DeletePackage = new Uri(Prefixes.NuGet + "PackageDeletion");
             public static readonly Uri DeleteRegistration = new Uri(Prefixes.NuGet + "PackageRegistrationDeletion");
@@ -59,6 +60,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Low = new Uri(Prefixes.NuGet + "low");
             public static readonly Uri High = new Uri(Prefixes.NuGet + "high");
             public static readonly Uri RangePackages = new Uri(Prefixes.NuGet + "rangePackages");
+            public static readonly Uri PackageRange = new Uri(Prefixes.NuGet + "packageRange");
 
             // General-purpose fields
             
