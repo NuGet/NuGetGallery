@@ -84,17 +84,21 @@ namespace NuGet3.Client.Core
                         {
                             Uri id = new Uri(prop.Value.ToString());
 
-                            // Using the marker, find the corresponding compacted node in the nodes list 
-                            int marker = prop.Parent["http://nuget.org/cache/node"][0]["@value"].ToObject<int>();
-                            JToken compactedChild = nodes[marker];
-
-                            // Add or idempotently overwrite the @id because we use that on a later Fetch (see the function GetUri)
-                            compactedChild["@id"] = id.AbsoluteUri;
-
-                            // If this the same address add to the cache (note Uri comparison intentionally ignores fragments) 
-                            if (id == address)
+                            // Using the marker, find the corresponding compacted node in the nodes list
+                            JToken node;
+                            if (((JObject)prop.Parent).TryGetValue("http://nuget.org/cache/node", out node))
                             {
-                                fragments.Add(id.Fragment, compactedChild);
+                                int marker = node[0]["@value"].ToObject<int>();
+                                JToken compactedChild = nodes[marker];
+
+                                // Add or idempotently overwrite the @id because we use that on a later Fetch (see the function GetUri)
+                                compactedChild["@id"] = id.AbsoluteUri;
+
+                                // If this the same address add to the cache (note Uri comparison intentionally ignores fragments) 
+                                if (id == address)
+                                {
+                                    fragments.Add(id.Fragment, compactedChild);
+                                }
                             }
                         }
                         else if (prop.Name == "@type")
