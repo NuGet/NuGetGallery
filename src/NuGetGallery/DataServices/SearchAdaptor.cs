@@ -14,7 +14,7 @@ namespace NuGetGallery
         /// <summary>
         ///     Determines the maximum number of packages returned in a single page of an OData result.
         /// </summary>
-        internal const int MaxPageSize = 40;
+        internal const int MaxPageSize = 100;
 
         public static SearchFilter GetSearchFilter(string q, int page, string sortOrder, string context)
         {
