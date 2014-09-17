@@ -60,13 +60,21 @@ namespace NuGetGallery.Operations
             var destContainer = destClient.GetContainerReference(DestinationContainer);
             destContainer.CreateIfNotExists();
 
-            Log.Info("Collecting blob names in {0} to copy to {1}", SourceStorage.Credentials.AccountName, DestinationStorage.Credentials.AccountName);
-            var blobs = Util.CollectBlobs(
+            Log.Info("Collecting blob names in {0}...", SourceStorage.Credentials.AccountName);
+            var sourceBlobs = Util.CollectBlobs(
                 Log, 
                 sourceContainer, 
                 Prefix ?? String.Empty, 
                 condition: b => (!PackageBlobsOnly || (!b.Name.StartsWith("/", StringComparison.Ordinal) && String.Equals(b.Name.ToLowerInvariant(), b.Name, StringComparison.Ordinal))),
-                countEstimate: 140000);
+                countEstimate: 250000);
+
+            Log.Info("Collecting blob names in {0}...", DestinationStorage.Credentials.AccountName);
+            var destBlobs = Util.CollectBlobs(
+                Log,
+                destContainer,
+                Prefix ?? String.Empty,
+                condition: b => (!PackageBlobsOnly || (!b.Name.StartsWith("/", StringComparison.Ordinal) && String.Equals(b.Name.ToLowerInvariant(), b.Name, StringComparison.Ordinal))),
+                countEstimate: 250000);
             var count = blobs.Count;
             int index = 0;
 

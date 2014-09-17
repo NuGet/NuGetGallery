@@ -5,7 +5,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>2.2</ProductVersion>
+    <ProductVersion>2.4</ProductVersion>
     <ProjectGuid>1d0164b6-92d4-455a-ac68-c30b61733748</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -15,6 +15,7 @@
     <Name>NuGetGallery.Backend.Cloud</Name>
     <UseWebProjectPorts>True</UseWebProjectPorts>
     <TargetProfile>Local</TargetProfile>
+    <UseEmulatorExpressByDefault>False</UseEmulatorExpressByDefault>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -59,7 +60,7 @@
   <!-- Import the target files for this project template -->
   <PropertyGroup>
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
-    <CloudExtensionsDir Condition=" '$(CloudExtensionsDir)' == '' ">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Windows Azure Tools\2.2\</CloudExtensionsDir>
+    <CloudExtensionsDir Condition=" '$(CloudExtensionsDir)' == '' ">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Windows Azure Tools\2.4\</CloudExtensionsDir>
   </PropertyGroup>
   <Target Name="CopyWorkerRoleConfigurations" BeforeTargets="AfterPackageComputeService">
     <Copy SourceFiles="..\%(ProjectReference.Name)\bin\$(Configuration)\%(ProjectReference.RoleName).dll.config" DestinationFolder="$(IntermediateOutputPath)NuGet.Services.Gateway.Role" OverwriteReadOnlyFiles="true" Condition="Exists('..\%(ProjectReference.Name)\bin\$(Configuration)\%(ProjectReference.RoleName).dll.config')" />
