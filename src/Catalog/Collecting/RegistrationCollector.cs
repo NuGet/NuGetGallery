@@ -94,7 +94,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         {
             IList<Range> ranges = new List<Range>();
 
-            foreach (IEnumerable<NuGetVersion> partition in Partition(versions, 10))
+            foreach (IEnumerable<NuGetVersion> partition in Utils.Partition(versions, 10))
             {
                 IList<Uri> packageUris = new List<Uri>();
                 foreach (NuGetVersion version in partition)
@@ -169,32 +169,6 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             IGraph graph = SparqlHelpers.Construct(store, sparql.ToString());
 
             return graph;
-        }
-
-        public static IEnumerable<IEnumerable<T>> Partition<T>(IEnumerable<T> source, int size)
-        {
-            T[] array = null;
-            int count = 0;
-            foreach (T item in source)
-            {
-                if (array == null)
-                {
-                    array = new T[size];
-                }
-                array[count] = item;
-                count++;
-                if (count == size)
-                {
-                    yield return new ReadOnlyCollection<T>(array);
-                    array = null;
-                    count = 0;
-                }
-            }
-            if (array != null)
-            {
-                Array.Resize(ref array, count);
-                yield return new ReadOnlyCollection<T>(array);
-            }
         }
 
         static IDictionary<string, SortedSet<NuGetVersion>> GetPackages(TripleStore store)

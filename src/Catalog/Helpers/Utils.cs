@@ -13,6 +13,7 @@ using VDS.RDF;
 using VDS.RDF.Parsing;
 using VDS.RDF.Writing;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -254,6 +255,32 @@ namespace NuGet.Services.Metadata.Catalog
             string relativeAddress = id.ToLowerInvariant() + "." + version.ToLowerInvariant() + ".xml";
 
             return relativeAddress;
+        }
+
+        public static IEnumerable<IEnumerable<T>> Partition<T>(IEnumerable<T> source, int size)
+        {
+            T[] array = null;
+            int count = 0;
+            foreach (T item in source)
+            {
+                if (array == null)
+                {
+                    array = new T[size];
+                }
+                array[count] = item;
+                count++;
+                if (count == size)
+                {
+                    yield return new ReadOnlyCollection<T>(array);
+                    array = null;
+                    count = 0;
+                }
+            }
+            if (array != null)
+            {
+                Array.Resize(ref array, count);
+                yield return new ReadOnlyCollection<T>(array);
+            }
         }
     }
 }

@@ -18,7 +18,6 @@ CONSTRUCT
 	?resource_package_info a nuget:PackageInfo ;
                            nuget:authors ?authors ;
                            nuget:description ?description ;
-                           nuget:isPrerelease ?isPrerelease ;
                            nuget:requireLicenseAcceptance ?requireLicenseAcceptance ;
                            nuget:licenseUrl ?licenseUrl ;
                            nuget:licenseName ?licenseName ;
@@ -37,21 +36,12 @@ CONSTRUCT
 
     ?resource_dependency_group a nuget:PackageDependencyGroup ;
 	                           nuget:dependency ?resource_dependency ;
-                               nuget:targetFramework ?dependency_group_targetFramework ;
-                               nuget:name ?dependency_group_name ;
-                               nuget:property ?resource_dependency_group_property .
-
-    ?resource_dependency_group_property nuget:name ?dependency_group_property_name ;
-                                        nuget:value ?dependency_group_property_value .
+                               nuget:targetFramework ?dependency_group_targetFramework .
 
     ?resource_dependency a nuget:PackageDependency ;
 	                     nuget:id ?dependency_id ;
                          nuget:registration ?dependency_registration ;
-                         nuget:range ?dependency_version ;
-                         nuget:property ?resource_dependency_property .
-
-    ?resource_dependency_property nuget:name ?dependency_property_name ;
-                                  nuget:value ?dependency_property_value .
+                         nuget:range ?dependency_version .
 
 	?resource_framework_assembly_group a nuget:PackageFrameworkAssemblyGroup ;
 	                                   nuget:targetFramework ?framework_assembly_group_targetFramework ;
@@ -64,7 +54,6 @@ WHERE
     ?package a nuget:Package ;
              nuget:version ?version ;
              nuget:id ?id ;
-             nuget:isPrerelease ?isPrerelease ;
              nuget:published ?published ;
              catalog:commitId ?commitId ;
              catalog:commitTimestamp ?timeStamp .
@@ -89,9 +78,7 @@ WHERE
 
     BIND (IRI(CONCAT(STR(?resource), "#", ?version)) AS ?resource_package)
     BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_group), "#"))) AS ?resource_dependency_group)
-    BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_group_property), "#"))) AS ?resource_dependency_group_property)
     BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency), "#"))) AS ?resource_dependency)
-    BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?dependency_property), "#"))) AS ?resource_dependency_property)
     BIND (IRI(CONCAT(STR(?resource_package), "/info")) AS ?resource_package_info)
 
     BIND (IRI(CONCAT(@galleryBase, "/packages/", ?id, "/", ?version )) AS ?galleryDetailsUrl)
@@ -105,20 +92,12 @@ WHERE
         ?dependency_group nuget:dependency ?dependency .
 
         OPTIONAL { ?dependency_group nuget:targetFramework ?dependency_group_targetFramework . }
-        OPTIONAL { ?dependency_group nuget:name ?dependency_group_name . }
-        OPTIONAL { ?dependency_group nuget:property ?dependency_group_property .
-                   ?dependency_group_property nuget:name ?dependency_group_property_name ;
-                                              nuget:value ?dependency_group_property_value . }
         
         ?dependency nuget:id ?dependency_id .
         
         BIND (IRI(CONCAT(@base, STR(?dependency_id), @extension)) AS ?dependency_registration)
         
         OPTIONAL { ?dependency nuget:range ?dependency_version . }
-
-        OPTIONAL { ?dependency nuget:property ?dependency_property .
-                   ?dependency_property nuget:name ?dependency_property_name ;
-                                        nuget:value ?dependency_property_value . }
     }
 
     BIND (IRI(CONCAT(STR(?resource_package), "/", STRAFTER(STR(?framework_assembly_group), "#"))) AS ?resource_framework_assembly_group)
