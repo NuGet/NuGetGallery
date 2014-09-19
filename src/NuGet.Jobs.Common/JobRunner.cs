@@ -67,7 +67,7 @@ namespace NuGet.Jobs.Common
                 int? sleepDuration = JobConfigManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Sleep);
 
                 // Setup the job for running
-                JobSetup(job, jobArgsDictionary, sleepDuration);
+                JobSetup(job, jobArgsDictionary, ref sleepDuration);
 
                 // Run the job loop
                 await JobLoop(job, runContinuously, sleepDuration.Value, consoleLogOnly);
@@ -95,7 +95,7 @@ namespace NuGet.Jobs.Common
             job.Logger.FlushAll();
         }
 
-        private static void JobSetup(JobBase job, IDictionary<string, string> jobArgsDictionary, int? sleepDuration)
+        private static void JobSetup(JobBase job, IDictionary<string, string> jobArgsDictionary, ref int? sleepDuration)
         {
             if (JobConfigManager.TryGetBoolArgument(jobArgsDictionary, "dbg"))
             {
