@@ -11,14 +11,14 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
         static Uri CatalogItemType = new Uri("http://nuget.org/schema#PackageStatisticsPage");
 
         JArray _data;
-        string _pageNumber;
+        Guid _itemGUID;
         DateTime _minDownloadTimestamp;
         DateTime _maxDownloadTimestamp;
 
         public StatisticsCatalogItem(JArray data, string pageNumber, DateTime minDownloadTimestamp, DateTime maxDownloadTimestamp)
         {
             _data = data;
-            _pageNumber = pageNumber;
+            _itemGUID = Guid.NewGuid();
             _minDownloadTimestamp = minDownloadTimestamp;
             _maxDownloadTimestamp = maxDownloadTimestamp;
         }
@@ -35,10 +35,12 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
 
             INode subject = graph.CreateUriNode(resourceUri);
             INode count = graph.CreateUriNode(new Uri("http://nuget.org/schema#count"));
+            INode itemGUID = graph.CreateUriNode(new Uri("http://nuget.org/schema#itemGUID"));
             INode minDownloadTimestamp = graph.CreateUriNode(new Uri("http://nuget.org/schema#minDownloadTimestamp"));
             INode maxDownloadTimestamp = graph.CreateUriNode(new Uri("http://nuget.org/schema#maxDownloadTimestamp"));
 
             graph.Assert(subject, count, graph.CreateLiteralNode(_data.Count.ToString(), Schema.DataTypes.Integer));
+            graph.Assert(subject, itemGUID, graph.CreateLiteralNode(_itemGUID.ToString()));
             graph.Assert(subject, minDownloadTimestamp, graph.CreateLiteralNode(_minDownloadTimestamp.ToString("O"), Schema.DataTypes.DateTime));
             graph.Assert(subject, maxDownloadTimestamp, graph.CreateLiteralNode(_maxDownloadTimestamp.ToString("O"), Schema.DataTypes.DateTime));
 
@@ -47,7 +49,7 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
 
         protected override string GetItemIdentity()
         {
-            return _pageNumber;
+            return _itemGUID.ToString();
         }
 
         public override Uri GetItemType()
