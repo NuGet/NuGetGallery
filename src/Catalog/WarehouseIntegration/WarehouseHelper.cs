@@ -124,7 +124,7 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
                         break;
                     }
 
-                    writer.Add(new StatisticsCatalogItem(batch, lastKey.ToString(), minDownloadTimeStamp, maxDownloadTimeStamp));
+                    writer.Add(new StatisticsCatalogItem(batch, minDownloadTimeStamp, maxDownloadTimeStamp));
 
                     if (++i % BatchSize == 0)
                     {

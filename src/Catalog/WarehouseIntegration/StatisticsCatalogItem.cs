@@ -15,7 +15,7 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
         DateTime _minDownloadTimestamp;
         DateTime _maxDownloadTimestamp;
 
-        public StatisticsCatalogItem(JArray data, string pageNumber, DateTime minDownloadTimestamp, DateTime maxDownloadTimestamp)
+        public StatisticsCatalogItem(JArray data, DateTime minDownloadTimestamp, DateTime maxDownloadTimestamp)
         {
             _data = data;
             _itemGUID = Guid.NewGuid();
