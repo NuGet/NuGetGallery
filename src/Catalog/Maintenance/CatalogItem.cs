@@ -46,6 +46,11 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return GetItemIdentity() + ".json";
         }
 
+        public virtual Uri GetItemAddress()
+        {
+            return new Uri(GetBaseAddress(), GetRelativeAddress());
+        }
+
         protected DateTime GetTimeStamp()
         {
             return _timeStamp;
