@@ -122,7 +122,7 @@
 
             <xsl:when test="self::nuget:version">
               <ng:version>
-                <xsl:value-of select="obj:NormalizeVersion(.)"/>
+                <xsl:value-of select="translate(obj:NormalizeVersion(.), $uppercase, $lowercase)"/>
               </ng:version>
               <ng:isPrerelease rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">
                 <xsl:value-of select="obj:IsPrerelease(.)"/>
@@ -220,7 +220,7 @@
         </ng:id>
 
         <ng:range>
-          <xsl:value-of select="@version"/>
+          <xsl:value-of select="translate(obj:NormalizeVersionRange(@version), $uppercase, $lowercase)"/>
         </ng:range>
 
         <xsl:apply-templates select="nuget:property">

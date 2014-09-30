@@ -282,5 +282,24 @@ namespace NuGet.Services.Metadata.Catalog
                 yield return new ReadOnlyCollection<T>(array);
             }
         }
+
+        //  where the property exists on the graph being merged in remove it from the existing graph
+        public static void RemoveExistingProperties(IGraph existingGraph, IGraph graphToMerge, Uri[] properties)
+        {
+            foreach (Uri property in properties)
+            {
+                foreach (Triple t1 in graphToMerge.GetTriplesWithPredicate(graphToMerge.CreateUriNode(property)))
+                {
+                    INode subject = t1.Subject.CopyNode(existingGraph);
+                    INode predicate = t1.Predicate.CopyNode(existingGraph);
+
+                    IList<Triple> retractList = new List<Triple>(existingGraph.GetTriplesWithSubjectPredicate(subject, predicate));
+                    foreach (Triple t2 in retractList)
+                    {
+                        existingGraph.Retract(t2);
+                    }
+                }
+            }
+        }
     }
 }

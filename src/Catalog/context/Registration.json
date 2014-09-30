@@ -5,7 +5,10 @@
         "catalog" : "http://schema.nuget.org/catalog#",
         "items" : { "@id": "catalog:item", "@container" : "@set" },
         "url" : "@id",
-        "catalog:commitTimeStamp" : { "@type" : "http://www.w3.org/2001/XMLSchema#dateTime" },
+
+        "commitTimeStamp" : { "@id" : "catalog:commitTimeStamp", "@type" : "http://www.w3.org/2001/XMLSchema#dateTime" },
+        "commitId" : { "@id" : "catalog:commitId" },
+        "count" : { "@id" : "catalog:count" },
 
         "packageTargetFrameworks":  { "@container": "@set", "@id": "packageTargetFramework" },
 

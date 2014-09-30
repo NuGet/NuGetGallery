@@ -55,7 +55,7 @@ namespace CatalogTests
         public static async Task Test1Async()
         {
             CountCollector collector = new CountCollector();
-            await collector.Run(new Uri("http://localhost:8000/export/catalog/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://localhost:8000/test2/ravendb.client.debug/index.json"), DateTime.MinValue);
             Console.WriteLine("total: {0}", collector.Total);
             Console.WriteLine("http requests: {0}", collector.RequestCount);
         }
@@ -248,7 +248,7 @@ namespace CatalogTests
 
         public static async Task Test9Async()
         {
-            StorageFactory storage = new FileStorageFactory("http://localhost:8000/test2/", @"c:\data\site\test2");
+            StorageFactory storage = new FileStorageFactory("http://localhost:8000/test4/", @"c:\data\site\test4");
 
             RegistrationCatalogCollector collector = new RegistrationCatalogCollector(storage, 200);
 

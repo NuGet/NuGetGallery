@@ -118,6 +118,7 @@
     <Compile Include="Maintenance\CatalogUpdater.cs" />
     <Compile Include="Maintenance\CatalogWriterBase.cs" />
     <Compile Include="Maintenance\ChecksumRecords.cs" />
+    <Compile Include="Collecting\GraphRegistrationCatalogWriter.cs" />
     <Compile Include="Maintenance\GraphCatalogWriter.cs" />
     <Compile Include="Maintenance\NupkgCatalogItem.cs" />
     <Compile Include="Persistence\AzureStorageFactory.cs" />

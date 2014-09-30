@@ -68,12 +68,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             if (latestUri == null)
             {
-                return CreatePageUri(Storage.BaseAddress, 0);
+                return CreatePageUri(Storage.BaseAddress, "page0");
             }
 
             if (latestCount + newItemCount > MaxPageSize)
             {
-                return CreatePageUri(Storage.BaseAddress, nextPageNumber);
+                return CreatePageUri(Storage.BaseAddress, string.Format("page{0}", nextPageNumber));
             }
 
             isExistingPage = true;
@@ -81,10 +81,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return latestUri;
         }
 
-        protected virtual Uri CreatePageUri(Uri baseAddress, int pageNumber)
+        protected virtual Uri CreatePageUri(Uri baseAddress, string relativeAddress)
         {
-            string relativeAddress = string.Format("page{0}.json", pageNumber);
-            return new Uri(baseAddress, relativeAddress);
+            return new Uri(baseAddress, relativeAddress + ".json");
         }
 
         static Tuple<int, Uri, int> ExtractLatest(IDictionary<string, CatalogItemSummary> currentPageEntries)

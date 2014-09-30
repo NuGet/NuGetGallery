@@ -20,13 +20,16 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             : base(storage)
         {
             _cleanUpList = cleanUpList;
+            PartitionSize = 100;
         }
+
+        public int PartitionSize { get; set; }
 
         protected override async Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries)
         {
             SortedDictionary<NuGetVersion, KeyValuePair<string, CatalogItemSummary>> versions = new SortedDictionary<NuGetVersion, KeyValuePair<string, CatalogItemSummary>>();
 
-            //  load all items from existing pages
+            //  load items from existing pages
 
             IDictionary<string, CatalogItemSummary> pageEntries = await LoadIndexResource(RootUri);
 
@@ -45,41 +48,59 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             foreach (KeyValuePair<string, CatalogItemSummary> itemEntry in itemEntries)
             {
                 NuGetVersion version = GetVersion(itemEntry.Value.Content);
-                versions.Add(version, itemEntry);
+                versions[version] = itemEntry;
             }
 
-            //  create page uri - let's just start with one page for now
+            //  (re)create pages
 
-            string lower = versions.First().Key.ToString();
-            string upper = versions.Last().Key.ToString();
+            IDictionary<string, CatalogItemSummary> newPageEntries = await PartitionAndSavePages(commitId, commitTimeStamp, versions);
 
-            Uri newPageUri = new Uri(Storage.BaseAddress, "page/" + lower + "/" + upper + ".json");
+            //  add to list of pages to clean up
 
-            IDictionary<string, CatalogItemSummary> newPageItemEntries = new Dictionary<string, CatalogItemSummary>();
-            foreach (KeyValuePair<NuGetVersion, KeyValuePair<string, CatalogItemSummary>> version in versions)
+            if (_cleanUpList != null)
             {
-                newPageItemEntries.Add(version.Value);
-            }
-
-            IGraph extra = CreateExtraGraph(newPageUri, lower, upper);
-
-            await SaveIndexResource(newPageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, newPageItemEntries, extra);
-
-            IDictionary<string, CatalogItemSummary> newPageEntries = new Dictionary<string, CatalogItemSummary>();
-
-            newPageEntries[newPageUri.ToString()] = new CatalogItemSummary(Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, newPageItemEntries.Count, CreatePageSummary(newPageUri, lower, upper));
-
-            //  pages to clean up
-
-            foreach (string existingPage in pageEntries.Keys)
-            {
-                if (!newPageEntries.ContainsKey(existingPage))
+                foreach (string existingPage in pageEntries.Keys)
                 {
-                    _cleanUpList.Add(new Uri(existingPage));
+                    if (!newPageEntries.ContainsKey(existingPage))
+                    {
+                        _cleanUpList.Add(new Uri(existingPage));
+                    }
                 }
             }
 
             return newPageEntries;
+        }
+
+        async Task<IDictionary<string, CatalogItemSummary>> PartitionAndSavePages(Guid commitId, DateTime commitTimeStamp, SortedDictionary<NuGetVersion, KeyValuePair<string, CatalogItemSummary>> versions)
+        {
+            IDictionary<string, CatalogItemSummary> newPageEntries = new Dictionary<string, CatalogItemSummary>();
+
+            foreach (IEnumerable<KeyValuePair<NuGetVersion, KeyValuePair<string, CatalogItemSummary>>> partition in Utils.Partition(versions, PartitionSize))
+            {
+                string lower = partition.First().Key.ToString();
+                string upper = partition.Last().Key.ToString();
+
+                Uri newPageUri = CreatePageUri(Storage.BaseAddress, ("page/" + lower + "/" + upper).ToLowerInvariant());
+
+                IDictionary<string, CatalogItemSummary> newPageItemEntries = new Dictionary<string, CatalogItemSummary>();
+                foreach (KeyValuePair<NuGetVersion, KeyValuePair<string, CatalogItemSummary>> version in partition)
+                {
+                    newPageItemEntries.Add(version.Value);
+                }
+
+                IGraph extra = CreateExtraGraph(newPageUri, lower, upper);
+
+                await SaveIndexResource(newPageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, newPageItemEntries, extra);
+
+                newPageEntries[newPageUri.ToString()] = new CatalogItemSummary(Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, newPageItemEntries.Count, CreatePageSummary(newPageUri, lower, upper));
+            }
+
+            return newPageEntries;
+        }
+
+        protected virtual Uri CreatePageUri(Uri baseAddress, string relativeAddress)
+        {
+            return new Uri(baseAddress, relativeAddress + ".json");
         }
 
         static IGraph CreateExtraGraph(Uri pageUri, string lower, string upper)

@@ -1,4 +1,5 @@
 ﻿using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Collecting;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
-    class GraphCatalogWriter : AppendOnlyCatalogWriter
+    class GraphRegistrationCatalogWriter : RegistrationCatalogWriter
     {
         Uri[] _propertiesToUpdate =
         {
@@ -16,8 +17,8 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             Schema.Predicates.CatalogCount
         };
 
-        public GraphCatalogWriter(Storage storage, int maxPageSize = 1000, bool append = true)
-            : base(storage, null, maxPageSize, append)
+        public GraphRegistrationCatalogWriter(Storage storage)
+            : base(storage, null)
         {
             Graph = new Graph();
         }
@@ -45,7 +46,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         }
         protected override Uri CreatePageUri(Uri baseAddress, string relativeAddress)
         {
-            return new Uri(baseAddress, "index.json#" + relativeAddress);
+            return new Uri(Storage.BaseAddress, "index.json#" + relativeAddress);
         }
     }
 }

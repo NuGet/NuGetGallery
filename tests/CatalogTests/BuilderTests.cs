@@ -27,7 +27,8 @@ namespace CatalogTests
             int commitCount = 0;
 
             DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
-            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("ravendb.*.xml"))
+            //foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("ravendb.*.xml"))
+            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
             {
                 writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
 
