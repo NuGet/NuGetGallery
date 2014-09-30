@@ -95,7 +95,7 @@
     <Compile Include="Collecting\RegistrationCatalogCollector.cs" />
     <Compile Include="Collecting\RegistrationCatalogItem.cs" />
     <Compile Include="Collecting\RegistrationCatalogWriter.cs" />
-    <Compile Include="Collecting\RegistrationCollector.cs" />
+    <None Include="Collecting\RegistrationCollector.cs" />
     <Compile Include="Collecting\SegmentCollector.cs" />
     <Compile Include="Collecting\SortingCollector.cs" />
     <Compile Include="Collecting\SortingGraphCollector.cs" />
@@ -114,8 +114,6 @@
     <Compile Include="Maintenance\AppendOnlyCatalogWriter.cs" />
     <Compile Include="Maintenance\AzureStorageChecksumRecords.cs" />
     <Compile Include="Maintenance\CatalogBatcher.cs" />
-    <Compile Include="Maintenance\CatalogContainer.cs" />
-    <Compile Include="Maintenance\CatalogContainerItem.cs" />
     <Compile Include="Maintenance\CatalogItemSummary.cs" />
     <Compile Include="Maintenance\CatalogUpdater.cs" />
     <Compile Include="Maintenance\CatalogWriterBase.cs" />
@@ -130,14 +128,11 @@
     <Compile Include="Persistence\StorageContent.cs" />
     <Compile Include="Maintenance\CatalogContext.cs" />
     <Compile Include="Maintenance\CatalogItem.cs" />
-    <Compile Include="Maintenance\CatalogPage.cs" />
-    <Compile Include="Maintenance\CatalogRoot.cs" />
-    <Compile Include="Maintenance\CatalogWriter.cs" />
     <Compile Include="Maintenance\DeletePackageCatalogItem.cs" />
     <Compile Include="Maintenance\NuspecPackageCatalogItem.cs" />
     <Compile Include="Maintenance\PackageCatalogItem.cs" />
     <Compile Include="Maintenance\DeleteRegistrationCatalogItem.cs" />
-    <Compile Include="Collecting\ResolverCollector.cs" />
+    <None Include="Collecting\ResolverCollector.cs" />
     <Compile Include="Collecting\BatchCollector.cs" />
     <Compile Include="Persistence\AzureStorage.cs" />
     <Compile Include="Persistence\FileStorage.cs" />
@@ -162,6 +157,7 @@
     <Compile Include="WarehouseIntegration\StatsGreaterThanCountCollector.cs" />
     <Compile Include="WarehouseIntegration\StatsLessThanCountCollector.cs" />
     <Compile Include="WarehouseIntegration\WarehouseHelper.cs" />
+    <EmbeddedResource Include="sparql\ConstructPackagePageContentGraph.rq" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="content\d3.v3.min.js" />
@@ -182,6 +178,7 @@
     <EmbeddedResource Include="context\Resolver.json" />
     <EmbeddedResource Include="context\DeletePackage.json" />
     <EmbeddedResource Include="context\Segment.json" />
+    <EmbeddedResource Include="context\Registration.json" />
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />

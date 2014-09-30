@@ -12,8 +12,8 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         bool _append;
         bool _first;
 
-        public AppendOnlyCatalogWriter(Storage storage, int maxPageSize = 1000, bool append = true)
-            : base(storage)
+        public AppendOnlyCatalogWriter(Storage storage, CatalogContext context, int maxPageSize = 1000, bool append = true)
+            : base(storage, context)
         {
             _append = append;
             _first = true;
@@ -27,8 +27,6 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         protected override async Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries)
         {
-            Uri rootUri = Storage.ResolveUri("index.json");
-
             IDictionary<string, CatalogItemSummary> pageEntries;
             if (_first && _append)
             {
@@ -37,7 +35,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             }
             else
             {
-                pageEntries = await LoadIndexResource(rootUri);
+                pageEntries = await LoadIndexResource(RootUri);
             }
 
             bool isExistingPage;
@@ -52,7 +50,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 }
             }
 
-            await SaveIndexResource(pageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, itemEntries);
+            await SaveIndexResource(pageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, itemEntries, null);
 
             pageEntries[pageUri.ToString()] = new CatalogItemSummary(Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, itemEntries.Count);
 

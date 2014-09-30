@@ -11,7 +11,8 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 {
     public class GalleryExportBatcher : CatalogBatcher
     {
-        public GalleryExportBatcher(int batchSize, CatalogWriter writer) : base(batchSize, writer)
+        public GalleryExportBatcher(int batchSize, AppendOnlyCatalogWriter writer)
+            : base(batchSize, writer)
         {
         }
 

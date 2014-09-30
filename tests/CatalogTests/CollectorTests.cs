@@ -25,6 +25,7 @@ namespace CatalogTests
 
     class CollectorTests
     {
+        /*
         public static async Task Test0Async()
         {
             Storage storage = new FileStorage("http://localhost:8000/resolver/", @"c:\data\site\resolver");
@@ -50,7 +51,7 @@ namespace CatalogTests
 
             Test0Async().Wait();
         }
-
+        */
         public static async Task Test1Async()
         {
             CountCollector collector = new CountCollector();
@@ -101,6 +102,7 @@ namespace CatalogTests
             Test3Async().Wait();
         }
 
+        /*
         public static async Task Test4Async()
         {
             //Storage storage = new AzureStorage
@@ -195,6 +197,7 @@ namespace CatalogTests
 
             Test6Async().Wait();
         }
+        */
 
         public static async Task Test7Async()
         {
@@ -245,7 +248,9 @@ namespace CatalogTests
 
         public static async Task Test9Async()
         {
-            Storage storage = new FileStorage("http://localhost:8000/test2/", @"c:\data\site\test2");
+            StorageFactory storage = new FileStorageFactory("http://localhost:8000/test2/", @"c:\data\site\test2");
+
+            RegistrationCatalogCollector collector = new RegistrationCatalogCollector(storage, 200);
 
             FileSystemEmulatorHandler handler = new VerboseHandler
             {
@@ -253,8 +258,6 @@ namespace CatalogTests
                 RootFolder = @"c:\data\site",
                 InnerHandler = new HttpClientHandler()
             };
-
-            RegistrationCollector collector = new RegistrationCollector(storage, 200);
 
             await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue, handler);
             //await collector.Run(new Uri("http://partitions.blob.core.windows.net/partition0/index.json"), DateTime.MinValue);

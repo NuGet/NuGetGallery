@@ -24,7 +24,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             IGraph graph = CreateNuspecGraph(nuspec, GetBaseAddress(), context.GetXslt("xslt.nuspec.xslt"));
 
             INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
-            INode timeStampPredicate = graph.CreateUriNode(Schema.Predicates.CatalogTimestamp);
+            INode timeStampPredicate = graph.CreateUriNode(Schema.Predicates.CatalogTimeStamp);
             INode commitIdPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCommitId);
             INode publishedPredicate = graph.CreateUriNode(Schema.Predicates.Published);
 
@@ -81,6 +81,10 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             }
 
             return graph;
+        }
+        protected override string GetItemIdentity()
+        {
+            return (_id + "." + _version).ToLowerInvariant();
         }
 
         static XDocument NormalizeNuspecNamespace(XDocument original, XslCompiledTransform xslt)

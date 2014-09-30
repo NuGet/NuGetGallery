@@ -19,21 +19,22 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             : base(batchSize, new Uri[] { Schema.DataTypes.Package })
         {
             _storageFactory = storageFactory;
+
+            ContentBaseAddress = "http://tempuri.org";
         }
 
-        protected override async Task ProcessGraphs(KeyValuePair<string, IList<IGraph>> sortedGraphs)
-        {
-            //Console.WriteLine("{0} {1}", sortedBatch.Value.Count, sortedBatch.Key);
-            //ItemCount += sortedBatch.Value.Count;
+        public string ContentBaseAddress { get; set; }
 
+        protected override async Task ProcessGraphs(KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs)
+        {
             Storage storage = _storageFactory.Create(sortedGraphs.Key);
 
             IList<Uri> cleanUpList = new List<Uri>();          
 
             RegistrationCatalogWriter writer = new RegistrationCatalogWriter(storage, cleanUpList);
-            foreach (IGraph item in sortedGraphs.Value)
+            foreach (KeyValuePair<string, IGraph> item in sortedGraphs.Value)
             {
-                writer.Add(new RegistrationCatalogItem(item));
+                writer.Add(new RegistrationCatalogItem(item.Key, item.Value, _storageFactory.BaseAddress, ContentBaseAddress));
             }
             await writer.Commit(DateTime.UtcNow);
 

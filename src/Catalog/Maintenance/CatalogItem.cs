@@ -34,7 +34,10 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return null;
         }
 
-        protected abstract string GetItemIdentity();
+        protected virtual string GetItemIdentity()
+        {
+            return string.Empty;
+        }
 
         public Uri GetBaseAddress()
         {

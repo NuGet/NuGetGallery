@@ -105,7 +105,7 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
             const int BatchSize = 100;
             int i = 0;
 
-            using (CatalogWriter writer = new CatalogWriter(storage, new CatalogContext(), 500))
+            using (AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, new CatalogContext(), 500))
             {
                 int lastKey = 0;
                 int iterations = 0;

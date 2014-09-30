@@ -20,7 +20,7 @@
 
       <ng:Package>
 
-        <xsl:variable name="path" select="concat(nuget:id, '.', nuget:version)" />
+        <xsl:variable name="path" select="concat(nuget:id, '.', obj:NormalizeVersion(nuget:version))" />
 
         <xsl:attribute name="rdf:about">
           <xsl:value-of select="translate(concat($base, $path, $extension), $uppercase, $lowercase)"/>
@@ -216,7 +216,7 @@
         </xsl:attribute>
 
         <ng:id>
-          <xsl:value-of select="@id"/>
+          <xsl:value-of select="translate(@id, $uppercase, $lowercase)"/>          
         </ng:id>
 
         <ng:range>

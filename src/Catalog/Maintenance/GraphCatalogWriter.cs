@@ -12,12 +12,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         Uri[] _propertiesToUpdate =
         {
             Schema.Predicates.CatalogCommitId,
-            Schema.Predicates.CatalogTimestamp,
+            Schema.Predicates.CatalogTimeStamp,
             Schema.Predicates.CatalogCount
         };
 
         public GraphCatalogWriter(Storage storage, int maxPageSize = 1000, bool append = true)
-            : base(storage, maxPageSize, append)
+            : base(storage, null, maxPageSize, append)
         {
             Graph = new Graph();
         }
@@ -26,7 +26,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         public Uri ResourceUri { get; private set; }
         public Uri TypeUri { get; private set; }
 
-        protected override async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri, bool last)
+        protected override async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri)
         {
             await Task.Run(() =>
             {

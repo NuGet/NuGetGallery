@@ -15,11 +15,6 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             _fullName = fullName;
         }
 
-        protected override string GetItemIdentity()
-        {
-            return Path.GetFileNameWithoutExtension(_fullName);
-        }
-
         protected override XDocument GetNuspec()
         {
             if (_nuspec == null)

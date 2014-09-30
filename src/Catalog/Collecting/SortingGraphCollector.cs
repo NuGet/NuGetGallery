@@ -22,32 +22,32 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         protected override async Task ProcessSortedBatch(CollectorHttpClient client, KeyValuePair<string, IList<JObject>> sortedBatch, JObject context)
         {
-            IList<Task<IGraph>> tasks = new List<Task<IGraph>>();
+            IDictionary<string, Task<IGraph>> tasks = new Dictionary<string, Task<IGraph>>();
 
             foreach (JObject item in sortedBatch.Value)
             {
                 if (Utils.IsType(context, item, _types))
                 {
-                    Uri itemUri = item["url"].ToObject<Uri>();
-                    tasks.Add(client.GetGraphAsync(itemUri));
+                    string itemUri = item["url"].ToString();
+                    tasks.Add(itemUri, client.GetGraphAsync(new Uri(itemUri)));
                 }
             }
 
             if (tasks.Count > 0)
             {
-                await Task.WhenAll(tasks.ToArray());
+                await Task.WhenAll(tasks.Values.ToArray());
 
-                IList<IGraph> graphs = new List<IGraph>();
+                IDictionary<string, IGraph> graphs = new Dictionary<string, IGraph>();
 
-                foreach (Task<IGraph> task in tasks)
+                foreach (KeyValuePair<string, Task<IGraph>> task in tasks)
                 {
-                    graphs.Add(task.Result);
+                    graphs.Add(task.Key, task.Value.Result);
                 }
 
-                await ProcessGraphs(new KeyValuePair<string, IList<IGraph>>(sortedBatch.Key, graphs));
+                await ProcessGraphs(new KeyValuePair<string, IDictionary<string, IGraph>>(sortedBatch.Key, graphs));
             }
         }
 
-        protected abstract Task ProcessGraphs(KeyValuePair<string, IList<IGraph>> sortedGraphs);
+        protected abstract Task ProcessGraphs(KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs);
     }
 }

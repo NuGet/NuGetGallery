@@ -1,37 +1,28 @@
 ﻿using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Linq;
 using VDS.RDF;
+using VDS.RDF.Query;
 
 namespace NuGet.Services.Metadata.Catalog.Collecting
 {
     public class RegistrationCatalogItem : CatalogItem
     {
-        string _version;
-        Uri _itemUri;
+        Uri _catalogUri;
+        IGraph _catalogItem;
+        string _registrationBaseAddress;
+        string _contentBaseAddress;
 
-        //public RegistrationCatalogItem(JObject obj)
-        //{
-        //    _obj = obj;
-        //    _version = obj["nuget:version"].ToString();
-        //    _itemUri = obj["url"].ToObject<Uri>();
-        //}
-
-        public RegistrationCatalogItem(IGraph graph)
+        public RegistrationCatalogItem(string catalogUri, IGraph catalogItem, string registrationBaseAddress, string contentBaseAddress)
         {
-            INode resourceNode = graph.GetTriplesWithPredicateObject(
-                graph.CreateUriNode(Schema.Predicates.Type),
-                graph.CreateUriNode(Schema.DataTypes.Package)).First().Subject;
-
-            INode versionNode = graph.GetTriplesWithSubjectPredicate(
-                resourceNode,
-                graph.CreateUriNode(Schema.Predicates.Version)).First().Object;
-
-            _version = versionNode.ToString();
-            _itemUri = ((IUriNode)resourceNode).Uri;
+            _catalogUri = new Uri(catalogUri);
+            _catalogItem = catalogItem;
+            _registrationBaseAddress = registrationBaseAddress.ToString().TrimEnd('/') + '/';
+            _contentBaseAddress = contentBaseAddress.ToString().TrimEnd('/') + '/';
         }
 
         public override StorageContent CreateContent(CatalogContext context)
@@ -44,26 +35,27 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             return Schema.DataTypes.Package;
         }
 
-        protected override string GetItemIdentity()
-        {
-            return _version;
-        }
-
         public override Uri GetItemAddress()
         {
-            return _itemUri;
+            return _catalogUri;
         }
 
         public override IGraph CreatePageContent(CatalogContext context)
         {
-            IGraph content = new Graph();
+            IGraph content;
 
-            INode resourceNode = content.CreateUriNode(GetItemAddress());
+            using (TripleStore store = new TripleStore())
+            {
+                store.Add(_catalogItem, true);
 
-            content.Assert(
-                resourceNode,
-                content.CreateUriNode(Schema.Predicates.Version),
-                content.CreateLiteralNode(_version));
+                SparqlParameterizedString sparql = new SparqlParameterizedString();
+                sparql.CommandText = Utils.GetResource("sparql.ConstructPackagePageContentGraph.rq");
+
+                sparql.SetLiteral("baseAddress", _registrationBaseAddress);
+                sparql.SetLiteral("contentBase", _contentBaseAddress);
+
+                content = SparqlHelpers.Construct(store, sparql.ToString());
+            }
 
             return content;
         }

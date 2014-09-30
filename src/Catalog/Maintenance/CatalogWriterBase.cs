@@ -11,11 +11,10 @@ using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
-    public abstract class CatalogWriterBase
+    public abstract class CatalogWriterBase : IDisposable
     {
         List<CatalogItem> _batch;
         bool _open;
-        CatalogContext _context;
 
         public CatalogWriterBase(Storage storage, CatalogContext context = null)
         {
@@ -25,7 +24,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             _batch = new List<CatalogItem>();
             _open = true;
 
-            _context = context ?? new CatalogContext();
+            Context = context ?? new CatalogContext();
+
+            RootUri = Storage.ResolveUri("index.json");
         }
         public void Dispose()
         {
@@ -35,12 +36,27 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public Storage Storage { get; private set; }
 
+        public Uri RootUri { get; private set; }
+
+        public CatalogContext Context { get; private set; }
+
+        public int Count { get { return _batch.Count; } }
+
         public void Add(CatalogItem item)
         {
+            if (!_open)
+            {
+                throw new ObjectDisposedException(GetType().Name);
+            }
+
             _batch.Add(item);
         }
+        public Task Commit(IGraph commitMetadata = null)
+        {
+            return Commit(DateTime.UtcNow, commitMetadata);
+        }
 
-        public async Task Commit(DateTime timeStamp, IDictionary<string, string> commitUserData = null)
+        public async Task Commit(DateTime commitTimeStamp, IGraph commitMetadata = null)
         {
             if (!_open)
             {
@@ -54,11 +70,11 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             Guid commitId = Guid.NewGuid();
 
-            IDictionary<string, CatalogItemSummary> newItemEntries = await SaveItems(commitId, timeStamp);
+            IDictionary<string, CatalogItemSummary> newItemEntries = await SaveItems(commitId, commitTimeStamp);
 
-            IDictionary<string, CatalogItemSummary> pageEntries = await SavePages(commitId, timeStamp, newItemEntries);
+            IDictionary<string, CatalogItemSummary> pageEntries = await SavePages(commitId, commitTimeStamp, newItemEntries);
 
-            await SaveRoot(commitId, timeStamp, pageEntries);
+            await SaveRoot(commitId, commitTimeStamp, pageEntries, commitMetadata);
 
             _batch.Clear();
         }
@@ -73,10 +89,10 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 item.SetCommitId(commitId);
                 item.SetBaseAddress(Storage.BaseAddress);
 
-                Uri resourceUri = item.GetItemAddress();
+                StorageContent content = item.CreateContent(Context);
+                IGraph pageContent = item.CreatePageContent(Context);
 
-                StorageContent content = item.CreateContent(_context);
-                IGraph pageContent = item.CreatePageContent(_context);
+                Uri resourceUri = item.GetItemAddress();
 
                 if (content != null)
                 {
@@ -99,28 +115,27 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return pageItems;
         }
 
-        async Task SaveRoot(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> pageEntries)
+        async Task SaveRoot(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> pageEntries, IGraph commitMetadata)
         {
-            Uri rootUri = Storage.ResolveUri("index.json");
-            await SaveIndexResource(rootUri, Schema.DataTypes.CatalogRoot, commitId, commitTimeStamp, pageEntries, true);
+            await SaveIndexResource(RootUri, Schema.DataTypes.CatalogRoot, commitId, commitTimeStamp, pageEntries, commitMetadata);
         }
 
         protected abstract Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries);
 
         protected virtual StorageContent CreateIndexContent(IGraph graph, Uri type)
         {
-            JObject frame = _context.GetJsonLdContext("context.Container.json", type);
+            JObject frame = Context.GetJsonLdContext("context.Container.json", type);
             return new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
         }
 
-        protected async Task SaveIndexResource(Uri resourceUri, Uri typeUri, Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> entries, bool last = false)
+        protected async Task SaveIndexResource(Uri resourceUri, Uri typeUri, Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> entries, IGraph extra)
         {
             IGraph graph = new Graph();
 
             INode resourceNode = graph.CreateUriNode(resourceUri);
             INode itemPredicate = graph.CreateUriNode(Schema.Predicates.CatalogItem);
             INode typePredicate = graph.CreateUriNode(Schema.Predicates.Type);
-            INode timeStampPredicate = graph.CreateUriNode(Schema.Predicates.CatalogTimestamp);
+            INode timeStampPredicate = graph.CreateUriNode(Schema.Predicates.CatalogTimeStamp);
             INode commitIdPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCommitId);
             INode countPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCount);
 
@@ -149,7 +164,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 }
             }
 
-            await SaveGraph(resourceUri, graph, typeUri, last);
+            if (extra != null)
+            {
+                graph.Merge(extra, true);
+            }
+
+            await SaveGraph(resourceUri, graph, typeUri);
         }
 
         protected async Task<IDictionary<string, CatalogItemSummary>> LoadIndexResource(Uri resourceUri)
@@ -165,7 +185,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             INode typePredicate = graph.CreateUriNode(Schema.Predicates.Type);
             INode itemPredicate = graph.CreateUriNode(Schema.Predicates.CatalogItem);
-            INode timeStampPredicate = graph.CreateUriNode(Schema.Predicates.CatalogTimestamp);
+            INode timeStampPredicate = graph.CreateUriNode(Schema.Predicates.CatalogTimeStamp);
             INode commitIdPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCommitId);
             INode countPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCount);
 
@@ -240,7 +260,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             }
         }
 
-        protected virtual async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri, bool last)
+        protected virtual async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri)
         {
             await Storage.Save(resourceUri, CreateIndexContent(graph, typeUri));
         }

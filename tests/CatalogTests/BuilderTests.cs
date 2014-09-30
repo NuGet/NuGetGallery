@@ -19,7 +19,7 @@ namespace CatalogTests
 
             CatalogContext context = new CatalogContext();
 
-            CatalogWriter writer = new CatalogWriter(storage, context, 600);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 600);
 
             const int BatchSize = 200;
             int i = 0;
@@ -59,7 +59,7 @@ namespace CatalogTests
 
             CatalogContext context = new CatalogContext();
 
-            CatalogWriter writer = new CatalogWriter(storage, context, 20);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 20);
 
             int total = 0;
 
@@ -130,7 +130,7 @@ namespace CatalogTests
 
             CatalogContext context = new CatalogContext();
 
-            CatalogWriter writer = new CatalogWriter(storage, context, 1000);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 1000);
 
             const int BatchSize = 1000;
             int i = 0;
@@ -162,13 +162,14 @@ namespace CatalogTests
             Test2Async().Wait();
         }
 
+        /*
         public static async Task Test3Async()
         {
             Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\test");
 
             CatalogContext context = new CatalogContext();
 
-            CatalogWriter writer = new CatalogWriter(storage, context, 1000);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 1000);
 
             string[] names1 = { "a", "b", "c", "d", "e" };
             string[] names2 = { "f", "g", "h" };
@@ -220,14 +221,16 @@ namespace CatalogTests
 
             Test3Async().Wait();
         }
+        */
 
+        /*
         public static async Task Test4Async()
         {
             Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\test");
 
             CatalogContext context = new CatalogContext();
 
-            CatalogWriter writer = new CatalogWriter(storage, context, 4);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 4);
 
             string[] names1 = { "a", "b", "c", "d", "e" };
             string[] names2 = { "f", "g", "h" };
@@ -273,6 +276,7 @@ namespace CatalogTests
 
             Test4Async().Wait();
         }
+        */
 
         public static async Task Test5Async(string searchPattern)
         {
@@ -282,7 +286,7 @@ namespace CatalogTests
 
             CatalogContext context = new CatalogContext();
 
-            CatalogWriter writer = new CatalogWriter(storage, context, 20);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 20);
 
             int total = 0;
 

@@ -1,4 +1,5 @@
-﻿using NuGet.Services.Metadata.Catalog;
+﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
@@ -23,13 +24,11 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         protected override async Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries)
         {
-            Uri rootUri = Storage.ResolveUri("index.json");
-
             SortedDictionary<NuGetVersion, KeyValuePair<string, CatalogItemSummary>> versions = new SortedDictionary<NuGetVersion, KeyValuePair<string, CatalogItemSummary>>();
 
             //  load all items from existing pages
 
-            IDictionary<string, CatalogItemSummary> pageEntries = await LoadIndexResource(rootUri);
+            IDictionary<string, CatalogItemSummary> pageEntries = await LoadIndexResource(RootUri);
 
             foreach (KeyValuePair<string, CatalogItemSummary> pageEntry in pageEntries)
             {
@@ -62,7 +61,9 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                 newPageItemEntries.Add(version.Value);
             }
 
-            await SaveIndexResource(newPageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, newPageItemEntries);
+            IGraph extra = CreateExtraGraph(newPageUri, lower, upper);
+
+            await SaveIndexResource(newPageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, newPageItemEntries, extra);
 
             IDictionary<string, CatalogItemSummary> newPageEntries = new Dictionary<string, CatalogItemSummary>();
 
@@ -81,6 +82,15 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             return newPageEntries;
         }
 
+        static IGraph CreateExtraGraph(Uri pageUri, string lower, string upper)
+        {
+            IGraph graph = new Graph();
+            INode resourceNode = graph.CreateUriNode(pageUri);
+            graph.Assert(resourceNode, graph.CreateUriNode(Schema.Predicates.Lower), graph.CreateLiteralNode(lower));
+            graph.Assert(resourceNode, graph.CreateUriNode(Schema.Predicates.Upper), graph.CreateLiteralNode(upper));
+            return graph;
+        }
+
         static NuGetVersion GetVersion(IGraph pageContent)
         {
             Triple triple = pageContent.GetTriplesWithPredicate(pageContent.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault();
@@ -94,10 +104,16 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
             INode resourceUri = graph.CreateUriNode(newPageUri);
 
-            graph.Assert(resourceUri, graph.CreateUriNode(new Uri("http://schema.nuget.org/schema#lower")), graph.CreateLiteralNode(lower));
-            graph.Assert(resourceUri, graph.CreateUriNode(new Uri("http://schema.nuget.org/schema#upper")), graph.CreateLiteralNode(upper));
+            graph.Assert(resourceUri, graph.CreateUriNode(Schema.Predicates.Lower), graph.CreateLiteralNode(lower));
+            graph.Assert(resourceUri, graph.CreateUriNode(Schema.Predicates.Upper), graph.CreateLiteralNode(upper));
 
             return graph;
+        }
+
+        protected override StorageContent CreateIndexContent(IGraph graph, Uri type)
+        {
+            JObject frame = Context.GetJsonLdContext("context.Registration.json", type);
+            return new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
         }
     }
 }

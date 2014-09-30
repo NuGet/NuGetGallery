@@ -13,15 +13,15 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
     {
         public static readonly int DefaultDatabaseChecksumBatchSize = 50000;
         public static readonly int DefaultCatalogAddBatchSize = 2000;
-        
-        private CatalogWriter _writer;
+
+        private AppendOnlyCatalogWriter _writer;
         private ChecksumRecords _checksums;
         private CollectorHttpClient _client;
         
         public int DatabaseChecksumBatchSize { get; set; }
         public int CatalogAddBatchSize { get; set; }
 
-        public CatalogUpdater(CatalogWriter writer, ChecksumRecords checksums, CollectorHttpClient client)
+        public CatalogUpdater(AppendOnlyCatalogWriter writer, ChecksumRecords checksums, CollectorHttpClient client)
         {
             DatabaseChecksumBatchSize = DefaultDatabaseChecksumBatchSize;
             CatalogAddBatchSize = DefaultCatalogAddBatchSize;

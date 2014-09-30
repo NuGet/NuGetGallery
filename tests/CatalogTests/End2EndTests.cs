@@ -30,7 +30,7 @@ namespace CatalogTests
 
             CatalogContext context = new CatalogContext();
 
-            CatalogWriter writer = new CatalogWriter(storage, context, 4, false);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 4, false);
 
             string[] first = { "john", "paul", "ringo", "george" };
             foreach (string item in first)
@@ -91,7 +91,7 @@ namespace CatalogTests
 
             CatalogContext context = new CatalogContext();
 
-            CatalogWriter writer = new CatalogWriter(storage, context, 4, false);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 4, false);
 
             string[] first = { "john", "paul", "ringo", "george" };
             foreach (string item in first)
@@ -134,7 +134,7 @@ namespace CatalogTests
 
             CatalogContext context = new CatalogContext();
 
-            CatalogWriter writer = new CatalogWriter(storage, context, 4, false);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 4, false);
 
             string[] first = { "john", "paul", "ringo", "george" };
             foreach (string item in first)

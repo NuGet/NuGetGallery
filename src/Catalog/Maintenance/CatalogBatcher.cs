@@ -10,9 +10,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
     {
         int _batchSize;
         List<CatalogItem> _currentBatch;
-        CatalogWriter _writer;
+        AppendOnlyCatalogWriter _writer;
 
-        public CatalogBatcher(int batchSize, CatalogWriter writer)
+        public CatalogBatcher(int batchSize, AppendOnlyCatalogWriter writer)
         {
             _batchSize = batchSize;
             _writer = writer;
