@@ -119,26 +119,45 @@ namespace Stats.Replicator
             CurrentMaxBatchSize = MaxBatchSize;
 
             int totalReplicated = 0;
+            int failures = 0;
+            ReplicationSourceMarker replicationSourceMarker;
+            ReplicationTargetMarker replicationTargetMarker;
 
-            // Get information about the source for the configured time window
-            JobEventSourceLog.GettingSourceReplicationMarker();
-            var replicationSourceMarker = await GetReplicationSourceMarker(Source, MinTimestamp, MaxTimestamp);
+            while (true)
+            {
+                try
+                {
+                    // Get information about the source for the configured time window
+                    JobEventSourceLog.GettingSourceReplicationMarker();
+                    replicationSourceMarker = await GetReplicationSourceMarker(Source, MinTimestamp, MaxTimestamp);
 
-            if (replicationSourceMarker.RecordsToReplicate > 0)
-            {
-                JobEventSourceLog.GotSourceReplicationMarker(replicationSourceMarker.MinKey, replicationSourceMarker.MaxKey, replicationSourceMarker.RecordsToReplicate, replicationSourceMarker.MinTimestamp, replicationSourceMarker.MaxTimestamp);
-            }
-            else
-            {
-                JobEventSourceLog.NothingToReplicate();
-                return 0;
+                    if (replicationSourceMarker.RecordsToReplicate > 0)
+                    {
+                        JobEventSourceLog.GotSourceReplicationMarker(replicationSourceMarker.MinKey, replicationSourceMarker.MaxKey, replicationSourceMarker.RecordsToReplicate, replicationSourceMarker.MinTimestamp, replicationSourceMarker.MaxTimestamp);
+                        break;
+                    }
+                    else
+                    {
+                        JobEventSourceLog.NothingToReplicate();
+                        return 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    JobEventSourceLog.ErrorOccurred(++failures, MaxFailures, ex.ToString());
+
+                    if (failures >= MaxFailures)
+                    {
+                        throw;
+                    }
+                }
             }
 
             // If we're replaying a time window (with both a min and max configured), then clear any existing records
             // that exist within that time window to start fresh.
             if (MinTimestamp.HasValue && ClearExistingRecords)
             {
-                int failures = 0;
+                failures = 0;
 
                 while (true)
                 {
@@ -147,9 +166,11 @@ namespace Stats.Replicator
                         await ClearDownloadFacts(Destination, MinTimestamp.Value, MaxTimestamp ?? replicationSourceMarker.MaxTimestamp);
                         break;
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        if (++failures == MaxFailures)
+                        JobEventSourceLog.ErrorOccurred(++failures, MaxFailures, ex.ToString());
+
+                        if (failures >= MaxFailures)
                         {
                             throw;
                         }
@@ -157,26 +178,63 @@ namespace Stats.Replicator
                 }
             }
 
-            // Using the time window from the source that has data, find the time window from the target where there's missing data
-            JobEventSourceLog.GettingNextTargetTimeWindow(replicationSourceMarker.MinTimestamp, replicationSourceMarker.MaxTimestamp);
-            var replicationTargetMarker = await GetReplicationTargetMarker(Destination, replicationSourceMarker);
-            JobEventSourceLog.GotNextTargetTimeWindow(replicationTargetMarker.MinTimestamp, replicationTargetMarker.MaxTimestamp, replicationTargetMarker.TimeWindowNeedsReplication ? "Replication Needed" : "No Replication Needed");
+            failures = 0;
 
-            if (replicationSourceMarker.MinTimestamp != replicationTargetMarker.MinTimestamp || replicationSourceMarker.MaxTimestamp != replicationTargetMarker.MaxTimestamp)
+            while (true)
             {
-                // Now refresh our source marker to be within the bounds of the target marker to be crystal clear about what we're replicating
-                // This prevents us from replicating an incomplete hour (more specifically, the current hour)
-                JobEventSourceLog.GettingSourceReplicationMarker();
-                replicationSourceMarker = await GetReplicationSourceMarker(Source, replicationTargetMarker.MinTimestamp, replicationTargetMarker.MaxTimestamp);
+                try
+                {
+                    // Using the time window from the source that has data, find the time window from the target where there's missing data
+                    JobEventSourceLog.GettingNextTargetTimeWindow(replicationSourceMarker.MinTimestamp, replicationSourceMarker.MaxTimestamp);
+                    replicationTargetMarker = await GetReplicationTargetMarker(Destination, replicationSourceMarker);
+                    JobEventSourceLog.GotNextTargetTimeWindow(replicationTargetMarker.MinTimestamp, replicationTargetMarker.MaxTimestamp, replicationTargetMarker.TimeWindowNeedsReplication ? "Replication Needed" : "No Replication Needed");
 
-                if (replicationSourceMarker.RecordsToReplicate > 0)
-                {
-                    JobEventSourceLog.GotSourceReplicationMarker(replicationSourceMarker.MinKey, replicationSourceMarker.MaxKey, replicationSourceMarker.RecordsToReplicate, replicationSourceMarker.MinTimestamp, replicationSourceMarker.MaxTimestamp);
+                    break;
                 }
-                else
+                catch (Exception ex)
                 {
-                    JobEventSourceLog.NothingToReplicate();
-                    return 0;
+                    JobEventSourceLog.ErrorOccurred(++failures, MaxFailures, ex.ToString());
+
+                    if (failures >= MaxFailures)
+                    {
+                        throw;
+                    }
+                }
+            }
+
+            failures = 0;
+
+            while (true)
+            {
+                try
+                {
+                    if (replicationSourceMarker.MinTimestamp != replicationTargetMarker.MinTimestamp || replicationSourceMarker.MaxTimestamp != replicationTargetMarker.MaxTimestamp)
+                    {
+                        // Now refresh our source marker to be within the bounds of the target marker to be crystal clear about what we're replicating
+                        // This prevents us from replicating an incomplete hour (more specifically, the current hour)
+                        JobEventSourceLog.GettingSourceReplicationMarker();
+                        replicationSourceMarker = await GetReplicationSourceMarker(Source, replicationTargetMarker.MinTimestamp, replicationTargetMarker.MaxTimestamp);
+
+                        if (replicationSourceMarker.RecordsToReplicate > 0)
+                        {
+                            JobEventSourceLog.GotSourceReplicationMarker(replicationSourceMarker.MinKey, replicationSourceMarker.MaxKey, replicationSourceMarker.RecordsToReplicate, replicationSourceMarker.MinTimestamp, replicationSourceMarker.MaxTimestamp);
+                            break;
+                        }
+                        else
+                        {
+                            JobEventSourceLog.NothingToReplicate();
+                            return 0;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    JobEventSourceLog.ErrorOccurred(++failures, MaxFailures, ex.ToString());
+
+                    if (failures >= MaxFailures)
+                    {
+                        throw;
+                    }
                 }
             }
 
@@ -909,6 +967,13 @@ namespace Stats.Replicator
             Message = "There are no records to replicate. Finished.")]
         public void NothingToReplicate()
         { WriteEvent(36); }
+
+        [Event(
+            eventId: 37,
+            Level = EventLevel.Warning,
+            Message = "An error occurred during attempt {0} of {1}. {2}")]
+        public void ErrorOccurred(int attempt, int maxFailures, string error)
+        { WriteEvent(37, attempt, maxFailures, error); }
 
         public static class Tasks
         {
