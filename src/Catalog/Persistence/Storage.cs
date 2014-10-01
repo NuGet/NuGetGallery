@@ -73,7 +73,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         protected string GetName(Uri uri)
         {
-            string address = BaseAddress.GetLeftPart(UriPartial.Path);
+            string address = Uri.UnescapeDataString(BaseAddress.GetLeftPart(UriPartial.Path));
             if (!address.EndsWith("/"))
             {
                 address += "/";

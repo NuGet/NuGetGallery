@@ -26,7 +26,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         protected override async Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries)
         {
             IDictionary<string, CatalogItemSummary> pageEntries;
-            if (_first && _append)
+            if (_first && !_append)
             {
                 pageEntries = new Dictionary<string, CatalogItemSummary>();
                 _first = false;
