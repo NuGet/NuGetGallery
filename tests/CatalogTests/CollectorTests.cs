@@ -1,16 +1,12 @@
-﻿using NuGet.Services.Metadata.Catalog.Collecting;
+﻿using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Collecting;
 using NuGet.Services.Metadata.Catalog.Collecting.Test;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
-using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using System.Diagnostics;
-using NuGet.Services.Metadata.Catalog;
-using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CatalogTests
 {

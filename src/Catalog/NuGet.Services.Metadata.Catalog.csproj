@@ -63,9 +63,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Versioning, Version=1.0.1.0, Culture=neutral, PublicKeyToken=9e6959738a042b27, processorArchitecture=MSIL">
+    <Reference Include="NuGet.Versioning, Version=1.0.2.0, Culture=neutral, PublicKeyToken=9e6959738a042b27, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Versioning.1.0.1\lib\portable-net40+win\NuGet.Versioning.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Versioning.1.0.2\lib\portable-net40+win\NuGet.Versioning.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -95,7 +95,6 @@
     <Compile Include="Collecting\RegistrationCatalogCollector.cs" />
     <Compile Include="Collecting\RegistrationCatalogItem.cs" />
     <Compile Include="Collecting\RegistrationCatalogWriter.cs" />
-    <None Include="Collecting\RegistrationCollector.cs" />
     <Compile Include="Collecting\SegmentCollector.cs" />
     <Compile Include="Collecting\SortingCollector.cs" />
     <Compile Include="Collecting\SortingGraphCollector.cs" />
@@ -133,7 +132,6 @@
     <Compile Include="Maintenance\NuspecPackageCatalogItem.cs" />
     <Compile Include="Maintenance\PackageCatalogItem.cs" />
     <Compile Include="Maintenance\DeleteRegistrationCatalogItem.cs" />
-    <None Include="Collecting\ResolverCollector.cs" />
     <Compile Include="Collecting\BatchCollector.cs" />
     <Compile Include="Persistence\AzureStorage.cs" />
     <Compile Include="Persistence\FileStorage.cs" />

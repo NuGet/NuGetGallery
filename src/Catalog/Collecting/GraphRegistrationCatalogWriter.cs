@@ -1,8 +1,6 @@
-﻿using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Collecting;
+﻿using NuGet.Services.Metadata.Catalog.Collecting;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using VDS.RDF;
 

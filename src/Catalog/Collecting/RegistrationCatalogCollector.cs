@@ -1,13 +1,10 @@
 ﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NuGet.Services.Metadata.Catalog.Maintenance;
 using VDS.RDF;
-using NuGet.Services.Metadata.Catalog.Collecting;
-using NuGet.Services.Metadata.Catalog;
 
 namespace NuGet.Services.Metadata.Catalog.Collecting
 {

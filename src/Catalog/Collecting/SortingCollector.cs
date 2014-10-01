@@ -1,9 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog.Collecting;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Collecting

@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
@@ -83,28 +81,41 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         {
             IDictionary<string, CatalogItemSummary> pageItems = new Dictionary<string, CatalogItemSummary>();
             List<Task> tasks = null;
+
+            Uri resourceUri = null;
+            int batchIndex = 0;
+
             foreach (CatalogItem item in _batch)
             {
-                item.SetTimeStamp(commitTimeStamp);
-                item.SetCommitId(commitId);
-                item.SetBaseAddress(Storage.BaseAddress);
-
-                StorageContent content = item.CreateContent(Context);
-                IGraph pageContent = item.CreatePageContent(Context);
-
-                Uri resourceUri = item.GetItemAddress();
-
-                if (content != null)
+                try
                 {
-                    if (tasks == null)
+                    resourceUri = item.GetItemAddress();
+
+                    item.SetTimeStamp(commitTimeStamp);
+                    item.SetCommitId(commitId);
+                    item.SetBaseAddress(Storage.BaseAddress);
+
+                    StorageContent content = item.CreateContent(Context);
+                    IGraph pageContent = item.CreatePageContent(Context);
+
+                    if (content != null)
                     {
-                        tasks = new List<Task>();
+                        if (tasks == null)
+                        {
+                            tasks = new List<Task>();
+                        }
+
+                        tasks.Add(Storage.Save(resourceUri, content));
                     }
 
-                    tasks.Add(Storage.Save(resourceUri, content));
-                }
+                    pageItems.Add(resourceUri.ToString(), new CatalogItemSummary(item.GetItemType(), commitId, commitTimeStamp, null, pageContent));
 
-                pageItems.Add(resourceUri.ToString(), new CatalogItemSummary(item.GetItemType(), commitId, commitTimeStamp, null, pageContent));
+                    batchIndex++;
+                }
+                catch (Exception e)
+                {
+                    throw new Exception(string.Format("item uri: {0} batch index: {1}", resourceUri, batchIndex), e);
+                }
             }
 
             if (tasks != null)

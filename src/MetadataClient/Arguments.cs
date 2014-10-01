@@ -69,8 +69,8 @@ namespace MetadataClient
         [ArgActionMethod]
         public void CreateResolverBlobs(CreateResolverBlobsArgs args)
         {
-            var storage = new FileStorage(args.ResolverBase, args.ResolverFolder);
-            var collector = new ResolverCollector(storage, 1000);
+            var storageFactory = new FileStorageFactory(args.ResolverBase, args.ResolverFolder);
+            var collector = new RegistrationCatalogCollector(storageFactory, 1000);
             var client = new CollectorHttpClient(
                 new FileSystemEmulatorHandler(new WebRequestHandler() { AllowPipelining = true })
             {
@@ -110,7 +110,7 @@ namespace MetadataClient
                 args.ChecksumFile = Path.Combine(args.CatalogFolder, "checksums.v1.json");
             }
 
-            var writer = new CatalogWriter(
+            var writer = new AppendOnlyCatalogWriter(
                 new FileStorage(args.BaseAddress, args.CatalogFolder),
                 new CatalogContext());
             var client = new CollectorHttpClient(
@@ -225,7 +225,7 @@ namespace MetadataClient
             }
             Console.WriteLine("Using {0} with base address {1}", storage.GetType().Name, storage.BaseAddress);
 
-            var writer = new CatalogWriter(storage, new CatalogContext());
+            var writer = new AppendOnlyCatalogWriter(storage, new CatalogContext());
             var batcher = new GalleryExportBatcher(2000, writer);
             int lastHighest = 0;
             while(true) {

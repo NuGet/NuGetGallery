@@ -1,24 +1,27 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Xml.Linq;
-using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     public class NuspecPackageCatalogItem : PackageCatalogItem
     {
-        private readonly string _fullName;
         private XDocument _nuspec;
 
-        public NuspecPackageCatalogItem(string fullName)
+        public NuspecPackageCatalogItem(string path)
         {
-            _fullName = fullName;
+            Path = path;
         }
 
-        public NuspecPackageCatalogItem(string fullName, XDocument nuspec)
+        public NuspecPackageCatalogItem(string path, XDocument nuspec)
         {
-            _fullName = fullName;
+            Path = path;
             _nuspec = nuspec;
+        }
+
+        public string Path
+        {
+            get;
+            private set;
         }
 
         protected override XDocument GetNuspec()
@@ -29,7 +32,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 {
                     if (_nuspec == null)
                     {
-                        using (StreamReader reader = new StreamReader(_fullName))
+                        using (StreamReader reader = new StreamReader(Path))
                         {
                             return XDocument.Load(reader);
                         }
