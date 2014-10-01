@@ -89,14 +89,14 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             {
                 try
                 {
-                    resourceUri = item.GetItemAddress();
-
                     item.SetTimeStamp(commitTimeStamp);
                     item.SetCommitId(commitId);
                     item.SetBaseAddress(Storage.BaseAddress);
 
                     StorageContent content = item.CreateContent(Context);
                     IGraph pageContent = item.CreatePageContent(Context);
+
+                    resourceUri = item.GetItemAddress();
 
                     if (content != null)
                     {
