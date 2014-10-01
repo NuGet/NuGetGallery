@@ -34,7 +34,10 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return null;
         }
 
-        protected abstract string GetItemIdentity();
+        protected virtual string GetItemIdentity()
+        {
+            return string.Empty;
+        }
 
         public Uri GetBaseAddress()
         {
@@ -44,6 +47,11 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         public string GetRelativeAddress()
         {
             return GetItemIdentity() + ".json";
+        }
+
+        public virtual Uri GetItemAddress()
+        {
+            return new Uri(GetBaseAddress(), GetRelativeAddress());
         }
 
         protected DateTime GetTimeStamp()

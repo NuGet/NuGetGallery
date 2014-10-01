@@ -1,0 +1,44 @@
+﻿PREFIX nuget: <http://schema.nuget.org/schema#>
+
+CONSTRUCT
+{
+    ?package a nuget:Package ;
+             nuget:id ?id ;
+             nuget:version ?version ;
+             nuget:dependencyGroup ?dependency_group ;
+             nuget:nupkgUrl ?nupkgUrl ;
+             nuget:minClientVersion ?minClientVersion .
+
+    ?dependency_group a nuget:PackageDependencyGroup ;
+	                  nuget:dependency ?dependency ;
+                      nuget:targetFramework ?dependency_group_targetFramework .
+
+    ?dependency a nuget:PackageDependency ;
+	            nuget:id ?dependency_id ;
+                nuget:registration ?dependency_registration ;
+                nuget:range ?dependency_version .
+}
+WHERE
+{
+    ?package a nuget:Package ;
+             nuget:version ?version ;
+             nuget:id ?id .
+
+	OPTIONAL { ?resource nuget:minClientVersion ?minClientVersion . }
+
+    BIND (IRI(CONCAT(@contentBase, "/packages/", LCASE(?id), ".", ?version, ".nupkg" )) AS ?nupkgUrl)
+
+    OPTIONAL
+    {
+        ?resource nuget:dependencyGroup ?dependency_group .
+        ?dependency_group nuget:dependency ?dependency .
+
+        OPTIONAL { ?dependency_group nuget:targetFramework ?dependency_group_targetFramework . }
+        
+        ?dependency nuget:id ?dependency_id .
+        
+        BIND (IRI(CONCAT(@baseAddress, ?dependency_id, "/index.json")) AS ?dependency_registration)
+        
+        OPTIONAL { ?dependency nuget:range ?dependency_version . }
+    }
+}

@@ -1,16 +1,12 @@
-﻿using NuGet.Services.Metadata.Catalog.Collecting;
+﻿using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Collecting;
 using NuGet.Services.Metadata.Catalog.Collecting.Test;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
-using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using System.Diagnostics;
-using NuGet.Services.Metadata.Catalog;
-using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CatalogTests
 {
@@ -25,6 +21,7 @@ namespace CatalogTests
 
     class CollectorTests
     {
+        /*
         public static async Task Test0Async()
         {
             Storage storage = new FileStorage("http://localhost:8000/resolver/", @"c:\data\site\resolver");
@@ -50,11 +47,11 @@ namespace CatalogTests
 
             Test0Async().Wait();
         }
-
+        */
         public static async Task Test1Async()
         {
             CountCollector collector = new CountCollector();
-            await collector.Run(new Uri("http://localhost:8000/export/catalog/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://localhost:8000/test2/ravendb.client.debug/index.json"), DateTime.MinValue);
             Console.WriteLine("total: {0}", collector.Total);
             Console.WriteLine("http requests: {0}", collector.RequestCount);
         }
@@ -101,6 +98,7 @@ namespace CatalogTests
             Test3Async().Wait();
         }
 
+        /*
         public static async Task Test4Async()
         {
             //Storage storage = new AzureStorage
@@ -195,6 +193,7 @@ namespace CatalogTests
 
             Test6Async().Wait();
         }
+        */
 
         public static async Task Test7Async()
         {
@@ -245,7 +244,9 @@ namespace CatalogTests
 
         public static async Task Test9Async()
         {
-            Storage storage = new FileStorage("http://localhost:8000/test2/", @"c:\data\site\test2");
+            StorageFactory storage = new FileStorageFactory("http://localhost:8000/test/", @"c:\data\site\test");
+
+            RegistrationCatalogCollector collector = new RegistrationCatalogCollector(storage, 200);
 
             FileSystemEmulatorHandler handler = new VerboseHandler
             {
@@ -254,9 +255,10 @@ namespace CatalogTests
                 InnerHandler = new HttpClientHandler()
             };
 
-            RegistrationCollector collector = new RegistrationCollector(storage, 200);
+            CollectorCursor cursor = new CollectorCursor(new DateTime(2014, 10, 01, 03, 27, 26, DateTimeKind.Utc));
+            //CollectorCursor cursor = new CollectorCursor(DateTime.MinValue);
 
-            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue, handler);
+            await collector.Run(new Uri("http://localhost:8000/full/index.json"), cursor, handler);
             //await collector.Run(new Uri("http://partitions.blob.core.windows.net/partition0/index.json"), DateTime.MinValue);
             //await collector.Run(new Uri("http://localhost:8000/partition/partition0/index.json"), DateTime.MinValue, handler);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);

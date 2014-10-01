@@ -29,13 +29,13 @@ namespace NuGetFeed
 
         protected override void RunCore()
         {
-            ResolverCollector collector = new ResolverCollector(Config.PackageRegistrations.Storage, 1000);
-            collector.GalleryBaseAddress = Config.Gallery.BaseAddress.AbsoluteUri.TrimEnd('/');
-            collector.ContentBaseAddress = Config.Packages.BaseAddress.AbsoluteUri.TrimEnd('/');
+            //ResolverCollector collector = new ResolverCollector(Config.PackageRegistrations.Storage, 1000);
+            //collector.GalleryBaseAddress = Config.Gallery.BaseAddress.AbsoluteUri.TrimEnd('/');
+            //collector.ContentBaseAddress = Config.Packages.BaseAddress.AbsoluteUri.TrimEnd('/');
 
-            var indexUri = new Uri(Config.Catalog.BaseAddress + "index.json");
-            var task = collector.Run(indexUri, _cursor, Config.Catalog.FileSystemEmulator);
-            task.Wait();
+            //var indexUri = new Uri(Config.Catalog.BaseAddress + "index.json");
+            //var task = collector.Run(indexUri, _cursor, Config.Catalog.FileSystemEmulator);
+            //task.Wait();
         }
     }
 }

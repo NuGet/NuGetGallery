@@ -40,6 +40,16 @@ namespace NuGet.Services.Metadata.Catalog
             }
             return original;
         }
+
+        public string NormalizeVersionRange(string original)
+        {
+            VersionRange versionRange;
+            if (VersionRange.TryParse(original, out versionRange))
+            {
+                return versionRange.ToString();
+            }
+            return original;
+        }
         
         public string IsPrerelease(string original)
         {

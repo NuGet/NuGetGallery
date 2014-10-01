@@ -34,7 +34,7 @@ namespace NuGetFeed
 
             Task commitTask = null;
 
-            using (var writer = new CatalogWriter(Config.Catalog.Storage, new CatalogContext()))
+            using (var writer = new AppendOnlyCatalogWriter(Config.Catalog.Storage, new CatalogContext()))
             {
                 while (_nupkgs.Count > 0)
                 {

@@ -18,7 +18,7 @@ namespace CatalogTests
             //  first save the delete into the catalog
 
             CatalogContext context = new CatalogContext();
-            using (CatalogWriter writer = new CatalogWriter(storage, context, 1000, true))
+            using (AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 1000, true))
             {
                 //writer.Add(new DeletePackageCatalogItem("Test.Metadata.Service", "1.0.0"));
                 writer.Add(new DeletePackageCatalogItem("Test.Metadata.Service", "2.0.0"));
@@ -46,7 +46,7 @@ namespace CatalogTests
             //  first save the delete into the catalog
 
             CatalogContext context = new CatalogContext();
-            using (CatalogWriter writer = new CatalogWriter(storage, context, 1000, true))
+            using (AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 1000, true))
             {
                 writer.Add(new DeleteRegistrationCatalogItem("abc"));
                 await writer.Commit(DateTime.Now);

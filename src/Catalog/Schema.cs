@@ -42,25 +42,27 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Type = new Uri(Prefixes.Rdf + "type");
 
             public static readonly Uri CatalogCommitId = new Uri(Prefixes.Catalog + "commitId");
-            public static readonly Uri CatalogTimestamp = new Uri(Prefixes.Catalog + "commitTimestamp");
-            public static readonly Uri CatalogCommitUserData = new Uri(Prefixes.Catalog + "commitUserData");
+            public static readonly Uri CatalogTimeStamp = new Uri(Prefixes.Catalog + "commitTimeStamp");
             public static readonly Uri CatalogItem = new Uri(Prefixes.Catalog + "item");
-            public static readonly string CatalogPropertyPrefix = Prefixes.Catalog + "commitUserProperty$";
+            public static readonly Uri CatalogCount = new Uri(Prefixes.Catalog + "count");
+
             public static readonly Uri GalleryKey = new Uri(Prefixes.Catalog + "galleryKey");
             public static readonly Uri GalleryChecksum = new Uri(Prefixes.Catalog + "galleryChecksum");
             public static readonly Uri Parent = new Uri(Prefixes.Catalog + "parent");
-            public static readonly Uri CatalogCount = new Uri(Prefixes.Catalog + "count");
 
             public static readonly Uri Id = new Uri(Prefixes.NuGet + "id");
             public static readonly Uri Version = new Uri(Prefixes.NuGet + "version");
 
-            public static readonly Uri Info = new Uri(Prefixes.NuGet + "info");
-            public static readonly Uri Overview = new Uri(Prefixes.NuGet + "overview");
-            public static readonly Uri Range = new Uri(Prefixes.NuGet + "range");
-            public static readonly Uri Low = new Uri(Prefixes.NuGet + "low");
-            public static readonly Uri High = new Uri(Prefixes.NuGet + "high");
-            public static readonly Uri RangePackages = new Uri(Prefixes.NuGet + "rangePackages");
-            public static readonly Uri PackageRange = new Uri(Prefixes.NuGet + "packageRange");
+            public static readonly Uri Upper = new Uri(Prefixes.NuGet + "upper");
+            public static readonly Uri Lower = new Uri(Prefixes.NuGet + "lower");
+
+            //public static readonly Uri Info = new Uri(Prefixes.NuGet + "info");
+            //public static readonly Uri Overview = new Uri(Prefixes.NuGet + "overview");
+            //public static readonly Uri Range = new Uri(Prefixes.NuGet + "range");
+            //public static readonly Uri Low = new Uri(Prefixes.NuGet + "low");
+            //public static readonly Uri High = new Uri(Prefixes.NuGet + "high");
+            //public static readonly Uri RangePackages = new Uri(Prefixes.NuGet + "rangePackages");
+            //public static readonly Uri PackageRange = new Uri(Prefixes.NuGet + "packageRange");
 
             // General-purpose fields
             

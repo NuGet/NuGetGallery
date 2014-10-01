@@ -1,10 +1,7 @@
-﻿using JsonLD.Core;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Collecting
@@ -39,7 +36,13 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             JToken context = null;
             root.TryGetValue("@context", out context);
 
-            IEnumerable<JToken> rootItems = root["items"].OrderBy(item => item["commitTimestamp"].ToObject<DateTime>());
+            IEnumerable<JToken> rootItems = root["items"].OrderBy(item => item["commitTimeStamp"].ToObject<DateTime>());
+
+            foreach (JToken item in rootItems)
+            {
+                Console.WriteLine(item["commitTimeStamp"].ToObject<DateTime>());
+            }
+            Console.WriteLine("START: {0}", startFrom);
 
             bool hasPassedDependencies = false;
 
@@ -50,18 +53,18 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                     break;
                 }
 
-                CollectorCursor pageCursor = (CollectorCursor)rootItem["commitTimestamp"].ToObject<DateTime>();
+                CollectorCursor pageCursor = (CollectorCursor)rootItem["commitTimeStamp"].ToObject<DateTime>();
 
                 if (pageCursor > startFrom)
                 {
                     Uri pageUri = rootItem["url"].ToObject<Uri>();
                     JObject page = await client.GetJObjectAsync(pageUri);
 
-                    IEnumerable<JToken> pageItems = page["items"].OrderBy(item => item["commitTimestamp"].ToObject<DateTime>());
+                    IEnumerable<JToken> pageItems = page["items"].OrderBy(item => item["commitTimeStamp"].ToObject<DateTime>());
 
                     foreach (JObject pageItem in pageItems)
                     {
-                        CollectorCursor itemCursor = (CollectorCursor)pageItem["commitTimestamp"].ToObject<DateTime>();
+                        CollectorCursor itemCursor = (CollectorCursor)pageItem["commitTimeStamp"].ToObject<DateTime>();
 
                         if (itemCursor > minDependencyCursor)
                         {
