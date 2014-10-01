@@ -244,7 +244,7 @@ namespace CatalogTests
 
         public static async Task Test9Async()
         {
-            StorageFactory storage = new FileStorageFactory("http://localhost:8000/test4/", @"c:\data\site\test4");
+            StorageFactory storage = new FileStorageFactory("http://localhost:8000/test/", @"c:\data\site\test");
 
             RegistrationCatalogCollector collector = new RegistrationCatalogCollector(storage, 200);
 
@@ -255,7 +255,10 @@ namespace CatalogTests
                 InnerHandler = new HttpClientHandler()
             };
 
-            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue, handler);
+            CollectorCursor cursor = new CollectorCursor(new DateTime(2014, 10, 01, 03, 27, 26, DateTimeKind.Utc));
+            //CollectorCursor cursor = new CollectorCursor(DateTime.MinValue);
+
+            await collector.Run(new Uri("http://localhost:8000/full/index.json"), cursor, handler);
             //await collector.Run(new Uri("http://partitions.blob.core.windows.net/partition0/index.json"), DateTime.MinValue);
             //await collector.Run(new Uri("http://localhost:8000/partition/partition0/index.json"), DateTime.MinValue, handler);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
