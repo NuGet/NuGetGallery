@@ -9,6 +9,9 @@ namespace NuGet.Jobs.Common
 {
     public static class JobRunner
     {
+        private const string JobSucceeded = "Job Succeeded";
+        private const string JobFailed = "Job Failed";
+        private const string JobCrashed = "Job Crashed";
         private static string PrettyPrintTime(double milliSeconds)
         {
             const string PrecisionSpecifier = "F3";
@@ -41,6 +44,7 @@ namespace NuGet.Jobs.Common
         /// <returns></returns>
         public static async Task Run(JobBase job, string[] commandLineArgs)
         {
+            string jobEndMessage = null;
             if (commandLineArgs.Length > 0 && String.Equals(commandLineArgs[0], "-dbg", StringComparison.OrdinalIgnoreCase))
             {
                 commandLineArgs = commandLineArgs.Skip(1).ToArray();
@@ -70,7 +74,7 @@ namespace NuGet.Jobs.Common
                 JobSetup(job, jobArgsDictionary, ref sleepDuration);
 
                 // Run the job loop
-                await JobLoop(job, runContinuously, sleepDuration.Value, consoleLogOnly);
+                jobEndMessage = await JobLoop(job, runContinuously, sleepDuration.Value, consoleLogOnly);
             }
             catch (AggregateException ex)
             {
@@ -92,7 +96,7 @@ namespace NuGet.Jobs.Common
             // Call FlushAll here. This is VERY IMPORTANT
             // Exception message(s) when the job faults are still in the queue. Need to be flushed
             // Also, when the job is only run once, FlushAll is important again
-            job.Logger.FlushAll();
+            job.Logger.FlushAllAndEnd(jobEndMessage ?? JobCrashed);
         }
 
         private static void JobSetup(JobBase job, IDictionary<string, string> jobArgsDictionary, ref int? sleepDuration)
@@ -122,10 +126,11 @@ namespace NuGet.Jobs.Common
             }
         }
 
-        private static async Task JobLoop(JobBase job, bool runContinuously, int sleepDuration, bool consoleLogOnly)
+        private static async Task<string> JobLoop(JobBase job, bool runContinuously, int sleepDuration, bool consoleLogOnly)
         {
             // Run the job now
             Stopwatch stopWatch = new Stopwatch();
+            bool success;
             do
             {
                 Trace.WriteLine("Running " + (runContinuously ? " continuously..." : " once..."));
@@ -136,18 +141,18 @@ namespace NuGet.Jobs.Common
                 job.Logger.Flush(skipCurrentBatch: false);
 
                 stopWatch.Restart();
-                bool success = await job.Run();
+                success = await job.Run();
                 stopWatch.Stop();
 
                 Trace.WriteLine("Job run ended...");
                 Trace.TraceInformation("Job run took {0}", PrettyPrintTime(stopWatch.ElapsedMilliseconds));
                 if(success)
                 {
-                    Trace.TraceInformation("Job Succeeded");
+                    Trace.TraceInformation(JobSucceeded);
                 }
                 else
                 {
-                    Trace.TraceWarning("Job Failed");
+                    Trace.TraceWarning(JobFailed);
                 }
 
                 // At this point, FlushAll is not called, So, what happens when the job is run only once?
@@ -158,7 +163,7 @@ namespace NuGet.Jobs.Common
                 Trace.WriteLine(String.Format("Will sleep for {0} before the next Job run", PrettyPrintTime(sleepDuration)));
 
                 // Flush All the logs for this run
-                job.Logger.FlushAll();
+                job.Logger.FlushAllAndEnd(success ? JobSucceeded : JobFailed);
 
                 // Use Console.WriteLine when you don't want it to be logged in Azure blobs
                 Console.WriteLine("Sleeping for {0} before the next job run", PrettyPrintTime(sleepDuration));
@@ -166,6 +171,8 @@ namespace NuGet.Jobs.Common
 
                 SetLogger(job, consoleLogOnly);
             } while (true);
+
+            return success ? JobSucceeded : JobFailed;
         }
     }
 }
