@@ -21,6 +21,7 @@ namespace NuGet.Jobs.Common
         private const int MaxLogBatchSize = 100;
         private const string JobLogNameFormat = "{0}/{1}.txt";
         private const string LogStorageContainerName = "ng-jobs-logs";
+        private const string EndedLogName = "ended";
 
         // Static members
         private static ConcurrentQueue<ConcurrentQueue<string>> LogQueues;
@@ -143,9 +144,9 @@ namespace NuGet.Jobs.Common
             }
         }
 
-        public override void FlushAll()
+        public override void FlushAllAndEnd(string jobEndMessage)
         {
-            base.FlushAll();
+            base.FlushAllAndEnd(jobEndMessage);
             var logQueue = Interlocked.Exchange(ref CurrentLogQueue, null);
             if(logQueue != null)
             {
@@ -165,6 +166,8 @@ namespace NuGet.Jobs.Common
             }
 
             Interlocked.Exchange(ref LogQueues, null);
+            var endedLogBlobName = String.Format(JobLogNameFormat, JobLogNamePrefix, EndedLogName);
+            Save(endedLogBlobName, jobEndMessage);
             LogConsoleOnly(TraceEventType.Information, "Successfully completed flushing of logs");
         }
 
@@ -176,10 +179,15 @@ namespace NuGet.Jobs.Common
                 builder.AppendLine(eventMessage);
             }
 
+            Save(blobName, builder.ToString());
+        }
+
+        private void Save(string blobName, string content)
+        {
             // Don't use the other overload of base.Log with format and args. That will call back into this class
             var blob = LogStorageContainer.GetBlockBlobReference(blobName);
             LogConsoleOnly(TraceEventType.Verbose, "Uploading to " + blob.Uri.ToString());
-            blob.UploadText(builder.ToString());
+            blob.UploadText(content);
         }
     }
 }
