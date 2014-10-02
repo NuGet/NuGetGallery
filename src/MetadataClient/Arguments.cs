@@ -111,8 +111,7 @@ namespace MetadataClient
             }
 
             var writer = new AppendOnlyCatalogWriter(
-                new FileStorage(args.BaseAddress, args.CatalogFolder),
-                new CatalogContext());
+                new FileStorage(args.BaseAddress, args.CatalogFolder));
             var client = new CollectorHttpClient(
                 new FileSystemEmulatorHandler(new WebRequestHandler() { AllowPipelining = true })
             {
@@ -225,7 +224,7 @@ namespace MetadataClient
             }
             Console.WriteLine("Using {0} with base address {1}", storage.GetType().Name, storage.BaseAddress);
 
-            var writer = new AppendOnlyCatalogWriter(storage, new CatalogContext());
+            var writer = new AppendOnlyCatalogWriter(storage);
             var batcher = new GalleryExportBatcher(2000, writer);
             int lastHighest = 0;
             while(true) {

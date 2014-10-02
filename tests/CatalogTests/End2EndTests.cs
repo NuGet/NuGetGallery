@@ -28,9 +28,7 @@ namespace CatalogTests
             Storage storage = new AzureStorage(
                 CloudStorageAccount.Parse("AccountName=nuget3;AccountKey=;DefaultEndpointsProtocol=https"), "test");
 
-            CatalogContext context = new CatalogContext();
-
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 4, false);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 4, false);
 
             string[] first = { "john", "paul", "ringo", "george" };
             foreach (string item in first)
@@ -89,9 +87,7 @@ namespace CatalogTests
             //    BaseAddress = "http://nuget3.blob.core.windows.net"
             //};
 
-            CatalogContext context = new CatalogContext();
-
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 4, false);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 4, false);
 
             string[] first = { "john", "paul", "ringo", "george" };
             foreach (string item in first)
@@ -132,9 +128,7 @@ namespace CatalogTests
             //    BaseAddress = "http://nuget3.blob.core.windows.net"
             //};
 
-            CatalogContext context = new CatalogContext();
-
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 4, false);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 4, false);
 
             string[] first = { "john", "paul", "ringo", "george" };
             foreach (string item in first)

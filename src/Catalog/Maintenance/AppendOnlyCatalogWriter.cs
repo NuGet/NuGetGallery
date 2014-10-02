@@ -10,8 +10,8 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         bool _append;
         bool _first;
 
-        public AppendOnlyCatalogWriter(Storage storage, CatalogContext context, int maxPageSize = 1000, bool append = true)
-            : base(storage, context)
+        public AppendOnlyCatalogWriter(Storage storage, int maxPageSize = 1000, bool append = true, ICatalogGraphPersistence catalogGraphPersistence = null, CatalogContext context = null)
+            : base(storage, catalogGraphPersistence, context)
         {
             _append = append;
             _first = true;
@@ -79,18 +79,6 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return latestUri;
         }
 
-        protected virtual Uri CreatePageUri(Uri baseAddress, string relativeAddress)
-        {
-            if (GraphPersistence != null)
-            {
-                return GraphPersistence.CreatePageUri(baseAddress, relativeAddress);
-            }
-            else
-            {
-                return new Uri(baseAddress, relativeAddress + ".json");
-            }
-        }
-
         static Tuple<int, Uri, int> ExtractLatest(IDictionary<string, CatalogItemSummary> currentPageEntries)
         {
             int maxPageNumber = -1;
@@ -118,6 +106,5 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             return new Tuple<int, Uri, int>(maxPageNumber, latestUri, latestCount);
         }
-
     }
 }

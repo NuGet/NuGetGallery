@@ -170,6 +170,11 @@ namespace NuGet.Services.Metadata.Catalog
 
         public static IGraph CreateGraph(string json)
         {
+            if (json == null)
+            {
+                return null;
+            }
+
             JToken compacted = JToken.Parse(json);
             return CreateGraph(compacted);
         }
@@ -183,6 +188,17 @@ namespace NuGet.Services.Metadata.Catalog
             rdfReader.Load(graph, new StringReader(flattened.ToString()));
 
             return graph;
+        }
+
+        public static void CopyGraph(INode sourceNode, IGraph source, IGraph target)
+        {
+            foreach (Triple triple in source.GetTriplesWithSubject(sourceNode))
+            {
+                if (target.Assert(triple.CopyTriple(target)) && triple.Object is IUriNode)
+                {
+                    CopyGraph(triple.Object, source, target);
+                }
+            }
         }
 
         public static bool IsType(JObject context, JObject obj, Uri type)

@@ -14,14 +14,14 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
     {
         IList<Uri> _cleanUpList;
 
-        public RegistrationCatalogWriter(Storage storage, IList<Uri> cleanUpList)
-            : base(storage)
+        public RegistrationCatalogWriter(Storage storage, int partitionSize = 100, IList<Uri> cleanUpList = null, ICatalogGraphPersistence graphPersistence = null, CatalogContext context = null)
+            : base(storage, graphPersistence, context)
         {
             _cleanUpList = cleanUpList;
-            PartitionSize = 100;
+            PartitionSize = partitionSize;
         }
 
-        public int PartitionSize { get; set; }
+        public int PartitionSize { get; private set; }
 
         protected override async Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries)
         {
@@ -94,18 +94,6 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             }
 
             return newPageEntries;
-        }
-
-        protected virtual Uri CreatePageUri(Uri baseAddress, string relativeAddress)
-        {
-            if (GraphPersistence != null)
-            {
-                return GraphPersistence.CreatePageUri(baseAddress, relativeAddress);
-            }
-            else
-            {
-                return new Uri(baseAddress, relativeAddress + ".json");
-            }
         }
 
         static IGraph CreateExtraGraph(Uri pageUri, string lower, string upper)

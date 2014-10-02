@@ -49,7 +49,7 @@ namespace CatMan
 
             // Load storage
             Storage storage = new FileStorage(args.BaseAddress, args.CatalogFolder);
-            using (var writer = new AppendOnlyCatalogWriter(storage, new CatalogContext()))
+            using (var writer = new AppendOnlyCatalogWriter(storage))
             {
                 if (!String.IsNullOrEmpty(args.DatabaseConnection))
                 {

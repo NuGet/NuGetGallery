@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,5 +51,27 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         }
 
         protected abstract Task<CollectorCursor> Fetch(CollectorHttpClient client, Uri index, CollectorCursor last);
+
+        public static async Task<int> GetItemCount(Storage storage)
+        {
+            Uri resourceUri = storage.ResolveUri("index.json");
+
+            string json = await storage.LoadString(resourceUri);
+
+            if (json == null)
+            {
+                return 0;
+            }
+
+            JObject index = JObject.Parse(json);
+
+            int total = 0;
+            foreach (JObject item in index["items"])
+            {
+                total += item["count"].ToObject<int>();
+            }
+
+            return total;
+        }
     }
 }

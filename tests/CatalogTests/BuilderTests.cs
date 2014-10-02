@@ -15,9 +15,7 @@ namespace CatalogTests
             //Storage storage = new FileStorage("http://localhost:8000/full", @"c:\data\site\full");
             Storage storage = new FileStorage("http://localhost:8000/ravendb", @"c:\data\site\ravendb");
 
-            CatalogContext context = new CatalogContext();
-
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 600);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 600);
 
             const int BatchSize = 200;
             int i = 0;
@@ -56,9 +54,7 @@ namespace CatalogTests
 
             Storage storage = new FileStorage("http://localhost:8000/full/", @"c:\data\site\full");
 
-            CatalogContext context = new CatalogContext();
-
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 20);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 20);
 
             int total = 0;
 
@@ -127,9 +123,7 @@ namespace CatalogTests
             //    BaseAddress = "http://nuget3.blob.core.windows.net"
             //};
 
-            CatalogContext context = new CatalogContext();
-
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 1000);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 1000);
 
             const int BatchSize = 1000;
             int i = 0;
@@ -283,9 +277,7 @@ namespace CatalogTests
 
             Storage storage = new FileStorage("http://localhost:8000/full/", @"c:\data\site\full");
 
-            CatalogContext context = new CatalogContext();
-
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 20);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 20);
 
             int total = 0;
 

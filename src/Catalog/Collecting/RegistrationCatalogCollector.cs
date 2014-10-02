@@ -19,9 +19,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
             ContentBaseAddress = "http://tempuri.org";
 
-            PartitionSize = 40;
-
-            PackageCountThreshold = 150;
+            PartitionSize = 32;
+            PackageCountThreshold = 128;
         }
 
         public string ContentBaseAddress { get; set; }
@@ -32,7 +31,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         {
             Storage storage = _storageFactory.Create(sortedGraphs.Key);
 
-            int count = await GetPackageCount(storage);
+            int count = await Collector.GetItemCount(storage);
 
             int total = count + sortedGraphs.Value.Count;
 
@@ -46,46 +45,13 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             }
         }
 
-        async Task<int> GetPackageCount(Storage storage)
-        {
-            Uri resourceUri = storage.ResolveUri("index.json");
-
-            string json = await storage.LoadString(resourceUri);
-
-            if (json == null)
-            {
-                return 0;
-            }
-
-            JObject index = JObject.Parse(json);
-
-            int total = 0;
-            foreach (JObject item in index["items"])
-            {
-                total += item["count"].ToObject<int>();
-            }
-
-            return total;
-        }
-
         async Task SaveSmallRegistration(Storage storage, KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs)
         {
             SingleGraphPersistence graphPersistence = new SingleGraphPersistence(storage.BaseAddress);
 
-            using (RegistrationCatalogWriter writer = new RegistrationCatalogWriter(storage, null))
-            {
-                writer.GraphPersistence = graphPersistence;
+            await SaveRegistration(storage, sortedGraphs, null, graphPersistence);
 
-                writer.PartitionSize = PartitionSize;
-
-                foreach (KeyValuePair<string, IGraph> item in sortedGraphs.Value)
-                {
-                    writer.Add(new RegistrationCatalogItem(item.Key, item.Value, _storageFactory.BaseAddress, ContentBaseAddress));
-                }
-                await writer.Commit(DateTime.UtcNow);
-            }
-
-            // now the commit has happened the writer.Graph should contain all the data
+            // now the commit has happened the graphPersistence.Graph should contain all the data
 
             JObject frame = (new CatalogContext()).GetJsonLdContext("context.Registration.json", graphPersistence.TypeUri);
             StorageContent content = new StringStorageContent(Utils.CreateJson(graphPersistence.Graph, frame), "application/json", "no-store");
@@ -96,23 +62,25 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         {
             IList<Uri> cleanUpList = new List<Uri>();
 
-            using (RegistrationCatalogWriter writer = new RegistrationCatalogWriter(storage, cleanUpList))
-            {
-                writer.PartitionSize = PartitionSize;
-
-                foreach (KeyValuePair<string, IGraph> item in sortedGraphs.Value)
-                {
-                    writer.Add(new RegistrationCatalogItem(item.Key, item.Value, _storageFactory.BaseAddress, ContentBaseAddress));
-                }
-                await writer.Commit(DateTime.UtcNow);
-            }
+            await SaveRegistration(storage, sortedGraphs, cleanUpList, null);
 
             // because there were multiple files some might now be irrelevant
 
             foreach (Uri uri in cleanUpList)
             {
-                Console.WriteLine("DELETE {0}", uri);
                 await storage.Delete(uri);
+            }
+        }
+
+        async Task SaveRegistration(Storage storage, KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs, IList<Uri> cleanUpList, SingleGraphPersistence graphPersistence)
+        {
+            using (RegistrationCatalogWriter writer = new RegistrationCatalogWriter(storage, PartitionSize, cleanUpList, graphPersistence))
+            {
+                foreach (KeyValuePair<string, IGraph> item in sortedGraphs.Value)
+                {
+                    writer.Add(new RegistrationCatalogItem(item.Key, item.Value, _storageFactory.BaseAddress, ContentBaseAddress));
+                }
+                await writer.Commit(DateTime.UtcNow);
             }
         }
     }

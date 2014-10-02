@@ -14,15 +14,16 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         List<CatalogItem> _batch;
         bool _open;
 
-        public CatalogWriterBase(Storage storage, CatalogContext context = null)
+        public CatalogWriterBase(Storage storage, ICatalogGraphPersistence graphPersistence = null, CatalogContext context = null)
         {
             Options.InternUris = false;
 
             Storage = storage;
+            GraphPersistence = graphPersistence;
+            Context = context ?? new CatalogContext();
+
             _batch = new List<CatalogItem>();
             _open = true;
-
-            Context = context ?? new CatalogContext();
 
             RootUri = Storage.ResolveUri("index.json");
         }
@@ -34,13 +35,13 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public Storage Storage { get; private set; }
 
+        public ICatalogGraphPersistence GraphPersistence { get; private set; }
+
         public Uri RootUri { get; private set; }
 
         public CatalogContext Context { get; private set; }
 
         public int Count { get { return _batch.Count; } }
-
-        public ICatalogGraphPersistence GraphPersistence { get; set; }
 
         public void Add(CatalogItem item)
         {
@@ -252,7 +253,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
                     if (itemContentTriple.Object is IUriNode)
                     {
-                        CopyGraph(itemContentTriple.Object, graph, itemContent);
+                        Utils.CopyGraph(itemContentTriple.Object, graph, itemContent);
                     }
                 }
 
@@ -262,18 +263,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return entries;
         }
 
-        void CopyGraph(INode sourceNode, IGraph source, IGraph target)
-        {
-            foreach (Triple triple in source.GetTriplesWithSubject(sourceNode))
-            {
-                if (target.Assert(triple.CopyTriple(target)) && triple.Object is IUriNode)
-                {
-                    CopyGraph(triple.Object, source, target);
-                }
-            }
-        }
-
-        protected virtual async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri)
+        async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri)
         {
             if (GraphPersistence != null)
             {
@@ -285,7 +275,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             }
         }
 
-        protected virtual async Task<IGraph> LoadGraph(Uri resourceUri)
+        async Task<IGraph> LoadGraph(Uri resourceUri)
         {
             if (GraphPersistence != null)
             {
@@ -293,14 +283,19 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             }
             else
             {
-                string content = await Storage.LoadString(resourceUri);
+                return Utils.CreateGraph(await Storage.LoadString(resourceUri));
+            }
+        }
 
-                if (content == null)
-                {
-                    return null;
-                }
-
-                return Utils.CreateGraph(content);
+        protected Uri CreatePageUri(Uri baseAddress, string relativeAddress)
+        {
+            if (GraphPersistence != null)
+            {
+                return GraphPersistence.CreatePageUri(baseAddress, relativeAddress);
+            }
+            else
+            {
+                return new Uri(baseAddress, relativeAddress + ".json");
             }
         }
     }
