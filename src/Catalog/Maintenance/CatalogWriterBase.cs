@@ -40,6 +40,8 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public int Count { get { return _batch.Count; } }
 
+        public ICatalogGraphPersistence GraphPersistence { get; set; }
+
         public void Add(CatalogItem item)
         {
             if (!_open)
@@ -273,19 +275,33 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         protected virtual async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri)
         {
-            await Storage.Save(resourceUri, CreateIndexContent(graph, typeUri));
+            if (GraphPersistence != null)
+            {
+                await GraphPersistence.SaveGraph(resourceUri, graph, typeUri);
+            }
+            else
+            {
+                await Storage.Save(resourceUri, CreateIndexContent(graph, typeUri));
+            }
         }
 
         protected virtual async Task<IGraph> LoadGraph(Uri resourceUri)
         {
-            string content = await Storage.LoadString(resourceUri);
-
-            if (content == null)
+            if (GraphPersistence != null)
             {
-                return null;
+                return await GraphPersistence.LoadGraph(resourceUri);
             }
+            else
+            {
+                string content = await Storage.LoadString(resourceUri);
 
-            return Utils.CreateGraph(content);
+                if (content == null)
+                {
+                    return null;
+                }
+
+                return Utils.CreateGraph(content);
+            }
         }
     }
 }

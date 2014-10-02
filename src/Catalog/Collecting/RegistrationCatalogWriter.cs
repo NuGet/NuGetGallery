@@ -98,7 +98,14 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         protected virtual Uri CreatePageUri(Uri baseAddress, string relativeAddress)
         {
-            return new Uri(baseAddress, relativeAddress + ".json");
+            if (GraphPersistence != null)
+            {
+                return GraphPersistence.CreatePageUri(baseAddress, relativeAddress);
+            }
+            else
+            {
+                return new Uri(baseAddress, relativeAddress + ".json");
+            }
         }
 
         static IGraph CreateExtraGraph(Uri pageUri, string lower, string upper)

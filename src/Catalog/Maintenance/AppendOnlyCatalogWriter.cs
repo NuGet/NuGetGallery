@@ -81,7 +81,14 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         protected virtual Uri CreatePageUri(Uri baseAddress, string relativeAddress)
         {
-            return new Uri(baseAddress, relativeAddress + ".json");
+            if (GraphPersistence != null)
+            {
+                return GraphPersistence.CreatePageUri(baseAddress, relativeAddress);
+            }
+            else
+            {
+                return new Uri(baseAddress, relativeAddress + ".json");
+            }
         }
 
         static Tuple<int, Uri, int> ExtractLatest(IDictionary<string, CatalogItemSummary> currentPageEntries)

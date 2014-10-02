@@ -258,9 +258,8 @@ namespace CatalogTests
             CollectorCursor cursor = new CollectorCursor(new DateTime(2014, 10, 01, 03, 27, 26, DateTimeKind.Utc));
             //CollectorCursor cursor = new CollectorCursor(DateTime.MinValue);
 
-            await collector.Run(new Uri("http://localhost:8000/full/index.json"), cursor, handler);
-            //await collector.Run(new Uri("http://partitions.blob.core.windows.net/partition0/index.json"), DateTime.MinValue);
-            //await collector.Run(new Uri("http://localhost:8000/partition/partition0/index.json"), DateTime.MinValue, handler);
+            //await collector.Run(new Uri("http://localhost:8000/full/index.json"), cursor, handler);
+            await collector.Run(new Uri("http://localhost:8000/ravendb/index.json"), cursor, handler);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
 

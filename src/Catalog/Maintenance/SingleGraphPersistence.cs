@@ -1,13 +1,10 @@
-﻿using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Persistence;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Threading.Tasks;
 using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
-    class GraphCatalogWriter : AppendOnlyCatalogWriter
+    public class SingleGraphPersistence : ICatalogGraphPersistence
     {
         Uri[] _propertiesToUpdate =
         {
@@ -16,17 +13,19 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             Schema.Predicates.CatalogCount
         };
 
-        public GraphCatalogWriter(Storage storage, int maxPageSize = 1000, bool append = true)
-            : base(storage, null, maxPageSize, append)
+        Uri _baseAddress;
+
+        public SingleGraphPersistence(Uri baseAddress)
         {
             Graph = new Graph();
+            _baseAddress = baseAddress;
         }
 
         public IGraph Graph { get; private set; }
         public Uri ResourceUri { get; private set; }
         public Uri TypeUri { get; private set; }
 
-        protected override async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri)
+        public async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri)
         {
             await Task.Run(() =>
             {
@@ -39,13 +38,14 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             });
         }
 
-        protected override Task<IGraph> LoadGraph(Uri resourceUri)
+        public Task<IGraph> LoadGraph(Uri resourceUri)
         {
             return Task.FromResult(Graph);
         }
-        protected override Uri CreatePageUri(Uri baseAddress, string relativeAddress)
+
+        public Uri CreatePageUri(Uri baseAddress, string relativeAddress)
         {
-            return new Uri(baseAddress, "index.json#" + relativeAddress);
+            return new Uri(_baseAddress, "index.json#" + relativeAddress);
         }
     }
 }
