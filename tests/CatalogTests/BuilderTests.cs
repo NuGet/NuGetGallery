@@ -13,7 +13,8 @@ namespace CatalogTests
             string nuspecs = @"c:\data\nuget\nuspecs";
 
             //Storage storage = new FileStorage("http://localhost:8000/full", @"c:\data\site\full");
-            Storage storage = new FileStorage("http://localhost:8000/ravendb", @"c:\data\site\ravendb");
+            //Storage storage = new FileStorage("http://localhost:8000/ravendb", @"c:\data\site\ravendb");
+            Storage storage = new FileStorage("http://localhost:8000/ravendb2", @"c:\data\site\ravendb2");
 
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 600);
 
@@ -23,7 +24,8 @@ namespace CatalogTests
             int commitCount = 0;
 
             DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
-            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("ravendb.*.xml"))
+            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("ravendb.embedded.*.xml"))
+            //foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("ravendb.*.xml"))
             //foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
             {
                 writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));

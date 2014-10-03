@@ -1,10 +1,12 @@
 ﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using VDS.RDF;
+using VDS.RDF.Query;
 
 namespace NuGet.Services.Metadata.Catalog.Collecting
 {
@@ -19,7 +21,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
             ContentBaseAddress = "http://tempuri.org";
 
-            PartitionSize = 32;
+            PartitionSize = 64;
             PackageCountThreshold = 128;
         }
 
@@ -31,25 +33,30 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         {
             Storage storage = _storageFactory.Create(sortedGraphs.Key);
 
-            int count = await Collector.GetItemCount(storage);
+            Uri resourceUri = storage.ResolveUri("index.json");
+            string json = await storage.LoadString(resourceUri);
+
+            int count = Utils.CountItems(json);
 
             int total = count + sortedGraphs.Value.Count;
 
             if (total < PackageCountThreshold)
             {
-                await SaveSmallRegistration(storage, sortedGraphs);
+                await SaveSmallRegistration(storage, sortedGraphs.Value);
             }
             else
             {
-                await SaveLargeRegistration(storage, sortedGraphs);
+                await SaveLargeRegistration(storage, sortedGraphs.Value, json);
             }
         }
 
-        async Task SaveSmallRegistration(Storage storage, KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs)
+        async Task SaveSmallRegistration(Storage storage, IDictionary<string, IGraph> items)
         {
-            SingleGraphPersistence graphPersistence = new SingleGraphPersistence(storage.BaseAddress);
+            SingleGraphPersistence graphPersistence = new SingleGraphPersistence(storage);
 
-            await SaveRegistration(storage, sortedGraphs, null, graphPersistence);
+            await graphPersistence.Initialize();
+
+            await SaveRegistration(storage, items, null, graphPersistence);
 
             // now the commit has happened the graphPersistence.Graph should contain all the data
 
@@ -58,29 +65,54 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             await storage.Save(graphPersistence.ResourceUri, content);
         }
 
-        async Task SaveLargeRegistration(Storage storage, KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs)
+        async Task SaveLargeRegistration(Storage storage, IDictionary<string, IGraph> items, string existingRoot)
         {
+            if (existingRoot != null)
+            {
+                JToken compacted = JToken.Parse(existingRoot);
+                AddExistingItems(Utils.CreateGraph(compacted), items);
+            }
+
             IList<Uri> cleanUpList = new List<Uri>();
 
-            await SaveRegistration(storage, sortedGraphs, cleanUpList, null);
+            await SaveRegistration(storage, items, cleanUpList, null);
 
             // because there were multiple files some might now be irrelevant
 
             foreach (Uri uri in cleanUpList)
             {
-                await storage.Delete(uri);
+                if (uri != storage.ResolveUri("index.json"))
+                {
+                    Console.WriteLine("DELETE: {0}", uri);
+                    await storage.Delete(uri);
+                }
             }
         }
 
-        async Task SaveRegistration(Storage storage, KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs, IList<Uri> cleanUpList, SingleGraphPersistence graphPersistence)
+        async Task SaveRegistration(Storage storage, IDictionary<string, IGraph> items, IList<Uri> cleanUpList, SingleGraphPersistence graphPersistence)
         {
             using (RegistrationCatalogWriter writer = new RegistrationCatalogWriter(storage, PartitionSize, cleanUpList, graphPersistence))
             {
-                foreach (KeyValuePair<string, IGraph> item in sortedGraphs.Value)
+                foreach (KeyValuePair<string, IGraph> item in items)
                 {
                     writer.Add(new RegistrationCatalogItem(item.Key, item.Value, _storageFactory.BaseAddress, ContentBaseAddress));
                 }
                 await writer.Commit(DateTime.UtcNow);
+            }
+        }
+
+        void AddExistingItems(IGraph graph, IDictionary<string, IGraph> items)
+        {
+            TripleStore store = new TripleStore();
+            store.Add(graph, true);
+
+            string inlinePackageSparql = Utils.GetResource("sparql.SelectInlinePackage.rq");
+
+            SparqlResultSet rows = SparqlHelpers.Select(store, inlinePackageSparql);
+            foreach (SparqlResult row in rows)
+            {
+                string packageUri = row["package"].ToString();
+                items.Add(packageUri, graph);
             }
         }
     }

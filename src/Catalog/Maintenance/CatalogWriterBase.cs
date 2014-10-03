@@ -111,7 +111,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                         tasks.Add(Storage.Save(resourceUri, content));
                     }
 
-                    pageItems.Add(resourceUri.ToString(), new CatalogItemSummary(item.GetItemType(), commitId, commitTimeStamp, null, pageContent));
+                    pageItems.Add(resourceUri.AbsoluteUri, new CatalogItemSummary(item.GetItemType(), commitId, commitTimeStamp, null, pageContent));
 
                     batchIndex++;
                 }

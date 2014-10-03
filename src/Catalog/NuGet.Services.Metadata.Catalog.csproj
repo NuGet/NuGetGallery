@@ -103,6 +103,7 @@
     <Compile Include="Collecting\Test\CheckLinksCollector.cs" />
     <Compile Include="Collecting\Test\CountCollector.cs" />
     <Compile Include="Collecting\ResolverDeleteCollector.cs" />
+    <Compile Include="Collecting\Test\VerboseHandler.cs" />
     <Compile Include="FileSystemEmulatorHandler.cs" />
     <Compile Include="GalleryIntegration\GalleryExport.cs" />
     <Compile Include="GalleryIntegration\GalleryExportBatcher.cs" />
@@ -194,6 +195,7 @@
     <EmbeddedResource Include="sparql\SelectPackageFrameworkAssembly.rq" />
     <EmbeddedResource Include="sparql\SelectPackages.rq" />
     <EmbeddedResource Include="sparql\ConstructPackageGraph.rq" />
+    <EmbeddedResource Include="sparql\SelectInlinePackage.rq" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

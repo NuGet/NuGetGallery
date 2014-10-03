@@ -1,0 +1,7 @@
+﻿PREFIX catalog: <http://schema.nuget.org/catalog#> 
+
+SELECT ?package
+WHERE
+{
+	?resource catalog:item/catalog:item ?package .
+}

@@ -20,17 +20,18 @@ CONSTRUCT
 }
 WHERE
 {
-    ?package a nuget:Package ;
-             nuget:version ?version ;
+	BIND (@package AS ?package)
+
+    ?package nuget:version ?version ;
              nuget:id ?id .
 
-	OPTIONAL { ?resource nuget:minClientVersion ?minClientVersion . }
+	OPTIONAL { ?package nuget:minClientVersion ?minClientVersion . }
 
     BIND (IRI(CONCAT(@contentBase, "/packages/", LCASE(?id), ".", ?version, ".nupkg" )) AS ?nupkgUrl)
 
     OPTIONAL
     {
-        ?resource nuget:dependencyGroup ?dependency_group .
+        ?package nuget:dependencyGroup ?dependency_group .
         ?dependency_group nuget:dependency ?dependency .
 
         OPTIONAL { ?dependency_group nuget:targetFramework ?dependency_group_targetFramework . }

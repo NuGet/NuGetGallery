@@ -34,9 +34,10 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             foreach (KeyValuePair<string, CatalogItemSummary> pageEntry in pageEntries)
             {
                 IDictionary<string, CatalogItemSummary> pageItemEntries = await LoadIndexResource(new Uri(pageEntry.Key));
+
                 foreach (KeyValuePair<string, CatalogItemSummary> pageItemEntry in pageItemEntries)
                 {
-                    NuGetVersion version = GetVersion(pageItemEntry.Value.Content);
+                    NuGetVersion version = GetVersion(pageItemEntry.Key, pageItemEntry.Value.Content);
                     versions.Add(version, pageItemEntry);
                 }
             }
@@ -45,7 +46,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
             foreach (KeyValuePair<string, CatalogItemSummary> itemEntry in itemEntries)
             {
-                NuGetVersion version = GetVersion(itemEntry.Value.Content);
+                NuGetVersion version = GetVersion(itemEntry.Key, itemEntry.Value.Content);
                 versions[version] = itemEntry;
             }
 
@@ -105,9 +106,12 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             return graph;
         }
 
-        static NuGetVersion GetVersion(IGraph pageContent)
+        static NuGetVersion GetVersion(string packageUri, IGraph pageContent)
         {
-            Triple triple = pageContent.GetTriplesWithPredicate(pageContent.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault();
+            Triple triple = pageContent.GetTriplesWithSubjectPredicate(
+                pageContent.CreateUriNode(new Uri(packageUri)),
+                pageContent.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault();
+
             string s = triple.Object.ToString();
             return NuGetVersion.Parse(s);
         }

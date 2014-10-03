@@ -14,7 +14,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         string _registrationBaseAddress;
         string _contentBaseAddress;
 
-        public RegistrationCatalogItem(string catalogUri, IGraph catalogItem, string registrationBaseAddress, string contentBaseAddress)
+        public RegistrationCatalogItem(string catalogUri, IGraph catalogItem, Uri registrationBaseAddress, string contentBaseAddress)
         {
             _catalogUri = new Uri(catalogUri);
             _catalogItem = catalogItem;
@@ -48,6 +48,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                 SparqlParameterizedString sparql = new SparqlParameterizedString();
                 sparql.CommandText = Utils.GetResource("sparql.ConstructPackagePageContentGraph.rq");
 
+                sparql.SetUri("package", _catalogUri);
                 sparql.SetLiteral("baseAddress", _registrationBaseAddress);
                 sparql.SetLiteral("contentBase", _contentBaseAddress);
 

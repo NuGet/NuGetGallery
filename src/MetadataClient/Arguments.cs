@@ -69,7 +69,7 @@ namespace MetadataClient
         [ArgActionMethod]
         public void CreateResolverBlobs(CreateResolverBlobsArgs args)
         {
-            var storageFactory = new FileStorageFactory(args.ResolverBase, args.ResolverFolder);
+            var storageFactory = new FileStorageFactory(new Uri(args.ResolverBase), args.ResolverFolder);
             var collector = new RegistrationCatalogCollector(storageFactory, 1000);
             var client = new CollectorHttpClient(
                 new FileSystemEmulatorHandler(new WebRequestHandler() { AllowPipelining = true })

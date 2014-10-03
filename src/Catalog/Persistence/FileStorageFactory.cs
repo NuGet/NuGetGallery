@@ -1,13 +1,14 @@
 ﻿
+using System;
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class FileStorageFactory : StorageFactory
     {
         string _path;
         
-        public FileStorageFactory(string baseAddress, string path)
+        public FileStorageFactory(Uri baseAddress, string path)
         {
-            BaseAddress = baseAddress.TrimEnd('/') + '/';
+            BaseAddress = new Uri(baseAddress.ToString().TrimEnd('/') + '/');
             _path = path.TrimEnd('\\') + '\\';
         }
 

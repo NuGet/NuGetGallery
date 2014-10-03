@@ -10,15 +10,6 @@ using System.Threading.Tasks;
 
 namespace CatalogTests
 {
-    class VerboseHandler : FileSystemEmulatorHandler
-    {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            Console.WriteLine(request.RequestUri);
-            return base.SendAsync(request, cancellationToken);
-        }
-    }
-
     class CollectorTests
     {
         /*
@@ -244,9 +235,11 @@ namespace CatalogTests
 
         public static async Task Test9Async()
         {
-            StorageFactory storage = new FileStorageFactory("http://localhost:8000/test/", @"c:\data\site\test");
+            StorageFactory storage = new FileStorageFactory(new Uri("http://localhost:8000/test3/"), @"c:\data\site\test3");
 
             RegistrationCatalogCollector collector = new RegistrationCatalogCollector(storage, 200);
+
+            //collector.PackageCountThreshold = 50;
 
             FileSystemEmulatorHandler handler = new VerboseHandler
             {
@@ -255,11 +248,12 @@ namespace CatalogTests
                 InnerHandler = new HttpClientHandler()
             };
 
-            CollectorCursor cursor = new CollectorCursor(new DateTime(2014, 10, 01, 03, 27, 26, DateTimeKind.Utc));
-            //CollectorCursor cursor = new CollectorCursor(DateTime.MinValue);
+            //CollectorCursor cursor = new CollectorCursor(new DateTime(2014, 10, 01, 03, 27, 35, DateTimeKind.Utc));
+            CollectorCursor cursor = new CollectorCursor(DateTime.MinValue);
 
-            //await collector.Run(new Uri("http://localhost:8000/full/index.json"), cursor, handler);
-            await collector.Run(new Uri("http://localhost:8000/ravendb/index.json"), cursor, handler);
+            await collector.Run(new Uri("http://localhost:8000/full/index.json"), cursor, handler);
+            //await collector.Run(new Uri("http://localhost:8000/ravendb/index.json"), cursor, handler);
+            //await collector.Run(new Uri("http://localhost:8000/ravendb2/index.json"), cursor, handler);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
 

@@ -38,12 +38,6 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
             IEnumerable<JToken> rootItems = root["items"].OrderBy(item => item["commitTimeStamp"].ToObject<DateTime>());
 
-            foreach (JToken item in rootItems)
-            {
-                Console.WriteLine(item["commitTimeStamp"].ToObject<DateTime>());
-            }
-            Console.WriteLine("START: {0}", startFrom);
-
             bool hasPassedDependencies = false;
 
             foreach (JObject rootItem in rootItems)
@@ -85,8 +79,6 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                             }
                             // Update the cursor
                             cursor = itemCursor;
-
-                            Uri itemUri = pageItem["url"].ToObject<Uri>();
 
                             items.Add(pageItem);
 

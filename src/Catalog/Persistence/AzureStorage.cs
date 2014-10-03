@@ -105,11 +105,18 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             DeleteCount++;
 
-            string name = GetName(resourceUri);
+            try
+            {
+                string name = GetName(resourceUri);
 
-            CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
+                CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
 
-            await blob.DeleteAsync();
+                await blob.DeleteAsync();
+            }
+            catch (Exception e)
+            {
+                throw new Exception(resourceUri.ToString(), e);
+            }
         }
     }
 }

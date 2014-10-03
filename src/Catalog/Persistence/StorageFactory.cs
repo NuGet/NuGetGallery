@@ -6,6 +6,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     {
         public abstract Storage Create(string name);
 
-        public string BaseAddress { get; protected set; }
+        public Uri BaseAddress { get; protected set; }
     }
 }

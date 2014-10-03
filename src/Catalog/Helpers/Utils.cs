@@ -201,6 +201,24 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
+        public static int CountItems(string indexJson)
+        {
+            if (indexJson == null)
+            {
+                return 0;
+            }
+
+            JObject index = JObject.Parse(indexJson);
+
+            int total = 0;
+            foreach (JObject item in index["items"])
+            {
+                total += item["count"].ToObject<int>();
+            }
+
+            return total;
+        }
+
         public static bool IsType(JObject context, JObject obj, Uri type)
         {
             JToken objTypeToken;

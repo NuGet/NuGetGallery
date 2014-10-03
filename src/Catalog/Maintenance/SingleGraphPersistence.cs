@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Persistence;
+using System;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -13,17 +15,34 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             Schema.Predicates.CatalogCount
         };
 
-        Uri _baseAddress;
+        Storage _storage;
+        IGraph _initialGraph;
 
-        public SingleGraphPersistence(Uri baseAddress)
+        public SingleGraphPersistence(Storage storage)
         {
+            _storage = storage;
             Graph = new Graph();
-            _baseAddress = baseAddress;
         }
 
         public IGraph Graph { get; private set; }
         public Uri ResourceUri { get; private set; }
         public Uri TypeUri { get; private set; }
+
+        public async Task Initialize()
+        {
+            Uri rootUri = _storage.ResolveUri("index.json");
+
+            string json = await _storage.LoadString(rootUri);
+
+            if (json != null)
+            {
+                _initialGraph = Utils.CreateGraph(JToken.Parse(json));
+            }
+            else
+            {
+                _initialGraph = null;
+            }
+        }
 
         public async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri)
         {
@@ -40,12 +59,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public Task<IGraph> LoadGraph(Uri resourceUri)
         {
-            return Task.FromResult(Graph);
+            return Task.FromResult(_initialGraph);
         }
 
         public Uri CreatePageUri(Uri baseAddress, string relativeAddress)
         {
-            return new Uri(_baseAddress, "index.json#" + relativeAddress);
+            return new Uri(_storage.BaseAddress, "index.json#" + relativeAddress);
         }
     }
 }
