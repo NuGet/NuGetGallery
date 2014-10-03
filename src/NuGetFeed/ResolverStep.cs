@@ -29,6 +29,13 @@ namespace NuGetFeed
 
         protected override void RunCore()
         {
+            RegistrationCatalogCollector collector = new RegistrationCatalogCollector(Config.PackageRegistrations.StorageFactory, 200);
+
+            var indexUri = new Uri(Config.Catalog.BaseAddress + "index.json");
+            var task = collector.Run(indexUri, _cursor, Config.Catalog.FileSystemEmulator);
+            task.Wait();
+
+
             //ResolverCollector collector = new ResolverCollector(Config.PackageRegistrations.Storage, 1000);
             //collector.GalleryBaseAddress = Config.Gallery.BaseAddress.AbsoluteUri.TrimEnd('/');
             //collector.ContentBaseAddress = Config.Packages.BaseAddress.AbsoluteUri.TrimEnd('/');
