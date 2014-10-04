@@ -31,6 +31,11 @@ namespace NuGet.Services.Metadata.Catalog
             return xmlDoc.CreateNavigator();
         }
 
+        public string LowerCase(string original)
+        {
+            return original.ToLowerInvariant();
+        }
+
         public string NormalizeVersion(string original)
         {
             NuGetVersion nugetVersion;

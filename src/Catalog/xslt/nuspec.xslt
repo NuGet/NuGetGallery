@@ -11,9 +11,6 @@
   <xsl:param name="base" />
   <xsl:param name="extension" />
 
-  <xsl:variable name="lowercase" select="'abcdefghijklmnopqrstuvwxyz'" />
-  <xsl:variable name="uppercase" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'" />
-
   <xsl:template match="/nuget:package/nuget:metadata">
     
     <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -23,7 +20,7 @@
         <xsl:variable name="path" select="concat(nuget:id, '.', obj:NormalizeVersion(nuget:version))" />
 
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, $path, $extension), $uppercase, $lowercase)"/>
+          <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension))"/>
         </xsl:attribute>
 
         <xsl:if test="@minClientVersion">
@@ -50,7 +47,7 @@
                   <ng:dependencyGroup>
                     <rdf:Description>
                       <xsl:attribute name="rdf:about">
-                        <xsl:value-of select="translate(concat($base, $path, $extension, '#dependencyGroup'), $uppercase, $lowercase)"/>
+                        <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, '#dependencyGroup'))"/>
                       </xsl:attribute>
                       <xsl:apply-templates select="nuget:dependency">
                         <xsl:with-param name="path" select="$path" />
@@ -68,7 +65,7 @@
               <ng:references>
                 <rdf:Description>
                   <xsl:attribute name="rdf:about">
-                    <xsl:value-of select="translate(concat($base, $path, $extension, '#references'), $uppercase, $lowercase)"/>
+                    <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, '#references'))"/>
                   </xsl:attribute>
 
                   <xsl:choose>
@@ -82,7 +79,7 @@
                       <ng:group>
                         <rdf:Description>
                           <xsl:attribute name="rdf:about">
-                            <xsl:value-of select="translate(concat($base, $extension, '#gpref'), $uppercase, $lowercase)"/>
+                            <xsl:value-of select="obj:LowerCase(concat($base, $extension, '#gpref'))"/>
                           </xsl:attribute>
                           <xsl:apply-templates select="nuget:reference">
                             <xsl:with-param name="path" select="$path" />
@@ -116,13 +113,13 @@
 
             <xsl:when test="self::nuget:id">
               <ng:id>
-                <xsl:value-of select="translate(., $uppercase, $lowercase)"/>
+                <xsl:value-of select="obj:LowerCase(.)"/>
               </ng:id>
             </xsl:when>
 
             <xsl:when test="self::nuget:version">
               <ng:version>
-                <xsl:value-of select="translate(obj:NormalizeVersion(.), $uppercase, $lowercase)"/>
+                <xsl:value-of select="obj:LowerCase(obj:NormalizeVersion(.))"/>
               </ng:version>
               <ng:isPrerelease rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">
                 <xsl:value-of select="obj:IsPrerelease(.)"/>
@@ -169,7 +166,7 @@
         </xsl:variable>
 
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, $path, $extension, $fragment), $uppercase, $lowercase)"/>
+          <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, $fragment))"/>
         </xsl:attribute>
 
         <xsl:if test="@targetFramework">
@@ -212,15 +209,15 @@
         <xsl:variable name="fragment" select="concat($parent_fragment, '/', @id)" />
 
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, $path, $extension, $fragment), $uppercase, $lowercase)"/>
+          <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, $fragment))"/>
         </xsl:attribute>
 
         <ng:id>
-          <xsl:value-of select="translate(@id, $uppercase, $lowercase)"/>          
+          <xsl:value-of select="obj:LowerCase(@id)"/>          
         </ng:id>
 
         <ng:range>
-          <xsl:value-of select="translate(obj:NormalizeVersionRange(@version), $uppercase, $lowercase)"/>
+          <xsl:value-of select="obj:LowerCase(obj:NormalizeVersionRange(@version))"/>
         </ng:range>
 
         <xsl:apply-templates select="nuget:property">
@@ -241,7 +238,7 @@
         <xsl:variable name="fragment" select="concat($parent_fragment, '/ref/', @file)" />
 
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, $path, $extension, $fragment), $uppercase, $lowercase)"/>
+          <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, $fragment))"/>
         </xsl:attribute>
 
         <ng:file>
@@ -266,7 +263,7 @@
         <xsl:variable name="fragment" select="concat($parent_fragment, '/prop/', @name)" />
 
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="translate(concat($base, $path, $extension, $fragment), $uppercase, $lowercase)"/>
+          <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, $fragment))"/>
         </xsl:attribute>
 
         <ng:name>
@@ -298,7 +295,7 @@
             <ng:frameworkAssemblyGroup>
               <rdf:Description>
                 <xsl:attribute name="rdf:about">
-                  <xsl:value-of select="translate(concat($base, $path, $extension, '#frameworkAssemblyGroup/', .), $uppercase, $lowercase)"/>
+                  <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, '#frameworkAssemblyGroup/', .))"/>
                 </xsl:attribute>
                 <ng:assembly>
                   <xsl:value-of select="$assemblyName" />
@@ -314,7 +311,7 @@
           <ng:frameworkAssemblyGroup>
             <rdf:Description>
               <xsl:attribute name="rdf:about">
-                <xsl:value-of select="translate(concat($base, $path, $extension, '#frameworkAssemblyGroup'), $uppercase, $lowercase)"/>
+                <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, '#frameworkAssemblyGroup'))"/>
               </xsl:attribute>
               <ng:assembly>
                 <xsl:value-of select="@assemblyName" />
