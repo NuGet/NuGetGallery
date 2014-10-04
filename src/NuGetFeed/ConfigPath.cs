@@ -96,6 +96,14 @@ namespace NuGetFeed
             }
         }
 
+        public StorageFactory StorageFactory
+        {
+            get
+            {
+                return new FileStorageFactory(BaseAddress, LocalFolder.FullName);
+            }
+        }
+
         public FileSystemEmulatorHandler FileSystemEmulator
         {
             get
