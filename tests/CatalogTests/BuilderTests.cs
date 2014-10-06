@@ -1,7 +1,9 @@
 ﻿using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CatalogTests
@@ -13,9 +15,7 @@ namespace CatalogTests
             string nuspecs = @"c:\data\nuget\nuspecs";
 
             //Storage storage = new FileStorage("http://localhost:8000/full", @"c:\data\site\full");
-            //Storage storage = new FileStorage("http://localhost:8000/ravendb", @"c:\data\site\ravendb");
-            //Storage storage = new FileStorage("http://localhost:8000/ravendb2", @"c:\data\site\ravendb2");
-            Storage storage = new FileStorage("http://localhost:8000/russian", @"c:\data\site\russian");
+            Storage storage = new FileStorage("http://localhost:8000/test", @"c:\data\site\test");
 
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 600);
 
@@ -25,10 +25,7 @@ namespace CatalogTests
             int commitCount = 0;
 
             DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
-            //foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("ravendb.embedded.*.xml"))
-            //foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("ravendb.*.xml"))
-            //foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
-            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("НастройкиРегистрации.2.2.12.xml"))
+            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("a*.xml"))
             {
                 writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
 

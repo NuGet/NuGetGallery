@@ -41,8 +41,10 @@ namespace CatalogTests
         */
         public static async Task Test1Async()
         {
+            //  simply totals up the counts available in the pages
+
             CountCollector collector = new CountCollector();
-            await collector.Run(new Uri("http://localhost:8000/test2/ravendb.client.debug/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
             Console.WriteLine("total: {0}", collector.Total);
             Console.WriteLine("http requests: {0}", collector.RequestCount);
         }
@@ -56,8 +58,12 @@ namespace CatalogTests
 
         public static async Task Test2Async()
         {
+            //  attempts to make the http call to the actual item
+
             Collector collector = new CheckLinksCollector();
-            await collector.Run(new Uri("http://nuget3.blob.core.windows.net/pub/catalog/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
+
+            Console.WriteLine("all done");
         }
 
         public static void Test2()
@@ -235,7 +241,7 @@ namespace CatalogTests
 
         public static async Task Test9Async()
         {
-            StorageFactory storage = new FileStorageFactory(new Uri("http://localhost:8000/test3/"), @"c:\data\site\test3");
+            StorageFactory storage = new FileStorageFactory(new Uri("http://localhost:8000/reg/"), @"c:\data\site\reg");
 
             RegistrationCatalogCollector collector = new RegistrationCatalogCollector(storage, 200);
 
@@ -251,10 +257,8 @@ namespace CatalogTests
             //CollectorCursor cursor = new CollectorCursor(new DateTime(2014, 10, 01, 03, 27, 35, 360, DateTimeKind.Utc));
             CollectorCursor cursor = new CollectorCursor(DateTime.MinValue);
 
-            await collector.Run(new Uri("http://localhost:8000/russian/index.json"), cursor, handler);
-            //await collector.Run(new Uri("http://localhost:8000/full/index.json"), cursor, handler);
+            await collector.Run(new Uri("http://localhost:8000/full/index.json"), cursor, handler);
             //await collector.Run(new Uri("http://localhost:8000/ravendb/index.json"), cursor, handler);
-            //await collector.Run(new Uri("http://localhost:8000/ravendb2/index.json"), cursor, handler);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
 

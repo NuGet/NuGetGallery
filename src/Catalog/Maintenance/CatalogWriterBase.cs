@@ -69,11 +69,19 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 return;
             }
 
+            //  the commitId is only used for tracing and trouble shooting
+
             Guid commitId = Guid.NewGuid();
+
+            //  save items
 
             IDictionary<string, CatalogItemSummary> newItemEntries = await SaveItems(commitId, commitTimeStamp);
 
+            //  save index pages - this is abstract as the derived class determines the index pagination
+
             IDictionary<string, CatalogItemSummary> pageEntries = await SavePages(commitId, commitTimeStamp, newItemEntries);
+
+            //  save index root
 
             await SaveRoot(commitId, commitTimeStamp, pageEntries, commitMetadata);
 
@@ -205,7 +213,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
             INode resourceNode = graph.CreateUriNode(resourceUri);
 
-            foreach (INode itemNode in graph.GetTriplesWithSubjectPredicate(resourceNode, itemPredicate).Select((t) => t.Object))
+            foreach (IUriNode itemNode in graph.GetTriplesWithSubjectPredicate(resourceNode, itemPredicate).Select((t) => t.Object))
             {
                 Triple typeTriple = graph.GetTriplesWithSubjectPredicate(itemNode, typePredicate).First();
                 Uri type = ((IUriNode)typeTriple.Object).Uri;
@@ -257,7 +265,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                     }
                 }
 
-                entries.Add(itemNode.ToString(), new CatalogItemSummary(type, commitId, timeStamp, count, itemContent));
+                entries.Add(itemNode.Uri.AbsoluteUri, new CatalogItemSummary(type, commitId, timeStamp, count, itemContent));
             }
 
             return entries;

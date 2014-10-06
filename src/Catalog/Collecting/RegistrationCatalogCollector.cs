@@ -111,7 +111,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             SparqlResultSet rows = SparqlHelpers.Select(store, inlinePackageSparql);
             foreach (SparqlResult row in rows)
             {
-                string packageUri = row["package"].ToString();
+                string packageUri = ((IUriNode)row["package"]).Uri.AbsoluteUri;
                 items.Add(packageUri, graph);
             }
         }
