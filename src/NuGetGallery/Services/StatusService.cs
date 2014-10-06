@@ -100,7 +100,7 @@ namespace NuGetGallery
 
         private async Task<bool> IsSearchServiceAvailable()
         {
-            bool searchServiceAvailable = false; // If no search service is configured, it is "available"
+            bool searchServiceAvailable = true; // If no search service is configured, it is "available"
             if (_config != null && _config.SearchServiceUri != null)
             {
                 searchServiceAvailable = await IsGetSuccessful(_config.SearchServiceUri);
