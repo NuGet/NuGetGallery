@@ -241,9 +241,9 @@ namespace CatalogTests
 
         public static async Task Test9Async()
         {
-            StorageFactory storage = new FileStorageFactory(new Uri("http://localhost:8000/reg/"), @"c:\data\site\reg");
+            StorageFactory storageFactory = new FileStorageFactory(new Uri("http://localhost:8000/reg/"), @"c:\data\site\reg");
 
-            RegistrationCatalogCollector collector = new RegistrationCatalogCollector(storage, 200);
+            RegistrationCatalogCollector collector = new RegistrationCatalogCollector(storageFactory, 200);
 
             //collector.PackageCountThreshold = 50;
 
@@ -267,6 +267,36 @@ namespace CatalogTests
             Console.WriteLine("CollectorTests.Test9");
 
             Test9Async().Wait();
+        }
+
+        public static async Task Test10Async()
+        {
+            Storage storage = new FileStorage(new Uri("http://localhost:8000/info/"), @"c:\data\site\info");
+
+            PackageInfoCatalogCollector collector = new PackageInfoCatalogCollector(storage, 200);
+
+            //collector.PackageCountThreshold = 50;
+
+            FileSystemEmulatorHandler handler = new VerboseHandler
+            {
+                BaseAddress = new Uri("http://localhost:8000"),
+                RootFolder = @"c:\data\site",
+                InnerHandler = new HttpClientHandler()
+            };
+
+            //CollectorCursor cursor = new CollectorCursor(new DateTime(2014, 10, 01, 03, 27, 35, 360, DateTimeKind.Utc));
+            CollectorCursor cursor = new CollectorCursor(DateTime.MinValue);
+
+            //await collector.Run(new Uri("http://localhost:8000/full/index.json"), cursor, handler);
+            await collector.Run(new Uri("http://localhost:8000/test/index.json"), cursor, handler);
+            Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
+        }
+
+        public static void Test10()
+        {
+            Console.WriteLine("CollectorTests.Test9");
+
+            Test10Async().Wait();
         }
     }
 }

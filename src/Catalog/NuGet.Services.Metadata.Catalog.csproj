@@ -92,6 +92,7 @@
     <Compile Include="Collecting\CollectorCursor.cs" />
     <Compile Include="Collecting\CollectorHttpClient.cs" />
     <Compile Include="Collecting\NuspecCollector.cs" />
+    <Compile Include="Collecting\PackageInfoCatalogCollector.cs" />
     <Compile Include="Collecting\RegistrationCatalogCollector.cs" />
     <Compile Include="Collecting\RegistrationCatalogItem.cs" />
     <Compile Include="Collecting\RegistrationCatalogWriter.cs" />
@@ -179,6 +180,7 @@
     <EmbeddedResource Include="context\DeletePackage.json" />
     <EmbeddedResource Include="context\Segment.json" />
     <EmbeddedResource Include="context\Registration.json" />
+    <EmbeddedResource Include="context\PackageInfo.json" />
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />
@@ -196,6 +198,7 @@
     <EmbeddedResource Include="sparql\SelectPackages.rq" />
     <EmbeddedResource Include="sparql\ConstructPackageGraph.rq" />
     <EmbeddedResource Include="sparql\SelectInlinePackage.rq" />
+    <EmbeddedResource Include="sparql\ConstructPackageInfoContentGraph.rq" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

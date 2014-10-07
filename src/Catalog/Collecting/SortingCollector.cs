@@ -35,9 +35,6 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             {
                 Task task = ProcessSortedBatch(client, sortedBatch, context);
 
-                //DEBUG
-                await task;
-
                 tasks.Add(task);
             }
 

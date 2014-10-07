@@ -1,0 +1,31 @@
+﻿PREFIX nuget: <http://schema.nuget.org/schema#>
+
+CONSTRUCT
+{
+	?packageInfo a nuget:PackageInfo ;
+	             nuget:package ?package ;
+				 nuget:registration ?registration .
+
+    ?package a nuget:Package ;
+             nuget:id ?id ;
+             nuget:version ?version ;
+             nuget:description ?description ;
+             nuget:title ?title ;
+             nuget:summary ?summary ;
+             nuget:minClientVersion ?minClientVersion .
+}
+WHERE
+{
+	BIND (@package AS ?package)
+
+    ?package nuget:version ?version ;
+             nuget:id ?id .
+
+	OPTIONAL { ?package nuget:description ?description . }
+	OPTIONAL { ?package nuget:title ?title . }
+	OPTIONAL { ?package nuget:summary ?summary . }
+	OPTIONAL { ?package nuget:minClientVersion ?minClientVersion . }
+
+    BIND (IRI(CONCAT(@baseAddress, ?id, "/", ?version, ".json")) AS ?packageInfo)
+    BIND (IRI(CONCAT(@registrationBaseAddress, ?id, "/index.json")) AS ?registration)
+}
