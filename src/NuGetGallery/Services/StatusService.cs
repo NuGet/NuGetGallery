@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -21,7 +22,8 @@ namespace NuGetGallery
 
         private const string Available = "Available";
         private const string Unavailable = "Unavailable";
-        private const string StatusMessageFormat = "NuGet Gallery service is {0}. SQL Azure is {1}. Storage is {2}. Search service is {3}. Metrics service is {4}";
+        private const string Unconfigured = "Unconfigured";
+        private const string StatusMessageFormat = "NuGet Gallery instance {5} is {0}. SQL is {1}. Storage is {2}. Search service is {3}. Metrics service is {4}";
 
         private const string TestSqlQuery = "SELECT TOP(1) [Key] FROM GallerySettings WITH (NOLOCK)";
 
@@ -39,15 +41,15 @@ namespace NuGetGallery
         public async Task<ActionResult> GetStatus()
         {
             bool sqlAzureAvailable =  IsSqlAzureAvailable();
-            bool storageAvailable = await IsAzureStorageAvailable();
-            bool searchServiceAvailable = await IsSearchServiceAvailable();
-            bool metricsServiceAvailable = await IsMetricsServiceAvailable();
+            bool? storageAvailable = await IsAzureStorageAvailable();
+            bool? searchServiceAvailable = await IsSearchServiceAvailable();
+            bool? metricsServiceAvailable = await IsMetricsServiceAvailable();
 
             bool galleryServiceAvailable =
                 sqlAzureAvailable
-                && storageAvailable
-                && searchServiceAvailable
-                && metricsServiceAvailable;
+                && (!storageAvailable.HasValue || storageAvailable.Value) // null == true for this condition.
+                && (!searchServiceAvailable.HasValue || searchServiceAvailable.Value)
+                && (!metricsServiceAvailable.HasValue || metricsServiceAvailable.Value);
 
             return new HttpStatusCodeWithBodyResult(AvailabilityStatusCode(galleryServiceAvailable),
                 String.Format(CultureInfo.InvariantCulture,
@@ -56,7 +58,8 @@ namespace NuGetGallery
                     AvailabilityMessage(sqlAzureAvailable),
                     AvailabilityMessage(storageAvailable),
                     AvailabilityMessage(searchServiceAvailable),
-                    AvailabilityMessage(metricsServiceAvailable)));
+                    AvailabilityMessage(metricsServiceAvailable),
+                    HostMachine.Name));
         }
 
         private bool IsSqlAzureAvailable()
@@ -79,8 +82,13 @@ namespace NuGetGallery
             return sqlAzureAvailable;
         }
 
-        private async Task<bool> IsAzureStorageAvailable()
+        private async Task<bool?> IsAzureStorageAvailable()
         {
+            if (_config == null || _config.StorageType != StorageType.AzureStorage)
+            {
+                return null;
+            }
+
             bool storageAvailable = false;
             try
             {
@@ -98,26 +106,24 @@ namespace NuGetGallery
             return storageAvailable;
         }
 
-        private async Task<bool> IsSearchServiceAvailable()
+        private async Task<bool?> IsSearchServiceAvailable()
         {
-            bool searchServiceAvailable = true; // If no search service is configured, it is "available"
-            if (_config != null && _config.SearchServiceUri != null)
+            if (_config == null || _config.SearchServiceUri == null)
             {
-                searchServiceAvailable = await IsGetSuccessful(_config.SearchServiceUri);
+                return null;
             }
 
-            return searchServiceAvailable;
+            return await IsGetSuccessful(_config.SearchServiceUri);
         }
 
-        private async Task<bool> IsMetricsServiceAvailable()
+        private async Task<bool?> IsMetricsServiceAvailable()
         {
-            bool metricsServiceAvailable = true; // If no metrics service is configured, it is "available"
-            if (_config != null && _config.MetricsServiceUri != null)
+            if (_config == null || _config.MetricsServiceUri == null)
             {
-                metricsServiceAvailable = await IsGetSuccessful(_config.MetricsServiceUri);
+                return null;
             }
 
-            return metricsServiceAvailable;
+            return await IsGetSuccessful(_config.MetricsServiceUri);
         }
 
         private async Task<bool> IsGetSuccessful(Uri uri)
@@ -130,9 +136,12 @@ namespace NuGetGallery
             }
         }
 
-        private static string AvailabilityMessage(bool available)
+        private static string AvailabilityMessage(bool? available)
         {
-            return available ? Available : Unavailable;
+            return
+                !available.HasValue ?
+                    Unconfigured :
+                    (available.Value ? Available : Unavailable);
         }
 
         private static HttpStatusCode AvailabilityStatusCode(bool available)
