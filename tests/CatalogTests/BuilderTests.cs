@@ -12,10 +12,11 @@ namespace CatalogTests
     {
         public static async Task Test0Async()
         {
-            string nuspecs = @"c:\data\nuget\nuspecs";
+            //string nuspecs = @"c:\data\nuget\nuspecs";
+            string nuspecs = @"c:\data\nuget\automapper";
 
             //Storage storage = new FileStorage("http://localhost:8000/full", @"c:\data\site\full");
-            Storage storage = new FileStorage("http://localhost:8000/test", @"c:\data\site\test");
+            Storage storage = new FileStorage("http://localhost:8000/automapper", @"c:\data\site\automapper");
 
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 600);
 
@@ -25,7 +26,7 @@ namespace CatalogTests
             int commitCount = 0;
 
             DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
-            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("a*.xml"))
+            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
             {
                 writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
 

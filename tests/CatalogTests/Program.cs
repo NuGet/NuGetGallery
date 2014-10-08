@@ -67,6 +67,8 @@ namespace CatalogTests
                 
                 //JsonLdCacheTests.Test0();
 
+                //IntegrityTests.Test0();
+
                 DateTime after = DateTime.Now;
 
                 Console.WriteLine("Total duration {0} seconds", (after - before).TotalSeconds);

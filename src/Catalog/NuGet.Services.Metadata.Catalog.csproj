@@ -105,6 +105,7 @@
     <Compile Include="Collecting\Test\CheckLinksCollector.cs" />
     <Compile Include="Collecting\Test\CountCollector.cs" />
     <Compile Include="Collecting\ResolverDeleteCollector.cs" />
+    <Compile Include="Collecting\Test\PackageCollector.cs" />
     <Compile Include="Collecting\Test\VerboseHandler.cs" />
     <Compile Include="FileSystemEmulatorHandler.cs" />
     <Compile Include="GalleryIntegration\GalleryExport.cs" />

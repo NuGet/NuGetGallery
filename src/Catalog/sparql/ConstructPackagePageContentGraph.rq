@@ -7,6 +7,16 @@ CONSTRUCT
              nuget:version ?version ;
              nuget:dependencyGroup ?dependency_group ;
              nuget:nupkgUrl ?nupkgUrl ;
+	         nuget:published ?published ;
+             nuget:description ?description ;
+             nuget:title ?title ;
+             nuget:summary ?summary ;
+             nuget:iconUrl ?iconUrl ;
+             nuget:licenseUrl ?licenseUrl ;
+             nuget:projectUrl ?projectUrl ;
+             nuget:requireLicenseAcceptance ?requireLicenseAcceptance ;
+             nuget:language ?language ;
+             nuget:authors ?authors ;
              nuget:minClientVersion ?minClientVersion .
 
     ?dependency_group a nuget:PackageDependencyGroup ;
@@ -23,8 +33,18 @@ WHERE
 	BIND (@package AS ?package)
 
     ?package nuget:version ?version ;
-             nuget:id ?id .
+             nuget:id ?id ;
+	         nuget:published ?published .
 
+	OPTIONAL { ?package nuget:description ?description . }
+	OPTIONAL { ?package nuget:title ?title . }
+	OPTIONAL { ?package nuget:summary ?summary . }
+	OPTIONAL { ?package nuget:iconUrl ?iconUrl . }
+	OPTIONAL { ?package nuget:licenseUrl ?licenseUrl . }
+	OPTIONAL { ?package nuget:projectUrl ?projectUrl . }
+	OPTIONAL { ?package nuget:requireLicenseAcceptance ?requireLicenseAcceptance . }
+	OPTIONAL { ?package nuget:language ?language . }
+	OPTIONAL { ?package nuget:authors ?authors . }
 	OPTIONAL { ?package nuget:minClientVersion ?minClientVersion . }
 
     BIND (IRI(CONCAT(@contentBase, "/packages/", LCASE(?id), ".", ?version, ".nupkg" )) AS ?nupkgUrl)

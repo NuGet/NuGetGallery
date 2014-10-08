@@ -1,4 +1,6 @@
-﻿using NuGet.Services.Metadata.Catalog.Collecting;
+﻿using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
+using NuGet.Services.Metadata.Catalog.Collecting;
 using NuGet.Services.Metadata.Catalog.Collecting.Test;
 using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -145,6 +147,11 @@ namespace CatalogTests
             Console.WriteLine("MakeTestCatalog.Test0");
 
             Storage storage = new FileStorage("http://localhost:8000/test", @"c:\data\site\test");
+
+            StorageCredentials credentials = new StorageCredentials("", "");
+            CloudStorageAccount account = new CloudStorageAccount(credentials, true);
+            //StorageFactory storageFactory = new AzureStorageFactory(account, "ver31", "catalog");
+            //Storage storage = new AzureStorage(account, "ver32");
 
             var ids = GetInitialIdList(250);
 

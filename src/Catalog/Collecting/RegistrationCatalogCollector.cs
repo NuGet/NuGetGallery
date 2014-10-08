@@ -31,22 +31,29 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         protected override async Task ProcessGraphs(KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs)
         {
-            Storage storage = _storageFactory.Create(sortedGraphs.Key);
-
-            Uri resourceUri = storage.ResolveUri("index.json");
-            string json = await storage.LoadString(resourceUri);
-
-            int count = Utils.CountItems(json);
-
-            int total = count + sortedGraphs.Value.Count;
-
-            if (total < PackageCountThreshold)
+            try
             {
-                await SaveSmallRegistration(storage, sortedGraphs.Value);
+                Storage storage = _storageFactory.Create(sortedGraphs.Key);
+
+                Uri resourceUri = storage.ResolveUri("index.json");
+                string json = await storage.LoadString(resourceUri);
+
+                int count = Utils.CountItems(json);
+
+                int total = count + sortedGraphs.Value.Count;
+
+                if (total < PackageCountThreshold)
+                {
+                    await SaveSmallRegistration(storage, sortedGraphs.Value);
+                }
+                else
+                {
+                    await SaveLargeRegistration(storage, sortedGraphs.Value, json);
+                }
             }
-            else
+            catch (Exception e)
             {
-                await SaveLargeRegistration(storage, sortedGraphs.Value, json);
+                throw new Exception(string.Format("Process id = {0}", sortedGraphs.Key), e);
             }
         }
 
@@ -112,7 +119,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             foreach (SparqlResult row in rows)
             {
                 string packageUri = ((IUriNode)row["package"]).Uri.AbsoluteUri;
-                items.Add(packageUri, graph);
+                items[packageUri] = graph;
             }
         }
     }

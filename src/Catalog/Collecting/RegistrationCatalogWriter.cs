@@ -38,7 +38,15 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                 foreach (KeyValuePair<string, CatalogItemSummary> pageItemEntry in pageItemEntries)
                 {
                     NuGetVersion version = GetVersion(pageItemEntry.Key, pageItemEntry.Value.Content);
-                    versions.Add(version, pageItemEntry);
+                    try
+                    {
+                        versions.Add(version, pageItemEntry);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        throw;
+                    }
                 }
             }
 
