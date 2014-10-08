@@ -37,6 +37,8 @@ namespace CatalogTests
 
                 //BuilderTests.Test5();
 
+                //MakeTestCatalog.Test0();
+
                 //CollectorTests.Test0();
 
                 //CollectorTests.Test1();
@@ -45,8 +47,8 @@ namespace CatalogTests
                 //CollectorTests.Test6();
                 //CollectorTests.Test7();
 
-                //CollectorTests.Test9();
-                CollectorTests.Test10();
+                CollectorTests.Test9();
+                //CollectorTests.Test10();
 
                 //PartitioningTests.Test0();
                 //PartitioningTests.Test1();

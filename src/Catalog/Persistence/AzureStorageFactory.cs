@@ -7,11 +7,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     {
         CloudStorageAccount _account;
         string _containerName;
+        string _path;
 
-        public AzureStorageFactory(CloudStorageAccount account, string containerName)
+        public AzureStorageFactory(CloudStorageAccount account, string containerName, string path = null)
         {
             _account = account;
             _containerName = containerName;
+            _path = path;
 
             Uri blobEndpoint = new UriBuilder(account.BlobEndpoint)
             {
@@ -19,11 +21,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 Port = 80
             }.Uri;
 
-            BaseAddress = new Uri(blobEndpoint, containerName + "/");
+            BaseAddress = new Uri(blobEndpoint, containerName + "/" + _path ?? string.Empty);
         }
         public override Storage Create(string name)
         {
-            return new AzureStorage(_account, _containerName, name);
+            string path = (_path == null) ? name : _path + "/" + name;
+
+            return new AzureStorage(_account, _containerName, path);
         }
     }
 }

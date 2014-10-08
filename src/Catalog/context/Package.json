@@ -9,6 +9,6 @@
         "dependencyGroup" : { "@container" : "@set" },
         "property" : { "@container" : "@set" },
         "published" : { "@type" : "xsd:dateTime" },
-        "catalog:commitTimestamp" : { "@type" : "xsd:dateTime" }
+        "catalog:commitTimeStamp" : { "@type" : "xsd:dateTime" }
     }
 }

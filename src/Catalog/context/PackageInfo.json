@@ -6,6 +6,7 @@
 
         "url": "@id",
         "registration":  { "@type": "@id" },
-        "catalog:commitTimestamp" : { "@type" : "xsd:dateTime" }
+        "published" : { "@type" : "xsd:dateTime" },
+        "catalog:commitTimeStamp" : { "@type" : "xsd:dateTime" }
     }
 }

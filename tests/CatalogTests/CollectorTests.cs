@@ -1,4 +1,6 @@
-﻿using NuGet.Services.Metadata.Catalog;
+﻿using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Collecting;
 using NuGet.Services.Metadata.Catalog.Collecting.Test;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -241,7 +243,11 @@ namespace CatalogTests
 
         public static async Task Test9Async()
         {
-            StorageFactory storageFactory = new FileStorageFactory(new Uri("http://localhost:8000/reg/"), @"c:\data\site\reg");
+            //StorageFactory storageFactory = new FileStorageFactory(new Uri("http://localhost:8000/reg/"), @"c:\data\site\reg");
+
+            StorageCredentials credentials = new StorageCredentials("", "");
+            CloudStorageAccount account = new CloudStorageAccount(credentials, true);
+            StorageFactory storageFactory = new AzureStorageFactory(account, "ver3", "registration");
 
             RegistrationCatalogCollector collector = new RegistrationCatalogCollector(storageFactory, 200);
 
@@ -257,7 +263,7 @@ namespace CatalogTests
             //CollectorCursor cursor = new CollectorCursor(new DateTime(2014, 10, 01, 03, 27, 35, 360, DateTimeKind.Utc));
             CollectorCursor cursor = new CollectorCursor(DateTime.MinValue);
 
-            await collector.Run(new Uri("http://localhost:8000/full/index.json"), cursor, handler);
+            await collector.Run(new Uri("http://localhost:8000/test/index.json"), cursor, handler);
             //await collector.Run(new Uri("http://localhost:8000/ravendb/index.json"), cursor, handler);
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
@@ -271,11 +277,18 @@ namespace CatalogTests
 
         public static async Task Test10Async()
         {
-            Storage storage = new FileStorage(new Uri("http://localhost:8000/info/"), @"c:\data\site\info");
+            //Storage storage = new FileStorage(new Uri("http://preview.nuget.org/ver3-preview/packageinfo/"), @"c:\data\site\info");
+
+            StorageCredentials credentials = new StorageCredentials("", "");
+            CloudStorageAccount account = new CloudStorageAccount(credentials, true);
+            Storage storage = new AzureStorage(account, "ver3");
 
             PackageInfoCatalogCollector collector = new PackageInfoCatalogCollector(storage, 200);
 
-            //collector.PackageCountThreshold = 50;
+            collector.RegistrationBaseAddress = new Uri(storage.BaseAddress, "registration");
+
+            //collector.RegistrationBaseAddress = new Uri("http://preview.nuget.org/ver3-preview/registrations/");
+            //collector.BaseAddress = new Uri("http://preview.nuget.org/ver3-preview/registrations/");
 
             FileSystemEmulatorHandler handler = new VerboseHandler
             {

@@ -89,6 +89,7 @@
     <Compile Include="DeleteTests.cs" />
     <Compile Include="End2EndTests.cs" />
     <Compile Include="JsonLdCacheTests.cs" />
+    <Compile Include="MakeTestCatalog.cs" />
     <Compile Include="MakeTestData.cs" />
     <Compile Include="PartitioningTests.cs" />
     <Compile Include="Program.cs" />
@@ -118,6 +119,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Node\collect.js" />
+    <Content Include="Top1000.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

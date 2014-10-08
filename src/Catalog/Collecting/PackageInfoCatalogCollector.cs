@@ -5,7 +5,6 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using VDS.RDF;
 using VDS.RDF.Query;
@@ -28,7 +27,9 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             RegistrationBaseAddress = new Uri("http://tempuri.org/registration/");
         }
 
-        public Uri RegistrationBaseAddress { get; private set; }
+        public Uri RegistrationBaseAddress { get; set; }
+
+        public Uri BaseAddress { get; set; }
 
         public CatalogContext Context { get; private set; }
 
@@ -71,6 +72,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         {
             IGraph contentGraph;
 
+            Uri baseAddress = BaseAddress ?? _storage.BaseAddress;
+
             using (TripleStore store = new TripleStore())
             {
                 store.Add(itemGraph, true);
@@ -79,8 +82,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                 sparql.CommandText = Utils.GetResource("sparql.ConstructPackageInfoContentGraph.rq");
 
                 sparql.SetUri("package", itemUri);
-                sparql.SetLiteral("baseAddress", _storage.BaseAddress.AbsoluteUri);
-                sparql.SetLiteral("registrationBaseAddress", RegistrationBaseAddress.AbsoluteUri);
+                sparql.SetLiteral("baseAddress", baseAddress.AbsoluteUri.Trim('/') + '/');
+                sparql.SetLiteral("registrationBaseAddress", RegistrationBaseAddress.AbsoluteUri.Trim('/') + '/');
 
                 contentGraph = SparqlHelpers.Construct(store, sparql.ToString());
             }

@@ -45,7 +45,7 @@
                     
                 <xsl:otherwise>
                   <ng:dependencyGroup>
-                    <rdf:Description>
+                    <ng:PackageDependencyGroup>
                       <xsl:attribute name="rdf:about">
                         <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, '#dependencyGroup'))"/>
                       </xsl:attribute>
@@ -53,7 +53,7 @@
                         <xsl:with-param name="path" select="$path" />
                         <xsl:with-param name="parent_fragment" select="'#dependencyGroup'" />
                       </xsl:apply-templates>
-                    </rdf:Description>
+                    </ng:PackageDependencyGroup>
                   </ng:dependencyGroup>
                 </xsl:otherwise>
                   
@@ -149,7 +149,7 @@
     <xsl:param name="path" />
     <xsl:param name="parent_fragment" />
     <ng:dependencyGroup>
-      <rdf:Description>
+      <ng:PackageDependencyGroup>
 
         <xsl:variable name="fragment">
           <xsl:choose>
@@ -196,7 +196,7 @@
           <xsl:with-param name="parent_fragment" select="$fragment" />
         </xsl:apply-templates>
 
-      </rdf:Description>
+      </ng:PackageDependencyGroup>
     </ng:dependencyGroup>
   </xsl:template>
 
@@ -204,20 +204,20 @@
     <xsl:param name="path" />
     <xsl:param name="parent_fragment" />
     <ng:dependency>
-      <rdf:Description>
+      <ng:PackageDependency>
 
         <xsl:variable name="fragment" select="concat($parent_fragment, '/', @id)" />
 
         <xsl:attribute name="rdf:about">
-          <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, $fragment))"/>
+          <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, $fragment))" />
         </xsl:attribute>
-
+        
         <ng:id>
           <xsl:value-of select="obj:LowerCase(@id)"/>          
         </ng:id>
 
         <ng:range>
-          <xsl:value-of select="obj:LowerCase(obj:NormalizeVersionRange(@version))"/>
+          <xsl:value-of select="obj:LowerCase(obj:NormalizeVersionRange(@version))" />
         </ng:range>
 
         <xsl:apply-templates select="nuget:property">
@@ -225,7 +225,7 @@
           <xsl:with-param name="parent_fragment" select="$fragment" />
         </xsl:apply-templates>
 
-      </rdf:Description>
+      </ng:PackageDependency>
     </ng:dependency>
   </xsl:template>
 

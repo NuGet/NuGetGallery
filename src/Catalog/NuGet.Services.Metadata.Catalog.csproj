@@ -100,6 +100,7 @@
     <Compile Include="Collecting\SortingCollector.cs" />
     <Compile Include="Collecting\SortingGraphCollector.cs" />
     <Compile Include="Collecting\StoreCollector.cs" />
+    <Compile Include="Collecting\Test\DistinctDependencyPackageIdCollector.cs" />
     <Compile Include="Collecting\Test\DistinctPackageIdCollector.cs" />
     <Compile Include="Collecting\Test\CheckLinksCollector.cs" />
     <Compile Include="Collecting\Test\CountCollector.cs" />
@@ -199,6 +200,7 @@
     <EmbeddedResource Include="sparql\ConstructPackageGraph.rq" />
     <EmbeddedResource Include="sparql\SelectInlinePackage.rq" />
     <EmbeddedResource Include="sparql\ConstructPackageInfoContentGraph.rq" />
+    <EmbeddedResource Include="sparql\SelectDistinctDependency.rq" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
