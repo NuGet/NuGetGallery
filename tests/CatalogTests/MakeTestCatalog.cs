@@ -1,6 +1,5 @@
 ﻿using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
-using NuGet.Services.Metadata.Catalog.Collecting;
 using NuGet.Services.Metadata.Catalog.Collecting.Test;
 using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -8,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -148,12 +146,11 @@ namespace CatalogTests
 
             Storage storage = new FileStorage("http://localhost:8000/test", @"c:\data\site\test");
 
-            StorageCredentials credentials = new StorageCredentials("", "");
-            CloudStorageAccount account = new CloudStorageAccount(credentials, true);
-            //StorageFactory storageFactory = new AzureStorageFactory(account, "ver31", "catalog");
-            //Storage storage = new AzureStorage(account, "ver32");
+            //StorageCredentials credentials = new StorageCredentials("", "");
+            //CloudStorageAccount account = new CloudStorageAccount(credentials, true);
+            //Storage storage = new AzureStorage(account, "ver33", "catalog");
 
-            var ids = GetInitialIdList(250);
+            var ids = GetInitialIdList(50);
 
             //var ids = new string[] { "dotnetrdf" };
 

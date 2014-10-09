@@ -37,16 +37,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
                 foreach (KeyValuePair<string, CatalogItemSummary> pageItemEntry in pageItemEntries)
                 {
-                    NuGetVersion version = GetVersion(pageItemEntry.Key, pageItemEntry.Value.Content);
-                    try
-                    {
-                        versions.Add(version, pageItemEntry);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                        throw;
-                    }
+                    NuGetVersion version = GetPackageVersion(new Uri(pageItemEntry.Key), pageItemEntry.Value.Content);
+                    versions.Add(version, pageItemEntry);
                 }
             }
 
@@ -54,7 +46,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
             foreach (KeyValuePair<string, CatalogItemSummary> itemEntry in itemEntries)
             {
-                NuGetVersion version = GetVersion(itemEntry.Key, itemEntry.Value.Content);
+                NuGetVersion version = GetPackageVersion(new Uri(itemEntry.Key), itemEntry.Value.Content);
                 versions[version] = itemEntry;
             }
 
@@ -114,13 +106,17 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             return graph;
         }
 
-        static NuGetVersion GetVersion(string packageUri, IGraph pageContent)
+        static NuGetVersion GetPackageVersion(Uri packageUri, IGraph pageContent)
         {
-            Triple triple = pageContent.GetTriplesWithSubjectPredicate(
-                pageContent.CreateUriNode(new Uri(packageUri)),
+            Triple t1 = pageContent.GetTriplesWithSubjectPredicate(
+                pageContent.CreateUriNode(packageUri),
+                pageContent.CreateUriNode(Schema.Predicates.CatalogEntry)).FirstOrDefault();
+
+            Triple t2 = pageContent.GetTriplesWithSubjectPredicate(
+                pageContent.CreateUriNode(((IUriNode)t1.Object).Uri),
                 pageContent.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault();
 
-            string s = triple.Object.ToString();
+            string s = t2.Object.ToString();
             return NuGetVersion.Parse(s);
         }
 

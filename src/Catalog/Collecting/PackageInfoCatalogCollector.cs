@@ -65,7 +65,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
             Uri packageInfoAddress = GetPackageInfoAddress(packageInfoGraph);
 
-            await _storage.Save(packageInfoAddress, CreateIndexContent(packageInfoGraph, Schema.DataTypes.PackageInfo));
+            await _storage.Save(packageInfoAddress, CreateIndexContent(packageInfoGraph, Schema.DataTypes.PackageDetails));
         }
 
         IGraph CreatePackageInfoContent(Uri itemUri, IGraph itemGraph)
@@ -95,7 +95,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         {
             Triple triple = packageInfoGraph.GetTriplesWithPredicateObject(
                 packageInfoGraph.CreateUriNode(Schema.Predicates.Type),
-                packageInfoGraph.CreateUriNode(Schema.DataTypes.PackageInfo)).FirstOrDefault();
+                packageInfoGraph.CreateUriNode(Schema.DataTypes.PackageDetails)).FirstOrDefault();
 
             return ((IUriNode)triple.Subject).Uri;
         }

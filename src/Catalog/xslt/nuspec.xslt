@@ -15,7 +15,7 @@
     
     <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 
-      <ng:Package>
+      <ng:PackageDetails>
 
         <xsl:variable name="path" select="concat(nuget:id, '.', obj:NormalizeVersion(nuget:version))" />
 
@@ -141,7 +141,7 @@
           </xsl:choose>
         </xsl:for-each>
 
-      </ng:Package>
+      </ng:PackageDetails>
     </rdf:RDF>
   </xsl:template>
 

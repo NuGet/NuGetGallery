@@ -3,21 +3,24 @@
 CONSTRUCT
 {
     ?package a nuget:Package ;
-             nuget:id ?id ;
-             nuget:version ?version ;
-             nuget:dependencyGroup ?dependency_group ;
-             nuget:nupkgUrl ?nupkgUrl ;
-	         nuget:published ?published ;
-             nuget:description ?description ;
-             nuget:title ?title ;
-             nuget:summary ?summary ;
-             nuget:iconUrl ?iconUrl ;
-             nuget:licenseUrl ?licenseUrl ;
-             nuget:projectUrl ?projectUrl ;
-             nuget:requireLicenseAcceptance ?requireLicenseAcceptance ;
-             nuget:language ?language ;
-             nuget:authors ?authors ;
-             nuget:minClientVersion ?minClientVersion .
+	         nuget:catalogEntry ?catalogPackage .
+
+    ?catalogPackage a nuget:CatalogPackage ;
+                    nuget:id ?id ;
+                    nuget:version ?version ;
+                    nuget:dependencyGroup ?dependency_group ;
+                    nuget:nupkgUrl ?nupkgUrl ;
+	                nuget:published ?published ;
+                    nuget:description ?description ;
+                    nuget:title ?title ;
+                    nuget:summary ?summary ;
+                    nuget:iconUrl ?iconUrl ;
+                    nuget:licenseUrl ?licenseUrl ;
+                    nuget:projectUrl ?projectUrl ;
+                    nuget:requireLicenseAcceptance ?requireLicenseAcceptance ;
+                    nuget:language ?language ;
+                    nuget:authors ?authors ;
+                    nuget:minClientVersion ?minClientVersion .
 
     ?dependency_group a nuget:PackageDependencyGroup ;
 	                  nuget:dependency ?dependency ;
@@ -30,28 +33,30 @@ CONSTRUCT
 }
 WHERE
 {
-	BIND (@package AS ?package)
+	BIND (@catalogPackage AS ?catalogPackage)
 
-    ?package nuget:version ?version ;
-             nuget:id ?id ;
-	         nuget:published ?published .
+	BIND (IRI(CONCAT(@baseAddress, ?id, "/index.json#", ?version)) AS ?package)
 
-	OPTIONAL { ?package nuget:description ?description . }
-	OPTIONAL { ?package nuget:title ?title . }
-	OPTIONAL { ?package nuget:summary ?summary . }
-	OPTIONAL { ?package nuget:iconUrl ?iconUrl . }
-	OPTIONAL { ?package nuget:licenseUrl ?licenseUrl . }
-	OPTIONAL { ?package nuget:projectUrl ?projectUrl . }
-	OPTIONAL { ?package nuget:requireLicenseAcceptance ?requireLicenseAcceptance . }
-	OPTIONAL { ?package nuget:language ?language . }
-	OPTIONAL { ?package nuget:authors ?authors . }
-	OPTIONAL { ?package nuget:minClientVersion ?minClientVersion . }
+    ?catalogPackage nuget:version ?version ;
+                    nuget:id ?id ;
+	                nuget:published ?published .
 
-    BIND (IRI(CONCAT(@contentBase, "/packages/", LCASE(?id), ".", ?version, ".nupkg" )) AS ?nupkgUrl)
+	OPTIONAL { ?catalogPackage nuget:description ?description . }
+	OPTIONAL { ?catalogPackage nuget:title ?title . }
+	OPTIONAL { ?catalogPackage nuget:summary ?summary . }
+	OPTIONAL { ?catalogPackage nuget:iconUrl ?iconUrl . }
+	OPTIONAL { ?catalogPackage nuget:licenseUrl ?licenseUrl . }
+	OPTIONAL { ?catalogPackage nuget:projectUrl ?projectUrl . }
+	OPTIONAL { ?catalogPackage nuget:requireLicenseAcceptance ?requireLicenseAcceptance . }
+	OPTIONAL { ?catalogPackage nuget:language ?language . }
+	OPTIONAL { ?catalogPackage nuget:authors ?authors . }
+	OPTIONAL { ?catalogPackage nuget:minClientVersion ?minClientVersion . }
+
+    BIND (IRI(CONCAT(@contentBase, "packages/", LCASE(?id), ".", LCASE(?version), ".nupkg" )) AS ?nupkgUrl)
 
     OPTIONAL
     {
-        ?package nuget:dependencyGroup ?dependency_group .
+        ?catalogPackage nuget:dependencyGroup ?dependency_group .
         ?dependency_group nuget:dependency ?dependency .
 
         OPTIONAL { ?dependency_group nuget:targetFramework ?dependency_group_targetFramework . }

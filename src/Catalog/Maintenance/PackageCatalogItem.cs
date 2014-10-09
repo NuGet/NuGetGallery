@@ -57,7 +57,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public override Uri GetItemType()
         {
-            return Schema.DataTypes.Package;
+            return Schema.DataTypes.PackageDetails;
         }
 
         public override IGraph CreatePageContent(CatalogContext context)

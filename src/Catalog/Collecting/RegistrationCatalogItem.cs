@@ -2,6 +2,7 @@
 using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
+using System.Linq;
 using VDS.RDF;
 using VDS.RDF.Query;
 
@@ -11,6 +12,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
     {
         Uri _catalogUri;
         IGraph _catalogItem;
+        Uri _itemAddress;
         string _registrationBaseAddress;
         string _contentBaseAddress;
 
@@ -34,7 +36,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         public override Uri GetItemAddress()
         {
-            return _catalogUri;
+            return _itemAddress;
         }
 
         public override IGraph CreatePageContent(CatalogContext context)
@@ -48,14 +50,25 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                 SparqlParameterizedString sparql = new SparqlParameterizedString();
                 sparql.CommandText = Utils.GetResource("sparql.ConstructPackagePageContentGraph.rq");
 
-                sparql.SetUri("package", _catalogUri);
+                sparql.SetUri("catalogPackage", _catalogUri);
                 sparql.SetLiteral("baseAddress", _registrationBaseAddress);
                 sparql.SetLiteral("contentBase", _contentBaseAddress);
 
                 content = SparqlHelpers.Construct(store, sparql.ToString());
             }
 
+            _itemAddress = GetPackageInfoAddress(content);
+
             return content;
+        }
+
+        Uri GetPackageInfoAddress(IGraph packageGraph)
+        {
+            Triple triple = packageGraph.GetTriplesWithPredicateObject(
+                packageGraph.CreateUriNode(Schema.Predicates.Type),
+                packageGraph.CreateUriNode(Schema.DataTypes.Package)).FirstOrDefault();
+
+            return ((IUriNode)triple.Subject).Uri;
         }
     }
 }

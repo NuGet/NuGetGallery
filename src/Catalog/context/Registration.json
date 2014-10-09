@@ -18,6 +18,7 @@
         "dependencies": { "@container" : "@set", "@id": "dependency" },
 
         "nupkgUrl": { "@type": "@id" },
-        "published" : { "@type" : "xsd:dateTime" }
+        "published" : { "@type" : "xsd:dateTime" },
+		"registration" : { "@type": "@id" }
     }
 }

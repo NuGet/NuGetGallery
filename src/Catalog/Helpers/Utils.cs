@@ -190,13 +190,21 @@ namespace NuGet.Services.Metadata.Catalog
             return graph;
         }
 
-        public static void CopyGraph(INode sourceNode, IGraph source, IGraph target)
+        public static bool IsCatalogNode(INode sourceNode, IGraph source)
+        {
+            Triple rootTriple = source.GetTriplesWithSubjectObject(sourceNode, source.CreateUriNode(Schema.DataTypes.CatalogRoot)).FirstOrDefault();
+            Triple pageTriple = source.GetTriplesWithSubjectObject(sourceNode, source.CreateUriNode(Schema.DataTypes.CatalogPage)).FirstOrDefault();
+
+            return (rootTriple != null || pageTriple != null);
+        }
+
+        public static void CopyCatalogContentGraph(INode sourceNode, IGraph source, IGraph target)
         {
             foreach (Triple triple in source.GetTriplesWithSubject(sourceNode))
             {
-                if (target.Assert(triple.CopyTriple(target)) && triple.Object is IUriNode)
+                if (target.Assert(triple.CopyTriple(target)) && triple.Object is IUriNode && !IsCatalogNode(triple.Object, source))
                 {
-                    CopyGraph(triple.Object, source, target);
+                    CopyCatalogContentGraph(triple.Object, source, target);
                 }
             }
         }

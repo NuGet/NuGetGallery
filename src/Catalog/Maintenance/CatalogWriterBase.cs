@@ -247,6 +247,10 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                     {
                         continue;
                     }
+                    if (itemContentTriple.Predicate.Equals(itemPredicate))
+                    {
+                        continue;
+                    }
 
                     if (itemContent == null)
                     {
@@ -261,7 +265,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
                     if (itemContentTriple.Object is IUriNode)
                     {
-                        Utils.CopyGraph(itemContentTriple.Object, graph, itemContent);
+                        Utils.CopyCatalogContentGraph(itemContentTriple.Object, graph, itemContent);
                     }
                 }
 
