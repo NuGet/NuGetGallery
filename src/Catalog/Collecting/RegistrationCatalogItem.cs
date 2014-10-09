@@ -2,6 +2,7 @@
 using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
+using System.IO;
 using System.Linq;
 using VDS.RDF;
 using VDS.RDF.Query;
@@ -41,25 +42,32 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         public override IGraph CreatePageContent(CatalogContext context)
         {
-            IGraph content;
-
-            using (TripleStore store = new TripleStore())
+            try
             {
-                store.Add(_catalogItem, true);
+                IGraph content;
 
-                SparqlParameterizedString sparql = new SparqlParameterizedString();
-                sparql.CommandText = Utils.GetResource("sparql.ConstructPackagePageContentGraph.rq");
+                using (TripleStore store = new TripleStore())
+                {
+                    store.Add(_catalogItem, true);
 
-                sparql.SetUri("catalogPackage", _catalogUri);
-                sparql.SetLiteral("baseAddress", _registrationBaseAddress);
-                sparql.SetLiteral("contentBase", _contentBaseAddress);
+                    SparqlParameterizedString sparql = new SparqlParameterizedString();
+                    sparql.CommandText = Utils.GetResource("sparql.ConstructPackagePageContentGraph.rq");
 
-                content = SparqlHelpers.Construct(store, sparql.ToString());
+                    sparql.SetUri("catalogPackage", _catalogUri);
+                    sparql.SetLiteral("baseAddress", _registrationBaseAddress);
+                    sparql.SetLiteral("contentBase", _contentBaseAddress);
+
+                    content = SparqlHelpers.Construct(store, sparql.ToString());
+                }
+
+                _itemAddress = GetPackageInfoAddress(content);
+
+                return content;
             }
-
-            _itemAddress = GetPackageInfoAddress(content);
-
-            return content;
+            catch (Exception e)
+            {
+                throw new Exception(string.Format("Exception processing catalog item {0}", _catalogUri), e);
+            }
         }
 
         Uri GetPackageInfoAddress(IGraph packageGraph)
