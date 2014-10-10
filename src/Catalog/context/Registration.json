@@ -1,12 +1,10 @@
 ﻿{ 
     "@context" : { 
         "@vocab": "http://schema.nuget.org/schema#",
-        "nuget" : "http://schema.nuget.org/schema#",
         "catalog" : "http://schema.nuget.org/catalog#",
         "xsd": "http://www.w3.org/2001/XMLSchema#",
 
         "items" : { "@id": "catalog:item", "@container" : "@set" },
-        "url" : "@id",
 
         "commitTimeStamp" : { "@id" : "catalog:commitTimeStamp", "@type" : "xsd:dateTime" },
         "commitId" : { "@id" : "catalog:commitId" },
@@ -17,7 +15,7 @@
         "dependencyGroups": { "@container" : "@set", "@id": "dependencyGroup" },
         "dependencies": { "@container" : "@set", "@id": "dependency" },
 
-        "nupkgUrl": { "@type": "@id" },
+        "packageContent": { "@type": "@id" },
         "published" : { "@type" : "xsd:dateTime" },
 		"registration" : { "@type": "@id" }
     }

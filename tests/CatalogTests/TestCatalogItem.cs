@@ -18,7 +18,7 @@ namespace CatalogTests
 
         public override StorageContent CreateContent(CatalogContext context)
         {
-            string id = GetBaseAddress() + _name + ".json";
+            string id = BaseAddress + _name + ".json";
 
             JObject obj = new JObject
                 {
@@ -36,9 +36,9 @@ namespace CatalogTests
             return _type;
         }
 
-        protected override string GetItemIdentity()
+        public override Uri GetItemAddress()
         {
-            return _name;
+            return new Uri(BaseAddress, _name);
         }
     }
 }

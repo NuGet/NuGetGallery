@@ -86,7 +86,6 @@
     <Compile Include="CatalogTests.cs" />
     <Compile Include="CheckResults.cs" />
     <Compile Include="CollectorTests.cs" />
-    <Compile Include="DeleteTests.cs" />
     <Compile Include="End2EndTests.cs" />
     <Compile Include="IntegrityTests.cs" />
     <Compile Include="JsonLdCacheTests.cs" />

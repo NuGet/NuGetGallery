@@ -10,7 +10,7 @@ using VDS.RDF.Parsing;
 
 namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
-    public abstract class PackageCatalogItem : CatalogItem
+    public abstract class PackageCatalogItem : AppendOnlyCatalogItem
     {
         string _id;
         string _version;
@@ -29,9 +29,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             INode publishedPredicate = graph.CreateUriNode(Schema.Predicates.Published);
 
             Triple resource = graph.GetTriplesWithPredicateObject(rdfTypePredicate, graph.CreateUriNode(GetItemType())).First();
-            graph.Assert(resource.Subject, timeStampPredicate, graph.CreateLiteralNode(GetTimeStamp().ToString("O"), Schema.DataTypes.DateTime));
-            graph.Assert(resource.Subject, commitIdPredicate, graph.CreateLiteralNode(GetCommitId().ToString()));
-            graph.Assert(resource.Subject, publishedPredicate, graph.CreateLiteralNode(GetTimeStamp().ToString("O"), Schema.DataTypes.DateTime));
+            graph.Assert(resource.Subject, timeStampPredicate, graph.CreateLiteralNode(TimeStamp.ToString("O"), Schema.DataTypes.DateTime));
+            graph.Assert(resource.Subject, commitIdPredicate, graph.CreateLiteralNode(CommitId.ToString()));
+            graph.Assert(resource.Subject, publishedPredicate, graph.CreateLiteralNode(TimeStamp.ToString("O"), Schema.DataTypes.DateTime));
 
             INode idPredicate = graph.CreateUriNode(Schema.Predicates.Id);
             INode versionPredicate = graph.CreateUriNode(Schema.Predicates.Version);
@@ -48,7 +48,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 _version = ((ILiteralNode)version.Object).Value;
             }
 
-            JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
+            JObject frame = context.GetJsonLdContext("context.PackageDetails.json", GetItemType());
 
             StorageContent content = new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
 

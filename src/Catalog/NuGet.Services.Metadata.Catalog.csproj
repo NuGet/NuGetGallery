@@ -104,7 +104,6 @@
     <Compile Include="Collecting\Test\DistinctPackageIdCollector.cs" />
     <Compile Include="Collecting\Test\CheckLinksCollector.cs" />
     <Compile Include="Collecting\Test\CountCollector.cs" />
-    <Compile Include="Collecting\ResolverDeleteCollector.cs" />
     <Compile Include="Collecting\Test\PackageCollector.cs" />
     <Compile Include="Collecting\Test\VerboseHandler.cs" />
     <Compile Include="FileSystemEmulatorHandler.cs" />
@@ -114,6 +113,7 @@
     <Compile Include="GalleryIntegration\GalleryExportPackage.cs" />
     <Compile Include="GraphExtensions.cs" />
     <Compile Include="Helpers\IndexingHelpers.cs" />
+    <Compile Include="Maintenance\AppendOnlyCatalogItem.cs" />
     <Compile Include="Maintenance\AppendOnlyCatalogWriter.cs" />
     <Compile Include="Maintenance\AzureStorageChecksumRecords.cs" />
     <Compile Include="Maintenance\CatalogBatcher.cs" />
@@ -132,10 +132,8 @@
     <Compile Include="Persistence\StorageContent.cs" />
     <Compile Include="Maintenance\CatalogContext.cs" />
     <Compile Include="Maintenance\CatalogItem.cs" />
-    <Compile Include="Maintenance\DeletePackageCatalogItem.cs" />
     <Compile Include="Maintenance\NuspecPackageCatalogItem.cs" />
     <Compile Include="Maintenance\PackageCatalogItem.cs" />
-    <Compile Include="Maintenance\DeleteRegistrationCatalogItem.cs" />
     <Compile Include="Collecting\BatchCollector.cs" />
     <Compile Include="Persistence\AzureStorage.cs" />
     <Compile Include="Persistence\FileStorage.cs" />
@@ -179,10 +177,10 @@
     <EmbeddedResource Include="context\Container.json" />
     <EmbeddedResource Include="context\Package.json" />
     <EmbeddedResource Include="context\Resolver.json" />
-    <EmbeddedResource Include="context\DeletePackage.json" />
     <EmbeddedResource Include="context\Segment.json" />
     <EmbeddedResource Include="context\Registration.json" />
     <EmbeddedResource Include="context\PackageInfo.json" />
+    <EmbeddedResource Include="context\PackageDetails.json" />
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />

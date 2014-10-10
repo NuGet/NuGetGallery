@@ -4,14 +4,11 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VDS.RDF;
-using Newtonsoft.Json;
 
 namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
 {
-    public class GalleryExportCatalogItem : CatalogItem
+    public class GalleryExportCatalogItem : AppendOnlyCatalogItem
     {
         GalleryExportPackage _export;
         string _identity;
@@ -25,7 +22,7 @@ namespace NuGet.Services.Metadata.Catalog.GalleryIntegration
         public override StorageContent CreateContent(CatalogContext context)
         {
             string resourceUri = GetBaseAddress() + GetRelativeAddress();
-            JObject obj = CreateContent(resourceUri, _export, GetTimeStamp(), GetCommitId());
+            JObject obj = CreateContent(resourceUri, _export, TimeStamp, CommitId);
             JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
             obj.Add("@context", frame["@context"]);
             

@@ -3,13 +3,14 @@
 CONSTRUCT
 {
     ?package a nuget:Package ;
+	         nuget:registration ?registration ;
+             nuget:packageContent ?packageContent ;
 	         nuget:catalogEntry ?catalogPackage .
 
-    ?catalogPackage a nuget:CatalogPackage ;
+    ?catalogPackage a nuget:PackageDetails ;
                     nuget:id ?id ;
                     nuget:version ?version ;
                     nuget:dependencyGroup ?dependency_group ;
-                    nuget:nupkgUrl ?nupkgUrl ;
 	                nuget:published ?published ;
                     nuget:description ?description ;
                     nuget:title ?title ;
@@ -34,8 +35,10 @@ CONSTRUCT
 WHERE
 {
 	BIND (@catalogPackage AS ?catalogPackage)
+	BIND (@package AS ?package)
+    BIND (@packageContent AS ?packageContent)
 
-	BIND (IRI(CONCAT(@baseAddress, ?id, "/index.json#", ?version)) AS ?package)
+	BIND (IRI(CONCAT(STR(@baseAddress), "index.json")) AS ?registration)
 
     ?catalogPackage nuget:version ?version ;
                     nuget:id ?id ;
@@ -52,8 +55,6 @@ WHERE
 	OPTIONAL { ?catalogPackage nuget:authors ?authors . }
 	OPTIONAL { ?catalogPackage nuget:minClientVersion ?minClientVersion . }
 
-    BIND (IRI(CONCAT(@contentBase, "packages/", LCASE(?id), ".", LCASE(?version), ".nupkg" )) AS ?nupkgUrl)
-
     OPTIONAL
     {
         ?catalogPackage nuget:dependencyGroup ?dependency_group .
@@ -63,7 +64,7 @@ WHERE
         
         ?dependency nuget:id ?dependency_id .
         
-        BIND (IRI(CONCAT(@baseAddress, ?dependency_id, "/index.json")) AS ?dependency_registration)
+        BIND (IRI(CONCAT(STR(@baseAddress), ?dependency_id, "/index.json")) AS ?dependency_registration)
         
         OPTIONAL { ?dependency nuget:range ?dependency_version . }
     }

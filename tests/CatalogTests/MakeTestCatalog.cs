@@ -150,7 +150,7 @@ namespace CatalogTests
             //CloudStorageAccount account = new CloudStorageAccount(credentials, true);
             //Storage storage = new AzureStorage(account, "ver33", "catalog");
 
-            var ids = GetInitialIdList(50);
+            var ids = GetInitialIdList(250);
 
             //var ids = new string[] { "dotnetrdf" };
 

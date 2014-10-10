@@ -25,7 +25,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             {
                 if (Utils.IsType(context, item, _types))
                 {
-                    string itemUri = item["url"].ToString();
+                    string itemUri = item["@id"].ToString();
                     tasks.Add(itemUri, client.GetGraphAsync(new Uri(itemUri)));
                 }
             }

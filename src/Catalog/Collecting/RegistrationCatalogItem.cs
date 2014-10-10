@@ -1,8 +1,8 @@
-﻿using NuGet.Services.Metadata.Catalog.Helpers;
+﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
-using System.IO;
 using System.Linq;
 using VDS.RDF;
 using VDS.RDF.Query;
@@ -14,20 +14,25 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         Uri _catalogUri;
         IGraph _catalogItem;
         Uri _itemAddress;
-        string _registrationBaseAddress;
-        string _contentBaseAddress;
+        Uri _packageContentBaseAddress;
+        Uri _packageContentAddress;
 
-        public RegistrationCatalogItem(string catalogUri, IGraph catalogItem, Uri registrationBaseAddress, string contentBaseAddress)
+        public RegistrationCatalogItem(string catalogUri, IGraph catalogItem, Uri packageContentBaseAddress)
         {
             _catalogUri = new Uri(catalogUri);
             _catalogItem = catalogItem;
-            _registrationBaseAddress = registrationBaseAddress.ToString().TrimEnd('/') + '/';
-            _contentBaseAddress = contentBaseAddress.ToString().TrimEnd('/') + '/';
+            _packageContentBaseAddress = packageContentBaseAddress;
         }
 
         public override StorageContent CreateContent(CatalogContext context)
         {
-            return null;
+            IGraph graph = new Graph();
+            INode subject = graph.CreateUriNode(GetItemAddress());
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.Package));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.CatalogEntry), graph.CreateUriNode(_catalogUri));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.PackageContent), graph.CreateUriNode(GetPackageContentAddress()));
+            JObject frame = context.GetJsonLdContext("context.Package.json", Schema.DataTypes.Package);
+            return new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
         }
 
         public override Uri GetItemType()
@@ -37,7 +42,28 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         public override Uri GetItemAddress()
         {
+            if (_itemAddress == null)
+            {
+                INode subject = _catalogItem.CreateUriNode(_catalogUri);
+                string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString();
+                _itemAddress = new Uri(BaseAddress, version + ".json");
+            }
+
             return _itemAddress;
+        }
+
+        Uri GetPackageContentAddress()
+        {
+            if (_packageContentAddress == null)
+            {
+                INode subject = _catalogItem.CreateUriNode(_catalogUri);
+                string id = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Id)).FirstOrDefault().Object.ToString();
+                string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString();
+                string path = string.Format("packages/{0}.{1}.nupkg", id.ToLowerInvariant(), version.ToLowerInvariant());
+                _packageContentAddress = new Uri(_packageContentBaseAddress, path);
+            }
+
+            return _packageContentAddress;
         }
 
         public override IGraph CreatePageContent(CatalogContext context)
@@ -53,14 +79,13 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                     SparqlParameterizedString sparql = new SparqlParameterizedString();
                     sparql.CommandText = Utils.GetResource("sparql.ConstructPackagePageContentGraph.rq");
 
+                    sparql.SetUri("package", GetItemAddress());
                     sparql.SetUri("catalogPackage", _catalogUri);
-                    sparql.SetLiteral("baseAddress", _registrationBaseAddress);
-                    sparql.SetLiteral("contentBase", _contentBaseAddress);
+                    sparql.SetUri("baseAddress", BaseAddress);
+                    sparql.SetUri("packageContent", GetPackageContentAddress());
 
                     content = SparqlHelpers.Construct(store, sparql.ToString());
                 }
-
-                _itemAddress = GetPackageInfoAddress(content);
 
                 return content;
             }
@@ -68,15 +93,6 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             {
                 throw new Exception(string.Format("Exception processing catalog item {0}", _catalogUri), e);
             }
-        }
-
-        Uri GetPackageInfoAddress(IGraph packageGraph)
-        {
-            Triple triple = packageGraph.GetTriplesWithPredicateObject(
-                packageGraph.CreateUriNode(Schema.Predicates.Type),
-                packageGraph.CreateUriNode(Schema.DataTypes.Package)).FirstOrDefault();
-
-            return ((IUriNode)triple.Subject).Uri;
         }
     }
 }

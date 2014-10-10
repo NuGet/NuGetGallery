@@ -19,13 +19,13 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         {
             _storageFactory = storageFactory;
 
-            ContentBaseAddress = "http://tempuri.org";
+            ContentBaseAddress = new Uri("http://tempuri.org");
 
             PartitionSize = 64;
             PackageCountThreshold = 128;
         }
 
-        public string ContentBaseAddress { get; set; }
+        public Uri ContentBaseAddress { get; set; }
         public int PartitionSize { get; set; }
         public int PackageCountThreshold { get; set; }
 
@@ -102,7 +102,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             {
                 foreach (KeyValuePair<string, IGraph> item in items)
                 {
-                    writer.Add(new RegistrationCatalogItem(item.Key, item.Value, _storageFactory.BaseAddress, ContentBaseAddress));
+                    writer.Add(new RegistrationCatalogItem(item.Key, item.Value, ContentBaseAddress));
                 }
                 await writer.Commit(DateTime.UtcNow);
             }

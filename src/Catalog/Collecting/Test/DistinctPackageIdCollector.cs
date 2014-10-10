@@ -8,16 +8,15 @@ namespace NuGet.Services.Metadata.Catalog.Collecting.Test
 {
     public class DistinctPackageIdCollector : BatchCollector
     {
-        HashSet<string> _result = new HashSet<string>();
-
         public DistinctPackageIdCollector(int batchSize = 200)
             : base(batchSize)
         {
+            Result = new HashSet<string>();
         }
 
         public HashSet<string> Result
         {
-            get { return _result; }
+            get; private set;
         }
 
         protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
@@ -26,19 +25,16 @@ namespace NuGet.Services.Metadata.Catalog.Collecting.Test
 
             foreach (JObject item in items)
             {
-                Uri itemUri = item["url"].ToObject<Uri>();
+                Uri itemUri = item["@id"].ToObject<Uri>();
                 tasks.Add(client.GetJObjectAsync(itemUri));
             }
 
             await Task.WhenAll(tasks.ToArray());
 
-            //DEBUG
-            Trace.TraceInformation("{0}", client.RequestCount);
-
             foreach (Task<JObject> task in tasks)
             {
                 JObject obj = task.Result;
-                _result.Add(obj["id"].ToString().ToLowerInvariant());
+                Result.Add(obj["id"].ToString().ToLowerInvariant());
             }
         }
     }

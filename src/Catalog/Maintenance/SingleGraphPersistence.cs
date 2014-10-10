@@ -30,6 +30,8 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public async Task Initialize()
         {
+            Console.WriteLine("Initialize");
+
             Uri rootUri = _storage.ResolveUri("index.json");
 
             string json = await _storage.LoadString(rootUri);
@@ -46,6 +48,8 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri)
         {
+            Console.WriteLine("SaveGraph {0}", resourceUri);
+
             await Task.Run(() =>
             {
                 Utils.RemoveExistingProperties(Graph, graph, _propertiesToUpdate);
@@ -59,6 +63,8 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         public Task<IGraph> LoadGraph(Uri resourceUri)
         {
+            Console.WriteLine("LoadGraph {0}", resourceUri);
+
             return Task.FromResult(_initialGraph);
         }
 

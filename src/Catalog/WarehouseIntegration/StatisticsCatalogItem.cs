@@ -6,7 +6,7 @@ using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
 {
-    public class StatisticsCatalogItem : CatalogItem
+    public class StatisticsCatalogItem : AppendOnlyCatalogItem
     {
         static Uri CatalogItemType = new Uri("http://nuget.org/schema#PackageStatisticsPage");
 

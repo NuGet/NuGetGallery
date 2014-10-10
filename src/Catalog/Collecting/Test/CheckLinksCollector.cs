@@ -21,7 +21,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting.Test
 
             foreach (JObject item in items)
             {
-                Uri itemUri = item["url"].ToObject<Uri>();
+                Uri itemUri = item["@id"].ToObject<Uri>();
                 tasks.Add(client.GetStringAsync(itemUri));
             }
 

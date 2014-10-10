@@ -2,9 +2,7 @@
     "@context" : { 
         "@vocab": "http://schema.nuget.org/catalog#",
         "nuget" : "http://schema.nuget.org/schema#",
-        "catalog" : "http://schema.nuget.org/catalog#",
-        "items" : { "@id": "catalog:item", "@container" : "@set" },
-        "url" : "@id",
+        "items" : { "@id": "item", "@container" : "@set" },
         "commitTimeStamp" : { "@type" : "http://www.w3.org/2001/XMLSchema#dateTime" }
     }
 }

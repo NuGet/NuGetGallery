@@ -56,14 +56,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Lower = new Uri(Prefixes.NuGet + "lower");
 
             public static readonly Uri CatalogEntry = new Uri(Prefixes.NuGet + "catalogEntry");
-
-            //public static readonly Uri Info = new Uri(Prefixes.NuGet + "info");
-            //public static readonly Uri Overview = new Uri(Prefixes.NuGet + "overview");
-            //public static readonly Uri Range = new Uri(Prefixes.NuGet + "range");
-            //public static readonly Uri Low = new Uri(Prefixes.NuGet + "low");
-            //public static readonly Uri High = new Uri(Prefixes.NuGet + "high");
-            //public static readonly Uri RangePackages = new Uri(Prefixes.NuGet + "rangePackages");
-            //public static readonly Uri PackageRange = new Uri(Prefixes.NuGet + "packageRange");
+            public static readonly Uri PackageContent = new Uri(Prefixes.NuGet + "packageContent");
 
             // General-purpose fields
             

@@ -51,7 +51,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
                 if (pageCursor > startFrom)
                 {
-                    Uri pageUri = rootItem["url"].ToObject<Uri>();
+                    Uri pageUri = rootItem["@id"].ToObject<Uri>();
                     JObject page = await client.GetJObjectAsync(pageUri);
 
                     IEnumerable<JToken> pageItems = page["items"].OrderBy(item => item["commitTimeStamp"].ToObject<DateTime>());

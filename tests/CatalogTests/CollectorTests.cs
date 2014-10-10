@@ -251,7 +251,7 @@ namespace CatalogTests
 
             RegistrationCatalogCollector collector = new RegistrationCatalogCollector(storageFactory, 200);
 
-            collector.ContentBaseAddress = "http://az320820.vo.msecnd.net";
+            collector.ContentBaseAddress = new Uri("http://az320820.vo.msecnd.net");
 
             //collector.PackageCountThreshold = 50;
 

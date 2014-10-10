@@ -100,9 +100,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             {
                 try
                 {
-                    item.SetTimeStamp(commitTimeStamp);
-                    item.SetCommitId(commitId);
-                    item.SetBaseAddress(Storage.BaseAddress);
+                    item.TimeStamp = commitTimeStamp;
+                    item.CommitId = commitId;
+                    item.BaseAddress = Storage.BaseAddress;
 
                     StorageContent content = item.CreateContent(Context);
                     IGraph pageContent = item.CreatePageContent(Context);

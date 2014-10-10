@@ -200,9 +200,14 @@ namespace NuGet.Services.Metadata.Catalog
 
         public static void CopyCatalogContentGraph(INode sourceNode, IGraph source, IGraph target)
         {
+            if (IsCatalogNode(sourceNode, source))
+            {
+                return;
+            }
+
             foreach (Triple triple in source.GetTriplesWithSubject(sourceNode))
             {
-                if (target.Assert(triple.CopyTriple(target)) && triple.Object is IUriNode && !IsCatalogNode(triple.Object, source))
+                if (target.Assert(triple.CopyTriple(target)) && triple.Object is IUriNode)
                 {
                     CopyCatalogContentGraph(triple.Object, source, target);
                 }
