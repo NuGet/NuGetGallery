@@ -10,6 +10,8 @@
         "commitId" : { "@id" : "catalog:commitId" },
         "count" : { "@id" : "catalog:count" },
 
+        "tags": { "@container" : "@set", "@id": "tag" },
+
         "packageTargetFrameworks":  { "@container": "@set", "@id": "packageTargetFramework" },
 
         "dependencyGroups": { "@container" : "@set", "@id": "dependencyGroup" },

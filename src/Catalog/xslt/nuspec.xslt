@@ -113,13 +113,13 @@
 
             <xsl:when test="self::nuget:id">
               <ng:id>
-                <xsl:value-of select="obj:LowerCase(.)"/>
+                <xsl:value-of select="."/>
               </ng:id>
             </xsl:when>
 
             <xsl:when test="self::nuget:version">
               <ng:version>
-                <xsl:value-of select="obj:LowerCase(obj:NormalizeVersion(.))"/>
+                <xsl:value-of select="obj:NormalizeVersion(.)"/>
               </ng:version>
               <ng:isPrerelease rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">
                 <xsl:value-of select="obj:IsPrerelease(.)"/>
@@ -213,11 +213,11 @@
         </xsl:attribute>
         
         <ng:id>
-          <xsl:value-of select="obj:LowerCase(@id)"/>          
+          <xsl:value-of select="@id"/>        
         </ng:id>
 
         <ng:range>
-          <xsl:value-of select="obj:LowerCase(obj:NormalizeVersionRange(@version))" />
+          <xsl:value-of select="obj:NormalizeVersionRange(@version)" />
         </ng:range>
 
         <xsl:apply-templates select="nuget:property">

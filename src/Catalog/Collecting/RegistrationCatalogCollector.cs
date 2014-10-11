@@ -33,7 +33,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         {
             try
             {
-                Storage storage = _storageFactory.Create(sortedGraphs.Key);
+                Storage storage = _storageFactory.Create(sortedGraphs.Key.ToLowerInvariant());
 
                 Uri resourceUri = storage.ResolveUri("index.json");
                 string json = await storage.LoadString(resourceUri);
@@ -102,7 +102,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             {
                 foreach (KeyValuePair<string, IGraph> item in items)
                 {
-                    writer.Add(new RegistrationCatalogItem(item.Key, item.Value, ContentBaseAddress));
+                    writer.Add(new RegistrationCatalogItem(new Uri(item.Key), item.Value, ContentBaseAddress));
                 }
                 await writer.Commit(DateTime.UtcNow);
             }

@@ -21,6 +21,7 @@ CONSTRUCT
                     nuget:requireLicenseAcceptance ?requireLicenseAcceptance ;
                     nuget:language ?language ;
                     nuget:authors ?authors ;
+                    nuget:tag ?tag ;
                     nuget:minClientVersion ?minClientVersion .
 
     ?dependency_group a nuget:PackageDependencyGroup ;
@@ -44,16 +45,29 @@ WHERE
                     nuget:id ?id ;
 	                nuget:published ?published .
 
-	OPTIONAL { ?catalogPackage nuget:description ?description . }
-	OPTIONAL { ?catalogPackage nuget:title ?title . }
-	OPTIONAL { ?catalogPackage nuget:summary ?summary . }
-	OPTIONAL { ?catalogPackage nuget:iconUrl ?iconUrl . }
-	OPTIONAL { ?catalogPackage nuget:licenseUrl ?licenseUrl . }
-	OPTIONAL { ?catalogPackage nuget:projectUrl ?projectUrl . }
-	OPTIONAL { ?catalogPackage nuget:requireLicenseAcceptance ?requireLicenseAcceptance . }
-	OPTIONAL { ?catalogPackage nuget:language ?language . }
-	OPTIONAL { ?catalogPackage nuget:authors ?authors . }
-	OPTIONAL { ?catalogPackage nuget:minClientVersion ?minClientVersion . }
+	OPTIONAL { ?catalogPackage nuget:description ?optionalDescription . }
+	OPTIONAL { ?catalogPackage nuget:title ?optionalTitle . }
+	OPTIONAL { ?catalogPackage nuget:summary ?optionalSummary . }
+	OPTIONAL { ?catalogPackage nuget:iconUrl ?optionalIconUrl . }
+	OPTIONAL { ?catalogPackage nuget:licenseUrl ?optionalLicenseUrl . }
+	OPTIONAL { ?catalogPackage nuget:projectUrl ?optionalProjectUrl . }
+	OPTIONAL { ?catalogPackage nuget:requireLicenseAcceptance ?optionalRequireLicenseAcceptance . }
+	OPTIONAL { ?catalogPackage nuget:language ?optionalLanguage . }
+	OPTIONAL { ?catalogPackage nuget:authors ?optionalAuthors . }
+	OPTIONAL { ?catalogPackage nuget:tag ?optionalTag . }
+	OPTIONAL { ?catalogPackage nuget:minClientVersion ?optionalMinClientVersion . }
+
+	BIND(COALESCE(?optionalDescription, "") AS ?description)
+	BIND(COALESCE(?optionalTitle, "") AS ?title)
+	BIND(COALESCE(?optionalSummary, "") AS ?summary)
+	BIND(COALESCE(?optionalIconUrl, "") AS ?iconUrl)
+	BIND(COALESCE(?optionalLicenseUrl, "") AS ?licenseUrl)
+	BIND(COALESCE(?optionalProjectUrl, "") AS ?projectUrl)
+	BIND(COALESCE(?optionalRequireLicenseAcceptance, "") AS ?requireLicenseAcceptance)
+	BIND(COALESCE(?optionalLanguage, "") AS ?language)
+	BIND(COALESCE(?optionalAuthors, "") AS ?authors)
+	BIND(COALESCE(?optionalTag, "") AS ?tag)
+	BIND(COALESCE(?optionalMinClientVersion, "") AS ?minClientVersion)
 
     OPTIONAL
     {
@@ -64,7 +78,7 @@ WHERE
         
         ?dependency nuget:id ?dependency_id .
         
-        BIND (IRI(CONCAT(STR(@baseAddress), ?dependency_id, "/index.json")) AS ?dependency_registration)
+        BIND (IRI(CONCAT(STR(@baseAddress), LCASE(?dependency_id), "/index.json")) AS ?dependency_registration)
         
         OPTIONAL { ?dependency nuget:range ?dependency_version . }
     }

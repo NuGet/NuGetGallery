@@ -17,9 +17,9 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         Uri _packageContentBaseAddress;
         Uri _packageContentAddress;
 
-        public RegistrationCatalogItem(string catalogUri, IGraph catalogItem, Uri packageContentBaseAddress)
+        public RegistrationCatalogItem(Uri catalogUri, IGraph catalogItem, Uri packageContentBaseAddress)
         {
-            _catalogUri = new Uri(catalogUri);
+            _catalogUri = catalogUri;
             _catalogItem = catalogItem;
             _packageContentBaseAddress = packageContentBaseAddress;
         }
@@ -45,7 +45,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             if (_itemAddress == null)
             {
                 INode subject = _catalogItem.CreateUriNode(_catalogUri);
-                string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString();
+                string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString().ToLowerInvariant();
                 _itemAddress = new Uri(BaseAddress, version + ".json");
             }
 
@@ -57,8 +57,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             if (_packageContentAddress == null)
             {
                 INode subject = _catalogItem.CreateUriNode(_catalogUri);
-                string id = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Id)).FirstOrDefault().Object.ToString();
-                string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString();
+                string id = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Id)).FirstOrDefault().Object.ToString().ToLowerInvariant();
+                string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString().ToLowerInvariant();
                 string path = string.Format("packages/{0}.{1}.nupkg", id.ToLowerInvariant(), version.ToLowerInvariant());
                 _packageContentAddress = new Uri(_packageContentBaseAddress, path);
             }

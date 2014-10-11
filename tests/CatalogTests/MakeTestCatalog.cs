@@ -144,11 +144,11 @@ namespace CatalogTests
         {
             Console.WriteLine("MakeTestCatalog.Test0");
 
-            Storage storage = new FileStorage("http://localhost:8000/test", @"c:\data\site\test");
+            //Storage storage = new FileStorage("http://localhost:8000/test", @"c:\data\site\test");
 
-            //StorageCredentials credentials = new StorageCredentials("", "");
-            //CloudStorageAccount account = new CloudStorageAccount(credentials, true);
-            //Storage storage = new AzureStorage(account, "ver33", "catalog");
+            StorageCredentials credentials = new StorageCredentials("", "");
+            CloudStorageAccount account = new CloudStorageAccount(credentials, true);
+            Storage storage = new AzureStorage(account, "ver35", "catalog");
 
             var ids = GetInitialIdList(250);
 
