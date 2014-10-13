@@ -92,7 +92,6 @@
     <Compile Include="Collecting\CollectorCursor.cs" />
     <Compile Include="Collecting\CollectorHttpClient.cs" />
     <Compile Include="Collecting\NuspecCollector.cs" />
-    <Compile Include="Collecting\PackageInfoCatalogCollector.cs" />
     <Compile Include="Collecting\RegistrationCatalogCollector.cs" />
     <Compile Include="Collecting\RegistrationCatalogItem.cs" />
     <Compile Include="Collecting\RegistrationCatalogWriter.cs" />
@@ -176,29 +175,13 @@
     <None Include="app.config" />
     <EmbeddedResource Include="context\Container.json" />
     <EmbeddedResource Include="context\Package.json" />
-    <EmbeddedResource Include="context\Resolver.json" />
     <EmbeddedResource Include="context\Segment.json" />
     <EmbeddedResource Include="context\Registration.json" />
-    <EmbeddedResource Include="context\PackageInfo.json" />
     <EmbeddedResource Include="context\PackageDetails.json" />
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />
-    <EmbeddedResource Include="sparql\ConstructResolverGraph.rq" />
-    <EmbeddedResource Include="sparql\SelectDistinctPackage.rq" />
-    <EmbeddedResource Include="sparql\SelectDeletePackage.rq" />
-    <EmbeddedResource Include="sparql\DeletePackage.rq" />
-    <EmbeddedResource Include="sparql\SelectPackageCount.rq" />
-    <EmbeddedResource Include="sparql\SelectDeleteRegistration.rq" />
-    <EmbeddedResource Include="sparql\SelectPackage.rq" />
-    <EmbeddedResource Include="sparql\SelectPackageDetails.rq" />
-    <EmbeddedResource Include="sparql\SelectPackageTags.rq" />
-    <EmbeddedResource Include="sparql\SelectPackageDependencies.rq" />
-    <EmbeddedResource Include="sparql\SelectPackageFrameworkAssembly.rq" />
-    <EmbeddedResource Include="sparql\SelectPackages.rq" />
-    <EmbeddedResource Include="sparql\ConstructPackageGraph.rq" />
     <EmbeddedResource Include="sparql\SelectInlinePackage.rq" />
-    <EmbeddedResource Include="sparql\ConstructPackageInfoContentGraph.rq" />
     <EmbeddedResource Include="sparql\SelectDistinctDependency.rq" />
   </ItemGroup>
   <ItemGroup />

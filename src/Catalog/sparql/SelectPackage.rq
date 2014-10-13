@@ -1,7 +1,0 @@
-﻿PREFIX nuget: <http://schema.nuget.org/schema#> 
-
-SELECT ?package
-WHERE
-{
-	?package a nuget:Package .
-}

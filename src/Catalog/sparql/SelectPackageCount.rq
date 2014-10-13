@@ -1,8 +1,0 @@
-﻿PREFIX nuget: <http://schema.nuget.org/schema#> 
-
-SELECT COUNT(?package) AS ?count
-WHERE
-{
-	?registration a nuget:PackageRegistration ;
-	              nuget:package ?package .
-}

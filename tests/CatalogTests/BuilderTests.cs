@@ -13,10 +13,10 @@ namespace CatalogTests
         public static async Task Test0Async()
         {
             //string nuspecs = @"c:\data\nuget\nuspecs";
-            string nuspecs = @"c:\data\nuget\automapper";
+            string nuspecs = @"c:\data\nuget\nuspecs";
 
             //Storage storage = new FileStorage("http://localhost:8000/full", @"c:\data\site\full");
-            Storage storage = new FileStorage("http://localhost:8000/automapper", @"c:\data\site\automapper");
+            Storage storage = new FileStorage("http://localhost:8000/dotnetrdf", @"c:\data\site\dotnetrdf");
 
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 600);
 
@@ -26,7 +26,8 @@ namespace CatalogTests
             int commitCount = 0;
 
             DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
-            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
+            //foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
+            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("dotnetrdf.*.xml"))
             {
                 writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
 
@@ -109,228 +110,6 @@ namespace CatalogTests
             Console.WriteLine("BuilderTests.Test1");
 
             Test1Async().Wait();
-        }
-
-        public static async Task Test2Async()
-        {
-            string nuspecs = @"c:\data\test_nuspecs";
-
-            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\test");
-
-            //Storage storage = new AzureStorage
-            //{
-            //    AccountName = "nuget3",
-            //    AccountKey = "",
-            //    Container = "pub",
-            //    BaseAddress = "http://nuget3.blob.core.windows.net"
-            //};
-
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 1000);
-
-            const int BatchSize = 1000;
-            int i = 0;
-
-            int commitCount = 0;
-
-            DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
-            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
-            {
-                writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
-
-                if (++i % BatchSize == 0)
-                {
-                    await writer.Commit(DateTime.Now);
-
-                    Console.WriteLine("commit number {0}", commitCount++);
-                }
-            }
-
-            await writer.Commit(DateTime.Now);
-
-            Console.WriteLine("commit number {0}", commitCount++);
-        }
-
-        public static void Test2()
-        {
-            Console.WriteLine("BuilderTests.Test2");
-
-            Test2Async().Wait();
-        }
-
-        /*
-        public static async Task Test3Async()
-        {
-            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\test");
-
-            CatalogContext context = new CatalogContext();
-
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 1000);
-
-            string[] names1 = { "a", "b", "c", "d", "e" };
-            string[] names2 = { "f", "g", "h" };
-            string[] names3 = { "i", "j", "k" };
-
-            foreach (string name in names1)
-            {
-                writer.Add(new TestCatalogItem(name));
-            }
-            await writer.Commit(new Dictionary<string, string> { { "prop1", "value1.1" }, { "prop2", "value2.1" } });
-
-            Console.WriteLine("commit user data #1");
-
-            foreach (KeyValuePair<string, string> items in await CatalogWriter.GetCommitUserData(storage))
-            {
-                Console.WriteLine("{0} {1}", items.Key, items.Value);
-            }
-
-            foreach (string name in names2)
-            {
-                writer.Add(new TestCatalogItem(name));
-            }
-            await writer.Commit(new Dictionary<string, string> { { "prop1", "value1.2" }, { "prop2", "value2.2" } });
-
-            Console.WriteLine("commit user data #2");
-
-            foreach (KeyValuePair<string, string> items in await CatalogWriter.GetCommitUserData(storage))
-            {
-                Console.WriteLine("{0} {1}", items.Key, items.Value);
-            }
-
-            foreach (string name in names3)
-            {
-                writer.Add(new TestCatalogItem(name));
-            }
-            await writer.Commit(new Dictionary<string, string> { { "prop1", "value1.3" }, { "prop2", "value2.3" } });
-
-            Console.WriteLine("commit user data #3");
-
-            foreach (KeyValuePair<string, string> items in await CatalogWriter.GetCommitUserData(storage))
-            {
-                Console.WriteLine("{0} {1}", items.Key, items.Value);
-            }
-        }
-
-        public static void Test3()
-        {
-            Console.WriteLine("BuilderTests.Test3 - User Data");
-
-            Test3Async().Wait();
-        }
-        */
-
-        /*
-        public static async Task Test4Async()
-        {
-            Storage storage = new FileStorage("http://localhost:8000/", @"c:\data\site\test");
-
-            CatalogContext context = new CatalogContext();
-
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, context, 4);
-
-            string[] names1 = { "a", "b", "c", "d", "e" };
-            string[] names2 = { "f", "g", "h" };
-            string[] names3 = { "i", "j", "k" };
-
-            DateTime timeStamp = DateTime.UtcNow;
-
-            foreach (string name in names1)
-            {
-                writer.Add(new TestCatalogItem(name));
-            }
-            await writer.Commit(timeStamp);
-
-            Console.WriteLine("commit #1 timeStamp {0}", await CatalogWriter.GetLastCommitTimeStamp(storage));
-            Console.WriteLine("commit #1 count {0}", await CatalogWriter.GetCount(storage));
-
-            timeStamp = timeStamp.AddHours(1);
-
-            foreach (string name in names2)
-            {
-                writer.Add(new TestCatalogItem(name));
-            }
-            await writer.Commit(timeStamp);
-
-            Console.WriteLine("commit #2 timeStamp {0}", await CatalogWriter.GetLastCommitTimeStamp(storage));
-            Console.WriteLine("commit #2 count {0}", await CatalogWriter.GetCount(storage));
-
-            timeStamp = timeStamp.AddHours(1);
-
-            foreach (string name in names3)
-            {
-                writer.Add(new TestCatalogItem(name));
-            }
-            await writer.Commit(timeStamp);
-
-            Console.WriteLine("commit #3 timeStamp {0}", await CatalogWriter.GetLastCommitTimeStamp(storage));
-            Console.WriteLine("commit #3 count {0}", await CatalogWriter.GetCount(storage));
-        }
-
-        public static void Test4()
-        {
-            Console.WriteLine("BuilderTests.Test4 - commit TimeStamp");
-
-            Test4Async().Wait();
-        }
-        */
-
-        public static async Task Test5Async(string searchPattern)
-        {
-            string nuspecs = @"c:\data\nuget\nuspecs";
-
-            Storage storage = new FileStorage("http://localhost:8000/full/", @"c:\data\site\full");
-
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 20);
-
-            int total = 0;
-
-            int CommitSize = 20;
-
-            int i = 0;
-
-            int commitCount = 0;
-
-            DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
-            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles(searchPattern))
-            {
-                writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
-                total++;
-
-                if (++i == CommitSize)
-                {
-                    await writer.Commit(DateTime.UtcNow);
-
-                    Console.WriteLine("commit number {0}", commitCount);
-
-                    commitCount++;
-                    i = 0;
-                }
-            }
-
-            if (i > 0)
-            {
-                await writer.Commit(DateTime.UtcNow);
-
-                Console.WriteLine("commit number {0}", commitCount);
-            }
-
-            Console.WriteLine("total: {0}", total);
-        }
-
-        public static void Test5()
-        {
-            Console.WriteLine("BuilderTests.Test5");
-
-            //Test5Async("dotnetrdf.*.xml").Wait();
-            //Test5Async("htmlagilitypack.*.xml").Wait();
-            //Test5Async("newtonsoft.json.*.xml").Wait();
-            //Test5Async("vds.common.*.xml").Wait();
-            //Test5Async("entityframework.*.xml").Wait();
-
-            Test5Async("Acknowledgements.1.0.0.xml").Wait();
-            Test5Async("dotnetrdf.1.0.3.xml").Wait();
-            Test5Async("entityframework.5.0.0.xml").Wait();
-            Test5Async("BrightstarDB.1.0.0.xml").Wait();
-            Test5Async("Antlr4.4.1.0-alpha002.xml").Wait();
         }
     }
 }

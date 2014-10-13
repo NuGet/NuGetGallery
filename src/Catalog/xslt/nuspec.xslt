@@ -191,11 +191,6 @@
           <xsl:with-param name="parent_fragment" select="$fragment" />
         </xsl:apply-templates>
 
-        <xsl:apply-templates select="nuget:property">
-          <xsl:with-param name="path" select="$path" />
-          <xsl:with-param name="parent_fragment" select="$fragment" />
-        </xsl:apply-templates>
-
       </ng:PackageDependencyGroup>
     </ng:dependencyGroup>
   </xsl:template>
@@ -220,11 +215,6 @@
           <xsl:value-of select="obj:NormalizeVersionRange(@version)" />
         </ng:range>
 
-        <xsl:apply-templates select="nuget:property">
-          <xsl:with-param name="path" select="$path" />
-          <xsl:with-param name="parent_fragment" select="$fragment" />
-        </xsl:apply-templates>
-
       </ng:PackageDependency>
     </ng:dependency>
   </xsl:template>
@@ -245,37 +235,8 @@
           <xsl:value-of select="@file"/>
         </ng:file>
 
-        <xsl:apply-templates select="nuget:property">
-          <xsl:with-param name="path" select="$path" />
-          <xsl:with-param name="parent_fragment" select="$fragment" />
-        </xsl:apply-templates>
-
       </rdf:Description>
     </ng:reference>
-  </xsl:template>
-
-  <xsl:template match="nuget:property">
-    <xsl:param name="path" />
-    <xsl:param name="parent_fragment" />
-    <ng:property>
-      <rdf:Description>
-
-        <xsl:variable name="fragment" select="concat($parent_fragment, '/prop/', @name)" />
-
-        <xsl:attribute name="rdf:about">
-          <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, $fragment))"/>
-        </xsl:attribute>
-
-        <ng:name>
-          <xsl:value-of select="@name"/>
-        </ng:name>
-
-        <ng:value>
-          <xsl:value-of select="text()"/>
-        </ng:value>
-
-      </rdf:Description>
-    </ng:property>
   </xsl:template>
 
   <xsl:template match="nuget:frameworkAssemblies">

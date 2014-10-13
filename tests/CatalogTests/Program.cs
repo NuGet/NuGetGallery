@@ -35,26 +35,16 @@ namespace CatalogTests
                 //BuilderTests.Test0();
                 //BuilderTests.Test1();
 
-                //BuilderTests.Test5();
+                //CollectorTests.Test0();
+                //CollectorTests.Test1();
+                //CollectorTests.Test2();
+                CollectorTests.Test4();
 
                 //MakeTestCatalog.Test0();
 
-                //CollectorTests.Test0();
-
-                //CollectorTests.Test1();
-                //CollectorTests.Test2();
-                
-                //CollectorTests.Test6();
-                //CollectorTests.Test7();
-
-                CollectorTests.Test9();
-                //CollectorTests.Test10();
-
                 //PartitioningTests.Test0();
                 //PartitioningTests.Test1();
-
                 //RegistrationTests.Test1();
-                
                 //RegistrationTests.Test2();
                 //RegistrationTests.Test3();
                 //RegistrationTests.Test4();
