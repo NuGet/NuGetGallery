@@ -87,6 +87,7 @@
     <Compile Include="CheckResults.cs" />
     <Compile Include="CollectorTests.cs" />
     <Compile Include="End2EndTests.cs" />
+    <Compile Include="InstallDataBrowser.cs" />
     <Compile Include="IntegrityTests.cs" />
     <Compile Include="JsonLdCacheTests.cs" />
     <Compile Include="MakeTestCatalog.cs" />
@@ -100,10 +101,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Data\MyPackage.json" />
-    <None Include="Data\MyPackage_1_0_0.json" />
-    <None Include="Data\MyPackage_2_0_0.json" />
-    <None Include="Data\MyPackage_2_0_0_details.json" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -117,6 +114,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="DataBrowser\index.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Node\collect.js" />
     <Content Include="Top1000.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

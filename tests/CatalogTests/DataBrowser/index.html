@@ -1,0 +1,186 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>NuGet Data Browser</title>
+
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.1.1.min.js"></script>
+
+</head>
+<body>
+    <h1>Welcome to the NuGet Data Browser</h1>
+
+    The <a href="catalog/index.json">Catalog</a> contains <span id="catalogCountItems"></span> items on <span id="catalogCountPages"></span> pages.
+
+    Registration <input id="packageId" type="text" value=""/> <button id="btnGetRegistration">GET</button>
+    Search <input id="searchTerm" type="text" /> <button id="btnSearch">SEARCH</button>
+
+    <div id="divPackageVersions"></div>
+
+    <script>
+
+        $(document).ready(function () {
+            $('#btnGetRegistration').click(showRegistration);
+            $('#btnSearch').click(search);
+            updataCatalogMetrics();
+        });
+
+        updataCatalogMetrics = function () {
+            $.getJSON('catalog/index.json', function (obj) {
+                var pages = obj['items'];
+                var total = 0;
+                for (var i = 0; i < pages.length; i += 1) {
+
+                    total += pages[i].count;
+                }
+                $('#catalogCountItems').html(total);
+                $('#catalogCountPages').html(pages.length);
+            });
+        }
+
+        showRegistration = function () {
+            var packageId = $('#packageId').val();
+            var address = 'registration/' + packageId + '/index.json';
+            console.log(address);
+            $.getJSON(address, function (obj) {
+                showPackages(obj['items']);
+            });
+        }
+
+        showPackages = function (pages) {
+
+            var versions = [];
+
+            for (var pageIndex = 0; pageIndex < pages.length; pageIndex += 1) {
+                var page = pages[pageIndex];
+                if (page.hasOwnProperty('items')) {
+
+                    processPage(page, versions);
+                }
+                else {
+                    var address = page['@id'];
+
+                    $.getJSON(address, function (item) {
+
+                        processPage(item, versions);
+                    });
+                }
+            }
+        }
+
+        processPage = function (page, versions) {
+
+            var pageItems = page['items'];
+            for (var itemIndex = 0; itemIndex < pageItems.length; itemIndex += 1) {
+                var item = pageItems[itemIndex];
+                versions[versions.length] = { version: parseSemanticVersion(item.catalogEntry.version), item: item };
+            }
+
+            versions.sort(byVersion);
+            versions.reverse();
+            showVersions(versions);
+        }
+
+        parseSemanticVersion = function (s) {
+
+            var i = s.indexOf('.');
+            var j = s.indexOf('.', i + 1);
+            var k = s.indexOf('-', j);
+
+            var major = parseInt(s.substring(0, i));
+            var minor = parseInt(s.substring(i + 1, j));
+
+            if (k === -1) {
+                var patch = parseInt(s.substring(j + 1));
+                var prerelease = '';
+            }
+            else {
+                var patch = parseInt(s.substring(j + 1, k));
+                var prerelease = s.substring(k + 1);
+            }
+
+            return { major: major, minor: minor, patch: patch, prerelease: prerelease };
+        }
+
+        byVersion = function (a, b) {
+            return compareSemanticVersion(a.version, b.version);
+        }
+
+        compareSemanticVersion = function (a, b) {
+            if (a.major < b.major) {
+                return -1;
+            }
+            if (a.major > b.major) {
+                return 1;
+            }
+            else {
+                if (a.minor < b.minor) {
+                    return -1;
+                }
+                if (a.minor > b.minor) {
+                    return 1;
+                }
+                else {
+                    if (a.patch < b.patch) {
+                        return -1;
+                    }
+                    if (a.patch > b.patch) {
+                        return 1;
+                    }
+                    else {
+                        if (a.prerelease === b.prerelease) {
+                            return 0;
+                        }
+                        if (a.prerelease === '' && b.prerelease !== '') {
+                            return 1;
+                        }
+                        if (a.prerelease < b.prerelease) {
+                            return -1;
+                        }
+                        if (a.prerelease !== '' && b.prerelease === '') {
+                            return -1;
+                        }
+                        if (a.prerelease > b.prerelease) {
+                            return 1;
+                        }
+                        return 0;
+                    }
+                }
+            }
+        }
+
+        showVersions = function (versions) {
+
+            var html = '';
+            html += '<table>';
+            for (var i = 0; i < versions.length; i += 1) {
+                var version = versions[i].item.catalogEntry.version;
+                var address = versions[i].item['@id'];
+                html += '<tr><td>';
+                
+                if (versions[i].version.prerelease === '') {
+                    html += '<b>' + version + '</b>';
+                }
+                else {
+                    html += version;
+                }
+
+                html += '</td><td><a href="' + address + '">' + address + '</a></td></tr>';
+            }
+            html += '</table>';
+
+            $('#divPackageVersions').html(html);
+        }
+
+        search = function () {
+
+            var q = $('#searchTerm').val();
+
+            console.log('q=' + q);
+        }
+
+    </script>
+
+</body>
+</html>

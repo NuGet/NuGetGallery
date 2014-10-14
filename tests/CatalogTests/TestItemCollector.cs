@@ -19,7 +19,7 @@ namespace CatalogTests
 
             foreach (JObject item in items)
             {
-                Uri itemUri = new Uri(item["url"].ToString());
+                Uri itemUri = new Uri(item["@id"].ToString());
                 string type = item["@type"].ToString();
                 if (type == "TestItem")
                 {

@@ -38,7 +38,7 @@ namespace CatalogTests
                 //CollectorTests.Test0();
                 //CollectorTests.Test1();
                 //CollectorTests.Test2();
-                CollectorTests.Test4();
+                //CollectorTests.Test4();
 
                 //MakeTestCatalog.Test0();
 
@@ -58,6 +58,8 @@ namespace CatalogTests
                 //JsonLdCacheTests.Test0();
 
                 //IntegrityTests.Test0();
+
+                InstallDataBrowser.Test0();
 
                 DateTime after = DateTime.Now;
 
