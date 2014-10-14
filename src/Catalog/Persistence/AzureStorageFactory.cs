@@ -13,7 +13,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             _account = account;
             _containerName = containerName;
-            _path = path;
+            _path = null;
+
+            if (path != null)
+            {
+                _path = path.Trim('/') + '/';
+            }
 
             Uri blobEndpoint = new UriBuilder(account.BlobEndpoint)
             {
@@ -25,7 +30,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         }
         public override Storage Create(string name)
         {
-            string path = (_path == null) ? name : _path + "/" + name;
+            string path = (_path == null) ? name : _path + name;
 
             return new AzureStorage(_account, _containerName, path);
         }

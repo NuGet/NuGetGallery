@@ -2,6 +2,7 @@
     "@context": {
         "@vocab": "http://schema.nuget.org/schema#",
         "catalogEntry" : { "@type" : "@id" },
+        "registration" : { "@type" : "@id" },
         "packageContent" : { "@type" : "@id" }
     }
 }

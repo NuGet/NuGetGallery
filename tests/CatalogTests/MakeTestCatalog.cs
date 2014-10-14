@@ -144,13 +144,13 @@ namespace CatalogTests
         {
             Console.WriteLine("MakeTestCatalog.Test0");
 
-            Storage storage = new FileStorage("http://localhost:8000/test", @"c:\data\site\test");
+            //Storage storage = new FileStorage("http://localhost:8000/test", @"c:\data\site\test");
 
-            //StorageCredentials credentials = new StorageCredentials("", "");
-            //CloudStorageAccount account = new CloudStorageAccount(credentials, true);
-            //Storage storage = new AzureStorage(account, "ver35", "catalog");
+            StorageCredentials credentials = new StorageCredentials("", "");
+            CloudStorageAccount account = new CloudStorageAccount(credentials, true);
+            Storage storage = new AzureStorage(account, "ver36", "catalog");
 
-            var ids = GetInitialIdList(50);
+            var ids = GetInitialIdList(250);
 
             //var ids = new string[] { "dotnetrdf" };
 

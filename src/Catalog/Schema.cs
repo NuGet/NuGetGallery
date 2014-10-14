@@ -18,15 +18,10 @@ namespace NuGet.Services.Metadata.Catalog
 
         public static class DataTypes
         {
-            public static readonly Uri PackageRegistration = new Uri(Prefixes.NuGet + "PackageRegistration");
             public static readonly Uri Package = new Uri(Prefixes.NuGet + "Package");
             public static readonly Uri PackageDetails = new Uri(Prefixes.NuGet + "PackageDetails");
             public static readonly Uri PackageDependencyGroup = new Uri(Prefixes.NuGet + "PackageDependencyGroup");
             public static readonly Uri PackageDependency = new Uri(Prefixes.NuGet + "PackageDependency");
-            public static readonly Uri RangePackages = new Uri(Prefixes.NuGet + "RangePackages");
-
-            public static readonly Uri DeletePackage = new Uri(Prefixes.NuGet + "PackageDeletion");
-            public static readonly Uri DeleteRegistration = new Uri(Prefixes.NuGet + "PackageRegistrationDeletion");
 
             public static readonly Uri CatalogRoot = new Uri(Prefixes.Catalog + "CatalogRoot");
             public static readonly Uri CatalogPage = new Uri(Prefixes.Catalog + "CatalogPage");
@@ -65,14 +60,10 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Created = new Uri(Prefixes.NuGet + "created");
             public static readonly Uri Description = new Uri(Prefixes.NuGet + "description");
             public static readonly Uri IconUrl = new Uri(Prefixes.NuGet + "iconUrl");
-            public static readonly Uri IsLatest = new Uri(Prefixes.NuGet + "isLatest");
-            public static readonly Uri IsLatestStable = new Uri(Prefixes.NuGet + "isLatestStable");
-            public static readonly Uri IsPrerelease = new Uri(Prefixes.NuGet + "isPrerelease");
-
-		    public static readonly Uri IsLatestVersion = new Uri(Prefixes.NuGet + "isLatestVersion");
-			public static readonly Uri IsAbsoluteLatestVersion = new Uri(Prefixes.NuGet + "isAbsoluteLatestVersion");
 
             public static readonly Uri Package = new Uri(Prefixes.NuGet + "package");
+            public static readonly Uri Registration = new Uri(Prefixes.NuGet + "registration");
+
             public static readonly Uri Language = new Uri(Prefixes.NuGet + "language");
             public static readonly Uri Published = new Uri(Prefixes.NuGet + "published");
             public static readonly Uri LastEdited = new Uri(Prefixes.NuGet + "lastEdited");

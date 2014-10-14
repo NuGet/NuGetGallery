@@ -19,7 +19,7 @@ namespace CatalogTests
 
             CloudBlobClient client = account.CreateCloudBlobClient();
 
-            CloudBlobContainer container = client.GetContainerReference("ver35");
+            CloudBlobContainer container = client.GetContainerReference("ver36");
 
             CloudBlockBlob blob = container.GetBlockBlobReference("index.html");
 

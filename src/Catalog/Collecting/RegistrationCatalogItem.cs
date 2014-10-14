@@ -17,6 +17,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         Uri _packageContentBaseAddress;
         Uri _packageContentAddress;
         Uri _registrationBaseAddress;
+        Uri _registrationAddress;
 
         public RegistrationCatalogItem(Uri catalogUri, IGraph catalogItem, Uri packageContentBaseAddress, Uri registrationBaseAddress)
         {
@@ -32,6 +33,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             INode subject = graph.CreateUriNode(GetItemAddress());
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.Package));
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.CatalogEntry), graph.CreateUriNode(_catalogUri));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Registration), graph.CreateUriNode(GetRegistrationAddress()));
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.PackageContent), graph.CreateUriNode(GetPackageContentAddress()));
             JObject frame = context.GetJsonLdContext("context.Package.json", Schema.DataTypes.Package);
             return new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
@@ -66,6 +68,19 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             }
 
             return _packageContentAddress;
+        }
+
+        Uri GetRegistrationAddress()
+        {
+            if (_registrationAddress == null)
+            {
+                INode subject = _catalogItem.CreateUriNode(_catalogUri);
+                string id = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Id)).FirstOrDefault().Object.ToString().ToLowerInvariant();
+                string path = string.Format("{0}/index.json", id.ToLowerInvariant());
+                _registrationAddress = new Uri(_registrationBaseAddress, path);
+            }
+
+            return _registrationAddress;
         }
 
         public override IGraph CreatePageContent(CatalogContext context)

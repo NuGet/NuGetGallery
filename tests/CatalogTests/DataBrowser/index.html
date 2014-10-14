@@ -16,6 +16,7 @@
     Registration <input id="packageId" type="text" value=""/> <button id="btnGetRegistration">GET</button>
     Search <input id="searchTerm" type="text" /> <button id="btnSearch">SEARCH</button>
 
+    <div id="divPackageDetails"></div>
     <div id="divPackageVersions"></div>
 
     <script>
@@ -79,6 +80,7 @@
 
             versions.sort(byVersion);
             versions.reverse();
+            showPackageDetails(versions);
             showVersions(versions);
         }
 
@@ -150,9 +152,66 @@
             }
         }
 
+        showPackageDetails = function (versions) {
+
+            var details = versions[0].item.catalogEntry;
+
+            var html = '';
+
+            html += '<h2>';
+            if (details.title !== '') {
+                html += details.title;
+            }
+            else {
+                html += details.id;
+            }
+            html += '</h2>';
+
+            html += '<h3>' + details.version + '</h3>';
+
+            if (details.iconUrl !== '') {
+
+                html += '<img class="logo" src="' + details.iconUrl + '" />';
+            }
+
+            html += '<p><i>Description:</i> <b>' + details.description + '</b></p>';
+            html += '<p><i>Authors:</i> <b>' + details.authors + '</b></p>';
+            html += '<p><i>Summary:</i> <b>' + details.summary + '</b></p>';
+
+            html += '<p><i>Tags:</i> <b>';
+            for (var i = 0; i < details.tags.length; i += 1) {
+                html += details.tags[i] + ' ';
+            }
+            html += '</b></p>';
+
+            html += '<p><i>Dependencies:</i></p>';
+
+            if (details.hasOwnProperty('dependencyGroups')) {
+
+                for (var i = 0; i < details.dependencyGroups.length; i += 1) {
+
+                    var dependencyGroup = details.dependencyGroups[i];
+
+                    for (var j = 0; j < dependencyGroup.dependencies.length; j += 1) {
+
+                        var dependency = dependencyGroup.dependencies[j];
+
+                        html += '<p>' + dependency.id + ' ' + dependency.range + ' ';
+                        html += '<a href="' + dependency.registration + '">' + dependency.registration + '</a>';
+                        html += '</p>';
+                    }
+                }
+            }
+
+            $('#divPackageDetails').html(html);
+        }
+
         showVersions = function (versions) {
 
             var html = '';
+
+            html += '<p><i>Versions:</i></p>';
+
             html += '<table>';
             for (var i = 0; i < versions.length; i += 1) {
                 var version = versions[i].item.catalogEntry.version;
@@ -178,6 +237,13 @@
             var q = $('#searchTerm').val();
 
             console.log('q=' + q);
+
+            var address = 'http://preview-search.nuget.org/search/query?q=' + q + '&callback=?'
+
+            $.getJSON(address, function (data) {
+
+                console.log(JSON.stringify(data));
+            });
         }
 
     </script>
