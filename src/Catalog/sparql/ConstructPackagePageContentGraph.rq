@@ -78,7 +78,7 @@ WHERE
         
         ?dependency nuget:id ?dependency_id .
         
-        BIND (IRI(CONCAT(STR(@baseAddress), LCASE(?dependency_id), "/index.json")) AS ?dependency_registration)
+        BIND (IRI(CONCAT(STR(@registrationBaseAddress), LCASE(?dependency_id), "/index.json")) AS ?dependency_registration)
         
         OPTIONAL { ?dependency nuget:range ?dependency_version . }
     }

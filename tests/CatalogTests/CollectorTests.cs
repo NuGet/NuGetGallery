@@ -120,7 +120,7 @@ namespace CatalogTests
             //CollectorCursor cursor = new CollectorCursor(new DateTime(2014, 10, 01, 03, 27, 35, 360, DateTimeKind.Utc));
             CollectorCursor cursor = new CollectorCursor(DateTime.MinValue);
 
-            await collector.Run(new Uri("http://localhost:8000/test/index.json"), cursor, handler);
+            await collector.Run(new Uri("http://localhost:8000/dotnetrdf/index.json"), cursor, handler);
             //await collector.Run(new Uri("https://nugetjohtaylo.blob.core.windows.net/ver35/catalog/index.json"), cursor, handler);
 
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);

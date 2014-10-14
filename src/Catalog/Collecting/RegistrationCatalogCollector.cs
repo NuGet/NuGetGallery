@@ -44,11 +44,11 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
                 if (total < PackageCountThreshold)
                 {
-                    await SaveSmallRegistration(storage, sortedGraphs.Value);
+                    await SaveSmallRegistration(storage, _storageFactory.BaseAddress, sortedGraphs.Value);
                 }
                 else
                 {
-                    await SaveLargeRegistration(storage, sortedGraphs.Value, json);
+                    await SaveLargeRegistration(storage, _storageFactory.BaseAddress, sortedGraphs.Value, json);
                 }
             }
             catch (Exception e)
@@ -57,13 +57,13 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             }
         }
 
-        async Task SaveSmallRegistration(Storage storage, IDictionary<string, IGraph> items)
+        async Task SaveSmallRegistration(Storage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items)
         {
             SingleGraphPersistence graphPersistence = new SingleGraphPersistence(storage);
 
             await graphPersistence.Initialize();
 
-            await SaveRegistration(storage, items, null, graphPersistence);
+            await SaveRegistration(storage, registrationBaseAddress, items, null, graphPersistence);
 
             // now the commit has happened the graphPersistence.Graph should contain all the data
 
@@ -72,7 +72,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             await storage.Save(graphPersistence.ResourceUri, content);
         }
 
-        async Task SaveLargeRegistration(Storage storage, IDictionary<string, IGraph> items, string existingRoot)
+        async Task SaveLargeRegistration(Storage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, string existingRoot)
         {
             if (existingRoot != null)
             {
@@ -82,7 +82,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
             IList<Uri> cleanUpList = new List<Uri>();
 
-            await SaveRegistration(storage, items, cleanUpList, null);
+            await SaveRegistration(storage, registrationBaseAddress, items, cleanUpList, null);
 
             // because there were multiple files some might now be irrelevant
 
@@ -96,13 +96,13 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             }
         }
 
-        async Task SaveRegistration(Storage storage, IDictionary<string, IGraph> items, IList<Uri> cleanUpList, SingleGraphPersistence graphPersistence)
+        async Task SaveRegistration(Storage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, IList<Uri> cleanUpList, SingleGraphPersistence graphPersistence)
         {
             using (RegistrationCatalogWriter writer = new RegistrationCatalogWriter(storage, PartitionSize, cleanUpList, graphPersistence))
             {
                 foreach (KeyValuePair<string, IGraph> item in items)
                 {
-                    writer.Add(new RegistrationCatalogItem(new Uri(item.Key), item.Value, ContentBaseAddress));
+                    writer.Add(new RegistrationCatalogItem(new Uri(item.Key), item.Value, ContentBaseAddress, registrationBaseAddress));
                 }
                 await writer.Commit(DateTime.UtcNow);
             }

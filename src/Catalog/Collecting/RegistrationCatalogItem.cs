@@ -16,12 +16,14 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         Uri _itemAddress;
         Uri _packageContentBaseAddress;
         Uri _packageContentAddress;
+        Uri _registrationBaseAddress;
 
-        public RegistrationCatalogItem(Uri catalogUri, IGraph catalogItem, Uri packageContentBaseAddress)
+        public RegistrationCatalogItem(Uri catalogUri, IGraph catalogItem, Uri packageContentBaseAddress, Uri registrationBaseAddress)
         {
             _catalogUri = catalogUri;
             _catalogItem = catalogItem;
             _packageContentBaseAddress = packageContentBaseAddress;
+            _registrationBaseAddress = registrationBaseAddress;
         }
 
         public override StorageContent CreateContent(CatalogContext context)
@@ -83,6 +85,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
                     sparql.SetUri("catalogPackage", _catalogUri);
                     sparql.SetUri("baseAddress", BaseAddress);
                     sparql.SetUri("packageContent", GetPackageContentAddress());
+                    sparql.SetUri("registrationBaseAddress", _registrationBaseAddress);
 
                     content = SparqlHelpers.Construct(store, sparql.ToString());
                 }
