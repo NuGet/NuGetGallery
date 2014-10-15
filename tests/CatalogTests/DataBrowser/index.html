@@ -18,6 +18,8 @@
 
     <div id="divPackageDetails"></div>
     <div id="divPackageVersions"></div>
+    <div id="divSearchComplete"></div>
+    <div id="divSearchResults"></div>
 
     <script>
 
@@ -31,7 +33,7 @@
             $.getJSON('catalog/index.json', function (obj) {
                 var pages = obj['items'];
                 var total = 0;
-                for (var i = 0; i < pages.length; i += 1) {
+                for (var i = 0; i < pages.length; i++) {
 
                     total += pages[i].count;
                 }
@@ -43,6 +45,10 @@
         showRegistration = function () {
             var packageId = $('#packageId').val();
             var address = 'registration/' + packageId + '/index.json';
+            getRegistration(address);
+        }
+
+        getRegistration = function (address) {
             console.log(address);
             $.getJSON(address, function (obj) {
                 showPackages(obj['items']);
@@ -53,7 +59,7 @@
 
             var versions = [];
 
-            for (var pageIndex = 0; pageIndex < pages.length; pageIndex += 1) {
+            for (var pageIndex = 0; pageIndex < pages.length; pageIndex++) {
                 var page = pages[pageIndex];
                 if (page.hasOwnProperty('items')) {
 
@@ -73,13 +79,15 @@
         processPage = function (page, versions) {
 
             var pageItems = page['items'];
-            for (var itemIndex = 0; itemIndex < pageItems.length; itemIndex += 1) {
+            for (var itemIndex = 0; itemIndex < pageItems.length; itemIndex++) {
                 var item = pageItems[itemIndex];
                 versions[versions.length] = { version: parseSemanticVersion(item.catalogEntry.version), item: item };
             }
 
             versions.sort(byVersion);
             versions.reverse();
+
+            clearViews();
             showPackageDetails(versions);
             showVersions(versions);
         }
@@ -179,7 +187,7 @@
             html += '<p><i>Summary:</i> <b>' + details.summary + '</b></p>';
 
             html += '<p><i>Tags:</i> <b>';
-            for (var i = 0; i < details.tags.length; i += 1) {
+            for (var i = 0; i < details.tags.length; i++) {
                 html += details.tags[i] + ' ';
             }
             html += '</b></p>';
@@ -188,11 +196,11 @@
 
             if (details.hasOwnProperty('dependencyGroups')) {
 
-                for (var i = 0; i < details.dependencyGroups.length; i += 1) {
+                for (var i = 0; i < details.dependencyGroups.length; i++) {
 
                     var dependencyGroup = details.dependencyGroups[i];
 
-                    for (var j = 0; j < dependencyGroup.dependencies.length; j += 1) {
+                    for (var j = 0; j < dependencyGroup.dependencies.length; j++) {
 
                         var dependency = dependencyGroup.dependencies[j];
 
@@ -213,7 +221,7 @@
             html += '<p><i>Versions:</i></p>';
 
             html += '<table>';
-            for (var i = 0; i < versions.length; i += 1) {
+            for (var i = 0; i < versions.length; i++) {
                 var version = versions[i].item.catalogEntry.version;
                 var address = versions[i].item['@id'];
                 html += '<tr><td>';
@@ -240,10 +248,77 @@
 
             var address = 'http://preview-search.nuget.org/search/query?q=' + q + '&callback=?'
 
-            $.getJSON(address, function (data) {
+            $.getJSON(address, function (results) {
 
-                console.log(JSON.stringify(data));
+                showSearchResults(results);
             });
+        }
+
+        clearViews = function () {
+
+            $('#divPackageDetails').html('');
+            $('#divPackageVersions').html('');
+            $('#divSearchComplete').html('');
+            $('#divSearchResults').html('');
+        }
+
+        showSearchResults = function (results) {
+
+            clearViews();
+
+            var html = '';
+
+            for (var i = 0; i < results.data.length; i++) {
+
+                var result = results.data[i];
+
+                html += '<p>';
+                html += result.id + ' ' + result.version;
+                html += '<a class="searchResult" href="' + result.registration + '">' + result.registration + '</a>';
+                html += '</p>';
+            }
+
+            fetchAllRegistrationData(results);
+
+            $('#divSearchResults').html(html);
+
+            $('.searchResult').click(function (e) {
+                e.preventDefault();
+                getRegistration($(this).attr("href"));
+            });
+        }
+
+        fetchAllRegistrationData = function (results) {
+
+            //  this is simply to simulate what the VS client is doing in preview
+
+            var count = results.data.length;
+
+            for (var i = 0; i < results.data.length; i++) {
+
+                $.getJSON(results.data[i].registration, function (data) {
+
+                    for (var pageIndex = 0; pageIndex < data['items'].length; pageIndex++) {
+                        var page = data['items'][pageIndex];
+                        if (!page.hasOwnProperty('items')) {
+                            count++;
+                            $.getJSON(page['@id'], function (item) {
+                                count--;
+
+                                if (count === 0) {
+                                    $('#divSearchComplete').html('<p>all done</p>');
+                                }
+                            });
+                        }
+                    }
+
+                    count--;
+
+                    if (count === 0) {
+                        $('#divSearchComplete').html('<p>all done</p>');
+                    }
+                });
+            }
         }
 
     </script>
