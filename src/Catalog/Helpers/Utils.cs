@@ -103,15 +103,8 @@ namespace NuGet.Services.Metadata.Catalog
 
         public static ZipArchive GetPackage(Stream stream)
         {
-            try
-            {
-                ZipArchive package = new ZipArchive(stream);
-                return package;
-            }
-            catch
-            {
-                return null;
-            }
+            ZipArchive package = new ZipArchive(stream);
+            return package;
         }
 
         public static XDocument NormalizeNuspecNamespace(XDocument original)

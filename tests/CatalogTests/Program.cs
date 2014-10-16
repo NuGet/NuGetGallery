@@ -32,7 +32,7 @@ namespace CatalogTests
             {
                 DateTime before = DateTime.Now;
 
-                //BuilderTests.Test0();
+                BuilderTests.Test0();
                 //BuilderTests.Test1();
 
                 //CollectorTests.Test0();
@@ -59,7 +59,7 @@ namespace CatalogTests
 
                 //IntegrityTests.Test0();
 
-                InstallDataBrowser.Test0();
+                //InstallDataBrowser.Test0();
 
                 DateTime after = DateTime.Now;
 

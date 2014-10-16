@@ -23,6 +23,8 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri PackageDependencyGroup = new Uri(Prefixes.NuGet + "PackageDependencyGroup");
             public static readonly Uri PackageDependency = new Uri(Prefixes.NuGet + "PackageDependency");
 
+            public static readonly Uri PackageEntry = new Uri(Prefixes.NuGet + "PackageEntry");
+
             public static readonly Uri CatalogRoot = new Uri(Prefixes.Catalog + "CatalogRoot");
             public static readonly Uri CatalogPage = new Uri(Prefixes.Catalog + "CatalogPage");
 
@@ -52,6 +54,12 @@ namespace NuGet.Services.Metadata.Catalog
 
             public static readonly Uri CatalogEntry = new Uri(Prefixes.NuGet + "catalogEntry");
             public static readonly Uri PackageContent = new Uri(Prefixes.NuGet + "packageContent");
+
+            public static readonly Uri PackageEntry = new Uri(Prefixes.NuGet + "packageEntry");
+            public static readonly Uri FullName = new Uri(Prefixes.NuGet + "fullName");
+            public static readonly Uri Name = new Uri(Prefixes.NuGet + "name");
+            public static readonly Uri Length = new Uri(Prefixes.NuGet + "length");
+            public static readonly Uri CompressedLength = new Uri(Prefixes.NuGet + "compressedLength");
 
             // General-purpose fields
             

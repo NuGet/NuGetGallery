@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Xml.Linq;
 
 namespace NuGet.Services.Metadata.Catalog.Maintenance
@@ -6,16 +8,20 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
     public class NuspecPackageCatalogItem : PackageCatalogItem
     {
         private XDocument _nuspec;
+        private DateTime? _published;
+        private IEnumerable<PackageEntry> _entries;
 
         public NuspecPackageCatalogItem(string path)
         {
             Path = path;
+            _published = null;
         }
 
-        public NuspecPackageCatalogItem(string path, XDocument nuspec)
+        public NuspecPackageCatalogItem(XDocument nuspec, DateTime? published = null, IEnumerable<PackageEntry> entries = null)
         {
-            Path = path;
             _nuspec = nuspec;
+            _published = published;
+            _entries = entries;
         }
 
         public string Path
@@ -41,6 +47,16 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             }
 
             return _nuspec;
+        }
+
+        protected override DateTime? GetPublished()
+        {
+            return _published;
+        }
+
+        protected override IEnumerable<PackageEntry> GetEntries()
+        {
+            return _entries;
         }
     }
 }
