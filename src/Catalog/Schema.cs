@@ -61,6 +61,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Length = new Uri(Prefixes.NuGet + "length");
             public static readonly Uri CompressedLength = new Uri(Prefixes.NuGet + "compressedLength");
 
+
             // General-purpose fields
             
             public static readonly Uri Author = new Uri(Prefixes.NuGet + "author");
@@ -72,9 +73,11 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Package = new Uri(Prefixes.NuGet + "package");
             public static readonly Uri Registration = new Uri(Prefixes.NuGet + "registration");
 
+            public static readonly Uri LastCreated = new Uri(Prefixes.NuGet + "lastCreated");
+            public static readonly Uri LastEdited = new Uri(Prefixes.NuGet + "lastEdited");
+
             public static readonly Uri Language = new Uri(Prefixes.NuGet + "language");
             public static readonly Uri Published = new Uri(Prefixes.NuGet + "published");
-            public static readonly Uri LastEdited = new Uri(Prefixes.NuGet + "lastEdited");
             public static readonly Uri PackageHash = new Uri(Prefixes.NuGet + "packageHash");
             public static readonly Uri PackageHashAlgorithm = new Uri(Prefixes.NuGet + "packageHashAlgorithm");
             public static readonly Uri PackageSize = new Uri(Prefixes.NuGet + "packageSize");

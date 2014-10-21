@@ -28,6 +28,16 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return null;
         }
 
+        protected virtual long? GetPackageSize()
+        {
+            return null;
+        }
+
+        protected virtual string GetPackageHash()
+        {
+            return null;
+        }
+
         public override StorageContent CreateContent(CatalogContext context)
         {
             //  metadata from nuspec
@@ -77,6 +87,21 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                     graph.Assert(entryNode, lengthPredicate, graph.CreateLiteralNode(entry.Length.ToString(), Schema.DataTypes.Integer));
                     graph.Assert(entryNode, compressedLengthPredicate, graph.CreateLiteralNode(entry.CompressedLength.ToString(), Schema.DataTypes.Integer));
                 }
+            }
+
+            //  packageSize and packageHash
+
+            long? packageSize = GetPackageSize();
+            if (packageSize != null)
+            {
+                graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageSize), graph.CreateLiteralNode(packageSize.ToString(), Schema.DataTypes.Integer));
+            }
+
+            string packageHash = GetPackageHash();
+            if (packageHash != null)
+            {
+                graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageHash), graph.CreateLiteralNode(packageHash));
+                graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageHashAlgorithm), graph.CreateLiteralNode("SHA512"));
             }
 
             //  identity and version

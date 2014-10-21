@@ -7,21 +7,28 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     public class NuspecPackageCatalogItem : PackageCatalogItem
     {
-        private XDocument _nuspec;
-        private DateTime? _published;
-        private IEnumerable<PackageEntry> _entries;
+        XDocument _nuspec;
+        DateTime? _published;
+        IEnumerable<PackageEntry> _entries;
+        long? _packageSize;
+        string _packageHash;
 
         public NuspecPackageCatalogItem(string path)
         {
             Path = path;
             _published = null;
+            _entries = null;
+            _packageSize = null;
+            _packageHash = null;
         }
 
-        public NuspecPackageCatalogItem(XDocument nuspec, DateTime? published = null, IEnumerable<PackageEntry> entries = null)
+        public NuspecPackageCatalogItem(XDocument nuspec, DateTime? published = null, IEnumerable<PackageEntry> entries = null, long? packageSize = null, string packageHash = null)
         {
             _nuspec = nuspec;
             _published = published;
             _entries = entries;
+            _packageSize = packageSize;
+            _packageHash = packageHash;
         }
 
         public string Path
@@ -57,6 +64,16 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         protected override IEnumerable<PackageEntry> GetEntries()
         {
             return _entries;
+        }
+
+        protected override long? GetPackageSize()
+        {
+            return _packageSize;
+        }
+
+        protected override string GetPackageHash()
+        {
+            return _packageHash;
         }
     }
 }

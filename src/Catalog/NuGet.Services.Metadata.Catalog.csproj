@@ -122,6 +122,7 @@
     <Compile Include="Maintenance\ChecksumRecords.cs" />
     <Compile Include="Maintenance\ICatalogGraphPersistence.cs" />
     <Compile Include="Maintenance\NupkgCatalogItem.cs" />
+    <Compile Include="Maintenance\PackageCatalog.cs" />
     <Compile Include="Maintenance\PackageEntry.cs" />
     <Compile Include="Maintenance\SingleGraphPersistence.cs" />
     <Compile Include="Persistence\AzureStorageFactory.cs" />

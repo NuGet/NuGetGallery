@@ -92,7 +92,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             foreach (ZipArchiveEntry part in package.Entries)
             {
-                if (part.FullName.EndsWith(".nuspec"))
+                if (part.FullName.EndsWith(".nuspec") && part.FullName.IndexOf('/') == -1)
                 {
                     XDocument nuspec = XDocument.Load(part.Open());
                     return nuspec;
