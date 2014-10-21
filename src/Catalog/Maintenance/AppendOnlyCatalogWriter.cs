@@ -23,6 +23,11 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             private set;
         }
 
+        protected override Uri[] GetAdditionalRootType()
+        {
+            return new Uri[] { Schema.DataTypes.AppendOnlyCatalog };
+        }
+
         protected override async Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries)
         {
             IDictionary<string, CatalogItemSummary> pageEntries;
@@ -48,7 +53,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 }
             }
 
-            await SaveIndexResource(pageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, itemEntries, null);
+            await SaveIndexResource(pageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, itemEntries, RootUri);
 
             pageEntries[pageUri.AbsoluteUri] = new CatalogItemSummary(Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, itemEntries.Count);
 

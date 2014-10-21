@@ -89,7 +89,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
                 IGraph extra = CreateExtraGraph(newPageUri, lower, upper);
 
-                await SaveIndexResource(newPageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, newPageItemEntries, extra);
+                await SaveIndexResource(newPageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, newPageItemEntries, RootUri, extra);
 
                 newPageEntries[newPageUri.AbsoluteUri] = new CatalogItemSummary(Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, newPageItemEntries.Count, CreatePageSummary(newPageUri, lower, upper));
             }

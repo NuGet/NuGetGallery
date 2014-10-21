@@ -139,7 +139,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         async Task SaveRoot(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> pageEntries, IGraph commitMetadata)
         {
-            await SaveIndexResource(RootUri, Schema.DataTypes.CatalogRoot, commitId, commitTimeStamp, pageEntries, commitMetadata);
+            await SaveIndexResource(RootUri, Schema.DataTypes.CatalogRoot, commitId, commitTimeStamp, pageEntries, null, commitMetadata, GetAdditionalRootType());
+        }
+
+        protected virtual Uri[] GetAdditionalRootType()
+        {
+            return null;
         }
 
         protected abstract Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries);
@@ -150,7 +155,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
         }
 
-        protected async Task SaveIndexResource(Uri resourceUri, Uri typeUri, Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> entries, IGraph extra)
+        protected async Task SaveIndexResource(Uri resourceUri, Uri typeUri, Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> entries, Uri parent, IGraph extra = null, Uri[] additionalResourceTypes = null)
         {
             IGraph graph = new Graph();
 
@@ -186,9 +191,22 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 }
             }
 
+            if (parent != null)
+            {
+                graph.Assert(resourceNode, graph.CreateUriNode(Schema.Predicates.CatalogParent), graph.CreateUriNode(parent));
+            }
+
             if (extra != null)
             {
                 graph.Merge(extra, true);
+            }
+
+            if (additionalResourceTypes != null)
+            {
+                foreach (Uri resourceType in additionalResourceTypes)
+                {
+                    graph.Assert(resourceNode, typePredicate, graph.CreateUriNode(resourceType));
+                }
             }
 
             await SaveGraph(resourceUri, graph, typeUri);

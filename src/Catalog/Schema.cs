@@ -27,6 +27,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             public static readonly Uri CatalogRoot = new Uri(Prefixes.Catalog + "CatalogRoot");
             public static readonly Uri CatalogPage = new Uri(Prefixes.Catalog + "CatalogPage");
+            public static readonly Uri AppendOnlyCatalog = new Uri(Prefixes.Catalog + "AppendOnlyCatalog");
 
             public static readonly Uri Integer = new Uri(Prefixes.Xsd + "integer");
             public static readonly Uri DateTime = new Uri(Prefixes.Xsd + "dateTime");
@@ -41,10 +42,10 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri CatalogTimeStamp = new Uri(Prefixes.Catalog + "commitTimeStamp");
             public static readonly Uri CatalogItem = new Uri(Prefixes.Catalog + "item");
             public static readonly Uri CatalogCount = new Uri(Prefixes.Catalog + "count");
+            public static readonly Uri CatalogParent = new Uri(Prefixes.Catalog + "parent");
 
             public static readonly Uri GalleryKey = new Uri(Prefixes.Catalog + "galleryKey");
             public static readonly Uri GalleryChecksum = new Uri(Prefixes.Catalog + "galleryChecksum");
-            public static readonly Uri Parent = new Uri(Prefixes.Catalog + "parent");
 
             public static readonly Uri Id = new Uri(Prefixes.NuGet + "id");
             public static readonly Uri Version = new Uri(Prefixes.NuGet + "version");

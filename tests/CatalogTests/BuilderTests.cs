@@ -344,7 +344,7 @@ namespace CatalogTests
 
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 600);
 
-            const int BatchSize = 4;
+            const int BatchSize = 200;
             int i = 0;
 
             int commitCount = 0;
