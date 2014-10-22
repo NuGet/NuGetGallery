@@ -1,6 +1,6 @@
 ﻿using NuGet.Jobs.Common;
 
-namespace Stats.Replicator
+namespace Stats.PurgeReplicated
 {
     class Program
     {
