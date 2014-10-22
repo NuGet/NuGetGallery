@@ -19,11 +19,6 @@ namespace Stats.PurgeReplicated
         private static int CurrentMinBatchSize = MinBatchSize;
         private static int CurrentMaxBatchSize = MaxBatchSize;
         private static Dictionary<double, int> BatchTimes = new Dictionary<double, int>();
-        private static TimeSpan MaxBatchTime = TimeSpan.FromSeconds(
-            30 + // Get the LastOriginalKey from the warehouse
-            30 + // Get the batch from the source
-            30 + // Put the batch into the destination
-            30); // Some buffer time
 
         /// <summary>
         /// Gets or sets a connection string to the database containing package data.
@@ -57,7 +52,8 @@ namespace Stats.PurgeReplicated
                         JobConfigManager.GetArgument(jobArgsDictionary,
                             JobArgumentNames.DestinationDatabase,
                             EnvironmentVariableKeys.SqlWarehouse));
-
+                
+                // By default, keep 7 days of statistics
                 DaysToKeep = JobConfigManager.TryGetIntArgument(jobArgsDictionary, "DaysToKeep") ?? 7;
 
                 return true;
