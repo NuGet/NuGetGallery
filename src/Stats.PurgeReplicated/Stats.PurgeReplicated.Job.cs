@@ -81,11 +81,11 @@ namespace Stats.PurgeReplicated
             if (count > 0)
             {
                 double perSecond = count / watch.Elapsed.TotalSeconds;
-                JobEventSourceLog.PurgedReplicatedStatistics(count, watch.Elapsed.TotalSeconds, (int)perSecond);
+                JobEventSourceLog.PurgedReplicatedStatistics(count, watch.Elapsed.ToString("G"), (int)perSecond);
             }
             else
             {
-                JobEventSourceLog.NoStatisticsToPurge(watch.Elapsed.TotalSeconds);
+                JobEventSourceLog.NoStatisticsPurged(watch.Elapsed.ToString("G"));
             }
 
             return true;
@@ -93,23 +93,65 @@ namespace Stats.PurgeReplicated
 
         private async Task<int> Purge()
         {
-            JobEventSourceLog.GettingReplicationCursor(Destination.DataSource, Destination.InitialCatalog);
-            DateTime? minTimestampToKeep = await GetMinTimestampToKeep(Destination);
-            JobEventSourceLog.GotReplicationCursor(minTimestampToKeep.HasValue ? minTimestampToKeep.ToString() : "<null>");
+            var watch = new Stopwatch();
+            watch.Start();
+
+            DateTime? minTimestampToKeep = null;
+
+            for (int failures = 0; failures < MaxFailures; /* failures is already incremented */)
+            {
+                JobEventSourceLog.GettingReplicationCursor(Destination.DataSource, Destination.InitialCatalog);
+
+                try
+                {
+                    minTimestampToKeep = await GetMinTimestampToKeep(Destination);
+                    JobEventSourceLog.GotReplicationCursor(minTimestampToKeep.HasValue ? minTimestampToKeep.ToString() : "<null>");
+                    break;
+                }
+                catch (SqlException exception)
+                {
+                    JobEventSourceLog.ErrorOccurred(++failures, MaxFailures, exception.ToString());
+
+                    if (failures == MaxFailures)
+                    {
+                        JobEventSourceLog.AbortingTooManyErrors();
+                    }
+                }
+            }
 
             if (minTimestampToKeep == null)
             {
                 return 0;
             }
 
+            int recordsToPurge = 0;
+            JobEventSourceLog.GettingSourceStatisticsCount(Source.DataSource, Source.InitialCatalog);
+
+            try
+            {
+                recordsToPurge = await GetNumberOfRecordsToPurge(Source, minTimestampToKeep.Value);
+                JobEventSourceLog.GotSourceStatisticsCount(recordsToPurge);
+            }
+            catch (SqlException exception)
+            {
+                // We failed to get the count. Take a wild guess so that we can continue;
+                recordsToPurge = 1000000;
+
+                JobEventSourceLog.ErrorOccurred(1, 1, exception.ToString());
+                JobEventSourceLog.FailedToGetSourceStatisticsCount(recordsToPurge);
+            }
+
+            if (recordsToPurge == 0)
+            {
+                return 0;
+            }
+
             JobEventSourceLog.PurgingStatistics(Source.DataSource, Source.InitialCatalog);
-            var watch = new Stopwatch();
-            watch.Start();
-            int purged = await PurgeCore(minTimestampToKeep.Value);
+            int purged = await PurgeCore(minTimestampToKeep.Value, recordsToPurge);
             watch.Stop();
 
             var perSecond = purged / watch.Elapsed.TotalSeconds;
-            JobEventSourceLog.PurgedStatistics(purged, watch.Elapsed.TotalSeconds, (int)perSecond);
+            JobEventSourceLog.PurgedStatistics(purged, watch.Elapsed.ToString("G"), (int)perSecond);
 
             return purged;
         }
@@ -135,14 +177,13 @@ namespace Stats.PurgeReplicated
             }
         }
 
-        private async Task<int> PurgeCore(DateTime minTimestampToKeep)
+        private async Task<int> PurgeCore(DateTime minTimestampToKeep, int recordsToPurge)
         {
             CurrentMinBatchSize = MinBatchSize;
             CurrentMaxBatchSize = MaxBatchSize;
 
             bool needsPurging = true;
             int totalPurged = 0;
-            int failures = 0;
 
             var totalTime = new Stopwatch();
             totalTime.Start();
@@ -153,7 +194,15 @@ namespace Stats.PurgeReplicated
                 int batchSize = GetNextBatchSize(out recordsPerSecond);
                 int purged = 0;
 
-                JobEventSourceLog.PurgingBatch(batchSize);
+                string timeRemaining = "<unknown>";
+
+                if (recordsPerSecond > 0)
+                {
+                    double secondsRemaining = recordsToPurge / recordsPerSecond;
+                    timeRemaining = TimeSpan.FromSeconds(secondsRemaining).ToString("G");
+                }
+
+                JobEventSourceLog.PurgingBatch(batchSize, recordsToPurge, (int)recordsPerSecond, timeRemaining);
 
                 try
                 {
@@ -170,11 +219,17 @@ namespace Stats.PurgeReplicated
                     {
                         RecordSuccessfulBatchTime(batchSize, watch.Elapsed);
                         totalPurged += purged;
+                        recordsToPurge -= purged;
+
+                        if (recordsToPurge < 0)
+                        {
+                            recordsToPurge = 0;
+                        }
                     }
 
                     CurrentFailures = 0;
                 }
-                catch (Exception ex)
+                catch (SqlException ex)
                 {
                     JobEventSourceLog.BatchFailed(batchSize, ++CurrentFailures, MaxFailures, ex.ToString());
 
@@ -193,11 +248,25 @@ namespace Stats.PurgeReplicated
                     // Otherwise, let's reduce our batch size range
                     RecordFailedBatchSize(batchSize);
                 }
-
-                recordsPerSecond = totalPurged / totalTime.Elapsed.TotalSeconds;
             }
 
             return totalPurged;
+        }
+
+        private async Task<int> GetNumberOfRecordsToPurge(SqlConnectionStringBuilder Source, DateTime minTimestampToKeep)
+        {
+            var sql = @"
+                SELECT		COUNT(*)
+                FROM		PackageStatistics WITH (NOLOCK)
+                WHERE		[Timestamp] < @MinTimestampToKeep";
+
+            using (var connection = await Source.ConnectTo())
+            {
+                var command = new SqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@MinTimestampToKeep", minTimestampToKeep);
+
+                return await command.ExecuteScalarAsync() as int? ?? 0;
+            }
         }
 
         private async Task<int> PurgeBatch(DateTime minTimestampToKeep, int batchSize)
@@ -270,7 +339,7 @@ namespace Stats.PurgeReplicated
             double perSecond = batchSize / elapsedTime.TotalSeconds;
             BatchTimes[perSecond] = batchSize;
 
-            JobEventSourceLog.SuccessfulBatch(batchSize, elapsedTime.TotalSeconds, (int)perSecond);
+            JobEventSourceLog.SuccessfulBatch(batchSize, elapsedTime.ToString("G"), (int)perSecond);
         }
 
         private void RecordFailedBatchSize(int batchSize)
@@ -322,15 +391,15 @@ namespace Stats.PurgeReplicated
             eventId: 2,
             Level = EventLevel.Informational,
             Message = "===== Purged {0} records. Duration: {1}. Pace: {2}/second. =====")]
-        public void PurgedReplicatedStatistics(int count, double elapsedSeconds, int perSecond)
-        { WriteEvent(2, count, TimeSpan.FromSeconds(elapsedSeconds).ToString(), perSecond); }
+        public void PurgedReplicatedStatistics(int count, string timeElapsed, int perSecond)
+        { WriteEvent(2, count, timeElapsed, perSecond); }
 
         [Event(
             eventId: 3,
             Level = EventLevel.Informational,
-            Message = "===== There are no records to purge. Duration: {0}. Finished. =====")]
-        public void NoStatisticsToPurge(double elapsedSeconds)
-        { WriteEvent(3, TimeSpan.FromSeconds(elapsedSeconds).ToString()); }
+            Message = "===== No statistics were purged. Duration: {0}. Finished. =====")]
+        public void NoStatisticsPurged(string timeElapsed)
+        { WriteEvent(3, timeElapsed); }
 
         [Event(
             eventId: 4,
@@ -357,22 +426,22 @@ namespace Stats.PurgeReplicated
             eventId: 7,
             Level = EventLevel.Informational,
             Message = "Purged {0} records. Duration: {1}. Pace: {2}.")]
-        public void PurgedStatistics(int purged, double elapsedSeconds, int perSecond)
-        { WriteEvent(7, purged, TimeSpan.FromSeconds(elapsedSeconds).ToString(), perSecond); }
+        public void PurgedStatistics(int purged, string timeElapsed, int perSecond)
+        { WriteEvent(7, purged, timeElapsed, perSecond); }
 
         [Event(
             eventId: 8,
             Level = EventLevel.Informational,
-            Message = "----- Purging a batch. Size: {0}. -----")]
-        public void PurgingBatch(int batchSize)
-        { WriteEvent(8, batchSize); }
+            Message = "----- Purging a batch of size: {0}. Records remaining: {1}. Optimistic Pace: {2}. Optimistic Time Remaining: {3} -----")]
+        public void PurgingBatch(int batchSize, int recordsToPurge, int recordsPerSecond, string timeRemaining)
+        { WriteEvent(8, batchSize, recordsToPurge, recordsPerSecond, timeRemaining); }
 
         [Event(
             eventId: 9,
             Level = EventLevel.Informational,
             Message = "----- Successfully purged a batch. Size: {0}. Duration: {1}. Pace: {2}. -----")]
-        public void SuccessfulBatch(int batchSize, double elapsedSeconds, int perSecond)
-        { WriteEvent(9, batchSize, TimeSpan.FromSeconds(elapsedSeconds).ToString(), perSecond); }
+        public void SuccessfulBatch(int batchSize, string timeElapsed, int perSecond)
+        { WriteEvent(9, batchSize, timeElapsed, perSecond); }
 
         [Event(
             eventId: 10, Level = EventLevel.Warning,
@@ -424,5 +493,33 @@ namespace Stats.PurgeReplicated
             Message = "Aborting - Too many consecutive errors.")]
         public void AbortingTooManyErrors()
         { WriteEvent(17); }
+
+        [Event(
+            eventId: 18,
+            Level = EventLevel.Informational,
+            Message = "Getting the number of records to be purged from {0}/{1}.")]
+        public void GettingSourceStatisticsCount(string sourceServer, string sourceDatabase)
+        { WriteEvent(18, sourceServer, sourceDatabase); }
+
+        [Event(
+            eventId: 19,
+            Level = EventLevel.Informational,
+            Message = "There are {0} records to purge.")]
+        public void GotSourceStatisticsCount(int recordsToPurge)
+        { WriteEvent(19, recordsToPurge); }
+
+        [Event(
+            eventId: 20,
+            Level = EventLevel.Informational,
+            Message = "Failed to get the number of records to be purged. Taking a wild guess of {0}.")]
+        public void FailedToGetSourceStatisticsCount(int guess)
+        { WriteEvent(20, guess); }
+
+        [Event(
+            eventId: 21,
+            Level = EventLevel.Warning,
+            Message = "An error occurred on attempt {0} of {1}. {2})")]
+        public void ErrorOccurred(int attempt, int maxAttempts, string error)
+        { WriteEvent(21, attempt, maxAttempts, error); }
     }
 }
