@@ -12,8 +12,8 @@ namespace Stats.PurgeReplicated
     internal class Job : JobBase
     {
         private static readonly JobEventSource JobEventSourceLog = JobEventSource.Log;
-        private const int MinBatchSize = 100;
-        private const int MaxBatchSize = 10000;
+        private const int MinBatchSize = 1000;
+        private const int MaxBatchSize = 50000;
         private const int MaxFailures = 10;
         private static int CurrentFailures = 0;
         private static int CurrentMinBatchSize = MinBatchSize;
@@ -95,7 +95,7 @@ namespace Stats.PurgeReplicated
         {
             JobEventSourceLog.GettingReplicationCursor(Destination.DataSource, Destination.InitialCatalog);
             DateTime? minTimestampToKeep = await GetMinTimestampToKeep(Destination);
-            JobEventSourceLog.GotReplicationCursor();
+            JobEventSourceLog.GotReplicationCursor(minTimestampToKeep.HasValue ? minTimestampToKeep.ToString() : "<null>");
 
             if (minTimestampToKeep == null)
             {
@@ -107,7 +107,11 @@ namespace Stats.PurgeReplicated
             watch.Start();
             int purged = await PurgeCore(minTimestampToKeep.Value);
             watch.Stop();
-            JobEventSourceLog.PurgedStatistics(purged, watch.Elapsed.TotalSeconds);
+
+            var perSecond = purged / watch.Elapsed.TotalSeconds;
+            JobEventSourceLog.PurgedStatistics(purged, watch.Elapsed.TotalSeconds, (int)perSecond);
+
+            return purged;
         }
 
         private async Task<DateTime?> GetMinTimestampToKeep(SqlConnectionStringBuilder Destination)
@@ -115,10 +119,12 @@ namespace Stats.PurgeReplicated
             // Get the most recent cursor window that is older than the days we want to keep.
             // By getting the MAX(MinTimestamp), we'll delete statistics older than the beginning of the
             // most recent window that has begun processing (but isn't guaranteed to have completed).
+
+            // Note that we made sure to treat DaysToKeep as a NEGATIVE number for the expected behavior
             var sql = @"
                 SELECT      MAX(MinTimestamp)
                 FROM        CollectorCursor
-                WHERE       MinTimestamp <= DATEADD(day, @DaysToKeep, convert(date, GETUTCDATE()))";
+                WHERE       MinTimestamp <= DATEADD(day, -ABS(@DaysToKeep), convert(date, GETUTCDATE()))";
 
             using (var connection = await Destination.ConnectTo())
             {
@@ -143,11 +149,11 @@ namespace Stats.PurgeReplicated
 
             while (needsPurging)
             {
-                JobEventSourceLog.PurgingBatch();
-
                 double recordsPerSecond;
                 int batchSize = GetNextBatchSize(out recordsPerSecond);
                 int purged = 0;
+
+                JobEventSourceLog.PurgingBatch(batchSize);
 
                 try
                 {
@@ -165,15 +171,22 @@ namespace Stats.PurgeReplicated
                         RecordSuccessfulBatchTime(batchSize, watch.Elapsed);
                         totalPurged += purged;
                     }
-                }
-                catch
-                {
-                    JobEventSourceLog.BatchFailed(batchSize);
 
-                    // If we can't even process the min batch size, then give up
+                    CurrentFailures = 0;
+                }
+                catch (Exception ex)
+                {
+                    JobEventSourceLog.BatchFailed(batchSize, ++CurrentFailures, MaxFailures, ex.ToString());
+
+                    // If we can't even process the min batch size, or we've maxed out on failures, then give up
                     if (batchSize <= CurrentMinBatchSize)
                     {
                         JobEventSourceLog.UnableToProcessMinimumBatchSize(batchSize);
+                        break;
+                    }
+                    else if (CurrentFailures == MaxFailures)
+                    {
+                        JobEventSourceLog.AbortingTooManyErrors();
                         break;
                     }
 
@@ -196,7 +209,7 @@ namespace Stats.PurgeReplicated
 
                 SELECT      @@ROWCOUNT";
 
-            using (var connection = await Destination.ConnectTo())
+            using (var connection = await Source.ConnectTo())
             {
                 var command = new SqlCommand(sql, connection);
                 command.Parameters.AddWithValue("@BatchSize", batchSize);
@@ -298,39 +311,118 @@ namespace Stats.PurgeReplicated
         public static readonly JobEventSource Log = new JobEventSource();
         private JobEventSource() { }
 
-        internal void PurgingReplicatedStatistics(string p1, string p2, string p3, string p4)
-        {
-            throw new NotImplementedException();
-        }
+        [Event(
+            eventId: 1,
+            Level = EventLevel.Informational,
+            Message = "Purging statistics that have been replicated from {0}/{1} to {2}/{3}.")]
+        public void PurgingReplicatedStatistics(string sourceServer, string sourceDatabase, string destinationServer, string destinationDatabase)
+        { WriteEvent(1, sourceServer, sourceDatabase, destinationServer, destinationDatabase); }
 
-        internal void PurgedReplicatedStatistics(var count, double p1, int p2)
-        {
-            throw new NotImplementedException();
-        }
+        [Event(
+            eventId: 2,
+            Level = EventLevel.Informational,
+            Message = "===== Purged {0} records. Duration: {1}. Pace: {2}/second. =====")]
+        public void PurgedReplicatedStatistics(int count, double elapsedSeconds, int perSecond)
+        { WriteEvent(2, count, TimeSpan.FromSeconds(elapsedSeconds).ToString(), perSecond); }
 
-        internal void NoStatisticsToPurge(double p)
-        {
-            throw new NotImplementedException();
-        }
+        [Event(
+            eventId: 3,
+            Level = EventLevel.Informational,
+            Message = "===== There are no records to purge. Duration: {0}. Finished. =====")]
+        public void NoStatisticsToPurge(double elapsedSeconds)
+        { WriteEvent(3, TimeSpan.FromSeconds(elapsedSeconds).ToString()); }
 
-        internal void GettingReplicationCursor(string p1, string p2)
-        {
-            throw new NotImplementedException();
-        }
+        [Event(
+            eventId: 4,
+            Level = EventLevel.Informational,
+            Message = "Getting the replication cursor from {0}/{1}.")]
+        public void GettingReplicationCursor(string destinationServer, string destinationDatabase)
+        { WriteEvent(4, destinationServer, destinationDatabase); }
 
-        internal void GotReplicationCursor()
-        {
-            throw new NotImplementedException();
-        }
+        [Event(
+            eventId: 5,
+            Level = EventLevel.Informational,
+            Message = "Got the replication cursor. Value: {0}.")]
+        public void GotReplicationCursor(string minTimestampToKeep)
+        { WriteEvent(5, minTimestampToKeep); }
 
-        internal void PurgingStatistics(string p1, string p2)
-        {
-            throw new NotImplementedException();
-        }
+        [Event(
+            eventId: 6,
+            Level = EventLevel.Informational,
+            Message = "Purging records from {0}/{1}...")]
+        public void PurgingStatistics(string sourceServer, string sourceDatabase)
+        { WriteEvent(6, sourceServer, sourceDatabase); }
 
-        internal void PurgedStatistics(int purged, double p)
-        {
-            throw new NotImplementedException();
-        }
+        [Event(
+            eventId: 7,
+            Level = EventLevel.Informational,
+            Message = "Purged {0} records. Duration: {1}. Pace: {2}.")]
+        public void PurgedStatistics(int purged, double elapsedSeconds, int perSecond)
+        { WriteEvent(7, purged, TimeSpan.FromSeconds(elapsedSeconds).ToString(), perSecond); }
+
+        [Event(
+            eventId: 8,
+            Level = EventLevel.Informational,
+            Message = "----- Purging a batch. Size: {0}. -----")]
+        public void PurgingBatch(int batchSize)
+        { WriteEvent(8, batchSize); }
+
+        [Event(
+            eventId: 9,
+            Level = EventLevel.Informational,
+            Message = "----- Successfully purged a batch. Size: {0}. Duration: {1}. Pace: {2}. -----")]
+        public void SuccessfulBatch(int batchSize, double elapsedSeconds, int perSecond)
+        { WriteEvent(9, batchSize, TimeSpan.FromSeconds(elapsedSeconds).ToString(), perSecond); }
+
+        [Event(
+            eventId: 10, Level = EventLevel.Warning,
+            Message = "BATCH FAILED. Size: {0}. Attempt {1} of {2}. Error: {3}")]
+        public void BatchFailed(int batchSize, int attempt, int maxAttempts, string error)
+        { WriteEvent(10, batchSize, attempt, maxAttempts, error); }
+
+        [Event(
+            eventId: 11, Level = EventLevel.Error,
+            Message = "Aborting - Unable to process minimum batch size of {0}.")]
+        public void UnableToProcessMinimumBatchSize(int batchSize)
+        { WriteEvent(11, batchSize); }
+
+        [Event(
+            eventId: 12, Level = EventLevel.Informational,
+            Message = "Sampling batch sizes. Min batch size: {0}; Max batch size: {1}.")]
+        public void UsingFirstSampleBatchSize(int minBatch, int maxBatch)
+        { WriteEvent(12, minBatch, maxBatch); }
+
+        [Event(
+            eventId: 13, Level = EventLevel.Informational,
+            Message = "Sampling batch sizes. Samples taken: {0}; Next sample size: {1}; Best sample size so far: {2} at {3} records per second.")]
+        public void UsingNextSampleBatchSize(int samplesTaken, int sampleSize, int bestSizeSoFar, int recordsPerSecond)
+        { WriteEvent(13, samplesTaken, sampleSize, bestSizeSoFar, recordsPerSecond); }
+
+        [Event(
+            eventId: 14, Level = EventLevel.Informational,
+            Message = "Calculated the batch size of {0} using the best of {1} batches. Best batch sizes so far: {2}, running at the following paces (per second): {3}")]
+        public void UsingCalculatedBatchSize(int sampleSize, int timesRecorded, string bestBatchSizes, string bestBatchSizePaces)
+        { WriteEvent(14, sampleSize, timesRecorded, bestBatchSizes, bestBatchSizePaces); }
+
+        [Event(
+            eventId: 15,
+            Level = EventLevel.Informational,
+            Message = "Capping the max batch size to the average of the largest successful batch size of {0} and the last attempted batch size of {1}. New max batch size is {2}.")]
+        public void CappingMaxBatchSize(int largestSucessful, int lastAttempt, int maxBatchSize)
+        { WriteEvent(15, largestSucessful, lastAttempt, maxBatchSize); }
+
+        [Event(
+            eventId: 16,
+            Level = EventLevel.Informational,
+            Message = "Reducing the batch size window down to {0} - {1}")]
+        public void ReducingBatchSizes(int minBatchSize, int maxBatchSize)
+        { WriteEvent(16, minBatchSize, maxBatchSize); }
+
+        [Event(
+            eventId: 17,
+            Level = EventLevel.Error,
+            Message = "Aborting - Too many consecutive errors.")]
+        public void AbortingTooManyErrors()
+        { WriteEvent(17); }
     }
 }

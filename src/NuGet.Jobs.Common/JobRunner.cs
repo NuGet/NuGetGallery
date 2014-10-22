@@ -97,6 +97,9 @@ namespace NuGet.Jobs.Common
             // Exception message(s) when the job faults are still in the queue. Need to be flushed
             // Also, when the job is only run once, FlushAll is important again
             job.Logger.FlushAllAndEnd(jobEndMessage ?? JobCrashed);
+
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
         }
 
         private static void JobSetup(JobBase job, IDictionary<string, string> jobArgsDictionary, ref int? sleepDuration)
