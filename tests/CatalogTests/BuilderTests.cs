@@ -223,6 +223,11 @@ namespace CatalogTests
 
             IDictionary<string, string> result = new Dictionary<string, string>();
 
+            if (!File.Exists(packageHashFile))
+            {
+                return result;
+            }
+
             using (TextReader reader = new StreamReader(packageHashFile))
             {
                 for (string line = reader.ReadLine(); line != null; line = reader.ReadLine())
@@ -244,6 +249,11 @@ namespace CatalogTests
             string packageCreated = @"c:\data\nuget\packageCreated.txt";
 
             IDictionary<string, DateTime> result = new Dictionary<string, DateTime>();
+
+            if (!File.Exists(packageCreated))
+            {
+                return result;
+            }
 
             using (TextReader reader = new StreamReader(packageCreated))
             {
@@ -268,6 +278,11 @@ namespace CatalogTests
             string packageExceptions = @"c:\data\nuget\packageExceptions.txt";
 
             HashSet<string> result = new HashSet<string>();
+
+            if (!File.Exists(packageExceptions))
+            {
+                return result;
+            }
 
             using (TextReader reader = new StreamReader(packageExceptions))
             {
@@ -353,6 +368,9 @@ namespace CatalogTests
 
             DateTime lastCreated = (await PackageCatalog.ReadCommitMetadata(writer)).Item1 ?? DateTime.MinValue;
 
+            // temp test data
+            packageCreated.Add(new KeyValuePair<string, DateTime>("nodatime.2.0.0-alpha20140808.nupkg", DateTime.UtcNow));
+
             foreach (KeyValuePair<string, DateTime> entry in packageCreated)
             {
                 if (entry.Value <= lastCreated)
@@ -369,11 +387,12 @@ namespace CatalogTests
 
                 if (fileInfo.Exists)
                 {
-                    string packageHash = packageHashLookup[fileInfo.Name];
+                    // string packageHash = packageHashLookup[fileInfo.Name];
+                    // Tuple<XDocument, IEnumerable<PackageEntry>, long, string> metadata = GetNupkgMetadata(fileInfo.FullName);
+                    // writer.Add(new NuspecPackageCatalogItem(metadata.Item1, entry.Value, metadata.Item2, metadata.Item3, metadata.Item4));
 
-                    Tuple<XDocument, IEnumerable<PackageEntry>, long, string> metadata = GetNupkgMetadata(fileInfo.FullName);
-
-                    writer.Add(new NuspecPackageCatalogItem(metadata.Item1, entry.Value, metadata.Item2, metadata.Item3, metadata.Item4));
+                    // TODO: pass the gallery published date and hash to the constructor
+                    writer.Add(new NupkgPackedItem(new Uri("http://tempuri.org/"), fileInfo.FullName));
 
                     lastCreated = entry.Value;
 
