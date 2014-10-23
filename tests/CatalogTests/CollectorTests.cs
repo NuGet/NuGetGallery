@@ -109,7 +109,7 @@ namespace CatalogTests
 
             //collector.PackageCountThreshold = 50;
 
-            FileSystemEmulatorHandler handler = new VerboseHandler
+            FileSystemEmulatorHandler handler = new VerboseFileSystemEmulatorHandler
             {
                 BaseAddress = new Uri("http://localhost:8000"),
                 RootFolder = @"c:\data\site",
@@ -130,6 +130,33 @@ namespace CatalogTests
             Console.WriteLine("CollectorTests.Test4");
 
             Test4Async().Wait();
+        }
+
+        public static async Task Test5Async()
+        {
+            VerboseHandler handler = new VerboseHandler();
+
+            FindFirstCollector collector = new FindFirstCollector("quickpick.one", "1.0.14037.2");
+            //FindFirstCollector collector = new FindFirstCollector("abot", "1.2.1-alpha");
+            await collector.Run(new Uri("http://nugetjohtaylo.blob.core.windows.net/ver38/catalog/index.json"), DateTime.MinValue, handler);
+
+            if (collector.PackageDetails != null)
+            {
+                Console.WriteLine(collector.PackageDetails);
+            }
+            else
+            {
+                Console.WriteLine("Not Found");
+            }
+
+            Console.WriteLine("http requests: {0}", collector.RequestCount);
+        }
+
+        public static void Test5()
+        {
+            Console.WriteLine("CollectorTests.Test5");
+
+            Test5Async().Wait();
         }
     }
 }

@@ -42,6 +42,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
             foreach (JObject rootItem in rootItems)
             {
+                bool acceptNextBatch = true;
+
                 if (hasPassedDependencies)
                 {
                     break;
@@ -84,12 +86,22 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
                             if (items.Count == _batchSize)
                             {
-                                await ProcessBatch(client, items, (JObject)context);
+                                acceptNextBatch = await ProcessBatch(client, items, (JObject)context);
                                 BatchCount++;
                                 items.Clear();
+
+                                if (!acceptNextBatch)
+                                {
+                                    break;
+                                }
                             }
                         }
                     }
+                }
+
+                if (!acceptNextBatch)
+                {
+                    break;
                 }
             }
 
@@ -125,6 +137,6 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             }
         }
 
-        protected abstract Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context);
+        protected abstract Task<bool> ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context);
     }
 }

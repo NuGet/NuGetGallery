@@ -19,7 +19,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             _types = types;
         }
 
-        protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        protected override async Task<bool> ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
         {
             List<Task<IGraph>> tasks = new List<Task<IGraph>>();
 
@@ -45,6 +45,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
                 await ProcessStore(store);
             }
+
+            return true;
         }
 
         protected abstract Task ProcessStore(TripleStore store);

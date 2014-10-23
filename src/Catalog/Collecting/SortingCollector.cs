@@ -11,7 +11,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
         {
         }
 
-        protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        protected override async Task<bool> ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
         {
             IDictionary<string, IList<JObject>> sortedItems = new Dictionary<string, IList<JObject>>();
 
@@ -39,6 +39,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             }
 
             await Task.WhenAll(tasks.ToArray());
+
+            return true;
         }
         protected virtual string GetKey(JObject item)
         {

@@ -15,7 +15,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting.Test
         {
         }
 
-        protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        protected override async Task<bool> ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
         {
             List<Task<string>> tasks = new List<Task<string>>();
 
@@ -26,6 +26,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting.Test
             }
 
             await Task.WhenAll(tasks.ToArray());
+
+            return true;
         }
     }
 }
