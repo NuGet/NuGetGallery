@@ -5,7 +5,8 @@
         "xsd": "http://www.w3.org/2001/XMLSchema#",
         "dependencies" : { "@id" : "dependency", "@container" : "@set" },
         "dependencyGroups" : { "@id" : "dependencyGroup", "@container" : "@set" },
-        "packageEntries" : { "@id" : "packageEntry", "@container" : "@set" },
+        "packageEntries": { "@id": "packageEntry", "@container": "@set" },
+        "supportedFrameworks": { "@id": "supportedFramework", "@container": "@set" },
         "published" : { "@type" : "xsd:dateTime" },
         "catalog:commitTimeStamp" : { "@type" : "xsd:dateTime" }
     }

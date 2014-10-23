@@ -1,5 +1,6 @@
 ﻿using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
+using NuGet.Packaging;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -185,6 +186,31 @@ namespace CatalogTests
             Console.WriteLine("commit number {0}", commitCount++);
         }
 
+        private static IEnumerable<string> GetSupportedFrameworks(string filename)
+        {
+            try
+            {
+                using (var stream = File.OpenRead(filename))
+                {
+                    ZipFileSystem zip = new ZipFileSystem(stream);
+
+                    using (PackageReader reader = new PackageReader(zip))
+                    {
+                        ArtifactReader artifactReader = new ArtifactReader(reader);
+
+                        return artifactReader.GetSupportedFrameworks();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("Failed to extract supported frameworks from {0} execption {1}", filename, e.Message);
+
+                // default to any for errors
+                return new string[] { "any" };
+            }
+        }
+
         static Tuple<XDocument, IEnumerable<PackageEntry>, long, string> GetNupkgMetadata(string filename)
         {
             try
@@ -368,9 +394,6 @@ namespace CatalogTests
 
             DateTime lastCreated = (await PackageCatalog.ReadCommitMetadata(writer)).Item1 ?? DateTime.MinValue;
 
-            // temp test data
-            packageCreated.Add(new KeyValuePair<string, DateTime>("nodatime.2.0.0-alpha20140808.nupkg", DateTime.UtcNow));
-
             foreach (KeyValuePair<string, DateTime> entry in packageCreated)
             {
                 if (entry.Value <= lastCreated)
@@ -387,12 +410,11 @@ namespace CatalogTests
 
                 if (fileInfo.Exists)
                 {
-                    // string packageHash = packageHashLookup[fileInfo.Name];
-                    // Tuple<XDocument, IEnumerable<PackageEntry>, long, string> metadata = GetNupkgMetadata(fileInfo.FullName);
-                    // writer.Add(new NuspecPackageCatalogItem(metadata.Item1, entry.Value, metadata.Item2, metadata.Item3, metadata.Item4));
+                    var supportedFrameworks = GetSupportedFrameworks(fileInfo.FullName);
 
-                    // TODO: pass the gallery published date and hash to the constructor
-                    writer.Add(new NupkgPackedItem(new Uri("http://tempuri.org/"), fileInfo.FullName));
+                    string packageHash = packageHashLookup[fileInfo.Name];
+                    Tuple<XDocument, IEnumerable<PackageEntry>, long, string> metadata = GetNupkgMetadata(fileInfo.FullName);
+                    writer.Add(new NuspecPackageCatalogItem(metadata.Item1, entry.Value, metadata.Item2, metadata.Item3, metadata.Item4, supportedFrameworks));
 
                     lastCreated = entry.Value;
 
