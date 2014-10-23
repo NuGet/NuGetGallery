@@ -9,6 +9,7 @@
         "commitTimeStamp" : { "@id" : "catalog:commitTimeStamp", "@type" : "xsd:dateTime" },
         "commitId" : { "@id" : "catalog:commitId" },
         "count" : { "@id" : "catalog:count" },
+        "parent" : { "@type" : "@id" },
 
         "tags": { "@container" : "@set", "@id": "tag" },
 

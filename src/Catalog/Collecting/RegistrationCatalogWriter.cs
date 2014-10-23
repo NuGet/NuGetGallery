@@ -23,6 +23,11 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
         public int PartitionSize { get; private set; }
 
+        protected override Uri[] GetAdditionalRootType()
+        {
+            return new Uri[] { Schema.DataTypes.PackageRegistration, Schema.DataTypes.Permalink };
+        }
+
         protected override async Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries)
         {
             SortedDictionary<NuGetVersion, KeyValuePair<string, CatalogItemSummary>> versions = new SortedDictionary<NuGetVersion, KeyValuePair<string, CatalogItemSummary>>();

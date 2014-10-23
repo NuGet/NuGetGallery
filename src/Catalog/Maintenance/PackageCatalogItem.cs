@@ -51,10 +51,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
             INode timeStampPredicate = graph.CreateUriNode(Schema.Predicates.CatalogTimeStamp);
             INode commitIdPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCommitId);
+            INode permanentType = graph.CreateUriNode(Schema.DataTypes.Permalink);
 
             Triple resource = graph.GetTriplesWithPredicateObject(rdfTypePredicate, graph.CreateUriNode(GetItemType())).First();
             graph.Assert(resource.Subject, timeStampPredicate, graph.CreateLiteralNode(TimeStamp.ToString("O"), Schema.DataTypes.DateTime));
             graph.Assert(resource.Subject, commitIdPredicate, graph.CreateLiteralNode(CommitId.ToString()));
+            graph.Assert(resource.Subject, rdfTypePredicate, permanentType);
 
             //  published
 

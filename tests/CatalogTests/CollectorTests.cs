@@ -136,7 +136,7 @@ namespace CatalogTests
         {
             VerboseHandler handler = new VerboseHandler();
 
-            FindFirstCollector collector = new FindFirstCollector("quickpick.one", "1.0.14037.2");
+            FindFirstCollector collector = new FindFirstCollector("xact.ui.web.mvc", "0.0.4773");
             //FindFirstCollector collector = new FindFirstCollector("abot", "1.2.1-alpha");
             await collector.Run(new Uri("http://nugetjohtaylo.blob.core.windows.net/ver38/catalog/index.json"), DateTime.MinValue, handler);
 

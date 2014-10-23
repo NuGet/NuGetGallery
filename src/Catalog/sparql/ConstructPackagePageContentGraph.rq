@@ -1,13 +1,16 @@
 ﻿PREFIX nuget: <http://schema.nuget.org/schema#>
+PREFIX catalog: <http://schema.nuget.org/catalog#>
 
 CONSTRUCT
 {
     ?package a nuget:Package ;
+	         a catalog:Permalink ;
 	         nuget:registration ?registration ;
              nuget:packageContent ?packageContent ;
 	         nuget:catalogEntry ?catalogPackage .
 
     ?catalogPackage a nuget:PackageDetails ;
+	                a catalog:Permalink ;
                     nuget:id ?id ;
                     nuget:version ?version ;
                     nuget:dependencyGroup ?dependency_group ;
