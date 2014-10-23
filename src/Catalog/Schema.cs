@@ -93,6 +93,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri MinimumClientVersion = new Uri(Prefixes.NuGet + "minimumClientVersion");
             public static readonly Uri Tag = new Uri(Prefixes.NuGet + "tag");
             public static readonly Uri LicenseName = new Uri(Prefixes.NuGet + "licenseName");
+            public static readonly Uri SupportedFramework = new Uri(Prefixes.NuGet + "supportedFramework");
 
         }
     }

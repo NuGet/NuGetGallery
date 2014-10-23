@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace NuGet.Services.Metadata.Catalog.Maintenance
@@ -12,6 +13,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         IEnumerable<PackageEntry> _entries;
         long? _packageSize;
         string _packageHash;
+        IEnumerable<string> _supportedFrameworks;
 
         public NuspecPackageCatalogItem(string path)
         {
@@ -22,13 +24,14 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             _packageHash = null;
         }
 
-        public NuspecPackageCatalogItem(XDocument nuspec, DateTime? published = null, IEnumerable<PackageEntry> entries = null, long? packageSize = null, string packageHash = null)
+        public NuspecPackageCatalogItem(XDocument nuspec, DateTime? published = null, IEnumerable<PackageEntry> entries = null, long? packageSize = null, string packageHash = null, IEnumerable<string> supportedFrameworks = null)
         {
             _nuspec = nuspec;
             _published = published;
             _entries = entries;
             _packageSize = packageSize;
             _packageHash = packageHash;
+            _supportedFrameworks = supportedFrameworks;
         }
 
         public string Path
@@ -74,6 +77,11 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         protected override string GetPackageHash()
         {
             return _packageHash;
+        }
+
+        protected override IEnumerable<string> GetSupportedFrameworks()
+        {
+            return _supportedFrameworks ?? Enumerable.Empty<string>();
         }
     }
 }
