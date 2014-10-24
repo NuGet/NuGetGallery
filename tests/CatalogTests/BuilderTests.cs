@@ -122,137 +122,7 @@ namespace CatalogTests
             Test1Async().Wait();
         }
 
-        public static async Task Test2Async()
-        {
-            IDictionary<string, string> packageHashLookup = LoadPackageHashLookup();
-            IDictionary<string, DateTime> packageCreatedLookup = LoadPackageCreatedLookup();
-            HashSet<string> packageExceptionLookup = LoadPackageExceptionLookup();
 
-            string nupkgs = @"c:\data\nuget\gallery";
-
-            //Storage storage = new FileStorage("http://localhost:8000/publish", @"c:\data\site\publish");
-            //Storage storage = new FileStorage("http://localhost:8000/dotnetrdf", @"c:\data\site\dotnetrdf");
-            //Storage storage = new FileStorage("http://localhost:8000/entityframework", @"c:\data\site\entityframework");
-
-            StorageCredentials credentials = new StorageCredentials("", "");
-            CloudStorageAccount account = new CloudStorageAccount(credentials, true);
-            Storage storage = new AzureStorage(account, "ver37", "catalog");
-
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 600);
-
-            const int BatchSize = 200;
-            int i = 0;
-
-            int commitCount = 0;
-
-            DirectoryInfo directoryInfo = new DirectoryInfo(nupkgs);
-            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.nupkg"))
-            //foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("dotnetrdf.*.nupkg"))
-            //foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("entityframework.*.nupkg"))
-            {
-                if (i++ < 248000)
-                {
-                    continue;
-                }
-
-                Tuple<XDocument, IEnumerable<PackageEntry>, long, string> metadata = GetNupkgMetadata(fileInfo.FullName);
-
-                if (metadata != null)
-                {
-                    string packageHash = packageHashLookup[fileInfo.Name];
-
-                    DateTime packageCreated;
-                    if (packageCreatedLookup.TryGetValue(fileInfo.Name, out packageCreated))
-                    {
-                        if (!packageExceptionLookup.Contains(fileInfo.Name))
-                        {
-                            writer.Add(new NuspecPackageCatalogItem(metadata.Item1, packageCreated, metadata.Item2, metadata.Item3, metadata.Item4));
-                        }
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Skipping {0}", fileInfo.FullName);
-                }
-
-                if (i % BatchSize == 0)
-                {
-                    await writer.Commit(DateTime.UtcNow);
-
-                    Console.WriteLine("commit number {0}", commitCount++);
-                }
-            }
-
-            await writer.Commit(DateTime.UtcNow);
-
-            Console.WriteLine("commit number {0}", commitCount++);
-        }
-
-        private static PackedData GetPackedData(string filename)
-        {
-            IEnumerable<string> supportedFrameworks = new string[] { "any" };
-            IEnumerable<ArtifactGroup> groups = Enumerable.Empty<ArtifactGroup>();
-
-            try
-            {
-                using (var stream = File.OpenRead(filename))
-                {
-                    ZipFileSystem zip = new ZipFileSystem(stream);
-
-                    using (PackageReader reader = new PackageReader(zip))
-                    {
-                        ArtifactReader artifactReader = new ArtifactReader(reader);
-
-                        supportedFrameworks = artifactReader.GetSupportedFrameworks();
-                        groups = artifactReader.GetArtifactGroups();
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine("Failed to extract supported frameworks from {0} execption {1}", filename, e.Message);
-            }
-
-            return new PackedData(supportedFrameworks, groups);
-        }
-
-        static Tuple<XDocument, IEnumerable<PackageEntry>, long, string> GetNupkgMetadata(string filename, string hash=null)
-        {
-            try
-            {
-                using (Stream stream = new FileStream(filename, FileMode.Open))
-                {
-                    long packageFileSize = stream.Length;
-
-                    string packageHash = hash;
-
-                    if (String.IsNullOrEmpty(packageHash))
-                    {
-                        Console.WriteLine("Generating hash for: " + filename);
-                        packageHash = GenerateHash(stream);
-                    }
-
-                    using (ZipArchive package = new ZipArchive(stream))
-                    {
-                        XDocument nuspec = Utils.GetNuspec(package);
-
-                        if (nuspec == null)
-                        {
-                            throw new Exception(string.Format("Unable to find nuspec in {0}", filename));
-                        }
-
-                        IEnumerable<PackageEntry> entries = GetEntries(package);
-
-                        return Tuple.Create(nuspec, entries, packageFileSize, packageHash);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine("Failed to extract metadata from {0} execption {1}", filename, e.Message);
-                return null;
-            }
-        }
 
         public static IDictionary<string, string> LoadPackageHashLookup()
         {
@@ -332,65 +202,22 @@ namespace CatalogTests
             return result;
         }
 
-        public static string GenerateHash(Stream stream)
-        {
-            stream.Seek(0, SeekOrigin.Begin);
-            using (HashAlgorithm hashAlgorithm = HashAlgorithm.Create("SHA512"))
-            {
-                return Convert.ToBase64String(hashAlgorithm.ComputeHash(stream));
-            }
-        }
-
-        static IEnumerable<PackageEntry> GetEntries(ZipArchive package)
-        {
-            IList<PackageEntry> result = new List<PackageEntry>();
-
-            foreach (ZipArchiveEntry entry in package.Entries)
-            {
-                if (entry.FullName.EndsWith("/.rels", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (entry.FullName.EndsWith("[Content_Types].xml", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (entry.FullName.EndsWith(".psmdcp", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                result.Add(new PackageEntry(entry));
-            }
-            
-            return result;
-        }
-
-        public static void Test2()
-        {
-            Console.WriteLine("BuilderTests.Test2");
-
-            Test2Async().Wait();
-        }
-
         public static async Task Test3Async()
         {
             System.Net.ServicePointManager.DefaultConnectionLimit = 1024;
             IDictionary<string, string> packageHashLookup = LoadPackageHashLookup();
             HashSet<string> packageExceptionLookup = LoadPackageExceptionLookup();
 
-            string nupkgs = @"c:\data\nuget\gallery";
+            string nupkgs = @"c:\data\nuget\gallery\";
 
             Storage storage = new FileStorage("http://localhost:8000/ordered", @"c:\data\site\ordered");
 
             //StorageCredentials credentials = new StorageCredentials("", "");
             //CloudStorageAccount account = new CloudStorageAccount(credentials, true);
             //Storage storage = new AzureStorage(account, "ver38", "catalog");
-            storage.Verbose = true;
+            //storage.Verbose = true;
 
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 600);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 550);
 
             const int BatchSize = 64;
  
@@ -404,7 +231,7 @@ namespace CatalogTests
             options.MaxDegreeOfParallelism = 8;
 
             // filter by lastCreated here
-            Queue<KeyValuePair<string, DateTime>> packageCreatedQueue = new Queue<KeyValuePair<string, DateTime>>(packageCreated.Where(p => p.Value > lastCreated && !packageExceptionLookup.Contains(p.Key)).OrderBy(p => p.Key));
+            Queue<KeyValuePair<string, DateTime>> packageCreatedQueue = new Queue<KeyValuePair<string, DateTime>>(packageCreated.Where(p => p.Value > lastCreated && !packageExceptionLookup.Contains(p.Key)).OrderBy(p => p.Value));
 
             int completed = 0;
             Stopwatch runtime = new Stopwatch();
@@ -436,14 +263,14 @@ namespace CatalogTests
 
                     if (fileInfo.Exists)
                     {
-                        string packageHash = packageHashLookup[fileInfo.Name];
-                        Tuple<XDocument, IEnumerable<PackageEntry>, long, string> metadata = GetNupkgMetadata(fileInfo.FullName, packageHash);
+                        using (Stream stream = new FileStream(fileInfo.FullName, FileMode.Open))
+                        {
+                            string packageHash = null;
+                            packageHashLookup.TryGetValue(fileInfo.Name, out packageHash);
 
-                        // additional sections
-                        var addons = new GraphAddon[] { GetPackedData(fileInfo.FullName) };
-
-                        var item = new NuspecPackageCatalogItem(metadata.Item1, entry.Value, metadata.Item2, metadata.Item3, metadata.Item4, addons);
-                        batchItems.Add(item);
+                            CatalogItem item = Utils.CreateCatalogItem(stream, entry.Value, packageHash, fileInfo.FullName);
+                            batchItems.Add(item);
+                        }
                     }
                 });
 

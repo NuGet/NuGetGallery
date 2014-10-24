@@ -126,6 +126,7 @@
     <Compile Include="Collecting\SortingCollector.cs" />
     <Compile Include="Collecting\SortingGraphCollector.cs" />
     <Compile Include="Collecting\StoreCollector.cs" />
+    <Compile Include="Collecting\Test\PrintCollector.cs" />
     <Compile Include="Collecting\Test\VerboseFileSystemEmulatorHandler.cs" />
     <Compile Include="Collecting\Test\DistinctDependencyPackageIdCollector.cs" />
     <Compile Include="Collecting\Test\DistinctPackageIdCollector.cs" />

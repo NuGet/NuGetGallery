@@ -158,5 +158,33 @@ namespace CatalogTests
 
             Test5Async().Wait();
         }
+
+        public static async Task Test6Async()
+        {
+            //VerboseHandler handler = new VerboseHandler();
+
+            //FindFirstCollector collector = new FindFirstCollector("xact.ui.web.mvc", "0.0.4773");
+            //FindFirstCollector collector = new FindFirstCollector("abot", "1.2.1-alpha");
+
+            PrintCollector collector = new PrintCollector(200);
+
+            FileSystemEmulatorHandler handler = new FileSystemEmulatorHandler
+            {
+                BaseAddress = new Uri("http://localhost:8000"),
+                RootFolder = @"c:\data\site",
+                InnerHandler = new HttpClientHandler()
+            };
+
+            await collector.Run(new Uri("http://localhost:8000/ordered/index.json"), DateTime.MinValue, handler);
+
+            Console.WriteLine("http requests: {0}", collector.RequestCount);
+        }
+
+        public static void Test6()
+        {
+            Console.WriteLine("CollectorTests.Test6");
+
+            Test6Async().Wait();
+        }
     }
 }

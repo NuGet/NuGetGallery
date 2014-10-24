@@ -34,6 +34,16 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             _directory = directory;
 
+            if (_directory.Container.CreateIfNotExists())
+            {
+                _directory.Container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+
+                if (Verbose)
+                {
+                    Trace.WriteLine(String.Format("Created '{0}' publish container", _directory.Container.Name));
+                }
+            }
+
             ResetStatistics();
         }
 
@@ -51,16 +61,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         protected override async Task OnSave(Uri resourceUri, StorageContent content)
         {
             string name = GetName(resourceUri);
-
-            if (_directory.Container.CreateIfNotExists())
-            {
-                _directory.Container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
-
-                if (Verbose)
-                {
-                    Trace.WriteLine(String.Format("Created '{0}' publish container", _directory.Container.Name));
-                }
-            }
 
             CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
             blob.Properties.ContentType = content.ContentType;

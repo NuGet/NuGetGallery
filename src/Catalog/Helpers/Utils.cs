@@ -15,6 +15,9 @@ using VDS.RDF.Writing;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGet.Services.Metadata.Catalog.Maintenance;
+using NuGet.Packaging;
+using System.Security.Cryptography;
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -363,6 +366,114 @@ namespace NuGet.Services.Metadata.Catalog
                         existingGraph.Retract(t2);
                     }
                 }
+            }
+        }
+
+        public static string GenerateHash(Stream stream)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+            using (HashAlgorithm hashAlgorithm = HashAlgorithm.Create("SHA512"))
+            {
+                return Convert.ToBase64String(hashAlgorithm.ComputeHash(stream));
+            }
+        }
+
+        static PackedData GetPackedData(Stream stream, string filename)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+
+            IEnumerable<string> supportedFrameworks = new string[] { "any" };
+            IEnumerable<ArtifactGroup> groups = Enumerable.Empty<ArtifactGroup>();
+
+            try
+            {
+                ZipFileSystem zip = new ZipFileSystem(stream);
+
+                using (PackageReader reader = new PackageReader(zip))
+                {
+                    ArtifactReader artifactReader = new ArtifactReader(reader);
+
+                    supportedFrameworks = artifactReader.GetSupportedFrameworks();
+                    groups = artifactReader.GetArtifactGroups();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("Failed to extract supported frameworks from {0} execption {1}", filename, e.Message);
+            }
+
+            return new PackedData(supportedFrameworks, groups);
+        }
+
+        static IEnumerable<PackageEntry> GetEntries(ZipArchive package)
+        {
+            IList<PackageEntry> result = new List<PackageEntry>();
+
+            foreach (ZipArchiveEntry entry in package.Entries)
+            {
+                if (entry.FullName.EndsWith("/.rels", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (entry.FullName.EndsWith("[Content_Types].xml", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (entry.FullName.EndsWith(".psmdcp", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                result.Add(new PackageEntry(entry));
+            }
+
+            return result;
+        }
+
+        static Tuple<XDocument, IEnumerable<PackageEntry>, long, string> GetNupkgMetadata(Stream stream, string hash = null)
+        {
+            long packageFileSize = stream.Length;
+
+            string packageHash = hash;
+
+            if (String.IsNullOrEmpty(packageHash))
+            {
+                packageHash = GenerateHash(stream);
+            }
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            using (ZipArchive package = new ZipArchive(stream, ZipArchiveMode.Read, true))
+            {
+                XDocument nuspec = Utils.GetNuspec(package);
+
+                if (nuspec == null)
+                {
+                    throw new Exception("Unable to find nuspec");
+                }
+
+                IEnumerable<PackageEntry> entries = GetEntries(package);
+
+                return Tuple.Create(nuspec, entries, packageFileSize, packageHash);
+            }
+        }
+
+        public static CatalogItem CreateCatalogItem(Stream stream, DateTime published, string packageHash, string originName)
+        {
+            try
+            {
+                Tuple<XDocument, IEnumerable<PackageEntry>, long, string> metadata = GetNupkgMetadata(stream, packageHash);
+
+                // additional sections
+                var addons = new GraphAddon[] { GetPackedData(stream, originName) };
+
+                return new NuspecPackageCatalogItem(metadata.Item1, published, metadata.Item2, metadata.Item3, metadata.Item4, addons);
+            }
+            catch (Exception e)
+            {
+                throw new Exception(string.Format("exception processsing {0}", originName), e);
             }
         }
     }
