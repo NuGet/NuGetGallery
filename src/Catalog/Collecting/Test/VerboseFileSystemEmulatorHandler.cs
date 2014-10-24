@@ -5,11 +5,8 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Collecting.Test
 {
-    public class VerboseHandler : DelegatingHandler
+    public class VerboseFileSystemEmulatorHandler : FileSystemEmulatorHandler
     {
-        public VerboseHandler() : base(new HttpClientHandler()) { }
-        public VerboseHandler(HttpMessageHandler innerHandler) : base(innerHandler) { }
-
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Console.WriteLine(request.RequestUri);

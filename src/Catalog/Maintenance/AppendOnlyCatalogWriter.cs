@@ -25,7 +25,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         protected override Uri[] GetAdditionalRootType()
         {
-            return new Uri[] { Schema.DataTypes.AppendOnlyCatalog };
+            return new Uri[] { Schema.DataTypes.AppendOnlyCatalog, Schema.DataTypes.Permalink };
         }
 
         protected override async Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries)

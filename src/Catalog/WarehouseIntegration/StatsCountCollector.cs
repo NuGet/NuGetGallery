@@ -20,7 +20,7 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
 
         protected abstract bool SelectRow(DateTime rowDownloadTimestamp);
 
-        protected async override Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        protected async override Task<bool> ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
         {
             List<Task<string>> tasks = new List<Task<string>>();
 
@@ -55,6 +55,8 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
                     }
                 }
             }
+
+            return true;
         }
     }
 }

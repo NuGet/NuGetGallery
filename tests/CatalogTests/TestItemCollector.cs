@@ -13,7 +13,7 @@ namespace CatalogTests
         {
         }
 
-        protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        protected override async Task<bool> ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
         {
             List<Task<JObject>> tasks = new List<Task<JObject>>();
 
@@ -33,6 +33,8 @@ namespace CatalogTests
             {
                 Console.WriteLine(task.Result["name"]);
             }
+
+            return true;
         }
     }
 }

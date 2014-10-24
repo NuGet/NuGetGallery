@@ -41,6 +41,7 @@ namespace CatalogTests
                 //CollectorTests.Test1();
                 //CollectorTests.Test2();
                 CollectorTests.Test4();
+                //CollectorTests.Test5();
 
                 //MakeTestCatalog.Test0();
 

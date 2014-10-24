@@ -1,5 +1,6 @@
 ﻿using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
+using NuGet.Packaging;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -185,6 +186,31 @@ namespace CatalogTests
             Console.WriteLine("commit number {0}", commitCount++);
         }
 
+        private static IEnumerable<string> GetSupportedFrameworks(string filename)
+        {
+            try
+            {
+                using (var stream = File.OpenRead(filename))
+                {
+                    ZipFileSystem zip = new ZipFileSystem(stream);
+
+                    using (PackageReader reader = new PackageReader(zip))
+                    {
+                        ArtifactReader artifactReader = new ArtifactReader(reader);
+
+                        return artifactReader.GetSupportedFrameworks();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("Failed to extract supported frameworks from {0} execption {1}", filename, e.Message);
+
+                // default to any for errors
+                return new string[] { "any" };
+            }
+        }
+
         static Tuple<XDocument, IEnumerable<PackageEntry>, long, string> GetNupkgMetadata(string filename)
         {
             try
@@ -223,6 +249,11 @@ namespace CatalogTests
 
             IDictionary<string, string> result = new Dictionary<string, string>();
 
+            if (!File.Exists(packageHashFile))
+            {
+                return result;
+            }
+
             using (TextReader reader = new StreamReader(packageHashFile))
             {
                 for (string line = reader.ReadLine(); line != null; line = reader.ReadLine())
@@ -244,6 +275,11 @@ namespace CatalogTests
             string packageCreated = @"c:\data\nuget\packageCreated.txt";
 
             IDictionary<string, DateTime> result = new Dictionary<string, DateTime>();
+
+            if (!File.Exists(packageCreated))
+            {
+                return result;
+            }
 
             using (TextReader reader = new StreamReader(packageCreated))
             {
@@ -268,6 +304,11 @@ namespace CatalogTests
             string packageExceptions = @"c:\data\nuget\packageExceptions.txt";
 
             HashSet<string> result = new HashSet<string>();
+
+            if (!File.Exists(packageExceptions))
+            {
+                return result;
+            }
 
             using (TextReader reader = new StreamReader(packageExceptions))
             {
@@ -369,11 +410,11 @@ namespace CatalogTests
 
                 if (fileInfo.Exists)
                 {
+                    var supportedFrameworks = GetSupportedFrameworks(fileInfo.FullName);
+
                     string packageHash = packageHashLookup[fileInfo.Name];
-
                     Tuple<XDocument, IEnumerable<PackageEntry>, long, string> metadata = GetNupkgMetadata(fileInfo.FullName);
-
-                    writer.Add(new NuspecPackageCatalogItem(metadata.Item1, entry.Value, metadata.Item2, metadata.Item3, metadata.Item4));
+                    writer.Add(new NuspecPackageCatalogItem(metadata.Item1, entry.Value, metadata.Item2, metadata.Item3, metadata.Item4, supportedFrameworks));
 
                     lastCreated = entry.Value;
 

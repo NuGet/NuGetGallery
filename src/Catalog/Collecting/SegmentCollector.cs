@@ -22,7 +22,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             _registrationBaseAddress = registrationBaseAddress;
         }
 
-        protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        protected override async Task<bool> ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
         {
             List<Task<JObject>> tasks = new List<Task<JObject>>();
 
@@ -54,6 +54,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
 
                 await writer.Commit();
             }
+
+            return true;
         }
     }
 }

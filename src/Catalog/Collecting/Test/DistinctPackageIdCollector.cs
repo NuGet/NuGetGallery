@@ -19,7 +19,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting.Test
             get; private set;
         }
 
-        protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        protected override async Task<bool> ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
         {
             List<Task<JObject>> tasks = new List<Task<JObject>>();
 
@@ -36,6 +36,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting.Test
                 JObject obj = task.Result;
                 Result.Add(obj["id"].ToString().ToLowerInvariant());
             }
+
+            return true;
         }
     }
 }

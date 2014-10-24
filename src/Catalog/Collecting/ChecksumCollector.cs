@@ -40,7 +40,7 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             return cursor;
         }
 
-        protected override Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        protected override Task<bool> ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
         {
             ChecksumCollectorEventSource.Log.ProcessingBatch(BatchCount, items.Count);
             
@@ -69,7 +69,8 @@ namespace NuGet.Services.Metadata.Catalog.Collecting
             }
 
             ChecksumCollectorEventSource.Log.ProcessedBatch();
-            return Task.FromResult(0);
+            
+            return Task.FromResult(true);
         }
     }
 

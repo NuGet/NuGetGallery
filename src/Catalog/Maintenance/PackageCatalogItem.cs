@@ -38,6 +38,11 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return null;
         }
 
+        protected virtual IEnumerable<string> GetSupportedFrameworks()
+        {
+            return Enumerable.Empty<string>();
+        }
+
         public override StorageContent CreateContent(CatalogContext context)
         {
             //  metadata from nuspec
@@ -51,10 +56,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
             INode timeStampPredicate = graph.CreateUriNode(Schema.Predicates.CatalogTimeStamp);
             INode commitIdPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCommitId);
+            INode permanentType = graph.CreateUriNode(Schema.DataTypes.Permalink);
 
             Triple resource = graph.GetTriplesWithPredicateObject(rdfTypePredicate, graph.CreateUriNode(GetItemType())).First();
             graph.Assert(resource.Subject, timeStampPredicate, graph.CreateLiteralNode(TimeStamp.ToString("O"), Schema.DataTypes.DateTime));
             graph.Assert(resource.Subject, commitIdPredicate, graph.CreateLiteralNode(CommitId.ToString()));
+            graph.Assert(resource.Subject, rdfTypePredicate, permanentType);
 
             //  published
 
@@ -87,6 +94,12 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                     graph.Assert(entryNode, lengthPredicate, graph.CreateLiteralNode(entry.Length.ToString(), Schema.DataTypes.Integer));
                     graph.Assert(entryNode, compressedLengthPredicate, graph.CreateLiteralNode(entry.CompressedLength.ToString(), Schema.DataTypes.Integer));
                 }
+            }
+
+            // supported frameworks
+            foreach (string framework in GetSupportedFrameworks())
+            {
+                graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.SupportedFramework), graph.CreateLiteralNode(framework));
             }
 
             //  packageSize and packageHash

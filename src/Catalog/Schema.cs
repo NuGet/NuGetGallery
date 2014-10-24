@@ -19,6 +19,7 @@ namespace NuGet.Services.Metadata.Catalog
         public static class DataTypes
         {
             public static readonly Uri Package = new Uri(Prefixes.NuGet + "Package");
+            public static readonly Uri PackageRegistration = new Uri(Prefixes.NuGet + "PackageRegistration");
             public static readonly Uri PackageDetails = new Uri(Prefixes.NuGet + "PackageDetails");
             public static readonly Uri PackageDependencyGroup = new Uri(Prefixes.NuGet + "PackageDependencyGroup");
             public static readonly Uri PackageDependency = new Uri(Prefixes.NuGet + "PackageDependency");
@@ -27,6 +28,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             public static readonly Uri CatalogRoot = new Uri(Prefixes.Catalog + "CatalogRoot");
             public static readonly Uri CatalogPage = new Uri(Prefixes.Catalog + "CatalogPage");
+            public static readonly Uri Permalink = new Uri(Prefixes.Catalog + "Permalink");
             public static readonly Uri AppendOnlyCatalog = new Uri(Prefixes.Catalog + "AppendOnlyCatalog");
 
             public static readonly Uri Integer = new Uri(Prefixes.Xsd + "integer");
@@ -93,6 +95,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri MinimumClientVersion = new Uri(Prefixes.NuGet + "minimumClientVersion");
             public static readonly Uri Tag = new Uri(Prefixes.NuGet + "tag");
             public static readonly Uri LicenseName = new Uri(Prefixes.NuGet + "licenseName");
+            public static readonly Uri SupportedFramework = new Uri(Prefixes.NuGet + "supportedFramework");
 
         }
     }

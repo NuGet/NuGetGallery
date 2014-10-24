@@ -6,13 +6,16 @@ var fetchItem = function (pageItem, index, callback) {
     callback();
     return;
   }
-  var req = http.get(pageItem[index].url, function (res) {
+  var req = http.get(pageItem[index]['@id'], function (res) {
     var data = '';
     res.on('data', function (chunk) {
       data += chunk;
     });
     res.on('end', function () {
-      console.log(data);
+      //console.log(data);
+
+      console.log(JSON.parse(data)['@id']);
+
       fetchItem(pageItem, index + 1, callback);
     });
   });
@@ -27,7 +30,7 @@ var fetchPage = function (indexItem, index, callback) {
     callback();
     return;
   }
-  var req = http.get(indexItem[index].url, function (res) {
+  var req = http.get(indexItem[index]['@id'], function (res) {
     var data = '';
     res.on('data', function (chunk) {
       data += chunk;
@@ -62,6 +65,6 @@ var fetchIndex = function (address, callback) {
   });
 }
 
-fetchIndex('http://localhost:8000/full/index.json', function () {
+fetchIndex('http://nugetjohtaylo.blob.core.windows.net/ver38/catalog/index.json', function () {
   console.log('...');
 });

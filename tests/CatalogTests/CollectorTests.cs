@@ -95,12 +95,11 @@ namespace CatalogTests
 
         public static async Task Test4Async()
         {
-            //StorageFactory storageFactory = new FileStorageFactory(new Uri("http://localhost:8000/reg/"), @"c:\data\site\reg");
+            StorageFactory storageFactory = new FileStorageFactory(new Uri("http://localhost:8000/reg/"), @"c:\data\site\reg");
 
             //StorageCredentials credentials = new StorageCredentials("", "");
-            StorageCredentials credentials = new StorageCredentials("", "");
-            CloudStorageAccount account = new CloudStorageAccount(credentials, true);
-            StorageFactory storageFactory = new AzureStorageFactory(account, "reg38", "registration");
+            //CloudStorageAccount account = new CloudStorageAccount(credentials, true);
+            //StorageFactory storageFactory = new AzureStorageFactory(account, "reg38", "registration");
 
             storageFactory.Verbose = true;
 
@@ -110,7 +109,7 @@ namespace CatalogTests
 
             //collector.PackageCountThreshold = 50;
 
-            FileSystemEmulatorHandler handler = new VerboseHandler
+            FileSystemEmulatorHandler handler = new VerboseFileSystemEmulatorHandler
             {
                 BaseAddress = new Uri("http://localhost:8000"),
                 RootFolder = @"c:\data\site",
@@ -120,8 +119,8 @@ namespace CatalogTests
             //CollectorCursor cursor = new CollectorCursor(new DateTime(2014, 10, 01, 03, 27, 35, 360, DateTimeKind.Utc));
             CollectorCursor cursor = new CollectorCursor(DateTime.MinValue);
 
-            //await collector.Run(new Uri("http://localhost:8000/dotnetrdf/index.json"), cursor, handler);
-            await collector.Run(new Uri("https://nugetjohtaylo.blob.core.windows.net/ver38/catalog/index.json"), cursor);
+            //await collector.Run(new Uri("https://nugetjohtaylo.blob.core.windows.net/ver36/catalog/index.json"), cursor, handler);
+            await collector.Run(new Uri("https://localhost:8000/ordered/index.json"), cursor, handler);
 
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
@@ -131,6 +130,33 @@ namespace CatalogTests
             Console.WriteLine("CollectorTests.Test4");
 
             Test4Async().Wait();
+        }
+
+        public static async Task Test5Async()
+        {
+            VerboseHandler handler = new VerboseHandler();
+
+            FindFirstCollector collector = new FindFirstCollector("xact.ui.web.mvc", "0.0.4773");
+            //FindFirstCollector collector = new FindFirstCollector("abot", "1.2.1-alpha");
+            await collector.Run(new Uri("http://nugetjohtaylo.blob.core.windows.net/ver38/catalog/index.json"), DateTime.MinValue, handler);
+
+            if (collector.PackageDetails != null)
+            {
+                Console.WriteLine(collector.PackageDetails);
+            }
+            else
+            {
+                Console.WriteLine("Not Found");
+            }
+
+            Console.WriteLine("http requests: {0}", collector.RequestCount);
+        }
+
+        public static void Test5()
+        {
+            Console.WriteLine("CollectorTests.Test5");
+
+            Test5Async().Wait();
         }
     }
 }
