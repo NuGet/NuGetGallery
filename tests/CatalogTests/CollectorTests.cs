@@ -97,11 +97,11 @@ namespace CatalogTests
 
         public static async Task Test4Async()
         {
-            //StorageFactory storageFactory = new FileStorageFactory(new Uri("http://localhost:8000/reg/"), @"c:\data\site\reg");
+            StorageFactory storageFactory = new FileStorageFactory(new Uri("http://localhost:8000/reg/"), @"c:\data\site\reg");
 
-            StorageCredentials credentials = new StorageCredentials("", "");
-            CloudStorageAccount account = new CloudStorageAccount(credentials, true);
-            StorageFactory storageFactory = new AzureStorageFactory(account, "ver36", "registration");
+            //StorageCredentials credentials = new StorageCredentials("", "");
+            //CloudStorageAccount account = new CloudStorageAccount(credentials, true);
+            //StorageFactory storageFactory = new AzureStorageFactory(account, "ver36", "registration");
 
             RegistrationCatalogCollector collector = new RegistrationCatalogCollector(storageFactory, 200);
 
@@ -120,7 +120,8 @@ namespace CatalogTests
             CollectorCursor cursor = new CollectorCursor(DateTime.MinValue);
 
             //await collector.Run(new Uri("http://localhost:8000/dotnetrdf/index.json"), cursor, handler);
-            await collector.Run(new Uri("https://nugetjohtaylo.blob.core.windows.net/ver36/catalog/index.json"), cursor, handler);
+            //await collector.Run(new Uri("https://nugetjohtaylo.blob.core.windows.net/ver36/catalog/index.json"), cursor, handler);
+            await collector.Run(new Uri("https://localhost:8000/ordered/index.json"), cursor, handler);
 
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
