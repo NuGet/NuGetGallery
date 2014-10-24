@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -12,9 +13,63 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             BaseAddress = new Uri(s);
         }
 
-        public abstract Task Save(Uri resourceUri, StorageContent content);
-        public abstract Task<StorageContent> Load(Uri resourceUri);
-        public abstract Task Delete(Uri resourceUri);
+        protected abstract Task OnSave(Uri resourceUri, StorageContent content);
+        protected abstract Task<StorageContent> OnLoad(Uri resourceUri);
+        protected abstract Task OnDelete(Uri resourceUri);
+
+        public async Task Save(Uri resourceUri, StorageContent content)
+        {
+            SaveCount++;
+
+            TraceMethod("SAVE", resourceUri);
+
+            try
+            {
+                await OnSave(resourceUri, content);
+            }
+            catch (Exception e)
+            {
+                string message = String.Format("SAVE EXCEPTION: {0} {1}", resourceUri, e.Message);
+                Trace.WriteLine(message);
+                throw new Exception(message, e);
+            }
+        }
+
+        public async Task<StorageContent> Load(Uri resourceUri)
+        {
+            LoadCount++;
+
+            TraceMethod("LOAD", resourceUri);
+
+            try
+            {
+                return await OnLoad(resourceUri);
+            }
+            catch (Exception e)
+            {
+                string message = String.Format("LOAD EXCEPTION: {0} {1}", resourceUri, e.Message);
+                Trace.WriteLine(message);
+                throw new Exception(message, e);
+            }
+        }
+
+        public async Task Delete(Uri resourceUri)
+        {
+            DeleteCount++;
+
+            TraceMethod("DELETE", resourceUri);
+
+            try
+            {
+                await OnDelete(resourceUri);
+            }
+            catch (Exception e)
+            {
+                string message = String.Format("DELETE EXCEPTION: {0} {1}", resourceUri, e.Message);
+                Trace.WriteLine(message);
+                throw new Exception(message, e);
+            }
+        }
 
         public async Task<string> LoadString(Uri resourceUri)
         {
@@ -81,6 +136,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             string s = uri.ToString();
             string name = s.Substring(address.Length);
             return name;
+        }
+
+        protected void TraceMethod(string method, Uri resourceUri)
+        {
+            if (Verbose)
+            {
+                Trace.WriteLine(String.Format("{0} {1}", method, resourceUri));
+            }
         }
     }
 }

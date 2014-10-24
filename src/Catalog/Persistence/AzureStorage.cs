@@ -47,17 +47,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         }
 
         //  save
-       
-        public override async Task Save(Uri resourceUri, StorageContent content)
+
+        protected override async Task OnSave(Uri resourceUri, StorageContent content)
         {
-            SaveCount++;
-
             string name = GetName(resourceUri);
-
-            if (Verbose)
-            {
-                Trace.WriteLine(String.Format("save {0}", name));
-            }
 
             if (_directory.Container.CreateIfNotExists())
             {
@@ -81,10 +74,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         //  load
 
-        public override async Task<StorageContent> Load(Uri resourceUri)
+        protected override async Task<StorageContent> OnLoad(Uri resourceUri)
         {
-            LoadCount++;
-
             string name = GetName(resourceUri);
 
             CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
@@ -100,22 +91,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         //  delete
 
-        public override async Task Delete(Uri resourceUri)
+        protected override async Task OnDelete(Uri resourceUri)
         {
-            DeleteCount++;
+            string name = GetName(resourceUri);
 
-            try
-            {
-                string name = GetName(resourceUri);
+            CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
 
-                CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
-
-                await blob.DeleteAsync();
-            }
-            catch (Exception e)
-            {
-                throw new Exception(resourceUri.ToString(), e);
-            }
+            await blob.DeleteAsync();
         }
     }
 }

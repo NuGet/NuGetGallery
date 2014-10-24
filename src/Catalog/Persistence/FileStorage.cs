@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -30,16 +29,15 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             set;
         }
 
-        public override async Task Save(Uri resourceUri, StorageContent content)
+        //  save
+
+        protected override async Task OnSave(Uri resourceUri, StorageContent content)
         {
             SaveCount++;
 
-            string name = GetName(resourceUri);
+            TraceMethod("SAVE", resourceUri);
 
-            if (Verbose)
-            {
-                Trace.WriteLine(String.Format("save {0}", name));
-            }
+            string name = GetName(resourceUri);
 
             string path = Path.Trim('\\') + '\\';
 
@@ -72,16 +70,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
         }
 
-        public override async Task<StorageContent> Load(Uri resourceUri)
+        //  load
+
+        protected override async Task<StorageContent> OnLoad(Uri resourceUri)
         {
-            LoadCount++;
-
             string name = GetName(resourceUri);
-
-            if (Verbose)
-            {
-                Trace.WriteLine(String.Format("load {0}", name));
-            }
 
             string path = Path.Trim('\\') + '\\';
 
@@ -110,16 +103,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return null;
         }
 
-        public override async Task Delete(Uri resourceUri)
+        //  delete
+
+        protected override async Task OnDelete(Uri resourceUri)
         {
-            DeleteCount++;
-
             string name = GetName(resourceUri);
-
-            if (Verbose)
-            {
-                Trace.WriteLine(String.Format("delete {0}", name));
-            }
 
             string path = Path.Trim('\\') + '\\';
 

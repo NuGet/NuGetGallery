@@ -374,14 +374,13 @@ namespace CatalogTests
 
             string nupkgs = @"c:\data\nuget\gallery\";
 
-            //Storage storage = new FileStorage("http://localhost:8000/publish", @"c:\data\site\publish");
-            //Storage storage = new FileStorage("http://localhost:8000/dotnetrdf", @"c:\data\site\dotnetrdf");
-            //Storage storage = new FileStorage("http://localhost:8000/entityframework", @"c:\data\site\entityframework");
-            //Storage storage = new FileStorage("http://localhost:8000/ordered", @"c:\data\site\ordered");
+            Storage storage = new FileStorage("http://localhost:8000/ordered", @"c:\data\site\ordered");
 
-            StorageCredentials credentials = new StorageCredentials("", "");
-            CloudStorageAccount account = new CloudStorageAccount(credentials, true);
-            Storage storage = new AzureStorage(account, "ver38", "catalog");
+            //StorageCredentials credentials = new StorageCredentials("", "");
+            //CloudStorageAccount account = new CloudStorageAccount(credentials, true);
+            //Storage storage = new AzureStorage(account, "ver38", "catalog");
+
+            storage.Verbose = true;
 
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 600);
 
