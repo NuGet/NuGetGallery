@@ -5,9 +5,7 @@ using NuGet.Services.Metadata.Catalog.Collecting;
 using NuGet.Services.Metadata.Catalog.Collecting.Test;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace CatalogTests
@@ -19,7 +17,7 @@ namespace CatalogTests
             //  simply totals up the counts available in the pages
 
             CountCollector collector = new CountCollector();
-            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
+            await collector.Run(new Uri("http://nugetjohtaylo.blob.core.windows.net/ver38/catalog/index.json"), DateTime.MinValue);
             Console.WriteLine("total: {0}", collector.Total);
             Console.WriteLine("http requests: {0}", collector.RequestCount);
         }
@@ -99,11 +97,14 @@ namespace CatalogTests
         {
             //StorageFactory storageFactory = new FileStorageFactory(new Uri("http://localhost:8000/reg/"), @"c:\data\site\reg");
 
+            //StorageCredentials credentials = new StorageCredentials("", "");
             StorageCredentials credentials = new StorageCredentials("", "");
             CloudStorageAccount account = new CloudStorageAccount(credentials, true);
-            StorageFactory storageFactory = new AzureStorageFactory(account, "ver36", "registration");
+            StorageFactory storageFactory = new AzureStorageFactory(account, "reg38", "registration");
 
-            RegistrationCatalogCollector collector = new RegistrationCatalogCollector(storageFactory, 200);
+            storageFactory.Verbose = true;
+
+            RegistrationCatalogCollector collector = new RegistrationCatalogCollector(storageFactory, 20);
 
             collector.ContentBaseAddress = new Uri("http://az320820.vo.msecnd.net");
 
@@ -120,7 +121,7 @@ namespace CatalogTests
             CollectorCursor cursor = new CollectorCursor(DateTime.MinValue);
 
             //await collector.Run(new Uri("http://localhost:8000/dotnetrdf/index.json"), cursor, handler);
-            await collector.Run(new Uri("https://nugetjohtaylo.blob.core.windows.net/ver36/catalog/index.json"), cursor, handler);
+            await collector.Run(new Uri("https://nugetjohtaylo.blob.core.windows.net/ver38/catalog/index.json"), cursor);
 
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }

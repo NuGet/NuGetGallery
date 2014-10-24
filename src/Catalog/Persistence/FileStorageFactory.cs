@@ -1,5 +1,6 @@
 ﻿
 using System;
+
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class FileStorageFactory : StorageFactory
@@ -14,7 +15,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public override Storage Create(string name)
         {
-            return new FileStorage(BaseAddress + name, _path + name);
+            return new FileStorage(BaseAddress + name, _path + name) { Verbose = Verbose };
         }
     }
 }

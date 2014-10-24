@@ -32,7 +32,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             string path = (_path == null) ? name : _path + name;
 
-            return new AzureStorage(_account, _containerName, path);
+            return new AzureStorage(_account, _containerName, path) { Verbose = Verbose };
         }
     }
 }
