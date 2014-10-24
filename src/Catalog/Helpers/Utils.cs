@@ -14,6 +14,7 @@ using VDS.RDF.Parsing;
 using VDS.RDF.Writing;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using NuGet.Services.Metadata.Catalog.Helpers;
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -158,6 +159,29 @@ namespace NuGet.Services.Metadata.Catalog
                 JObject compacted = JsonLdProcessor.Compact(framed, frame["@context"], new JsonLdOptions());
 
                 return compacted.ToString();
+            }
+        }
+
+        public static string CreateArrangedJson(IGraph graph, JToken frame = null)
+        {
+            System.IO.StringWriter writer = new System.IO.StringWriter();
+            IRdfWriter rdfWriter = new JsonLdWriter();
+            rdfWriter.Save(graph, writer);
+            writer.Flush();
+
+            if (frame == null)
+            {
+                return writer.ToString();
+            }
+            else
+            {
+                JToken flattened = JToken.Parse(writer.ToString());
+                JObject framed = JsonLdProcessor.Frame(flattened, frame, new JsonLdOptions());
+                JObject compacted = JsonLdProcessor.Compact(framed, frame["@context"], new JsonLdOptions());
+
+                var arranged = JsonSort.OrderJson(compacted);
+
+                return arranged.ToString();
             }
         }
 

@@ -13,7 +13,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
         IEnumerable<PackageEntry> _entries;
         long? _packageSize;
         string _packageHash;
-        IEnumerable<string> _supportedFrameworks;
+        private readonly IEnumerable<GraphAddon> _catalogSections;
 
         public NuspecPackageCatalogItem(string path)
         {
@@ -24,14 +24,14 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             _packageHash = null;
         }
 
-        public NuspecPackageCatalogItem(XDocument nuspec, DateTime? published = null, IEnumerable<PackageEntry> entries = null, long? packageSize = null, string packageHash = null, IEnumerable<string> supportedFrameworks = null)
+        public NuspecPackageCatalogItem(XDocument nuspec, DateTime? published = null, IEnumerable<PackageEntry> entries = null, long? packageSize = null, string packageHash = null, IEnumerable<GraphAddon> catalogSections = null)
         {
             _nuspec = nuspec;
             _published = published;
             _entries = entries;
             _packageSize = packageSize;
             _packageHash = packageHash;
-            _supportedFrameworks = supportedFrameworks;
+            _catalogSections = catalogSections;
         }
 
         public string Path
@@ -79,9 +79,9 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
             return _packageHash;
         }
 
-        protected override IEnumerable<string> GetSupportedFrameworks()
+        protected override IEnumerable<GraphAddon> GetAddons()
         {
-            return _supportedFrameworks ?? Enumerable.Empty<string>();
+            return _catalogSections ?? base.GetAddons();
         }
     }
 }

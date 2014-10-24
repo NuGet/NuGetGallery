@@ -5,7 +5,9 @@ using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -186,8 +188,11 @@ namespace CatalogTests
             Console.WriteLine("commit number {0}", commitCount++);
         }
 
-        private static IEnumerable<string> GetSupportedFrameworks(string filename)
+        private static PackedData GetPackedData(string filename)
         {
+            IEnumerable<string> supportedFrameworks = new string[] { "any" };
+            IEnumerable<ArtifactGroup> groups = Enumerable.Empty<ArtifactGroup>();
+
             try
             {
                 using (var stream = File.OpenRead(filename))
@@ -198,20 +203,20 @@ namespace CatalogTests
                     {
                         ArtifactReader artifactReader = new ArtifactReader(reader);
 
-                        return artifactReader.GetSupportedFrameworks();
+                        supportedFrameworks = artifactReader.GetSupportedFrameworks();
+                        groups = artifactReader.GetArtifactGroups();
                     }
                 }
             }
             catch (Exception e)
             {
                 Console.Error.WriteLine("Failed to extract supported frameworks from {0} execption {1}", filename, e.Message);
-
-                // default to any for errors
-                return new string[] { "any" };
             }
+
+            return new PackedData(supportedFrameworks, groups);
         }
 
-        static Tuple<XDocument, IEnumerable<PackageEntry>, long, string> GetNupkgMetadata(string filename)
+        static Tuple<XDocument, IEnumerable<PackageEntry>, long, string> GetNupkgMetadata(string filename, string hash=null)
         {
             try
             {
@@ -219,7 +224,13 @@ namespace CatalogTests
                 {
                     long packageFileSize = stream.Length;
 
-                    string packageHash = GenerateHash(stream);
+                    string packageHash = hash;
+
+                    if (String.IsNullOrEmpty(packageHash))
+                    {
+                        Console.WriteLine("Generating hash for: " + filename);
+                        packageHash = GenerateHash(stream);
+                    }
 
                     using (ZipArchive package = new ZipArchive(stream))
                     {
@@ -323,13 +334,10 @@ namespace CatalogTests
 
         public static string GenerateHash(Stream stream)
         {
-            byte[] buffer = new byte[stream.Length];
-            MemoryStream memoryStream = new MemoryStream(buffer);
-            stream.CopyTo(memoryStream);
-
+            stream.Seek(0, SeekOrigin.Begin);
             using (HashAlgorithm hashAlgorithm = HashAlgorithm.Create("SHA512"))
             {
-                return Convert.ToBase64String(hashAlgorithm.ComputeHash(buffer));
+                return Convert.ToBase64String(hashAlgorithm.ComputeHash(stream));
             }
         }
 
@@ -369,66 +377,106 @@ namespace CatalogTests
 
         public static async Task Test3Async()
         {
+            System.Net.ServicePointManager.DefaultConnectionLimit = 1024;
             IDictionary<string, string> packageHashLookup = LoadPackageHashLookup();
             HashSet<string> packageExceptionLookup = LoadPackageExceptionLookup();
 
-            string nupkgs = @"c:\data\nuget\gallery\";
+            string nupkgs = @"c:\data\nuget\gallery";
 
             Storage storage = new FileStorage("http://localhost:8000/ordered", @"c:\data\site\ordered");
 
             //StorageCredentials credentials = new StorageCredentials("", "");
             //CloudStorageAccount account = new CloudStorageAccount(credentials, true);
             //Storage storage = new AzureStorage(account, "ver38", "catalog");
-
             storage.Verbose = true;
 
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 600);
 
-            const int BatchSize = 200;
-            int i = 0;
-
+            const int BatchSize = 64;
+ 
             int commitCount = 0;
 
             IDictionary<string, DateTime> packageCreated = LoadPackageCreatedLookup();
 
             DateTime lastCreated = (await PackageCatalog.ReadCommitMetadata(writer)).Item1 ?? DateTime.MinValue;
 
-            foreach (KeyValuePair<string, DateTime> entry in packageCreated)
+            ParallelOptions options = new ParallelOptions();
+            options.MaxDegreeOfParallelism = 8;
+
+            // filter by lastCreated here
+            Queue<KeyValuePair<string, DateTime>> packageCreatedQueue = new Queue<KeyValuePair<string, DateTime>>(packageCreated.Where(p => p.Value > lastCreated && !packageExceptionLookup.Contains(p.Key)).OrderBy(p => p.Key));
+
+            int completed = 0;
+            Stopwatch runtime = new Stopwatch();
+            runtime.Start();
+
+            Task commitTask = null;
+            var context = writer.Context;
+            Uri rootUri = writer.RootUri;
+
+            while (packageCreatedQueue.Count > 0)
             {
-                if (entry.Value <= lastCreated)
+                List<KeyValuePair<string, DateTime>> batch = new List<KeyValuePair<string, DateTime>>();
+
+                ConcurrentBag<CatalogItem> batchItems = new ConcurrentBag<CatalogItem>();
+
+                while (batch.Count < BatchSize && packageCreatedQueue.Count > 0)
                 {
-                    continue;
+                    completed++;
+                    var packagePair = packageCreatedQueue.Dequeue();
+                    lastCreated = packagePair.Value;
+                    batch.Add(packagePair);
                 }
 
-                if (packageExceptionLookup.Contains(entry.Key))
+                var commitTime = DateTime.UtcNow;
+
+                Parallel.ForEach(batch, options, entry =>
                 {
-                    continue;
-                }
+                    FileInfo fileInfo = new FileInfo(nupkgs + entry.Key);
 
-                FileInfo fileInfo = new FileInfo(nupkgs + entry.Key);
-
-                if (fileInfo.Exists)
-                {
-                    var supportedFrameworks = GetSupportedFrameworks(fileInfo.FullName);
-
-                    string packageHash = packageHashLookup[fileInfo.Name];
-                    Tuple<XDocument, IEnumerable<PackageEntry>, long, string> metadata = GetNupkgMetadata(fileInfo.FullName);
-                    writer.Add(new NuspecPackageCatalogItem(metadata.Item1, entry.Value, metadata.Item2, metadata.Item3, metadata.Item4, supportedFrameworks));
-
-                    lastCreated = entry.Value;
-
-                    if (++i % BatchSize == 0)
+                    if (fileInfo.Exists)
                     {
-                        await writer.Commit(DateTime.UtcNow, PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, null));
+                        string packageHash = packageHashLookup[fileInfo.Name];
+                        Tuple<XDocument, IEnumerable<PackageEntry>, long, string> metadata = GetNupkgMetadata(fileInfo.FullName, packageHash);
 
-                        Console.WriteLine("commit number {0}", commitCount++);
+                        // additional sections
+                        var addons = new GraphAddon[] { GetPackedData(fileInfo.FullName) };
+
+                        var item = new NuspecPackageCatalogItem(metadata.Item1, entry.Value, metadata.Item2, metadata.Item3, metadata.Item4, addons);
+                        batchItems.Add(item);
                     }
+                });
+
+                if (commitTask != null)
+                {
+                    commitTask.Wait();
                 }
+
+                foreach (var item in batchItems)
+                {
+                    writer.Add(item);
+                }
+
+                commitTask = Task.Run(async () => await writer.Commit(commitTime, PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, null)));
+
+                // stats
+                double perPackage = runtime.Elapsed.TotalSeconds / (double)completed;
+                DateTime finish = DateTime.Now.AddSeconds(perPackage * packageCreatedQueue.Count);
+
+                Console.WriteLine("commit number {0} Completed: {1} Remaining: {2} Estimated Finish: {3}",
+                    commitCount++,
+                    completed,
+                    packageCreatedQueue.Count,
+                    finish.ToString("O"));
             }
 
-            await writer.Commit(DateTime.UtcNow, PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, null));
+            // wait for the final commit
+            if (commitTask != null)
+            {
+                commitTask.Wait();
+            }
 
-            Console.WriteLine("commit number {0}", commitCount++);
+            Console.WriteLine("Finished in: " + runtime.Elapsed);
         }
 
         public static void Test3()

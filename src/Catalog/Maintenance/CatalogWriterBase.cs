@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -90,14 +91,19 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
 
         async Task<IDictionary<string, CatalogItemSummary>> SaveItems(Guid commitId, DateTime commitTimeStamp)
         {
-            IDictionary<string, CatalogItemSummary> pageItems = new Dictionary<string, CatalogItemSummary>();
-            List<Task> tasks = null;
+            ConcurrentDictionary<string, CatalogItemSummary> pageItems = new ConcurrentDictionary<string, CatalogItemSummary>();
 
-            Uri resourceUri = null;
             int batchIndex = 0;
 
-            foreach (CatalogItem item in _batch)
+            ParallelOptions options = new ParallelOptions();
+            options.MaxDegreeOfParallelism = 8;
+
+            var items = _batch.ToArray();
+
+            Parallel.ForEach(items, options, item =>
             {
+                Uri resourceUri = null;
+
                 try
                 {
                     item.TimeStamp = commitTimeStamp;
@@ -105,21 +111,24 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                     item.BaseAddress = Storage.BaseAddress;
 
                     StorageContent content = item.CreateContent(Context);
-                    IGraph pageContent = item.CreatePageContent(Context);
 
                     resourceUri = item.GetItemAddress();
 
+                    Task saveTask = null;
+
                     if (content != null)
                     {
-                        if (tasks == null)
-                        {
-                            tasks = new List<Task>();
-                        }
-
-                        tasks.Add(Storage.Save(resourceUri, content));
+                        saveTask = Storage.Save(resourceUri, content);
                     }
 
-                    pageItems.Add(resourceUri.AbsoluteUri, new CatalogItemSummary(item.GetItemType(), commitId, commitTimeStamp, null, pageContent));
+                    IGraph pageContent = item.CreatePageContent(Context);
+
+                    if (!pageItems.TryAdd(resourceUri.AbsoluteUri, new CatalogItemSummary(item.GetItemType(), commitId, commitTimeStamp, null, pageContent)))
+                    {
+                        throw new Exception("Duplicate page: " + resourceUri.AbsoluteUri);
+                    }
+
+                    saveTask.Wait();
 
                     batchIndex++;
                 }
@@ -127,12 +136,7 @@ namespace NuGet.Services.Metadata.Catalog.Maintenance
                 {
                     throw new Exception(string.Format("item uri: {0} batch index: {1}", resourceUri, batchIndex), e);
                 }
-            }
-
-            if (tasks != null)
-            {
-                await Task.WhenAll(tasks.ToArray());
-            }
+            });
 
             return pageItems;
         }
