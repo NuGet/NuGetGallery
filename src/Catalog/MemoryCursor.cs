@@ -15,12 +15,12 @@ namespace NuGet.Services.Metadata.Catalog
 
         public override Task Load()
         {
-            return Task.Run(() => { });
+            return Task.FromResult(0);
         }
 
         public override Task Save()
         {
-            return Task.Run(() => { });
+            return Task.FromResult(0);
         }
     }
 }
