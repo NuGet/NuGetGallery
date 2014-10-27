@@ -119,11 +119,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestCollector.cs" />
     <Compile Include="BuilderTests.cs" />
     <Compile Include="CatalogTests.cs" />
     <Compile Include="CheckResults.cs" />
     <Compile Include="CollectorTests.cs" />
-    <Compile Include="End2EndTests.cs" />
+    <Compile Include="CursorTests.cs" />
     <Compile Include="InstallDataBrowser.cs" />
     <Compile Include="IntegrityTests.cs" />
     <Compile Include="JsonLdCacheTests.cs" />
@@ -131,9 +132,7 @@
     <Compile Include="PartitioningTests.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RegistrationTests.cs" />
     <Compile Include="TestCatalogItem.cs" />
-    <Compile Include="TestItemCollector.cs" />
     <Compile Include="WarehouseCatalogTests.cs" />
   </ItemGroup>
   <ItemGroup>

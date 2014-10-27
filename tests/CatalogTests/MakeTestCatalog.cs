@@ -1,8 +1,8 @@
 ﻿using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
-using NuGet.Services.Metadata.Catalog.Collecting.Test;
-using NuGet.Services.Metadata.Catalog.Maintenance;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Metadata.Catalog.Test;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -107,11 +107,11 @@ namespace CatalogTests
 
             Console.WriteLine(root);
 
-            DistinctPackageIdCollector distinctPackageIdCollector = new DistinctPackageIdCollector(200);
-            await distinctPackageIdCollector.Run(root, DateTime.MinValue);
+            DistinctPackageIdCollector distinctPackageIdCollector = new DistinctPackageIdCollector(root);
+            await distinctPackageIdCollector.Run();
 
-            DistinctDependencyPackageIdCollector distinctDependencyPackageIdCollector = new DistinctDependencyPackageIdCollector(200);
-            await distinctDependencyPackageIdCollector.Run(root, DateTime.MinValue);
+            DistinctDependencyPackageIdCollector distinctDependencyPackageIdCollector = new DistinctDependencyPackageIdCollector(root);
+            await distinctDependencyPackageIdCollector.Run();
 
             HashSet<string> missing = new HashSet<string>();
 
@@ -159,8 +159,8 @@ namespace CatalogTests
             BuildCatalogAsync(path, storage, ids).Wait();
             AddDependenciesAsync(path, storage).Wait();
 
-            DistinctPackageIdCollector distinctPackageIdCollector = new DistinctPackageIdCollector(200);
-            distinctPackageIdCollector.Run(storage.ResolveUri("index.json"), DateTime.MinValue).Wait();
+            DistinctPackageIdCollector distinctPackageIdCollector = new DistinctPackageIdCollector(storage.ResolveUri("index.json"));
+            distinctPackageIdCollector.Run().Wait();
 
             Console.WriteLine(distinctPackageIdCollector.Result.Count);
         }

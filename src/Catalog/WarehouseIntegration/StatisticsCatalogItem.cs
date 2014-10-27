@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog.Maintenance;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using VDS.RDF;

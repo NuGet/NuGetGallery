@@ -39,12 +39,10 @@ namespace CatalogTests
             DateTime minDownloadTimeStamp = DateTime.Parse("2014-07-20");
             //DateTime minDownloadTimeStamp = DateTime.MinValue;
 
-            StatsCountCollector collector = new StatsGreaterThanCountCollector(minDownloadTimeStamp);
-            //StatsCountCollector collector = new StatsLessThanCountCollector(minDownloadTimeStamp);
+            StatsCountCollector collector = new StatsGreaterThanCountCollector(new Uri("http://localhost:8000/stats/index.json"), minDownloadTimeStamp, handler);
+            //StatsCountCollector collector = new StatsLessThanCountCollector(new Uri("http://localhost:8000/stats/index.json"), minDownloadTimeStamp, handler);
 
-            Uri index = new Uri("http://localhost:8000/stats/index.json");
-
-            collector.Run(index, DateTime.MinValue, handler).Wait();
+            collector.Run().Wait();
 
             Console.WriteLine("count = {0}", collector.Count);
         }

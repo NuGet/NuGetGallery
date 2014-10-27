@@ -1,8 +1,7 @@
 ﻿using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Collecting;
-using NuGet.Services.Metadata.Catalog.Collecting.Test;
+using NuGet.Services.Metadata.Catalog.Test;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Net.Http;
@@ -16,8 +15,8 @@ namespace CatalogTests
         {
             //  simply totals up the counts available in the pages
 
-            CountCollector collector = new CountCollector();
-            await collector.Run(new Uri("http://nugetjohtaylo.blob.core.windows.net/ver38/catalog/index.json"), DateTime.MinValue);
+            CountCollector collector = new CountCollector(new Uri("http://nugetjohtaylo.blob.core.windows.net/ver38/catalog/index.json"));
+            await collector.Run();
             Console.WriteLine("total: {0}", collector.Total);
             Console.WriteLine("http requests: {0}", collector.RequestCount);
         }
@@ -33,8 +32,8 @@ namespace CatalogTests
         {
             //  attempts to make the http call to the actual item
 
-            Collector collector = new CheckLinksCollector();
-            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue);
+            CollectorBase collector = new CheckLinksCollector(new Uri("http://localhost:8000/full/index.json"));
+            await collector.Run();
 
             Console.WriteLine("all done");
         }
@@ -48,8 +47,8 @@ namespace CatalogTests
 
         public static async Task Test2Async()
         {
-            DistinctPackageIdCollector collector = new DistinctPackageIdCollector(200);
-            await collector.Run(new Uri("http://nugetprod0.blob.core.windows.net/ng-catalogs/0/index.json"), DateTime.MinValue);
+            DistinctPackageIdCollector collector = new DistinctPackageIdCollector(new Uri("http://nugetprod0.blob.core.windows.net/ng-catalogs/0/index.json"));
+            await collector.Run();
 
             foreach (string s in collector.Result)
             {
@@ -79,9 +78,9 @@ namespace CatalogTests
 
             Storage storage = new FileStorage("http://localhost:8000/nuspec/", @"c:\data\site\nuspec");
 
-            BatchCollector collector = new NuspecCollector(storage, 1);
+            BatchCollector collector = new NuspecCollector(new Uri("http://localhost:8000/full/index.json"), storage, handler, 1);
 
-            await collector.Run(new Uri("http://localhost:8000/full/index.json"), DateTime.MinValue, handler);
+            await collector.Run();
             
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
@@ -103,11 +102,8 @@ namespace CatalogTests
 
             storageFactory.Verbose = true;
 
-            RegistrationCatalogCollector collector = new RegistrationCatalogCollector(storageFactory, 20);
-
-            collector.ContentBaseAddress = new Uri("http://az320820.vo.msecnd.net");
-
-            //collector.PackageCountThreshold = 50;
+            Uri index = new Uri("https://localhost:8000/ordered/index.json");
+            //Uri index = new Uri("https://nugetjohtaylo.blob.core.windows.net/ver36/catalog/index.json");
 
             FileSystemEmulatorHandler handler = new VerboseFileSystemEmulatorHandler
             {
@@ -116,11 +112,14 @@ namespace CatalogTests
                 InnerHandler = new HttpClientHandler()
             };
 
-            //CollectorCursor cursor = new CollectorCursor(new DateTime(2014, 10, 01, 03, 27, 35, 360, DateTimeKind.Utc));
-            CollectorCursor cursor = new CollectorCursor(DateTime.MinValue);
+            RegistrationCatalogCollector collector = new RegistrationCatalogCollector(index, storageFactory, handler, 20);
 
-            //await collector.Run(new Uri("https://nugetjohtaylo.blob.core.windows.net/ver36/catalog/index.json"), cursor, handler);
-            await collector.Run(new Uri("https://localhost:8000/ordered/index.json"), cursor, handler);
+            collector.ContentBaseAddress = new Uri("http://az320820.vo.msecnd.net");
+
+            //collector.PackageCountThreshold = 50;
+            //CollectorCursor cursor = new CollectorCursor(new DateTime(2014, 10, 01, 03, 27, 35, 360, DateTimeKind.Utc));
+
+            await collector.Run();
 
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
         }
@@ -136,9 +135,12 @@ namespace CatalogTests
         {
             VerboseHandler handler = new VerboseHandler();
 
-            FindFirstCollector collector = new FindFirstCollector("xact.ui.web.mvc", "0.0.4773");
+            Uri index = new Uri("http://nugetjohtaylo.blob.core.windows.net/ver38/catalog/index.json");
+
+            FindFirstCollector collector = new FindFirstCollector(index, "xact.ui.web.mvc", "0.0.4773", handler);
             //FindFirstCollector collector = new FindFirstCollector("abot", "1.2.1-alpha");
-            await collector.Run(new Uri("http://nugetjohtaylo.blob.core.windows.net/ver38/catalog/index.json"), DateTime.MinValue, handler);
+
+            await collector.Run();
 
             if (collector.PackageDetails != null)
             {
@@ -166,8 +168,6 @@ namespace CatalogTests
             //FindFirstCollector collector = new FindFirstCollector("xact.ui.web.mvc", "0.0.4773");
             //FindFirstCollector collector = new FindFirstCollector("abot", "1.2.1-alpha");
 
-            PrintCollector collector = new PrintCollector(200);
-
             FileSystemEmulatorHandler handler = new FileSystemEmulatorHandler
             {
                 BaseAddress = new Uri("http://localhost:8000"),
@@ -175,7 +175,9 @@ namespace CatalogTests
                 InnerHandler = new HttpClientHandler()
             };
 
-            await collector.Run(new Uri("http://localhost:8000/ordered/index.json"), DateTime.MinValue, handler);
+            PrintCollector collector = new PrintCollector("Test6", new Uri("http://localhost:8000/ordered/index.json"), handler);
+
+            await collector.Run();
 
             Console.WriteLine("http requests: {0}", collector.RequestCount);
         }

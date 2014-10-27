@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -53,11 +50,18 @@ namespace NuGet.Services.Metadata.Catalog
             if (File.Exists(path))
             {
                 // The framework will dispose of the original stream after "transferring" it
-                var content = new StreamContent(
-                    new FileStream(path, FileMode.Open, FileAccess.Read));
+
+                string content;
+                using (StreamReader reader = new StreamReader(path))
+                {
+                    content = reader.ReadToEnd();
+                }
+
+                HttpContent httpContent = new StringContent(content);
+
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
-                    Content = content
+                    Content = httpContent
                 });
             }
             else

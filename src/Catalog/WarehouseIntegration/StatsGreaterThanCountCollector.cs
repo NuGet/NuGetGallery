@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 
 namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
 {
@@ -6,7 +7,8 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
     {
         DateTime _minDownloadTimeStamp;
 
-        public StatsGreaterThanCountCollector(DateTime minDownloadTimeStamp)
+        public StatsGreaterThanCountCollector(Uri index, DateTime minDownloadTimeStamp, HttpMessageHandler handler = null, int batchSize = 200)
+            : base(index, handler, batchSize)
         {
             _minDownloadTimeStamp = minDownloadTimeStamp;
         }

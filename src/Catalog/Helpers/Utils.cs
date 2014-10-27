@@ -1,23 +1,22 @@
-﻿using NuGet.Services.Metadata.Catalog.JsonLDIntegration;
-using JsonLD.Core;
+﻿using JsonLD.Core;
 using Newtonsoft.Json.Linq;
+using NuGet.Packaging;
+using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGet.Services.Metadata.Catalog.JsonLDIntegration;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Xsl;
 using VDS.RDF;
 using VDS.RDF.Parsing;
 using VDS.RDF.Writing;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using NuGet.Services.Metadata.Catalog.Helpers;
-using NuGet.Services.Metadata.Catalog.Maintenance;
-using NuGet.Packaging;
-using System.Security.Cryptography;
 
 namespace NuGet.Services.Metadata.Catalog
 {

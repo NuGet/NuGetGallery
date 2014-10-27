@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog.Collecting;
-using NuGet.Services.Metadata.Catalog.Collecting.Test;
+using NuGet.Services.Metadata.Catalog.Test;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -131,9 +130,9 @@ namespace CatalogTests
 
             IDictionary<string, HashSet<string>> packagesFromRegistration = GetRegistrationPackagesAsync(path).Result;
 
-            PackageCollector collector = new PackageCollector(20);
+            PackageCollector collector = new PackageCollector(new Uri(catalog), null, 20);
 
-            collector.Run(new Uri(catalog), DateTime.MinValue).Wait();
+            collector.Run().Wait();
 
             IDictionary<string, HashSet<string>> packagesFromCatalog = collector.Result;
 
