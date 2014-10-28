@@ -6,6 +6,7 @@ using NuGet.Services.Metadata.Catalog.JsonLDIntegration;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -398,7 +399,7 @@ namespace NuGet.Services.Metadata.Catalog
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine("Failed to extract supported frameworks from {0} execption {1}", filename, e.Message);
+                Trace.TraceWarning("Failed to extract supported frameworks from {0} {1} {2}", filename, e.GetType().Name, e.Message);
             }
 
             return new PackedData(supportedFrameworks, groups);
@@ -450,7 +451,7 @@ namespace NuGet.Services.Metadata.Catalog
 
                 if (nuspec == null)
                 {
-                    throw new Exception("Unable to find nuspec");
+                    throw new InvalidDataException("Unable to find nuspec");
                 }
 
                 IEnumerable<PackageEntry> entries = GetEntries(package);
@@ -470,9 +471,35 @@ namespace NuGet.Services.Metadata.Catalog
 
                 return new NuspecPackageCatalogItem(metadata.Item1, published, metadata.Item2, metadata.Item3, metadata.Item4, addons);
             }
+            catch (InvalidDataException e)
+            {
+                Trace.TraceError("Exception: {0} {1} {2}", originName, e.GetType().Name, e.Message);
+                return null;
+            }
             catch (Exception e)
             {
-                throw new Exception(string.Format("exception processsing {0}", originName), e);
+                throw new Exception(string.Format("Exception processsing {0}", originName), e);
+            }
+        }
+
+        public static void TraceException(Exception e)
+        {
+            if (e is AggregateException)
+            {
+                foreach (Exception ex in ((AggregateException)e).InnerExceptions)
+                {
+                    TraceException(ex);
+                }
+            }
+            else
+            {
+                Trace.TraceError("{0} {1}", e.GetType().Name, e.Message);
+                Trace.TraceError("{0}", e.StackTrace);
+
+                if (e.InnerException != null)
+                {
+                    TraceException(e.InnerException);
+                }
             }
         }
     }

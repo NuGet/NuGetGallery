@@ -1,33 +1,16 @@
-﻿using System;
+﻿using NuGet.Services.Metadata.Catalog;
+using System;
 using System.Diagnostics;
 
 namespace CatalogTests
 {
     class Program
     {
-        static void PrintException(Exception e)
-        {
-            if (e is AggregateException)
-            {
-                foreach (Exception ex in ((AggregateException)e).InnerExceptions)
-                {
-                    PrintException(ex);
-                }
-            }
-            else
-            {
-                Console.WriteLine("{0} {1}", e.GetType().Name, e.Message);
-                Console.WriteLine("{0}", e.StackTrace);
-                if (e.InnerException != null)
-                {
-                    PrintException(e.InnerException);
-                }
-            }
-        }
-
         static void Main(string[] args)
         {
             Trace.Listeners.Add(new ConsoleTraceListener());
+            Trace.AutoFlush = true;
+
             try
             {
                 DateTime before = DateTime.Now;
@@ -75,7 +58,7 @@ namespace CatalogTests
             }
             catch (Exception e)
             {
-                PrintException(e);
+                Utils.TraceException(e);
             }
         }
     }

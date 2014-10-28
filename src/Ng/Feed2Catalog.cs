@@ -1,14 +1,19 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Persistence;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using System.IO;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using VDS.RDF;
 
 namespace Ng
 {
+    //BUG:  we really want to order-by the LastEdited (in the SortedDictionary) but include the Created in the data (as it is the published date)
+
     public static class Feed2Catalog
     {
         static Uri MakeCreatedUri(string source, DateTime since, int top = 100)
@@ -31,15 +36,25 @@ namespace Ng
             return new Uri(address);
         }
 
-        static async Task<SortedList<DateTime, IList<Uri>>> GetCreatedPackages(HttpClient client, string source, DateTime since, int top)
+        public static Task<SortedList<DateTime, IList<Uri>>> GetCreatedPackages(HttpClient client, string source, DateTime since, int top = 100)
+        {
+            return GetPackages(client, MakeCreatedUri(source, since, top));
+        }
+
+        public static Task<SortedList<DateTime, IList<Uri>>> GetEditedPackages(HttpClient client, string source, DateTime since, int top = 100)
+        {
+            return GetPackages(client, MakeLastEditedUri(source, since, top));
+        }
+
+        public static async Task<SortedList<DateTime, IList<Uri>>> GetPackages(HttpClient client, Uri uri)
         {
             SortedList<DateTime, IList<Uri>> result = new SortedList<DateTime, IList<Uri>>();
 
-            Uri uri = MakeCreatedUri(source, since, top);
-
-            Trace.TraceInformation("FETCH {0}", uri);
-
-            XElement feed = XElement.Load(await client.GetStreamAsync(uri));
+            XElement feed;
+            using (Stream stream = await client.GetStreamAsync(uri))
+            {
+                feed = XElement.Load(stream);
+            }
 
             XNamespace atom = "http://www.w3.org/2005/Atom";
             XNamespace dataservices = "http://schemas.microsoft.com/ado/2007/08/dataservices";
@@ -50,56 +65,156 @@ namespace Ng
                 Uri content = new Uri(entry.Element(atom + "content").Attribute("src").Value);
                 DateTime date = DateTime.Parse(entry.Element(metadata + "properties").Element(dataservices + "Created").Value);
 
-                IList<Uri> contentUri;
-                if (!result.TryGetValue(date, out contentUri))
+                IList<Uri> contentUris;
+                if (!result.TryGetValue(date, out contentUris))
                 {
-                    contentUri = new List<Uri>();
-                    result.Add(date, contentUri);
+                    contentUris = new List<Uri>();
+                    result.Add(date, contentUris);
                 }
 
-                contentUri.Add(content);
+                contentUris.Add(content);
             }
 
             return result;
         }
 
-        static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<Uri>> packages)
+        static async Task DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<Uri>> packages, Storage storage)
         {
-            DateTime since = DateTime.Parse("2011-05-06T23:57:42.1030000");
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 550);
 
-            return since;
+            DateTime lastCreated = DateTime.MinValue;
+
+            foreach (KeyValuePair<DateTime, IList<Uri>> entry in packages)
+            {
+                foreach (Uri uri in entry.Value)
+                {
+                    HttpResponseMessage response = await client.GetAsync(uri);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        using (Stream stream = await response.Content.ReadAsStreamAsync())
+                        {
+                            CatalogItem item = Utils.CreateCatalogItem(stream, entry.Key, null, uri.ToString());
+
+                            if (item != null)
+                            {
+                                writer.Add(item);
+
+                                Trace.TraceInformation("Add: {0}", uri);
+                            }
+                            else
+                            {
+                                Trace.TraceWarning("Unable to extract metadata from: {0}", uri);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Trace.TraceWarning("Unable to download: {0}", uri);
+                    }
+                }
+
+                lastCreated = entry.Key;
+            }
+
+            IGraph commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, null);
+
+            await writer.Commit(commitMetadata);
+
+            Trace.TraceInformation("COMMIT");
         }
 
-        static async Task Loop()
+        static async Task<DateTime> GetCatalogProperty(Storage storage, string propertyName)
         {
-            DateTime since = DateTime.Parse("2011-05-06T23:57:42.1030000");
+            string json = await storage.LoadString(storage.ResolveUri("index.json"));
 
-            int top = 100;
+            if (json != null)
+            {
+                JObject obj = JObject.Parse(json);
+
+                JToken token;
+                if (obj.TryGetValue(propertyName, out token))
+                {
+                    return token.ToObject<DateTime>();
+                }
+            }
+
+            return DateTime.MinValue.ToUniversalTime();
+        }
+
+        static async Task Loop(string source, Storage storage)
+        {
+            const string LastCreated = "nuget:lastCreated";
+            const string LastEdited = "nuget:lastCreated";
+
+            int top = 20;
             int timeout = 300;
 
             using (HttpClient client = new HttpClient())
             {
                 client.Timeout = TimeSpan.FromSeconds(timeout);
 
-                SortedList<DateTime, IList<Uri>> packages;
+                //  fetch and add all newly CREATED packages - in order
+
+                SortedList<DateTime, IList<Uri>> createdPackages;
                 do
                 {
-                    packages = await GetCreatedPackages(client, "https://www.nuget.org/api/v2", since, top);
+                    DateTime lastCreated = await GetCatalogProperty(storage, LastCreated);
+                    Trace.TraceInformation("CATALOG LastCreated: {0}", lastCreated.ToString("O"));
 
-                    since = await DownloadMetadata2Catalog(client, packages);
+                    createdPackages = await GetCreatedPackages(client, source, lastCreated, top);
+                    Trace.TraceInformation("FEED CreatedPackages: {0}", createdPackages.Count);
+
+                    await DownloadMetadata2Catalog(client, createdPackages, storage);
                 }
-                while (packages.Count > 0);
+                while (createdPackages.Count > 0);
+
+                //  THEN fetch and add all EDITED packages - in order
+
+                SortedList<DateTime, IList<Uri>> editedPackages;
+                do
+                {
+                    DateTime lastEdited = await GetCatalogProperty(storage, LastEdited);
+                    Trace.TraceInformation("CATALOG LastEdited: {0}", lastEdited.ToString("O"));
+
+                    editedPackages = await GetEditedPackages(client, source, lastEdited, top);
+                    Trace.TraceInformation("FEED EditedPackages: {0}", editedPackages.Count);
+
+                    await DownloadMetadata2Catalog(client, editedPackages, storage);
+                }
+                while (editedPackages.Count > 0);
             }
         }
 
         public static void Run(string[] args)
         {
-            IDictionary<string, string> arguments = Utils.GetArguments(args, 1);
+            IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
 
-            foreach (var arg in arguments)
+            if (arguments == null)
             {
-                Console.WriteLine("{0} = {1}", arg.Key, arg.Value);
+                return;
             }
+
+            string source = CommandHelpers.GetSource(arguments);
+
+            if (source == null)
+            {
+                return;
+            }
+
+            //string source = "https://www.nuget.org/api/v2";
+            //Storage storage = new FileStorage("http://localhost:8000/ordered", @"c:\data\site\ordered");
+
+            Storage storage = CommandHelpers.CreateStorage(arguments);
+
+            if (storage == null)
+            {
+                return;
+            }
+
+            Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\"", source, storage);
+
+            Loop(source, storage).Wait();
         }
     }
 }

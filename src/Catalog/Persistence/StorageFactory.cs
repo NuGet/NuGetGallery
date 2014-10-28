@@ -10,5 +10,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public Uri BaseAddress { get; protected set; }
 
         public bool Verbose { get; set; }
+
+        public override string ToString()
+        {
+            return BaseAddress.ToString();
+        }
     }
 }

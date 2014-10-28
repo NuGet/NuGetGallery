@@ -1,4 +1,4 @@
-﻿using NuGet.Services.Metadata.Catalog.Maintenance;
+﻿using NuGet.Services.Metadata.Catalog;
 using PowerArgs;
 using System;
 using System.Collections.Generic;

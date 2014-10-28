@@ -73,13 +73,13 @@
     <Compile Include="CatalogStep.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="Commands.Delete.cs" />
-    <Compile Include="Commands.Push.cs" />
+    <None Include="Commands.Push.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="ConfigPath.cs" />
     <Compile Include="CopyPackagesStep.cs" />
     <Compile Include="InterceptStep.cs" />
-    <Compile Include="ResolverStep.cs" />
-    <Compile Include="Commands.Create.cs" />
+    <None Include="ResolverStep.cs" />
+    <None Include="Commands.Create.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

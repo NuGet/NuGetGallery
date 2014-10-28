@@ -13,6 +13,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             BaseAddress = new Uri(s);
         }
 
+        public override string ToString()
+        {
+            return BaseAddress.ToString();
+        }
+
         protected abstract Task OnSave(Uri resourceUri, StorageContent content);
         protected abstract Task<StorageContent> OnLoad(Uri resourceUri);
         protected abstract Task OnDelete(Uri resourceUri);
