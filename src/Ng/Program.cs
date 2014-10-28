@@ -1,6 +1,7 @@
 ﻿using NuGet.Services.Metadata.Catalog;
 using System;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Ng
 {
@@ -15,6 +16,12 @@ namespace Ng
         {
             Trace.Listeners.Add(new ConsoleTraceListener());
             Trace.AutoFlush = true;
+
+            if (args.Length > 0 && String.Equals("dbg", args[0], StringComparison.OrdinalIgnoreCase))
+            {
+                args = args.Skip(1).ToArray();
+                Debugger.Launch();
+            }
 
             try
             {

@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 using NuGet;
-using NuGet.Services.Metadata.Catalog.Collecting;
+using NuGet.Services.Metadata.Catalog;
 using NuGetFeed;
 using System;
 using System.Collections.Generic;
