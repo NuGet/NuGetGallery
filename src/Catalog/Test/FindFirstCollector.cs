@@ -14,8 +14,8 @@ namespace NuGet.Services.Metadata.Catalog.Test
         string _id;
         string _version;
 
-        public FindFirstCollector(Uri index, string id, string version = null, HttpMessageHandler handler = null, int batchSize = 200)
-            : base(index, handler, batchSize)
+        public FindFirstCollector(Uri index, string id, string version = null, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
+            : base(index, handlerFunc, batchSize)
         {
             _id = id;
             _version = (version != null) ? NuGetVersion.Parse(version).ToNormalizedString() : null;

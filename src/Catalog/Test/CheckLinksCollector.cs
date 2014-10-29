@@ -10,8 +10,8 @@ namespace NuGet.Services.Metadata.Catalog.Test
 {
     public class CheckLinksCollector : BatchCollector
     {
-        public CheckLinksCollector(Uri index, HttpMessageHandler handler = null, int batchSize = 200)
-            : base(index, handler, batchSize)
+        public CheckLinksCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
+            : base(index, handlerFunc, batchSize)
         {
         }
 

@@ -8,8 +8,8 @@ namespace NuGet.Services.Metadata.Catalog.Test
 {
     public class CountCollector : CollectorBase
     {
-        public CountCollector(Uri index, HttpMessageHandler handler = null)
-            :base(index, handler)
+        public CountCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, handlerFunc)
         {
             Total = 0;
         }

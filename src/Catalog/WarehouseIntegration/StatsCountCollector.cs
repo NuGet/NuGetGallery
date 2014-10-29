@@ -8,8 +8,8 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
 {
     public abstract class StatsCountCollector : BatchCollector
     {
-        public StatsCountCollector(Uri index, HttpMessageHandler handler = null, int batchSize = 200)
-            : base(index, handler, batchSize)
+        public StatsCountCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
+            : base(index, handlerFunc, batchSize)
         {
             Count = 0;
         }

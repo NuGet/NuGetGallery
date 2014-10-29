@@ -9,8 +9,8 @@ namespace NuGet.Services.Metadata.Catalog.Test
 {
     public class DistinctPackageIdCollector : BatchCollector
     {
-        public DistinctPackageIdCollector(Uri index, HttpMessageHandler handler = null, int batchSize = 200)
-            : base(index, handler, batchSize)
+        public DistinctPackageIdCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
+            : base(index, handlerFunc, batchSize)
         {
             Result = new HashSet<string>();
         }

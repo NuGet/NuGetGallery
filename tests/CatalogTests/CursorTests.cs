@@ -13,14 +13,17 @@ namespace CatalogTests
         {
             await MakeTestCatalog();
 
-            FileSystemEmulatorHandler handler = new FileSystemEmulatorHandler
+            Func<HttpMessageHandler> handlerFunc = () =>
             {
-                BaseAddress = new Uri("http://localhost:8000"),
-                RootFolder = @"c:\data\site",
-                InnerHandler = new HttpClientHandler()
+                return new FileSystemEmulatorHandler
+                {
+                    BaseAddress = new Uri("http://localhost:8000"),
+                    RootFolder = @"c:\data\site",
+                    InnerHandler = new HttpClientHandler()
+                };
             };
 
-            TestCollector collector = new TestCollector("Test0", new Uri("http://localhost:8000/cursor/index.json"), handler);
+            TestCollector collector = new TestCollector("Test0", new Uri("http://localhost:8000/cursor/index.json"), handlerFunc);
 
             DateTime front = new DateTime(2014, 1, 2);
             DateTime back = new DateTime(2014, 1, 6);
@@ -37,14 +40,17 @@ namespace CatalogTests
         {
             await MakeTestCatalog();
 
-            FileSystemEmulatorHandler handler = new FileSystemEmulatorHandler
+            Func<HttpMessageHandler> handlerFunc = () =>
             {
-                BaseAddress = new Uri("http://localhost:8000"),
-                RootFolder = @"c:\data\site",
-                InnerHandler = new HttpClientHandler()
+                return new FileSystemEmulatorHandler
+                {
+                    BaseAddress = new Uri("http://localhost:8000"),
+                    RootFolder = @"c:\data\site",
+                    InnerHandler = new HttpClientHandler()
+                };
             };
 
-            TestCollector collector = new TestCollector("Test1", new Uri("http://localhost:8000/cursor/index.json"), handler);
+            TestCollector collector = new TestCollector("Test1", new Uri("http://localhost:8000/cursor/index.json"), handlerFunc);
 
             string baseAddress = "http://localhost:8000/cursor";
             string path = @"c:\data\site\cursor";
@@ -71,15 +77,18 @@ namespace CatalogTests
         {
             await MakeTestCatalog();
 
-            FileSystemEmulatorHandler handler = new FileSystemEmulatorHandler
+            Func<HttpMessageHandler> handlerFunc = () =>
             {
-                BaseAddress = new Uri("http://localhost:8000"),
-                RootFolder = @"c:\data\site",
-                InnerHandler = new HttpClientHandler()
+                return new FileSystemEmulatorHandler
+                {
+                    BaseAddress = new Uri("http://localhost:8000"),
+                    RootFolder = @"c:\data\site",
+                    InnerHandler = new HttpClientHandler()
+                };
             };
 
-            TestCollector collectorA = new TestCollector("A", new Uri("http://localhost:8000/cursor/index.json"), handler);
-            TestCollector collectorB = new TestCollector("B", new Uri("http://localhost:8000/cursor/index.json"), handler);
+            TestCollector collectorA = new TestCollector("A", new Uri("http://localhost:8000/cursor/index.json"), handlerFunc);
+            TestCollector collectorB = new TestCollector("B", new Uri("http://localhost:8000/cursor/index.json"), handlerFunc);
 
             MemoryCursor initial = MemoryCursor.Max;
 

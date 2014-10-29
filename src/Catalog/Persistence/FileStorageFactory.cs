@@ -13,9 +13,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             _path = path.TrimEnd('\\') + '\\';
         }
 
-        public override Storage Create(string name)
+        public override Storage Create(string name = null)
         {
-            return new FileStorage(BaseAddress + name, _path + name) { Verbose = Verbose };
+            string fileSystemPath = (name == null) ? _path.Trim('\\') : _path + name;
+            string uriPath = name ?? string.Empty;
+
+            return new FileStorage(BaseAddress + uriPath, fileSystemPath) { Verbose = Verbose };
         }
     }
 }

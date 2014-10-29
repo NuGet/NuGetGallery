@@ -8,11 +8,11 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public abstract class CollectorBase
     {
-        HttpMessageHandler _handler;
+        Func<HttpMessageHandler> _handlerFunc;
 
-        public CollectorBase(Uri index, HttpMessageHandler handler = null)
+        public CollectorBase(Uri index, Func<HttpMessageHandler> handlerFunc = null)
         {
-            _handler = handler;
+            _handlerFunc = handlerFunc;
             Index = index;
             ServicePointManager.DefaultConnectionLimit = 4;
             ServicePointManager.MaxServicePointIdleTime = 10000;
@@ -40,7 +40,14 @@ namespace NuGet.Services.Metadata.Catalog
 
             bool result = false;
 
-            using (CollectorHttpClient client = new CollectorHttpClient(_handler))
+            HttpMessageHandler handler = null;
+
+            if (_handlerFunc != null)
+            {
+                handler = _handlerFunc();
+            }
+
+            using (CollectorHttpClient client = new CollectorHttpClient(handler))
             {
                 result = await Fetch(client, front, back);
                 RequestCount = client.RequestCount;

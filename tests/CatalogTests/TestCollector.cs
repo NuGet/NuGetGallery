@@ -11,8 +11,8 @@ namespace CatalogTests
     {
         string _name;
 
-        public TestCollector(string name, Uri index, HttpMessageHandler handler = null, int batchSize = 200)
-            : base(index, handler, batchSize)
+        public TestCollector(string name, Uri index, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
+            : base(index, handlerFunc, batchSize)
         {
             _name = name;
         }

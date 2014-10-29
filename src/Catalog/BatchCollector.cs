@@ -11,14 +11,17 @@ namespace NuGet.Services.Metadata.Catalog
     {
         int _batchSize;
 
-        public BatchCollector(Uri index, HttpMessageHandler handler = null, int batchSize = 200)
-            : base(index, handler)
+        public BatchCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
+            : base(index, handlerFunc)
         {
             _batchSize = batchSize;
             BatchCount = 0;
+            PreviousRunBatchCount = 0;
         }
 
         public int BatchCount { get; private set; }
+
+        public int PreviousRunBatchCount { get; private set; }
 
         protected override async Task<bool> Fetch(CollectorHttpClient client, ReadWriteCursor front, ReadCursor back)
         {
@@ -95,7 +98,9 @@ namespace NuGet.Services.Metadata.Catalog
 
             int afterBatchCount = BatchCount;
 
-            return ((afterBatchCount - beforeBatchCount) > 0);
+            PreviousRunBatchCount = (afterBatchCount - beforeBatchCount);
+
+            return (PreviousRunBatchCount > 0);
         }
 
         async Task<bool> ProcessBatch(CollectorHttpClient client, IList<JObject> items, JToken context, ReadWriteCursor front, DateTime resumeDateTime)

@@ -7,8 +7,8 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
     {
         DateTime _minDownloadTimeStamp;
 
-        public StatsGreaterThanCountCollector(Uri index, DateTime minDownloadTimeStamp, HttpMessageHandler handler = null, int batchSize = 200)
-            : base(index, handler, batchSize)
+        public StatsGreaterThanCountCollector(Uri index, DateTime minDownloadTimeStamp, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
+            : base(index, handlerFunc, batchSize)
         {
             _minDownloadTimeStamp = minDownloadTimeStamp;
         }

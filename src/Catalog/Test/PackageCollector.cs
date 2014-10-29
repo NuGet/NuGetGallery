@@ -10,8 +10,8 @@ namespace NuGet.Services.Metadata.Catalog.Test
 {
     public class PackageCollector : BatchCollector
     {
-        public PackageCollector(Uri index, HttpMessageHandler handler = null, int batchSize = 200)
-            : base(index, handler, batchSize)
+        public PackageCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
+            : base(index, handlerFunc, batchSize)
         {
             Result = new Dictionary<string, HashSet<string>>();
         }

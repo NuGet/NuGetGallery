@@ -46,9 +46,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 BaseAddress = newAddress;
             }
         }
-        public override Storage Create(string name)
+        public override Storage Create(string name = null)
         {
             string path = (_path == null) ? name : _path + name;
+
+            path = (name == null) ? _path.Trim('/') : path;
 
             Uri newBase = _differentBaseAddress;
 

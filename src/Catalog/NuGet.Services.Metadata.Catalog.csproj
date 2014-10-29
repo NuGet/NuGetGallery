@@ -128,14 +128,14 @@
     <Compile Include="SortingGraphCollector.cs" />
     <Compile Include="StoreCollector.cs" />
     <Compile Include="Test\PrintCollector.cs" />
-    <Compile Include="Test\VerboseFileSystemEmulatorHandler.cs" />
+    <Compile Include="VerboseFileSystemEmulatorHandler.cs" />
     <Compile Include="Test\DistinctDependencyPackageIdCollector.cs" />
     <Compile Include="Test\DistinctPackageIdCollector.cs" />
     <Compile Include="Test\CheckLinksCollector.cs" />
     <Compile Include="Test\CountCollector.cs" />
     <Compile Include="Test\FindFirstCollector.cs" />
     <Compile Include="Test\PackageCollector.cs" />
-    <Compile Include="Test\VerboseHandler.cs" />
+    <Compile Include="VerboseHandler.cs" />
     <Compile Include="CollectorBase.cs" />
     <Compile Include="CollectorHttpClient.cs" />
     <Compile Include="DurableCursor.cs" />

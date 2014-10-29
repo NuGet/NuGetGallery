@@ -9,8 +9,8 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public abstract class SortingCollector : BatchCollector
     {
-        public SortingCollector(Uri index, HttpMessageHandler handler = null, int batchSize = 200)
-            : base(index, handler, batchSize)
+        public SortingCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
+            : base(index, handlerFunc, batchSize)
         {
         }
 

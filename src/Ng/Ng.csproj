@@ -86,7 +86,6 @@
     <Compile Include="Catalog2Lucene.cs" />
     <Compile Include="Catalog2Registration.cs" />
     <Compile Include="Feed2Catalog.cs" />
-    <Compile Include="FeedInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CommandHelpers.cs" />

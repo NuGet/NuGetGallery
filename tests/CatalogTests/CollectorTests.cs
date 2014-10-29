@@ -69,16 +69,19 @@ namespace CatalogTests
 
         public static async Task Test3Async()
         {
-            FileSystemEmulatorHandler handler = new FileSystemEmulatorHandler
+            Func<HttpMessageHandler> handlerFunc = () =>
             {
-                BaseAddress = new Uri("http://localhost:8000"),
-                RootFolder = @"c:\data\site",
-                InnerHandler = new HttpClientHandler()
+                return new FileSystemEmulatorHandler
+                {
+                    BaseAddress = new Uri("http://localhost:8000"),
+                    RootFolder = @"c:\data\site",
+                    InnerHandler = new HttpClientHandler()
+                };
             };
 
             Storage storage = new FileStorage("http://localhost:8000/nuspec/", @"c:\data\site\nuspec");
 
-            BatchCollector collector = new NuspecCollector(new Uri("http://localhost:8000/full/index.json"), storage, handler, 1);
+            BatchCollector collector = new NuspecCollector(new Uri("http://localhost:8000/full/index.json"), storage, handlerFunc, 1);
 
             await collector.Run();
             
@@ -105,14 +108,17 @@ namespace CatalogTests
             Uri index = new Uri("https://localhost:8000/ordered/index.json");
             //Uri index = new Uri("https://nugetjohtaylo.blob.core.windows.net/ver36/catalog/index.json");
 
-            FileSystemEmulatorHandler handler = new VerboseFileSystemEmulatorHandler
+            Func<HttpMessageHandler> handlerFunc = () =>
             {
-                BaseAddress = new Uri("http://localhost:8000"),
-                RootFolder = @"c:\data\site",
-                InnerHandler = new HttpClientHandler()
+                return new FileSystemEmulatorHandler
+                {
+                    BaseAddress = new Uri("http://localhost:8000"),
+                    RootFolder = @"c:\data\site",
+                    InnerHandler = new HttpClientHandler()
+                };
             };
 
-            RegistrationCatalogCollector collector = new RegistrationCatalogCollector(index, storageFactory, handler, 20);
+            RegistrationCatalogCollector collector = new RegistrationCatalogCollector(index, storageFactory, handlerFunc, 20);
 
             collector.ContentBaseAddress = new Uri("http://az320820.vo.msecnd.net");
 
@@ -133,11 +139,14 @@ namespace CatalogTests
 
         public static async Task Test5Async()
         {
-            VerboseHandler handler = new VerboseHandler();
+            Func<HttpMessageHandler> handlerFunc = () =>
+            {
+                return new VerboseHandler();
+            };
 
             Uri index = new Uri("http://nugetjohtaylo.blob.core.windows.net/ver38/catalog/index.json");
 
-            FindFirstCollector collector = new FindFirstCollector(index, "xact.ui.web.mvc", "0.0.4773", handler);
+            FindFirstCollector collector = new FindFirstCollector(index, "xact.ui.web.mvc", "0.0.4773", handlerFunc);
             //FindFirstCollector collector = new FindFirstCollector("abot", "1.2.1-alpha");
 
             await collector.Run();
@@ -168,14 +177,17 @@ namespace CatalogTests
             //FindFirstCollector collector = new FindFirstCollector("xact.ui.web.mvc", "0.0.4773");
             //FindFirstCollector collector = new FindFirstCollector("abot", "1.2.1-alpha");
 
-            FileSystemEmulatorHandler handler = new FileSystemEmulatorHandler
+            Func<HttpMessageHandler> handlerFunc = () =>
             {
-                BaseAddress = new Uri("http://localhost:8000"),
-                RootFolder = @"c:\data\site",
-                InnerHandler = new HttpClientHandler()
+                return new FileSystemEmulatorHandler
+                {
+                    BaseAddress = new Uri("http://localhost:8000"),
+                    RootFolder = @"c:\data\site",
+                    InnerHandler = new HttpClientHandler()
+                };
             };
 
-            PrintCollector collector = new PrintCollector("Test6", new Uri("http://localhost:8000/ordered/index.json"), handler);
+            PrintCollector collector = new PrintCollector("Test6", new Uri("http://localhost:8000/ordered/index.json"), handlerFunc);
 
             await collector.Run();
 

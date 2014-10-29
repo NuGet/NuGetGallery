@@ -142,10 +142,12 @@ namespace Ng
             return DateTime.MinValue.ToUniversalTime();
         }
 
-        static async Task Loop(string source, Storage storage)
+        static async Task Loop(string source, StorageFactory storageFactory)
         {
+            Storage storage = storageFactory.Create();
+
             const string LastCreated = "nuget:lastCreated";
-            const string LastEdited = "nuget:lastCreated";
+            const string LastEdited = "nuget:lastEdited";
 
             int top = 20;
             int timeout = 300;
@@ -189,32 +191,26 @@ namespace Ng
         public static void Run(string[] args)
         {
             IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
-
             if (arguments == null)
             {
                 return;
             }
 
             string source = CommandHelpers.GetSource(arguments);
-
             if (source == null)
             {
                 return;
             }
 
-            //string source = "https://www.nuget.org/api/v2";
-            //Storage storage = new FileStorage("http://localhost:8000/ordered", @"c:\data\site\ordered");
-
-            Storage storage = CommandHelpers.CreateStorage(arguments);
-
-            if (storage == null)
+            StorageFactory storageFactory = CommandHelpers.CreateStorageFactory(arguments);
+            if (storageFactory == null)
             {
                 return;
             }
 
-            Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\"", source, storage);
+            Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\"", source, storageFactory);
 
-            Loop(source, storage).Wait();
+            Loop(source, storageFactory).Wait();
         }
     }
 }

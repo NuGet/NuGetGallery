@@ -41,21 +41,39 @@ namespace Ng
 
         public static string GetSource(IDictionary<string, string> arguments)
         {
-            string source;
-            if (!arguments.TryGetValue("-source", out source))
+            string value;
+            if (!arguments.TryGetValue("-source", out value))
             {
                 TraceRequiredArgument("-source");
                 return null;
             }
-            return source;
+            return value;
         }
 
-        public static Storage CreateStorage(IDictionary<string, string> arguments)
+        public static string GetContentBaseAddress(IDictionary<string, string> arguments)
+        {
+            string value;
+            if (!arguments.TryGetValue("-contentBaseAddress", out value))
+            {
+                TraceRequiredArgument("-contentBaseAddress");
+                return null;
+            }
+            return value;
+        }
+
+        public static StorageFactory CreateStorageFactory(IDictionary<string, string> arguments)
         {
             string storageType;
             if (!arguments.TryGetValue("-storageType", out storageType))
             {
                 TraceRequiredArgument("-storageType");
+                return null;
+            }
+
+            string storageBaseAddress;
+            if (!arguments.TryGetValue("-storageBaseAddress", out storageBaseAddress))
+            {
+                TraceRequiredArgument("-storageBaseAddress");
                 return null;
             }
 
@@ -66,13 +84,6 @@ namespace Ng
 
             if (storageType.Equals("File", StringComparison.InvariantCultureIgnoreCase))
             {
-                string storageBaseAddress;
-                if (!arguments.TryGetValue("-storageBaseAddress", out storageBaseAddress))
-                {
-                    TraceRequiredArgument("-storageBaseAddress");
-                    return null;
-                }
-
                 string storagePath;
                 if (!arguments.TryGetValue("-storagePath", out storagePath))
                 {
@@ -80,7 +91,7 @@ namespace Ng
                     return null;
                 }
 
-                return new FileStorage(storageBaseAddress, storagePath) { Verbose = storageVerbose };
+                return new FileStorageFactory(new Uri(storageBaseAddress), storagePath) { Verbose = storageVerbose };
             }
             else if (storageType.Equals("Azure", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -114,7 +125,7 @@ namespace Ng
 
                 StorageCredentials credentials = new StorageCredentials(storageAccountName, storageKeyValue);
                 CloudStorageAccount account = new CloudStorageAccount(credentials, true);
-                return new AzureStorage(account, storageContainer, storagePath) { Verbose = storageVerbose };
+                return new AzureStorageFactory(account, storageContainer, storagePath, new Uri(storageBaseAddress)) { Verbose = storageVerbose };
             }
             else
             {

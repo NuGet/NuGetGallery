@@ -11,8 +11,8 @@ namespace NuGet.Services.Metadata.Catalog
     {
         Uri[] _types;
 
-        public StoreCollector(Uri index, Uri[] types, HttpMessageHandler handler = null, int batchSize = 200)
-            : base(index, handler, batchSize)
+        public StoreCollector(Uri index, Uri[] types, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
+            : base(index, handlerFunc, batchSize)
         {
             Options.InternUris = false;
             _types = types;

@@ -124,6 +124,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="StorageTests.cs" />
     <Compile Include="TestCollector.cs" />
     <Compile Include="BuilderTests.cs" />
     <Compile Include="CatalogTests.cs" />

@@ -29,18 +29,21 @@ namespace CatalogTests
 
         public static void Test1()
         {
-            FileSystemEmulatorHandler handler = new FileSystemEmulatorHandler
+            Func<HttpMessageHandler> handlerFunc = () =>
             {
-                BaseAddress = new Uri("http://localhost:8000"),
-                RootFolder = @"c:\data\site",
-                InnerHandler = new HttpClientHandler()
+                return new FileSystemEmulatorHandler
+                {
+                    BaseAddress = new Uri("http://localhost:8000"),
+                    RootFolder = @"c:\data\site",
+                    InnerHandler = new HttpClientHandler()
+                };
             };
 
             DateTime minDownloadTimeStamp = DateTime.Parse("2014-07-20");
             //DateTime minDownloadTimeStamp = DateTime.MinValue;
 
-            StatsCountCollector collector = new StatsGreaterThanCountCollector(new Uri("http://localhost:8000/stats/index.json"), minDownloadTimeStamp, handler);
-            //StatsCountCollector collector = new StatsLessThanCountCollector(new Uri("http://localhost:8000/stats/index.json"), minDownloadTimeStamp, handler);
+            StatsCountCollector collector = new StatsGreaterThanCountCollector(new Uri("http://localhost:8000/stats/index.json"), minDownloadTimeStamp, handlerFunc);
+            //StatsCountCollector collector = new StatsLessThanCountCollector(new Uri("http://localhost:8000/stats/index.json"), minDownloadTimeStamp, handlerFunc);
 
             collector.Run().Wait();
 
