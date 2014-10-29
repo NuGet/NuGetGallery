@@ -9,11 +9,13 @@ namespace NuGet.Services.Metadata.Catalog
     {
         Uri _address;
         Storage _storage;
+        DateTime _defaultValue;
 
-        public DurableCursor(Uri address, Storage storage)
+        public DurableCursor(Uri address, Storage storage, DateTime defaultValue)
         {
             _address = address;
             _storage = storage;
+            _defaultValue = defaultValue;
         }
 
         public override async Task Save()
@@ -29,7 +31,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             if (json == null)
             {
-                Value = DateTime.MinValue.ToUniversalTime();
+                Value = _defaultValue;
                 return;
             }
 

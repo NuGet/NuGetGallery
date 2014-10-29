@@ -56,7 +56,7 @@ namespace CatalogTests
             string path = @"c:\data\site\cursor";
             Storage storage = new FileStorage(baseAddress, path);
 
-            DurableCursor front = new DurableCursor(new Uri("http://localhost:8000/cursor/front.json"), storage);
+            DurableCursor front = new DurableCursor(new Uri("http://localhost:8000/cursor/front.json"), storage, MemoryCursor.Min.Value);
             //DurableCursor back = new DurableCursor(new Uri("http://localhost:8000/cursor/back.json"), storage);
             MemoryCursor back = MemoryCursor.Max;
 
@@ -96,8 +96,8 @@ namespace CatalogTests
             string path = @"c:\data\site\cursor";
             Storage storage = new FileStorage(baseAddress, path);
 
-            DurableCursor cursorA = new DurableCursor(new Uri("http://localhost:8000/cursor/cursorA.json"), storage);
-            DurableCursor cursorB = new DurableCursor(new Uri("http://localhost:8000/cursor/cursorB.json"), storage);
+            DurableCursor cursorA = new DurableCursor(new Uri("http://localhost:8000/cursor/cursorA.json"), storage, MemoryCursor.Min.Value);
+            DurableCursor cursorB = new DurableCursor(new Uri("http://localhost:8000/cursor/cursorB.json"), storage, MemoryCursor.Min.Value);
 
             Console.WriteLine("check catalog...");
 

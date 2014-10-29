@@ -14,7 +14,7 @@ namespace NuGet.Services.Metadata.Catalog
     {
         StorageFactory _storageFactory;
 
-        public RegistrationCatalogCollector(Uri index, StorageFactory storageFactory, Func<HttpMessageHandler> handlerFunc, int batchSize = 200)
+        public RegistrationCatalogCollector(Uri index, StorageFactory storageFactory, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
             : base(index, new Uri[] { Schema.DataTypes.Package }, handlerFunc, batchSize)
         {
             _storageFactory = storageFactory;

@@ -120,6 +120,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BatchCollector.cs" />
+    <Compile Include="HttpReadCursor.cs" />
     <Compile Include="NuspecCollector.cs" />
     <Compile Include="RegistrationCatalogCollector.cs" />
     <Compile Include="RegistrationCatalogItem.cs" />

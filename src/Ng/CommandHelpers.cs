@@ -1,9 +1,12 @@
-﻿using Microsoft.WindowsAzure.Storage;
+﻿using Lucene.Net.Store;
+using Lucene.Net.Store.Azure;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 
 namespace Ng
 {
@@ -50,6 +53,17 @@ namespace Ng
             return value;
         }
 
+        public static string GetRegistration(IDictionary<string, string> arguments)
+        {
+            string value;
+            if (!arguments.TryGetValue("-registration", out value))
+            {
+                TraceRequiredArgument("-registration");
+                return null;
+            }
+            return value;
+        }
+
         public static string GetContentBaseAddress(IDictionary<string, string> arguments)
         {
             string value;
@@ -63,13 +77,6 @@ namespace Ng
 
         public static StorageFactory CreateStorageFactory(IDictionary<string, string> arguments)
         {
-            string storageType;
-            if (!arguments.TryGetValue("-storageType", out storageType))
-            {
-                TraceRequiredArgument("-storageType");
-                return null;
-            }
-
             string storageBaseAddress;
             if (!arguments.TryGetValue("-storageBaseAddress", out storageBaseAddress))
             {
@@ -81,6 +88,13 @@ namespace Ng
             arguments.TryGetValue("-storageVerbose", out storageVerboseStr);
 
             bool storageVerbose = storageVerboseStr == null ? false : storageVerboseStr.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+
+            string storageType;
+            if (!arguments.TryGetValue("-storageType", out storageType))
+            {
+                TraceRequiredArgument("-storageType");
+                return null;
+            }
 
             if (storageType.Equals("File", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -129,6 +143,63 @@ namespace Ng
             }
             else
             {
+                Trace.TraceError("Unrecognized storageType \"{0}\"", storageType);
+                return null;
+            }
+        }
+
+        public static Lucene.Net.Store.Directory GetLuceneDirectory(IDictionary<string, string> arguments)
+        {
+            string luceneDirectoryType;
+            if (!arguments.TryGetValue("-luceneDirectoryType", out luceneDirectoryType))
+            {
+                TraceRequiredArgument("-luceneDirectoryType");
+                return null;
+            }
+
+            if (luceneDirectoryType.Equals("File", StringComparison.InvariantCultureIgnoreCase))
+            {
+                string lucenePath;
+                if (!arguments.TryGetValue("-lucenePath", out lucenePath))
+                {
+                    TraceRequiredArgument("-lucenePath");
+                    return null;
+                }
+
+                DirectoryInfo directoryInfo = new DirectoryInfo(lucenePath);
+
+                return new SimpleFSDirectory(directoryInfo);
+            }
+            else if (luceneDirectoryType.Equals("Azure", StringComparison.InvariantCultureIgnoreCase))
+            {
+                string luceneStorageAccountName;
+                if (!arguments.TryGetValue("-luceneStorageAccountName", out luceneStorageAccountName))
+                {
+                    TraceRequiredArgument("-luceneStorageAccountName");
+                    return null;
+                }
+
+                string luceneStorageKeyValue;
+                if (!arguments.TryGetValue("-luceneStorageKeyValue", out luceneStorageKeyValue))
+                {
+                    TraceRequiredArgument("-luceneStorageKeyValue");
+                    return null;
+                }
+
+                string luceneStorageContainer;
+                if (!arguments.TryGetValue("-luceneStorageContainer", out luceneStorageContainer))
+                {
+                    TraceRequiredArgument("-luceneStorageContainer");
+                    return null;
+                }
+
+                StorageCredentials credentials = new StorageCredentials(luceneStorageAccountName, luceneStorageKeyValue);
+                CloudStorageAccount account = new CloudStorageAccount(credentials, true);
+                return new AzureDirectory(account, luceneStorageContainer, new RAMDirectory());
+            }
+            else
+            {
+                Trace.TraceError("Unrecognized luceneDirectoryType \"{0}\"", luceneDirectoryType);
                 return null;
             }
         }

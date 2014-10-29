@@ -4,7 +4,6 @@ PREFIX catalog: <http://schema.nuget.org/catalog#>
 CONSTRUCT
 {
     ?package a nuget:Package ;
-	         a catalog:Permalink ;
 	         nuget:registration ?registration ;
              nuget:packageContent ?packageContent ;
 	         nuget:catalogEntry ?catalogPackage .

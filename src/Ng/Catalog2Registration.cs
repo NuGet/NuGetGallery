@@ -22,16 +22,17 @@ namespace Ng
             collector.ContentBaseAddress = new Uri(contentBaseAddress);
 
             Storage storage = storageFactory.Create();
-            ReadWriteCursor cursor = new DurableCursor(storage.ResolveUri("cursor.json"), storage);
+            ReadWriteCursor front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.Min.Value);
+            ReadCursor back = MemoryCursor.Max;
 
             while (true)
             {
                 bool run = false;
                 do
                 {
-                    Trace.TraceInformation("BEFORE Run cursor @ {0}", cursor.Value.ToString("O"));
-                    run = await collector.Run(cursor, MemoryCursor.Max);
-                    Trace.TraceInformation("AFTER Run cursor @ {0} batch count: {1}", cursor.Value.ToString("O"), collector.PreviousRunBatchCount);
+                    Trace.TraceInformation("BEFORE Run cursor @ {0}", front.Value.ToString("O"));
+                    run = await collector.Run(front, back);
+                    Trace.TraceInformation("AFTER Run cursor @ {0} batch count: {1}", front.Value.ToString("O"), collector.PreviousRunBatchCount);
                 }
                 while (run);
 
