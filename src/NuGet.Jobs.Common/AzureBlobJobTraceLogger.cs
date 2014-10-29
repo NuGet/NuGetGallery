@@ -3,6 +3,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace NuGet.Jobs.Common
     {
         // 'const's
         private const int MaxExpectedLogsPerRun = 1000000;
-        private const int MaxLogBatchSize = 100;
+        public const int MaxLogBatchSize = 100;
         private const string JobLogNameFormat = "{0}/{1}.txt";
         private const string LogStorageContainerName = "ng-jobs-logs";
         private const string EndedLogName = "ended";
@@ -27,6 +28,7 @@ namespace NuGet.Jobs.Common
         private static ConcurrentQueue<ConcurrentQueue<string>> LogQueues;
         private static ConcurrentQueue<string> CurrentLogQueue;
         private static int JobLogBatchCounter;
+        private static int JobQueueBatchCounter;
 
         // For example, if MaxExpectedLogsPerRun is a million, and MaxLogBatchSize is 100, then maximum possible log batch counter would be 10000
         // That is a maximum of 5 digits. So, leadingzero specifier string would be "00000"
@@ -42,12 +44,16 @@ namespace NuGet.Jobs.Common
         private CloudStorageAccount LogStorageAccount { get; set; }
         private CloudBlobContainer LogStorageContainer { get; set; }
         private string JobLogNamePrefix { get; set; }
+        private string JobLocalLogPathPrefix { get; set; }
 
         public AzureBlobJobTraceLogger(string jobName) : base(jobName)
         {
+            string nugetJobsLocalPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), LogStorageContainerName);
+            Directory.CreateDirectory(nugetJobsLocalPath);
             Interlocked.Exchange(ref LogQueues, new ConcurrentQueue<ConcurrentQueue<string>>());
             Interlocked.Exchange(ref CurrentLogQueue, new ConcurrentQueue<string>());
             Interlocked.Exchange(ref JobLogBatchCounter, 0);
+            Interlocked.Exchange(ref JobQueueBatchCounter, 0);
 
             var cstr = Environment.GetEnvironmentVariable(EnvironmentVariableKeys.StoragePrimary);
             if(cstr == null)
@@ -61,7 +67,7 @@ namespace NuGet.Jobs.Common
 
             var dt = DateTime.UtcNow;
             JobLogNamePrefix = String.Format("{0}/{1}/{2}", jobName, dt.ToString("yyyy/MM/dd/HH/mm/ss/fffffff"), Environment.MachineName);
-
+            JobLocalLogPathPrefix = Path.Combine(nugetJobsLocalPath, String.Format("{0}-{1}-", jobName, dt.ToString("yyyy-MM-dd-HH-mm-ss-fffffff")));
             Task.Run(() => FlushRunner());
         }
 
@@ -97,6 +103,13 @@ namespace NuGet.Jobs.Common
             }
 
             CurrentLogQueue.Enqueue(messageWithTraceLevel);
+
+            // In addition to writing the message to the queue in memory, also write it to the local log file
+            // In case of an exception where the process crashes, messages not flushed to blob storage can still be found in the local log file
+            using (var writer = File.AppendText(GetJobLocalLogPath(JobQueueBatchCounter)))
+            {
+                writer.WriteLine(messageWithTraceLevel);
+            }
         }
 
         private void FlushRunner()
@@ -119,6 +132,7 @@ namespace NuGet.Jobs.Common
         {
             LogConsoleOnly(TraceEventType.Verbose, "Creating a new concurrent log queue...");
             LogQueues.Enqueue(Interlocked.Exchange(ref CurrentLogQueue, new ConcurrentQueue<string>()));
+            Interlocked.Increment(ref JobQueueBatchCounter);
         }
 
         public override void Flush(bool skipCurrentBatch = false)
@@ -135,6 +149,14 @@ namespace NuGet.Jobs.Common
                 {
                     string blobName = String.Format(JobLogNameFormat, JobLogNamePrefix, JobLogBatchCounter.ToString(JobLogBatchCounterLeadingZeroSpecifier));
                     Save(blobName, headQueue);
+
+                    // At this point, logs corresponding to batch JobLogBatchCounter has already been uploaded to blob storage
+                    // So, go ahead and delete the corresponding local log file if one exists. Do so before incrementing JobLogBatchCounter
+                    var jobLocalLogPath = GetJobLocalLogPath(JobLogBatchCounter);
+                    if(File.Exists(jobLocalLogPath))
+                    {
+                        File.Delete(jobLocalLogPath);
+                    }
                     Interlocked.Increment(ref JobLogBatchCounter);
                 }
             }
@@ -188,6 +210,11 @@ namespace NuGet.Jobs.Common
             var blob = LogStorageContainer.GetBlockBlobReference(blobName);
             LogConsoleOnly(TraceEventType.Verbose, "Uploading to " + blob.Uri.ToString());
             blob.UploadText(content);
+        }
+
+        private string GetJobLocalLogPath(int jobLogBatchCounter)
+        {
+            return String.Format("{0}{1}.txt", JobLocalLogPathPrefix, jobLogBatchCounter);
         }
     }
 }
