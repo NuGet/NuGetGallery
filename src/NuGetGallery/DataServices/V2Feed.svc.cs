@@ -51,6 +51,15 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {
+            // Handle OData-style |-separated list of frameworks.
+            string[] targetFrameworkList = (targetFramework ?? "").Split(new[] {'\'', '|'}, StringSplitOptions.RemoveEmptyEntries);
+
+            // For now, we'll just filter on the first one.
+            if (targetFrameworkList.Length > 0)
+            {
+                targetFramework = targetFrameworkList[0];
+            }
+
             var packages = PackageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
