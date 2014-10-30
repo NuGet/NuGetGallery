@@ -81,107 +81,147 @@ namespace CatalogCollector.PackageRegistrationBlobs
                 Trace.TraceWarning("REMEMBER that you requested NOT to store cursor at the end");
             }
 
-            // Set defaults
-
-            // Check required payload
-            ArgCheck.Require(TargetBaseAddress, "TargetBaseAddress");
-            ArgCheck.Require(CdnBaseAddress, "CdnBaseAddress");
-            ArgCheck.Require(GalleryBaseAddress, "GalleryBaseAddress");
-
-            // Clean input data
-            if (!TargetBaseAddress.EndsWith("/"))
+            try
             {
-                TargetBaseAddress += "/";
-            }
-            var resolverBaseUri = new Uri(TargetBaseAddress);
-            CdnBaseAddress = CdnBaseAddress.TrimEnd('/');
-            GalleryBaseAddress = GalleryBaseAddress.TrimEnd('/');
+                // Set defaults
 
-            // Load Storage
-            NuGet.Services.Metadata.Catalog.Persistence.Storage storage;
-            string storageDesc;
-            HttpMessageHandler httpMessageHandler = null;
-            if (String.IsNullOrEmpty(TargetLocalDirectory))
-            {
-                ArgCheck.Require(TargetStorageAccount, "ResolverStorage");
-                ArgCheck.Require(TargetStoragePath, "ResolverPath");
-                var dir = StorageHelpers.GetBlobDirectory(TargetStorageAccount, TargetStoragePath);
-                storage = new AzureStorage(dir, resolverBaseUri);
-                storageDesc = dir.Uri.ToString();
-            }
-            else
-            {                
-                ArgCheck.Require(TargetLocalDirectory, "TargetLocalDirectory");
-                storage = new FileStorage(TargetBaseAddress, TargetLocalDirectory);
-                storageDesc = TargetLocalDirectory;
-            }
+                // Check required payload
+                ArgCheck.Require(TargetBaseAddress, "TargetBaseAddress");
+                ArgCheck.Require(CdnBaseAddress, "CdnBaseAddress");
+                ArgCheck.Require(GalleryBaseAddress, "GalleryBaseAddress");
 
-            if(String.IsNullOrEmpty(CatalogIndexPath))
-            {
-                ArgCheck.Require(CatalogIndexUrl, "CatalogIndexUrl");
-            }
-            else
-            {
-                ArgCheck.Require(CatalogIndexPath, "CatalogIndexPath");
-                var localHostUri = new Uri("http://localhost:8000");
-                httpMessageHandler = new FileSystemEmulatorHandler
+                // Clean input data
+                if (!TargetBaseAddress.EndsWith("/"))
                 {
-                    BaseAddress = localHostUri,
-                    RootFolder = @"c:\data\site",
-                    InnerHandler = new HttpClientHandler()
+                    TargetBaseAddress += "/";
+                }
+                var resolverBaseUri = new Uri(TargetBaseAddress);
+                CdnBaseAddress = CdnBaseAddress.TrimEnd('/');
+                GalleryBaseAddress = GalleryBaseAddress.TrimEnd('/');
+
+                // Load Storage
+                NuGet.Services.Metadata.Catalog.Persistence.Storage storage;
+                string storageDesc;
+                HttpMessageHandler httpMessageHandler = null;
+                if (String.IsNullOrEmpty(TargetLocalDirectory))
+                {
+                    ArgCheck.Require(TargetStorageAccount, "ResolverStorage");
+                    ArgCheck.Require(TargetStoragePath, "ResolverPath");
+                    var dir = StorageHelpers.GetBlobDirectory(TargetStorageAccount, TargetStoragePath);
+                    storage = new AzureStorage(dir, resolverBaseUri);
+                    storageDesc = dir.Uri.ToString();
+                }
+                else
+                {
+                    ArgCheck.Require(TargetLocalDirectory, "TargetLocalDirectory");
+                    storage = new FileStorage(TargetBaseAddress, TargetLocalDirectory);
+                    storageDesc = TargetLocalDirectory;
+                }
+
+                if (String.IsNullOrEmpty(CatalogIndexPath))
+                {
+                    ArgCheck.Require(CatalogIndexUrl, "CatalogIndexUrl");
+                }
+                else
+                {
+                    ArgCheck.Require(CatalogIndexPath, "CatalogIndexPath");
+                    var localHostUri = new Uri("http://localhost:8000");
+                    httpMessageHandler = new FileSystemEmulatorHandler
+                    {
+                        BaseAddress = localHostUri,
+                        RootFolder = @"c:\data\site",
+                        InnerHandler = new HttpClientHandler()
+                    };
+
+                    CatalogIndexUrl = String.Join(String.Empty, localHostUri.ToString(), CatalogIndexPath);
+                }
+                storage.Verbose = true;
+
+
+                Uri cursorUri = new Uri(resolverBaseUri, "meta/cursor.json");
+
+                JobEventSourceLog.LoadingCursor(cursorUri.ToString());
+                StorageContent content = await storage.Load(cursorUri);
+                CollectorCursor lastCursor;
+
+                if (content == null)
+                {
+                    lastCursor = CollectorCursor.None;
+                }
+                else
+                {
+                    JToken cursorDoc = JsonLD.Util.JSONUtils.FromInputStream(content.GetContentStream());
+                    lastCursor = (CollectorCursor)(cursorDoc["http://schema.nuget.org/collectors/resolver#cursor"].Value<DateTime>("@value"));
+                }
+                JobEventSourceLog.LoadedCursor(lastCursor.Value);
+
+                ResolverCollector collector = new ResolverCollector(storage, 200)
+                {
+                    ContentBaseAddress = CdnBaseAddress,
+                    GalleryBaseAddress = GalleryBaseAddress
                 };
 
-                CatalogIndexUrl = String.Join(String.Empty, localHostUri.ToString(), CatalogIndexPath);
-            }
-            storage.Verbose = true;
-
-
-            Uri cursorUri = new Uri(resolverBaseUri, "meta/cursor.json");
-
-            JobEventSourceLog.LoadingCursor(cursorUri.ToString());
-            StorageContent content = await storage.Load(cursorUri);
-            CollectorCursor lastCursor;
-
-            if (content == null)
-            {
-                lastCursor = CollectorCursor.None;
-            }
-            else
-            {
-                JToken cursorDoc = JsonLD.Util.JSONUtils.FromInputStream(content.GetContentStream());
-                lastCursor = (CollectorCursor)(cursorDoc["http://schema.nuget.org/collectors/resolver#cursor"].Value<DateTime>("@value"));
-            }
-            JobEventSourceLog.LoadedCursor(lastCursor.Value);
-
-            ResolverCollector collector = new ResolverCollector(storage, 200)
-            {
-                ContentBaseAddress = CdnBaseAddress,
-                GalleryBaseAddress = GalleryBaseAddress
-            };
-
-            collector.ProcessedCommit += cursor =>
-            {
-                if(DontStoreCursor)
+                collector.ProcessedCommit += cursor =>
                 {
-                    Trace.TraceWarning("Not storing cursor as requested");
-                }
-                else if (!Equals(cursor, lastCursor))
-                {
-                    StoreCursor(storage, cursorUri, cursor).Wait();
-                    lastCursor = cursor;
-                }
-            };
+                    if (DontStoreCursor)
+                    {
+                        Trace.TraceWarning("Not storing cursor as requested");
+                    }
+                    else if (!Equals(cursor, lastCursor))
+                    {
+                        StoreCursor(storage, cursorUri, cursor).Wait();
+                        lastCursor = cursor;
+                    }
+                };
 
-            JobEventSourceLog.EmittingResolverBlobs(
-                CatalogIndexUrl.ToString(),
-                storageDesc,
-                CdnBaseAddress,
-                GalleryBaseAddress);
-            lastCursor = (DateTime)await collector.Run(
-                new Uri(CatalogIndexUrl),
-                lastCursor,
-                httpMessageHandler);
-            JobEventSourceLog.EmittedResolverBlobs();
+                JobEventSourceLog.EmittingResolverBlobs(
+                    CatalogIndexUrl.ToString(),
+                    storageDesc,
+                    CdnBaseAddress,
+                    GalleryBaseAddress);
+                lastCursor = (DateTime)await collector.Run(
+                    new Uri(CatalogIndexUrl),
+                    lastCursor,
+                    httpMessageHandler);
+                JobEventSourceLog.EmittedResolverBlobs();
+
+            }
+            catch (StorageException ex)
+            {
+                Trace.TraceError(ex.ToString());
+                return false;
+            }
+            catch (AggregateException ex)
+            {
+                if (ShouldThrow(ex))
+                {
+                    throw;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                if (ShouldThrow(ex.InnerException))
+                {
+                    throw;
+                }
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool ShouldThrow(Exception ex)
+        {
+            if (ex != null && ex is AggregateException)
+            {
+                var aggregateEx = ex as AggregateException;
+                if (aggregateEx.InnerExceptions.Count == 1 && aggregateEx.InnerExceptions[0] is HttpRequestException)
+                {
+                    Trace.TraceError(ex.ToString());
+                    return false;
+                }
+            }
 
             return true;
         }
