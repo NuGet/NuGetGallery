@@ -122,6 +122,7 @@
     <Compile Include="BatchCollector.cs" />
     <Compile Include="HttpReadCursor.cs" />
     <Compile Include="NuspecCollector.cs" />
+    <Compile Include="RegistrationCatalogCreator.cs" />
     <Compile Include="RegistrationCatalogCollector.cs" />
     <Compile Include="RegistrationCatalogItem.cs" />
     <Compile Include="RegistrationCatalogWriter.cs" />

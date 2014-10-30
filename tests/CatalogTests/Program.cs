@@ -16,7 +16,7 @@ namespace CatalogTests
                 DateTime before = DateTime.Now;
 
                 //StorageTests.Test0();
-                StorageTests.Test1();
+                //StorageTests.Test1();
                 //StorageTests.Test2();
                 //StorageTests.Test3();
 
@@ -28,7 +28,7 @@ namespace CatalogTests
                 //CollectorTests.Test0();
                 //CollectorTests.Test1();
                 //CollectorTests.Test2();
-                //CollectorTests.Test4();
+                CollectorTests.Test4();
                 //CollectorTests.Test5();
                 //CollectorTests.Test6();
 
