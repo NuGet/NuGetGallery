@@ -168,6 +168,11 @@ namespace Ng
 
                 DirectoryInfo directoryInfo = new DirectoryInfo(lucenePath);
 
+                if (!directoryInfo.Exists)
+                {
+                    directoryInfo.Create();
+                }
+
                 return new SimpleFSDirectory(directoryInfo);
             }
             else if (luceneDirectoryType.Equals("Azure", StringComparison.InvariantCultureIgnoreCase))

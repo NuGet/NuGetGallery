@@ -16,7 +16,8 @@ namespace Ng
 
             IndexingCatalogCollector collector = new IndexingCatalogCollector(new Uri(source), directory, handlerFunc, 20);
 
-            ReadWriteCursor front = new LuceneCursor(directory, MemoryCursor.Min.Value);
+            //ReadWriteCursor front = new LuceneCursor(directory, MemoryCursor.Min.Value);
+            ReadWriteCursor front = new MemoryCursor();
             ReadCursor back = new HttpReadCursor(new Uri(registration), MemoryCursor.Max.Value, handlerFunc);
 
             while (true)

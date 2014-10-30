@@ -27,20 +27,26 @@ namespace Ng
 
         public override Task Load()
         {
-            IndexWriter indexWriter = new IndexWriter(_directory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30), false, IndexWriter.MaxFieldLength.UNLIMITED);
-
-            IDictionary<string, string> commitUserData = indexWriter.GetReader().CommitUserData;
-
-            string value;
-            if (commitUserData.TryGetValue("lastCreated", out value))
+            if (IndexReader.IndexExists(_directory))
             {
-                Value = DateTime.Parse(value);
+                IndexWriter indexWriter = new IndexWriter(_directory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30), false, IndexWriter.MaxFieldLength.UNLIMITED);
+
+                IDictionary<string, string> commitUserData = indexWriter.GetReader().CommitUserData;
+
+                string value;
+                if (commitUserData.TryGetValue("commitTimeStamp", out value))
+                {
+                    Value = DateTime.Parse(value);
+                }
+                else
+                {
+                    Value = _defaultValue;
+                }
             }
             else
             {
                 Value = _defaultValue;
             }
-
             return Task.FromResult(true);
         }
     }

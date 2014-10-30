@@ -13,6 +13,11 @@ namespace NuGet.Services.Metadata.Catalog
             Value = value;
         }
 
+        public MemoryCursor()
+        {
+            // TODO: Complete member initialization
+        }
+
         public override Task Load()
         {
             return Task.FromResult(0);
