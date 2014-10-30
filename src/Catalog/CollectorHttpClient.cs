@@ -11,6 +11,12 @@ namespace NuGet.Services.Metadata.Catalog
     {
         int _requestCount;
 
+        public CollectorHttpClient()
+            : base(new WebRequestHandler { AllowPipelining = true })
+        {
+            _requestCount = 0;
+        }
+
         public CollectorHttpClient(HttpMessageHandler handler)
             : base(handler ?? new WebRequestHandler { AllowPipelining = true })
         {
@@ -22,9 +28,14 @@ namespace NuGet.Services.Metadata.Catalog
             get { return _requestCount; }
         }
 
-        public Task<JObject> GetJObjectAsync(Uri address)
+        protected void InReqCount()
         {
             Interlocked.Increment(ref _requestCount);
+        }
+
+        public virtual Task<JObject> GetJObjectAsync(Uri address)
+        {
+            InReqCount();
 
             Task<string> task = GetStringAsync(address);
             return task.ContinueWith<JObject>((t) =>
@@ -40,7 +51,7 @@ namespace NuGet.Services.Metadata.Catalog
             });
         }
 
-        public Task<IGraph> GetGraphAsync(Uri address)
+        public virtual Task<IGraph> GetGraphAsync(Uri address)
         {
             Task<JObject> task = GetJObjectAsync(address);
             return task.ContinueWith<IGraph>((t) =>

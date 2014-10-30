@@ -49,11 +49,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         static Uri GetDirectoryUri(CloudBlobDirectory directory)
         {
-            return new UriBuilder(directory.Uri)
+            Uri uri = new UriBuilder(directory.Uri)
             {
-                Scheme = "http", // Convert base address to http. 'https' can be used for communication but is not part of the names.
+                Scheme = "http",
                 Port = 80
             }.Uri;
+
+            return uri;
         }
 
         //  save

@@ -1,5 +1,7 @@
 ﻿using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -26,5 +28,12 @@ namespace NuGet.Services.Metadata.Catalog
             return null;
         }
 
+        /// <summary>
+        /// Create the core graph used in CreateContent(context)
+        /// </summary>
+        public virtual IGraph CreateContentGraph(CatalogContext context)
+        {
+            return null;
+        }
     }
 }

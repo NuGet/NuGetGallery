@@ -1,0 +1,14 @@
+﻿{
+    "StorageConnectionString": "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;",
+    "OutputStorageConnectionString": "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;",
+    "PackagesStorageConnectionString": "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;",
+    "GalleryConnectionString": "Data Source=;Initial Catalog=NuGetGallery;Integrated Security=False;Encrypt=True",
+    "CatalogContainer": "catalog-0",
+    "RegistrationContainer": "registration-0",
+    "GalleryPageContainer": "gallerypages-0",
+    "CatalogIndex": "http://example.org/catalog-0/index.json",
+    "ContentBaseAddress": "https://example.org/",
+    "BaseAddress": "https://example.org/",
+    "tmp": "tmp-0",
+    "localtmp": "c:\\canton-tmp"
+}
