@@ -394,7 +394,8 @@ namespace NuGet.Services.Metadata.Catalog
                     ArtifactReader artifactReader = new ArtifactReader(reader);
 
                     supportedFrameworks = artifactReader.GetSupportedFrameworks();
-                    groups = artifactReader.GetArtifactGroups();
+
+                    // groups = artifactReader.GetArtifactGroups();
                 }
             }
             catch (Exception e)
@@ -409,6 +410,7 @@ namespace NuGet.Services.Metadata.Catalog
         {
             IList<PackageEntry> result = new List<PackageEntry>();
 
+            /*  Remove this in Preview
             foreach (ZipArchiveEntry entry in package.Entries)
             {
                 if (entry.FullName.EndsWith("/.rels", StringComparison.OrdinalIgnoreCase))
@@ -428,6 +430,7 @@ namespace NuGet.Services.Metadata.Catalog
 
                 result.Add(new PackageEntry(entry));
             }
+            */
 
             return result;
         }
@@ -460,7 +463,7 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
-        public static CatalogItem CreateCatalogItem(Stream stream, DateTime published, string packageHash, string originName)
+        public static CatalogItem CreateCatalogItem(Stream stream, DateTime? published, string packageHash, string originName)
         {
             try
             {

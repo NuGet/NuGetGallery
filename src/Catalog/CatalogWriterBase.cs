@@ -12,8 +12,8 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public abstract class CatalogWriterBase : IDisposable
     {
-        List<CatalogItem> _batch;
-        bool _open;
+        protected List<CatalogItem> _batch;
+        protected bool _open;
 
         public CatalogWriterBase(Storage storage, ICatalogGraphPersistence graphPersistence = null, CatalogContext context = null)
         {
@@ -58,7 +58,7 @@ namespace NuGet.Services.Metadata.Catalog
             return Commit(DateTime.UtcNow, commitMetadata);
         }
 
-        public async Task Commit(DateTime commitTimeStamp, IGraph commitMetadata = null)
+        public virtual async Task Commit(DateTime commitTimeStamp, IGraph commitMetadata = null)
         {
             if (!_open)
             {
