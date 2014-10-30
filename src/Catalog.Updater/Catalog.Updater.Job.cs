@@ -122,6 +122,37 @@ namespace Catalog.Updater
                 Trace.TraceError(ex.ToString());
                 return false;
             }
+            catch(AggregateException ex)
+            {
+                if(ShouldThrow(ex))
+                {
+                    throw;
+                }
+                return false;
+            }
+            catch(Exception ex)
+            {
+                if(ShouldThrow(ex.InnerException))
+                {
+                    throw;
+                }
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool ShouldThrow(Exception ex)
+        {
+            if (ex != null && ex is AggregateException)
+            {
+                var aggregateEx = ex as AggregateException;
+                if (aggregateEx.InnerExceptions.Count == 1 && aggregateEx.InnerExceptions[0] is HttpRequestException)
+                {
+                    Trace.TraceError(ex.ToString());
+                    return false;
+                }
+            }
 
             return true;
         }
