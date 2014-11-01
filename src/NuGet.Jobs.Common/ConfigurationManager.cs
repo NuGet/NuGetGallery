@@ -14,6 +14,7 @@ namespace NuGet.Jobs.Common
         public const string SqlWarehouse = "NUGETJOBS_SQL_WAREHOUSE";
         public const string StorageGallery = "NUGETJOBS_STORAGE_GALLERY";
         public const string StoragePrimary = "NUGETJOBS_STORAGE_PRIMARY";
+        public const string StorageBackup = "NUGETJOBS_STORAGE_BACKUP";
     }
 
     /// <summary>
@@ -52,6 +53,14 @@ namespace NuGet.Jobs.Common
         // Other Argument names
         public const string CdnBaseAddress = "CdnBaseAddress";
         public const string GalleryBaseAddress = "GalleryBaseAddress";
+
+        // Arguments specific to ArchivePackages job
+        public const string Source = "Source";
+        public const string PrimaryDestination = "PrimaryDestination";
+        public const string SecondaryDestination = "SecondaryDestination";
+        public const string SourceContainerName = "SourceContainerName";
+        public const string DestinationContainerName = "DestinationContainerName";
+        public const string CursorBlob = "CursorBlob";
     }
     /// <summary>
     /// This class is used to retrieve and expose the known azure configuration settings 
