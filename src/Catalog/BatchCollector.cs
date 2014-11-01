@@ -36,10 +36,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             IEnumerable<JToken> rootItems = root["items"].OrderBy(item => item["commitTimeStamp"].ToObject<DateTime>());
 
-            DateTime frontDateTime = front.Value;
-            DateTime backDateTime = back.Value;
-
-            DateTime resumeDateTime = frontDateTime;
+            DateTime resumeDateTime = front.Value;
 
             bool acceptNextBatch = true;
 
@@ -52,7 +49,7 @@ namespace NuGet.Services.Metadata.Catalog
 
                 DateTime rootItemCommitTimeStamp = rootItem["commitTimeStamp"].ToObject<DateTime>();
 
-                if (rootItemCommitTimeStamp <= frontDateTime)
+                if (rootItemCommitTimeStamp <= front.Value)
                 {
                     continue;
                 }
@@ -66,12 +63,12 @@ namespace NuGet.Services.Metadata.Catalog
                 {
                     DateTime pageItemCommitTimeStamp = pageItem["commitTimeStamp"].ToObject<DateTime>();
 
-                    if (pageItemCommitTimeStamp <= frontDateTime)
+                    if (pageItemCommitTimeStamp <= front.Value)
                     {
                         continue;
                     }
 
-                    if (pageItemCommitTimeStamp > backDateTime)
+                    if (pageItemCommitTimeStamp > back.Value)
                     {
                         break;
                     }
@@ -105,7 +102,7 @@ namespace NuGet.Services.Metadata.Catalog
 
         async Task<bool> ProcessBatch(CollectorHttpClient client, IList<JObject> items, JToken context, ReadWriteCursor front, DateTime resumeDateTime)
         {
-            bool acceptNextBatch = await OnProcessBatch(client, items, (JObject)context);
+            bool acceptNextBatch = await OnProcessBatch(client, items, (JObject)context, resumeDateTime);
             BatchCount++;
             items.Clear();
 
@@ -113,6 +110,11 @@ namespace NuGet.Services.Metadata.Catalog
             await front.Save();
 
             return acceptNextBatch;
+        }
+
+        protected virtual Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context, DateTime resumeDateTime)
+        {
+            return OnProcessBatch(client, items, context);
         }
 
         protected abstract Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context);

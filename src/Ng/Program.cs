@@ -17,6 +17,10 @@ namespace Ng
             Trace.Listeners.Add(new ConsoleTraceListener());
             Trace.AutoFlush = true;
 
+            //DEBUg DEBUG DEBUG
+            Catalog2Lucene.Run(args);
+            return;
+
             if (args.Length > 0 && String.Equals("dbg", args[0], StringComparison.OrdinalIgnoreCase))
             {
                 args = args.Skip(1).ToArray();

@@ -64,6 +64,17 @@ namespace Ng
             return value;
         }
 
+        public static string GetLuceneRegistrationTemplate(IDictionary<string, string> arguments)
+        {
+            string value;
+            if (!arguments.TryGetValue("-luceneRegistrationTemplate", out value))
+            {
+                TraceRequiredArgument("-luceneRegistrationTemplate");
+                return null;
+            }
+            return value;
+        }
+
         public static string GetContentBaseAddress(IDictionary<string, string> arguments)
         {
             string value;
@@ -148,6 +159,19 @@ namespace Ng
             }
         }
 
+        public static bool GetLuceneReset(IDictionary<string, string> arguments)
+        {
+            string luceneResetStr = "false";
+            if (arguments.TryGetValue("-luceneReset", out luceneResetStr))
+            {
+                return (luceneResetStr.Equals("true", StringComparison.InvariantCultureIgnoreCase));
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public static Lucene.Net.Store.Directory GetLuceneDirectory(IDictionary<string, string> arguments)
         {
             string luceneDirectoryType;
@@ -171,6 +195,7 @@ namespace Ng
                 if (!directoryInfo.Exists)
                 {
                     directoryInfo.Create();
+                    directoryInfo.Refresh();
                 }
 
                 return new SimpleFSDirectory(directoryInfo);

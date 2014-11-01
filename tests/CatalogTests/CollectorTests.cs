@@ -47,7 +47,12 @@ namespace CatalogTests
 
         public static async Task Test2Async()
         {
-            DistinctPackageIdCollector collector = new DistinctPackageIdCollector(new Uri("http://nugetprod0.blob.core.windows.net/ng-catalogs/0/index.json"));
+            Func<HttpMessageHandler> handlerFunc = () =>
+            {
+                return new VerboseHandler();
+            };
+
+            DistinctPackageIdCollector collector = new DistinctPackageIdCollector(new Uri("https://az320820.vo.msecnd.net/catalog-0/index.json"), handlerFunc);
             await collector.Run();
 
             foreach (string s in collector.Result)
@@ -97,7 +102,7 @@ namespace CatalogTests
 
         public static async Task Test4Async()
         {
-            StorageFactory storageFactory = new FileStorageFactory(new Uri("http://localhost:8000/reg/"), @"c:\data\site\reg");
+            StorageFactory storageFactory = new FileStorageFactory(new Uri("http://localhost:8000/reg2/"), @"c:\data\site\reg2");
 
             //StorageCredentials credentials = new StorageCredentials("", "");
             //CloudStorageAccount account = new CloudStorageAccount(credentials, true);
@@ -105,7 +110,8 @@ namespace CatalogTests
 
             storageFactory.Verbose = true;
 
-            Uri index = new Uri("https://localhost:8000/ordered/index.json");
+            Uri index = new Uri("https://localhost:8000/dotnetrdf/index.json");
+            //Uri index = new Uri("https://localhost:8000/ordered/index.json");
             //Uri index = new Uri("https://nugetjohtaylo.blob.core.windows.net/ver36/catalog/index.json");
 
             Func<HttpMessageHandler> handlerFunc = () =>
@@ -144,9 +150,9 @@ namespace CatalogTests
                 return new VerboseHandler();
             };
 
-            Uri index = new Uri("http://nugetjohtaylo.blob.core.windows.net/ver38/catalog/index.json");
+            Uri index = new Uri("https://az320820.vo.msecnd.net/catalog-0/index.json");
 
-            FindFirstCollector collector = new FindFirstCollector(index, "xact.ui.web.mvc", "0.0.4773", handlerFunc);
+            FindFirstCollector collector = new FindFirstCollector(index, "HtmlTags", "1.2.0.145", handlerFunc);
             //FindFirstCollector collector = new FindFirstCollector("abot", "1.2.1-alpha");
 
             await collector.Run();

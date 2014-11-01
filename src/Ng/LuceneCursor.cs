@@ -29,9 +29,11 @@ namespace Ng
         {
             if (IndexReader.IndexExists(_directory))
             {
-                IndexWriter indexWriter = new IndexWriter(_directory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30), false, IndexWriter.MaxFieldLength.UNLIMITED);
-
-                IDictionary<string, string> commitUserData = indexWriter.GetReader().CommitUserData;
+                IDictionary<string, string> commitUserData;
+                using (IndexWriter indexWriter = new IndexWriter(_directory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30), false, IndexWriter.MaxFieldLength.UNLIMITED))
+                {
+                    commitUserData = indexWriter.GetReader().CommitUserData;
+                }
 
                 string value;
                 if (commitUserData.TryGetValue("commitTimeStamp", out value))

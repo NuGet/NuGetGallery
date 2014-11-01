@@ -1,5 +1,6 @@
 ﻿using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -9,6 +10,7 @@ using NuGet.Services.Metadata.Catalog;
 using NuGetGallery;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -17,7 +19,7 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SearchIndexFromCatalog
+namespace Ng
 {
     public class SearchIndexFromCatalogCollector: BatchCollector
     {
@@ -30,42 +32,69 @@ namespace SearchIndexFromCatalog
 
         static Dictionary<string, string> _frameworkNames = new Dictionary<string, string>();
 
-        public SearchIndexFromCatalogCollector(Uri index, Lucene.Net.Store.Directory directory, string registrationTemplate, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 100)
-            : base(index, handlerFunc, 100)
+        public SearchIndexFromCatalogCollector(Uri index, Lucene.Net.Store.Directory directory, string registrationTemplate, Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, handlerFunc, MaxDocumentsPerCommit)
         {
             _directory = directory;
             _packageTemplate = registrationTemplate;
         }
 
-        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context, DateTime resumeDateTime)
         {
             Task<Document>[] packages = items.Select(x => MakePackage(client, x)).Where(x => x != null).ToArray();
 
             await Task.WhenAll(packages);
 
-            foreach (Task<Document> pkg in packages)
+            using (IndexWriter indexWriter = CreateIndexWriter(_directory))
             {
-                if (pkg != null && pkg.Result != null) Console.WriteLine("Package: {0}", pkg.Result.Get("Id"));
-            }
+                Trace.TraceInformation("Index contains {0} documents", indexWriter.NumDocs());
 
-            using (IndexWriter indexWriter = CreateIndexWriter(_directory, create: false))
-            {
+                int i = 0;
+
                 foreach (Document doc in packages.Select(x => x.Result))
                 {
                     if (doc != null)
                     {
-                        Console.WriteLine("Index document: {0}", doc.Get("Id"));
+                        string id = doc.Get("Id");
+                        string version = doc.Get("Version");
+
+                        indexWriter.DeleteDocuments(CreateDeleteQuery(id, version));
+
                         indexWriter.AddDocument(doc);
+
+                        Trace.TraceInformation("ADD: {0}/{1}", id, version);
+
+                        i++;
                     }
                 }
-                indexWriter.Commit();
+
+                indexWriter.Commit(new Dictionary<string, string> { { "commitTimeStamp", resumeDateTime.ToString("O") } });
+
+                Trace.TraceInformation("COMMIT {0} documents, index contains {1} documents", i, indexWriter.NumDocs());
             }
 
             return true;
         }
 
-        internal static IndexWriter CreateIndexWriter(Lucene.Net.Store.Directory directory, bool create)
+        protected override Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
         {
+            return Task.FromResult(true);
+        }
+
+        internal static IndexWriter CreateIndexWriter(Lucene.Net.Store.Directory directory)
+        {
+            bool create = !IndexReader.IndexExists(directory);
+
+            directory.EnsureOpen();
+
+            if (!create)
+            {
+                if (IndexWriter.IsLocked(directory))
+                {
+                    IndexWriter.Unlock(directory);
+                }
+            }
+
             IndexWriter indexWriter = new IndexWriter(directory, new PackageAnalyzer(), create, IndexWriter.MaxFieldLength.UNLIMITED);
             indexWriter.MergeFactor = MergeFactor;
             indexWriter.MaxMergeDocs = MaxMergeDocs;
@@ -73,6 +102,17 @@ namespace SearchIndexFromCatalog
             indexWriter.SetSimilarity(new CustomSimilarity());
 
             return indexWriter;
+        }
+
+        Query CreateDeleteQuery(string id, string version)
+        {
+            //  note as we are not using the QueryParser we are not running this data through the analyzer so we need to mimic its behavior
+            id = id.ToLowerInvariant();
+
+            BooleanQuery query = new BooleanQuery();
+            query.Add(new BooleanClause(new TermQuery(new Term("Id", id)), Occur.MUST));
+            query.Add(new BooleanClause(new TermQuery(new Term("Version", version)), Occur.MUST));
+            return query;
         }
 
         private async Task<Document> MakePackage(CollectorHttpClient client, JObject catalogEntry)
@@ -136,7 +176,9 @@ namespace SearchIndexFromCatalog
                         if (!_frameworkNames.ContainsKey(framework))
                         {
                             _frameworkNames.Add(framework, frameworkName.FullName);
-                            Console.WriteLine("New framework string: {0}, {1}", framework, frameworkName.FullName);
+                            
+                            Trace.TraceInformation("New framework string: {0}, {1}", framework, frameworkName.FullName);
+                            
                             using (var writer = File.AppendText("frameworks.txt"))
                             {
                                 writer.WriteLine("{0}: {1}", framework, frameworkName.FullName);
