@@ -120,6 +120,7 @@
     <Compile Include="BatchCollector.cs" />
     <Compile Include="CatalogIndexEntry.cs" />
     <Compile Include="CatalogIndexReader.cs" />
+    <Compile Include="CommitCollector.cs" />
     <Compile Include="HttpReadCursor.cs" />
     <Compile Include="NuspecCollector.cs" />
     <Compile Include="RegistrationCatalogCreator.cs" />
@@ -130,6 +131,7 @@
     <Compile Include="SortingGraphCollector.cs" />
     <Compile Include="StoreCollector.cs" />
     <Compile Include="Test\PrintCollector.cs" />
+    <Compile Include="Test\PrintCommitCollector.cs" />
     <Compile Include="VerboseFileSystemEmulatorHandler.cs" />
     <Compile Include="Test\DistinctDependencyPackageIdCollector.cs" />
     <Compile Include="Test\DistinctPackageIdCollector.cs" />

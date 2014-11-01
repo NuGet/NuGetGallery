@@ -23,7 +23,7 @@ namespace CatalogTests
                 //BuilderTests.Test0();
                 //BuilderTests.Test1();
                 //BuilderTests.Test2();
-                BuilderTests.Test3();
+                //BuilderTests.Test3();
 
                 //CollectorTests.Test0();
                 //CollectorTests.Test1();
@@ -31,6 +31,7 @@ namespace CatalogTests
                 //CollectorTests.Test4();
                 //CollectorTests.Test5();
                 //CollectorTests.Test6();
+                CollectorTests.Test7();
 
                 //MakeTestCatalog.Test0();
 

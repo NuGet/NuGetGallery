@@ -206,5 +206,36 @@ namespace CatalogTests
 
             Test6Async().Wait();
         }
+
+        public static async Task Test7Async()
+        {
+            //VerboseHandler handler = new VerboseHandler();
+
+            //FindFirstCollector collector = new FindFirstCollector("xact.ui.web.mvc", "0.0.4773");
+            //FindFirstCollector collector = new FindFirstCollector("abot", "1.2.1-alpha");
+
+            Func<HttpMessageHandler> handlerFunc = () =>
+            {
+                return new FileSystemEmulatorHandler
+                {
+                    BaseAddress = new Uri("http://localhost:8000"),
+                    RootFolder = @"c:\data\site",
+                    InnerHandler = new HttpClientHandler()
+                };
+            };
+
+            CollectorBase collector = new PrintCommitCollector(new Uri("http://localhost:8000/dotnetrdf/index.json"), handlerFunc);
+
+            await collector.Run();
+
+            Console.WriteLine("http requests: {0}", collector.RequestCount);
+        }
+
+        public static void Test7()
+        {
+            Console.WriteLine("CollectorTests.Test7");
+
+            Test7Async().Wait();
+        }
     }
 }

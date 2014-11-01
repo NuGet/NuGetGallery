@@ -27,16 +27,17 @@ namespace CatalogTests
             //Storage storage = new FileStorage("http://localhost:8000/full", @"c:\data\site\full");
             Storage storage = new FileStorage("http://localhost:8000/dotnetrdf", @"c:\data\site\dotnetrdf");
 
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 600);
+            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 15);
 
-            const int BatchSize = 200;
+            const int BatchSize = 10;
             int i = 0;
 
             int commitCount = 0;
 
             DirectoryInfo directoryInfo = new DirectoryInfo(nuspecs);
             //foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("*.xml"))
-            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("dotnetrdf.*.xml"))
+            //foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("dotnetrdf.*.xml"))
+            foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles("entityframework.*.xml"))
             {
                 writer.Add(new NuspecPackageCatalogItem(fileInfo.FullName));
 
