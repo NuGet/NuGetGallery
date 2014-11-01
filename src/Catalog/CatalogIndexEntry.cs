@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGet.Canton
+namespace NuGet.Services.Metadata.Catalog
 {
     public class CatalogIndexEntry : IComparable<CatalogIndexEntry>
     {
@@ -34,6 +34,14 @@ namespace NuGet.Canton
             }
         }
 
+        public IEnumerable<string> Types
+        {
+            get
+            {
+                return new string[] { _type };
+            }
+        }
+
         public string Id
         {
             get
@@ -41,6 +49,23 @@ namespace NuGet.Canton
                 return _id;
             }
         }
+
+        public NuGetVersion Version
+        {
+            get
+            {
+                return _version;
+            }
+        }
+
+        public string CommitId
+        {
+            get
+            {
+                return _commitId;
+            }
+        }
+
 
         public DateTime CommitTimeStamp
         {
@@ -50,19 +75,12 @@ namespace NuGet.Canton
             }
         }
 
-        /// <summary>
-        /// Compare on the TS
-        /// </summary>
-        public static int Compare(CatalogIndexEntry x, CatalogIndexEntry y)
-        {
-            return x.CommitTimeStamp.CompareTo(y.CommitTimeStamp);
-        }
-
         public int CompareTo(CatalogIndexEntry other)
         {
-            return Compare(this, other);
+            return CommitTSComparer.Compare(this, other);
         }
 
+        // common comparers for sorting and creating sets from these entries
         public static CatalogIndexEntryIdComparer IdComparer
         {
             get
@@ -70,15 +88,27 @@ namespace NuGet.Canton
                 return new CatalogIndexEntryIdComparer();
             }
         }
+
+        public static CatalogIndexEntryDateComparer CommitTSComparer
+        {
+            get
+            {
+                return new CatalogIndexEntryDateComparer();
+            }
+        }
     }
+
+    public class CatalogIndexEntryDateComparer : IComparer<CatalogIndexEntry>
+    {
+        public int Compare(CatalogIndexEntry x, CatalogIndexEntry y)
+        {
+            return x.CommitTimeStamp.CompareTo(y.CommitTimeStamp);
+        }
+    }
+
 
     public class CatalogIndexEntryIdComparer : IEqualityComparer<CatalogIndexEntry>
     {
-        public CatalogIndexEntryIdComparer()
-        {
-
-        }
-
         public bool Equals(CatalogIndexEntry x, CatalogIndexEntry y)
         {
             return StringComparer.OrdinalIgnoreCase.Equals(x.Id, y.Id);

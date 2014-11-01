@@ -111,8 +111,6 @@
     <Compile Include="CantonCatalogItem.cs" />
     <Compile Include="CantonCursor.cs" />
     <Compile Include="CantonUtilities.cs" />
-    <Compile Include="CatalogIndexEntry.cs" />
-    <Compile Include="CatalogIndexReader.cs" />
     <Compile Include="CatalogPageCreator.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="CantonConstants.cs" />

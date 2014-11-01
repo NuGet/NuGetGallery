@@ -118,6 +118,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BatchCollector.cs" />
+    <Compile Include="CatalogIndexEntry.cs" />
+    <Compile Include="CatalogIndexReader.cs" />
     <Compile Include="HttpReadCursor.cs" />
     <Compile Include="NuspecCollector.cs" />
     <Compile Include="RegistrationCatalogCreator.cs" />

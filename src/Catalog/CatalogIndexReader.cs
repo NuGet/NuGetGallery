@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGet.Canton
+namespace NuGet.Services.Metadata.Catalog
 {
     public class CatalogIndexReader
     {
