@@ -27,6 +27,7 @@ namespace NuGet.Jobs.Common
         // Static members
         private static ConcurrentQueue<ConcurrentQueue<string>> LogQueues;
         private static ConcurrentQueue<string> CurrentLogQueue;
+        private static ConcurrentQueue<string> LocalOnlyLogQueue;
         private static int JobLogBatchCounter;
         private static int JobQueueBatchCounter;
 
@@ -54,6 +55,7 @@ namespace NuGet.Jobs.Common
             Interlocked.Exchange(ref CurrentLogQueue, new ConcurrentQueue<string>());
             Interlocked.Exchange(ref JobLogBatchCounter, 0);
             Interlocked.Exchange(ref JobQueueBatchCounter, 0);
+            Interlocked.Exchange(ref LocalOnlyLogQueue, new ConcurrentQueue<string>());
 
             var cstr = Environment.GetEnvironmentVariable(EnvironmentVariableKeys.StoragePrimary);
             if(cstr == null)
@@ -69,6 +71,7 @@ namespace NuGet.Jobs.Common
             JobLogNamePrefix = String.Format("{0}/{1}/{2}", jobName, dt.ToString("yyyy/MM/dd/HH/mm/ss/fffffff"), Environment.MachineName);
             JobLocalLogPathPrefix = Path.Combine(nugetJobsLocalPath, String.Format("{0}-{1}-", jobName, dt.ToString("yyyy-MM-dd-HH-mm-ss-fffffff")));
             Task.Run(() => FlushRunner());
+            Task.Run(() => LocalLogFlushRunner());
         }
 
         protected override void Log(TraceEventType traceEventType, string message)
@@ -102,14 +105,8 @@ namespace NuGet.Jobs.Common
                 FlushCurrentQueue();
             }
 
+            LocalOnlyLogQueue.Enqueue(messageWithTraceLevel);
             CurrentLogQueue.Enqueue(messageWithTraceLevel);
-
-            // In addition to writing the message to the queue in memory, also write it to the local log file
-            // In case of an exception where the process crashes, messages not flushed to blob storage can still be found in the local log file
-            using (var writer = File.AppendText(GetJobLocalLogPath(JobQueueBatchCounter)))
-            {
-                writer.WriteLine(messageWithTraceLevel);
-            }
         }
 
         private void FlushRunner()
@@ -126,6 +123,34 @@ namespace NuGet.Jobs.Common
 
             // The following indicates that all the log flushing is done
             Interlocked.Exchange(ref JobLogBatchCounter, -1);
+        }
+
+        private void LocalLogFlushRunner()
+        {
+            while (LocalOnlyLogQueue != null)
+            {
+                LocalLogFlush();
+            }
+        }
+
+        void LocalLogFlush()
+        {
+            try
+            {
+                using (var writer = File.AppendText(GetJobLocalLogPath(JobQueueBatchCounter)))
+                {
+                    string content;
+                    while (LocalOnlyLogQueue != null && LocalOnlyLogQueue.TryDequeue(out content))
+                    {
+                        writer.WriteLine(content);
+                        writer.Flush();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // DO NOTHING
+            }
         }
 
         private void FlushCurrentQueue()
@@ -149,14 +174,6 @@ namespace NuGet.Jobs.Common
                 {
                     string blobName = String.Format(JobLogNameFormat, JobLogNamePrefix, JobLogBatchCounter.ToString(JobLogBatchCounterLeadingZeroSpecifier));
                     Save(blobName, headQueue);
-
-                    // At this point, logs corresponding to batch JobLogBatchCounter has already been uploaded to blob storage
-                    // So, go ahead and delete the corresponding local log file if one exists. Do so before incrementing JobLogBatchCounter
-                    var jobLocalLogPath = GetJobLocalLogPath(JobLogBatchCounter);
-                    if(File.Exists(jobLocalLogPath))
-                    {
-                        File.Delete(jobLocalLogPath);
-                    }
                     Interlocked.Increment(ref JobLogBatchCounter);
                 }
             }
@@ -190,6 +207,25 @@ namespace NuGet.Jobs.Common
             Interlocked.Exchange(ref LogQueues, null);
             var endedLogBlobName = String.Format(JobLogNameFormat, JobLogNamePrefix, EndedLogName);
             Save(endedLogBlobName, jobEndMessage);
+
+            while(!LocalOnlyLogQueue.IsEmpty)
+            {
+                // DO NOTHING
+                LogConsoleOnly(TraceEventType.Information, "Waiting for local logging flush runner loop to terminate...");
+                Thread.Sleep(2000);
+            }
+            LogConsoleOnly(TraceEventType.Information, "Setting Local log only queue to null");
+            LocalOnlyLogQueue = null;
+
+            // At this point, the logs are all uploaded to azure and the current job run is done. Delete them
+            for (int i = 0; i <= JobQueueBatchCounter; i++)
+            {
+                var jobLocalLogPath = GetJobLocalLogPath(i);
+                if (File.Exists(jobLocalLogPath))
+                {
+                    File.Delete(jobLocalLogPath);
+                }
+            }
             LogConsoleOnly(TraceEventType.Information, "Successfully completed flushing of logs");
         }
 
