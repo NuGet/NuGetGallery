@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using VDS.RDF;
@@ -152,43 +153,48 @@ namespace Ng
             int top = 20;
             int timeout = 300;
 
-            Func<HttpMessageHandler> handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
-
-            HttpMessageHandler handler = (handlerFunc != null) ? handlerFunc() : new WebRequestHandler { AllowPipelining = true };
-
-            using (HttpClient client = new HttpClient(handler))
+            while (true)
             {
-                client.Timeout = TimeSpan.FromSeconds(timeout);
+                Func<HttpMessageHandler> handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
 
-                //  fetch and add all newly CREATED packages - in order
+                HttpMessageHandler handler = (handlerFunc != null) ? handlerFunc() : new WebRequestHandler { AllowPipelining = true };
 
-                SortedList<DateTime, IList<Uri>> createdPackages;
-                do
+                using (HttpClient client = new HttpClient(handler))
                 {
-                    DateTime lastCreated = await GetCatalogProperty(storage, LastCreated);
-                    Trace.TraceInformation("CATALOG LastCreated: {0}", lastCreated.ToString("O"));
+                    client.Timeout = TimeSpan.FromSeconds(timeout);
 
-                    createdPackages = await GetCreatedPackages(client, gallery, lastCreated, top);
-                    Trace.TraceInformation("FEED CreatedPackages: {0}", createdPackages.Count);
+                    //  fetch and add all newly CREATED packages - in order
 
-                    await DownloadMetadata2Catalog(client, createdPackages, storage);
+                    SortedList<DateTime, IList<Uri>> createdPackages;
+                    do
+                    {
+                        DateTime lastCreated = await GetCatalogProperty(storage, LastCreated);
+                        Trace.TraceInformation("CATALOG LastCreated: {0}", lastCreated.ToString("O"));
+
+                        createdPackages = await GetCreatedPackages(client, gallery, lastCreated, top);
+                        Trace.TraceInformation("FEED CreatedPackages: {0}", createdPackages.Count);
+
+                        await DownloadMetadata2Catalog(client, createdPackages, storage);
+                    }
+                    while (createdPackages.Count > 0);
+
+                    //  THEN fetch and add all EDITED packages - in order
+
+                    SortedList<DateTime, IList<Uri>> editedPackages;
+                    do
+                    {
+                        DateTime lastEdited = await GetCatalogProperty(storage, LastEdited);
+                        Trace.TraceInformation("CATALOG LastEdited: {0}", lastEdited.ToString("O"));
+
+                        editedPackages = await GetEditedPackages(client, gallery, lastEdited, top);
+                        Trace.TraceInformation("FEED EditedPackages: {0}", editedPackages.Count);
+
+                        await DownloadMetadata2Catalog(client, editedPackages, storage);
+                    }
+                    while (editedPackages.Count > 0);
                 }
-                while (createdPackages.Count > 0);
 
-                //  THEN fetch and add all EDITED packages - in order
-
-                SortedList<DateTime, IList<Uri>> editedPackages;
-                do
-                {
-                    DateTime lastEdited = await GetCatalogProperty(storage, LastEdited);
-                    Trace.TraceInformation("CATALOG LastEdited: {0}", lastEdited.ToString("O"));
-
-                    editedPackages = await GetEditedPackages(client, gallery, lastEdited, top);
-                    Trace.TraceInformation("FEED EditedPackages: {0}", editedPackages.Count);
-
-                    await DownloadMetadata2Catalog(client, editedPackages, storage);
-                }
-                while (editedPackages.Count > 0);
+                Thread.Sleep(interval * 1000);
             }
         }
 
