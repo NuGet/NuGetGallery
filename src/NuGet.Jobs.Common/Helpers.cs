@@ -15,6 +15,7 @@ namespace NuGet.Jobs.Common
         private static readonly string PackageBackupsDirectory = "packages";
         private static readonly string PackageBlobNameFormat = "{0}.{1}.nupkg";
         private static readonly string PackageBackupBlobNameFormat = PackageBackupsDirectory + "/{0}/{1}/{2}.nupkg";
+        private const string ContentTypeJson = "application/json";
 
         public static string GetPackageBlobName(string id, string version)
         {
@@ -63,6 +64,13 @@ namespace NuGet.Jobs.Common
             var container = client.GetContainerReference(containerName);
             var dir = container.GetDirectoryReference(prefix);
             return dir;
+        }
+
+        public static async Task UploadJsonBlob(CloudBlobContainer container, string blobName, string content)
+        {
+            CloudBlockBlob blob = container.GetBlockBlobReference(blobName);
+            blob.Properties.ContentType = ContentTypeJson;
+            await blob.UploadTextAsync(content);
         }
     }
 
