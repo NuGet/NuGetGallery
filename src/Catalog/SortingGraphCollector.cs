@@ -13,13 +13,13 @@ namespace NuGet.Services.Metadata.Catalog
     {
         Uri[] _types;
 
-        public SortingGraphCollector(Uri index, Uri[] types, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
-            : base(index, handlerFunc, batchSize)
+        public SortingGraphCollector(Uri index, Uri[] types, Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, handlerFunc)
         {
             _types = types;
         }
 
-        protected override async Task ProcessSortedBatch(CollectorHttpClient client, KeyValuePair<string, IList<JObject>> sortedBatch, JObject context)
+        protected override async Task ProcessSortedBatch(CollectorHttpClient client, KeyValuePair<string, IList<JObject>> sortedBatch, JToken context)
         {
             ConcurrentDictionary<string, IGraph> graphs = new ConcurrentDictionary<string, IGraph>();
 
@@ -28,7 +28,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             Parallel.ForEach(sortedBatch.Value, options, item =>
             {
-                if (Utils.IsType(context, item, _types))
+                if (Utils.IsType((JObject)context, item, _types))
                 {
                     string itemUri = item["@id"].ToString();
                     var task = client.GetGraphAsync(new Uri(itemUri));

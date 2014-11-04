@@ -15,7 +15,7 @@ namespace NuGet.Canton
     public class BatchRegistrationCollector : RegistrationCatalogCollector
     {
         public BatchRegistrationCollector(Uri catalogUri, StorageFactory factory)
-            : base(null, factory, null, 200)
+            : base(null, factory, null)
         {
 
         }

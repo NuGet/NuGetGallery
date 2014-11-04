@@ -7,24 +7,24 @@ using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog
 {
-    public abstract class StoreCollector : BatchCollector
+    public abstract class StoreCollector : CommitCollector
     {
         Uri[] _types;
 
-        public StoreCollector(Uri index, Uri[] types, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
-            : base(index, handlerFunc, batchSize)
+        public StoreCollector(Uri index, Uri[] types, Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, handlerFunc)
         {
             Options.InternUris = false;
             _types = types;
         }
 
-        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp)
         {
             List<Task<IGraph>> tasks = new List<Task<IGraph>>();
 
             foreach (JObject item in items)
             {
-                if (Utils.IsType(context, item, _types))
+                if (Utils.IsType((JObject)context, item, _types))
                 {
                     Uri itemUri = item["@id"].ToObject<Uri>();
                     tasks.Add(client.GetGraphAsync(itemUri));

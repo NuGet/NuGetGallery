@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 
 namespace CatalogTests
 {
-    public class TestCollector : BatchCollector
+    public class TestCollector : CommitCollector
     {
         string _name;
 
-        public TestCollector(string name, Uri index, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
-            : base(index, handlerFunc, batchSize)
+        public TestCollector(string name, Uri index, Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, handlerFunc)
         {
             _name = name;
         }
 
-        protected override Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        protected override Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp)
         {
             foreach (JObject item in items)
             {

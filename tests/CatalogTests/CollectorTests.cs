@@ -1,8 +1,6 @@
-﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Test;
+﻿using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Metadata.Catalog.Test;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -86,11 +84,11 @@ namespace CatalogTests
 
             Storage storage = new FileStorage("http://localhost:8000/nuspec/", @"c:\data\site\nuspec");
 
-            BatchCollector collector = new NuspecCollector(new Uri("http://localhost:8000/full/index.json"), storage, handlerFunc, 1);
+            CommitCollector collector = new NuspecCollector(new Uri("http://localhost:8000/full/index.json"), storage, handlerFunc);
 
             await collector.Run();
             
-            Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
+            Console.WriteLine("http requests: {0}", collector.RequestCount);
         }
 
         public static void Test3()
@@ -124,7 +122,7 @@ namespace CatalogTests
                 };
             };
 
-            RegistrationCatalogCollector collector = new RegistrationCatalogCollector(index, storageFactory, handlerFunc, 20);
+            RegistrationCatalogCollector collector = new RegistrationCatalogCollector(index, storageFactory, handlerFunc);
 
             collector.ContentBaseAddress = new Uri("http://az320820.vo.msecnd.net");
 
@@ -133,7 +131,7 @@ namespace CatalogTests
 
             await collector.Run();
 
-            Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount, collector.BatchCount);
+            Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount);
         }
 
         public static void Test4()

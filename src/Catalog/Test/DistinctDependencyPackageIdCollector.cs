@@ -10,8 +10,8 @@ namespace NuGet.Services.Metadata.Catalog.Test
 {
     public class DistinctDependencyPackageIdCollector : StoreCollector
     {
-        public DistinctDependencyPackageIdCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
-            : base(index, new Uri[] { Schema.DataTypes.Package }, handlerFunc, batchSize)
+        public DistinctDependencyPackageIdCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, new Uri[] { Schema.DataTypes.Package }, handlerFunc)
         {
             Result = new HashSet<string>();
         }

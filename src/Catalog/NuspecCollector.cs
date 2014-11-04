@@ -19,8 +19,8 @@ namespace NuGet.Services.Metadata.Catalog
 
         Storage _storage;
 
-        public NuspecCollector(Uri index, Storage storage, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 20)
-            : base(index, new Uri[] { Schema.DataTypes.Package }, handlerFunc, batchSize)
+        public NuspecCollector(Uri index, Storage storage, Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, new Uri[] { Schema.DataTypes.Package }, handlerFunc)
         {
             _storage = storage;
         }

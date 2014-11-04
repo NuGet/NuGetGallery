@@ -1,12 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog.Helpers;
-using NuGet.Services.Metadata.Catalog.Persistence;
+﻿using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using VDS.RDF;
-using VDS.RDF.Query;
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -14,8 +11,8 @@ namespace NuGet.Services.Metadata.Catalog
     {
         StorageFactory _storageFactory;
 
-        public RegistrationCatalogCollector(Uri index, StorageFactory storageFactory, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
-            : base(index, new Uri[] { Schema.DataTypes.Package }, handlerFunc, batchSize)
+        public RegistrationCatalogCollector(Uri index, StorageFactory storageFactory, Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, new Uri[] { Schema.DataTypes.Package }, handlerFunc)
         {
             _storageFactory = storageFactory;
 

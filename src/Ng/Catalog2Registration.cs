@@ -17,9 +17,10 @@ namespace Ng
 
             Func<HttpMessageHandler> handlerFunc = () => { return new VerboseHandler(); };
 
-            RegistrationCatalogCollector collector = new RegistrationCatalogCollector(index, storageFactory, handlerFunc, 20);
-
-            collector.ContentBaseAddress = new Uri(contentBaseAddress);
+            CommitCollector collector = new RegistrationCatalogCollector(index, storageFactory, handlerFunc)
+            {
+                ContentBaseAddress = new Uri(contentBaseAddress)
+            };
 
             Storage storage = storageFactory.Create();
             ReadWriteCursor front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.Min.Value);
@@ -30,9 +31,9 @@ namespace Ng
                 bool run = false;
                 do
                 {
-                    Trace.TraceInformation("BEFORE Run cursor @ {0}", front.Value.ToString("O"));
+                    Trace.TraceInformation("BEFORE Run cursor @ {0}", front);
                     run = await collector.Run(front, back);
-                    Trace.TraceInformation("AFTER Run cursor @ {0} batch count: {1}", front.Value.ToString("O"), collector.PreviousRunBatchCount);
+                    Trace.TraceInformation("AFTER Run cursor @ {0}", front);
                 }
                 while (run);
 

@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog
 {
-    public abstract class SortingCollector : BatchCollector
+    public abstract class SortingCollector : CommitCollector
     {
-        public SortingCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
-            : base(index, handlerFunc, batchSize)
+        public SortingCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, handlerFunc)
         {
         }
 
-        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp)
         {
             IDictionary<string, IList<JObject>> sortedItems = new Dictionary<string, IList<JObject>>();
 
@@ -50,6 +50,6 @@ namespace NuGet.Services.Metadata.Catalog
             return item["nuget:id"].ToString();
         }
 
-        protected abstract Task ProcessSortedBatch(CollectorHttpClient client, KeyValuePair<string, IList<JObject>> sortedBatch, JObject context);
+        protected abstract Task ProcessSortedBatch(CollectorHttpClient client, KeyValuePair<string, IList<JObject>> sortedBatch, JToken context);
     }
 }
