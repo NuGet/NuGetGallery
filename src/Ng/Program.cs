@@ -9,7 +9,7 @@ namespace Ng
     {
         static void PrintUsage()
         {
-            Console.WriteLine("usage [feed2catalog|catalog2registration|catalog2lucene]");
+            Console.WriteLine("Usage: ng [feed2catalog|catalog2registration|catalog2lucene]");
         }
 
         static void Main(string[] args)

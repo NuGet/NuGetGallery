@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace NuGet.Services.Metadata.Catalog
 
         public override async Task Load()
         {
-            HttpMessageHandler handler = (_handlerFunc != null) ? _handlerFunc() : null;
+            HttpMessageHandler handler = (_handlerFunc != null) ? _handlerFunc() : new WebRequestHandler { AllowPipelining = true };
 
             using (HttpClient client = new HttpClient(handler))
             {
@@ -30,16 +31,19 @@ namespace NuGet.Services.Metadata.Catalog
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
                     Value = _defaultValue;
-                    return;
                 }
+                else
+                {
+                    response.EnsureSuccessStatusCode();
 
-                response.EnsureSuccessStatusCode();
+                    string json = await response.Content.ReadAsStringAsync();
 
-                string json = await response.Content.ReadAsStringAsync();
-
-                JObject obj = JObject.Parse(json);
-                Value = obj["value"].ToObject<DateTime>();
+                    JObject obj = JObject.Parse(json);
+                    Value = obj["value"].ToObject<DateTime>();
+                }
             }
+
+            Trace.TraceInformation("HttpReadCursor.Load: {0}", this);
         }
     }
 }

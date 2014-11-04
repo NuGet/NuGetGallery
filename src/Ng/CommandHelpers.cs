@@ -2,11 +2,13 @@
 using Lucene.Net.Store.Azure;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 
 namespace Ng
 {
@@ -53,6 +55,17 @@ namespace Ng
             return value;
         }
 
+        public static string GetGallery(IDictionary<string, string> arguments)
+        {
+            string value;
+            if (!arguments.TryGetValue("-gallery", out value))
+            {
+                TraceRequiredArgument("-gallery");
+                return null;
+            }
+            return value;
+        }
+
         public static string GetRegistration(IDictionary<string, string> arguments)
         {
             string value;
@@ -62,6 +75,31 @@ namespace Ng
                 return null;
             }
             return value;
+        }
+
+        public static bool GetVerbose(IDictionary<string, string> arguments)
+        {
+            string verboseStr = "false";
+            arguments.TryGetValue("-verbose", out verboseStr);
+
+            bool verbose = verboseStr == null ? false : verboseStr.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+
+            return verbose;
+        }
+
+        public static int GetInterval(IDictionary<string, string> arguments)
+        {
+            const int DefaultInterval = 3; // seconds
+            int interval = DefaultInterval;
+            string intervalStr = string.Empty;
+            if (arguments.TryGetValue("-interval", out intervalStr))
+            {
+                if (!int.TryParse(intervalStr, out interval))
+                {
+                    interval = DefaultInterval;
+                }
+            }
+            return interval;
         }
 
         public static string GetLuceneRegistrationTemplate(IDictionary<string, string> arguments)
@@ -86,7 +124,7 @@ namespace Ng
             return value;
         }
 
-        public static StorageFactory CreateStorageFactory(IDictionary<string, string> arguments)
+        public static StorageFactory CreateStorageFactory(IDictionary<string, string> arguments, bool verbose)
         {
             string storageBaseAddress;
             if (!arguments.TryGetValue("-storageBaseAddress", out storageBaseAddress))
@@ -94,11 +132,6 @@ namespace Ng
                 TraceRequiredArgument("-storageBaseAddress");
                 return null;
             }
-
-            string storageVerboseStr = "false";
-            arguments.TryGetValue("-storageVerbose", out storageVerboseStr);
-
-            bool storageVerbose = storageVerboseStr == null ? false : storageVerboseStr.Equals("true", StringComparison.InvariantCultureIgnoreCase);
 
             string storageType;
             if (!arguments.TryGetValue("-storageType", out storageType))
@@ -116,7 +149,7 @@ namespace Ng
                     return null;
                 }
 
-                return new FileStorageFactory(new Uri(storageBaseAddress), storagePath) { Verbose = storageVerbose };
+                return new FileStorageFactory(new Uri(storageBaseAddress), storagePath) { Verbose = verbose };
             }
             else if (storageType.Equals("Azure", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -150,7 +183,7 @@ namespace Ng
 
                 StorageCredentials credentials = new StorageCredentials(storageAccountName, storageKeyValue);
                 CloudStorageAccount account = new CloudStorageAccount(credentials, true);
-                return new AzureStorageFactory(account, storageContainer, storagePath, new Uri(storageBaseAddress)) { Verbose = storageVerbose };
+                return new AzureStorageFactory(account, storageContainer, storagePath, new Uri(storageBaseAddress)) { Verbose = verbose };
             }
             else
             {
@@ -232,6 +265,16 @@ namespace Ng
                 Trace.TraceError("Unrecognized luceneDirectoryType \"{0}\"", luceneDirectoryType);
                 return null;
             }
+        }
+
+        public static Func<HttpMessageHandler> GetHttpMessageHandlerFactory(bool verbose)
+        {
+            Func<HttpMessageHandler> handlerFunc = null;
+            if (verbose)
+            {
+                handlerFunc = () => { return new VerboseHandler(); };
+            }
+            return handlerFunc;
         }
     }
 }

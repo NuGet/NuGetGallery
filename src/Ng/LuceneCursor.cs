@@ -29,8 +29,6 @@ namespace Ng
 
         public override Task Load()
         {
-            Trace.TraceInformation("LuceneCursor.Load");
-
             if (IndexReader.IndexExists(_directory))
             {
                 IDictionary<string, string> commitUserData;
@@ -43,7 +41,6 @@ namespace Ng
                 if (commitUserData != null && commitUserData.TryGetValue("commitTimeStamp", out value))
                 {
                     Value = DateTime.ParseExact(value, "o", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
-                    Trace.TraceInformation("Load new Value = {0}", Value.ToString("O"));
                 }
                 else
                 {
@@ -54,6 +51,7 @@ namespace Ng
             {
                 Value = _defaultValue;
             }
+            Trace.TraceInformation("LuceneCursor.Load: {0}", this);
             return Task.FromResult(true);
         }
     }

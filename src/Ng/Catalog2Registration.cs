@@ -11,13 +11,9 @@ namespace Ng
 {
     public static class Catalog2Registration
     {
-        static async Task Loop(string source, StorageFactory storageFactory, string contentBaseAddress)
+        static async Task Loop(string source, StorageFactory storageFactory, string contentBaseAddress, bool verbose, int interval)
         {
-            Uri index = new Uri(source);
-
-            Func<HttpMessageHandler> handlerFunc = () => { return new VerboseHandler(); };
-
-            CommitCollector collector = new RegistrationCatalogCollector(index, storageFactory, handlerFunc)
+            CommitCollector collector = new RegistrationCatalogCollector(new Uri(source), storageFactory, CommandHelpers.GetHttpMessageHandlerFactory(verbose))
             {
                 ContentBaseAddress = new Uri(contentBaseAddress)
             };
@@ -31,14 +27,17 @@ namespace Ng
                 bool run = false;
                 do
                 {
-                    Trace.TraceInformation("BEFORE Run cursor @ {0}", front);
                     run = await collector.Run(front, back);
-                    Trace.TraceInformation("AFTER Run cursor @ {0}", front);
                 }
                 while (run);
 
-                Thread.Sleep(3000);
+                Thread.Sleep(interval * 1000);
             }
+        }
+
+        static void PrintUsage()
+        {
+            Console.WriteLine("Usage: ng catalog2registration -source <catalog> -contentBaseAddress <content-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] [-interval <seconds>]");
         }
 
         public static void Run(string[] args)
@@ -46,30 +45,38 @@ namespace Ng
             IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
             if (arguments == null)
             {
+                PrintUsage();
                 return;
             }
 
             string source = CommandHelpers.GetSource(arguments);
             if (source == null)
             {
+                PrintUsage();
                 return;
             }
+
+            bool verbose = CommandHelpers.GetVerbose(arguments);
+
+            int interval = CommandHelpers.GetInterval(arguments);
 
             string contentBaseAddress = CommandHelpers.GetContentBaseAddress(arguments);
             if (contentBaseAddress == null)
             {
+                PrintUsage();
                 return;
             }
 
-            StorageFactory storageFactory = CommandHelpers.CreateStorageFactory(arguments);
+            StorageFactory storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
             if (storageFactory == null)
             {
+                PrintUsage();
                 return;
             }
 
-            Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\"", source, storageFactory);
+            Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\" interval: {2} seconds", source, storageFactory, interval);
 
-            Loop(source, storageFactory, contentBaseAddress).Wait();
+            Loop(source, storageFactory, contentBaseAddress, verbose, interval).Wait();
         }
     }
 }

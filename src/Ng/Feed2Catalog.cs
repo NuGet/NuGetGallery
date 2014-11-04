@@ -142,7 +142,7 @@ namespace Ng
             return DateTime.MinValue.ToUniversalTime();
         }
 
-        static async Task Loop(string source, StorageFactory storageFactory)
+        static async Task Loop(string gallery, StorageFactory storageFactory, bool verbose, int interval)
         {
             Storage storage = storageFactory.Create();
 
@@ -152,7 +152,11 @@ namespace Ng
             int top = 20;
             int timeout = 300;
 
-            using (HttpClient client = new HttpClient())
+            Func<HttpMessageHandler> handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
+
+            HttpMessageHandler handler = (handlerFunc != null) ? handlerFunc() : new WebRequestHandler { AllowPipelining = true };
+
+            using (HttpClient client = new HttpClient(handler))
             {
                 client.Timeout = TimeSpan.FromSeconds(timeout);
 
@@ -164,7 +168,7 @@ namespace Ng
                     DateTime lastCreated = await GetCatalogProperty(storage, LastCreated);
                     Trace.TraceInformation("CATALOG LastCreated: {0}", lastCreated.ToString("O"));
 
-                    createdPackages = await GetCreatedPackages(client, source, lastCreated, top);
+                    createdPackages = await GetCreatedPackages(client, gallery, lastCreated, top);
                     Trace.TraceInformation("FEED CreatedPackages: {0}", createdPackages.Count);
 
                     await DownloadMetadata2Catalog(client, createdPackages, storage);
@@ -179,7 +183,7 @@ namespace Ng
                     DateTime lastEdited = await GetCatalogProperty(storage, LastEdited);
                     Trace.TraceInformation("CATALOG LastEdited: {0}", lastEdited.ToString("O"));
 
-                    editedPackages = await GetEditedPackages(client, source, lastEdited, top);
+                    editedPackages = await GetEditedPackages(client, gallery, lastEdited, top);
                     Trace.TraceInformation("FEED EditedPackages: {0}", editedPackages.Count);
 
                     await DownloadMetadata2Catalog(client, editedPackages, storage);
@@ -188,29 +192,41 @@ namespace Ng
             }
         }
 
+        static void PrintUsage()
+        {
+            Console.WriteLine("Usage: ng feed2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] [-interval <seconds>]");
+        }
+
         public static void Run(string[] args)
         {
             IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
             if (arguments == null)
             {
+                PrintUsage();
                 return;
             }
 
-            string source = CommandHelpers.GetSource(arguments);
-            if (source == null)
+            string gallery = CommandHelpers.GetGallery(arguments);
+            if (gallery == null)
             {
+                PrintUsage();
                 return;
             }
 
-            StorageFactory storageFactory = CommandHelpers.CreateStorageFactory(arguments);
+            bool verbose = CommandHelpers.GetVerbose(arguments);
+
+            int interval = CommandHelpers.GetInterval(arguments);
+
+            StorageFactory storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
             if (storageFactory == null)
             {
+                PrintUsage();
                 return;
             }
 
-            Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\"", source, storageFactory);
+            Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\" interval: {2}", gallery, storageFactory, interval);
 
-            Loop(source, storageFactory).Wait();
+            Loop(gallery, storageFactory, verbose, interval).Wait();
         }
     }
 }
