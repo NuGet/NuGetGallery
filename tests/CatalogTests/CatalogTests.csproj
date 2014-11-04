@@ -122,6 +122,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ReindexTests.cs" />
     <Compile Include="StorageTests.cs" />
     <Compile Include="TestCollector.cs" />
     <Compile Include="BuilderTests.cs" />
