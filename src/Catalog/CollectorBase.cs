@@ -34,9 +34,9 @@ namespace NuGet.Services.Metadata.Catalog
 
         public async Task<bool> Run(ReadWriteCursor front, ReadCursor back)
         {
-            Trace.TraceInformation("Run ( {0} , {1} )", front, back);
-
             await Task.WhenAll(front.Load(), back.Load());
+
+            Trace.TraceInformation("Run ( {0} , {1} )", front, back);
 
             bool result = false;
 

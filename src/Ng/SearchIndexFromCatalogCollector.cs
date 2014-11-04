@@ -21,25 +21,23 @@ using System.Threading.Tasks;
 
 namespace Ng
 {
-    public class SearchIndexFromCatalogCollector: BatchCollector
+    public class SearchIndexFromCatalogCollector: CommitCollector
     {
-        const int MaxDocumentsPerCommit = 800;      //  The maximum number of Lucene documents in a single commit. The min size for a segment.
         const int MergeFactor = 10;                 //  Define the size of a file in a level (exponentially) and the count of files that constitue a level
         const int MaxMergeDocs = 7999;              //  Except never merge segments that have more docs than this
 
         Lucene.Net.Store.Directory _directory;
-        string _packageTemplate;
+        const string _packageTemplate = "{0}/{1}.json";
 
         static Dictionary<string, string> _frameworkNames = new Dictionary<string, string>();
 
-        public SearchIndexFromCatalogCollector(Uri index, Lucene.Net.Store.Directory directory, string registrationTemplate, Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, handlerFunc, MaxDocumentsPerCommit)
+        public SearchIndexFromCatalogCollector(Uri index, Lucene.Net.Store.Directory directory, Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, handlerFunc)
         {
             _directory = directory;
-            _packageTemplate = registrationTemplate;
         }
 
-        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context, DateTime resumeDateTime)
+        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp)
         {
             Task<Document>[] packages = items.Select(x => MakePackage(client, x)).Where(x => x != null).ToArray();
 
@@ -68,17 +66,17 @@ namespace Ng
                     }
                 }
 
-                indexWriter.Commit(new Dictionary<string, string> { { "commitTimeStamp", resumeDateTime.ToString("O") } });
+                indexWriter.Commit(CreateCommitMetadata(commitTimeStamp));
 
-                Trace.TraceInformation("COMMIT {0} documents, index contains {1} documents", i, indexWriter.NumDocs());
+                Trace.TraceInformation("COMMIT {0} documents, index contains {1} documents commitTimeStamp {2}", i, indexWriter.NumDocs(), commitTimeStamp.ToString("O"));
             }
 
             return true;
         }
 
-        protected override Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        IDictionary<string, string> CreateCommitMetadata(DateTime commitTimeStamp)
         {
-            return Task.FromResult(true);
+            return new Dictionary<string, string> { { "commitTimeStamp", commitTimeStamp.ToString("O") } };
         }
 
         internal static IndexWriter CreateIndexWriter(Lucene.Net.Store.Directory directory)
@@ -115,7 +113,7 @@ namespace Ng
             return query;
         }
 
-        private async Task<Document> MakePackage(CollectorHttpClient client, JObject catalogEntry)
+        private async Task<Document> MakePackage(CollectorHttpClient client, JToken catalogEntry)
         {
             string resultString = await client.GetStringAsync((string)catalogEntry["@id"]);
             JObject result = JObject.Parse(resultString);

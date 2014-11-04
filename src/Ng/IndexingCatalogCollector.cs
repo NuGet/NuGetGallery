@@ -8,41 +8,37 @@ using NuGet.Indexing;
 using NuGet.Services.Metadata.Catalog;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Ng
 {
     //TODO: this is test code
 
-    class IndexingCatalogCollector : BatchCollector
+    class IndexingCatalogCollector : CommitCollector
     {
         Lucene.Net.Store.Directory _directory;
 
-        public IndexingCatalogCollector(Uri index, Lucene.Net.Store.Directory directory, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
-            : base(index, handlerFunc, batchSize)
+        public IndexingCatalogCollector(Uri index, Lucene.Net.Store.Directory directory, Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, handlerFunc)
         {
             _directory = directory;
         }
 
-        protected override Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        protected override Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp)
         {
-            //bool create = !IndexReader.IndexExists(_directory);
-
-            //foreach (JObject item in items)
-            //{
-            //    Console.WriteLine("{0} {1}", item["nuget:id"], item["nuget:version"]);
-            //}
-
             PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30));
             analyzer.AddAnalyzer("Id", new IdentifierKeywordAnalyzer());
+
+            int i = 0;
 
             using (IndexWriter writer = new IndexWriter(_directory, analyzer, false, IndexWriter.MaxFieldLength.UNLIMITED))
             {
                 foreach (JObject item in items)
                 {
+                    i++;
+
                     string id = item["nuget:id"].ToString();
                     string version = item["nuget:version"].ToString();
 
@@ -52,8 +48,6 @@ namespace Ng
 
                     writer.DeleteDocuments(query);
 
-                    //writer.Flush(triggerMerge: false, flushDocStores: true, flushDeletes: true);
-
                     Document doc = new Document();
 
                     doc.Add(new Field("Id", item["nuget:id"].ToString(), Field.Store.YES, Field.Index.ANALYZED));
@@ -62,7 +56,16 @@ namespace Ng
                     writer.AddDocument(doc);
                 }
 
-                writer.Commit();
+                string trace = Guid.NewGuid().ToString();
+
+                writer.Commit(new Dictionary<string, string> 
+                { 
+                    { "commitTimeStamp", commitTimeStamp.ToString("O") },
+                    { "trace", trace }
+                });
+
+                Trace.TraceInformation("COMMIT {0} documents, index contains {1} documents, commitTimeStamp {2}, trace: {3}",
+                    i, writer.NumDocs(), commitTimeStamp.ToString("O"), trace);
             }
 
             return Task.FromResult(true);

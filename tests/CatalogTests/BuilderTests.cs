@@ -25,7 +25,8 @@ namespace CatalogTests
             string nuspecs = @"c:\data\nuget\nuspecs";
 
             //Storage storage = new FileStorage("http://localhost:8000/full", @"c:\data\site\full");
-            Storage storage = new FileStorage("http://localhost:8000/dotnetrdf", @"c:\data\site\dotnetrdf");
+            //Storage storage = new FileStorage("http://localhost:8000/dotnetrdf", @"c:\data\site\dotnetrdf");
+            Storage storage = new FileStorage("http://localhost:8000/ordered", @"c:\data\site\ordered");
 
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 15);
 

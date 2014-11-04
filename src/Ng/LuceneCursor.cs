@@ -3,6 +3,8 @@ using Lucene.Net.Index;
 using NuGet.Services.Metadata.Catalog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Threading.Tasks;
 
 namespace Ng
@@ -27,6 +29,8 @@ namespace Ng
 
         public override Task Load()
         {
+            Trace.TraceInformation("LuceneCursor.Load");
+
             if (IndexReader.IndexExists(_directory))
             {
                 IDictionary<string, string> commitUserData;
@@ -36,9 +40,10 @@ namespace Ng
                 }
 
                 string value;
-                if (commitUserData.TryGetValue("commitTimeStamp", out value))
+                if (commitUserData != null && commitUserData.TryGetValue("commitTimeStamp", out value))
                 {
-                    Value = DateTime.Parse(value);
+                    Value = DateTime.ParseExact(value, "o", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+                    Trace.TraceInformation("Load new Value = {0}", Value.ToString("O"));
                 }
                 else
                 {

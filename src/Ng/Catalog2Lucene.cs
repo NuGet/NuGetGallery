@@ -17,12 +17,8 @@ namespace Ng
         {
             Func<HttpMessageHandler> handlerFunc = () => { return new VerboseHandler(); };
 
-            const string luceneRegistrationTemplate = "{0}/{1}.json";
+            CommitCollector collector = new SearchIndexFromCatalogCollector(new Uri(source), directory, handlerFunc);
 
-            //IndexingCatalogCollector collector = new IndexingCatalogCollector(new Uri(source), directory, handlerFunc, 20);
-            BatchCollector collector = new SearchIndexFromCatalogCollector(new Uri(source), directory, luceneRegistrationTemplate, handlerFunc);
-
-            //ReadWriteCursor front = new MemoryCursor();
             ReadWriteCursor front = new LuceneCursor(directory, MemoryCursor.Min.Value);
             ReadCursor back = new HttpReadCursor(new Uri(registration), MemoryCursor.Max.Value, handlerFunc);
 
@@ -31,9 +27,9 @@ namespace Ng
                 bool run = false;
                 do
                 {
-                    Trace.TraceInformation("BEFORE Run cursor @ {0}", front.Value.ToString("O"));
+                    Trace.TraceInformation("BEFORE Run cursor @ {0}", front);
                     run = await collector.Run(front, back);
-                    Trace.TraceInformation("AFTER Run cursor @ {0} batch count: {1}", front.Value.ToString("O"), collector.PreviousRunBatchCount);
+                    Trace.TraceInformation("AFTER Run cursor @ {0}", front);
                 }
                 while (run);
 
@@ -49,22 +45,6 @@ namespace Ng
                 return;
             }
 
-            //IDictionary<string, string> arguments = new Dictionary<string, string>
-            //{
-            //    //{ "-luceneReset", "true" },
-            //    { "-source", "http://localhost:8000/ordered/index.json" },
-            //    { "-registration", "http://localhost:8000/reg/cursor.json" }, 
-            //    { "-luceneDirectoryType", "file" },
-            //    { "-lucenePath", @"c:\data\site\lucene" }
-            //};
-
-            //IDictionary<string, string> arguments = new Dictionary<string, string>
-            //{
-            //    { "-luceneReset", "true" },
-            //    { "-luceneDirectoryType", "file" },
-            //    { "-lucenePath", @"c:\data\site\lucene" }
-            //};
-
             Lucene.Net.Store.Directory directory = CommandHelpers.GetLuceneDirectory(arguments);
             if (directory == null)
             {
@@ -76,14 +56,14 @@ namespace Ng
             {
                 //PackageIndexing.CreateNewEmptyIndex(directory);
 
-                //if (IndexReader.IndexExists(directory))
-                //{
+                if (IndexReader.IndexExists(directory))
+                {
                     using (IndexWriter writer = new IndexWriter(directory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30), true, IndexWriter.MaxFieldLength.UNLIMITED))
                     {
                         writer.DeleteAll();
                         writer.Commit();
                     }
-                //}
+                }
 
                 return;
             }
