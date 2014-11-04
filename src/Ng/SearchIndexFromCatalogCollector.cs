@@ -185,7 +185,7 @@ namespace Ng
                             }
                         }
                     }
-                    Add(doc, "TargetFramework", framework == "any" ? "any" : frameworkName.ToString(), Field.Store.YES /* NO */, Field.Index.NO, Field.TermVector.NO);
+                    Add(doc, "TargetFramework", framework == "any" ? "any" : (framework == "agnostic" ? "agnostic" : frameworkName.ToString()), Field.Store.YES /* NO */, Field.Index.NO, Field.TermVector.NO);
                 }
             }
 
