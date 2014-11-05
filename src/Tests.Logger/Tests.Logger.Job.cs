@@ -79,6 +79,7 @@ namespace Tests.Logger
             for (int i = 1; i <= 10; i++)
             {
                 Trace.TraceInformation((i * baseNumber).ToString());
+                // Following sleep is simple emulation of some work taking place
                 Thread.Sleep(100);
             }
         }

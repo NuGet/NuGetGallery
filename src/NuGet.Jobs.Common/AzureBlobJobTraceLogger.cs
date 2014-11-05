@@ -45,7 +45,7 @@ namespace NuGet.Jobs.Common
         private CloudStorageAccount LogStorageAccount { get; set; }
         private CloudBlobContainer LogStorageContainer { get; set; }
         private string JobLogNamePrefix { get; set; }
-        private string JobLocalLogPathPrefix { get; set; }
+        private string JobLocalLogFolderPath { get; set; }
 
         public AzureBlobJobTraceLogger(string jobName) : base(jobName)
         {
@@ -69,7 +69,8 @@ namespace NuGet.Jobs.Common
 
             var dt = DateTime.UtcNow;
             JobLogNamePrefix = String.Format("{0}/{1}/{2}", jobName, dt.ToString("yyyy/MM/dd/HH/mm/ss/fffffff"), Environment.MachineName);
-            JobLocalLogPathPrefix = Path.Combine(nugetJobsLocalPath, String.Format("{0}-{1}-", jobName, dt.ToString("yyyy-MM-dd-HH-mm-ss-fffffff")));
+            JobLocalLogFolderPath = Path.Combine(nugetJobsLocalPath, String.Format("{0}-{1}", jobName, dt.ToString("yyyy-MM-dd-HH-mm-ss-fffffff")));
+            Directory.CreateDirectory(JobLocalLogFolderPath);
             Task.Run(() => FlushRunner());
             Task.Run(() => LocalLogFlushRunner());
         }
@@ -218,13 +219,10 @@ namespace NuGet.Jobs.Common
             LocalOnlyLogQueue = null;
 
             // At this point, the logs are all uploaded to azure and the current job run is done. Delete them
-            for (int i = 0; i <= JobQueueBatchCounter; i++)
+            if(Directory.Exists(JobLocalLogFolderPath))
             {
-                var jobLocalLogPath = GetJobLocalLogPath(i);
-                if (File.Exists(jobLocalLogPath))
-                {
-                    File.Delete(jobLocalLogPath);
-                }
+                LogConsoleOnly(TraceEventType.Information, "Deleting local log folder " + JobLocalLogFolderPath);
+                Directory.Delete(JobLocalLogFolderPath, recursive: true);
             }
             LogConsoleOnly(TraceEventType.Information, "Successfully completed flushing of logs");
         }
@@ -250,7 +248,7 @@ namespace NuGet.Jobs.Common
 
         private string GetJobLocalLogPath(int jobLogBatchCounter)
         {
-            return String.Format("{0}{1}.txt", JobLocalLogPathPrefix, jobLogBatchCounter);
+            return Path.Combine(JobLocalLogFolderPath, String.Format("{0}.txt", jobLogBatchCounter));
         }
     }
 }
