@@ -2,15 +2,23 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Tests.Logger
 {
     internal class Job : JobBase
     {
+        private static int BaseNumber = 2;
+
         private const string ScenarioArgumentName = "scenario";
         private const string LogCountArgumentName = "logcount";
-        private const string HelpMessage = "Please provide 1 for successful job, 2 for failed job, 3 for crashed job and 4 for successful job with heavy logging";
+        private const string HelpMessage = @"Please provide
+                        1 for successful job,
+                        2 for failed job,
+                        3 for crashed job,
+                        4 for successful job with heavy logging,
+                        5 for job with multiple threads";
 
         private int? JobScenario { get; set; }
 
@@ -49,8 +57,30 @@ namespace Tests.Logger
                     }
                     return true;
 
+                case 5:
+	                Trace.TraceInformation("Started");
+                    Task[] tasks = new Task[3];
+	                for(int i = 1; i < 4; i++)
+	                {
+                        tasks[i - 1] = LogGen();
+	                }
+                    Task.WaitAll(tasks);
+	                Trace.TraceInformation("Ended");
+                    return true;
+
                 default:
                     throw new ArgumentException("Unknown scenario. " + HelpMessage);
+            }
+        }
+
+        private async Task LogGen()
+        {
+            int baseNumber = Interlocked.Increment(ref BaseNumber);
+            for (int i = 1; i <= 10; i++)
+            {
+                Trace.TraceInformation((i * baseNumber).ToString());
+                // Following sleep is simple emulation of some work taking place
+                Thread.Sleep(100);
             }
         }
     }
