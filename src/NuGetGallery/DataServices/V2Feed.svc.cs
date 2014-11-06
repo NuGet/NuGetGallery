@@ -75,7 +75,7 @@ namespace NuGetGallery
                 // TODO: Async this when I can figure out OData async stuff...
                 .Result
                 .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
-            var result = query.ToList();
+
             return query;
         }
 
