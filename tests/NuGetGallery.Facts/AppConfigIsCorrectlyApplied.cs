@@ -20,7 +20,7 @@ namespace NuGetGallery
             string typeName = "System.Web.Mvc.Controller, System.Web.Mvc, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35";
             Type resolvedType = Type.GetType(typeName);
             Version runtimeVersion = resolvedType.Assembly.GetName().Version;
-            Assert.Equal(new Version("4.0.0.0"), runtimeVersion);
+            Assert.Equal(new Version("4.0.0.1"), runtimeVersion);
         }
     }
 }
