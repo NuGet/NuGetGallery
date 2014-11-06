@@ -5,9 +5,9 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Tests.AzureJobTraceListener")]
+[assembly: AssemblyTitle("Tests.AppConfig.AzureJobTraceListener")]
 [assembly: AssemblyDescription("")]
-[assembly: AssemblyProduct("Tests.AzureJobTraceListener")]
+[assembly: AssemblyProduct("Tests.AppConfig.AzureJobTraceListener")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
@@ -15,7 +15,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("025942ee-4905-46f0-bf5a-0726ead02f87")]
+[assembly: Guid("97beb212-576d-4cae-9ef7-9a9df9da3409")]
 
 // Version information for an assembly consists of the following four values:
 //

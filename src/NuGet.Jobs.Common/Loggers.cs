@@ -7,10 +7,10 @@ using System.Linq;
 namespace NuGet.Jobs.Common
 {
     /// <summary>
-    /// All the jobs MUST use this logger. Since logs from  all the jobs get written to the same file
+    /// All the jobs MUST use this trace listener. Since logs from  all the jobs get written to the same file
     /// We want to ensure that the logs are prefixed with jobName, startTime and more as needed
     /// </summary>
-    public class JobTraceLogger : TraceListener
+    public class JobTraceListener : TraceListener
     {
         protected const int LogTraceEventTypeHeaderLength = 12;
         protected readonly string LogPrefix;
@@ -31,10 +31,9 @@ namespace NuGet.Jobs.Common
           { TraceEventType.Warning, "[Warn]:" },
         };
 
-        public JobTraceLogger(string jobName)
+        public JobTraceListener(string jobName)
         {
             this.TraceOutputOptions = TraceOptions.DateTime;
-            Trace.Listeners.Add(this);
             LogPrefix = String.Format("/{0}-{1}/", jobName, DateTime.UtcNow.ToString("O"));
         }
 
@@ -112,10 +111,20 @@ namespace NuGet.Jobs.Common
             Console.ForegroundColor = currentConsoleForegroundColor;
         }
 
+        public override void Flush()
+        {
+            Flush(skipCurrentBatch: false);
+        }
+
+        public override void Close()
+        {
+            FlushAllAndEnd("Ended");
+        }
+
         [Conditional("TRACE")]
         public virtual void Flush(bool skipCurrentBatch)
         {
-            // Check AzureBlobJobTraceLogger
+            // Check AzureBlobJobTraceListener
         }
 
         /// <summary>
@@ -124,7 +133,7 @@ namespace NuGet.Jobs.Common
         [Conditional("TRACE")]
         public virtual void FlushAllAndEnd(string jobEndMessage)
         {
-            // Check AzureBlobJobTraceLogger
+            // Check AzureBlobJobTraceListener
             Trace.Listeners.Clear();
         }
 
@@ -175,15 +184,15 @@ namespace NuGet.Jobs.Common
     /// </summary>
     public class JobTraceEventListener : EventListener
     {
-        private readonly JobTraceLogger Logger;
+        private readonly JobTraceListener JobTraceListener;
         /// <summary>
         /// {0} would be eventId. {1} would be the formatted event message
         /// Formatted event would be '[<eventId>]: <message>'
         /// </summary>
         private const string EventLogFormat = "[{0}]: {1}";
-        public JobTraceEventListener(JobTraceLogger logger)
+        public JobTraceEventListener(JobTraceListener jobTraceListener)
         {
-            Logger = logger;
+            JobTraceListener = jobTraceListener;
         }
 
         private string GetFormattedEventLog(EventWrittenEventArgs eventData)
@@ -197,17 +206,17 @@ namespace NuGet.Jobs.Common
             {
                 case EventLevel.Critical:
                 case EventLevel.Error:
-                    Trace.TraceError(Logger.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
+                    Trace.TraceError(JobTraceListener.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
                     break;
                 case EventLevel.Warning:
-                    Trace.TraceWarning(Logger.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
+                    Trace.TraceWarning(JobTraceListener.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
                     break;
                 case EventLevel.LogAlways:
                 case EventLevel.Informational:
-                    Trace.TraceInformation(Logger.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
+                    Trace.TraceInformation(JobTraceListener.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
                     break;
                 case EventLevel.Verbose:
-                    Trace.WriteLine(Logger.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
+                    Trace.WriteLine(JobTraceListener.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
                     break;
                 default:
                     // DO Nothing

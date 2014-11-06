@@ -24,7 +24,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.AggregateInGallery", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{6A776396-02B1-475D-A104-26940ADB04AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Logger", "src\Tests.Logger\Tests.Logger.csproj", "{7EBE57A8-D3B1-44FE-A467-AEC5636CA82B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.AzureJobTraceListener", "src\Tests.Logger\Tests.AzureJobTraceListener.csproj", "{7EBE57A8-D3B1-44FE-A467-AEC5636CA82B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.PurgeReplicated", "src\Stats.PurgeReplicated\Stats.PurgeReplicated.csproj", "{9C92FB5A-CA1E-4AE5-BC49-364428AC6DFF}"
 EndProject
@@ -33,6 +33,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchivePackages", "src\ArchivePackages\ArchivePackages.csproj", "{A08F0185-4DA3-4D5B-BF0C-B178596D5789}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.CalculateTotals", "src\Stats.CalculateTotals\Stats.CalculateTotals.csproj", "{7DE24E1D-153D-47B7-BEA5-A97808A01075}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.AppConfig.AzureJobTraceListener", "src\Tests.AppConfig.AzureJobTraceListener\Tests.AppConfig.AzureJobTraceListener.csproj", "{C520044F-0D65-4A12-BC0E-57FB3AAA7546}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -76,6 +78,10 @@ Global
 		{7DE24E1D-153D-47B7-BEA5-A97808A01075}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7DE24E1D-153D-47B7-BEA5-A97808A01075}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7DE24E1D-153D-47B7-BEA5-A97808A01075}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C520044F-0D65-4A12-BC0E-57FB3AAA7546}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C520044F-0D65-4A12-BC0E-57FB3AAA7546}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C520044F-0D65-4A12-BC0E-57FB3AAA7546}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C520044F-0D65-4A12-BC0E-57FB3AAA7546}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -88,6 +94,7 @@ Global
 		{9C92FB5A-CA1E-4AE5-BC49-364428AC6DFF} = {3B227DEE-B610-440F-866E-6F79D413B21F}
 		{7DE24E1D-153D-47B7-BEA5-A97808A01075} = {3B227DEE-B610-440F-866E-6F79D413B21F}
 		{7EBE57A8-D3B1-44FE-A467-AEC5636CA82B} = {6A776396-02B1-475D-A104-26940ADB04AB}
+		{C520044F-0D65-4A12-BC0E-57FB3AAA7546} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{A08F0185-4DA3-4D5B-BF0C-B178596D5789} = {FA5644B5-4F08-43F6-86B3-039374312A47}
 	EndGlobalSection
 EndGlobal

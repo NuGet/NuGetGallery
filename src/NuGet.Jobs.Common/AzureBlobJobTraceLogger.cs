@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 namespace NuGet.Jobs.Common
 {
     /// <summary>
-    /// This logger helps log to Azure Blob Storage
+    /// This TraceListener helps log to Azure Blob Storage
     /// NOTE: For logging within this class which is rare, try using LogConsoleOnly method
     ///       such that any logging from within this class does not hit storage
     /// </summary>
-    public sealed class AzureBlobJobTraceLogger : JobTraceLogger
+    public sealed class AzureBlobJobTraceListener : JobTraceListener
     {
         // 'const's
         private const int MaxExpectedLogsPerRun = 1000000;
@@ -47,7 +47,7 @@ namespace NuGet.Jobs.Common
         private string JobLogNamePrefix { get; set; }
         private string JobLocalLogFolderPath { get; set; }
 
-        public AzureBlobJobTraceLogger(string jobName) : base(jobName)
+        public AzureBlobJobTraceListener(string jobName) : base(jobName)
         {
             string nugetJobsLocalPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), LogStorageContainerName);
             Directory.CreateDirectory(nugetJobsLocalPath);
