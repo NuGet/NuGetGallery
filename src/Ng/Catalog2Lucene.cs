@@ -19,7 +19,8 @@ namespace Ng
             CommitCollector collector = new SearchIndexFromCatalogCollector(new Uri(source), directory, handlerFunc);
 
             ReadWriteCursor front = new LuceneCursor(directory, MemoryCursor.Min.Value);
-            ReadCursor back = new HttpReadCursor(new Uri(registration), MemoryCursor.Max.Value, handlerFunc);
+            
+            ReadCursor back = (registration == null) ? (ReadCursor)MemoryCursor.Max : new HttpReadCursor(new Uri(registration), MemoryCursor.Max.Value, handlerFunc);
 
             while (true)
             {
@@ -36,31 +37,13 @@ namespace Ng
 
         static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng catalog2lucene -source <catalog> -registration <registration-root> -luceneDirectoryType file|azure [-luceneReset true|false] [-lucenePath <file-path>] | [-luceneStorageAccountName <azure-acc> -luceneStorageKeyValue <azure-key> -luceneStorageContainer <azure-container>] [-verbose true|false] [-interval <seconds>]");
+            Console.WriteLine("Usage: ng catalog2lucene -source <catalog> [-registration <registration-root>] -luceneDirectoryType file|azure [-luceneReset true|false] [-lucenePath <file-path>] | [-luceneStorageAccountName <azure-acc> -luceneStorageKeyValue <azure-key> -luceneStorageContainer <azure-container>] [-verbose true|false] [-interval <seconds>]");
         }
 
         public static void Run(string[] args)
         {
             IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
             if (arguments == null)
-            {
-                PrintUsage();
-                return;
-            }
-
-            string source = CommandHelpers.GetSource(arguments);
-            if (source == null)
-            {
-                PrintUsage();
-                return;
-            }
-
-            bool verbose = CommandHelpers.GetVerbose(arguments);
-
-            int interval = CommandHelpers.GetInterval(arguments);
-
-            string registration = CommandHelpers.GetRegistration(arguments);
-            if (registration == null)
             {
                 PrintUsage();
                 return;
@@ -87,6 +70,19 @@ namespace Ng
 
                 return;
             }
+
+            string source = CommandHelpers.GetSource(arguments);
+            if (source == null)
+            {
+                PrintUsage();
+                return;
+            }
+
+            bool verbose = CommandHelpers.GetVerbose(arguments);
+
+            int interval = CommandHelpers.GetInterval(arguments);
+
+            string registration = CommandHelpers.GetRegistration(arguments);
 
             Trace.TraceInformation("CONFIG source: \"{0}\" registration: \"{1}\" interval: {2} seconds", source, registration, interval);
 

@@ -20,10 +20,10 @@ namespace CatalogTests
                 //StorageTests.Test2();
                 //StorageTests.Test3();
 
-                BuilderTests.Test0();
+                //BuilderTests.Test0();
                 //BuilderTests.Test1();
                 //BuilderTests.Test2();
-                //BuilderTests.Test3();
+                BuilderTests.Test3();
 
                 //CollectorTests.Test0();
                 //CollectorTests.Test1();

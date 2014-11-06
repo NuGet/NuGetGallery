@@ -96,7 +96,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Tag = new Uri(Prefixes.NuGet + "tag");
             public static readonly Uri LicenseName = new Uri(Prefixes.NuGet + "licenseName");
             public static readonly Uri SupportedFramework = new Uri(Prefixes.NuGet + "supportedFramework");
-
+            public static readonly Uri Owner = new Uri(Prefixes.NuGet + "owner");
         }
     }
 }

@@ -215,8 +215,11 @@ namespace CatalogTests
 
             //StorageCredentials credentials = new StorageCredentials("", "");
             //CloudStorageAccount account = new CloudStorageAccount(credentials, true);
-            //Storage storage = new AzureStorage(account, "ver38", "catalog");
-            //storage.Verbose = true;
+            //string storageContainer = "test1";
+            //string storagePath = "";
+            //string storageBaseAddress = "http://nugetjohtaylo.blob.core.windows.net/test1";
+            //StorageFactory storageFactory = new AzureStorageFactory(account, storageContainer, storagePath, new Uri(storageBaseAddress)) { Verbose = true };
+            //Storage storage = storageFactory.Create();
 
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 550);
 

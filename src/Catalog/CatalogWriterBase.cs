@@ -233,6 +233,8 @@ namespace NuGet.Services.Metadata.Catalog
             INode commitIdPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCommitId);
             INode countPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCount);
 
+            CheckScheme(resourceUri, graph);
+
             INode resourceNode = graph.CreateUriNode(resourceUri);
 
             foreach (IUriNode itemNode in graph.GetTriplesWithSubjectPredicate(resourceNode, itemPredicate).Select((t) => t.Object))
@@ -330,6 +332,28 @@ namespace NuGet.Services.Metadata.Catalog
             else
             {
                 return new Uri(baseAddress, relativeAddress + ".json");
+            }
+        }
+
+        void CheckScheme(Uri resourceUri, IGraph graph)
+        {
+            INode typePredicate = graph.CreateUriNode(Schema.Predicates.Type);
+
+            Triple catalogRoot = graph.GetTriplesWithPredicateObject(typePredicate, graph.CreateUriNode(Schema.DataTypes.CatalogRoot)).FirstOrDefault();
+            if (catalogRoot != null)
+            {
+                if (((UriNode)catalogRoot.Subject).Uri.Scheme != resourceUri.Scheme)
+                {
+                    throw new ArgumentException("the resource scheme does not match the existing catalog");
+                }
+            }
+            Triple catalogPage = graph.GetTriplesWithPredicateObject(typePredicate, graph.CreateUriNode(Schema.DataTypes.CatalogPage)).FirstOrDefault();
+            if (catalogPage != null)
+            {
+                if (((UriNode)catalogPage.Subject).Uri.Scheme != resourceUri.Scheme)
+                {
+                    throw new ArgumentException("the resource scheme does not match the existing catalog");
+                }
             }
         }
     }
