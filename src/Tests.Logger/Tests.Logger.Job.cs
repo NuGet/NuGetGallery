@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Tests.Logger
+namespace Tests.AzureJobTraceListener
 {
     internal class Job : JobBase
     {
@@ -38,7 +38,7 @@ namespace Tests.Logger
 
         public async override Task<bool> Run()
         {
-            LogCount = LogCount ?? AzureBlobJobTraceLogger.MaxLogBatchSize * 2;
+            LogCount = LogCount ?? AzureBlobJobTraceListener.MaxLogBatchSize * 2;
             switch(JobScenario)
             {
                 case 1:

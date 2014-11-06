@@ -7,8 +7,8 @@
     <ProjectGuid>{7EBE57A8-D3B1-44FE-A467-AEC5636CA82B}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Tests.Logger</RootNamespace>
-    <AssemblyName>Tests.Logger</AssemblyName>
+    <RootNamespace>Tests.AzureJobTraceListener</RootNamespace>
+    <AssemblyName>Tests.AzureJobTraceListener</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

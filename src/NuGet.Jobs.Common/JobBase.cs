@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Threading.Tasks;
 
@@ -17,23 +18,24 @@ namespace NuGet.Jobs.Common
 
         public string JobName { get; protected set; }
 
-        public JobTraceLogger Logger { get; protected set; }
+        public JobTraceListener JobTraceListener { get; protected set; }
 
-        public JobTraceEventListener Listener { get; protected set; }
+        private JobTraceEventListener JobTraceEventListener { get; set; }
 
-        public void SetLogger(JobTraceLogger logger)
+        public void SetJobTraceListener(JobTraceListener jobTraceListener)
         {
-            Logger = logger;
+            JobTraceListener = jobTraceListener;
+            Trace.Listeners.Add(jobTraceListener);
 
-            if(Listener != null)
+            if(JobTraceEventListener != null)
             {
-                Listener.Dispose();
+                JobTraceEventListener.Dispose();
             }
 
             if(JobEventSource != null)
             {
-                Listener = new JobTraceEventListener(Logger);
-                Listener.EnableEvents(JobEventSource, EventLevel.LogAlways);
+                JobTraceEventListener = new JobTraceEventListener(JobTraceListener);
+                JobTraceEventListener.EnableEvents(JobEventSource, EventLevel.LogAlways);
             }
         }
 

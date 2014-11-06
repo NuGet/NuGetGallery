@@ -20,16 +20,16 @@ namespace NuGet.Jobs.Common
                 (milliSeconds / 1000.0).ToString(PrecisionSpecifier),  // Time in seconds
                 (milliSeconds / 60000.0).ToString(PrecisionSpecifier));  // Time in minutes
         }
-        private static void SetLogger(JobBase job, bool consoleLogOnly)
+        private static void SetJobTraceListener(JobBase job, bool consoleLogOnly)
         {
             if(consoleLogOnly)
             {
-                job.SetLogger(new JobTraceLogger(job.JobName));
+                job.SetJobTraceListener(new JobTraceListener(job.JobName));
                 Trace.TraceWarning("You have chosen not to log in Azure blob storage. Note that this is NOT recommended");
             }
             else
             {
-                job.SetLogger(new AzureBlobJobTraceLogger(job.JobName));
+                job.SetJobTraceListener(new AzureBlobJobTraceListener(job.JobName));
             }
         }
 
@@ -58,14 +58,14 @@ namespace NuGet.Jobs.Common
                 consoleLogOnly = true;
             }
 
-            // Set logger. Doing this on every invocation is useful too
-            SetLogger(job, consoleLogOnly);
+            // Set JobTraceListener. This will be done on every job run as well
+            SetJobTraceListener(job, consoleLogOnly);
             try
             {
                 Trace.TraceInformation("Started...");
 
                 // Get the args passed in or provided as an env variable based on jobName as a dictionary of <string argName, string argValue>
-                var jobArgsDictionary = JobConfigManager.GetJobArgsDictionary(job.Logger, commandLineArgs, job.JobName);
+                var jobArgsDictionary = JobConfigManager.GetJobArgsDictionary(job.JobTraceListener, commandLineArgs, job.JobName);
 
                 bool runContinuously = !JobConfigManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.Once);
                 int? sleepDuration = JobConfigManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Sleep);
@@ -96,7 +96,7 @@ namespace NuGet.Jobs.Common
             // Call FlushAll here. This is VERY IMPORTANT
             // Exception message(s) when the job faults are still in the queue. Need to be flushed
             // Also, when the job is only run once, FlushAll is important again
-            job.Logger.FlushAllAndEnd(jobEndMessage ?? JobCrashed);
+            job.JobTraceListener.FlushAllAndEnd(jobEndMessage ?? JobCrashed);
         }
 
         private static void JobSetup(JobBase job, IDictionary<string, string> jobArgsDictionary, ref int? sleepDuration)
@@ -117,7 +117,7 @@ namespace NuGet.Jobs.Common
                 sleepDuration = 5000;
             }
 
-            // Initialize the job once with everything needed. Logger(s) are already initialized
+            // Initialize the job once with everything needed. JobTraceListener(s) are already initialized
             if (!job.Init(jobArgsDictionary))
             {
                 // If the job could not be initialized successfully, STOP!
@@ -138,7 +138,7 @@ namespace NuGet.Jobs.Common
                 Trace.WriteLine("Job run started...");
 
                 // Force a flush here to create a blob corresponding to run indicating that the run has started
-                job.Logger.Flush(skipCurrentBatch: false);
+                job.JobTraceListener.Flush();
 
                 stopWatch.Restart();
                 success = await job.Run();
@@ -163,13 +163,13 @@ namespace NuGet.Jobs.Common
                 Trace.WriteLine(String.Format("Will sleep for {0} before the next Job run", PrettyPrintTime(sleepDuration)));
 
                 // Flush All the logs for this run
-                job.Logger.FlushAllAndEnd(success ? JobSucceeded : JobFailed);
+                job.JobTraceListener.FlushAllAndEnd(success ? JobSucceeded : JobFailed);
 
                 // Use Console.WriteLine when you don't want it to be logged in Azure blobs
                 Console.WriteLine("Sleeping for {0} before the next job run", PrettyPrintTime(sleepDuration));
                 Thread.Sleep(sleepDuration);
 
-                SetLogger(job, consoleLogOnly);
+                SetJobTraceListener(job, consoleLogOnly);
             } while (true);
 
             return success ? JobSucceeded : JobFailed;

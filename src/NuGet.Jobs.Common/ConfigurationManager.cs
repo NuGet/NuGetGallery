@@ -75,7 +75,7 @@ namespace NuGet.Jobs.Common
         /// <param name="argsList">Arguments passed to the job via commandline or environment variable settings</param>
         /// <param name="jobName">Jobname to be used to infer environment variable settings</param>
         /// <returns>Returns a dictionary of arguments</returns>
-        public static IDictionary<string, string> GetJobArgsDictionary(JobTraceLogger logger, string[] commandLineArgs, string jobName)
+        public static IDictionary<string, string> GetJobArgsDictionary(JobTraceListener jobTraceListener, string[] commandLineArgs, string jobName)
         {
             var allArgsList = commandLineArgs.ToList();
             if (allArgsList.Count == 0)

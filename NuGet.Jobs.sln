@@ -24,7 +24,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.AggregateInGallery", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{6A776396-02B1-475D-A104-26940ADB04AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Logger", "src\Tests.Logger\Tests.Logger.csproj", "{7EBE57A8-D3B1-44FE-A467-AEC5636CA82B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.AzureJobTraceListener", "src\Tests.Logger\Tests.AzureJobTraceListener.csproj", "{7EBE57A8-D3B1-44FE-A467-AEC5636CA82B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.PurgeReplicated", "src\Stats.PurgeReplicated\Stats.PurgeReplicated.csproj", "{9C92FB5A-CA1E-4AE5-BC49-364428AC6DFF}"
 EndProject
