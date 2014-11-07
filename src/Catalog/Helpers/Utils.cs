@@ -144,6 +144,27 @@ namespace NuGet.Services.Metadata.Catalog
             return writer.ToString();
         }
 
+        public static JToken CreateJson2(IGraph graph, JToken frame = null)
+        {
+            System.IO.StringWriter writer = new System.IO.StringWriter();
+            IRdfWriter rdfWriter = new JsonLdWriter();
+            rdfWriter.Save(graph, writer);
+            writer.Flush();
+
+            if (frame == null)
+            {
+                return JToken.Parse(writer.ToString());
+            }
+            else
+            {
+                JToken flattened = JToken.Parse(writer.ToString());
+                JObject framed = JsonLdProcessor.Frame(flattened, frame, new JsonLdOptions());
+                JObject compacted = JsonLdProcessor.Compact(framed, frame["@context"], new JsonLdOptions());
+
+                return JsonSort.OrderJson(compacted);
+            }
+        }
+
         public static string CreateJson(IGraph graph, JToken frame = null)
         {
             System.IO.StringWriter writer = new System.IO.StringWriter();
