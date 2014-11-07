@@ -39,15 +39,15 @@ namespace Ng
 
         public static Task<SortedList<DateTime, IList<Uri>>> GetCreatedPackages(HttpClient client, string source, DateTime since, int top = 100)
         {
-            return GetPackages(client, MakeCreatedUri(source, since, top));
+            return GetPackages(client, MakeCreatedUri(source, since, top), "Created");
         }
 
         public static Task<SortedList<DateTime, IList<Uri>>> GetEditedPackages(HttpClient client, string source, DateTime since, int top = 100)
         {
-            return GetPackages(client, MakeLastEditedUri(source, since, top));
+            return GetPackages(client, MakeLastEditedUri(source, since, top), "LastEdited");
         }
 
-        public static async Task<SortedList<DateTime, IList<Uri>>> GetPackages(HttpClient client, Uri uri)
+        public static async Task<SortedList<DateTime, IList<Uri>>> GetPackages(HttpClient client, Uri uri, string dateProperty)
         {
             SortedList<DateTime, IList<Uri>> result = new SortedList<DateTime, IList<Uri>>();
 
@@ -64,7 +64,14 @@ namespace Ng
             foreach (XElement entry in feed.Elements(atom + "entry"))
             {
                 Uri content = new Uri(entry.Element(atom + "content").Attribute("src").Value);
-                DateTime date = DateTime.Parse(entry.Element(metadata + "properties").Element(dataservices + "Created").Value);
+                DateTime date = DateTime.Parse(entry.Element(metadata + "properties").Element(dataservices + dateProperty).Value);
+
+                // NOTE that DateTime returned by the v2 feed does not have Z at the end even though it is in UTC. So, the DateTime kind is unspecified
+                // So, forcibly convert it to UTC here
+                if(date.Kind == DateTimeKind.Unspecified)
+                {
+                    date = new DateTime(date.Ticks, DateTimeKind.Utc);
+                }
 
                 IList<Uri> contentUris;
                 if (!result.TryGetValue(date, out contentUris))
@@ -79,11 +86,11 @@ namespace Ng
             return result;
         }
 
-        static async Task DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<Uri>> packages, Storage storage)
+        static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<Uri>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, bool createdPackages)
         {
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 550);
 
-            DateTime lastCreated = DateTime.MinValue;
+            DateTime lastDate = DateTime.MinValue;
 
             foreach (KeyValuePair<DateTime, IList<Uri>> entry in packages)
             {
@@ -115,17 +122,21 @@ namespace Ng
                     }
                 }
 
-                lastCreated = entry.Key;
+                lastDate = entry.Key;
             }
 
-            IGraph commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, null);
+            lastCreated = createdPackages ? lastDate : lastCreated;
+            lastEdited = !createdPackages ? lastDate : lastEdited;
+            IGraph commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, lastEdited);
 
             await writer.Commit(commitMetadata);
 
             Trace.TraceInformation("COMMIT");
+
+            return lastDate;
         }
 
-        static async Task<DateTime> GetCatalogProperty(Storage storage, string propertyName)
+        static async Task<DateTime?> GetCatalogProperty(Storage storage, string propertyName)
         {
             string json = await storage.LoadString(storage.ResolveUri("index.json"));
 
@@ -136,11 +147,11 @@ namespace Ng
                 JToken token;
                 if (obj.TryGetValue(propertyName, out token))
                 {
-                    return token.ToObject<DateTime>();
+                    return token.ToObject<DateTime>().ToUniversalTime();
                 }
             }
 
-            return DateTime.MinValue.ToUniversalTime();
+            return null;
         }
 
         static async Task Loop(string gallery, StorageFactory storageFactory, bool verbose, int interval)
@@ -164,17 +175,19 @@ namespace Ng
                     client.Timeout = TimeSpan.FromSeconds(timeout);
 
                     //  fetch and add all newly CREATED packages - in order
+                    DateTime lastCreated = await GetCatalogProperty(storage, LastCreated) ?? DateTime.MinValue.ToUniversalTime();
+                    DateTime lastEdited = await GetCatalogProperty(storage, LastEdited) ?? lastCreated;
+
 
                     SortedList<DateTime, IList<Uri>> createdPackages;
                     do
                     {
-                        DateTime lastCreated = await GetCatalogProperty(storage, LastCreated);
                         Trace.TraceInformation("CATALOG LastCreated: {0}", lastCreated.ToString("O"));
 
                         createdPackages = await GetCreatedPackages(client, gallery, lastCreated, top);
                         Trace.TraceInformation("FEED CreatedPackages: {0}", createdPackages.Count);
 
-                        await DownloadMetadata2Catalog(client, createdPackages, storage);
+                        lastCreated = await DownloadMetadata2Catalog(client, createdPackages, storage, lastCreated, lastEdited, createdPackages: true);
                     }
                     while (createdPackages.Count > 0);
 
@@ -183,13 +196,12 @@ namespace Ng
                     SortedList<DateTime, IList<Uri>> editedPackages;
                     do
                     {
-                        DateTime lastEdited = await GetCatalogProperty(storage, LastEdited);
                         Trace.TraceInformation("CATALOG LastEdited: {0}", lastEdited.ToString("O"));
 
                         editedPackages = await GetEditedPackages(client, gallery, lastEdited, top);
                         Trace.TraceInformation("FEED EditedPackages: {0}", editedPackages.Count);
 
-                        await DownloadMetadata2Catalog(client, editedPackages, storage);
+                        lastEdited = await DownloadMetadata2Catalog(client, editedPackages, storage, lastCreated, lastEdited, createdPackages: false);
                     }
                     while (editedPackages.Count > 0);
                 }

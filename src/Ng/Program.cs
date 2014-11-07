@@ -9,14 +9,11 @@ namespace Ng
     {
         static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng [feed2catalog|catalog2registration|catalog2lucene]");
+            Trace.WriteLine("Usage: ng [feed2catalog|catalog2registration|catalog2lucene]");
         }
 
         static void Main(string[] args)
         {
-            Trace.Listeners.Add(new ConsoleTraceListener());
-            Trace.AutoFlush = true;
-
             if (args.Length > 0 && String.Equals("dbg", args[0], StringComparison.OrdinalIgnoreCase))
             {
                 args = args.Skip(1).ToArray();
@@ -51,6 +48,7 @@ namespace Ng
             {
                 Utils.TraceException(e);
             }
+            Trace.Close();
         }
     }
 }
