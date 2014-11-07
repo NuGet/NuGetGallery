@@ -90,7 +90,12 @@ namespace Ng
         {
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 550);
 
-            DateTime lastDate = DateTime.MinValue;
+            DateTime lastDate = createdPackages ? lastCreated : lastEdited;
+
+            if(packages == null || packages.Count == 0)
+            {
+                return lastDate;
+            }
 
             foreach (KeyValuePair<DateTime, IList<Uri>> entry in packages)
             {
