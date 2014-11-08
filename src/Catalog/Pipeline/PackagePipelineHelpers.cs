@@ -1,5 +1,6 @@
 ﻿using NuGet.Services.Metadata.Catalog;
 using System;
+using System.IO;
 using System.IO.Compression;
 using System.Xml.Linq;
 
@@ -35,6 +36,21 @@ namespace NuGet.Services.Metadata.Catalog.Pipeline
                 XDocument nuspec = Utils.GetNuspec(zipArchive);
                 context.Shelf.Add(PackagePipelinePropertyNames.NuspecPropertyName, nuspec);
                 return nuspec;
+            }
+        }
+
+        public static Stream GetZipArchiveEntry(PipelinePackage package, PackagePipelineContext context, string entryName)
+        {
+            ZipArchive zipArchive = GetZipArchive(package, context);
+            ZipArchiveEntry entry = zipArchive.GetEntry(entryName);
+            return entry.Open();
+        }
+
+        public static XDocument GetXmlZipArchiveEntry(PipelinePackage package, PackagePipelineContext context, string entryName)
+        {
+            using (Stream stream = GetZipArchiveEntry(package, context, entryName))
+            {
+                return XDocument.Load(stream);
             }
         }
 
