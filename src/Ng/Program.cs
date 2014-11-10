@@ -39,6 +39,9 @@ namespace Ng
                     case "catalog2lucene" :
                         Catalog2Lucene.Run(args);
                         break;
+                    case "frameworkcompatibility":
+                        FrameworkCompatibility.Run(args);
+                        break;
                     default:
                         PrintUsage();
                         break;
