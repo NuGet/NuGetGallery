@@ -1,13 +1,10 @@
 ﻿using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
-using Lucene.Net.Store;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet;
 using NuGet.Indexing;
 using NuGet.Services.Metadata.Catalog;
-using NuGetGallery;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,7 +13,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.Versioning;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Ng

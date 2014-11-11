@@ -10,13 +10,11 @@ namespace NuGet.Services.Metadata.Catalog
     public class HttpReadCursor : ReadCursor
     {
         Uri _address;
-        DateTime _defaultValue;
         Func<HttpMessageHandler> _handlerFunc;
 
-        public HttpReadCursor(Uri address, DateTime defaultValue, Func<HttpMessageHandler> handlerFunc = null)
+        public HttpReadCursor(Uri address, Func<HttpMessageHandler> handlerFunc = null)
         {
             _address = address;
-            _defaultValue = defaultValue;
             _handlerFunc = handlerFunc;
         }
 
@@ -28,19 +26,14 @@ namespace NuGet.Services.Metadata.Catalog
             {
                 HttpResponseMessage response = await client.GetAsync(_address);
 
-                if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    Value = _defaultValue;
-                }
-                else
-                {
-                    response.EnsureSuccessStatusCode();
+                Trace.TraceInformation("HttpReadCursor.Load {0}", response.StatusCode);
 
-                    string json = await response.Content.ReadAsStringAsync();
+                response.EnsureSuccessStatusCode();
 
-                    JObject obj = JObject.Parse(json);
-                    Value = obj["value"].ToObject<DateTime>();
-                }
+                string json = await response.Content.ReadAsStringAsync();
+
+                JObject obj = JObject.Parse(json);
+                Value = obj["value"].ToObject<DateTime>();
             }
 
             Trace.TraceInformation("HttpReadCursor.Load: {0}", this);

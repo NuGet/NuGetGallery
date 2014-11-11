@@ -20,7 +20,7 @@ namespace Ng
 
             ReadWriteCursor front = new LuceneCursor(directory, MemoryCursor.Min.Value);
             
-            ReadCursor back = (registration == null) ? (ReadCursor)MemoryCursor.Max : new HttpReadCursor(new Uri(registration), MemoryCursor.Max.Value, handlerFunc);
+            ReadCursor back = (registration == null) ? (ReadCursor)MemoryCursor.Max : new HttpReadCursor(new Uri(registration), handlerFunc);
 
             while (true)
             {
@@ -64,7 +64,7 @@ namespace Ng
                     using (IndexWriter writer = new IndexWriter(directory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30), true, IndexWriter.MaxFieldLength.UNLIMITED))
                     {
                         writer.DeleteAll();
-                        writer.Commit();
+                        writer.Commit(new Dictionary<string, string>());
                     }
                 }
 
@@ -84,7 +84,13 @@ namespace Ng
 
             string registration = CommandHelpers.GetRegistration(arguments);
 
-            Trace.TraceInformation("CONFIG source: \"{0}\" registration: \"{1}\" interval: {2} seconds", source, registration, interval);
+            if (verbose)
+            {
+                Trace.Listeners.Add(new ConsoleTraceListener());
+                Trace.AutoFlush = true;
+            }
+
+            Trace.TraceInformation("CONFIG source: \"{0}\" registration: \"{1}\" interval: {2} seconds", source, registration ?? "(null)", interval);
 
             Loop(source, registration, directory, verbose, interval).Wait();
         }
