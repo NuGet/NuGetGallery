@@ -48,6 +48,8 @@ namespace NuGet.Services.Metadata.Catalog
                     front.Value = batch.Key;
                     await front.Save();
 
+                    Trace.TraceInformation("CommitCatalog.Fetch front.Save has value: {0}", front);
+
                     if (!acceptNextBatch)
                     {
                         break;
