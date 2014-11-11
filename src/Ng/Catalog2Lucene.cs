@@ -37,7 +37,7 @@ namespace Ng
 
         static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng catalog2lucene -source <catalog> [-registration <registration-root>] -luceneDirectoryType file|azure [-luceneReset true|false] [-lucenePath <file-path>] | [-luceneStorageAccountName <azure-acc> -luceneStorageKeyValue <azure-key> -luceneStorageContainer <azure-container>] [-verbose true|false] [-interval <seconds>]");
+            Console.WriteLine("Usage: ng catalog2lucene -source <catalog> [-registration <registration-root>] -luceneDirectoryType file|azure [-lucenePath <file-path>] | [-luceneStorageAccountName <azure-acc> -luceneStorageKeyValue <azure-key> -luceneStorageContainer <azure-container>] [-verbose true|false] [-interval <seconds>]");
         }
 
         public static void Run(string[] args)
@@ -53,21 +53,6 @@ namespace Ng
             if (directory == null)
             {
                 PrintUsage();
-                return;
-            }
-
-            bool luceneReset = CommandHelpers.GetLuceneReset(arguments);
-            if (luceneReset)
-            {
-                if (IndexReader.IndexExists(directory))
-                {
-                    using (IndexWriter writer = new IndexWriter(directory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30), true, IndexWriter.MaxFieldLength.UNLIMITED))
-                    {
-                        writer.DeleteAll();
-                        writer.Commit(new Dictionary<string, string>());
-                    }
-                }
-
                 return;
             }
 

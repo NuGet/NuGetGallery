@@ -247,6 +247,12 @@ namespace Ng
                 return;
             }
 
+            if (verbose)
+            {
+                Trace.Listeners.Add(new ConsoleTraceListener());
+                Trace.AutoFlush = true;
+            }
+
             Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\" interval: {2}", gallery, storageFactory, interval);
 
             Loop(gallery, storageFactory, verbose, interval).Wait();

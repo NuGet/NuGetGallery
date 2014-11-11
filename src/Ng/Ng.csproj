@@ -161,8 +161,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ResetLucene.cs" />
     <Compile Include="Catalog2Lucene.cs" />
     <Compile Include="Catalog2Registration.cs" />
+    <Compile Include="CheckLucene.cs" />
+    <Compile Include="CopyLucene.cs" />
     <Compile Include="Feed2Catalog.cs" />
     <Compile Include="FrameworkCompatibility.cs" />
     <Compile Include="IndexingCatalogCollector.cs" />

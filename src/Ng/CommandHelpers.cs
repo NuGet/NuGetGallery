@@ -39,6 +39,7 @@ namespace Ng
 
         static void TraceRequiredArgument(string name)
         {
+            Console.WriteLine("Required argument \"{0}\" not provided", name);
             Trace.TraceError("Required argument \"{0}\" not provided", name);
         }
 
@@ -205,19 +206,61 @@ namespace Ng
 
         public static Lucene.Net.Store.Directory GetLuceneDirectory(IDictionary<string, string> arguments)
         {
-            string luceneDirectoryType;
-            if (!arguments.TryGetValue("-luceneDirectoryType", out luceneDirectoryType))
+            IDictionary<string, string> names = new Dictionary<string, string>
             {
-                TraceRequiredArgument("-luceneDirectoryType");
+                { "directoryType", "-luceneDirectoryType" },
+                { "path", "-lucenePath" },
+                { "storageAccountName", "-luceneStorageAccountName" },
+                { "storageKeyValue", "-luceneStorageKeyValue" },
+                { "storageContainer", "-luceneStorageContainer" }
+            };
+
+            return GetLuceneDirectoryImpl(arguments, names);
+        }
+
+        public static Lucene.Net.Store.Directory GetCopySrcLuceneDirectory(IDictionary<string, string> arguments)
+        {
+            IDictionary<string, string> names = new Dictionary<string, string>
+            {
+                { "directoryType", "-srcDirectoryType" },
+                { "path", "-srcPath" },
+                { "storageAccountName", "-srcStorageAccountName" },
+                { "storageKeyValue", "-srcStorageKeyValue" },
+                { "storageContainer", "-srcStorageContainer" }
+            };
+
+            return GetLuceneDirectoryImpl(arguments, names);
+        }
+
+        public static Lucene.Net.Store.Directory GetCopyDestLuceneDirectory(IDictionary<string, string> arguments)
+        {
+            IDictionary<string, string> names = new Dictionary<string, string>
+            {
+                { "directoryType", "-destDirectoryType" },
+                { "path", "-destPath" },
+                { "storageAccountName", "-destStorageAccountName" },
+                { "storageKeyValue", "-destStorageKeyValue" },
+                { "storageContainer", "-destStorageContainer" }
+            };
+
+            return GetLuceneDirectoryImpl(arguments, names);
+        }
+
+        public static Lucene.Net.Store.Directory GetLuceneDirectoryImpl(IDictionary<string, string> arguments, IDictionary<string, string> names)
+        {
+            string luceneDirectoryType;
+            if (!arguments.TryGetValue(names["directoryType"], out luceneDirectoryType))
+            {
+                TraceRequiredArgument(names["directoryType"]);
                 return null;
             }
 
             if (luceneDirectoryType.Equals("File", StringComparison.InvariantCultureIgnoreCase))
             {
                 string lucenePath;
-                if (!arguments.TryGetValue("-lucenePath", out lucenePath))
+                if (!arguments.TryGetValue(names["path"], out lucenePath))
                 {
-                    TraceRequiredArgument("-lucenePath");
+                    TraceRequiredArgument(names["path"]);
                     return null;
                 }
 
@@ -234,23 +277,23 @@ namespace Ng
             else if (luceneDirectoryType.Equals("Azure", StringComparison.InvariantCultureIgnoreCase))
             {
                 string luceneStorageAccountName;
-                if (!arguments.TryGetValue("-luceneStorageAccountName", out luceneStorageAccountName))
+                if (!arguments.TryGetValue(names["storageAccountName"], out luceneStorageAccountName))
                 {
-                    TraceRequiredArgument("-luceneStorageAccountName");
+                    TraceRequiredArgument(names["storageAccountName"]);
                     return null;
                 }
 
                 string luceneStorageKeyValue;
-                if (!arguments.TryGetValue("-luceneStorageKeyValue", out luceneStorageKeyValue))
+                if (!arguments.TryGetValue(names["storageKeyValue"], out luceneStorageKeyValue))
                 {
-                    TraceRequiredArgument("-luceneStorageKeyValue");
+                    TraceRequiredArgument(names["storageKeyValue"]);
                     return null;
                 }
 
                 string luceneStorageContainer;
-                if (!arguments.TryGetValue("-luceneStorageContainer", out luceneStorageContainer))
+                if (!arguments.TryGetValue(names["storageContainer"], out luceneStorageContainer))
                 {
-                    TraceRequiredArgument("-luceneStorageContainer");
+                    TraceRequiredArgument(names["storageContainer"]);
                     return null;
                 }
 
@@ -260,7 +303,7 @@ namespace Ng
             }
             else
             {
-                Trace.TraceError("Unrecognized luceneDirectoryType \"{0}\"", luceneDirectoryType);
+                Trace.TraceError("Unrecognized Lucene Directory Type \"{0}\"", luceneDirectoryType);
                 return null;
             }
         }

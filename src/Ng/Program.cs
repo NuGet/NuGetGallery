@@ -9,7 +9,7 @@ namespace Ng
     {
         static void PrintUsage()
         {
-            Trace.WriteLine("Usage: ng [feed2catalog|catalog2registration|catalog2lucene|frameworkcompatibility]");
+            Console.WriteLine("Usage: ng [feed2catalog|catalog2registration|catalog2lucene|frameworkcompatibility|copylucene|checklucene|clearlucene]");
         }
 
         static void Main(string[] args)
@@ -42,6 +42,15 @@ namespace Ng
                     case "frameworkcompatibility":
                         FrameworkCompatibility.Run(args);
                         break;
+                    case "copylucene":
+                        CopyLucene.Run(args);
+                        break;
+                    case "checklucene":
+                        CheckLucene.Run(args);
+                        break;
+                    case "clearlucene":
+                        ResetLucene.Run(args);
+                        break;
                     default:
                         PrintUsage();
                         break;
@@ -49,6 +58,9 @@ namespace Ng
             }
             catch (Exception e)
             {
+                Trace.Listeners.Add(new ConsoleTraceListener());
+                Trace.AutoFlush = true;
+
                 Utils.TraceException(e);
             }
             Trace.Close();
