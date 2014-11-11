@@ -73,25 +73,16 @@ DECLARE @UpdatedGallerySettings TABLE
     ,   LastAggregatedStatisticsId int
 )
 
-DECLARE     @MostRecentDownloadStatisticsId INT
 DECLARE     @LatestGallerySettingPlusOffset INT
 DECLARE     @Offset INT = 1000
 
 BEGIN TRANSACTION
 
-    SET    @MostRecentDownloadStatisticsId = (SELECT MAX([Key]) FROM PackageStatistics)
-
-    IF (@MostRecentDownloadStatisticsId IS NULL)
-        RETURN
-
     SET    @LatestGallerySettingPlusOffset = ISNULL(@Offset + (SELECT [DownloadStatsLastAggregatedId] FROM GallerySettings), @Offset)
 
     -- Claim the latest PackageStatistics rows
     UPDATE  GallerySettings
-    SET     DownloadStatsLastAggregatedId = (SELECT (CASE WHEN @MostRecentDownloadStatisticsId < @LatestGallerySettingPlusOffset
-				                                          THEN @MostRecentDownloadStatisticsId
-				                                          ELSE @LatestGallerySettingPlusOffset
-                                                     END))
+    SET     DownloadStatsLastAggregatedId = (SELECT MAX([Key]) FROM PackageStatistics WHERE [Key] <= @LatestGallerySettingPlusOffset)
     OUTPUT  inserted.DownloadStatsLastAggregatedId AS MostRecentStatisticsId
         ,   deleted.DownloadStatsLastAggregatedId AS LastAggregatedStatisticsId
     INTO    @UpdatedGallerySettings
