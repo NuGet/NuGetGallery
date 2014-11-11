@@ -1,6 +1,7 @@
 ﻿using NuGet.Services.Metadata.Catalog;
 using System;
 using System.Diagnostics;
+using System.Linq;
 
 namespace CatalogTests
 {
@@ -8,6 +9,12 @@ namespace CatalogTests
     {
         static void Main(string[] args)
         {
+            if(args.Length > 0 && args[0].Equals("dbg", StringComparison.OrdinalIgnoreCase))
+            {
+                Debugger.Launch();
+                args = args.Skip(1).ToArray();
+            }
+
             Trace.Listeners.Add(new ConsoleTraceListener());
             Trace.AutoFlush = true;
 
@@ -23,7 +30,7 @@ namespace CatalogTests
                 //BuilderTests.Test0();
                 //BuilderTests.Test1();
                 //BuilderTests.Test2();
-                BuilderTests.Test3();
+                //BuilderTests.Test3();
 
                 //CollectorTests.Test0();
                 //CollectorTests.Test1();
@@ -38,6 +45,7 @@ namespace CatalogTests
                 //CursorTests.Test0();
                 //CursorTests.Test1();
                 //CursorTests.Test2();
+                CursorTests.CreateNewCursor(args);
 
                 //PartitioningTests.Test0();
                 //PartitioningTests.Test1();
@@ -57,6 +65,8 @@ namespace CatalogTests
                 //IntegrityTests.Test0();
 
                 //InstallDataBrowser.Test0();
+
+                //Feed2CatalogTests.Test0(args);
 
                 DateTime after = DateTime.Now;
 
