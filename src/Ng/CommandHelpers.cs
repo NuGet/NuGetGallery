@@ -132,6 +132,12 @@ namespace Ng
                 return null;
             }
 
+            if (!storageBaseAddress.EndsWith("/"))
+            {
+                Trace.TraceError("storage base address must end with /");
+                return null;
+            }
+
             string storageType;
             if (!arguments.TryGetValue("-storageType", out storageType))
             {
@@ -173,12 +179,8 @@ namespace Ng
                     return null;
                 }
 
-                string storagePath;
-                if (!arguments.TryGetValue("-storagePath", out storagePath))
-                {
-                    TraceRequiredArgument("-storagePath");
-                    return null;
-                }
+                string storagePath = null;
+                arguments.TryGetValue("-storagePath", out storagePath);
 
                 StorageCredentials credentials = new StorageCredentials(storageAccountName, storageKeyValue);
                 CloudStorageAccount account = new CloudStorageAccount(credentials, true);
