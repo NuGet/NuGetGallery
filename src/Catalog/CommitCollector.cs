@@ -23,7 +23,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             IEnumerable<CatalogItem> rootItems = root["items"]
                 .Select(item => new CatalogItem(item))
-                .Where(item => item.CommitTimeStamp > front.Value && item.CommitTimeStamp <= back.Value)
+                .Where(item => item.CommitTimeStamp > front.Value)
                 .OrderBy(item => item.CommitTimeStamp);
 
             bool acceptNextBatch = false;
