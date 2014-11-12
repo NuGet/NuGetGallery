@@ -50,7 +50,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             string path = (_path == null) ? name : _path + name;
 
-            path = (name == null) ? _path.Trim('/') : path;
+            path = (name == null) ? (_path == null ? String.Empty : _path.Trim('/')) : path;
 
             Uri newBase = _differentBaseAddress;
 
