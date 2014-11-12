@@ -1,6 +1,10 @@
-﻿using NuGet.Services.Metadata.Catalog;
+﻿using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -9,6 +13,119 @@ namespace CatalogTests
 {
     class CursorTests
     {
+        private static DateTime GetDefaultValue(IDictionary<string, string> arguments)
+        {
+            string defaultValue;
+            DateTime defaultValueDT;
+            if (!arguments.TryGetValue("-defaultValue", out defaultValue))
+            {
+                throw new ArgumentException("defaultValue is not provided");
+            }
+
+            if (!DateTime.TryParse(defaultValue, out defaultValueDT))
+            {
+                throw new ArgumentException("defaultValue is not right");
+            }
+            defaultValueDT = defaultValueDT.ToUniversalTime();
+
+            return defaultValueDT;
+        }
+        public static IDictionary<string, string> GetArguments(string[] args, int start)
+        {
+            Console.WriteLine(args.Length);
+
+            IDictionary<string, string> result = new Dictionary<string, string>();
+
+            if (args.Length == start)
+            {
+                return result;
+            }
+
+            if ((args.Length - start) % 2 != 0)
+            {
+                Trace.TraceError("Unexpected number of arguments");
+                return null;
+            }
+
+            for (int i = start; i < args.Length; i += 2)
+            {
+                result.Add(args[i], args[i + 1]);
+            }
+
+            return result;
+        }
+        static void TraceRequiredArgument(string name)
+        {
+            Trace.TraceError("Required argument \"{0}\" not provided", name);
+        }
+        public static StorageFactory CreateStorageFactory(IDictionary<string, string> arguments, bool verbose)
+        {
+            string storageBaseAddress;
+            if (!arguments.TryGetValue("-storageBaseAddress", out storageBaseAddress))
+            {
+                TraceRequiredArgument("-storageBaseAddress");
+                return null;
+            }
+
+            string storageType;
+            if (!arguments.TryGetValue("-storageType", out storageType))
+            {
+                TraceRequiredArgument("-storageType");
+                return null;
+            }
+
+            if (storageType.Equals("File", StringComparison.InvariantCultureIgnoreCase))
+            {
+                string storagePath;
+                if (!arguments.TryGetValue("-storagePath", out storagePath))
+                {
+                    TraceRequiredArgument("-storagePath");
+                    return null;
+                }
+
+                return new FileStorageFactory(new Uri(storageBaseAddress), storagePath) { Verbose = verbose };
+            }
+            else if (storageType.Equals("Azure", StringComparison.InvariantCultureIgnoreCase))
+            {
+                string storageAccountName;
+                if (!arguments.TryGetValue("-storageAccountName", out storageAccountName))
+                {
+                    TraceRequiredArgument("-storageAccountName");
+                    return null;
+                }
+
+                string storageKeyValue;
+                if (!arguments.TryGetValue("-storageKeyValue", out storageKeyValue))
+                {
+                    TraceRequiredArgument("-storageKeyValue");
+                    return null;
+                }
+
+                string storageContainer;
+                if (!arguments.TryGetValue("-storageContainer", out storageContainer))
+                {
+                    TraceRequiredArgument("-storageContainer");
+                    return null;
+                }
+
+                string storagePath;
+                if (!arguments.TryGetValue("-storagePath", out storagePath))
+                {
+                    TraceRequiredArgument("-storagePath");
+                    return null;
+                }
+
+                StorageCredentials credentials = new StorageCredentials(storageAccountName, storageKeyValue);
+                CloudStorageAccount account = new CloudStorageAccount(credentials, true);
+                return new AzureStorageFactory(account, storageContainer, storagePath, new Uri(storageBaseAddress)) { Verbose = verbose };
+            }
+            else
+            {
+                Trace.TraceError("Unrecognized storageType \"{0}\"", storageType);
+                return null;
+            }
+        }
+
         static async Task Test0Async()
         {
             await MakeTestCatalog();
@@ -129,6 +246,17 @@ namespace CatalogTests
         public static void Test2()
         {
             Test2Async().Wait();
+        }
+
+        public static void CreateNewCursor(string[] args)
+        {
+            IDictionary<string, string> arguments = GetArguments(args, 0);
+            StorageFactory storageFactory = CreateStorageFactory(arguments, verbose: true);
+            Storage storage = storageFactory.Create();
+
+            DurableCursor cursor = new DurableCursor(storage.ResolveUri("cursor.json"), storage, GetDefaultValue(arguments));
+            cursor.Load().Wait();
+            cursor.Save().Wait();
         }
 
         static async Task MakeTestCatalog()

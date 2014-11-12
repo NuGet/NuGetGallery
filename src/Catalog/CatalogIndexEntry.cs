@@ -119,4 +119,18 @@ namespace NuGet.Services.Metadata.Catalog
             return obj.Id.ToLowerInvariant().GetHashCode();
         }
     }
+
+    public class CatalogIndexEntryPackageComparer : IEqualityComparer<CatalogIndexEntry>
+    {
+        const string PackageIdFormat = "{0}.{1}";
+        public bool Equals(CatalogIndexEntry x, CatalogIndexEntry y)
+        {
+            return x.Id.Equals(y.Id, StringComparison.OrdinalIgnoreCase) && x.Version.Equals(y.Version);
+        }
+
+        public int GetHashCode(CatalogIndexEntry obj)
+        {
+            return String.Format(PackageIdFormat, obj.Id.ToLowerInvariant(), obj.Version.ToNormalizedString().ToLowerInvariant()).GetHashCode();
+        }
+    }
 }
