@@ -150,6 +150,7 @@
     <Compile Include="StoreCollector.cs" />
     <Compile Include="Test\PrintCollector.cs" />
     <Compile Include="Test\PrintCommitCollector.cs" />
+    <Compile Include="TransHttpClient.cs" />
     <Compile Include="VerboseFileSystemEmulatorHandler.cs" />
     <Compile Include="Test\DistinctDependencyPackageIdCollector.cs" />
     <Compile Include="Test\DistinctPackageIdCollector.cs" />

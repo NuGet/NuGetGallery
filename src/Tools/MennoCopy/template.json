@@ -1,0 +1,16 @@
+﻿{
+    "InputConnectionString": "DefaultEndpointsProtocol=https;AccountName=inputacct;AccountKey=;",
+    "OutputConnectionString": "DefaultEndpointsProtocol=https;AccountName=outputacct;AccountKey=;",
+    "InputContainer": "catalog-0",
+    "OutputContainer": "catalog-0",
+    "BaseAddresses": [
+        {
+            "Input": "https://inputacct.blob.core.windows.net/",
+            "Output": "https://outputacct.blob.core.windows.net/"
+        },
+        {
+            "Input": "https://inputacct.blob.core.windows.net/catalog-0/",
+            "Output": "https://outputacct.blob.core.windows.net/catalog-1/"
+        }
+    ]
+}

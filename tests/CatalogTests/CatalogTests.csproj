@@ -123,6 +123,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Feed2CatalogTests.cs" />
+    <Compile Include="GalleryCompareTests.cs" />
     <Compile Include="ReindexTests.cs" />
     <Compile Include="StorageTests.cs" />
     <Compile Include="TestCollector.cs" />

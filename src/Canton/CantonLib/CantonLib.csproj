@@ -117,7 +117,6 @@
     <Compile Include="CursorEntry.cs" />
     <Compile Include="jobs\CommitRegBatchJob.cs" />
     <Compile Include="jobs\PartitionedRegJob.cs" />
-    <Compile Include="TransHttpClient.cs" />
     <Compile Include="GalleryGraphAddon.cs" />
     <Compile Include="jobs\CatalogPageCommitJob.cs" />
     <Compile Include="jobs\CreateRegFromBatchJob.cs" />

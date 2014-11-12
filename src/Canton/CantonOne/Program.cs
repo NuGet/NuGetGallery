@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NuGet.Canton;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Microsoft.WindowsAzure.Storage;
+using NuGet.Services.Metadata.Catalog;
 
 namespace NuGet.Canton.One
 {

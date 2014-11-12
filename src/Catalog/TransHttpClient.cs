@@ -11,8 +11,11 @@ using System.Text;
 using System.Threading.Tasks;
 using VDS.RDF;
 
-namespace NuGet.Canton
+namespace NuGet.Services.Metadata.Catalog
 {
+    /// <summary>
+    /// A CollectorHttpClient that uses blob storage for requests instead of the CDN url.
+    /// </summary>
     public class TransHttpClient : CollectorHttpClient
     {
         private readonly string _baseAddressInContent;
