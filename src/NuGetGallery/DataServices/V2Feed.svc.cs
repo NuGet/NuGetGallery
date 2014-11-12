@@ -57,7 +57,15 @@ namespace NuGetGallery
             // For now, we'll just filter on the first one.
             if (targetFrameworkList.Length > 0)
             {
-                targetFramework = targetFrameworkList[0];
+                // Until we support multiple frameworks, we need to prefer aspnet50 over aspnetcore50.
+                if (targetFrameworkList.Contains("aspnet50"))
+                {
+                    targetFramework = "aspnet50";
+                }
+                else
+                {
+                    targetFramework = targetFrameworkList[0];
+                }
             }
 
             var packages = PackageRepository.GetAll()
