@@ -38,7 +38,6 @@ namespace NuGet.Services.Metadata.Catalog
             return _context;
         }
 
-
         public async Task<IEnumerable<CatalogIndexEntry>> GetEntries()
         {
             JObject index = await _httpClient.GetJObjectAsync(_indexUri);
@@ -59,7 +58,6 @@ namespace NuGet.Services.Metadata.Catalog
 
             return GetEntries(pages.Select(p => p.Item2));
         }
-
 
         private ConcurrentBag<CatalogIndexEntry> GetEntries(IEnumerable<Uri> pageUris)
         {
@@ -90,6 +88,5 @@ namespace NuGet.Services.Metadata.Catalog
 
             return entries;
         }
-
     }
 }

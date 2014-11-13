@@ -1,0 +1,17 @@
+﻿<h1>Simple Gallery</h1>
+<ul>
+    <li><a href="/Upload">Upload a nupkg</a></li>
+    <li><a href="/Clear">Clear gallery</a></li>
+</ul>
+
+<h2>Catalog</h2>
+<div>
+    <ul>
+        @{
+            foreach (var uri in SimpleGalleryLib.SimpleGalleryAPI.GetCatalogItems())
+            {
+                WriteLiteral(String.Format("<li><a href=\"{0}\">{1}</a></li>", uri, uri));
+            }
+        }
+    </ul>
+</div>
