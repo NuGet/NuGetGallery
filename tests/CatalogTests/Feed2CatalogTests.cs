@@ -48,7 +48,7 @@ namespace CatalogTests
 
                 var entries = task.Result;
                 Console.WriteLine("Total packages count from catalog is " + entries.Count());
-                var distinctCatalogPackages = entries.Distinct(new CatalogIndexEntryPackageComparer());
+                var distinctCatalogPackages = entries.Distinct(new CatalogIndexEntryIdVersionComparer());
                 int v3CatalogPackagesCount = distinctCatalogPackages.Count();
                 Console.WriteLine("Distinct packages count from catalog is " + v3CatalogPackagesCount);
                 Console.WriteLine("Distinct packages count from " + v2FeedUrl + " is " + v2FeedCount);

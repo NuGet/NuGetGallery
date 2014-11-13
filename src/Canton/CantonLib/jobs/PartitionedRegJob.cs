@@ -42,7 +42,7 @@ namespace NuGet.Canton
 
             var indexReader = new CatalogIndexReader(catalogIndexUri);
 
-            var indexEntries = await indexReader.GetEntries();
+            var indexEntries = await indexReader.GetRolledUpEntries();
 
             var context = indexReader.GetContext();
 
@@ -55,8 +55,6 @@ namespace NuGet.Canton
 
             ConcurrentDictionary<string, ConcurrentBag<Uri>> batches = new ConcurrentDictionary<string, ConcurrentBag<Uri>>(StringComparer.OrdinalIgnoreCase);
 
-            var idComparer = CatalogIndexEntry.IdComparer;
-
             ParallelOptions options = new ParallelOptions();
              options.MaxDegreeOfParallelism = 8;
 
@@ -64,10 +62,10 @@ namespace NuGet.Canton
             {
                 if (changedEntries.Contains(entry.Id))
                 {
-                    batches.AddOrUpdate(entry.Id, new ConcurrentBag<Uri>() { entry.Uri }, (id, bag) =>
+                    batches.AddOrUpdate(entry.Id, new ConcurrentBag<Uri>() { entry.Uri }, (id, uris) =>
                     {
-                        bag.Add(entry.Uri);
-                        return bag;
+                        uris.Add(entry.Uri);
+                        return uris;
                     });
                 }
             });

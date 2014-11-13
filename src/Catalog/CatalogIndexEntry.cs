@@ -1,6 +1,7 @@
 ﻿using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -89,6 +90,14 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
+        public static CatalogIndexEntryIdVersionComparer IdVersionComparer
+        {
+            get
+            {
+                return new CatalogIndexEntryIdVersionComparer();
+            }
+        }
+
         public static CatalogIndexEntryDateComparer CommitTSComparer
         {
             get
@@ -120,7 +129,7 @@ namespace NuGet.Services.Metadata.Catalog
         }
     }
 
-    public class CatalogIndexEntryPackageComparer : IEqualityComparer<CatalogIndexEntry>
+    public class CatalogIndexEntryIdVersionComparer : IEqualityComparer<CatalogIndexEntry>
     {
         const string PackageIdFormat = "{0}.{1}";
         public bool Equals(CatalogIndexEntry x, CatalogIndexEntry y)
@@ -130,7 +139,7 @@ namespace NuGet.Services.Metadata.Catalog
 
         public int GetHashCode(CatalogIndexEntry obj)
         {
-            return String.Format(PackageIdFormat, obj.Id.ToLowerInvariant(), obj.Version.ToNormalizedString().ToLowerInvariant()).GetHashCode();
+            return String.Format(CultureInfo.InvariantCulture, PackageIdFormat, obj.Id.ToLowerInvariant(), obj.Version.ToNormalizedString().ToLowerInvariant()).GetHashCode();
         }
     }
 }

@@ -38,6 +38,34 @@ namespace NuGet.Services.Metadata.Catalog
             return _context;
         }
 
+        /// <summary>
+        /// Returns only the latest id/version combination for each package. Older edits are skipped.
+        /// </summary>
+        public async Task<IEnumerable<CatalogIndexEntry>> GetRolledUpEntries()
+        {
+            HashSet<CatalogIndexEntry> set = new HashSet<CatalogIndexEntry>(CatalogIndexEntry.IdVersionComparer);
+
+            var entries = await GetEntriesCommitTimeDesc();
+
+            foreach (var entry in entries)
+            {
+                // ignore items we have already seen
+                if (!set.Contains(entry))
+                {
+                    set.Add(entry);
+                }
+            }
+
+            return set;
+        }
+
+        public async Task<IEnumerable<CatalogIndexEntry>> GetEntriesCommitTimeDesc()
+        {
+            var entries = await GetEntries();
+
+            return entries.OrderByDescending(e => e.CommitTimeStamp);
+        }
+
         public async Task<IEnumerable<CatalogIndexEntry>> GetEntries()
         {
             JObject index = await _httpClient.GetJObjectAsync(_indexUri);
