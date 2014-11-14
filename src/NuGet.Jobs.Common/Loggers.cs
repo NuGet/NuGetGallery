@@ -118,7 +118,7 @@ namespace NuGet.Jobs.Common
 
         public override void Close()
         {
-            FlushAllAndEnd("Ended");
+            FlushAllAndEnd();
         }
 
         [Conditional("TRACE")]
@@ -131,7 +131,7 @@ namespace NuGet.Jobs.Common
         /// FlushAll should NEVER get called until after all the logging is done
         /// </summary>
         [Conditional("TRACE")]
-        public virtual void FlushAllAndEnd(string jobEndMessage)
+        public virtual void FlushAllAndEnd()
         {
             // Check AzureBlobJobTraceListener
             Trace.Listeners.Clear();

@@ -30,7 +30,7 @@ namespace NuGet.Jobs.Common
         private static ConcurrentQueue<string> LocalOnlyLogQueue;
         private static int JobLogBatchCounter;
         private static int JobQueueBatchCounter;
-
+        private static string LastFileName;
         // For example, if MaxExpectedLogsPerRun is a million, and MaxLogBatchSize is 100, then maximum possible log batch counter would be 10000
         // That is a maximum of 5 digits. So, leadingzero specifier string would be "00000"
         // (Actually, 5 digits can handle upto 99999 which is roughly 10 times the expected. We are being, roughly, 10 times lenient)
@@ -60,7 +60,7 @@ namespace NuGet.Jobs.Common
             var cstr = Environment.GetEnvironmentVariable(EnvironmentVariableKeys.StoragePrimary);
             if(cstr == null)
             {
-                throw new ArgumentException("Storage Primary environment variable needs to be set to use Azure Storage for logging. Try passing '-consoleLogOnly' for avoiding this error");
+                throw new ArgumentException("Storage Primary environment variable needs to be set to use Azure Storage for logging. Try setting env 'NUGETJOBS_STORAGE_PRIMARY' to a valid azure storage connection string, or, pass '-consoleLogOnly' for avoiding this error");
             }
 
             LogStorageAccount = CloudStorageAccount.Parse(cstr);
@@ -174,6 +174,7 @@ namespace NuGet.Jobs.Common
                 while (LogQueues.TryDequeue(out headQueue))
                 {
                     string blobName = String.Format(JobLogNameFormat, JobLogNamePrefix, JobLogBatchCounter.ToString(JobLogBatchCounterLeadingZeroSpecifier));
+                    LastFileName = blobName;
                     Save(blobName, headQueue);
                     Interlocked.Increment(ref JobLogBatchCounter);
                 }
@@ -184,9 +185,9 @@ namespace NuGet.Jobs.Common
             }
         }
 
-        public override void FlushAllAndEnd(string jobEndMessage)
+        public override void FlushAllAndEnd()
         {
-            base.FlushAllAndEnd(jobEndMessage);
+            base.FlushAllAndEnd();
             var logQueue = Interlocked.Exchange(ref CurrentLogQueue, null);
             if(logQueue != null)
             {
@@ -207,7 +208,7 @@ namespace NuGet.Jobs.Common
 
             Interlocked.Exchange(ref LogQueues, null);
             var endedLogBlobName = String.Format(JobLogNameFormat, JobLogNamePrefix, EndedLogName);
-            Save(endedLogBlobName, jobEndMessage);
+            Save(endedLogBlobName, LastFileName);
 
             while(!LocalOnlyLogQueue.IsEmpty)
             {
