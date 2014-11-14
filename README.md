@@ -1,5 +1,5 @@
 NuGet.Services.Metadata
-===================
+=======================
 
 NuGet Metadata Services
 
