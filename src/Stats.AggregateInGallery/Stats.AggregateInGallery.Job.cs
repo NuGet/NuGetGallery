@@ -1,27 +1,27 @@
-﻿using NuGet.Jobs.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
-using System.Diagnostics.Tracing;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using NuGet.Jobs.Common;
 
 namespace Stats.AggregateInGallery
 {
-    [Description("Aggregates individual package download statistics by Version, Id and Total")]
-    public class Job : JobBase
+    internal class Job : JobBase
     {
-        private JobEventSource JobEventSourceLog = JobEventSource.Log;
+        private const int MinBatchSize = 1000;
+        private const int MaxBatchSize = 100000;
+        private const int MaxFailures = 10;
+        private static int CurrentFailures = 0;
+        private static int CurrentMinBatchSize = MinBatchSize;
+        private static int CurrentMaxBatchSize = MaxBatchSize;
+        private static Dictionary<double, int> BatchTimes = new Dictionary<double, int>();
+
         /// <summary>
         /// Gets or sets a connection string to the database containing package data.
         /// </summary>
         public SqlConnectionStringBuilder PackageDatabase { get; set; }
-
-        public Job() : base(JobEventSource.Log) { }
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
@@ -32,7 +32,7 @@ namespace Stats.AggregateInGallery
                         JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase, EnvironmentVariableKeys.SqlGallery));
                 return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Trace.TraceError(ex.ToString());
             }
@@ -41,29 +41,111 @@ namespace Stats.AggregateInGallery
 
         public override async Task<bool> Run()
         {
-            try
+            Trace.TraceInformation("Aggregating statistics in {0}/{1}", PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
+
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
+            var count = await Aggregate();
+            watch.Stop();
+
+            if (count > 0)
             {
-                using (var connection = await PackageDatabase.ConnectTo())
-                {
-                    JobEventSourceLog.AggregatingStatistics(PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
-                    //if (!WhatIf)
-                    {
-                        SqlCommand cmd = connection.CreateCommand();
-                        cmd.CommandText = AggregateStatsSql;
-                        cmd.CommandType = CommandType.Text;
-                        await cmd.ExecuteNonQueryAsync();
-                    }
-                    JobEventSourceLog.AggregatedStatistics(PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
-                }
+                double perSecond = count / watch.Elapsed.TotalSeconds;
+                Trace.TraceInformation("===== Aggregated {0} records. Duration: {1}. Pace: {2}/second. =====", count, watch.Elapsed.ToString("G"), (int)perSecond);
             }
-            catch (SqlException ex)
+            else
             {
-                Trace.TraceError(ex.ToString());
-                return false;
+                Trace.TraceInformation("===== No statistics were aggregated. Duration: {0}. Finished. =====", watch.Elapsed.ToString("G"));
             }
+
             return true;
         }
 
+        private async Task<int> Aggregate()
+        {
+            var watch = new Stopwatch();
+            watch.Start();
+
+            Trace.TraceInformation("Aggregating statitics in {0}/{1}", PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
+            CurrentMinBatchSize = MinBatchSize;
+            CurrentMaxBatchSize = MaxBatchSize;
+
+            bool needsAggregating = true;
+            int totalAggregated = 0;
+
+            var totalTime = new Stopwatch();
+            totalTime.Start();
+
+            while (needsAggregating)
+            {
+                double recordsPerSecond;
+                int batchSize = GetNextBatchSize(out recordsPerSecond);
+                int aggregated = 0;
+
+                Trace.TraceInformation("Aggregating a batch of size: {0}. Optimistic Pace: {1}. -----", batchSize, (int)recordsPerSecond);
+
+                try
+                {
+                    var batchWatch = new Stopwatch();
+                    batchWatch.Start();
+                    aggregated = await AggregateBatch(batchSize);
+                    batchWatch.Stop();
+
+                    totalAggregated += aggregated;
+
+                    // If we had fewer records to aggregate than our batch size,
+                    // then we've caught up and we can exit and let some more
+                    // records accumulate.
+                    if (aggregated < batchSize)
+                    {
+                        needsAggregating = false;
+                    }
+                    else
+                    {
+                        RecordSuccessfulBatchTime(batchSize, batchWatch.Elapsed);
+                    }
+
+                    CurrentFailures = 0;
+                }
+                catch (SqlException ex)
+                {
+                    Trace.TraceWarning("BATCH FAILED. Size: {0}. Attempt {1} of {2}. Error: {3}", batchSize, ++CurrentFailures, MaxFailures, ex.ToString());
+
+                    // If we can't even process the min batch size, or we've maxed out on failures, then give up
+                    if (batchSize <= CurrentMinBatchSize)
+                    {
+                        Trace.TraceError("Aborting - Unable to process minimum batch size of {0}.", batchSize);
+                        break;
+                    }
+                    else if (CurrentFailures == MaxFailures)
+                    {
+                        Trace.TraceError("Aborting - Too many consecutive errors.");
+                        break;
+                    }
+
+                    // Otherwise, let's reduce our batch size range
+                    RecordFailedBatchSize(batchSize);
+                }
+            }
+
+            watch.Stop();
+
+            var perSecond = totalAggregated / watch.Elapsed.TotalSeconds;
+            Trace.TraceInformation("Aggregated {0} records. Duration: {1}. Pace: {2}.", totalAggregated, watch.Elapsed.ToString("G"), (int)perSecond);
+
+            return totalAggregated;
+        }
+
+        private async Task<int> AggregateBatch(int batchSize)
+        {
+            using (var connection = await PackageDatabase.ConnectTo())
+            {
+                var command = new SqlCommand(AggregateStatsSql, connection);
+                command.Parameters.AddWithValue("@BatchSize", batchSize);
+
+                return await command.ExecuteScalarAsync() as int? ?? 0;
+            }
+        }
         private const string AggregateStatsSql = @"
 SET NOCOUNT ON
 
@@ -74,17 +156,26 @@ DECLARE @UpdatedGallerySettings TABLE
 )
 
 DECLARE     @LatestGallerySettingPlusOffset INT
-DECLARE     @Offset INT = 1000
+DECLARE     @Offset INT = @BatchSize
 
 BEGIN TRANSACTION
 
     SET    @LatestGallerySettingPlusOffset = ISNULL(@Offset + (SELECT [DownloadStatsLastAggregatedId] FROM GallerySettings), @Offset)
 
-    -- Claim the latest PackageStatistics rows
-    UPDATE  GallerySettings
-    SET     DownloadStatsLastAggregatedId = (SELECT MAX([Key]) FROM PackageStatistics WHERE [Key] <= @LatestGallerySettingPlusOffset)
-    OUTPUT  inserted.DownloadStatsLastAggregatedId AS MostRecentStatisticsId
-        ,   deleted.DownloadStatsLastAggregatedId AS LastAggregatedStatisticsId
+    -- Get the next marker to move forward to
+    UPDATE	GallerySettings
+    SET		DownloadStatsLastAggregatedId = (
+			    SELECT		MAX([Key])
+			    FROM		(
+						    SELECT		TOP (@BatchSize)
+									    [Key]
+						    FROM		PackageStatistics
+						    WHERE		[Key] > (SELECT DownloadStatsLastAggregatedId FROM GallerySettings)
+						    ORDER BY	[Key]
+						    ) Batch
+			) 
+    OUTPUT	inserted.DownloadStatsLastAggregatedId AS MostRecentStatisticsId
+		,	deleted.DownloadStatsLastAggregatedId AS LastAggregatedStatisticsId
     INTO    @UpdatedGallerySettings
 
 	DECLARE @mostRecentStatisticsId int
@@ -97,9 +188,10 @@ BEGIN TRANSACTION
 
     SELECT  @lastAggregatedStatisticsId = ISNULL(@lastAggregatedStatisticsId, 0)
 
-	
-    IF (@mostRecentStatisticsId IS NULL)
+    IF (@mostRecentStatisticsId IS NULL) BEGIN
+        ROLLBACK TRANSACTION
         RETURN
+    END
 
     DECLARE @DownloadStats TABLE
     (
@@ -143,35 +235,96 @@ BEGIN TRANSACTION
 	UPDATE		GallerySettings
 	SET			GallerySettings.TotalDownloadCount = GallerySettings.TotalDownloadCount + (SELECT ISNULL(SUM(DownloadCount), 0) FROM @DownloadStats)
 
+    -- Return the number of stats aggregated
+    SELECT      SUM(DownloadCount)
+    FROM        @DownloadStats
+
 COMMIT TRANSACTION
 ";
-    }
 
-    [EventSource(Name = "Outercurve-NuGet-Jobs-AggregateStatistics")]
-    public class JobEventSource : EventSource
-    {
-        public static readonly JobEventSource Log = new JobEventSource();
-        private JobEventSource() { }
-
-        [Event(
-            eventId: 1,
-            Task = Tasks.AggregatingStatistics,
-            Opcode = EventOpcode.Start,
-            Level = EventLevel.Informational,
-            Message = "Aggregating statistics in {0}/{1}")]
-        public void AggregatingStatistics(string server, string database) { WriteEvent(1, server, database); }
-
-        [Event(
-            eventId: 2,
-            Task = Tasks.AggregatingStatistics,
-            Opcode = EventOpcode.Stop,
-            Level = EventLevel.Informational,
-            Message = "Aggregated statistics in {0}/{1}")]
-        public void AggregatedStatistics(string server, string database) { WriteEvent(2, server, database); }
-
-        public static class Tasks
+        private int GetNextBatchSize(out double recordsPerSecond)
         {
-            public const EventTask AggregatingStatistics = (EventTask)0x1;
+            // Every 100 runs, we will reset our time recordings and find a new best time all over
+            if (BatchTimes.Count >= 100)
+            {
+                BatchTimes.Clear();
+
+                CurrentMinBatchSize = MinBatchSize;
+                CurrentMaxBatchSize = MaxBatchSize;
+            }
+
+            int nextBatchSize;
+
+            if (BatchTimes.Count == 0)
+            {
+                nextBatchSize = CurrentMinBatchSize;
+                recordsPerSecond = 100; // A baseline pace to expect
+                Trace.WriteLine(string.Format("Sampling batch sizes. Min batch size: {0}; Max batch size: {1}.", CurrentMinBatchSize, CurrentMaxBatchSize));
+            }
+            else if (BatchTimes.Count < 11)
+            {
+                // We'll run through 11 iterations of our possible range, with 10% increments along the way.
+                // Yes, 11. Because fenceposts.
+                KeyValuePair<double, int> bestSoFar = BatchTimes.OrderByDescending(batch => batch.Key).First();
+                nextBatchSize = CurrentMinBatchSize + ((CurrentMaxBatchSize - CurrentMinBatchSize) / 10 * BatchTimes.Count);
+                recordsPerSecond = bestSoFar.Key; // Optimistically, we'll match the best time after it all levels out
+                Trace.WriteLine(string.Format("Sampling batch sizes. Samples taken: {0}; Next sample size: {1}; Best sample size so far: {2} at {3} records per second.", BatchTimes.Count, nextBatchSize, bestSoFar.Value, (int)bestSoFar.Key));
+            }
+            else
+            {
+                IEnumerable<KeyValuePair<double, int>> bestBatches = BatchTimes.OrderByDescending(batch => batch.Key).Take(BatchTimes.Count / 4);
+                string bestSizes = String.Join(", ", bestBatches.Select(batch => batch.Value));
+                string bestPaces = String.Join(", ", bestBatches.Select(batch => (int)batch.Key));
+
+                nextBatchSize = (int)bestBatches.Select(batch => batch.Value).Average();
+
+                // Ensure the next batch size is within the allowable range
+                nextBatchSize = Math.Max(Math.Min(nextBatchSize, CurrentMaxBatchSize), CurrentMinBatchSize);
+
+                recordsPerSecond = bestBatches.Average(b => b.Key); // Optimistically, we'll match the average time of the best batches
+                Trace.WriteLine(string.Format("Calculated the batch size of {0} using the best of {1} batches. Best batch sizes so far: {2}, running at the following paces (per second): {3}", nextBatchSize, BatchTimes.Count, bestSizes, bestPaces));
+            }
+
+            return nextBatchSize;
+        }
+
+        private void RecordSuccessfulBatchTime(int batchSize, TimeSpan elapsedTime)
+        {
+            double perSecond = batchSize / elapsedTime.TotalSeconds;
+            BatchTimes[perSecond] = batchSize;
+
+            Trace.WriteLine(string.Format("----- Successfully purged a batch. Size: {0}. Duration: {1}. Pace: {2}. -----", batchSize, elapsedTime.ToString("G"), (int)perSecond));
+        }
+
+        private void RecordFailedBatchSize(int batchSize)
+        {
+            if (BatchTimes.Any())
+            {
+                int maxSuccessfulMatch = BatchTimes.Values.Max();
+
+                if (CurrentMaxBatchSize > maxSuccessfulMatch)
+                {
+                    // Split the difference between the max successful batch size and our batch size that just failed
+                    CurrentMaxBatchSize = (maxSuccessfulMatch + batchSize) / 2;
+                }
+                else
+                {
+                    CurrentMaxBatchSize = CurrentMaxBatchSize * 2 / 3;
+                }
+
+                // Ensure the Max doesn't fall below the Min
+                CurrentMaxBatchSize = Math.Max(CurrentMaxBatchSize, CurrentMinBatchSize);
+                Trace.WriteLine(string.Format("Capping the max batch size to the average of the largest successful batch size of {0} and the last attempted batch size of {1}. New max batch size is {2}.", maxSuccessfulMatch, batchSize, CurrentMaxBatchSize));
+            }
+            else
+            {
+                CurrentMinBatchSize = CurrentMinBatchSize / 2;
+                CurrentMaxBatchSize = CurrentMaxBatchSize * 2 / 3;
+
+                // Ensure the Max doesn't fall below the Min
+                CurrentMaxBatchSize = Math.Max(CurrentMaxBatchSize, CurrentMinBatchSize);
+                Trace.WriteLine(string.Format("Reducing the batch size window down to {0} - {1}", CurrentMinBatchSize, CurrentMaxBatchSize));
+            }
         }
     }
 }
