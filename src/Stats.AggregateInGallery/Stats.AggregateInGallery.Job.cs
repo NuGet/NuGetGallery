@@ -11,7 +11,7 @@ namespace Stats.AggregateInGallery
     internal class Job : JobBase
     {
         private const int MinBatchSize = 1000;
-        private const int MaxBatchSize = 50000;
+        private const int MaxBatchSize = 100000;
         private const int MaxFailures = 10;
         private static int CurrentFailures = 0;
         private static int CurrentMinBatchSize = MinBatchSize;
@@ -22,8 +22,6 @@ namespace Stats.AggregateInGallery
         /// Gets or sets a connection string to the database containing package data.
         /// </summary>
         public SqlConnectionStringBuilder PackageDatabase { get; set; }
-
-        public Job() : base(JobEventSource.Log) { }
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
@@ -102,7 +100,7 @@ namespace Stats.AggregateInGallery
                     }
                     else
                     {
-                        RecordSuccessfulBatchTime(batchSize, watch.Elapsed);
+                        RecordSuccessfulBatchTime(batchSize, batchWatch.Elapsed);
                         totalAggregated += aggregated;
                     }
 
@@ -168,7 +166,7 @@ BEGIN TRANSACTION
     SET		DownloadStatsLastAggregatedId = (
 			    SELECT		MAX([Key])
 			    FROM		(
-						    SELECT		TOP 1000000000
+						    SELECT		TOP (@BatchSize)
 									    [Key]
 						    FROM		PackageStatistics
 						    WHERE		[Key] > (SELECT DownloadStatsLastAggregatedId FROM GallerySettings)
@@ -189,8 +187,10 @@ BEGIN TRANSACTION
 
     SELECT  @lastAggregatedStatisticsId = ISNULL(@lastAggregatedStatisticsId, 0)
 
-    IF (@mostRecentStatisticsId IS NULL)
+    IF (@mostRecentStatisticsId IS NULL) BEGIN
+        ROLLBACK TRANSACTION
         RETURN
+    END
 
     DECLARE @DownloadStats TABLE
     (
@@ -233,6 +233,10 @@ BEGIN TRANSACTION
 
 	UPDATE		GallerySettings
 	SET			GallerySettings.TotalDownloadCount = GallerySettings.TotalDownloadCount + (SELECT ISNULL(SUM(DownloadCount), 0) FROM @DownloadStats)
+
+    -- Return the number of stats aggregated
+    SELECT      SUM(DownloadCount)
+    FROM        @DownloadStats
 
 COMMIT TRANSACTION
 ";
