@@ -91,6 +91,8 @@ namespace Stats.AggregateInGallery
                     aggregated = await AggregateBatch(batchSize);
                     batchWatch.Stop();
 
+                    totalAggregated += aggregated;
+
                     // If we had fewer records to aggregate than our batch size,
                     // then we've caught up and we can exit and let some more
                     // records accumulate.
@@ -101,7 +103,6 @@ namespace Stats.AggregateInGallery
                     else
                     {
                         RecordSuccessfulBatchTime(batchSize, batchWatch.Elapsed);
-                        totalAggregated += aggregated;
                     }
 
                     CurrentFailures = 0;
