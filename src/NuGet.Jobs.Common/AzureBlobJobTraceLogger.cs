@@ -30,7 +30,7 @@ namespace NuGet.Jobs.Common
         private static ConcurrentQueue<string> LocalOnlyLogQueue;
         private static int JobLogBatchCounter;
         private static int JobQueueBatchCounter;
-        private static string LastFileName;
+        private static int LastFileNameCounter;
         // For example, if MaxExpectedLogsPerRun is a million, and MaxLogBatchSize is 100, then maximum possible log batch counter would be 10000
         // That is a maximum of 5 digits. So, leadingzero specifier string would be "00000"
         // (Actually, 5 digits can handle upto 99999 which is roughly 10 times the expected. We are being, roughly, 10 times lenient)
@@ -174,8 +174,8 @@ namespace NuGet.Jobs.Common
                 while (LogQueues.TryDequeue(out headQueue))
                 {
                     string blobName = String.Format(JobLogNameFormat, JobLogNamePrefix, JobLogBatchCounter.ToString(JobLogBatchCounterLeadingZeroSpecifier));
-                    LastFileName = blobName;
                     Save(blobName, headQueue);
+                    Interlocked.Exchange(ref LastFileNameCounter, JobLogBatchCounter);
                     Interlocked.Increment(ref JobLogBatchCounter);
                 }
             }
@@ -208,7 +208,8 @@ namespace NuGet.Jobs.Common
 
             Interlocked.Exchange(ref LogQueues, null);
             var endedLogBlobName = String.Format(JobLogNameFormat, JobLogNamePrefix, EndedLogName);
-            Save(endedLogBlobName, LastFileName);
+            string lastFileName = String.Format(JobLogNameFormat, JobLogNamePrefix, LastFileNameCounter.ToString(JobLogBatchCounterLeadingZeroSpecifier));
+            Save(endedLogBlobName, lastFileName);
 
             while(!LocalOnlyLogQueue.IsEmpty)
             {
