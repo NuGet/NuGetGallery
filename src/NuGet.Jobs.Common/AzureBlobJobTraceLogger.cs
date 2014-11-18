@@ -187,9 +187,9 @@ namespace NuGet.Jobs.Common
 
         public override void Close()
         {
+            base.Close();
             try
             {
-                base.Close();
                 ConcurrentQueue<string> finalCurrentLogQueue = null;
                 if (Interlocked.Equals(finalCurrentLogQueue = Interlocked.Exchange(ref CurrentLogQueue, null), null))
                 {
@@ -238,7 +238,6 @@ namespace NuGet.Jobs.Common
             {
                 LogConsoleOnly(TraceEventType.Error, "AzureBlobJobTraceListener.Close is crashing for unknown reason. Reporting error here without terminating the job and calling base.Close()");
                 LogConsoleOnly(TraceEventType.Error, ex.ToString());
-                base.Close();
                 LogConsoleOnly(TraceEventType.Information, "base.Close from AzureBlobJobTraceListener.Close is successful");
             }
         }
