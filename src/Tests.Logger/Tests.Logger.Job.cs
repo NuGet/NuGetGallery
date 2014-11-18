@@ -19,7 +19,8 @@ namespace Tests.AzureJobTraceListener
                         3 for crashed job,
                         4 for successful job with heavy logging,
                         5 for job with multiple threads,
-                        6 for job that calls Trace.Close from multiple threads";
+                        6 for job that calls Trace.Close from multiple threads,
+                        7 for job that calls Job.JobTraceListener.Close from multiple threads";
 
         private int? JobScenario { get; set; }
 
