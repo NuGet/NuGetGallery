@@ -185,48 +185,61 @@ namespace NuGet.Jobs.Common
             }
         }
 
-        public override void FlushAllAndEnd()
+        public override void Close()
         {
-            base.FlushAllAndEnd();
-            var logQueue = Interlocked.Exchange(ref CurrentLogQueue, null);
-            if(logQueue != null)
+            try
             {
-                LogQueues.Enqueue(logQueue);
-            }
+                base.Close();
+                ConcurrentQueue<string> finalCurrentLogQueue = null;
+                if (Interlocked.Equals(finalCurrentLogQueue = Interlocked.Exchange(ref CurrentLogQueue, null), null))
+                {
+                    // CurrentLogQueue is already null. This means that the listener is closed
+                    // Do nothing and just exit
+                    LogConsoleOnly(TraceEventType.Warning, "AzureBlobJobTraceListener is already closed by another thread. Doing nothing");
+                    return;
+                }
 
-            while (JobLogBatchCounter != -1)
+                LogQueues.Enqueue(finalCurrentLogQueue);
+                while (JobLogBatchCounter != -1)
+                {
+                    // Don't use the other overload of base.Log with format and args. That will call back into this class
+                    LogConsoleOnly(TraceEventType.Information, "Waiting for log flush runner loop to terminate...");
+                    Thread.Sleep(2000);
+                }
+
+                if (!LogQueues.IsEmpty)
+                {
+                    throw new ArgumentException("LogQueues should be empty at the end of FlushAll...");
+                }
+
+                Interlocked.Exchange(ref LogQueues, null);
+                var endedLogBlobName = String.Format(JobLogNameFormat, JobLogNamePrefix, EndedLogName);
+                string lastFileName = String.Format(JobLogNameFormat, JobLogNamePrefix, LastFileNameCounter.ToString(JobLogBatchCounterLeadingZeroSpecifier));
+                Save(endedLogBlobName, lastFileName);
+
+                while (!LocalOnlyLogQueue.IsEmpty)
+                {
+                    // DO NOTHING
+                    LogConsoleOnly(TraceEventType.Information, "Waiting for local logging flush runner loop to terminate...");
+                    Thread.Sleep(2000);
+                }
+                LogConsoleOnly(TraceEventType.Information, "Setting Local log only queue to null");
+                LocalOnlyLogQueue = null;
+
+                // At this point, the logs are all uploaded to azure and the current job run is done. Delete them
+                if (Directory.Exists(JobLocalLogFolderPath))
+                {
+                    LogConsoleOnly(TraceEventType.Information, "Deleting local log folder " + JobLocalLogFolderPath);
+                    Directory.Delete(JobLocalLogFolderPath, recursive: true);
+                }
+                LogConsoleOnly(TraceEventType.Information, "Successfully completed flushing of logs");
+            }
+            catch (Exception)
             {
-                // Don't use the other overload of base.Log with format and args. That will call back into this class
-                LogConsoleOnly(TraceEventType.Information, "Waiting for log flush runner loop to terminate...");
-                Thread.Sleep(2000);
+                LogConsoleOnly(TraceEventType.Error, "AzureBlobJobTraceListener.Close is crashing for unknown reason. Reporting error here without terminating the job and calling base.Close()");
+                base.Close();
+                LogConsoleOnly(TraceEventType.Information, "base.Close from AzureBlobJobTraceListener.Close is successful");
             }
-
-            if(!LogQueues.IsEmpty)
-            {
-                throw new ArgumentException("LogQueues should be empty at the end of FlushAll...");
-            }
-
-            Interlocked.Exchange(ref LogQueues, null);
-            var endedLogBlobName = String.Format(JobLogNameFormat, JobLogNamePrefix, EndedLogName);
-            string lastFileName = String.Format(JobLogNameFormat, JobLogNamePrefix, LastFileNameCounter.ToString(JobLogBatchCounterLeadingZeroSpecifier));
-            Save(endedLogBlobName, lastFileName);
-
-            while(!LocalOnlyLogQueue.IsEmpty)
-            {
-                // DO NOTHING
-                LogConsoleOnly(TraceEventType.Information, "Waiting for local logging flush runner loop to terminate...");
-                Thread.Sleep(2000);
-            }
-            LogConsoleOnly(TraceEventType.Information, "Setting Local log only queue to null");
-            LocalOnlyLogQueue = null;
-
-            // At this point, the logs are all uploaded to azure and the current job run is done. Delete them
-            if(Directory.Exists(JobLocalLogFolderPath))
-            {
-                LogConsoleOnly(TraceEventType.Information, "Deleting local log folder " + JobLocalLogFolderPath);
-                Directory.Delete(JobLocalLogFolderPath, recursive: true);
-            }
-            LogConsoleOnly(TraceEventType.Information, "Successfully completed flushing of logs");
         }
 
         private void Save(string blobName, ConcurrentQueue<string> eventMessages)

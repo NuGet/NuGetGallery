@@ -118,23 +118,14 @@ namespace NuGet.Jobs.Common
 
         public override void Close()
         {
-            FlushAllAndEnd();
+            // Check AzureBlobJobTraceListener
+            Trace.Listeners.Remove(this);
         }
 
         [Conditional("TRACE")]
         public virtual void Flush(bool skipCurrentBatch)
         {
             // Check AzureBlobJobTraceListener
-        }
-
-        /// <summary>
-        /// FlushAll should NEVER get called until after all the logging is done
-        /// </summary>
-        [Conditional("TRACE")]
-        public virtual void FlushAllAndEnd()
-        {
-            // Check AzureBlobJobTraceListener
-            Trace.Listeners.Clear();
         }
 
         protected virtual void Log(TraceEventType traceEventType, string message)
