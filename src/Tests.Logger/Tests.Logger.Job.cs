@@ -18,7 +18,8 @@ namespace Tests.AzureJobTraceListener
                         2 for failed job,
                         3 for crashed job,
                         4 for successful job with heavy logging,
-                        5 for job with multiple threads";
+                        5 for job with multiple threads,
+                        6 for job that calls Trace.Close from multiple threads";
 
         private int? JobScenario { get; set; }
 
@@ -59,13 +60,37 @@ namespace Tests.AzureJobTraceListener
 
                 case 5:
 	                Trace.TraceInformation("Started");
-                    Task[] tasks = new Task[3];
-	                for(int i = 1; i < 4; i++)
-	                {
-                        tasks[i - 1] = LogGen();
-	                }
-                    Task.WaitAll(tasks);
+                    LogALotSetup(3);
 	                Trace.TraceInformation("Ended");
+                    return true;
+
+                case 6:
+                    // Imitates the scenario where Trace.Close (consequently, AzureBlobJobTraceListener.Close is called from multiple threads)
+                    // NOTE that the first call to Trace.Close will likely have removed AzureBlobJobTraceListener from the Trace.Listeners list,
+                    // hence, subsequent calls will not really call the AzureBlobJobTraceListener.close
+                    Trace.TraceInformation("Started");
+                    LogALotSetup(3);
+                    Trace.TraceInformation("Ended");
+                    Task[] traceCloseTasks = new Task[6];
+                    for (int i = 0; i < 6; i++)
+                    {
+                        traceCloseTasks[i] = TraceClose();
+                    }
+                    Task.WaitAll(traceCloseTasks);
+                    return true;
+
+                case 7:
+                    // Imitates the scenario where JobBase.JobTraceListener.Close is called directly from multiple threads,
+                    // which is basically like calling AzureBlobJobTraceListener.Close from multiple threads)
+                    Trace.TraceInformation("Started");
+                    LogALotSetup(3);
+                    Trace.TraceInformation("Ended");
+                    Task[] jobTraceListenerCloseTasks = new Task[6];
+                    for (int i = 0; i < 6; i++)
+                    {
+                        jobTraceListenerCloseTasks[i] = JobTraceListenerClose();
+                    }
+                    Task.WaitAll(jobTraceListenerCloseTasks);
                     return true;
 
                 default:
@@ -73,7 +98,17 @@ namespace Tests.AzureJobTraceListener
             }
         }
 
-        private async Task LogGen()
+        private void LogALotSetup(int numberOfThreads = 3)
+        {
+            Task[] tasks = new Task[numberOfThreads];
+            for (int i = 0; i < numberOfThreads; i++)
+            {
+                tasks[i] = LogALot();
+            }
+            Task.WaitAll(tasks);
+        }
+
+        private async Task LogALot()
         {
             int baseNumber = Interlocked.Increment(ref BaseNumber);
             for (int i = 1; i <= 10; i++)
@@ -82,6 +117,16 @@ namespace Tests.AzureJobTraceListener
                 // Following sleep is simple emulation of some work taking place
                 Thread.Sleep(100);
             }
+        }
+
+        private async Task TraceClose()
+        {
+            Trace.Close();
+        }
+
+        private async Task JobTraceListenerClose()
+        {
+            JobTraceListener.Close();
         }
     }
 }

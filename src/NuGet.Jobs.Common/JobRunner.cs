@@ -96,7 +96,7 @@ namespace NuGet.Jobs.Common
             // Call FlushAll here. This is VERY IMPORTANT
             // Exception message(s) when the job faults are still in the queue. Need to be flushed
             // Also, when the job is only run once, FlushAll is important again
-            job.JobTraceListener.FlushAllAndEnd();
+            job.JobTraceListener.Close();
         }
 
         private static void JobSetup(JobBase job, IDictionary<string, string> jobArgsDictionary, ref int? sleepDuration)
@@ -163,7 +163,7 @@ namespace NuGet.Jobs.Common
                 Trace.WriteLine(String.Format("Will sleep for {0} before the next Job run", PrettyPrintTime(sleepDuration)));
 
                 // Flush All the logs for this run
-                job.JobTraceListener.FlushAllAndEnd();
+                job.JobTraceListener.Close();
 
                 // Use Console.WriteLine when you don't want it to be logged in Azure blobs
                 Console.WriteLine("Sleeping for {0} before the next job run", PrettyPrintTime(sleepDuration));
