@@ -382,7 +382,7 @@ The {3} Team";
             catch (SmtpException ex)
             {
                 // Log but swallow the exception
-                ErrorSignal.FromCurrentContext().Raise(ex);
+                QuietLog.LogHandledException(ex);
             }
         }
 
