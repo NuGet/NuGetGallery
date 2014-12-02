@@ -72,7 +72,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
         {
             try
             {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(e);
+                QuietLog.LogHandledException(e);
             }
             catch
             {
