@@ -30,7 +30,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         }
 
         public AzureStorage(CloudBlobDirectory directory, Uri baseAddress)
-            : base(baseAddress)
+            : base(baseAddress ?? GetDirectoryUri(directory))
         {
             _directory = directory;
 

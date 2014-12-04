@@ -54,7 +54,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             Uri newBase = _differentBaseAddress;
 
-            if (!string.IsNullOrEmpty(name))
+            if (newBase != null && !string.IsNullOrEmpty(name))
             {
                 newBase = new Uri(_differentBaseAddress, name + "/");
             }
