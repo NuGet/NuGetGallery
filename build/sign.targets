@@ -1,0 +1,6 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="Exists($(NUGET_PFX_PATH))">
+	<SignAssembly>true</SignAssembly>
+	<AssemblyOriginatorKeyFile>$(NUGET_PFX_PATH)</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+</Project>
