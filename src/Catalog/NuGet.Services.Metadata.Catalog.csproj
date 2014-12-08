@@ -59,7 +59,7 @@
       <HintPath>..\..\packages\HtmlAgilityPack.1.4.6\lib\Net45\HtmlAgilityPack.dll</HintPath>
     </Reference>
     <Reference Include="JsonLD">
-      <HintPath>..\..\packages\json-ld.net.1.0.3\lib\net40\JsonLD.dll</HintPath>
+      <HintPath>..\..\packages\json-ld.net.1.0.4\lib\net40-Client\JsonLD.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Data.Edm, Version=5.6.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -85,16 +85,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.CatalogPackaging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.CatalogPackaging.1.0.0-alpha003\lib\net45\NuGet.CatalogPackaging.dll</HintPath>
-    </Reference>
-    <Reference Include="NuGet.Packaging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.CatalogPackaging.1.0.0-alpha003\lib\net45\NuGet.Packaging.dll</HintPath>
-    </Reference>
     <Reference Include="NuGet.Versioning">
-      <HintPath>..\..\packages\NuGet.Versioning.1.0.2\lib\portable-net40+win\NuGet.Versioning.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Versioning.1.0.3\lib\portable-net40+win\NuGet.Versioning.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -175,7 +167,6 @@
     <Compile Include="NupkgCatalogItem.cs" />
     <Compile Include="PackageCatalog.cs" />
     <Compile Include="PackageEntry.cs" />
-    <Compile Include="NupkgPackedItem.cs" />
     <Compile Include="PackedData.cs" />
     <Compile Include="SingleGraphPersistence.cs" />
     <Compile Include="MemoryCursor.cs" />

@@ -1,5 +1,4 @@
-﻿using NuGet.Packaging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,12 +13,12 @@ namespace NuGet.Services.Metadata.Catalog
     public class PackedData : GraphAddon
     {
         private readonly IEnumerable<string> _supportedFrameworks;
-        private readonly IEnumerable<ArtifactGroup> _assetGroups;
+        //private readonly IEnumerable<ArtifactGroup> _assetGroups;
 
-        public PackedData(IEnumerable<string> supportedFrameworks, IEnumerable<ArtifactGroup> assetGroups)
+        public PackedData(IEnumerable<string> supportedFrameworks)
         {
             _supportedFrameworks = supportedFrameworks;
-            _assetGroups = assetGroups;
+            //_assetGroups = assetGroups;
         }
 
         public IEnumerable<string> SupportedFrameworks
@@ -30,13 +29,13 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
-        public IEnumerable<ArtifactGroup> AssetGroups
-        {
-            get
-            {
-                return _assetGroups;
-            }
-        }
+        //public IEnumerable<ArtifactGroup> AssetGroups
+        //{
+        //    get
+        //    {
+        //        return _assetGroups;
+        //    }
+        //}
 
         public static readonly Uri PackageAssetGroupPropertyType = new Uri(NuGet.Services.Metadata.Catalog.Schema.Prefixes.NuGet + "PackageAssetGroupProperty");
         public static readonly Uri PackageAssetGroupType = new Uri(NuGet.Services.Metadata.Catalog.Schema.Prefixes.NuGet + "PackageAssetGroup");
@@ -67,45 +66,45 @@ namespace NuGet.Services.Metadata.Catalog
             }
 
             // assets
-            if (AssetGroups != null)
-            {
-                int groupId = 0;
-                foreach (var group in AssetGroups)
-                {
-                    // group type and id
-                    var groupNode = GetSubNode(graph, mainUri, "assetGroup", "" + groupId);
-                    graph.Assert(groupNode, typeNode, graph.CreateUriNode(PackageAssetGroupType));
-                    graph.Assert(mainNode, graph.CreateUriNode(AssetGroupPredicate), groupNode);
-                    groupId++;
+            //if (AssetGroups != null)
+            //{
+            //    int groupId = 0;
+            //    foreach (var group in AssetGroups)
+            //    {
+            //        // group type and id
+            //        var groupNode = GetSubNode(graph, mainUri, "assetGroup", "" + groupId);
+            //        graph.Assert(groupNode, typeNode, graph.CreateUriNode(PackageAssetGroupType));
+            //        graph.Assert(mainNode, graph.CreateUriNode(AssetGroupPredicate), groupNode);
+            //        groupId++;
 
-                    int propId = 0;
+            //        int propId = 0;
 
-                    // group properties
-                    foreach (var prop in group.Properties)
-                    {
-                        var propNode = GetSubNode(graph, groupNode, "property", "" + propId);
-                        propId++;
-                        graph.Assert(propNode, typeNode, graph.CreateUriNode(PackageAssetGroupPropertyType));
-                        graph.Assert(groupNode, graph.CreateUriNode(AssetGroupPropertyPredicate), propNode);
-                        graph.Assert(propNode, graph.CreateUriNode(AssetKeyPredicate), graph.CreateLiteralNode(prop.Key));
-                        graph.Assert(propNode, graph.CreateUriNode(AssetValuePredicate), graph.CreateLiteralNode(prop.Value));
-                    }
+            //        // group properties
+            //        foreach (var prop in group.Properties)
+            //        {
+            //            var propNode = GetSubNode(graph, groupNode, "property", "" + propId);
+            //            propId++;
+            //            graph.Assert(propNode, typeNode, graph.CreateUriNode(PackageAssetGroupPropertyType));
+            //            graph.Assert(groupNode, graph.CreateUriNode(AssetGroupPropertyPredicate), propNode);
+            //            graph.Assert(propNode, graph.CreateUriNode(AssetKeyPredicate), graph.CreateLiteralNode(prop.Key));
+            //            graph.Assert(propNode, graph.CreateUriNode(AssetValuePredicate), graph.CreateLiteralNode(prop.Value));
+            //        }
 
-                    int assetId = 0;
+            //        int assetId = 0;
 
-                    // group items
-                    foreach (var item in group.Items)
-                    {
-                        var itemNode = GetSubNode(graph, groupNode, "asset", "" + assetId);
-                        assetId++;
-                        graph.Assert(itemNode, typeNode, graph.CreateUriNode(PackageAssetType));
-                        graph.Assert(groupNode, graph.CreateUriNode(AssetPredicate), itemNode);
+            //        // group items
+            //        foreach (var item in group.Items)
+            //        {
+            //            var itemNode = GetSubNode(graph, groupNode, "asset", "" + assetId);
+            //            assetId++;
+            //            graph.Assert(itemNode, typeNode, graph.CreateUriNode(PackageAssetType));
+            //            graph.Assert(groupNode, graph.CreateUriNode(AssetPredicate), itemNode);
 
-                        graph.Assert(itemNode, graph.CreateUriNode(AssetTypePredicate), graph.CreateLiteralNode(item.ArtifactType));
-                        graph.Assert(itemNode, graph.CreateUriNode(AssetPathPredicate), graph.CreateLiteralNode(item.Path));
-                    }
-                }
-            }
+            //            graph.Assert(itemNode, graph.CreateUriNode(AssetTypePredicate), graph.CreateLiteralNode(item.ArtifactType));
+            //            graph.Assert(itemNode, graph.CreateUriNode(AssetPathPredicate), graph.CreateLiteralNode(item.Path));
+            //        }
+            //    }
+            //}
         }
     }
 }

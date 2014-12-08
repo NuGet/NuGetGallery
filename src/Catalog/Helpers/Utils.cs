@@ -1,6 +1,5 @@
 ﻿using JsonLD.Core;
 using Newtonsoft.Json.Linq;
-using NuGet.Packaging;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.JsonLDIntegration;
 using System;
@@ -401,30 +400,31 @@ namespace NuGet.Services.Metadata.Catalog
 
         static PackedData GetPackedData(Stream stream, string filename)
         {
-            stream.Seek(0, SeekOrigin.Begin);
+            //stream.Seek(0, SeekOrigin.Begin);
 
-            IEnumerable<string> supportedFrameworks = new string[] { "any" };
-            IEnumerable<ArtifactGroup> groups = Enumerable.Empty<ArtifactGroup>();
+            //IEnumerable<string> supportedFrameworks = new string[] { "any" };
+            //IEnumerable<ArtifactGroup> groups = Enumerable.Empty<ArtifactGroup>();
 
-            try
-            {
-                ZipFileSystem zip = new ZipFileSystem(stream);
+            //try
+            //{
+            //    ZipFileSystem zip = new ZipFileSystem(stream);
 
-                using (PackageReader reader = new PackageReader(zip))
-                {
-                    ArtifactReader artifactReader = new ArtifactReader(reader);
+            //    using (PackageReader reader = new PackageReader(zip))
+            //    {
+            //        //ArtifactReader artifactReader = new ArtifactReader(reader);
 
-                    supportedFrameworks = artifactReader.GetSupportedFrameworks();
+            //        supportedFrameworks = artifactReader.GetSupportedFrameworks();
 
-                    // groups = artifactReader.GetArtifactGroups();
-                }
-            }
-            catch (Exception e)
-            {
-                Trace.TraceWarning("Failed to extract supported frameworks from {0} {1} {2}", filename, e.GetType().Name, e.Message);
-            }
+            //        // groups = artifactReader.GetArtifactGroups();
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+            //    Trace.TraceWarning("Failed to extract supported frameworks from {0} {1} {2}", filename, e.GetType().Name, e.Message);
+            //}
 
-            return new PackedData(supportedFrameworks, groups);
+            // TODO: reimplement this with packaging
+            return new PackedData(Enumerable.Empty<string>());
         }
 
         static IEnumerable<PackageEntry> GetEntries(ZipArchive package)
