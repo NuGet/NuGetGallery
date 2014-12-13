@@ -56,6 +56,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="NuGet.Versioning">
+      <HintPath>..\..\packages\NuGet.Versioning.1.0.3\lib\portable-net40+win\NuGet.Versioning.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net.Http" />
@@ -80,6 +83,12 @@
     <Compile Include="Metadata\SemanticVersionSpan.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResolverMetadataClient\DependencyGroupInfo.cs" />
+    <Compile Include="ResolverMetadataClient\DependencyInfo.cs" />
+    <Compile Include="ResolverMetadataClient\PackageInfo.cs" />
+    <Compile Include="ResolverMetadataClient\RegistrationInfo.cs" />
+    <Compile Include="ResolverMetadataClient\ResolverMetadataClient.cs" />
+    <Compile Include="ResolverMetadataClient\Utils.cs" />
     <Compile Include="Resolver\MetadataTree.cs" />
     <Compile Include="Resolver\Participants.cs" />
     <Compile Include="Resolver\Permutations.cs" />
