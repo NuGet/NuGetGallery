@@ -7,7 +7,7 @@
       <!-- DEPLOYMENT SPECIFIC -->
       <!-- ******************* -->
       <!-- These should change on every deployment (to rotate credentials, etc.) -->
-      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
+      <!--<Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />-->
       <Setting name="Gallery.AzureStorageConnectionString" value="UseDevelopmentStorage=true" />
       <Setting name="Gallery.SqlServer" value="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetGallery;Integrated Security=SSPI" />
       <!-- WARNING: This is an insecure default password. Change it before enabling remote desktop -->
