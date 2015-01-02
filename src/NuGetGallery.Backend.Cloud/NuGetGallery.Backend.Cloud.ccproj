@@ -44,11 +44,6 @@
     <Folder Include="NuGetGallery.BackendContent" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="NuGetGallery.BackendContent\diagnostics.wadcfg">
-      <SubType>Content</SubType>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.Backend\NuGetGallery.Backend.csproj">
       <Name>NuGetGallery.Backend</Name>
       <Project>{7F92C174-5310-4090-A6A3-3CC7C67C19D6}</Project>
@@ -56,6 +51,9 @@
       <RoleType>Worker</RoleType>
       <RoleName>NuGetGallery.Backend</RoleName>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <DiagnosticsConfiguration Include="NuGetGallery.BackendContent\diagnostics.wadcfgx" />
   </ItemGroup>
   <!-- Import the target files for this project template -->
   <PropertyGroup>
