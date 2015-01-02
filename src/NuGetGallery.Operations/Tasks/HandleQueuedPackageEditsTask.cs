@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
-using System.Data.EntityClient;
-using System.Data.Objects;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
