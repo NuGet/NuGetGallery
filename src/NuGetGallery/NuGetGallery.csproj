@@ -118,9 +118,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\EntityFramework.6.1.2\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="Glimpse.Ado, Version=1.7.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Glimpse.Ado, Version=1.7.3.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Glimpse.Ado.1.7.0\lib\net45\Glimpse.Ado.dll</HintPath>
+      <HintPath>..\..\packages\Glimpse.Ado.1.7.3\lib\net45\Glimpse.Ado.dll</HintPath>
     </Reference>
     <Reference Include="Glimpse.AspNet, Version=1.9.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -130,13 +130,11 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Glimpse.1.8.6\lib\net45\Glimpse.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Glimpse.EF43, Version=1.6.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Glimpse.EF43.1.6.0\lib\net40\Glimpse.EF43.dll</HintPath>
+    <Reference Include="Glimpse.EF6">
+      <HintPath>..\..\packages\Glimpse.EF6.1.6.5\lib\net45\Glimpse.EF6.dll</HintPath>
     </Reference>
-    <Reference Include="Glimpse.Mvc4, Version=1.5.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Glimpse.Mvc4.1.5.1\lib\net40\Glimpse.Mvc4.dll</HintPath>
+    <Reference Include="Glimpse.Mvc5">
+      <HintPath>..\..\packages\Glimpse.Mvc5.1.5.3\lib\net45\Glimpse.Mvc5.dll</HintPath>
     </Reference>
     <Reference Include="Lucene.Net">
       <HintPath>..\..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
