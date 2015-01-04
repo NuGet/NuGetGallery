@@ -25,9 +25,6 @@ namespace NuGetGallery.Migrations
 
         public override void Down()
         {
-            DropForeignKey("PackageOwnerRequests", "PackageRegistrationKey", "PackageRegistrations", "Key");
-            DropForeignKey("PackageOwnerRequests", "RequestingOwnerKey", "Users", "Key");
-            DropForeignKey("PackageOwnerRequests", "NewOwnerKey", "Users", "Key");
             DropTable("PackageOwnerRequests");
         }
     }

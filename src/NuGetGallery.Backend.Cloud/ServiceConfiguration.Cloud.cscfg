@@ -3,7 +3,6 @@
   <Role name="NuGetGallery.Backend">
     <Instances count="1" />
     <ConfigurationSettings>
-      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
       <Setting name="Operations.Storage.Primary" value="UseDevelopmentStorage=true" />
       <Setting name="Operations.Storage.Backup" value="UseDevelopmentStorage=true" />
       <Setting name="Operations.Sql.Primary" value="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetGallery;Integrated Security=SSPI" />

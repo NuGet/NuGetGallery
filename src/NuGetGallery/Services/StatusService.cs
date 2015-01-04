@@ -126,7 +126,7 @@ namespace NuGetGallery
             return await IsGetSuccessful(_config.MetricsServiceUri);
         }
 
-        private async Task<bool> IsGetSuccessful(Uri uri)
+        private static async Task<bool> IsGetSuccessful(Uri uri)
         {
             using(var httpClient = new HttpClient())
             {

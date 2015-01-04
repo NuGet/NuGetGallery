@@ -12,7 +12,6 @@ using System.Web.UI;
 using Elmah;
 using Elmah.Contrib.Mvc;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
-using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Ninject;
 using Ninject.Web.Common;
@@ -24,6 +23,7 @@ using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
 using WebActivator;
 using WebBackgrounder;
+using Microsoft.WindowsAzure.Diagnostics;
 
 [assembly: WebActivator.PreApplicationStartMethod(typeof(AppActivator), "PreStart")]
 [assembly: PostApplicationStartMethod(typeof(AppActivator), "PostStart")]

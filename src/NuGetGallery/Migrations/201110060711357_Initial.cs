@@ -151,16 +151,6 @@ namespace NuGetGallery.Migrations
 
         public override void Down()
         {
-            DropForeignKey("PackageRegistrationOwners", "UserKey", "Users", "Key");
-            DropForeignKey("PackageRegistrationOwners", "PackageRegistrationKey", "PackageRegistrations", "Key");
-            DropForeignKey("UserRoles", "RoleKey", "Roles", "Key");
-            DropForeignKey("UserRoles", "UserKey", "Users", "Key");
-            DropForeignKey("PackageDependencies", "PackageKey", "Packages", "Key");
-            DropForeignKey("PackageAuthors", "PackageKey", "Packages", "Key");
-            DropForeignKey("PackageStatistics", "PackageKey", "Packages", "Key");
-            DropForeignKey("Packages", "PackageRegistrationKey", "PackageRegistrations", "Key");
-            DropForeignKey("EmailMessages", "ToUserKey", "Users", "Key");
-            DropForeignKey("EmailMessages", "FromUserKey", "Users", "Key");
             DropTable("PackageRegistrationOwners");
             DropTable("UserRoles");
             DropTable("PackageDependencies");

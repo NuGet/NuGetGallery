@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Web.Mvc;
-using MvcHaack.Ajax;
 using System.Globalization;
+using MvcHaack.Ajax;
 
 namespace NuGetGallery
 {
