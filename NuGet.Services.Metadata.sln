@@ -45,6 +45,24 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleGalleryCmd", "src\Sim
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleGallery", "src\SimpleGallery\SimpleGallery\SimpleGallery.csproj", "{415BA277-70C6-4ACC-B237-267855B0FE84}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Publish", "src\NuGet.Services.Publish\NuGet.Services.Publish.csproj", "{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PublishScripts", "PublishScripts", "{DC40D872-BF4E-453A-96EF-1A0BF3DD3D60}"
+	ProjectSection(SolutionItems) = preProject
+		PublishScripts\AzureWebsitePublishModule.psm1 = PublishScripts\AzureWebsitePublishModule.psm1
+		PublishScripts\Publish-WebApplicationWebsite.ps1 = PublishScripts\Publish-WebApplicationWebsite.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configurations", "Configurations", "{9D362AFD-C5A8-40DA-B9EE-C457E8EBC920}"
+	ProjectSection(SolutionItems) = preProject
+		PublishScripts\Configurations\NuGetServicesPublish-WAWS-dev.json = PublishScripts\Configurations\NuGetServicesPublish-WAWS-dev.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{4AA08EEB-BA47-4ECD-94F3-0700DD50E693}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -261,6 +279,16 @@ Global
 		{415BA277-70C6-4ACC-B237-267855B0FE84}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{415BA277-70C6-4ACC-B237-267855B0FE84}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{415BA277-70C6-4ACC-B237-267855B0FE84}.Release|x64.ActiveCfg = Release|Any CPU
+		{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -274,5 +302,6 @@ Global
 		{ECDB05AC-02D8-4577-BBF1-DF971A5407A9} = {65D726F4-FAB1-4CEC-AB00-0877B53B5C44}
 		{10C03A91-7DF7-4CD0-920D-D47E722A6E95} = {65D726F4-FAB1-4CEC-AB00-0877B53B5C44}
 		{415BA277-70C6-4ACC-B237-267855B0FE84} = {65D726F4-FAB1-4CEC-AB00-0877B53B5C44}
+		{9D362AFD-C5A8-40DA-B9EE-C457E8EBC920} = {DC40D872-BF4E-453A-96EF-1A0BF3DD3D60}
 	EndGlobalSection
 EndGlobal

@@ -76,7 +76,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             //  save items
 
-            IDictionary<string, CatalogItemSummary> newItemEntries = SaveItems(commitId, commitTimeStamp);
+            IDictionary<string, CatalogItemSummary> newItemEntries = await SaveItems(commitId, commitTimeStamp);
 
             //  save index pages - this is abstract as the derived class determines the index pagination
 
@@ -89,18 +89,15 @@ namespace NuGet.Services.Metadata.Catalog
             _batch.Clear();
         }
 
-        IDictionary<string, CatalogItemSummary> SaveItems(Guid commitId, DateTime commitTimeStamp)
+        async Task<IDictionary<string, CatalogItemSummary>> SaveItems(Guid commitId, DateTime commitTimeStamp)
         {
             ConcurrentDictionary<string, CatalogItemSummary> pageItems = new ConcurrentDictionary<string, CatalogItemSummary>();
 
             int batchIndex = 0;
 
-            ParallelOptions options = new ParallelOptions();
-            options.MaxDegreeOfParallelism = 8;
+            Task[] saveTasks = new Task[_batch.Count];
 
-            var items = _batch.ToArray();
-
-            Parallel.ForEach(items, options, item =>
+            foreach (CatalogItem item in _batch)
             {
                 Uri resourceUri = null;
 
@@ -114,11 +111,9 @@ namespace NuGet.Services.Metadata.Catalog
 
                     resourceUri = item.GetItemAddress();
 
-                    Task saveTask = null;
-
                     if (content != null)
                     {
-                        saveTask = Storage.Save(resourceUri, content);
+                        saveTasks[batchIndex] = Storage.Save(resourceUri, content);
                     }
 
                     IGraph pageContent = item.CreatePageContent(Context);
@@ -128,15 +123,16 @@ namespace NuGet.Services.Metadata.Catalog
                         throw new Exception("Duplicate page: " + resourceUri.AbsoluteUri);
                     }
 
-                    saveTask.Wait();
-
                     batchIndex++;
                 }
                 catch (Exception e)
                 {
-                    throw new Exception(string.Format("item uri: {0} batch index: {1}", resourceUri, batchIndex), e);
+                    string msg = (resourceUri == null) ? string.Format("batch index: {0}", batchIndex) : string.Format("batch index: {0} resourceUri: {1}", batchIndex, resourceUri);
+                    throw new Exception(msg, e);
                 }
-            });
+            }
+
+            await Task.WhenAll(saveTasks);
 
             return pageItems;
         }
