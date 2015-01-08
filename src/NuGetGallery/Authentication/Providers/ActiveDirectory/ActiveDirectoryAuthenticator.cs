@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IdentityModel;
 using System.Linq;
 using System.Web;
-using Microsoft.Owin.Security.ActiveDirectory;
+using Microsoft.Owin.Security.WsFederation;
 using Owin;
+using Microsoft.Owin.Security.Cookies;
+using Microsoft.IdentityModel.Protocols;
 
 namespace NuGetGallery.Authentication.Providers.ActiveDirectory
 {
@@ -12,13 +14,16 @@ namespace NuGetGallery.Authentication.Providers.ActiveDirectory
     {
         protected override void AttachToOwinApp(Configuration.ConfigurationService config, Owin.IAppBuilder app)
         {
+            app.UseCookieAuthentication(new CookieAuthenticationOptions
+            {
+                AuthenticationType = AuthenticationTypes.ActiveDirectory
+            });
 
-            app.UseActiveDirectoryFederationServicesBearerAuthentication(
-                new ActiveDirectoryFederationServicesBearerAuthenticationOptions
-                {
-                    MetadataEndpoint = "https://login.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47/federationmetadata/2007-06/federationmetadata.xml",
-                    TokenValidationParameters = new System.IdentityModel.Tokens.TokenValidationParameters { ValidAudience = "https://nuget.localtest.me/" },
-                    AuthenticationType = "OAuth2Bearer"
+            app.UseWsFederationAuthentication(
+                new WsFederationAuthenticationOptions {
+                    MetadataAddress = "https://login.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47/federationmetadata/2007-06/federationmetadata.xml",
+                    Wtrealm = "http://nuget.org/ad-test",
+                    AuthenticationType = AuthenticationTypes.ActiveDirectory
                 });
         }
 

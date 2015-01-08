@@ -354,6 +354,15 @@ namespace NuGetGallery.Authentication
         public async virtual Task<AuthenticateExternalLoginResult> ReadExternalLoginCredential(IOwinContext context)
         {
             var result = await context.Authentication.AuthenticateAsync(AuthenticationTypes.External);
+
+            bool isAzureActiveDirectory = false;
+
+            var provider = result.Identity.FindFirst("http://schemas.microsoft.com/identity/claims/identityprovider");
+            if (provider != null && provider.Value.StartsWith("https://sts.windows.net/"))
+            {
+                isAzureActiveDirectory = true;
+            }
+
             if (result == null)
             {
                 Trace.Information("No external login found.");
@@ -365,19 +374,29 @@ namespace NuGetGallery.Authentication
                 Trace.Error("External Authentication is missing required claim: " + ClaimTypes.NameIdentifier);
                 return new AuthenticateExternalLoginResult();
             }
-            
-            var nameClaim = result.Identity.FindFirst(ClaimTypes.Name);
+
+            var nameClaim = result.Identity.FindFirst(isAzureActiveDirectory ? "http://schemas.microsoft.com/identity/claims/displayname" : ClaimTypes.Name);
             if (nameClaim == null)
             {
                 Trace.Error("External Authentication is missing required claim: " + ClaimTypes.Name);
                 return new AuthenticateExternalLoginResult();
             }
 
-            var emailClaim = result.Identity.FindFirst(ClaimTypes.Email);
+            var emailClaim = result.Identity.FindFirst(isAzureActiveDirectory ? ClaimTypes.Name : ClaimTypes.Email);
             string emailSuffix = emailClaim == null ? String.Empty : (" <" + emailClaim.Value + ">");
 
             Authenticator auther;
-            if (!Authenticators.TryGetValue(idClaim.Issuer, out auther))
+            string issuer;
+            if (idClaim.Issuer.StartsWith("https://sts.windows.net/"))
+            {
+                issuer = "ActiveDirectory";
+            }
+            else
+            {
+                issuer = idClaim.Issuer;
+            }
+
+            if (!Authenticators.TryGetValue(issuer, out auther))
             {
                 auther = null;
             }

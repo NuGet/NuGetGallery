@@ -41,6 +41,11 @@ namespace NuGetGallery
 
         internal static Credential CreateExternalCredential(string issuer, string value, string identity)
         {
+            if (issuer.StartsWith("https://sts.windows.net/"))
+            {
+                issuer = "ActiveDirectory";
+            }
+
             return new Credential(CredentialTypes.ExternalPrefix + issuer, value)
             {
                 Identity = identity

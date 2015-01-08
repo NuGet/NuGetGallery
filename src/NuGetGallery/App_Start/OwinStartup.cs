@@ -11,7 +11,6 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
-using System.Security.Claims;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
 
