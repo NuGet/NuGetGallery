@@ -48,8 +48,9 @@ namespace NuGetGallery.Controllers
                 var model = ResultAssert.IsView<LogOnViewModel>(result, viewName: "LogOn");
                 Assert.NotNull(model.SignIn);
                 Assert.NotNull(model.Register);
-                Assert.Equal(1, model.Providers.Count);
-                Assert.Equal("MicrosoftAccount", model.Providers[0].ProviderName);
+                Assert.Equal(2, model.Providers.Count);
+                Assert.Equal("ActiveDirectory", model.Providers[0].ProviderName);
+                Assert.Equal("MicrosoftAccount", model.Providers[1].ProviderName);
             }
         }
 

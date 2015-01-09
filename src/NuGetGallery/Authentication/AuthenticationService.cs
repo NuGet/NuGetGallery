@@ -357,10 +357,15 @@ namespace NuGetGallery.Authentication
 
             bool isAzureActiveDirectory = false;
 
-            var provider = result.Identity.FindFirst("http://schemas.microsoft.com/identity/claims/identityprovider");
-            if (provider != null && provider.Value.StartsWith("https://sts.windows.net/",StringComparison.Ordinal))
+            Claim provider = null;
+
+            if (result != null)
             {
-                isAzureActiveDirectory = true;
+                provider = result.Identity.FindFirst("http://schemas.microsoft.com/identity/claims/identityprovider");
+                if (provider != null && provider.Value.StartsWith("https://sts.windows.net/", StringComparison.Ordinal))
+                {
+                    isAzureActiveDirectory = true;
+                }
             }
 
             if (result == null)
@@ -387,7 +392,7 @@ namespace NuGetGallery.Authentication
 
             Authenticator auther;
             string issuer;
-            if (idClaim.Issuer.StartsWith("https://sts.windows.net/"))
+            if (idClaim.Issuer.StartsWith("https://sts.windows.net/",StringComparison.Ordinal))
             {
                 issuer = "ActiveDirectory";
             }
