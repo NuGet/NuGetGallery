@@ -358,7 +358,7 @@ namespace NuGetGallery.Authentication
             bool isAzureActiveDirectory = false;
 
             var provider = result.Identity.FindFirst("http://schemas.microsoft.com/identity/claims/identityprovider");
-            if (provider != null && provider.Value.StartsWith("https://sts.windows.net/"))
+            if (provider != null && provider.Value.StartsWith("https://sts.windows.net/",StringComparison.Ordinal))
             {
                 isAzureActiveDirectory = true;
             }
