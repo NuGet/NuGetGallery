@@ -17,9 +17,11 @@ using System.Threading.Tasks;
 
 namespace Ng
 {
-    public class SearchIndexFromCatalogCollector: CommitCollector
+    public class SearchIndexFromCatalogCollector : CommitCollector
     {
-        const int MergeFactor = 10;                 //  Define the size of a file in a level (exponentially) and the count of files that constitue a level
+        const int MergeFactor = 10;
+
+        //  Define the size of a file in a level (exponentially) and the count of files that constitue a level
         const int MaxMergeDocs = 7999;              //  Except never merge segments that have more docs than this
 
         Lucene.Net.Store.Directory _directory;
@@ -35,39 +37,82 @@ namespace Ng
 
         protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp)
         {
-            Task<Document>[] packages = items.Select(x => MakePackage(client, x)).Where(x => x != null).ToArray();
-
-            await Task.WhenAll(packages);
+            IEnumerable<JObject> catalogItems = await FetchCatalogItems(client, items);
 
             using (IndexWriter indexWriter = CreateIndexWriter(_directory))
             {
                 Trace.TraceInformation("Index contains {0} documents", indexWriter.NumDocs());
 
-                int i = 0;
+                int count = 0;
 
-                foreach (Document doc in packages.Select(x => x.Result))
-                {
-                    if (doc != null)
-                    {
-                        string id = doc.Get("Id");
-                        string version = doc.Get("Version");
-
-                        indexWriter.DeleteDocuments(CreateDeleteQuery(id, version));
-
-                        indexWriter.AddDocument(doc);
-
-                        Trace.TraceInformation("ADD: {0}/{1}", id, version);
-
-                        i++;
-                    }
-                }
+                count += ProcessPackages(indexWriter, catalogItems);
+                count += ProcessPackageDeletes(indexWriter, catalogItems);
 
                 indexWriter.Commit(CreateCommitMetadata(commitTimeStamp));
 
-                Trace.TraceInformation("COMMIT {0} documents, index contains {1} documents commitTimeStamp {2}", i, indexWriter.NumDocs(), commitTimeStamp.ToString("O"));
+                Trace.TraceInformation("COMMIT {0} documents, index contains {1} documents commitTimeStamp {2}", count, indexWriter.NumDocs(), commitTimeStamp.ToString("O"));
             }
 
             return true;
+        }
+
+        static async Task<IEnumerable<JObject>> FetchCatalogItems(CollectorHttpClient client, IEnumerable<JToken> items)
+        {
+            IList<Task<JObject>> tasks = new List<Task<JObject>>();
+
+            foreach (JToken item in items)
+            {
+                Uri catalogItemUri = item["@id"].ToObject<Uri>();
+
+                tasks.Add(client.GetJObjectAsync(catalogItemUri));
+            }
+
+            await Task.WhenAll(tasks);
+
+            return tasks.Select(t => t.Result);
+        }
+
+        static int ProcessPackages(IndexWriter indexWriter, IEnumerable<JObject> catalogItems)
+        {
+            int i = 0;
+
+            foreach (JObject catalogItem in catalogItems.Where(x => x["@type"].ToString().ToLowerInvariant().Contains("packagedetails")))
+            {
+                indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem["id"].ToString(), catalogItem["version"].ToString()));
+
+                int publishedDate = 0;
+                JToken publishedValue;
+
+                if (catalogItem.TryGetValue("published", out publishedValue))
+                {
+                   publishedDate = int.Parse(publishedValue.ToObject<DateTime>().ToString("yyyyMMdd"));
+                }
+                              
+                //Filter out unlisted packages
+                if (publishedDate != 19000101)
+                {
+                    Document document = MakeDocument(catalogItem);
+                    indexWriter.AddDocument(document);
+                }
+
+                i++;
+            }
+
+            return i;
+        }
+
+        static int ProcessPackageDeletes(IndexWriter indexWriter, IEnumerable<JObject> catalogItems)
+        {
+            int i = 0;
+
+            foreach (JObject catalogItem in catalogItems.Where(x => x["@type"].ToString().ToLowerInvariant().Contains("packagedelete")))
+            {
+                indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem["id"].ToString(), catalogItem["version"].ToString()));
+
+                i++;
+            }
+
+            return i;
         }
 
         IDictionary<string, string> CreateCommitMetadata(DateTime commitTimeStamp)
@@ -98,7 +143,7 @@ namespace Ng
             return indexWriter;
         }
 
-        Query CreateDeleteQuery(string id, string version)
+        static Query CreateDeleteQuery(string id, string version)
         {
             //  note as we are not using the QueryParser we are not running this data through the analyzer so we need to mimic its behavior
             string analyzedId = id.ToLowerInvariant();
@@ -108,6 +153,16 @@ namespace Ng
             query.Add(new BooleanClause(new TermQuery(new Term("Id", analyzedId)), Occur.MUST));
             query.Add(new BooleanClause(new TermQuery(new Term("Version", analyzedVersion)), Occur.MUST));
             return query;
+        }
+
+        static Document MakeDocument(JObject catalogEntry)
+        {
+            string id = catalogEntry["id"].ToString();
+            string version = catalogEntry["version"].ToString();
+
+            string packageUrl = string.Format(_packageTemplate, id.ToLowerInvariant(), version.ToLowerInvariant());
+
+            return CreateLuceneDocument(catalogEntry, packageUrl);
         }
 
         private async Task<Document> MakePackage(CollectorHttpClient client, JToken catalogEntry)
@@ -153,7 +208,7 @@ namespace Ng
             return 1.0f;
         }
 
-        // ----------------------------------------------------------------------------------------------------------------------------------------
+
         private static Document CreateLuceneDocument(JObject package, string packageUrl)
         {
             Document doc = new Document();
@@ -171,9 +226,9 @@ namespace Ng
                         if (!_frameworkNames.ContainsKey(framework))
                         {
                             _frameworkNames.Add(framework, frameworkName.FullName);
-                            
+
                             Trace.TraceInformation("New framework string: {0}, {1}", framework, frameworkName.FullName);
-                            
+
                             using (var writer = File.AppendText("frameworks.txt"))
                             {
                                 writer.WriteLine("{0}: {1}", framework, frameworkName.FullName);
@@ -201,15 +256,12 @@ namespace Ng
             Add(doc, "IdAutocomplete", (string)package["id"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.NO);
             Add(doc, "TokenizedId", (string)package["id"], Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
             Add(doc, "ShingledId", (string)package["id"], Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
-
             Add(doc, "Version", (string)package["version"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
-            
             Add(doc, "Title", title, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, titleBoost);
             Add(doc, "Tags", string.Join(" ", (package["tags"] ?? new JArray()).Select(s => (string)s)), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, 1.5f);
             Add(doc, "Description", (string)package["description"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "Authors", string.Join(" ", package["authors"].Select(s => (string)s)), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "Summary", (string)package["summary"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            
             Add(doc, "IconUrl", (string)package["iconUrl"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "ProjectUrl", (string)package["projectUrl"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "MinClientVersion", (string)package["minClientVersion"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);

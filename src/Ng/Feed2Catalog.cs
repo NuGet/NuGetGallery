@@ -17,9 +17,22 @@ namespace Ng
 
     public static class Feed2Catalog
     {
+        #region private_strings
+        private const string createdDateProperty = "Created";
+        private const string lastEditedDateProperty = "LastEdited";
+        private const string publishedDateProperty = "Published";
+        #endregion
+
+        public struct PackageDates
+        {
+            public DateTime packageCreatedDate;
+            public DateTime packageLastEditedDate;
+            public DateTime packagePublishedDate;
+        }
+
         static Uri MakeCreatedUri(string source, DateTime since, int top = 100)
         {
-            string address = string.Format("{0}/Packages?$filter=Created gt DateTime'{1}'&$top={2}&$orderby=Created&$select=Created",
+            string address = string.Format("{0}/Packages?$filter=Created gt DateTime'{1}'&$top={2}&$orderby=Created&$select=Created,LastEdited,Published",
                 source.Trim('/'),
                 since.ToString("o"),
                 top);
@@ -29,7 +42,7 @@ namespace Ng
 
         static Uri MakeLastEditedUri(string source, DateTime since, int top = 100)
         {
-            string address = string.Format("{0}/Packages?$filter=LastEdited gt DateTime'{1}'&$top={2}&$orderby=LastEdited&$select=LastEdited",
+            string address = string.Format("{0}/Packages?$filter=LastEdited gt DateTime'{1}'&$top={2}&$orderby=LastEdited&$select=Created,LastEdited,Published",
                 source.Trim('/'),
                 since.ToString("o"),
                 top);
@@ -37,20 +50,29 @@ namespace Ng
             return new Uri(address);
         }
 
-        public static Task<SortedList<DateTime, IList<Uri>>> GetCreatedPackages(HttpClient client, string source, DateTime since, int top = 100)
+        public static Task<SortedList<DateTime, IList<Tuple<Uri,PackageDates>>>> GetCreatedPackages(HttpClient client, string source, DateTime since, int top = 100)
         {
-            return GetPackages(client, MakeCreatedUri(source, since, top), "Created");
+            return GetPackages(client, MakeCreatedUri(source, since, top));
         }
 
-        public static Task<SortedList<DateTime, IList<Uri>>> GetEditedPackages(HttpClient client, string source, DateTime since, int top = 100)
+        public static Task<SortedList<DateTime, IList<Tuple<Uri, PackageDates>>>> GetEditedPackages(HttpClient client, string source, DateTime since, int top = 100)
         {
-            return GetPackages(client, MakeLastEditedUri(source, since, top), "LastEdited");
+            return GetPackages(client, MakeLastEditedUri(source, since, top));
         }
 
-        public static async Task<SortedList<DateTime, IList<Uri>>> GetPackages(HttpClient client, Uri uri, string dateProperty)
+        private static DateTime ForceUTC(DateTime date)
         {
-            SortedList<DateTime, IList<Uri>> result = new SortedList<DateTime, IList<Uri>>();
+            if (date.Kind == DateTimeKind.Unspecified)
+            {
+                date = new DateTime(date.Ticks, DateTimeKind.Utc);
+            }
+            return date;
+        }
 
+        public static async Task<SortedList<DateTime, IList<Tuple<Uri, PackageDates>>>> GetPackages(HttpClient client, Uri uri)
+        {
+            SortedList<DateTime, IList<Tuple<Uri, PackageDates>>> result = new SortedList<DateTime, IList<Tuple<Uri, PackageDates>>>();
+           
             XElement feed;
             using (Stream stream = await client.GetStreamAsync(uri))
             {
@@ -64,29 +86,39 @@ namespace Ng
             foreach (XElement entry in feed.Elements(atom + "entry"))
             {
                 Uri content = new Uri(entry.Element(atom + "content").Attribute("src").Value);
-                DateTime date = DateTime.Parse(entry.Element(metadata + "properties").Element(dataservices + dateProperty).Value);
+                string createdEntryValue = entry.Element(metadata + "properties").Element(dataservices + createdDateProperty).Value;
+                DateTime createdDate = String.IsNullOrEmpty(createdEntryValue) ? DateTime.Now : DateTime.Parse(createdEntryValue);
+
+                string lastEditedEntryValue = entry.Element(metadata + "properties").Element(dataservices + lastEditedDateProperty).Value;
+                DateTime lastEditedDate = String.IsNullOrEmpty(lastEditedEntryValue) ? createdDate : DateTime.Parse(lastEditedEntryValue);
+
+                string publishedEntryValue = entry.Element(metadata + "properties").Element(dataservices + publishedDateProperty).Value;
+                DateTime publishedDate = String.IsNullOrEmpty(publishedEntryValue) ? createdDate : DateTime.Parse(publishedEntryValue);
 
                 // NOTE that DateTime returned by the v2 feed does not have Z at the end even though it is in UTC. So, the DateTime kind is unspecified
                 // So, forcibly convert it to UTC here
-                if(date.Kind == DateTimeKind.Unspecified)
+                createdDate = ForceUTC(createdDate);
+                lastEditedDate = ForceUTC(lastEditedDate);
+                publishedDate = ForceUTC(publishedDate);
+
+                IList<Tuple<Uri, PackageDates>> contentUris;
+                if (!result.TryGetValue(createdDate, out contentUris))
                 {
-                    date = new DateTime(date.Ticks, DateTimeKind.Utc);
+                    contentUris = new List<Tuple<Uri, PackageDates>>();
+                    result.Add(createdDate, contentUris);
                 }
 
-                IList<Uri> contentUris;
-                if (!result.TryGetValue(date, out contentUris))
-                {
-                    contentUris = new List<Uri>();
-                    result.Add(date, contentUris);
-                }
-
-                contentUris.Add(content);
+                PackageDates dates;
+                dates.packageCreatedDate = createdDate;
+                dates.packageLastEditedDate = lastEditedDate;
+                dates.packagePublishedDate = publishedDate;
+                contentUris.Add(new Tuple<Uri,PackageDates>(content, dates));
             }
 
             return result;
         }
 
-        static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<Uri>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, bool createdPackages)
+        static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<Tuple<Uri, PackageDates>>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, bool createdPackages)
         {
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 550);
 
@@ -97,17 +129,20 @@ namespace Ng
                 return lastDate;
             }
 
-            foreach (KeyValuePair<DateTime, IList<Uri>> entry in packages)
+            foreach (KeyValuePair<DateTime, IList<Tuple<Uri, PackageDates>>> entry in packages)
             {
-                foreach (Uri uri in entry.Value)
+                foreach (Tuple<Uri, PackageDates> packageItem in entry.Value)
                 {
+                    Uri uri = packageItem.Item1;
+                    PackageDates pDates = packageItem.Item2;
+
                     HttpResponseMessage response = await client.GetAsync(uri);
 
                     if (response.IsSuccessStatusCode)
                     {
                         using (Stream stream = await response.Content.ReadAsStreamAsync())
                         {
-                            CatalogItem item = Utils.CreateCatalogItem(stream, entry.Key, null, uri.ToString());
+                            CatalogItem item = Utils.CreateCatalogItem(stream, entry.Key, null, uri.ToString(), pDates.packageCreatedDate, pDates.packageLastEditedDate, pDates.packagePublishedDate);
 
                             if (item != null)
                             {
@@ -180,11 +215,12 @@ namespace Ng
                     client.Timeout = TimeSpan.FromSeconds(timeout);
 
                     //  fetch and add all newly CREATED packages - in order
-                    DateTime lastCreated = await GetCatalogProperty(storage, LastCreated) ?? DateTime.MinValue.ToUniversalTime();
+                    //DateTime lastCreated = await GetCatalogProperty(storage, LastCreated) ?? DateTime.MinValue.ToUniversalTime();
+                    DateTime lastCreated = DateTime.Now.AddHours(-6);
                     DateTime lastEdited = await GetCatalogProperty(storage, LastEdited) ?? lastCreated;
 
 
-                    SortedList<DateTime, IList<Uri>> createdPackages;
+                    SortedList<DateTime, IList<Tuple<Uri, PackageDates>>> createdPackages;
                     do
                     {
                         Trace.TraceInformation("CATALOG LastCreated: {0}", lastCreated.ToString("O"));
@@ -198,7 +234,7 @@ namespace Ng
 
                     //  THEN fetch and add all EDITED packages - in order
 
-                    SortedList<DateTime, IList<Uri>> editedPackages;
+                    SortedList<DateTime, IList<Tuple<Uri, PackageDates>>> editedPackages;
                     do
                     {
                         Trace.TraceInformation("CATALOG LastEdited: {0}", lastEdited.ToString("O"));

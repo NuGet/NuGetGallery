@@ -17,6 +17,7 @@ namespace NuGet.Services.Metadata.Catalog
         Uri _packageContentAddress;
         Uri _registrationBaseAddress;
         Uri _registrationAddress;
+        DateTime _publishedDate;
 
         public RegistrationCatalogItem(Uri catalogUri, IGraph catalogItem, Uri packageContentBaseAddress, Uri registrationBaseAddress)
         {
@@ -35,6 +36,7 @@ namespace NuGet.Services.Metadata.Catalog
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.CatalogEntry), graph.CreateUriNode(_catalogUri));
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Registration), graph.CreateUriNode(GetRegistrationAddress()));
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.PackageContent), graph.CreateUriNode(GetPackageContentAddress()));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Published), graph.CreateLiteralNode(GetPublishedDate().ToString("O"), Schema.DataTypes.DateTime));
             JObject frame = context.GetJsonLdContext("context.Package.json", Schema.DataTypes.Package);
             return new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
         }
@@ -81,6 +83,29 @@ namespace NuGet.Services.Metadata.Catalog
             }
 
             return _registrationAddress;
+        }
+
+        DateTime GetPublishedDate()
+        {
+
+            if (_publishedDate == DateTime.MinValue)
+            {
+                INode subject = _catalogItem.CreateUriNode(_catalogUri);
+                var pubTriple = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Published)).SingleOrDefault();
+
+                if (pubTriple != null)
+                {
+                    ILiteralNode node = pubTriple.Object as ILiteralNode;
+
+                    if (node != null)
+                    {
+                        _publishedDate = DateTime.Parse(node.Value);
+                    }
+                }
+            }
+
+            return _publishedDate;
+
         }
 
         public override IGraph CreatePageContent(CatalogContext context)
