@@ -17,6 +17,7 @@ namespace NuGet.Services.Metadata.Catalog
         Uri _packageContentAddress;
         Uri _registrationBaseAddress;
         Uri _registrationAddress;
+        Uri _reportAbuseURL;
         DateTime _publishedDate;
 
         public RegistrationCatalogItem(Uri catalogUri, IGraph catalogItem, Uri packageContentBaseAddress, Uri registrationBaseAddress)
@@ -37,6 +38,7 @@ namespace NuGet.Services.Metadata.Catalog
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Registration), graph.CreateUriNode(GetRegistrationAddress()));
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.PackageContent), graph.CreateUriNode(GetPackageContentAddress()));
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Published), graph.CreateLiteralNode(GetPublishedDate().ToString("O"), Schema.DataTypes.DateTime));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.ReportAbuse), graph.CreateUriNode(GetReportAbuseURL()));
             JObject frame = context.GetJsonLdContext("context.Package.json", Schema.DataTypes.Package);
             return new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
         }
@@ -83,6 +85,20 @@ namespace NuGet.Services.Metadata.Catalog
             }
 
             return _registrationAddress;
+        }
+
+        Uri GetReportAbuseURL()
+        {
+            if (_reportAbuseURL == null)
+            {
+                INode subject = _catalogItem.CreateUriNode(_catalogUri);
+                string id = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Id)).FirstOrDefault().Object.ToString().ToLowerInvariant();
+                string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString().ToLowerInvariant();
+                string path = string.Format("{0}/{1}/ReportAbuse", id.ToLowerInvariant(), version.ToLowerInvariant());
+                _reportAbuseURL = new Uri(_registrationBaseAddress, path);
+            }
+
+            return _reportAbuseURL;
         }
 
         DateTime GetPublishedDate()

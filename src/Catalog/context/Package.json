@@ -5,6 +5,7 @@
         "catalogEntry" : { "@type" : "@id" },
         "registration" : { "@type" : "@id" },
         "packageContent": { "@type": "@id" },
-        "published": { "@type": "xsd:dateTime" }
+        "published": { "@type": "xsd:dateTime" },
+        "reportAbuse" : { "@type" : "@id" }
     }
 }
