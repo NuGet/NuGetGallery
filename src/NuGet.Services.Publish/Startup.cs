@@ -20,6 +20,8 @@ namespace NuGet.Services.Publish
 
         public async Task Invoke(IOwinContext context)
         {
+            string publisher = "<unknown>";
+
             switch (context.Request.Path.Value)
             {
                 case "/":
@@ -29,7 +31,19 @@ namespace NuGet.Services.Publish
                 case "/catalog":
                     if (context.Request.Method.Equals("POST", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        await PublishImpl.Upload(context);
+                        await NuGetPublishImpl.Upload(context);
+                    }
+                    else
+                    {
+                        await context.Response.WriteAsync("NotFound");
+                        context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    }
+                    break;
+                case "/catalog/microservices":
+                    if (context.Request.Method.Equals("POST", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        PublishImpl uploader = new MicroservicesPublishImpl();
+                        await uploader.Upload(context, publisher);
                     }
                     else
                     {

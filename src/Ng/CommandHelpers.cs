@@ -59,7 +59,6 @@ namespace Ng
             string value;
             if (!arguments.TryGetValue("-gallery", out value))
             {
-                TraceRequiredArgument("-gallery");
                 return null;
             }
             return value;
@@ -70,7 +69,6 @@ namespace Ng
             string value;
             if (!arguments.TryGetValue("-registration", out value))
             {
-                TraceRequiredArgument("-registration");
                 return null;
             }
             return value;

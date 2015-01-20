@@ -65,14 +65,19 @@ namespace Ng
 
             bool verbose = CommandHelpers.GetVerbose(arguments);
 
-            int interval = CommandHelpers.GetInterval(arguments);
-
-            string registration = CommandHelpers.GetRegistration(arguments);
-
             if (verbose)
             {
                 Trace.Listeners.Add(new ConsoleTraceListener());
                 Trace.AutoFlush = true;
+            }
+
+            int interval = CommandHelpers.GetInterval(arguments);
+
+            string registration = CommandHelpers.GetRegistration(arguments);
+
+            if (registration == null)
+            {
+                Console.WriteLine("Lucene index will be created up to the end of the catalog (alternatively if you provide a registration it will not pass that)");
             }
 
             Trace.TraceInformation("CONFIG source: \"{0}\" registration: \"{1}\" interval: {2} seconds", source, registration ?? "(null)", interval);

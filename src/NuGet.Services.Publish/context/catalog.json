@@ -1,0 +1,12 @@
+﻿{
+    "@context": {
+        "@vocab": "http://schema.nuget.org/schema#",
+        "catalog": "http://schema.nuget.org/catalog#",
+        "ema": "http://windowsazure.com/ema/schema#",
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "details": "catalog:details",
+        "catalog:commitTimeStamp": { "@type": "xsd:dateTime" },
+        "published": { "@type": "xsd:dateTime" },
+        "packageContent" : { "@type" : "@id" }
+    }
+}

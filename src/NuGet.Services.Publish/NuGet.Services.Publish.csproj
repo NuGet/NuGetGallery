@@ -147,6 +147,9 @@
   <ItemGroup>
     <Content Include="packages.config" />
     <Content Include="ApplicationInsights.config" />
+    <EmbeddedResource Include="context\nuget.json" />
+    <EmbeddedResource Include="context\microservices.json" />
+    <EmbeddedResource Include="context\catalog.json" />
     <None Include="Properties\PublishProfiles\NuGetServicesPublish.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -159,8 +162,11 @@
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="GraphCatalogItem.cs" />
     <Compile Include="PublishImpl.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="MicroservicesPublishImpl.cs" />
+    <Compile Include="NuGetPublishImpl.cs" />
     <Compile Include="ServiceHelpers.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
