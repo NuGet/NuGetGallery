@@ -56,12 +56,15 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configurations", "Configurations", "{9D362AFD-C5A8-40DA-B9EE-C457E8EBC920}"
 	ProjectSection(SolutionItems) = preProject
 		PublishScripts\Configurations\NuGetServicesPublish-WAWS-dev.json = PublishScripts\Configurations\NuGetServicesPublish-WAWS-dev.json
+		PublishScripts\Configurations\PublishTestDriverWebSite-WAWS-dev.json = PublishScripts\Configurations\PublishTestDriverWebSite-WAWS-dev.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{4AA08EEB-BA47-4ECD-94F3-0700DD50E693}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\packages.config = .nuget\packages.config
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublishTestDriverWebSite", "tests\PublishTestDriverWebSite\PublishTestDriverWebSite.csproj", "{DCE82063-AD00-4EA9-BB0E-B01047BC861C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -289,6 +292,16 @@ Global
 		{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}.Release|x64.ActiveCfg = Release|Any CPU
+		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
