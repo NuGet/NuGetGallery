@@ -302,6 +302,7 @@ namespace NuGetGallery
 
             package.Listed = true;
             package.LastUpdated = DateTime.UtcNow;
+            package.LastEdited = DateTime.UtcNow;
 
             UpdateIsLatest(package.PackageRegistration);
 
