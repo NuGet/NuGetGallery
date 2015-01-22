@@ -215,8 +215,7 @@ namespace Ng
                     client.Timeout = TimeSpan.FromSeconds(timeout);
 
                     //  fetch and add all newly CREATED packages - in order
-                    //DateTime lastCreated = await GetCatalogProperty(storage, LastCreated) ?? DateTime.MinValue.ToUniversalTime();
-                    DateTime lastCreated = DateTime.Now.AddHours(-6);
+                    DateTime lastCreated = await GetCatalogProperty(storage, LastCreated) ?? DateTime.MinValue.ToUniversalTime();
                     DateTime lastEdited = await GetCatalogProperty(storage, LastEdited) ?? lastCreated;
 
 
