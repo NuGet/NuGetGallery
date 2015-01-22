@@ -1,5 +1,6 @@
 ﻿using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Owin.Security.OpenIdConnect;
+using Newtonsoft.Json.Linq;
 using PublishTestDriverWebSite.Models;
 using PublishTestDriverWebSite.Utils;
 using System;
@@ -14,7 +15,7 @@ using System.Web.Mvc;
 namespace PublishTestDriverWebSite.Controllers
 {
     [Authorize]
-    public class PublishController : Controller
+    public class PackagesController : Controller
     {
         private string nugetPublishServiceResourceId = ConfigurationManager.AppSettings["nuget:PublishServiceResourceId"];
         private string nugetPublishServiceBaseAddress = ConfigurationManager.AppSettings["nuget:PublishServiceBaseAddress"];
@@ -22,7 +23,11 @@ namespace PublishTestDriverWebSite.Controllers
         private static string clientId = ConfigurationManager.AppSettings["ida:ClientId"];
         private static string appKey = ConfigurationManager.AppSettings["ida:AppKey"];
 
-        // GET: Publish
+        //  The idea of the packages page is that it gets the list of packages from Lucene (from the Search Service)
+        //  but when the owner is the current user (if there is a current user), packages owned by him are highlighted.
+        //  So far this packages page just gets the list of registrations for which the current user is an owner.
+
+        // GET: Packages
         public async Task<ActionResult> Index()
         {
             AuthenticationResult result = null;
@@ -33,18 +38,16 @@ namespace PublishTestDriverWebSite.Controllers
                 AuthenticationContext authContext = new AuthenticationContext(Startup.Authority, new NaiveSessionCache(userObjectID));
                 ClientCredential credential = new ClientCredential(clientId, appKey);
 
-                result = authContext.AcquireTokenSilent(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+                result = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
 
                 HttpClient client = new HttpClient();
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetPublishServiceBaseAddress + "/test");
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetPublishServiceBaseAddress + "/registrations");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
                 HttpResponseMessage response = await client.SendAsync(request);
 
-                string s = await response.Content.ReadAsStringAsync();
+                string json = await response.Content.ReadAsStringAsync();
 
-                string msg = string.Format("from PublishService {0}", s);
-
-                PublishModel model = new PublishModel { Message = msg };
+                PackagesModel model = new PackagesModel { Registrations = JArray.Parse(json) };
 
                 return View(model);
             }

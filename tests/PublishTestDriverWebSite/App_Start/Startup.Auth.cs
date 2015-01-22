@@ -28,16 +28,16 @@ namespace PublishTestDriverWebSite
         // The Authority is the sign-in URL of the tenant.
         // The Post Logout Redirect Uri is the URL where the user will be redirected after they sign out.
         //
-        private static string clientId = ConfigurationManager.AppSettings["ida:ClientId"];
-        private static string appKey = ConfigurationManager.AppSettings["ida:AppKey"];
-        private static string aadInstance = ConfigurationManager.AppSettings["ida:AADInstance"];
-        private static string tenant = ConfigurationManager.AppSettings["ida:Tenant"];
-        private static string postLogoutRedirectUri = ConfigurationManager.AppSettings["ida:PostLogoutRedirectUri"];
+        static string clientId = ConfigurationManager.AppSettings["ida:ClientId"];
+        static string appKey = ConfigurationManager.AppSettings["ida:AppKey"];
+        static string aadInstance = ConfigurationManager.AppSettings["ida:AADInstance"];
+        static string tenant = ConfigurationManager.AppSettings["ida:Tenant"];
+        static string postLogoutRedirectUri = ConfigurationManager.AppSettings["ida:PostLogoutRedirectUri"];
 
         public static readonly string Authority = String.Format(CultureInfo.InvariantCulture, aadInstance, tenant);
 
         // This is the resource ID of the AAD Graph API.  We'll need this to request a token to call the Graph API.
-        string graphResourceId = ConfigurationManager.AppSettings["ida:GraphResourceId"];
+        static string graphResourceId = ConfigurationManager.AppSettings["ida:GraphResourceId"];
 
         public void ConfigureAuth(IAppBuilder app)
         {
@@ -68,9 +68,7 @@ namespace PublishTestDriverWebSite
 
                             return Task.FromResult(0);
                         }
-
                     }
-
                 });
         }
     }

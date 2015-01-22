@@ -1,7 +1,7 @@
 ﻿using Microsoft.Owin;
-using Newtonsoft.Json.Linq;
+using Microsoft.Owin.Security.ActiveDirectory;
 using Owin;
-using System;
+using System.Configuration;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -15,41 +15,64 @@ namespace NuGet.Services.Publish
         {
             app.UseErrorPage();
 
+            app.UseWindowsAzureActiveDirectoryBearerAuthentication(
+                new WindowsAzureActiveDirectoryBearerAuthenticationOptions
+                {
+                    Audience = ConfigurationManager.AppSettings["ida:Audience"],
+                    Tenant = ConfigurationManager.AppSettings["ida:Tenant"]
+                });
+
             app.Run(Invoke);
         }
 
-        public async Task Invoke(IOwinContext context)
+        async Task Invoke(IOwinContext context)
         {
-            string publisher = "<unknown>";
+            switch (context.Request.Method)
+            {
+                case "GET":
+                    await InvokeGET(context);
+                    break;
+                case "POST": 
+                    await InvokePOST(context);
+                    break;
+                default:
+                    await context.Response.WriteAsync("NotFound");
+                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    break;
+            }
+        }
 
+        async Task InvokeGET(IOwinContext context)
+        {
             switch (context.Request.Path.Value)
             {
                 case "/":
                     await context.Response.WriteAsync("OK");
                     context.Response.StatusCode = (int)HttpStatusCode.OK;
                     break;
+                case "/test":
+                    await ServiceHelpers.Test(context);
+                    break;
+                case "/registrations":
+                    await PackageRegistrationsImpl.ListPackageRegistrations(context);
+                    break;
+                default:
+                    await context.Response.WriteAsync("NotFound");
+                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    break;
+            }
+        }
+
+        async Task InvokePOST(IOwinContext context)
+        {
+            switch (context.Request.Path.Value)
+            {
                 case "/catalog":
-                    if (context.Request.Method.Equals("POST", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        await NuGetPublishImpl.Upload(context);
-                    }
-                    else
-                    {
-                        await context.Response.WriteAsync("NotFound");
-                        context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    }
+                    await NuGetPublishImpl.Upload(context);
                     break;
                 case "/catalog/microservices":
-                    if (context.Request.Method.Equals("POST", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        PublishImpl uploader = new MicroservicesPublishImpl();
-                        await uploader.Upload(context, publisher);
-                    }
-                    else
-                    {
-                        await context.Response.WriteAsync("NotFound");
-                        context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    }
+                    PublishImpl uploader = new MicroservicesPublishImpl();
+                    await uploader.Upload(context, "<unknown>");
                     break;
                 default:
                     await context.Response.WriteAsync("NotFound");

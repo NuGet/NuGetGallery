@@ -1,18 +1,11 @@
-﻿using System;
-using System.Globalization;
-using System.Linq;
+﻿using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Microsoft.Owin.Security;
+using Microsoft.Owin.Security.Cookies;
+using Microsoft.Owin.Security.OpenIdConnect;
+using PublishTestDriverWebSite.Utils;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.Owin.Security;
-using PublishTestDriverWebSite.Models;
-using Microsoft.Owin.Security.OpenIdConnect;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using Microsoft.Owin.Security.Cookies;
-using PublishTestDriverWebSite.Utils;
 
 namespace PublishTestDriverWebSite.Controllers
 {
