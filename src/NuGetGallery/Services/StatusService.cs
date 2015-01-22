@@ -108,12 +108,12 @@ namespace NuGetGallery
 
         private async Task<bool?> IsSearchServiceAvailable()
         {
-            if (_config == null || _config.SearchServiceUri == null)
+            if (_config == null || _config.ServiceDiscoveryUri == null)
             {
                 return null;
             }
 
-            return await IsGetSuccessful(_config.SearchServiceUri);
+            return await IsGetSuccessful(_config.ServiceDiscoveryUri);
         }
 
         private async Task<bool?> IsMetricsServiceAvailable()

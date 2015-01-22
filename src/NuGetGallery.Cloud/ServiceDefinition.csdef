@@ -21,7 +21,7 @@
       <Setting name="Gallery.LuceneIndexLocation" />
       <Setting name="Gallery.GoogleAnalyticsPropertyId" />
       <Setting name="Gallery.HasWorker" />
-      <Setting name="Gallery.SearchServiceUri" />
+      <Setting name="Gallery.ServiceDiscoveryUri" />
       <Setting name="Gallery.MetricsServiceUri" />
       <Setting name="Gallery.AutoUpdateSearchIndex" />
       <Setting name="Gallery.CollectPerfLogs" />

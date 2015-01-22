@@ -217,7 +217,7 @@ namespace NuGetGallery
 
         private void ConfigureSearch(ConfigurationService configuration)
         {
-            if (configuration.Current.SearchServiceUri == null)
+            if (configuration.Current.ServiceDiscoveryUri == null)
             {
                 Bind<ISearchService>()
                     .To<LuceneSearchService>()
