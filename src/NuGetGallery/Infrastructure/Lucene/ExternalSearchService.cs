@@ -24,7 +24,7 @@ namespace NuGetGallery.Infrastructure.Lucene
         
         private SearchClient _client;
         private JObject _diagCache;
-        
+
         public Uri ServiceUri { get; private set; }
         
         protected IDiagnosticsSource Trace { get; private set; }
@@ -43,7 +43,8 @@ namespace NuGetGallery.Infrastructure.Lucene
 
         public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics)
         {
-            ServiceUri = config.SearchServiceUri;
+            ServiceUri = config.ServiceDiscoveryUri;
+
             Trace = diagnostics.SafeGetSource("ExternalSearchService");
 
             // Extract credentials
@@ -104,7 +105,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                 explain: false,
                 getAllVersions: filter.IncludeAllVersions,
                 supportedFramework: filter.SupportedFramework);
-			sw.Stop();
+            sw.Stop();
 
             SearchResults results = null;
             if (result.IsSuccessStatusCode)
