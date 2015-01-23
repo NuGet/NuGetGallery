@@ -277,9 +277,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.Services.Platform.Client.3.0.29-r-master\lib\portable-net45+wp80+win\NuGet.Services.Platform.Client.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Search.Client, Version=3.0.53.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="NuGet.Services.Search.Client, Version=3.0.56.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Services.Search.Client.3.0.53-r-master\lib\portable-net45+win+wp80\NuGet.Services.Search.Client.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Services.Search.Client.3.0.56-r-master\lib\portable-net45+win+wp80\NuGet.Services.Search.Client.dll</HintPath>
     </Reference>
     <Reference Include="ODataNullPropagationVisitor">
       <HintPath>..\..\packages\ODataNullPropagationVisitor.0.5.4237.2641\lib\net40\ODataNullPropagationVisitor.dll</HintPath>

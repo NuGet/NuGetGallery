@@ -41,6 +41,11 @@ namespace NuGetGallery.Configuration
         public Uri ServiceDiscoveryUri { get; set; }
 
         /// <summary>
+        /// Gets the @type for the Search endpoint
+        /// </summary>
+        public string SearchServiceResourceType { get; set; }
+
+        /// <summary>
         /// Gets the URI to the metrics service
         /// </summary>
         public Uri MetricsServiceUri { get; set; }

@@ -67,7 +67,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                 }.Uri;
             }
 
-            _client = new SearchClient(ServiceUri, credentials, new TracingHttpHandler(Trace));
+            _client = new SearchClient(ServiceUri, config.SearchServiceResourceType, credentials, new TracingHttpHandler(Trace));
         }
 
         private static readonly Task<bool> _exists = Task.FromResult(true);
