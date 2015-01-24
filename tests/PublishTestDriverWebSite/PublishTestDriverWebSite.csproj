@@ -164,6 +164,7 @@
     </Compile>
     <Compile Include="Models\PackagesModel.cs" />
     <Compile Include="Models\PublishModel.cs" />
+    <Compile Include="Models\UploadModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Utils\NaiveSessionCache.cs" />
@@ -207,6 +208,7 @@
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\Publish\Index.cshtml" />
     <Content Include="Views\Packages\Index.cshtml" />
+    <Content Include="Views\Publish\Upload.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -65,19 +65,33 @@ namespace NuGet.Services.Publish
 
         async Task InvokePOST(IOwinContext context)
         {
+            IRegistrationOwnership registrationOwnership = new AzureADRegistrationOwnership(context);
+
             switch (context.Request.Path.Value)
             {
                 case "/catalog":
-                    await NuGetPublishImpl.Upload(context);
-                    break;
+                    {
+                        await NuGetPublishImpl.Upload(context);
+                        break;
+                    }
+                case "/catalog/nuspec":
+                    {
+                        PublishImpl uploader = new NuSpecJsonPublishImpl(registrationOwnership);
+                        await uploader.Upload(context);
+                        break;
+                    }
                 case "/catalog/microservices":
-                    PublishImpl uploader = new MicroservicesPublishImpl();
-                    await uploader.Upload(context, "<unknown>");
-                    break;
+                    {
+                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
+                        await uploader.Upload(context);
+                        break;
+                    }
                 default:
-                    await context.Response.WriteAsync("NotFound");
-                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    break;
+                    {
+                        await context.Response.WriteAsync("NotFound");
+                        context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                        break;
+                    }
             }
         }
     }

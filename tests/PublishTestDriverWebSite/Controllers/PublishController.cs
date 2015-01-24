@@ -1,5 +1,6 @@
 ﻿using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Owin.Security.OpenIdConnect;
+using Newtonsoft.Json.Linq;
 using PublishTestDriverWebSite.Models;
 using PublishTestDriverWebSite.Utils;
 using System;
@@ -16,8 +17,8 @@ namespace PublishTestDriverWebSite.Controllers
     [Authorize]
     public class PublishController : Controller
     {
-        private string nugetPublishServiceResourceId = ConfigurationManager.AppSettings["nuget:PublishServiceResourceId"];
         private string nugetPublishServiceBaseAddress = ConfigurationManager.AppSettings["nuget:PublishServiceBaseAddress"];
+        private string nugetPublishServiceResourceId = ConfigurationManager.AppSettings["nuget:PublishServiceResourceId"];
         private const string TenantIdClaimType = "http://schemas.microsoft.com/identity/claims/tenantid";
         private static string clientId = ConfigurationManager.AppSettings["ida:ClientId"];
         private static string appKey = ConfigurationManager.AppSettings["ida:AppKey"];
@@ -29,20 +30,30 @@ namespace PublishTestDriverWebSite.Controllers
 
             try
             {
-                string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
-                AuthenticationContext authContext = new AuthenticationContext(Startup.Authority, new NaiveSessionCache(userObjectID));
-                ClientCredential credential = new ClientCredential(clientId, appKey);
+                //  with security
 
-                result = authContext.AcquireTokenSilent(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+                //string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
+                //AuthenticationContext authContext = new AuthenticationContext(Startup.Authority, new NaiveSessionCache(userObjectID));
+                //ClientCredential credential = new ClientCredential(clientId, appKey);
 
-                HttpClient client = new HttpClient();
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetPublishServiceBaseAddress + "/test");
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
-                HttpResponseMessage response = await client.SendAsync(request);
+                //result = authContext.AcquireTokenSilent(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
 
-                string s = await response.Content.ReadAsStringAsync();
+                //HttpClient client = new HttpClient();
+                //HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetPublishServiceBaseAddress + "/test");
+                //request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
+                //HttpResponseMessage response = await client.SendAsync(request);
 
-                string msg = string.Format("from PublishService {0}", s);
+                //  without security
+                
+                //HttpClient client = new HttpClient();
+                //HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetPublishServiceBaseAddress + "/test");
+                //HttpResponseMessage response = await client.SendAsync(request);
+
+                //string s = await response.Content.ReadAsStringAsync();
+
+                //string msg = string.Format("from PublishService {0}", s);
+
+                string msg = "OK";
 
                 PublishModel model = new PublishModel { Message = msg };
 
@@ -73,6 +84,44 @@ namespace PublishTestDriverWebSite.Controllers
             // If the call failed for any other reason, show the user an error.
             //
             return View("Error");
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Upload(HttpPostedFileBase uploadFile)
+        {
+            string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
+            AuthenticationContext authContext = new AuthenticationContext(Startup.Authority, new NaiveSessionCache(userObjectID));
+            ClientCredential credential = new ClientCredential(clientId, appKey);
+
+            AuthenticationResult result = authContext.AcquireTokenSilent(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+
+            HttpClient client = new HttpClient();
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nugetPublishServiceBaseAddress + "/catalog/microservices");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
+
+            request.Content = new StreamContent(uploadFile.InputStream);
+            HttpResponseMessage response = await client.SendAsync(request);
+
+            string message = null;
+            if (response.IsSuccessStatusCode)
+            {
+                message = "success";
+            }
+            else
+            {
+                if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    try
+                    {
+                        JObject publishServiceResponse = JObject.Parse(await response.Content.ReadAsStringAsync());
+                        string error = publishServiceResponse["error"].ToString();
+                        message = string.Format("uploaded file {0} contains the following errors {1}", uploadFile.FileName, error);
+                    }
+                    catch { }
+                }
+            }
+
+            return View(new UploadModel { Message = message ?? string.Format("{0} with no further details available", response.StatusCode)});
         }
     }
 }

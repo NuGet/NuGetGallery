@@ -188,11 +188,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GraphCatalogItem.cs" />
+    <Compile Include="MicroservicesPublishImpl.cs" />
     <Compile Include="PackageRegistrationsImpl.cs" />
     <Compile Include="PublishImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="MicroservicesPublishImpl.cs" />
+    <Compile Include="NuSpecJsonPublishImpl.cs" />
     <Compile Include="NuGetPublishImpl.cs" />
+    <Compile Include="IRegistrationOwnership.cs" />
+    <Compile Include="AzureADRegistrationOwnership.cs" />
     <Compile Include="ServiceHelpers.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="NaiveSessionCache.cs" />

@@ -16,20 +16,70 @@ namespace NuGet.Services.Publish
 {
     public abstract class PublishImpl
     {
-        protected abstract bool IsMetadataFile(string fullName);
-        protected abstract JObject CreateMetadataObject(Stream stream);
-        protected abstract bool Validate(IDictionary<string, JObject> metadata, Stream nupkgStream);
+        IRegistrationOwnership _registrationOwnership;
 
-        public async Task Upload(IOwinContext context, string publisher)
+        public PublishImpl(IRegistrationOwnership registrationOwnership)
         {
+            _registrationOwnership = registrationOwnership;
+        }
+
+        protected abstract bool IsMetadataFile(string fullName);
+        protected abstract JObject CreateMetadataObject(string fullname, Stream stream);
+
+        protected virtual string Validate(IDictionary<string, JObject> metadata, Stream nupkgStream)
+        {
+            return null;
+        }
+
+        protected virtual void GenerateNuspec(IDictionary<string, JObject> metadata)
+        {
+        }
+
+        public async Task Upload(IOwinContext context)
+        {
+            if (!_registrationOwnership.IsAuthorized)
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
+                return;
+            }
+
             Stream nupkgStream = context.Request.Body;
 
             IDictionary<string, JObject> metadata = ExtractMetadata(nupkgStream);
 
-            bool isValid = Validate(metadata, nupkgStream);
+            string validationResponse = Validate(metadata, nupkgStream);
 
-            if (isValid)
+            if (validationResponse != null)
             {
+                await ServiceHelpers.WriteErrorResponse(context, validationResponse, HttpStatusCode.BadRequest);
+                return;
+            }
+
+            string id = GetId(metadata);
+
+            bool deleteRegistrationOnError = false;
+
+            string error = string.Empty;
+
+            try
+            {
+                if (await _registrationOwnership.RegistrationExists(id))
+                {
+                    if (!await _registrationOwnership.IsAuthorizedToRegistration(id))
+                    {
+                        await ServiceHelpers.WriteErrorResponse(context, "user does not have access to this registration", HttpStatusCode.Forbidden);
+                        return;
+                    }
+                }
+                else
+                {
+                    await _registrationOwnership.CreateRegistration(id);
+
+                    deleteRegistrationOnError = true;
+
+                    await _registrationOwnership.AddRegistrationOwner(id);
+                }
+
                 string nupkgName = GetNupkgName(metadata);
 
                 Uri nupkgAddress = await SaveNupkg(nupkgStream, nupkgName);
@@ -37,6 +87,7 @@ namespace NuGet.Services.Publish
                 long packageSize = nupkgStream.Length;
                 string packageHash = Utils.GenerateHash(nupkgStream);
                 DateTime published = DateTime.UtcNow;
+                string publisher = await _registrationOwnership.GetUserName();
 
                 Uri catalogAddress = await AddToCatalog(metadata, nupkgAddress, packageSize, packageHash, published, publisher);
 
@@ -47,7 +98,22 @@ namespace NuGet.Services.Publish
                 };
 
                 await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
+
+                deleteRegistrationOnError = false;
+
+                return;
             }
+            catch (Exception e)
+            {
+                error = e.Message;
+            }
+
+            if (deleteRegistrationOnError)
+            {
+                await _registrationOwnership.DeleteRegistration(id);
+            }
+
+            await ServiceHelpers.WriteErrorResponse(context, error, HttpStatusCode.InternalServerError);
         }
 
         IDictionary<string, JObject> ExtractMetadata(Stream nupkgStream)
@@ -62,26 +128,35 @@ namespace NuGet.Services.Publish
                     {
                         using (Stream stream = entry.Open())
                         {
-                            metadata.Add(entry.FullName, CreateMetadataObject(stream));
+                            metadata.Add(entry.FullName, CreateMetadataObject(entry.FullName, stream));
                         }
                     }
                 }
             }
 
+            if (!metadata.ContainsKey("nuspec.json"))
+            {
+                GenerateNuspec(metadata);
+            }
+
             return metadata;
+        }
+
+        static string GetId(IDictionary<string, JObject> metadata)
+        {
+            JObject nuspec = metadata["nuspec.json"];
+
+            return nuspec["id"].ToString();
         }
 
         static string GetNupkgName(IDictionary<string, JObject> metadata)
         {
             JObject nuspec = metadata["nuspec.json"];
 
-            Uri id = nuspec["id"].ToObject<Uri>();
-            string strId = id.AbsoluteUri.Substring(7);
+            string id = nuspec["id"].ToString().ToLowerInvariant();
+            string version = NuGetVersion.Parse(nuspec["version"].ToString()).ToNormalizedString();
 
-            string version = nuspec["version"].ToString();
-            string strVersion = NuGetVersion.Parse(version).ToNormalizedString();
-
-            return MakeNupkgName(strId, strVersion);
+            return MakeNupkgName(id, version);
         }
 
         static string MakeNupkgName(string id, string version)

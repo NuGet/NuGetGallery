@@ -3,13 +3,10 @@ using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Owin;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace NuGet.Services.Publish
 {
@@ -27,19 +24,26 @@ namespace NuGet.Services.Publish
             // The Scope claim tells you what permissions the client application has in the service.
             // In this case we look for a scope value of user_impersonation, or full access to the service as the user.
             //
-            if (ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/scope").Value != "user_impersonation")
+            Claim scopeClaim = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/scope");
+
+            if (scopeClaim != null && scopeClaim.Value == "user_impersonation")
+            {
+                Claim claim = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier);
+                string msg = string.Format("OK claim.Subject.Name = {0} Value = {1}", claim.Subject.Name, claim.Value);
+                await context.Response.WriteAsync(msg);
+                context.Response.StatusCode = (int)HttpStatusCode.OK;
+            }
+            else
             {
                 await context.Response.WriteAsync("The Scope claim does not contain 'user_impersonation' or scope claim not found");
                 context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
             }
+        }
 
-            // A user's To Do list is keyed off of the NameIdentifier claim, which contains an immutable, unique identifier for the user.
-            Claim claim = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier);
-
-            string msg = string.Format("OK claim.Subject.Name = {0} Value = {1}", claim.Subject.Name, claim.Value);
-
-            await context.Response.WriteAsync(msg);
-            context.Response.StatusCode = (int)HttpStatusCode.OK;
+        public static async Task WriteErrorResponse(IOwinContext context, string error, HttpStatusCode statusCode)
+        {
+            JToken content = new JObject { { "error", error } };
+            await WriteResponse(context, content, statusCode);
         }
 
         public static async Task WriteResponse(IOwinContext context, JToken content, HttpStatusCode statusCode)

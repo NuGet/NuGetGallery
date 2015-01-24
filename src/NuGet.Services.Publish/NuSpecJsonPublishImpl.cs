@@ -1,16 +1,14 @@
 ﻿using Newtonsoft.Json.Linq;
-using NuGet.Versioning;
-using System;
 using System.Collections.Generic;
 using System.IO;
 
 namespace NuGet.Services.Publish
 {
-    public class MicroservicesPublishImpl : PublishImpl
+    public class NuSpecJsonPublishImpl : PublishImpl
     {
-        static ISet<string> Files = new HashSet<string> { "microservice.json" };
+        static ISet<string> Files = new HashSet<string> { "nuspec.json" };
 
-        public MicroservicesPublishImpl(IRegistrationOwnership registrationOwnership)
+        public NuSpecJsonPublishImpl(IRegistrationOwnership registrationOwnership)
             : base(registrationOwnership)
         {
         }
@@ -24,31 +22,7 @@ namespace NuGet.Services.Publish
         {
             StreamReader reader = new StreamReader(stream);
             JObject obj = JObject.Parse(reader.ReadToEnd());
-
-            string id = obj["id"].ToString();
-            string version = NuGetVersion.Parse(obj["version"].ToString()).ToNormalizedString();
-
-            Uri jsonLdId = new Uri("http://" + id + "/" + version);
-
-            obj["@id"] = jsonLdId.ToString();
-            obj["@context"] = new JObject { { "@vocab", "http://schema.nuget.org/schema#" } };
-
             return obj;
-        }
-
-        protected override void GenerateNuspec(IDictionary<string, JObject> metadata)
-        {
-            JObject microservice = metadata["microservice.json"];
-
-            JObject nuspec = new JObject
-            {
-                { "@id", microservice["@id"] },
-                { "id", microservice["id"] },
-                { "version", microservice["version"] },
-                { "@context", microservice["@context"] }
-            };
-
-            metadata["nuspec.json"] = nuspec;
         }
 
         protected override string Validate(IDictionary<string, JObject> metadata, Stream nupkgStream)
@@ -59,9 +33,9 @@ namespace NuGet.Services.Publish
             }
 
             JObject nuspec;
-            if (!metadata.TryGetValue("microservice.json", out nuspec))
+            if (!metadata.TryGetValue("nuspec.json", out nuspec))
             {
-                return "microservice.json was found in the package";
+                return "nuspec.json was found in the package";
             }
 
             JToken id;
