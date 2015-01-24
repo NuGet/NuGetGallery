@@ -8,7 +8,9 @@
         "packageEntries": { "@id": "packageEntry", "@container": "@set" },
         "supportedFrameworks": { "@id": "supportedFramework", "@container": "@set" },
         "tags": { "@id": "tag", "@container": "@set" },
-        "published" : { "@type" : "xsd:dateTime" },
+        "published": { "@type": "xsd:dateTime" },
+        "created": { "@type": "xsd:dateTime" },
+        "lastEdited" : { "@type" : "xsd:dateTime" },
         "catalog:commitTimeStamp" : { "@type" : "xsd:dateTime" }
     }
 }

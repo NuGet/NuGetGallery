@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.JsonLDIntegration;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,12 +12,15 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Xsl;
 using VDS.RDF;
 using VDS.RDF.Parsing;
 using VDS.RDF.Writing;
+using System.Globalization;
+using NuGet.Versioning;
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -279,7 +283,10 @@ namespace NuGet.Services.Metadata.Catalog
             if (obj.TryGetValue("@type", out objTypeToken))
             {
                 Uri objType = Expand(context, objTypeToken);
-                return objType == type;
+                
+                //[12/2/2014, RanjiniM]: We should compare AbsoluteUri here since we want actually compare the fragments! 
+                //If we didn't use AbsoluteUri we will get true even for different types, if the base Uris are same.
+                return objType.AbsoluteUri == type.AbsoluteUri;
             }
             return false;
         }
@@ -485,7 +492,7 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
-        public static CatalogItem CreateCatalogItem(Stream stream, DateTime? published, string packageHash, string originName)
+        public static CatalogItem CreateCatalogItem(Stream stream, DateTime? refreshed, string packageHash, string originName, DateTime? createdDate = null, DateTime? lastEditedDate = null, DateTime? publishedDate = null)
         {
             try
             {
@@ -494,7 +501,7 @@ namespace NuGet.Services.Metadata.Catalog
                 // additional sections
                 var addons = new GraphAddon[] { GetPackedData(stream, originName) };
 
-                return new NuspecPackageCatalogItem(metadata.Item1, published, metadata.Item2, metadata.Item3, metadata.Item4, addons);
+                return new NuspecPackageCatalogItem(metadata.Item1, refreshed, metadata.Item2, metadata.Item3, metadata.Item4, addons, createdDate, lastEditedDate, publishedDate);
             }
             catch (InvalidDataException e)
             {
@@ -506,7 +513,7 @@ namespace NuGet.Services.Metadata.Catalog
                 throw new Exception(string.Format("Exception processsing {0}", originName), e);
             }
         }
-
+                
         public static void TraceException(Exception e)
         {
             if (e is AggregateException)

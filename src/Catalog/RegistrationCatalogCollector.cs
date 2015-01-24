@@ -12,7 +12,7 @@ namespace NuGet.Services.Metadata.Catalog
         StorageFactory _storageFactory;
 
         public RegistrationCatalogCollector(Uri index, StorageFactory storageFactory, Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, new Uri[] { Schema.DataTypes.Package }, handlerFunc)
+            : base(index, new Uri[] { Schema.DataTypes.PackageDetails }, handlerFunc)
         {
             _storageFactory = storageFactory;
 

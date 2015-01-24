@@ -23,6 +23,21 @@ namespace NuGet.Services.Metadata.Catalog
             return null;
         }
 
+        protected virtual DateTime? GetCreated()
+        {
+            return null;
+        }
+
+        protected virtual DateTime? GetLastEdited()
+        {
+            return null;
+        }
+
+        protected virtual DateTime? GetRefreshed()
+        {
+            return null;
+        }
+
         protected virtual IEnumerable<PackageEntry> GetEntries()
         {
             return null;
@@ -53,19 +68,29 @@ namespace NuGet.Services.Metadata.Catalog
             //  catalog infrastructure fields
 
             INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
-            
-
             INode permanentType = graph.CreateUriNode(Schema.DataTypes.Permalink);
-
-
             Triple resource = graph.GetTriplesWithPredicateObject(rdfTypePredicate, graph.CreateUriNode(GetItemType())).First();
             graph.Assert(resource.Subject, rdfTypePredicate, permanentType);
 
             //  published
-
             INode publishedPredicate = graph.CreateUriNode(Schema.Predicates.Published);
             DateTime published = GetPublished() ?? TimeStamp;
             graph.Assert(resource.Subject, publishedPredicate, graph.CreateLiteralNode(published.ToString("O"), Schema.DataTypes.DateTime));
+
+            //  created
+            INode createdPredicate = graph.CreateUriNode(Schema.Predicates.Created);
+            DateTime created = GetCreated() ?? TimeStamp;
+            graph.Assert(resource.Subject, createdPredicate, graph.CreateLiteralNode(created.ToString("O"), Schema.DataTypes.DateTime));
+
+            //  lastEdited
+            INode lastEditedPredicate = graph.CreateUriNode(Schema.Predicates.LastEdited);
+            DateTime lastEdited = GetPublished() ?? TimeStamp;
+            graph.Assert(resource.Subject, lastEditedPredicate, graph.CreateLiteralNode(lastEdited.ToString("O"), Schema.DataTypes.DateTime));
+            
+            ////  refreshed
+            //INode refreshedPredicate = graph.CreateUriNode(Schema.Predicates.Refreshed);
+            //DateTime listed = GetRefreshed() ?? TimeStamp;
+            //graph.Assert(resource.Subject, refreshedPredicate, graph.CreateLiteralNode(listed.ToString("O"), Schema.DataTypes.DateTime));
 
             //  entries
 
@@ -176,10 +201,11 @@ namespace NuGet.Services.Metadata.Catalog
         public override IGraph CreatePageContent(CatalogContext context)
         {
             Uri resourceUri = new Uri(GetBaseAddress() + GetRelativeAddress());
-
+                        
             Graph graph = new Graph();
 
             INode subject = graph.CreateUriNode(resourceUri);
+                        
             INode idPredicate = graph.CreateUriNode(Schema.Predicates.Id);
             INode versionPredicate = graph.CreateUriNode(Schema.Predicates.Version);
 
