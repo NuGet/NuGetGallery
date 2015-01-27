@@ -113,6 +113,7 @@
     <Compile Include="CatalogIndexEntry.cs" />
     <Compile Include="CatalogIndexReader.cs" />
     <Compile Include="CommitCollector.cs" />
+    <Compile Include="Helpers\GraphHelpers.cs" />
     <Compile Include="Pipeline\CommitDetailsStage.cs" />
     <Compile Include="Pipeline\GraphPackageMetadata.cs" />
     <Compile Include="Pipeline\NuspecStage.cs" />

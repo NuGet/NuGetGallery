@@ -277,21 +277,35 @@ namespace NuGet.Services.Metadata.Catalog
             return total;
         }
 
-        public static bool IsType(JObject context, JObject obj, Uri type)
+        public static bool IsType(JToken context, JObject obj, Uri type)
         {
             JToken objTypeToken;
             if (obj.TryGetValue("@type", out objTypeToken))
             {
-                Uri objType = Expand(context, objTypeToken);
-                
-                //[12/2/2014, RanjiniM]: We should compare AbsoluteUri here since we want actually compare the fragments! 
-                //If we didn't use AbsoluteUri we will get true even for different types, if the base Uris are same.
-                return objType.AbsoluteUri == type.AbsoluteUri;
+                if (objTypeToken is JArray)
+                {
+                    foreach (JToken typeToken in ((JArray)objTypeToken).Values())
+                    {
+                        Uri objType = Expand(context, typeToken);
+
+                        if (objType.AbsoluteUri == type.AbsoluteUri)
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                else
+                {
+                    Uri objType = Expand(context, objTypeToken);
+
+                    return objType.AbsoluteUri == type.AbsoluteUri;
+                }
             }
             return false;
         }
 
-        public static bool IsType(JObject context, JObject obj, Uri[] types)
+        public static bool IsType(JToken context, JObject obj, Uri[] types)
         {
             foreach (Uri type in types)
             {
@@ -303,7 +317,7 @@ namespace NuGet.Services.Metadata.Catalog
             return false;
         }
 
-        public static Uri Expand(JObject context, JToken token)
+        public static Uri Expand(JToken context, JToken token)
         {
             string term = token.ToString();
             if (term.StartsWith("http:", StringComparison.OrdinalIgnoreCase))
@@ -315,7 +329,7 @@ namespace NuGet.Services.Metadata.Catalog
             if (indexOf > 0)
             {
                 string ns = term.Substring(0, indexOf);
-                return new Uri(context[ns] + term.Substring(indexOf + 1));
+                return new Uri(context[ns].ToString() + term.Substring(indexOf + 1));
             }
 
             return new Uri(context["@vocab"] + term);

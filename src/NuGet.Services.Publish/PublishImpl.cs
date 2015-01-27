@@ -25,6 +25,7 @@ namespace NuGet.Services.Publish
 
         protected abstract bool IsMetadataFile(string fullName);
         protected abstract JObject CreateMetadataObject(string fullname, Stream stream);
+        protected abstract Uri GetItemType();
 
         protected virtual string Validate(IDictionary<string, JObject> metadata, Stream nupkgStream)
         {
@@ -33,6 +34,50 @@ namespace NuGet.Services.Publish
 
         protected virtual void GenerateNuspec(IDictionary<string, JObject> metadata)
         {
+        }
+
+        public async Task CheckAccess(IOwinContext context)
+        {
+            if (!_registrationOwnership.IsAuthorized)
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
+                return;
+            }
+
+            string id = context.Request.Query["id"];
+
+            if (id == null)
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "id must be provided in query string", HttpStatusCode.BadRequest);
+                return;
+            }
+
+            string message = string.Empty;
+
+            if (await _registrationOwnership.RegistrationExists(id))
+            {
+                if (!await _registrationOwnership.IsAuthorizedToRegistration(id))
+                {
+                    string s = string.Format("User does not have access to Package Registration \"{0}\" Please contact the owner(s)", id);
+                    await ServiceHelpers.WriteErrorResponse(context, s, HttpStatusCode.Forbidden);
+                    return;
+                }
+                else
+                {
+                    message = string.Format("User has publication rights to Package Registration \"{0}\"", id);
+                }
+            }
+            else
+            {
+                message = string.Format("Package Registration \"{0}\" is available", id);
+            }
+
+            JToken response = new JObject
+            { 
+                { "message", message }
+            };
+
+            await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
         }
 
         public async Task Upload(IOwinContext context)
@@ -89,7 +134,7 @@ namespace NuGet.Services.Publish
                 DateTime published = DateTime.UtcNow;
                 string publisher = await _registrationOwnership.GetUserName();
 
-                Uri catalogAddress = await AddToCatalog(metadata, nupkgAddress, packageSize, packageHash, published, publisher);
+                Uri catalogAddress = await AddToCatalog(metadata["nuspec.json"], GetItemType(), nupkgAddress, packageSize, packageHash, published, publisher);
 
                 JToken response = new JObject
                 { 
@@ -189,7 +234,7 @@ namespace NuGet.Services.Publish
             return blob.Uri;
         }
 
-        static async Task<Uri> AddToCatalog(IDictionary<string, JObject> metadata, Uri nupkgAddress, long packageSize, string packageHash, DateTime published, string publisher)
+        static async Task<Uri> AddToCatalog(JObject nuspec, Uri itemType, Uri nupkgAddress, long packageSize, string packageHash, DateTime published, string publisher)
         {
             string storagePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
             string storageContainerCatalog = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Catalog") ?? "catalog";
@@ -199,7 +244,7 @@ namespace NuGet.Services.Publish
             Storage storage = new AzureStorage(account, storageContainerCatalog);
 
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage);
-            writer.Add(new GraphCatalogItem(metadata, nupkgAddress, packageSize, packageHash, published, publisher));
+            writer.Add(new GraphCatalogItem(nuspec, itemType, nupkgAddress, packageSize, packageHash, published, publisher));
             await writer.Commit();
 
             return writer.RootUri;

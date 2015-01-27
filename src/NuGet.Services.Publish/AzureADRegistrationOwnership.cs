@@ -118,7 +118,7 @@ namespace NuGet.Services.Publish
         {
             IUser user = await GetUser();
 
-            return user.Mail;
+            return user.UserPrincipalName;
         }
 
         async Task<IUser> GetUser()
@@ -134,7 +134,7 @@ namespace NuGet.Services.Publish
 
         async Task<IGroup> GetGroup(string id)
         {
-            //TODO: the id should be an Extension Property on the AAD group not just the DisplayName
+            //TODO: the id should be an Extension Property on the Azure-AD group not just the DisplayName
 
             ActiveDirectoryClient activeDirectoryClient = await GetActiveDirectoryClient();
 

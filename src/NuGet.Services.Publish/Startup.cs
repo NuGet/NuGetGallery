@@ -44,6 +44,8 @@ namespace NuGet.Services.Publish
 
         async Task InvokeGET(IOwinContext context)
         {
+            IRegistrationOwnership registrationOwnership = new AzureADRegistrationOwnership(context);
+
             switch (context.Request.Path.Value)
             {
                 case "/":
@@ -55,6 +57,10 @@ namespace NuGet.Services.Publish
                     break;
                 case "/registrations":
                     await PackageRegistrationsImpl.ListPackageRegistrations(context);
+                    break;
+                case "/checkaccess":
+                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
+                        await uploader.CheckAccess(context);
                     break;
                 default:
                     await context.Response.WriteAsync("NotFound");

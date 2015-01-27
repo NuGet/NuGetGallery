@@ -165,19 +165,6 @@ namespace Ng
             return CreateLuceneDocument(catalogEntry, packageUrl);
         }
 
-        private async Task<Document> MakePackage(CollectorHttpClient client, JToken catalogEntry)
-        {
-            string resultString = await client.GetStringAsync((string)catalogEntry["@id"]);
-            JObject result = JObject.Parse(resultString);
-
-            string id = (string)result["id"];
-            string version = (string)result["version"];
-
-            string packageUrl = string.Format(_packageTemplate, id.ToLowerInvariant(), version.ToLowerInvariant());
-
-            return CreateLuceneDocument(result, packageUrl);
-        }
-
         private static void Add(Document doc, string name, string value, Field.Store store, Field.Index index, Field.TermVector termVector, float boost = 1.0f)
         {
             if (value == null)
@@ -208,11 +195,43 @@ namespace Ng
             return 1.0f;
         }
 
+        static Document CreateLuceneDocument(JObject package, string packageUrl)
+        {
+            JToken type = package["@type"];
 
-        private static Document CreateLuceneDocument(JObject package, string packageUrl)
+            //TODO: for now this is a MicroservicePackage hi-jack - later we can make this Docuemnt creation more generic
+            if (Utils.IsType(package["@context"], package, Schema.DataTypes.MicroservicePackage))
+            {
+                return CreateLuceneDocument_Microservice(package, packageUrl);
+            }
+
+            return CreateLuceneDocument_NuGet(package, packageUrl);
+        }
+
+        static Document CreateLuceneDocument_Microservice(JObject package, string packageUrl)
+        {
+            Document doc = CreateLuceneDocument_Core(package, packageUrl);
+
+            Add(doc, "Publisher", (string)package["publisher"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "@type", Schema.DataTypes.MicroservicePackage.AbsoluteUri, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+
+            return doc;
+        }
+
+        static Document CreateLuceneDocument_NuGet(JObject package, string packageUrl)
+        {
+            Document doc = CreateLuceneDocument_Core(package, packageUrl);
+
+            Add(doc, "@type", Schema.DataTypes.NuGetClassicPackage.AbsoluteUri, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+
+            return doc;
+        }
+
+        static Document CreateLuceneDocument_Core(JObject package, string packageUrl)
         {
             Document doc = new Document();
 
+            //TODO: this code to create the frameworks.txt should be dead soon and we when that is confirmed we can remove it
             if (((IDictionary<string, JToken>)package).ContainsKey("supportedFrameworks"))
             {
                 foreach (JToken fwk in package["supportedFrameworks"])
@@ -260,7 +279,7 @@ namespace Ng
             Add(doc, "Title", title, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, titleBoost);
             Add(doc, "Tags", string.Join(" ", (package["tags"] ?? new JArray()).Select(s => (string)s)), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, 1.5f);
             Add(doc, "Description", (string)package["description"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "Authors", string.Join(" ", package["authors"].Select(s => (string)s)), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "Authors", string.Join(" ", (package["authors"] ?? new JArray()).Select(s => (string)s)), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "Summary", (string)package["summary"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "IconUrl", (string)package["iconUrl"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "ProjectUrl", (string)package["projectUrl"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);

@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,8 @@ namespace NuGet.Services.Publish
 {
     public class GraphCatalogItem : AppendOnlyCatalogItem
     {
-        IDictionary<string, JObject> _metadata;
+        JObject _nuspec;
+        Uri _itemType;
         Uri _nupkgAddress;
         long _packageSize;
         string _packageHash;
@@ -23,9 +25,10 @@ namespace NuGet.Services.Publish
         Guid _catalogItemId;
         JObject _context;
 
-        public GraphCatalogItem(IDictionary<string, JObject> metadata, Uri nupkgAddress, long packageSize, string packageHash, DateTime published, string publisher)
+        public GraphCatalogItem(JObject nuspec, Uri itemType, Uri nupkgAddress, long packageSize, string packageHash, DateTime published, string publisher)
         {
-            _metadata = metadata;
+            _nuspec = nuspec;
+            _itemType = itemType;
             _nupkgAddress = nupkgAddress;
             _packageSize = packageSize;
             _packageHash = packageHash;
@@ -50,7 +53,7 @@ namespace NuGet.Services.Publish
 
         public override Uri GetItemType()
         {
-            return Schema.DataTypes.Package;
+            return _itemType;
         }
 
         protected override string GetItemIdentity()
@@ -62,35 +65,38 @@ namespace NuGet.Services.Publish
         {
             IGraph catalogEntry = new Graph();
 
-            INode subject = catalogEntry.CreateUriNode(GetItemAddress());
+            INode catalogEntrySubject = catalogEntry.CreateUriNode(GetItemAddress());
 
             //  catalog infrastructure fields
 
-            catalogEntry.Assert(subject, catalogEntry.CreateUriNode(Schema.Predicates.Type), catalogEntry.CreateUriNode(GetItemType()));
-            catalogEntry.Assert(subject, catalogEntry.CreateUriNode(Schema.Predicates.CatalogTimeStamp), catalogEntry.CreateLiteralNode(TimeStamp.ToString("O"), Schema.DataTypes.DateTime));
-            catalogEntry.Assert(subject, catalogEntry.CreateUriNode(Schema.Predicates.CatalogCommitId), catalogEntry.CreateLiteralNode(CommitId.ToString()));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Type), catalogEntry.CreateUriNode(GetItemType()));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Type), catalogEntry.CreateUriNode(Schema.DataTypes.Permalink));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.CatalogTimeStamp), catalogEntry.CreateLiteralNode(TimeStamp.ToString("O"), Schema.DataTypes.DateTime));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.CatalogCommitId), catalogEntry.CreateLiteralNode(CommitId.ToString()));
 
-            catalogEntry.Assert(subject, catalogEntry.CreateUriNode(Schema.Predicates.PackageContent), catalogEntry.CreateUriNode(_nupkgAddress));
-            catalogEntry.Assert(subject, catalogEntry.CreateUriNode(Schema.Predicates.PackageSize), catalogEntry.CreateLiteralNode(_packageSize.ToString()));
-            catalogEntry.Assert(subject, catalogEntry.CreateUriNode(Schema.Predicates.PackageHash), catalogEntry.CreateLiteralNode(_packageHash));
-            catalogEntry.Assert(subject, catalogEntry.CreateUriNode(Schema.Predicates.Published), catalogEntry.CreateLiteralNode(_published.ToString("O"), Schema.DataTypes.DateTime));
-            catalogEntry.Assert(subject, catalogEntry.CreateUriNode(Schema.Predicates.Publisher), catalogEntry.CreateLiteralNode(_publisher));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.PackageContent), catalogEntry.CreateUriNode(_nupkgAddress));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.PackageSize), catalogEntry.CreateLiteralNode(_packageSize.ToString()));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.PackageHash), catalogEntry.CreateLiteralNode(_packageHash));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Published), catalogEntry.CreateLiteralNode(_published.ToString("O"), Schema.DataTypes.DateTime));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Publisher), catalogEntry.CreateLiteralNode(_publisher));
 
-            //  add each metadata set
+            //  add the nuspec.json metadata
 
-            foreach (KeyValuePair<string, JObject> item in _metadata)
+            Uri nuspecSubject = _nuspec["@id"].ToObject<Uri>();
+            IGraph nuspecGraph = Utils.CreateGraph(_nuspec);
+
+            //  Any statements made about this @id in the nuspec we want to make about the catalog items @id
+            //  - catalog readers can then apply this logic in reverse
+            //  - by so doing the catalog entry becomes an audit entry for the data
+
+            catalogEntry.Merge(nuspecGraph, false);
+
+            foreach (Triple triple in catalogEntry.GetTriplesWithSubject(catalogEntry.CreateUriNode(nuspecSubject)))
             {
-                Uri id = item.Value["@id"].ToObject<Uri>();
-
-                IGraph graph = Utils.CreateGraph(item.Value);
-
-                INode dataSet = graph.CreateUriNode(id);
-
-                graph.Assert(dataSet, graph.CreateUriNode(Schema.Predicates.FileName), graph.CreateLiteralNode(item.Key));
-
-                catalogEntry.Merge(graph, true);
-                catalogEntry.Assert(subject, graph.CreateUriNode(Schema.Predicates.Details), dataSet);
+                catalogEntry.Assert(catalogEntrySubject, triple.Predicate.CopyNode(catalogEntry), triple.Object.CopyNode(catalogEntry));
             }
+
+            GraphHelpers.MaterializeInference(catalogEntry);
 
             //  create JSON content
 

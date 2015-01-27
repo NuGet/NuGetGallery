@@ -87,6 +87,48 @@ namespace PublishTestDriverWebSite.Controllers
         }
 
         [HttpPost]
+        public async Task<ActionResult> CheckAccess(string id)
+        {
+            if (id == null)
+            {
+                return View(new CheckAccessModel { Id = "(null)", Message = "You must provide a registration Id to test" });
+            }
+
+            string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
+            AuthenticationContext authContext = new AuthenticationContext(Startup.Authority, new NaiveSessionCache(userObjectID));
+            ClientCredential credential = new ClientCredential(clientId, appKey);
+
+            AuthenticationResult result = authContext.AcquireTokenSilent(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+
+            string query = string.Format("?id={0}", id.ToLowerInvariant());
+
+            HttpClient client = new HttpClient();
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetPublishServiceBaseAddress + "/checkaccess" + query);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
+
+            HttpResponseMessage response = await client.SendAsync(request);
+
+            string message = null;
+            if (response.IsSuccessStatusCode)
+            {
+                JObject publishServiceResponse = JObject.Parse(await response.Content.ReadAsStringAsync());
+                message = publishServiceResponse["message"].ToString();
+            }
+            else
+            {
+                try
+                {
+                    JObject publishServiceResponse = JObject.Parse(await response.Content.ReadAsStringAsync());
+                    string error = publishServiceResponse["error"].ToString();
+                    message = string.Format("checkaccess error \"{0}\"", error);
+                }
+                catch { }
+            }
+
+            return View(new CheckAccessModel { Id = id, Message = message ?? string.Format("{0} with no further details available", response.StatusCode) });
+        }
+
+        [HttpPost]
         public async Task<ActionResult> Upload(HttpPostedFileBase uploadFile)
         {
             string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
@@ -109,16 +151,13 @@ namespace PublishTestDriverWebSite.Controllers
             }
             else
             {
-                if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                try
                 {
-                    try
-                    {
-                        JObject publishServiceResponse = JObject.Parse(await response.Content.ReadAsStringAsync());
-                        string error = publishServiceResponse["error"].ToString();
-                        message = string.Format("uploaded file {0} contains the following errors {1}", uploadFile.FileName, error);
-                    }
-                    catch { }
+                    JObject publishServiceResponse = JObject.Parse(await response.Content.ReadAsStringAsync());
+                    string error = publishServiceResponse["error"].ToString();
+                    message = string.Format("uploaded file \"{0}\" contains the following errors \"{1}\"", uploadFile.FileName, error);
                 }
+                catch { }
             }
 
             return View(new UploadModel { Message = message ?? string.Format("{0} with no further details available", response.StatusCode)});

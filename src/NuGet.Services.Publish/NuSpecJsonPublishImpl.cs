@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -23,6 +25,11 @@ namespace NuGet.Services.Publish
             StreamReader reader = new StreamReader(stream);
             JObject obj = JObject.Parse(reader.ReadToEnd());
             return obj;
+        }
+
+        protected override Uri GetItemType()
+        {
+            return Schema.DataTypes.Package;
         }
 
         protected override string Validate(IDictionary<string, JObject> metadata, Stream nupkgStream)

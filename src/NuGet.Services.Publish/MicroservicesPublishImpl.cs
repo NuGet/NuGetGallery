@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
@@ -25,14 +26,6 @@ namespace NuGet.Services.Publish
             StreamReader reader = new StreamReader(stream);
             JObject obj = JObject.Parse(reader.ReadToEnd());
 
-            string id = obj["id"].ToString();
-            string version = NuGetVersion.Parse(obj["version"].ToString()).ToNormalizedString();
-
-            Uri jsonLdId = new Uri("http://" + id + "/" + version);
-
-            obj["@id"] = jsonLdId.ToString();
-            obj["@context"] = new JObject { { "@vocab", "http://schema.nuget.org/schema#" } };
-
             return obj;
         }
 
@@ -40,15 +33,28 @@ namespace NuGet.Services.Publish
         {
             JObject microservice = metadata["microservice.json"];
 
+            string id = microservice["id"].ToString();
+            string version = NuGetVersion.Parse(microservice["version"].ToString()).ToNormalizedString();
+
+            Uri jsonLdId = new Uri("http://" + id + "/" + version);
+
             JObject nuspec = new JObject
             {
-                { "@id", microservice["@id"] },
-                { "id", microservice["id"] },
-                { "version", microservice["version"] },
-                { "@context", microservice["@context"] }
+                { "@id", jsonLdId.ToString() },
+                { "@context", new JObject { { "@vocab", "http://schema.nuget.org/schema#" } } }
             };
 
+            foreach (JProperty property in microservice.Properties())
+            {
+                nuspec.Add(property.Name, property.Value);
+            }
+
             metadata["nuspec.json"] = nuspec;
+        }
+
+        protected override Uri GetItemType()
+        {
+            return Schema.DataTypes.MicroservicePackage;
         }
 
         protected override string Validate(IDictionary<string, JObject> metadata, Stream nupkgStream)

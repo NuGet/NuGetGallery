@@ -23,6 +23,9 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri PackageDetails = new Uri(Prefixes.NuGet + "PackageDetails");
             public static readonly Uri PackageDependencyGroup = new Uri(Prefixes.NuGet + "PackageDependencyGroup");
             public static readonly Uri PackageDependency = new Uri(Prefixes.NuGet + "PackageDependency");
+            public static readonly Uri NuGetClassicPackage = new Uri(Prefixes.NuGet + "NuGetClassicPackage");
+            public static readonly Uri MicroservicePackage = new Uri(Prefixes.NuGet + "MicroservicePackage");
+            public static readonly Uri PowerShellPackage = new Uri(Prefixes.NuGet + "PowerShellPackage");
 
             public static readonly Uri PackageEntry = new Uri(Prefixes.NuGet + "PackageEntry");
 
