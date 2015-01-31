@@ -1,0 +1,20 @@
+﻿@model PublishTestDriverWebSite.Models.PublishModel
+@{
+    ViewBag.Title = "Publish";
+}
+
+<h1>Upload Page</h1>
+
+@using (Html.BeginForm("Upload", "Upload", FormMethod.Post, new { id = "uploadForm", enctype = "multipart/form-data" }))
+{
+    <fieldset class="form">
+
+        <div class="form-field">
+            <label for="PackageFile">Choose a package...</label>
+            <input type="file" name="UploadFile" />
+        </div>
+
+        <input type="submit" value="Upload" title="Upload the package." />
+
+    </fieldset>
+}

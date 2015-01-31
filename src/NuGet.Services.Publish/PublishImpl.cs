@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -46,9 +47,27 @@ namespace NuGet.Services.Publish
 
             string id = context.Request.Query["id"];
 
-            if (id == null)
+            if (string.IsNullOrWhiteSpace(id))
             {
                 await ServiceHelpers.WriteErrorResponse(context, "id must be provided in query string", HttpStatusCode.BadRequest);
+                return;
+            }
+
+            string[] parts = id.Split('/');
+
+            if (parts.Length != 2 || parts[0].Length == 0 || parts[1].Length == 1)
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "id must be of the form domain/name", HttpStatusCode.BadRequest);
+                return;
+            }
+
+            string baseId = parts[0];
+            string relativeId = parts[1];
+
+            IList<string> domains = await _registrationOwnership.GetDomains();
+            if (!domains.Contains(baseId))
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "domain provided is not registered", HttpStatusCode.BadRequest);
                 return;
             }
 
@@ -129,12 +148,18 @@ namespace NuGet.Services.Publish
 
                 Uri nupkgAddress = await SaveNupkg(nupkgStream, nupkgName);
 
-                long packageSize = nupkgStream.Length;
-                string packageHash = Utils.GenerateHash(nupkgStream);
-                DateTime published = DateTime.UtcNow;
                 string publisher = await _registrationOwnership.GetUserName();
 
-                Uri catalogAddress = await AddToCatalog(metadata["nuspec.json"], GetItemType(), nupkgAddress, packageSize, packageHash, published, publisher);
+                PublicationDetails publicationDetails = new PublicationDetails
+                {
+                    Published = DateTime.UtcNow,
+                    UserName = await _registrationOwnership.GetUserName(),
+                    UserId = _registrationOwnership.GetUserId(),
+                    TenantName = await _registrationOwnership.GetTenantName(),
+                    TenantId = _registrationOwnership.GetTenantId()
+                };
+
+                Uri catalogAddress = await AddToCatalog(metadata["nuspec.json"], GetItemType(), nupkgAddress, nupkgStream.Length, Utils.GenerateHash(nupkgStream), publicationDetails);
 
                 JToken response = new JObject
                 { 
@@ -159,6 +184,36 @@ namespace NuGet.Services.Publish
             }
 
             await ServiceHelpers.WriteErrorResponse(context, error, HttpStatusCode.InternalServerError);
+        }
+
+        public async Task GetDomains(IOwinContext context)
+        {
+            if (!_registrationOwnership.IsAuthorized)
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
+                return;
+            }
+
+            IList<string> domains = await _registrationOwnership.GetDomains();
+
+            JArray response = new JArray(domains.ToArray());
+
+            await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
+        }
+
+        public async Task GetRegistrations(IOwinContext context)
+        {
+            if (!_registrationOwnership.IsAuthorized)
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
+                return;
+            }
+
+            IList<string> registrations = await _registrationOwnership.GetRegistrations();
+
+            JArray response = new JArray(registrations.ToArray());
+
+            await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
         }
 
         IDictionary<string, JObject> ExtractMetadata(Stream nupkgStream)
@@ -206,7 +261,7 @@ namespace NuGet.Services.Publish
 
         static string MakeNupkgName(string id, string version)
         {
-            return string.Format("{0}.{1}.nupkg", id, version).ToLowerInvariant();
+            return string.Format("{0}.{1}.{2}.nupkg", id, version, Guid.NewGuid()).ToLowerInvariant();
         }
 
         static async Task<Uri> SaveNupkg(Stream nupkgStream, string name)
@@ -234,7 +289,7 @@ namespace NuGet.Services.Publish
             return blob.Uri;
         }
 
-        static async Task<Uri> AddToCatalog(JObject nuspec, Uri itemType, Uri nupkgAddress, long packageSize, string packageHash, DateTime published, string publisher)
+        static async Task<Uri> AddToCatalog(JObject nuspec, Uri itemType, Uri nupkgAddress, long packageSize, string packageHash, PublicationDetails publicationDetails)
         {
             string storagePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
             string storageContainerCatalog = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Catalog") ?? "catalog";
@@ -244,7 +299,7 @@ namespace NuGet.Services.Publish
             Storage storage = new AzureStorage(account, storageContainerCatalog);
 
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage);
-            writer.Add(new GraphCatalogItem(nuspec, itemType, nupkgAddress, packageSize, packageHash, published, publisher));
+            writer.Add(new GraphCatalogItem(nuspec, itemType, nupkgAddress, packageSize, packageHash, publicationDetails));
             await writer.Commit();
 
             return writer.RootUri;

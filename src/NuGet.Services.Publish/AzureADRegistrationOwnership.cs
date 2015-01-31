@@ -2,6 +2,8 @@
 using Microsoft.Azure.ActiveDirectory.GraphClient.Extensions;
 using Microsoft.Owin;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -114,22 +116,42 @@ namespace NuGet.Services.Publish
             await group.UpdateAsync();
         }
 
-        public async Task<string> GetUserName()
-        {
-            IUser user = await GetUser();
-
-            return user.UserPrincipalName;
-        }
-
         async Task<IUser> GetUser()
         {
             ActiveDirectoryClient activeDirectoryClient = await GetActiveDirectoryClient();
+            return await activeDirectoryClient.Users.GetByObjectId(GetUserId()).ExecuteAsync();
+        }
 
-            string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
+        async Task<ITenantDetail> GetTenant()
+        {
+            ActiveDirectoryClient activeDirectoryClient = await GetActiveDirectoryClient();
+            return await activeDirectoryClient.TenantDetails.GetByObjectId(GetTenantId()).ExecuteAsync();
+        }
 
-            IUser user = await activeDirectoryClient.Users.GetByObjectId(userObjectID).ExecuteAsync();
+        public async Task<string> GetUserName()
+        {
+            IUser user = await GetUser();
+            return user.UserPrincipalName;
+        }
 
-            return user;
+        public async Task<string> GetTenantName()
+        {
+            ITenantDetail tenant = await GetTenant();
+            return tenant.DisplayName;
+        }
+
+        public string GetTenantId()
+        {
+            Claim tenantClaim = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid");
+            string tenantId = (tenantClaim != null) ? tenantClaim.Value : string.Empty;
+            return tenantId;
+        }
+
+        public string GetUserId()
+        {
+            Claim userClaim = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier");
+            string userId = (userClaim != null) ? userClaim.Value : string.Empty;
+            return userId;
         }
 
         async Task<IGroup> GetGroup(string id)
@@ -146,6 +168,65 @@ namespace NuGet.Services.Publish
             }
 
             return groups.CurrentPage.First();
+        }
+
+        public async Task<IList<string>> GetDomains()
+        {
+            ActiveDirectoryClient activeDirectoryClient = await GetActiveDirectoryClient();
+
+            string tenantId = GetTenantId();
+
+            ITenantDetail tenant = activeDirectoryClient.TenantDetails
+                .Where(tenantDetail => tenantDetail.ObjectId.Equals(tenantId))
+                .ExecuteAsync().Result.CurrentPage.FirstOrDefault();
+
+            if (tenant == null)
+            {
+                throw new Exception(string.Format("unable to find tenant with object id = {0}", tenantId));
+            }
+
+            IList<string> domains = new List<string>();
+
+            foreach (VerifiedDomain domain in tenant.VerifiedDomains)
+            {
+                if (domain.@default.HasValue && domain.@default.Value)
+                {
+                    domains.Insert(0, domain.Name);
+                }
+                else
+                {
+                    domains.Add(domain.Name);
+                }
+            }
+
+            return domains;
+        }
+
+        public async Task<IList<string>> GetRegistrations()
+        {
+            ActiveDirectoryClient activeDirectoryClient = await GetActiveDirectoryClient();
+
+            IUser user = await GetUser();
+            IPagedCollection<IDirectoryObject> groups = await((IUserFetcher)user).MemberOf.ExecuteAsync();
+
+            IList<string> registrations = new List<string>();
+
+            while (true)
+            {
+                foreach (IDirectoryObject group in groups.CurrentPage)
+                {
+                    registrations.Add(((Group)group).DisplayName);
+                }
+
+                if (!groups.MorePagesAvailable)
+                {
+                    break;
+                }
+
+                groups = await groups.GetNextPageAsync();
+            }
+
+            return registrations;
         }
     }
 }

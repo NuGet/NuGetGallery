@@ -19,21 +19,19 @@ namespace NuGet.Services.Publish
         Uri _nupkgAddress;
         long _packageSize;
         string _packageHash;
-        DateTime _published;
-        string _publisher;
+        PublicationDetails _publicationDetails;
 
         Guid _catalogItemId;
         JObject _context;
 
-        public GraphCatalogItem(JObject nuspec, Uri itemType, Uri nupkgAddress, long packageSize, string packageHash, DateTime published, string publisher)
+        public GraphCatalogItem(JObject nuspec, Uri itemType, Uri nupkgAddress, long packageSize, string packageHash, PublicationDetails publicationDetails)
         {
             _nuspec = nuspec;
             _itemType = itemType;
             _nupkgAddress = nupkgAddress;
             _packageSize = packageSize;
             _packageHash = packageHash;
-            _published = published;
-            _publisher = publisher;
+            _publicationDetails = publicationDetails;
 
             _catalogItemId = Guid.NewGuid();
 
@@ -77,8 +75,11 @@ namespace NuGet.Services.Publish
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.PackageContent), catalogEntry.CreateUriNode(_nupkgAddress));
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.PackageSize), catalogEntry.CreateLiteralNode(_packageSize.ToString()));
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.PackageHash), catalogEntry.CreateLiteralNode(_packageHash));
-            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Published), catalogEntry.CreateLiteralNode(_published.ToString("O"), Schema.DataTypes.DateTime));
-            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Publisher), catalogEntry.CreateLiteralNode(_publisher));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Published), catalogEntry.CreateLiteralNode(_publicationDetails.Published.ToString("O"), Schema.DataTypes.DateTime));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Publisher), catalogEntry.CreateLiteralNode(_publicationDetails.UserName));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Tenant), catalogEntry.CreateLiteralNode(_publicationDetails.TenantName));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.UserId), catalogEntry.CreateLiteralNode(_publicationDetails.UserId));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.TenantId), catalogEntry.CreateLiteralNode(_publicationDetails.TenantId));
 
             //  add the nuspec.json metadata
 

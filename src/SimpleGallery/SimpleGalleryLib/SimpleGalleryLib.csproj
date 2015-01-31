@@ -73,9 +73,9 @@
     <Reference Include="NuGet.PackagingCore">
       <HintPath>..\..\..\packages\NuGet.Packaging.1.0.0-master-43422320\lib\portable-net45+win\NuGet.PackagingCore.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Versioning, Version=1.0.5.0, Culture=neutral, PublicKeyToken=2e465378e3b1a8dd, processorArchitecture=MSIL">
+    <Reference Include="NuGet.Versioning, Version=1.0.7.0, Culture=neutral, PublicKeyToken=2e465378e3b1a8dd, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\NuGet.Versioning.1.0.5\lib\portable-net40+win\NuGet.Versioning.dll</HintPath>
+      <HintPath>..\..\..\packages\NuGet.Versioning.1.0.7-pre-20150130233858\lib\portable-net40+win\NuGet.Versioning.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

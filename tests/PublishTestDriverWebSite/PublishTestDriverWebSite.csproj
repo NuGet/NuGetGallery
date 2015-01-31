@@ -158,7 +158,8 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\PackagesController.cs" />
-    <Compile Include="Controllers\PublishController.cs" />
+    <Compile Include="Controllers\UploadController.cs" />
+    <Compile Include="Controllers\ValidateController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -207,10 +208,11 @@
     <Content Include="Scripts\jquery-1.10.2.min.map" />
     <Content Include="Views\Shared\Lockout.cshtml" />
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
-    <Content Include="Views\Publish\Index.cshtml" />
+    <Content Include="Views\Upload\Index.cshtml" />
     <Content Include="Views\Packages\Index.cshtml" />
-    <Content Include="Views\Publish\Upload.cshtml" />
-    <Content Include="Views\Publish\CheckAccess.cshtml" />
+    <Content Include="Views\Upload\Upload.cshtml" />
+    <Content Include="Views\Validate\CheckAccess.cshtml" />
+    <Content Include="Views\Validate\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

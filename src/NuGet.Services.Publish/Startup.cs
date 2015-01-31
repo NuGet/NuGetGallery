@@ -49,23 +49,35 @@ namespace NuGet.Services.Publish
             switch (context.Request.Path.Value)
             {
                 case "/":
-                    await context.Response.WriteAsync("OK");
-                    context.Response.StatusCode = (int)HttpStatusCode.OK;
-                    break;
-                case "/test":
-                    await ServiceHelpers.Test(context);
-                    break;
+                    {
+                        await context.Response.WriteAsync("OK");
+                        context.Response.StatusCode = (int)HttpStatusCode.OK;
+                        break;
+                    }
+                case "/domains":
+                    {
+                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
+                        await uploader.GetDomains(context);
+                        break;
+                    }
                 case "/registrations":
-                    await PackageRegistrationsImpl.ListPackageRegistrations(context);
-                    break;
+                    {
+                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
+                        await uploader.GetRegistrations(context);
+                        break;
+                    }
                 case "/checkaccess":
+                    {
                         PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
                         await uploader.CheckAccess(context);
-                    break;
+                        break;
+                    }
                 default:
-                    await context.Response.WriteAsync("NotFound");
-                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    break;
+                    {
+                        await context.Response.WriteAsync("NotFound");
+                        context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                        break;
+                    }
             }
         }
 
