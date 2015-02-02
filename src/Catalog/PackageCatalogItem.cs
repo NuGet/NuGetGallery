@@ -84,7 +84,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             //  lastEdited
             INode lastEditedPredicate = graph.CreateUriNode(Schema.Predicates.LastEdited);
-            DateTime lastEdited = GetPublished() ?? TimeStamp;
+            DateTime lastEdited = GetLastEdited() ?? DateTime.MinValue;
             graph.Assert(resource.Subject, lastEditedPredicate, graph.CreateLiteralNode(lastEdited.ToString("O"), Schema.DataTypes.DateTime));
             
             ////  refreshed

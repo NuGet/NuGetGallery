@@ -77,7 +77,6 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Created = new Uri(Prefixes.NuGet + "created");
             public static readonly Uri Description = new Uri(Prefixes.NuGet + "description");
             public static readonly Uri IconUrl = new Uri(Prefixes.NuGet + "iconUrl");
-            public static readonly Uri ReportAbuse = new Uri(Prefixes.NuGet + "reportAbuse");
 
             public static readonly Uri Package = new Uri(Prefixes.NuGet + "package");
             public static readonly Uri Registration = new Uri(Prefixes.NuGet + "registration");
