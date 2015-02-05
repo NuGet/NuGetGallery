@@ -116,6 +116,15 @@ namespace NuGet.Services.Publish
             await group.UpdateAsync();
         }
 
+        public async Task<bool> PackageExists(string id, string version)
+        {
+            Group group = (Group)await GetGroup(id);
+
+            group.GetExtendedProperties().Where((kv) => kv.Key.Equals("nuget.versions")).FirstOrDefault();
+
+            return false;
+        }
+
         async Task<IUser> GetUser()
         {
             ActiveDirectoryClient activeDirectoryClient = await GetActiveDirectoryClient();

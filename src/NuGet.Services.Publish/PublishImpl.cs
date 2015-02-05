@@ -134,6 +134,14 @@ namespace NuGet.Services.Publish
                         await ServiceHelpers.WriteErrorResponse(context, "user does not have access to this registration", HttpStatusCode.Forbidden);
                         return;
                     }
+
+                    string version = GetVersion(metadata);
+
+                    if (await _registrationOwnership.PackageExists(id, version))
+                    {
+                        await ServiceHelpers.WriteErrorResponse(context, "this package version already exists for this registration", HttpStatusCode.Forbidden);
+                        return;
+                    }
                 }
                 else
                 {
@@ -245,8 +253,13 @@ namespace NuGet.Services.Publish
         static string GetId(IDictionary<string, JObject> metadata)
         {
             JObject nuspec = metadata["nuspec.json"];
-
             return nuspec["id"].ToString();
+        }
+
+        static string GetVersion(IDictionary<string, JObject> metadata)
+        {
+            JObject nuspec = metadata["nuspec.json"];
+            return nuspec["version"].ToString();
         }
 
         static string GetNupkgName(IDictionary<string, JObject> metadata)

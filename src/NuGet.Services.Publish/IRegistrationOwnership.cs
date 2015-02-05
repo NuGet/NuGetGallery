@@ -14,6 +14,8 @@ namespace NuGet.Services.Publish
         Task DeleteRegistration(string id);
         Task AddRegistrationOwner(string id);
 
+        Task<bool> PackageExists(string id, string version);
+
         string GetUserId();
         Task<string> GetUserName();
         string GetTenantId();

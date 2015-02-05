@@ -135,7 +135,6 @@
     <Compile Include="CursorTests.cs" />
     <Compile Include="InstallDataBrowser.cs" />
     <Compile Include="IntegrityTests.cs" />
-    <Compile Include="JsonLdCacheTests.cs" />
     <Compile Include="MakeTestCatalog.cs" />
     <Compile Include="PartitioningTests.cs" />
     <Compile Include="Program.cs" />
@@ -151,10 +150,6 @@
     <ProjectReference Include="..\..\src\Catalog\NuGet.Services.Metadata.Catalog.csproj">
       <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\NuGet3.Client.Core\NuGet3.Client.Core.csproj">
-      <Project>{c34d30ab-df92-44fd-91cf-f331c97d0473}</Project>
-      <Name>NuGet3.Client.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

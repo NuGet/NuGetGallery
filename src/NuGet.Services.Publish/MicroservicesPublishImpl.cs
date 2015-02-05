@@ -9,7 +9,7 @@ namespace NuGet.Services.Publish
 {
     public class MicroservicesPublishImpl : PublishImpl
     {
-        static ISet<string> Files = new HashSet<string> { "microservice.json" };
+        static ISet<string> Files = new HashSet<string> { "apiapp.json" };
 
         public MicroservicesPublishImpl(IRegistrationOwnership registrationOwnership)
             : base(registrationOwnership)
@@ -31,7 +31,7 @@ namespace NuGet.Services.Publish
 
         protected override void GenerateNuspec(IDictionary<string, JObject> metadata)
         {
-            JObject microservice = metadata["microservice.json"];
+            JObject microservice = metadata["apiapp.json"];
 
             string id = microservice["id"].ToString();
             string version = NuGetVersion.Parse(microservice["version"].ToString()).ToNormalizedString();
@@ -65,9 +65,9 @@ namespace NuGet.Services.Publish
             }
 
             JObject nuspec;
-            if (!metadata.TryGetValue("microservice.json", out nuspec))
+            if (!metadata.TryGetValue("apiapp.json", out nuspec))
             {
-                return "microservice.json was found in the package";
+                return "apiapp.json was found in the package";
             }
 
             JToken id;
