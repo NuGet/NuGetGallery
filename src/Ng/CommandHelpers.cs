@@ -99,6 +99,20 @@ namespace Ng
             return interval;
         }
 
+        public static DateTime GetStartDate(IDictionary<string, string> arguments)
+        {
+            DateTime defaultStartDate = DateTime.MinValue;
+            string startDateString;
+            if (arguments.TryGetValue("-startDate", out startDateString))
+            {
+                if (!DateTime.TryParse(startDateString, out defaultStartDate))
+                {
+                    defaultStartDate = DateTime.MinValue;
+                }
+            }
+            return defaultStartDate;
+        }
+
         public static string GetLuceneRegistrationTemplate(IDictionary<string, string> arguments)
         {
             string value;

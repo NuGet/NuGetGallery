@@ -53,7 +53,7 @@ namespace NuGet.Services.Metadata.Catalog
                 JToken t2;
                 if (obj.TryGetValue("nuget:lastEdited", out t2))
                 {
-                    lastCreated = DateTime.Parse(t2.ToString(), null, DateTimeStyles.RoundtripKind);
+                    lastEdited = DateTime.Parse(t2.ToString(), null, DateTimeStyles.RoundtripKind);
                 }
             }
 
