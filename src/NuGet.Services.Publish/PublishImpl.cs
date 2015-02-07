@@ -253,7 +253,7 @@ namespace NuGet.Services.Publish
         static string GetId(IDictionary<string, JObject> metadata)
         {
             JObject nuspec = metadata["nuspec.json"];
-            return nuspec["id"].ToString();
+            return nuspec["id"].ToString().ToLowerInvariant();
         }
 
         static string GetVersion(IDictionary<string, JObject> metadata)

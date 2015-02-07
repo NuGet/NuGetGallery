@@ -1,7 +1,10 @@
 ﻿using Microsoft.Owin;
 using Microsoft.Owin.Security.ActiveDirectory;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
 using Owin;
 using System.Configuration;
+using System.IdentityModel.Tokens;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -15,12 +18,20 @@ namespace NuGet.Services.Publish
         {
             app.UseErrorPage();
 
-            app.UseWindowsAzureActiveDirectoryBearerAuthentication(
-                new WindowsAzureActiveDirectoryBearerAuthenticationOptions
-                {
-                    Audience = ConfigurationManager.AppSettings["ida:Audience"],
-                    Tenant = ConfigurationManager.AppSettings["ida:Tenant"]
-                });
+            string audience = ConfigurationManager.AppSettings["ida:Audience"];
+            string tenant = ConfigurationManager.AppSettings["ida:Tenant"];
+
+            WindowsAzureActiveDirectoryBearerAuthenticationOptions options = new WindowsAzureActiveDirectoryBearerAuthenticationOptions();
+            options.TokenValidationParameters = new TokenValidationParameters { ValidAudience = audience };
+            options.Tenant = tenant;
+
+            app.UseWindowsAzureActiveDirectoryBearerAuthentication(options);
+
+                //new WindowsAzureActiveDirectoryBearerAuthenticationOptions
+                //{
+                //    Audience = ConfigurationManager.AppSettings["ida:Audience"],
+                //    Tenant = ConfigurationManager.AppSettings["ida:Tenant"]
+                //});
 
             app.Run(Invoke);
         }
@@ -44,7 +55,7 @@ namespace NuGet.Services.Publish
 
         async Task InvokeGET(IOwinContext context)
         {
-            IRegistrationOwnership registrationOwnership = new AzureADRegistrationOwnership(context);
+            IRegistrationOwnership registrationOwnership = CreateRegistrationOwnership(context);
 
             switch (context.Request.Path.Value)
             {
@@ -83,7 +94,7 @@ namespace NuGet.Services.Publish
 
         async Task InvokePOST(IOwinContext context)
         {
-            IRegistrationOwnership registrationOwnership = new AzureADRegistrationOwnership(context);
+            IRegistrationOwnership registrationOwnership = CreateRegistrationOwnership(context);
 
             switch (context.Request.Path.Value)
             {
@@ -111,6 +122,18 @@ namespace NuGet.Services.Publish
                         break;
                     }
             }
+        }
+
+        IRegistrationOwnership CreateRegistrationOwnership(IOwinContext context)
+        {
+            //return new AzureADRegistrationOwnership(context);
+
+            string storagePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
+            string storageContainerOwnership = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Ownership") ?? "ownership";
+
+            CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
+
+            return new StorageRegistrationOwnership(context, account, storageContainerOwnership);
         }
     }
 }

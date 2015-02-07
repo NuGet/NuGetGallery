@@ -12,6 +12,7 @@ namespace NuGet.Services.Metadata.Catalog
         {
             public static readonly string NuGet = "http://schema.nuget.org/schema#";
             public static readonly string Catalog = "http://schema.nuget.org/catalog#";
+            public static readonly string Record = "http://schema.nuget.org/record#";
             public static readonly string Xsd = "http://www.w3.org/2001/XMLSchema#";
             public static readonly string Rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
         }
@@ -26,6 +27,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri NuGetClassicPackage = new Uri(Prefixes.NuGet + "NuGetClassicPackage");
             public static readonly Uri MicroservicePackage = new Uri(Prefixes.NuGet + "MicroservicePackage");
             public static readonly Uri PowerShellPackage = new Uri(Prefixes.NuGet + "PowerShellPackage");
+            public static readonly Uri Record = new Uri(Prefixes.Record + "Record");
 
             public static readonly Uri PackageEntry = new Uri(Prefixes.NuGet + "PackageEntry");
 
@@ -69,6 +71,10 @@ namespace NuGet.Services.Metadata.Catalog
 
             public static readonly Uri FileName = new Uri(Prefixes.Catalog + "fileName");
             public static readonly Uri Details = new Uri(Prefixes.Catalog + "details");
+
+            public static readonly Uri Domain = new Uri(Prefixes.Record + "domain");
+            public static readonly Uri RecordDomain = new Uri(Prefixes.Record + "recordDomain");
+            public static readonly Uri RecordRegistration = new Uri(Prefixes.Record + "recordRegistration");
 
             // General-purpose fields
             
