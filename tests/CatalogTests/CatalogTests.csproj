@@ -123,18 +123,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\src\NuGet.Services.Publish\IRegistration.cs">
-      <Link>IRegistration.cs</Link>
-    </Compile>
-    <Compile Include="..\..\src\NuGet.Services.Publish\PackageId.cs">
-      <Link>PackageId.cs</Link>
-    </Compile>
-    <Compile Include="..\..\src\NuGet.Services.Publish\RegistrationId.cs">
-      <Link>RegistrationId.cs</Link>
-    </Compile>
-    <Compile Include="..\..\src\NuGet.Services.Publish\StorageRegistration.cs">
-      <Link>StorageRegistration.cs</Link>
-    </Compile>
     <Compile Include="Feed2CatalogTests.cs" />
     <Compile Include="GalleryCompareTests.cs" />
     <Compile Include="RegistrationTests.cs" />

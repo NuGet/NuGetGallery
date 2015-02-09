@@ -1,7 +1,7 @@
 ﻿
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Publish
+namespace NuGet.Services.Metadata.Catalog.Ownership
 {
     public interface IRegistration
     {

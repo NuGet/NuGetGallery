@@ -114,6 +114,10 @@
     <Compile Include="CatalogIndexReader.cs" />
     <Compile Include="CommitCollector.cs" />
     <Compile Include="Helpers\GraphHelpers.cs" />
+    <Compile Include="Ownership\IRegistration.cs" />
+    <Compile Include="Ownership\PackageId.cs" />
+    <Compile Include="Ownership\RegistrationId.cs" />
+    <Compile Include="Ownership\StorageRegistration.cs" />
     <Compile Include="Pipeline\CommitDetailsStage.cs" />
     <Compile Include="Pipeline\GraphPackageMetadata.cs" />
     <Compile Include="Pipeline\NuspecStage.cs" />
@@ -220,6 +224,7 @@
     <EmbeddedResource Include="context\Segment.json" />
     <EmbeddedResource Include="context\Registration.json" />
     <EmbeddedResource Include="context\PackageDetails.json" />
+    <EmbeddedResource Include="context\Ownership.json" />
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />
