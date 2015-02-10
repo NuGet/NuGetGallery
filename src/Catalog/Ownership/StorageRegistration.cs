@@ -38,7 +38,12 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
         {
             Uri resourceUri = new Uri(_storage.BaseAddress, "index.json");
 
-            IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri)) ?? new Graph();
+            IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri));
+
+            if (graph == null)
+            {
+                return;
+            }
 
             INode record = graph.CreateUriNode(resourceUri);
             INode domain = graph.CreateUriNode(new Uri(resourceUri.AbsoluteUri + "#" + registrationId.Domain));
@@ -86,7 +91,12 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
         {
             Uri resourceUri = new Uri(_storage.BaseAddress, "index.json");
 
-            IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri)) ?? new Graph();
+            IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri));
+
+            if (graph == null)
+            {
+                return;
+            }
 
             INode record = graph.CreateUriNode(resourceUri);
             INode domain = graph.CreateUriNode(new Uri(resourceUri.AbsoluteUri + "#" + packageId.Domain));
@@ -105,7 +115,12 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
         {
             Uri resourceUri = new Uri(_storage.BaseAddress, "index.json");
 
-            IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri)) ?? new Graph();
+            IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri));
+
+            if (graph == null)
+            {
+                return;
+            }
 
             INode record = graph.CreateUriNode(resourceUri);
             INode domain = graph.CreateUriNode(new Uri(resourceUri.AbsoluteUri + "#" + registrationId.Domain));
@@ -128,29 +143,46 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
         public async Task<bool> Exists(RegistrationId registrationId)
         {
             Uri resourceUri = new Uri(_storage.BaseAddress, "index.json");
-            IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri)) ?? new Graph();
-            INode registration = graph.CreateUriNode(new Uri(resourceUri.AbsoluteUri + "#" + registrationId.RegistrationRelativeAddress));
-            if (graph.GetTriplesWithSubject(registration).Count() > 0)
+            IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri));
+
+            if (graph != null)
             {
-                return true;
+                INode registration = graph.CreateUriNode(new Uri(resourceUri.AbsoluteUri + "#" + registrationId.RegistrationRelativeAddress));
+                if (graph.GetTriplesWithSubject(registration).Count() > 0)
+                {
+                    return true;
+                }
             }
+
             return false;
         }
 
         public async Task<bool> Exists(PackageId packageId)
         {
             Uri resourceUri = new Uri(_storage.BaseAddress, "index.json");
-            IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri)) ?? new Graph();
-            INode registration = graph.CreateUriNode(new Uri(resourceUri.AbsoluteUri + "#" + packageId.RegistrationRelativeAddress));
-            return graph.ContainsTriple(new Triple(registration, graph.CreateUriNode(Schema.Predicates.Version), graph.CreateLiteralNode(packageId.Version.ToNormalizedString())));
+            IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri));
+
+            if (graph != null)
+            {
+                INode registration = graph.CreateUriNode(new Uri(resourceUri.AbsoluteUri + "#" + packageId.RegistrationRelativeAddress));
+                return graph.ContainsTriple(new Triple(registration, graph.CreateUriNode(Schema.Predicates.Version), graph.CreateLiteralNode(packageId.Version.ToNormalizedString())));
+            }
+
+            return false;
         }
 
         public async Task<bool> HasOwner(RegistrationId registrationId, string owner)
         {
             Uri resourceUri = new Uri(_storage.BaseAddress, "index.json");
-            IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri)) ?? new Graph();
-            INode registration = graph.CreateUriNode(new Uri(resourceUri.AbsoluteUri + "#" + registrationId.RegistrationRelativeAddress));
-            return graph.ContainsTriple(new Triple(registration, graph.CreateUriNode(Schema.Predicates.Owner), graph.CreateLiteralNode(owner)));
+            IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri));
+
+            if (graph != null)
+            {
+                INode registration = graph.CreateUriNode(new Uri(resourceUri.AbsoluteUri + "#" + registrationId.RegistrationRelativeAddress));
+                return graph.ContainsTriple(new Triple(registration, graph.CreateUriNode(Schema.Predicates.Owner), graph.CreateLiteralNode(owner)));
+            }
+
+            return false;
         }
 
         static StorageContent CreateContent(IGraph graph, Uri type)

@@ -46,14 +46,14 @@ namespace NuGet.Services.Publish
             return _activeDirectoryClient;
         }
 
-        public async Task<bool> RegistrationExists(string id)
+        public async Task<bool> RegistrationExists(string domain, string id)
         {
             ActiveDirectoryClient activeDirectoryClient = await GetActiveDirectoryClient();
             IPagedCollection<IGroup> groups = await activeDirectoryClient.Groups.Where(gp => gp.DisplayName.Equals(id)).ExecuteAsync();
             return groups.CurrentPage.Count > 0;
         }
 
-        public async Task<bool> IsAuthorizedToRegistration(string id)
+        public async Task<bool> IsAuthorizedToRegistration(string domain, string id)
         {
             ActiveDirectoryClient activeDirectoryClient = await GetActiveDirectoryClient();
 
@@ -83,7 +83,7 @@ namespace NuGet.Services.Publish
             return false;
         }
 
-        public async Task CreateRegistration(string id)
+        public async Task CreateRegistration(string domain, string id)
         {
             ActiveDirectoryClient activeDirectoryClient = await GetActiveDirectoryClient();
 
@@ -99,14 +99,14 @@ namespace NuGet.Services.Publish
             await activeDirectoryClient.Groups.AddGroupAsync(aadGroup, false);
         }
 
-        public async Task DeleteRegistration(string id)
+        public async Task DeleteRegistration(string domain, string id)
         {
             IGroup group = await GetGroup(id);
 
             await group.DeleteAsync(false);
         }
 
-        public async Task AddRegistrationOwner(string id)
+        public async Task AddRegistrationOwner(string domain, string id)
         {
             Group group = (Group)await GetGroup(id);
             User user = (User)await GetUser();
@@ -116,7 +116,7 @@ namespace NuGet.Services.Publish
             await group.UpdateAsync();
         }
 
-        public async Task<bool> PackageExists(string id, string version)
+        public async Task<bool> PackageExists(string domain, string id, string version)
         {
             Group group = (Group)await GetGroup(id);
 

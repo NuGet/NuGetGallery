@@ -33,6 +33,17 @@ namespace NuGet.Services.Publish
         {
             JObject microservice = metadata["apiapp.json"];
 
+            string domain;
+            JToken jtokenDomain;
+            if (microservice.TryGetValue("domain", out jtokenDomain))
+            {
+                domain = jtokenDomain.ToString();
+            }
+            else
+            {
+                domain = "nuget.org";
+            }
+
             string id = microservice["id"].ToString();
             string version = NuGetVersion.Parse(microservice["version"].ToString()).ToNormalizedString();
 

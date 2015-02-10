@@ -13,7 +13,7 @@ namespace CatalogTests
 {
     public static class RegistrationTests
     {
-        static string Primary = "DefaultEndpointsProtocol=https;AccountName=nugetjohtaylo;AccountKey=Vm1hvKk77IIKVWdQwoofq3TUFhe3HbKMSfK6ilimrXEnYIRK5zIvA4SDi/e1HXcAY2crC3R17BvpOE9bLp2/jA==";
+        static string Primary = "";
 
         public static async Task Test0Async()
         {

@@ -65,7 +65,7 @@ namespace PublishTestDriverWebSite.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CheckAccess(string baseId, string relativeId)
+        public async Task<ActionResult> CheckAccess(string domain, string id)
         {
             try
             {
@@ -75,9 +75,7 @@ namespace PublishTestDriverWebSite.Controllers
 
                 AuthenticationResult result = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
 
-                string id = string.Format("{0}/{1}", baseId ?? string.Empty, relativeId ?? string.Empty);
-
-                string query = string.Format("?id={0}", id.ToLowerInvariant());
+                string query = string.Format("?domain={0}&id={1}", domain, id);
 
                 HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetPublishServiceBaseAddress + "/checkaccess" + query);

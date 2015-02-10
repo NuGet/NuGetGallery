@@ -21,17 +21,12 @@ namespace NuGet.Services.Publish
             string audience = ConfigurationManager.AppSettings["ida:Audience"];
             string tenant = ConfigurationManager.AppSettings["ida:Tenant"];
 
-            WindowsAzureActiveDirectoryBearerAuthenticationOptions options = new WindowsAzureActiveDirectoryBearerAuthenticationOptions();
-            options.TokenValidationParameters = new TokenValidationParameters { ValidAudience = audience };
-            options.Tenant = tenant;
-
-            app.UseWindowsAzureActiveDirectoryBearerAuthentication(options);
-
-                //new WindowsAzureActiveDirectoryBearerAuthenticationOptions
-                //{
-                //    Audience = ConfigurationManager.AppSettings["ida:Audience"],
-                //    Tenant = ConfigurationManager.AppSettings["ida:Tenant"]
-                //});
+            app.UseWindowsAzureActiveDirectoryBearerAuthentication(
+                new WindowsAzureActiveDirectoryBearerAuthenticationOptions
+                {
+                    TokenValidationParameters = new TokenValidationParameters { ValidAudience = audience },
+                    Tenant = tenant
+                });
 
             app.Run(Invoke);
         }
@@ -69,12 +64,6 @@ namespace NuGet.Services.Publish
                     {
                         PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
                         await uploader.GetDomains(context);
-                        break;
-                    }
-                case "/registrations":
-                    {
-                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
-                        await uploader.GetRegistrations(context);
                         break;
                     }
                 case "/checkaccess":

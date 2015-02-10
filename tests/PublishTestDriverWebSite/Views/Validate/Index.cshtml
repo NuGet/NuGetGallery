@@ -9,15 +9,16 @@
 {
     <fieldset class="form">
 
-        Registration Id:
-        <select name="baseId">
+        Domain:
+        <select name="domain">
         @foreach (var domain in Model.Domains)
         {
             <option value="@domain">@domain</option>
         }
         </select>
-        <span style="font-size:large">/</span>
-        <input type="text" name="relativeId" />
+        &nbsp;&nbsp;
+        Id:
+        <input type="text" name="id" />
         &nbsp;&nbsp;
         <input type="submit" value="Check this Id is Available to Me" />
 

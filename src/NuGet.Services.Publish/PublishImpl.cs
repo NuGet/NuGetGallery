@@ -45,6 +45,14 @@ namespace NuGet.Services.Publish
                 return;
             }
 
+            string domain = context.Request.Query["domain"];
+
+            if (string.IsNullOrWhiteSpace(domain))
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "domain must be provided in query string", HttpStatusCode.BadRequest);
+                return;
+            }
+            
             string id = context.Request.Query["id"];
 
             if (string.IsNullOrWhiteSpace(id))
@@ -53,42 +61,31 @@ namespace NuGet.Services.Publish
                 return;
             }
 
-            string[] parts = id.Split('/');
-
-            if (parts.Length != 2 || parts[0].Length == 0 || parts[1].Length == 1)
-            {
-                await ServiceHelpers.WriteErrorResponse(context, "id must be of the form domain/name", HttpStatusCode.BadRequest);
-                return;
-            }
-
-            string baseId = parts[0];
-            string relativeId = parts[1];
-
             IList<string> domains = await _registrationOwnership.GetDomains();
-            if (!domains.Contains(baseId))
+            if (!domains.Contains(domain))
             {
-                await ServiceHelpers.WriteErrorResponse(context, "domain provided is not registered", HttpStatusCode.BadRequest);
+                await ServiceHelpers.WriteErrorResponse(context, "domain provided is not registered with the tenant", HttpStatusCode.BadRequest);
                 return;
             }
 
             string message = string.Empty;
 
-            if (await _registrationOwnership.RegistrationExists(id))
+            if (await _registrationOwnership.RegistrationExists(domain, id))
             {
-                if (!await _registrationOwnership.IsAuthorizedToRegistration(id))
+                if (!await _registrationOwnership.IsAuthorizedToRegistration(domain, id))
                 {
-                    string s = string.Format("User does not have access to Package Registration \"{0}\" Please contact the owner(s)", id);
+                    string s = string.Format("User does not have access to Package Registration \"{0}\" \"{1}\" Please contact the owner(s)", domain, id);
                     await ServiceHelpers.WriteErrorResponse(context, s, HttpStatusCode.Forbidden);
                     return;
                 }
                 else
                 {
-                    message = string.Format("User has publication rights to Package Registration \"{0}\"", id);
+                    message = string.Format("User has publication rights to Package Registration \"{0}\" \"{1}\"", domain, id);
                 }
             }
             else
             {
-                message = string.Format("Package Registration \"{0}\" is available", id);
+                message = string.Format("Package Registration \"{0}\" \"{1}\" is available", domain, id);
             }
 
             JToken response = new JObject
@@ -119,17 +116,16 @@ namespace NuGet.Services.Publish
                 return;
             }
 
+            string domain = GetDomain(metadata);
             string id = GetId(metadata);
-
-            bool deleteRegistrationOnError = false;
 
             string error = string.Empty;
 
             try
             {
-                if (await _registrationOwnership.RegistrationExists(id))
+                if (await _registrationOwnership.RegistrationExists(domain, id))
                 {
-                    if (!await _registrationOwnership.IsAuthorizedToRegistration(id))
+                    if (!await _registrationOwnership.IsAuthorizedToRegistration(domain, id))
                     {
                         await ServiceHelpers.WriteErrorResponse(context, "user does not have access to this registration", HttpStatusCode.Forbidden);
                         return;
@@ -137,7 +133,7 @@ namespace NuGet.Services.Publish
 
                     string version = GetVersion(metadata);
 
-                    if (await _registrationOwnership.PackageExists(id, version))
+                    if (await _registrationOwnership.PackageExists(domain, id, version))
                     {
                         await ServiceHelpers.WriteErrorResponse(context, "this package version already exists for this registration", HttpStatusCode.Forbidden);
                         return;
@@ -145,11 +141,7 @@ namespace NuGet.Services.Publish
                 }
                 else
                 {
-                    await _registrationOwnership.CreateRegistration(id);
-
-                    deleteRegistrationOnError = true;
-
-                    await _registrationOwnership.AddRegistrationOwner(id);
+                    await _registrationOwnership.AddRegistrationOwner(domain, id);
                 }
 
                 string nupkgName = GetNupkgName(metadata);
@@ -177,18 +169,11 @@ namespace NuGet.Services.Publish
 
                 await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
 
-                deleteRegistrationOnError = false;
-
                 return;
             }
             catch (Exception e)
             {
                 error = e.Message;
-            }
-
-            if (deleteRegistrationOnError)
-            {
-                await _registrationOwnership.DeleteRegistration(id);
             }
 
             await ServiceHelpers.WriteErrorResponse(context, error, HttpStatusCode.InternalServerError);
@@ -205,21 +190,6 @@ namespace NuGet.Services.Publish
             IList<string> domains = await _registrationOwnership.GetDomains();
 
             JArray response = new JArray(domains.ToArray());
-
-            await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
-        }
-
-        public async Task GetRegistrations(IOwinContext context)
-        {
-            if (!_registrationOwnership.IsAuthorized)
-            {
-                await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
-                return;
-            }
-
-            IList<string> registrations = await _registrationOwnership.GetRegistrations();
-
-            JArray response = new JArray(registrations.ToArray());
 
             await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
         }
@@ -248,6 +218,12 @@ namespace NuGet.Services.Publish
             }
 
             return metadata;
+        }
+
+        static string GetDomain(IDictionary<string, JObject> metadata)
+        {
+            JObject nuspec = metadata["nuspec.json"];
+            return nuspec["domain"].ToString().ToLowerInvariant();
         }
 
         static string GetId(IDictionary<string, JObject> metadata)
