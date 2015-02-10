@@ -11,7 +11,12 @@ namespace NuGet.Services.Publish
     {
         public static Hashtable GetHashtable(HashtableAst ast)
         {
-            return ast.Visit(new PowerShellHashtableVisitor()) as Hashtable;
+            if (ast != null)
+            {
+                return ast.Visit(new PowerShellHashtableVisitor()) as Hashtable;
+            }
+
+            return null;
         }
 
         public object VisitErrorStatement(ErrorStatementAst errorStatementAst) { throw new UnexpectedElementException(); }
@@ -54,7 +59,20 @@ namespace NuGet.Services.Publish
 
         public object VisitStatementBlock(StatementBlockAst statementBlockAst)
         {
-            return statementBlockAst?.Statements?.FirstOrDefault()?.Visit(this);
+            if (statementBlockAst != null)
+            {
+                var statements = statementBlockAst.Statements;
+                if (statements != null)
+                {
+                    var firstStatement = statements.FirstOrDefault();
+                    if (firstStatement != null)
+                    {
+                        return firstStatement.Visit(this);
+                    }
+                }
+            }
+
+            return null;
         }
 
         public object VisitPipeline(PipelineAst pipelineAst)

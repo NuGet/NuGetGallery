@@ -54,31 +54,71 @@ namespace NuGet.Services.Publish
                 ParseError[] errors;
                 var scriptBlockAst = Parser.ParseInput(reader.ReadToEnd(), out tokens, out errors);
 
-                var hashtableAst =
-                    ((scriptBlockAst?.EndBlock?.Statements?[0] as PipelineAst)?.PipelineElements?[0] as
-                        CommandExpressionAst)?.Expression as HashtableAst;
+                HashtableAst hashtableAst = null;
+
+                if (scriptBlockAst != null)
+                {
+                    var endBlock = scriptBlockAst.EndBlock;
+                    if (endBlock != null)
+                    {
+                        var statements = endBlock.Statements;
+                        if (statements != null && statements.Count > 0)
+                        {
+                            var pipelineAst = statements[0] as PipelineAst;
+                            if (pipelineAst != null)
+                            {
+                                var pipelineElements = pipelineAst.PipelineElements;
+                                if (pipelineElements != null && pipelineElements.Count > 0)
+                                {
+                                    var commandExpressionAst = pipelineElements[0] as CommandExpressionAst;
+                                    if (commandExpressionAst != null)
+                                    {
+                                        hashtableAst = commandExpressionAst.Expression as HashtableAst;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 var hashtable = PowerShellHashtableVisitor.GetHashtable(hashtableAst);
 
                 VerifyRequiredFields(hashtable);
 
-                result.Author = hashtable?["Author"];
-                result.ModuleVersion = hashtable?["ModuleVersion"];
-                result.CompanyName = hashtable?["CompanyName"];
-                result.GUID = hashtable?["GUID"];
-                result.PowerShellHostVersion = hashtable?["PowerShellHostVersion"];
-                result.DotNetFrameworkVersion = hashtable?["DotNetFrameworkVersion"];
-                result.CLRVersion = hashtable?["CLRVersion"];
-                result.ProcessorArchitecture = hashtable?["ProcessorArchitecture"];
-                result.CmdletsToExport = ConvertObjectToJArray(hashtable?["CmdletsToExport"]);
-                result.FunctionsToExport = ConvertObjectToJArray(hashtable?["FunctionsToExport"]);
-                result.DscResourcesToExport = ConvertObjectToJArray(hashtable?["DscResourcesToExport"]);
-                var privateData = hashtable?["PrivateData"] as Hashtable;
-                var psData = privateData?["PSData"] as Hashtable;
-                result.LicenseUri = psData?["LicenseUri"];
-                result.IconUri = psData?["IconUri"];
-                result.Tags = ConvertObjectToJArray(psData?["Tags"]);
-                result.ProjectUri = psData?["ProjectUri"];
-                result.ReleaseNotes = psData?["ReleaseNotes"];
+                if (hashtable != null)
+                {
+                    result.Author = hashtable["Author"];
+                    result.ModuleVersion = hashtable["ModuleVersion"];
+                    result.CompanyName = hashtable["CompanyName"];
+                    result.GUID = hashtable["GUID"];
+                    result.PowerShellHostVersion = hashtable["PowerShellHostVersion"];
+                    result.DotNetFrameworkVersion = hashtable["DotNetFrameworkVersion"];
+                    result.CLRVersion = hashtable["CLRVersion"];
+                    result.ProcessorArchitecture = hashtable["ProcessorArchitecture"];
+                    result.CmdletsToExport = ConvertObjectToJArray(hashtable["CmdletsToExport"]);
+                    result.FunctionsToExport = ConvertObjectToJArray(hashtable["FunctionsToExport"]);
+                    result.DscResourcesToExport = ConvertObjectToJArray(hashtable["DscResourcesToExport"]);
+
+                    var privateData = hashtable["PrivateData"] as Hashtable;
+                    result.LicenseUri = null;
+                    result.IconUri = null;
+                    result.Tags = ConvertObjectToJArray(null);
+                    result.ProjectUri = null;
+                    result.ReleaseNotes = null;
+
+                    if (privateData != null)
+                    {
+                        var psData = privateData["PSData"] as Hashtable;
+                        if (psData != null)
+                        {
+                            result.LicenseUri = psData["LicenseUri"];
+                            result.IconUri = psData["IconUri"];
+                            result.Tags = ConvertObjectToJArray(psData["Tags"]);
+                            result.ProjectUri = psData["ProjectUri"];
+                            result.ReleaseNotes = psData["ReleaseNotes"];
+                        }
+                    }
+                }
 
                 return result;
             }
@@ -91,17 +131,17 @@ namespace NuGet.Services.Publish
 
         private void VerifyRequiredFields(Hashtable hashtable)
         {
-            if (String.IsNullOrEmpty(hashtable?["ModuleVersion"] as string))
+            if (hashtable == null || String.IsNullOrEmpty(hashtable["ModuleVersion"] as string))
             {
                 _missingRequiredFields.Add("ModuleVersion");
             }
 
-            if (String.IsNullOrEmpty(hashtable?["Author"] as string))
+            if (hashtable == null || String.IsNullOrEmpty(hashtable["Author"] as string))
             {
                 _missingRequiredFields.Add("Author");
             }
 
-            if (String.IsNullOrEmpty(hashtable?["GUID"] as string))
+            if (hashtable == null || String.IsNullOrEmpty(hashtable["GUID"] as string))
             {
                 _missingRequiredFields.Add("GUID");
             }
@@ -147,7 +187,12 @@ namespace NuGet.Services.Publish
                 return String.Format("The psd1 PowerShell module manifest is missing required fields: {0}.", String.Join(", ", _missingRequiredFields));
             }
 
-            return _exception?.Message;
+            if (_exception != null)
+            {
+                return _exception.Message;
+            }
+
+            return null;
         }
     }
 }
