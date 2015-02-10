@@ -44,6 +44,15 @@ namespace NuGet.Services.Publish
             }
         }
 
+        public Task<bool> IsTenantEnabled()
+        {
+            //TODO: check tenant is enabled
+            //  (1) get tenant claim form current claims
+            //  (2) make sure tenant is present in _registration
+
+            return Task.FromResult(true);
+        }
+        
         async Task<ActiveDirectoryClient> GetActiveDirectoryClient()
         {
             if (_activeDirectoryClient == null)

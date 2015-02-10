@@ -5,6 +5,10 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
 {
     public interface IRegistration
     {
+        Task AddTenant(string tenant);
+        Task RemoveTenant(string tenant);
+        Task<bool> HasTenant(string tenant);
+
         Task AddOwner(RegistrationId registrationId, string owner);
         Task RemoveOwner(RegistrationId registrationId, string owner);
 

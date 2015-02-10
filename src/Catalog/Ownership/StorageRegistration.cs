@@ -17,6 +17,47 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
             _storage = storageFactory.Create();
         }
 
+        public async Task AddTenant(string tenant)
+        {
+            Uri resourceUri = new Uri(_storage.BaseAddress, "index.json");
+
+            IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri)) ?? new Graph();
+
+            graph.Assert(graph.CreateUriNode(resourceUri), graph.CreateUriNode(Schema.Predicates.Tenant), graph.CreateLiteralNode(tenant));
+
+            await Save(resourceUri, graph);
+        }
+
+        public async Task RemoveTenant(string tenant)
+        {
+            Uri resourceUri = new Uri(_storage.BaseAddress, "index.json");
+
+            IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri));
+
+            if (graph == null)
+            {
+                return;
+            }
+
+            graph.Retract(graph.CreateUriNode(resourceUri), graph.CreateUriNode(Schema.Predicates.Tenant), graph.CreateLiteralNode(tenant));
+
+            await Save(resourceUri, graph);
+        }
+
+        public async Task<bool> HasTenant(string tenant)
+        {
+            Uri resourceUri = new Uri(_storage.BaseAddress, "index.json");
+
+            IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri));
+
+            if (graph != null)
+            {
+                return graph.ContainsTriple(new Triple(graph.CreateUriNode(resourceUri), graph.CreateUriNode(Schema.Predicates.Tenant), graph.CreateLiteralNode(tenant)));
+            }
+
+            return false;
+        }
+
         public async Task AddOwner(RegistrationId registrationId, string owner)
         {
             Uri resourceUri = new Uri(_storage.BaseAddress, "index.json");

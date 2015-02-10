@@ -8,6 +8,8 @@ namespace NuGet.Services.Publish
     {
         bool IsAuthorized { get; }
 
+        Task<bool> IsTenantEnabled();
+
         Task<bool> IsAuthorizedToRegistration(string domain, string id);
         Task AddRegistrationOwner(string domain, string id);
 

@@ -104,6 +104,18 @@ namespace NuGet.Services.Publish
                         await uploader.Upload(context);
                         break;
                     }
+                case "/tenant/add":
+                    {
+                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
+                        await uploader.AddTenant(context);
+                        break;
+                    }
+                case "/tenant/remove":
+                    {
+                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
+                        await uploader.RemoveTenant(context);
+                        break;
+                    }
                 default:
                     {
                         await context.Response.WriteAsync("NotFound");

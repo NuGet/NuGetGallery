@@ -45,6 +45,12 @@ namespace NuGet.Services.Publish
                 return;
             }
 
+            if (!await _registrationOwnership.IsTenantEnabled())
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "the package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
+                return;
+            }
+
             string domain = context.Request.Query["domain"];
 
             if (string.IsNullOrWhiteSpace(domain))
@@ -101,6 +107,12 @@ namespace NuGet.Services.Publish
             if (!_registrationOwnership.IsAuthorized)
             {
                 await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
+                return;
+            }
+
+            if (!await _registrationOwnership.IsTenantEnabled())
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "the package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
                 return;
             }
 
@@ -192,6 +204,20 @@ namespace NuGet.Services.Publish
             JArray response = new JArray(domains.ToArray());
 
             await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
+        }
+
+        public async Task AddTenant(IOwinContext context)
+        {
+            //TODO: add tenant
+
+            await Task.FromResult(0);
+        }
+
+        public async Task RemoveTenant(IOwinContext context)
+        {
+            //TODO: remove tenant
+
+            await Task.FromResult(0);
         }
 
         IDictionary<string, JObject> ExtractMetadata(Stream nupkgStream)
