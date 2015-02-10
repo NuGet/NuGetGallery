@@ -158,6 +158,7 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\PackagesController.cs" />
+    <Compile Include="Controllers\TenantController.cs" />
     <Compile Include="Controllers\UploadController.cs" />
     <Compile Include="Controllers\ValidateController.cs" />
     <Compile Include="Global.asax.cs">
@@ -166,6 +167,7 @@
     <Compile Include="Models\PackagesModel.cs" />
     <Compile Include="Models\PublishModel.cs" />
     <Compile Include="Models\CheckAccessModel.cs" />
+    <Compile Include="Models\TenantModel.cs" />
     <Compile Include="Models\UploadModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
@@ -213,6 +215,9 @@
     <Content Include="Views\Upload\Upload.cshtml" />
     <Content Include="Views\Validate\CheckAccess.cshtml" />
     <Content Include="Views\Validate\Index.cshtml" />
+    <Content Include="Views\Tenant\Index.cshtml" />
+    <Content Include="Views\Tenant\Add.cshtml" />
+    <Content Include="Views\Tenant\Remove.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

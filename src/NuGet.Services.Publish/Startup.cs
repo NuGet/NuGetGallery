@@ -1,8 +1,8 @@
 ﻿using Microsoft.Owin;
 using Microsoft.Owin.Security.ActiveDirectory;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
 using Owin;
+using System;
 using System.Configuration;
 using System.IdentityModel.Tokens;
 using System.Net;
@@ -33,18 +33,32 @@ namespace NuGet.Services.Publish
 
         async Task Invoke(IOwinContext context)
         {
-            switch (context.Request.Method)
+            string error = null;
+
+            try
             {
-                case "GET":
-                    await InvokeGET(context);
-                    break;
-                case "POST": 
-                    await InvokePOST(context);
-                    break;
-                default:
-                    await context.Response.WriteAsync("NotFound");
-                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    break;
+                switch (context.Request.Method)
+                {
+                    case "GET":
+                        await InvokeGET(context);
+                        break;
+                    case "POST":
+                        await InvokePOST(context);
+                        break;
+                    default:
+                        await context.Response.WriteAsync("NotFound");
+                        context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                error = e.Message;
+            }
+
+            if (error != null)
+            {
+                await ServiceHelpers.WriteErrorResponse(context, error, HttpStatusCode.InternalServerError);
             }
         }
 

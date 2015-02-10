@@ -1,0 +1,20 @@
+﻿@model PublishTestDriverWebSite.Models.PublishModel
+@{
+    ViewBag.Title = "Tenant";
+}
+
+<h1>Validation Tests</h1>
+
+@using (Html.BeginForm("Add", "Tenant", FormMethod.Post, new { id = "tenantAddForm", enctype = "multipart/form-data" }))
+{
+    <fieldset class="form">
+        <input type="submit" value="Add" />
+    </fieldset>
+}
+
+@using (Html.BeginForm("Remove", "Tenant", FormMethod.Post, new { id = "tenantRemoveForm", enctype = "multipart/form-data" }))
+{
+    <fieldset class="form">
+        <input type="submit" value="Remove" />
+    </fieldset>
+}

@@ -47,7 +47,7 @@ namespace NuGet.Services.Publish
 
             if (!await _registrationOwnership.IsTenantEnabled())
             {
-                await ServiceHelpers.WriteErrorResponse(context, "the package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
+                await ServiceHelpers.WriteErrorResponse(context, "package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
                 return;
             }
 
@@ -112,7 +112,7 @@ namespace NuGet.Services.Publish
 
             if (!await _registrationOwnership.IsTenantEnabled())
             {
-                await ServiceHelpers.WriteErrorResponse(context, "the package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
+                await ServiceHelpers.WriteErrorResponse(context, "package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
                 return;
             }
 
@@ -208,16 +208,40 @@ namespace NuGet.Services.Publish
 
         public async Task AddTenant(IOwinContext context)
         {
-            //TODO: add tenant
+            if (!_registrationOwnership.IsAuthorized)
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
+                return;
+            }
 
-            await Task.FromResult(0);
+            if (!await _registrationOwnership.IsUserAdministrator())
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "this operation is only permitted for administrators", HttpStatusCode.Forbidden);
+                return;
+            }
+
+            await _registrationOwnership.AddTenant();
+
+            context.Response.StatusCode = (int)HttpStatusCode.OK;
         }
 
         public async Task RemoveTenant(IOwinContext context)
         {
-            //TODO: remove tenant
+            if (!_registrationOwnership.IsAuthorized)
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
+                return;
+            }
 
-            await Task.FromResult(0);
+            if (!await _registrationOwnership.IsUserAdministrator())
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "this operation is only permitted for administrators", HttpStatusCode.Forbidden);
+                return;
+            }
+
+            await _registrationOwnership.RemoveTenant();
+
+            context.Response.StatusCode = (int)HttpStatusCode.OK;
         }
 
         IDictionary<string, JObject> ExtractMetadata(Stream nupkgStream)

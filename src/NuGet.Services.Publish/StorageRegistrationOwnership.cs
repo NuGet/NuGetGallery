@@ -1,4 +1,5 @@
 ﻿using Microsoft.Azure.ActiveDirectory.GraphClient;
+using Microsoft.Azure.ActiveDirectory.GraphClient.Extensions;
 using Microsoft.Owin;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Metadata.Catalog.Ownership;
@@ -44,15 +45,61 @@ namespace NuGet.Services.Publish
             }
         }
 
+        public async Task<bool> IsUserAdministrator()
+        {
+            //return Task.FromResult(true);
+
+            //  attempt 1
+
+            //bool isInRole = ClaimsPrincipal.Current.IsInRole("admin");
+            //return Task.FromResult(isInRole);
+
+            //  attempt 2
+
+            IUserFetcher user = (IUserFetcher)await GetUser();
+
+            IPagedCollection<IDirectoryObject> pagedCollection = await user.MemberOf.ExecuteAsync();
+
+            while (true)
+            {
+                foreach (IDirectoryObject directoryObject in pagedCollection.CurrentPage)
+                {
+                    if (directoryObject is IDirectoryRole)
+                    {
+                        IDirectoryRole role = (IDirectoryRole)directoryObject;
+                        string roleTemplateId = role.RoleTemplateId;
+
+                        if (roleTemplateId == "62e90394-69f5-4237-9190-012177145e10")
+                        {
+                            return true;
+                        }
+                    }
+                }
+                pagedCollection = await pagedCollection.GetNextPageAsync();
+                if (pagedCollection == null)
+                {
+                    break;
+                }
+            }
+
+            return false;
+        }
+
         public Task<bool> IsTenantEnabled()
         {
-            //TODO: check tenant is enabled
-            //  (1) get tenant claim form current claims
-            //  (2) make sure tenant is present in _registration
-
-            return Task.FromResult(true);
+            return _registration.HasTenant(GetTenantId());
         }
-        
+
+        public async Task AddTenant()
+        {
+            await _registration.AddTenant(GetTenantId());
+        }
+
+        public async Task RemoveTenant()
+        {
+            await _registration.RemoveTenant(GetTenantId());
+        }
+
         async Task<ActiveDirectoryClient> GetActiveDirectoryClient()
         {
             if (_activeDirectoryClient == null)

@@ -7,8 +7,12 @@ namespace NuGet.Services.Publish
     public interface IRegistrationOwnership
     {
         bool IsAuthorized { get; }
+        Task<bool> IsUserAdministrator();
 
         Task<bool> IsTenantEnabled();
+
+        Task AddTenant();
+        Task RemoveTenant();
 
         Task<bool> IsAuthorizedToRegistration(string domain, string id);
         Task AddRegistrationOwner(string domain, string id);
