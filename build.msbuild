@@ -40,7 +40,7 @@
         <PropertyGroup>
             <NuGetExeDir>$(MSBuildThisFileDirectory)\.nuget</NuGetExeDir>
             <NuGetExePath>$(NuGetExeDir)\nuget.exe</NuGetExePath>
-            <RestoreCommand>$(NuGetExePath) restore -Source "@(PackageSource)" "@(SolutionFile)" -NonInteractive</RestoreCommand>
+            <RestoreCommand>"$(NuGetExePath)" restore -Source "@(PackageSource)" "@(SolutionFile)" -NonInteractive</RestoreCommand>
         </PropertyGroup>
         <MakeDir Directories="$(NuGetExeDir)" Condition="!Exists('$(NuGetExeDir)')" />
         <Message Text="Restoring packages ... " Importance="high" />
