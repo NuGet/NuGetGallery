@@ -19,6 +19,10 @@ namespace PublishTestDriverWebSite.Controllers
     {
         private string nugetPublishServiceResourceId = ConfigurationManager.AppSettings["nuget:PublishServiceResourceId"];
         private string nugetPublishServiceBaseAddress = ConfigurationManager.AppSettings["nuget:PublishServiceBaseAddress"];
+
+        private string nugetSearchServiceResourceId = ConfigurationManager.AppSettings["nuget:SearchServiceResourceId"];
+        private string nugetSearchServiceBaseAddress = ConfigurationManager.AppSettings["nuget:SearchServiceBaseAddress"];
+        
         private const string TenantIdClaimType = "http://schemas.microsoft.com/identity/claims/tenantid";
         private static string clientId = ConfigurationManager.AppSettings["ida:ClientId"];
         private static string appKey = ConfigurationManager.AppSettings["ida:AppKey"];
@@ -41,13 +45,13 @@ namespace PublishTestDriverWebSite.Controllers
                 result = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
 
                 HttpClient client = new HttpClient();
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetPublishServiceBaseAddress + "/registrations");
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetSearchServiceBaseAddress + "/query");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
                 HttpResponseMessage response = await client.SendAsync(request);
 
                 string json = await response.Content.ReadAsStringAsync();
 
-                PackagesModel model = new PackagesModel { Registrations = JArray.Parse(json) };
+                PackagesModel model = new PackagesModel { Raw = json };
 
                 return View(model);
             }

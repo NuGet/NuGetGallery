@@ -35,6 +35,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PublishScripts", "PublishSc
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configurations", "Configurations", "{9D362AFD-C5A8-40DA-B9EE-C457E8EBC920}"
 	ProjectSection(SolutionItems) = preProject
+		PublishScripts\Configurations\NuGetServicesGateway-WAWS-dev.json = PublishScripts\Configurations\NuGetServicesGateway-WAWS-dev.json
 		PublishScripts\Configurations\NuGetServicesPublish-WAWS-dev.json = PublishScripts\Configurations\NuGetServicesPublish-WAWS-dev.json
 		PublishScripts\Configurations\PublishTestDriverWebSite-WAWS-dev.json = PublishScripts\Configurations\PublishTestDriverWebSite-WAWS-dev.json
 	EndProjectSection
@@ -45,6 +46,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{4AA08E
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublishTestDriverWebSite", "tests\PublishTestDriverWebSite\PublishTestDriverWebSite.csproj", "{DCE82063-AD00-4EA9-BB0E-B01047BC861C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Gateway", "src\NuGet.Services.Gateway\NuGet.Services.Gateway.csproj", "{C233F3B7-7547-41CA-83DD-304D2C2BB347}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -182,6 +185,16 @@ Global
 		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Release|x64.ActiveCfg = Release|Any CPU
+		{C233F3B7-7547-41CA-83DD-304D2C2BB347}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C233F3B7-7547-41CA-83DD-304D2C2BB347}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C233F3B7-7547-41CA-83DD-304D2C2BB347}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C233F3B7-7547-41CA-83DD-304D2C2BB347}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C233F3B7-7547-41CA-83DD-304D2C2BB347}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C233F3B7-7547-41CA-83DD-304D2C2BB347}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C233F3B7-7547-41CA-83DD-304D2C2BB347}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C233F3B7-7547-41CA-83DD-304D2C2BB347}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{C233F3B7-7547-41CA-83DD-304D2C2BB347}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{C233F3B7-7547-41CA-83DD-304D2C2BB347}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
