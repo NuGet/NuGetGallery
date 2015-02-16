@@ -93,6 +93,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Language = new Uri(Prefixes.NuGet + "language");
             public static readonly Uri Published = new Uri(Prefixes.NuGet + "published");
             public static readonly Uri Publisher = new Uri(Prefixes.NuGet + "publisher");
+            public static readonly Uri UserName = new Uri(Prefixes.NuGet + "userName");
             public static readonly Uri Tenant = new Uri(Prefixes.NuGet + "tenant");
             public static readonly Uri UserId = new Uri(Prefixes.NuGet + "userId");
             public static readonly Uri TenantId = new Uri(Prefixes.NuGet + "tenantId");

@@ -28,6 +28,11 @@ namespace NuGet.Services.Publish
         protected abstract JObject CreateMetadataObject(string fullname, Stream stream);
         protected abstract Uri GetItemType();
 
+        protected virtual Task ExtractAndSavePackageArtifacts(IDictionary<string, JObject> metadata, Stream nupkgStream)
+        {
+            return Task.FromResult(0);
+        }
+
         protected virtual string Validate(IDictionary<string, JObject> metadata, Stream nupkgStream)
         {
             return null;
@@ -102,7 +107,7 @@ namespace NuGet.Services.Publish
             await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
         }
 
-        public async Task Upload(IOwinContext context)
+        public async Task Upload(IOwinContext context, bool isPublic)
         {
             if (!_registrationOwnership.IsAuthorized)
             {
@@ -119,6 +124,8 @@ namespace NuGet.Services.Publish
             Stream nupkgStream = context.Request.Body;
 
             IDictionary<string, JObject> metadata = ExtractMetadata(nupkgStream);
+
+            await ExtractAndSavePackageArtifacts(metadata, nupkgStream);
 
             string validationResponse = Validate(metadata, nupkgStream);
 
@@ -162,13 +169,27 @@ namespace NuGet.Services.Publish
 
                 string publisher = await _registrationOwnership.GetUserName();
 
+                string tenantName;
+                string tenantId;
+
+                if (isPublic)
+                {
+                    tenantName = "Public";
+                    tenantId = "PUBLIC";
+                }
+                else
+                {
+                    tenantName = await _registrationOwnership.GetTenantName();
+                    tenantId = _registrationOwnership.GetTenantId();
+                }
+
                 PublicationDetails publicationDetails = new PublicationDetails
                 {
                     Published = DateTime.UtcNow,
                     UserName = await _registrationOwnership.GetUserName(),
                     UserId = _registrationOwnership.GetUserId(),
-                    TenantName = await _registrationOwnership.GetTenantName(),
-                    TenantId = _registrationOwnership.GetTenantId()
+                    TenantName = tenantName,
+                    TenantId = tenantId
                 };
 
                 Uri catalogAddress = await AddToCatalog(metadata["nuspec.json"], GetItemType(), nupkgAddress, nupkgStream.Length, Utils.GenerateHash(nupkgStream), publicationDetails);
@@ -270,40 +291,39 @@ namespace NuGet.Services.Publish
             return metadata;
         }
 
-        static string GetDomain(IDictionary<string, JObject> metadata)
+        protected static string GetDomain(IDictionary<string, JObject> metadata)
         {
             JObject nuspec = metadata["nuspec.json"];
             return nuspec["domain"].ToString().ToLowerInvariant();
         }
 
-        static string GetId(IDictionary<string, JObject> metadata)
+        protected static string GetId(IDictionary<string, JObject> metadata)
         {
             JObject nuspec = metadata["nuspec.json"];
             return nuspec["id"].ToString().ToLowerInvariant();
         }
 
-        static string GetVersion(IDictionary<string, JObject> metadata)
+        protected static string GetVersion(IDictionary<string, JObject> metadata)
         {
             JObject nuspec = metadata["nuspec.json"];
-            return nuspec["version"].ToString();
+            return NuGetVersion.Parse(nuspec["version"].ToString()).ToNormalizedString();
         }
 
         static string GetNupkgName(IDictionary<string, JObject> metadata)
         {
-            JObject nuspec = metadata["nuspec.json"];
-
-            string id = nuspec["id"].ToString().ToLowerInvariant();
-            string version = NuGetVersion.Parse(nuspec["version"].ToString()).ToNormalizedString();
-
-            return MakeNupkgName(id, version);
+            return string.Format("{0}.{1}.{2}.{3}.nupkg", 
+                GetDomain(metadata),
+                GetId(metadata),
+                GetVersion(metadata),
+                Guid.NewGuid()).ToLowerInvariant();
         }
 
-        static string MakeNupkgName(string id, string version)
+        static Task<Uri> SaveNupkg(Stream nupkgStream, string name)
         {
-            return string.Format("{0}.{1}.{2}.nupkg", id, version, Guid.NewGuid()).ToLowerInvariant();
+            return SaveFile(nupkgStream, name, "application/octet-stream");
         }
 
-        static async Task<Uri> SaveNupkg(Stream nupkgStream, string name)
+        protected static async Task<Uri> SaveFile(Stream stream, string name, string contentType)
         {
             string storagePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
             string storageContainerPackages = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Packages") ?? "nupkgs";
@@ -319,11 +339,15 @@ namespace NuGet.Services.Publish
             }
 
             CloudBlockBlob blob = container.GetBlockBlobReference(name);
-            blob.Properties.ContentType = "application/octet-stream";
+            blob.Properties.ContentType = contentType;
             blob.Properties.ContentDisposition = name;
 
-            nupkgStream.Seek(0, SeekOrigin.Begin);
-            await blob.UploadFromStreamAsync(nupkgStream);
+            if (stream.CanSeek)
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+            }
+
+            await blob.UploadFromStreamAsync(stream);
 
             return blob.Uri;
         }

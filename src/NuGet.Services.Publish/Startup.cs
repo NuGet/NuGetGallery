@@ -109,13 +109,19 @@ namespace NuGet.Services.Publish
                 case "/catalog/nuspec":
                     {
                         PublishImpl uploader = new NuSpecJsonPublishImpl(registrationOwnership);
-                        await uploader.Upload(context);
+                        await uploader.Upload(context, true);
                         break;
                     }
                 case "/catalog/microservices":
                     {
                         PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
-                        await uploader.Upload(context);
+                        await uploader.Upload(context, false);
+                        break;
+                    }
+                case "/catalog/microservices/public":
+                    {
+                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
+                        await uploader.Upload(context, true);
                         break;
                     }
                 case "/tenant/add":

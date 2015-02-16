@@ -45,13 +45,15 @@ namespace PublishTestDriverWebSite.Controllers
                 result = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
 
                 HttpClient client = new HttpClient();
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetSearchServiceBaseAddress + "/query");
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetSearchServiceBaseAddress + "/secure/query");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
                 HttpResponseMessage response = await client.SendAsync(request);
 
                 string json = await response.Content.ReadAsStringAsync();
 
-                PackagesModel model = new PackagesModel { Raw = json };
+                JObject searchResult = JObject.Parse(json);
+
+                PackagesModel model = new PackagesModel(searchResult);
 
                 return View(model);
             }

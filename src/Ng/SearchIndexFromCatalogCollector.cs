@@ -265,6 +265,11 @@ namespace Ng
             Add(doc, "PackageSize", (string)package["packageSize"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "Language", (string)package["language"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
+            Add(doc, "Domain", (string)package["domain"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+
+            string tenantId = (string)package["tenantId"] ?? "PUBLIC";
+            Add(doc, "TenantId", tenantId, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+
             doc.Add(new NumericField("PublishedDate", Field.Store.YES, true).SetIntValue(int.Parse(package["published"].ToObject<DateTime>().ToString("yyyyMMdd"))));
 
             DateTime lastEdited = (DateTime)(package["lastEdited"] ?? package["published"]);

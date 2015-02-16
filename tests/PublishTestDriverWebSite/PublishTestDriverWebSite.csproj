@@ -167,10 +167,13 @@
     <Compile Include="Models\PackagesModel.cs" />
     <Compile Include="Models\PublishModel.cs" />
     <Compile Include="Models\CheckAccessModel.cs" />
+    <Compile Include="Models\SearchPackageVersionModel.cs" />
+    <Compile Include="Models\SearchPackageModel.cs" />
     <Compile Include="Models\TenantModel.cs" />
     <Compile Include="Models\UploadModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
+    <Compile Include="Utils\JsonUtils.cs" />
     <Compile Include="Utils\NaiveSessionCache.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -5,7 +5,17 @@
 
 <h1>Packages Page</h1>
 
-<pre>@Model.Raw</pre>
-
-
-
+<table>
+    @foreach (var package in Model.Packages)
+    {
+    <tr>
+        <td>@package.Domain</td>
+        <td>@package.Id</td>
+        <td>@package.Version</td>
+        @if (package.IsPublic)
+        {
+            <td>PUBLIC</td>
+        }
+    </tr>
+    }
+</table>

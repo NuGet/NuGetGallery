@@ -27,7 +27,7 @@ namespace PublishTestDriverWebSite.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Upload(HttpPostedFileBase uploadFile)
+        public async Task<ActionResult> Upload(HttpPostedFileBase uploadFile, string visibility)
         {
             string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
             AuthenticationContext authContext = new AuthenticationContext(Startup.Authority, new NaiveSessionCache(userObjectID));
@@ -35,8 +35,10 @@ namespace PublishTestDriverWebSite.Controllers
 
             AuthenticationResult result = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
 
+            string path = (visibility == "public") ? "/catalog/microservices/public" : "/catalog/microservices";
+
             HttpClient client = new HttpClient();
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nugetPublishServiceBaseAddress + "/catalog/microservices");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nugetPublishServiceBaseAddress + path);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
 
             request.Content = new StreamContent(uploadFile.InputStream);
