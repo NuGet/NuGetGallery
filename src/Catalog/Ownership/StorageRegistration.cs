@@ -23,7 +23,10 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
 
             IGraph graph = Utils.CreateGraph(await _storage.LoadString(resourceUri)) ?? new Graph();
 
-            graph.Assert(graph.CreateUriNode(resourceUri), graph.CreateUriNode(Schema.Predicates.Tenant), graph.CreateLiteralNode(tenant));
+            INode record = graph.CreateUriNode(resourceUri);
+
+            graph.Assert(record, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.Record));
+            graph.Assert(record, graph.CreateUriNode(Schema.Predicates.Tenant), graph.CreateLiteralNode(tenant));
 
             await Save(resourceUri, graph);
         }

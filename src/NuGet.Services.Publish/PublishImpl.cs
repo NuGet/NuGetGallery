@@ -28,9 +28,8 @@ namespace NuGet.Services.Publish
         protected abstract JObject CreateMetadataObject(string fullname, Stream stream);
         protected abstract Uri GetItemType();
 
-        protected virtual Task ExtractAndSavePackageArtifacts(IDictionary<string, JObject> metadata, Stream nupkgStream)
+        protected virtual void InferArtifactTypes(IDictionary<string, JObject> metadata)
         {
-            return Task.FromResult(0);
         }
 
         protected virtual string Validate(IDictionary<string, JObject> metadata, Stream nupkgStream)
@@ -123,9 +122,15 @@ namespace NuGet.Services.Publish
 
             Stream nupkgStream = context.Request.Body;
 
-            IDictionary<string, JObject> metadata = ExtractMetadata(nupkgStream);
+            IDictionary<string, JObject> metadata = new Dictionary<string, JObject>();
 
-            await ExtractAndSavePackageArtifacts(metadata, nupkgStream);
+            await SaveArtifacts(metadata, nupkgStream);
+
+            InferArtifactTypes(metadata);
+
+            ExtractMetadata(metadata, nupkgStream);
+
+            AddPackageContent(metadata);
 
             string validationResponse = Validate(metadata, nupkgStream);
 
@@ -163,10 +168,6 @@ namespace NuGet.Services.Publish
                     await _registrationOwnership.AddRegistrationOwner(domain, id);
                 }
 
-                string nupkgName = GetNupkgName(metadata);
-
-                Uri nupkgAddress = await SaveNupkg(nupkgStream, nupkgName);
-
                 string publisher = await _registrationOwnership.GetUserName();
 
                 string tenantName;
@@ -192,11 +193,11 @@ namespace NuGet.Services.Publish
                     TenantId = tenantId
                 };
 
-                Uri catalogAddress = await AddToCatalog(metadata["nuspec.json"], GetItemType(), nupkgAddress, nupkgStream.Length, Utils.GenerateHash(nupkgStream), publicationDetails);
+                Uri catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails);
 
                 JToken response = new JObject
                 { 
-                    { "download", nupkgAddress.ToString() }, 
+                    { "download", GetDownload(metadata) },
                     { "catalog", catalogAddress.ToString() }
                 };
 
@@ -210,6 +211,63 @@ namespace NuGet.Services.Publish
             }
 
             await ServiceHelpers.WriteErrorResponse(context, error, HttpStatusCode.InternalServerError);
+        }
+
+        static void AddPackageContent(IDictionary<string, JObject> metadata)
+        {
+            JObject nuspec = metadata["nuspec"];
+
+            foreach (JObject entry in nuspec["entries"])
+            {
+                if (MetadataHelpers.IsType(entry, MetadataHelpers.GetName(Schema.DataTypes.Package, Schema.Prefixes.NuGet)))
+                {
+                    nuspec["packageContent"] = entry["location"];
+                }
+            }
+        }
+
+        async Task SaveArtifacts(IDictionary<string, JObject> metadata, Stream packageStream)
+        {
+            Guid root = Guid.NewGuid();
+
+            JArray entries = new JArray();
+
+            using (ZipArchive archive = new ZipArchive(packageStream, ZipArchiveMode.Read, true))
+            {
+                foreach (ZipArchiveEntry zipEntry in archive.Entries)
+                {
+                    using (Stream stream = zipEntry.Open())
+                    {
+                        string blobName = root + "/package/" + zipEntry.FullName;
+                        string blobContentType = MetadataHelpers.ContentTypeFromExtension(zipEntry.FullName);
+
+                        Uri location = await SaveFile(stream, blobName, blobContentType);
+
+                        JObject entry = new JObject();
+
+                        entry["fullName"] = zipEntry.FullName;
+                        entry["location"] = location.ToString();
+
+                        entries.Add(entry);
+                    }
+                }
+            }
+
+            packageStream.Seek(0, SeekOrigin.Begin);
+
+            Uri packageLocation = await SaveFile(packageStream, root + "/package.zip", "application/octet-stream");
+
+            JObject packageItem = new JObject
+            {
+                { "@type", new JArray { MetadataHelpers.GetName(Schema.DataTypes.Package, Schema.Prefixes.NuGet), MetadataHelpers.GetName(Schema.DataTypes.ZipArchive, Schema.Prefixes.NuGet) } },
+                { "location", packageLocation.ToString() },
+                { "size", packageStream.Length },
+                { "hash", Utils.GenerateHash(packageStream) }
+            };
+
+            entries.Add(packageItem);
+
+            metadata["inventory"] = new JObject { { "entries", entries } };
         }
 
         public async Task GetDomains(IOwinContext context)
@@ -265,10 +323,8 @@ namespace NuGet.Services.Publish
             context.Response.StatusCode = (int)HttpStatusCode.OK;
         }
 
-        IDictionary<string, JObject> ExtractMetadata(Stream nupkgStream)
+        void ExtractMetadata(IDictionary<string, JObject> metadata, Stream nupkgStream)
         {
-            IDictionary<string, JObject> metadata = new Dictionary<string, JObject>();
-
             using (ZipArchive archive = new ZipArchive(nupkgStream, ZipArchiveMode.Read, true))
             {
                 foreach (ZipArchiveEntry entry in archive.Entries)
@@ -283,50 +339,40 @@ namespace NuGet.Services.Publish
                 }
             }
 
-            if (!metadata.ContainsKey("nuspec.json"))
+            if (!metadata.ContainsKey("nuspec"))
             {
                 GenerateNuspec(metadata);
             }
-
-            return metadata;
         }
 
         protected static string GetDomain(IDictionary<string, JObject> metadata)
         {
-            JObject nuspec = metadata["nuspec.json"];
+            JObject nuspec = metadata["nuspec"];
             return nuspec["domain"].ToString().ToLowerInvariant();
         }
 
         protected static string GetId(IDictionary<string, JObject> metadata)
         {
-            JObject nuspec = metadata["nuspec.json"];
+            JObject nuspec = metadata["nuspec"];
             return nuspec["id"].ToString().ToLowerInvariant();
         }
 
         protected static string GetVersion(IDictionary<string, JObject> metadata)
         {
-            JObject nuspec = metadata["nuspec.json"];
+            JObject nuspec = metadata["nuspec"];
             return NuGetVersion.Parse(nuspec["version"].ToString()).ToNormalizedString();
         }
 
-        static string GetNupkgName(IDictionary<string, JObject> metadata)
+        protected static string GetDownload(IDictionary<string, JObject> metadata)
         {
-            return string.Format("{0}.{1}.{2}.{3}.nupkg", 
-                GetDomain(metadata),
-                GetId(metadata),
-                GetVersion(metadata),
-                Guid.NewGuid()).ToLowerInvariant();
-        }
-
-        static Task<Uri> SaveNupkg(Stream nupkgStream, string name)
-        {
-            return SaveFile(nupkgStream, name, "application/octet-stream");
+            JObject nuspec = metadata["nuspec"];
+            return nuspec["packageContent"].ToString();
         }
 
         protected static async Task<Uri> SaveFile(Stream stream, string name, string contentType)
         {
             string storagePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
-            string storageContainerPackages = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Packages") ?? "nupkgs";
+            string storageContainerPackages = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Artifacts") ?? "artifacts";
 
             CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
 
@@ -341,28 +387,33 @@ namespace NuGet.Services.Publish
             CloudBlockBlob blob = container.GetBlockBlobReference(name);
             blob.Properties.ContentType = contentType;
             blob.Properties.ContentDisposition = name;
-
-            if (stream.CanSeek)
-            {
-                stream.Seek(0, SeekOrigin.Begin);
-            }
-
             await blob.UploadFromStreamAsync(stream);
 
             return blob.Uri;
         }
 
-        static async Task<Uri> AddToCatalog(JObject nuspec, Uri itemType, Uri nupkgAddress, long packageSize, string packageHash, PublicationDetails publicationDetails)
+        static async Task<Uri> AddToCatalog(JObject nuspec, Uri itemType, PublicationDetails publicationDetails)
         {
             string storagePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
             string storageContainerCatalog = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Catalog") ?? "catalog";
+            string catalogBaseAddress = System.Configuration.ConfigurationManager.AppSettings.Get("Catalog.BaseAddress");
 
             CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
 
-            Storage storage = new AzureStorage(account, storageContainerCatalog);
+            Storage storage;
+            if (catalogBaseAddress == null)
+            {
+                storage = new AzureStorage(account, storageContainerCatalog);
+            }
+            else
+            {
+                string baseAddress = catalogBaseAddress.TrimEnd('/') + "/" + storageContainerCatalog;
+
+                storage = new AzureStorage(account, storageContainerCatalog, string.Empty, new Uri(baseAddress));
+            }
 
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage);
-            writer.Add(new GraphCatalogItem(nuspec, itemType, nupkgAddress, packageSize, packageHash, publicationDetails));
+            writer.Add(new GraphCatalogItem(nuspec, itemType, publicationDetails));
             await writer.Commit();
 
             return writer.RootUri;

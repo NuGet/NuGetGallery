@@ -25,7 +25,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri PackageDependencyGroup = new Uri(Prefixes.NuGet + "PackageDependencyGroup");
             public static readonly Uri PackageDependency = new Uri(Prefixes.NuGet + "PackageDependency");
             public static readonly Uri NuGetClassicPackage = new Uri(Prefixes.NuGet + "NuGetClassicPackage");
-            public static readonly Uri MicroservicePackage = new Uri(Prefixes.NuGet + "MicroservicePackage");
+            public static readonly Uri ApiAppPackage = new Uri(Prefixes.NuGet + "ApiAppPackage");
             public static readonly Uri PowerShellPackage = new Uri(Prefixes.NuGet + "PowerShellPackage");
             public static readonly Uri Record = new Uri(Prefixes.Record + "Record");
 
@@ -39,6 +39,16 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Integer = new Uri(Prefixes.Xsd + "integer");
             public static readonly Uri DateTime = new Uri(Prefixes.Xsd + "dateTime");
             public static readonly Uri Boolean = new Uri(Prefixes.Xsd + "boolean");
+
+            public static readonly Uri Icon = new Uri(Prefixes.NuGet + "Icon");
+            public static readonly Uri Screenshot = new Uri(Prefixes.NuGet + "Screenshot");
+            public static readonly Uri ZipArchive = new Uri(Prefixes.NuGet + "ZipArchive");
+            public static readonly Uri HeroIcon = new Uri(Prefixes.NuGet + "HeroIcon");
+            public static readonly Uri LargeIcon = new Uri(Prefixes.NuGet + "LargeIcon");
+            public static readonly Uri MediumIcon = new Uri(Prefixes.NuGet + "MediumIcon");
+            public static readonly Uri SmallIcon = new Uri(Prefixes.NuGet + "SmallIcon");
+            public static readonly Uri WideIcon = new Uri(Prefixes.NuGet + "WideIcon");
+            public static readonly Uri CsmTemplate = new Uri(Prefixes.NuGet + "CsmTemplate");
         }
 
         public static class Predicates

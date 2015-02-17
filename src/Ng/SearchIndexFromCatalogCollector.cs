@@ -200,7 +200,7 @@ namespace Ng
             JToken type = package["@type"];
 
             //TODO: for now this is a MicroservicePackage hi-jack - later we can make this Docuemnt creation more generic
-            if (Utils.IsType(package["@context"], package, Schema.DataTypes.MicroservicePackage))
+            if (Utils.IsType(package["@context"], package, Schema.DataTypes.ApiAppPackage))
             {
                 return CreateLuceneDocument_Microservice(package, packageUrl);
             }
@@ -213,7 +213,7 @@ namespace Ng
             Document doc = CreateLuceneDocument_Core(package, packageUrl);
 
             Add(doc, "Publisher", (string)package["publisher"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "@type", Schema.DataTypes.MicroservicePackage.AbsoluteUri, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "@type", Schema.DataTypes.ApiAppPackage.AbsoluteUri, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
             return doc;
         }

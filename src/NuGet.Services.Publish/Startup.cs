@@ -76,13 +76,13 @@ namespace NuGet.Services.Publish
                     }
                 case "/domains":
                     {
-                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
                         await uploader.GetDomains(context);
                         break;
                     }
                 case "/checkaccess":
                     {
-                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
                         await uploader.CheckAccess(context);
                         break;
                     }
@@ -114,25 +114,25 @@ namespace NuGet.Services.Publish
                     }
                 case "/catalog/microservices":
                     {
-                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
                         await uploader.Upload(context, false);
                         break;
                     }
                 case "/catalog/microservices/public":
                     {
-                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
                         await uploader.Upload(context, true);
                         break;
                     }
                 case "/tenant/add":
                     {
-                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
                         await uploader.AddTenant(context);
                         break;
                     }
                 case "/tenant/remove":
                     {
-                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
                         await uploader.RemoveTenant(context);
                         break;
                     }

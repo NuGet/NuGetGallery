@@ -6,7 +6,6 @@
         "xsd": "http://www.w3.org/2001/XMLSchema#",
         "details": "catalog:details",
         "catalog:commitTimeStamp": { "@type": "xsd:dateTime" },
-        "published": { "@type": "xsd:dateTime" },
-        "packageContent" : { "@type" : "@id" }
+        "published": { "@type": "xsd:dateTime" }
     }
 }
