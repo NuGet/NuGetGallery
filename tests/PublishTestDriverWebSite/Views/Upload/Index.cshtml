@@ -10,14 +10,26 @@
     <fieldset class="form">
 
         <div class="form-field">
+            
+            <p>
+                <input type="file" name="UploadFile" />
+            </p>
 
-            <label for="PackageFile">Choose a package...</label>
-            <input type="file" name="UploadFile" />
+            <p>
+                Publish to:
+                <select name="access">
+                    <option value="public">Public</option>
+                    <option value="tenant">Just My Tenant</option>
+                </select>
+            </p>
 
-            <select name="visibility">
-                <option value="public">Public</option>
-                <option value="tenant">Just My Tenant</option>
-            </select>
+            <p>
+                With initial state: 
+                <select name="visibility">
+                    <option value="visible">Visible</option>
+                    <option value="hidden">Hidden</option>
+                </select>
+            </p>
 
         </div>
 

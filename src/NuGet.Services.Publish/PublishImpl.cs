@@ -11,6 +11,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Publish
@@ -32,7 +33,7 @@ namespace NuGet.Services.Publish
         {
         }
 
-        protected virtual string Validate(IDictionary<string, JObject> metadata, Stream nupkgStream)
+        protected virtual IList<string> Validate(Stream nupkgStream)
         {
             return null;
         }
@@ -106,7 +107,7 @@ namespace NuGet.Services.Publish
             await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
         }
 
-        public async Task Upload(IOwinContext context, bool isPublic)
+        public async Task Upload(IOwinContext context, bool isPublic, bool isHidden)
         {
             if (!_registrationOwnership.IsAuthorized)
             {
@@ -120,25 +121,35 @@ namespace NuGet.Services.Publish
                 return;
             }
 
-            Stream nupkgStream = context.Request.Body;
+            Stream packageStream = context.Request.Body;
+            
+            //  validation
+
+            IList<string> errors = Validate(packageStream);
+
+            if (errors != null)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (string s in errors)
+                {
+                    sb.Append(s + "|");
+                }
+
+                await ServiceHelpers.WriteErrorResponse(context, sb.ToString(), HttpStatusCode.BadRequest);
+                return;
+            }
+
+            //  process the package
 
             IDictionary<string, JObject> metadata = new Dictionary<string, JObject>();
 
-            await SaveArtifacts(metadata, nupkgStream);
+            await SaveArtifacts(metadata, packageStream);
 
             InferArtifactTypes(metadata);
 
-            ExtractMetadata(metadata, nupkgStream);
+            ExtractMetadata(metadata, packageStream);
 
             AddPackageContent(metadata);
-
-            string validationResponse = Validate(metadata, nupkgStream);
-
-            if (validationResponse != null)
-            {
-                await ServiceHelpers.WriteErrorResponse(context, validationResponse, HttpStatusCode.BadRequest);
-                return;
-            }
 
             string domain = GetDomain(metadata);
             string id = GetId(metadata);
@@ -190,7 +201,8 @@ namespace NuGet.Services.Publish
                     UserName = await _registrationOwnership.GetUserName(),
                     UserId = _registrationOwnership.GetUserId(),
                     TenantName = tenantName,
-                    TenantId = tenantId
+                    TenantId = tenantId,
+                    Hidden = isHidden
                 };
 
                 Uri catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails);

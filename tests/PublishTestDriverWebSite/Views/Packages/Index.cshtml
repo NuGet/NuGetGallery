@@ -5,17 +5,20 @@
 
 <h1>Packages Page</h1>
 
-<table>
+<table style="width: 60%">
+    <tr >
+        <th>Domain</th>
+        <th>Id</th>
+        <th>Version</th>
+        <th>Public</th>
+    </tr>
     @foreach (var package in Model.Packages)
     {
-    <tr>
-        <td>@package.Domain</td>
-        <td>@package.Id</td>
-        <td>@package.Version</td>
-        @if (package.IsPublic)
-        {
-            <td>PUBLIC</td>
-        }
-    </tr>
+        <tr>
+            <td>@package.Domain</td>
+            <td>@package.Id</td>
+            <td>@package.Version</td>
+            <td>@package.IsPublic</td>
+        </tr>
     }
 </table>

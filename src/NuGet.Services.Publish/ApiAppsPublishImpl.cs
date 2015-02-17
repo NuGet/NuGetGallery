@@ -4,6 +4,7 @@ using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 
 namespace NuGet.Services.Publish
 {
@@ -149,32 +150,78 @@ namespace NuGet.Services.Publish
             }
         }
 
-        protected override string Validate(IDictionary<string, JObject> metadata, Stream nupkgStream)
+        protected override IList<string> Validate(Stream packageStream)
         {
-            if (metadata.Count == 0)
+            IList<string> errors = new List<string>();
+
+            JObject apiapp = GetJObject(packageStream, "apiapp.json");
+
+            if (apiapp == null)
             {
-                return "no metadata was found in the package";
+                errors.Add("required file 'apiapp.json' is missing from package");
+            }
+            else
+            {
+                JToken id;
+                if (!apiapp.TryGetValue("id", out id))
+                {
+                    errors.Add("required property 'id' is missing from 'apiapp.json' file");
+                }
+
+                JToken version;
+                if (!apiapp.TryGetValue("version", out version))
+                {
+                    errors.Add("required property 'version' is missing from 'apiapp.json' file");
+                }
             }
 
-            JObject nuspec;
-            if (!metadata.TryGetValue("apiapp.json", out nuspec))
+            //CheckRequiredFile(packageStream, errors, "metadata/icons/small-icon.png");
+
+            if (errors.Count == 0)
             {
-                return "apiapp.json was found in the package";
+                return null;
             }
 
-            JToken id;
-            if (!nuspec.TryGetValue("id", out id))
-            {
-                return "required property 'id' was missing from metadata";
-            }
+            return errors;
+        }
 
-            JToken version;
-            if (!nuspec.TryGetValue("version", out version))
+        static void CheckRequiredFile(Stream packageStream, IList<string> errors, string fullName)
+        {
+            if (!FileExists(packageStream, fullName))
             {
-                return "required property 'version' was missing from metadata";
+                errors.Add(string.Format("required file '{0}' was missing from package", fullName));
             }
+        }
 
+        static JObject GetJObject(Stream packageStream, string fullName)
+        {
+            using (ZipArchive archive = new ZipArchive(packageStream, ZipArchiveMode.Read, true))
+            {
+                foreach (ZipArchiveEntry zipEntry in archive.Entries)
+                {
+                    if (zipEntry.FullName == fullName)
+                    {
+                        string s = new StreamReader(zipEntry.Open()).ReadToEnd();
+                        return JObject.Parse(s);
+                    }
+                }
+            }
             return null;
+        }
+
+        static bool FileExists(Stream packageStream, string fullName)
+        {
+            using (ZipArchive archive = new ZipArchive(packageStream, ZipArchiveMode.Read, true))
+            {
+                foreach (ZipArchiveEntry zipEntry in archive.Entries)
+                {
+                    if (zipEntry.FullName == fullName)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
     }
 }

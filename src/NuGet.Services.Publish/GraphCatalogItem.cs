@@ -68,6 +68,7 @@ namespace NuGet.Services.Publish
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Tenant), catalogEntry.CreateLiteralNode(_publicationDetails.TenantName));
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.UserId), catalogEntry.CreateLiteralNode(_publicationDetails.UserId));
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.TenantId), catalogEntry.CreateLiteralNode(_publicationDetails.TenantId));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Hidden), catalogEntry.CreateLiteralNode(_publicationDetails.Hidden.ToString().ToLowerInvariant(), Schema.DataTypes.Boolean));
 
             //  add the nuspec metadata
 

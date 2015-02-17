@@ -23,7 +23,6 @@ namespace PublishTestDriverWebSite.Controllers
         private string nugetSearchServiceResourceId = ConfigurationManager.AppSettings["nuget:SearchServiceResourceId"];
         private string nugetSearchServiceBaseAddress = ConfigurationManager.AppSettings["nuget:SearchServiceBaseAddress"];
         
-        private const string TenantIdClaimType = "http://schemas.microsoft.com/identity/claims/tenantid";
         private static string clientId = ConfigurationManager.AppSettings["ida:ClientId"];
         private static string appKey = ConfigurationManager.AppSettings["ida:AppKey"];
 
@@ -47,15 +46,28 @@ namespace PublishTestDriverWebSite.Controllers
                 HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetSearchServiceBaseAddress + "/secure/query");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
-                HttpResponseMessage response = await client.SendAsync(request);
 
-                string json = await response.Content.ReadAsStringAsync();
+                HttpResponseMessage response;
 
-                JObject searchResult = JObject.Parse(json);
-
-                PackagesModel model = new PackagesModel(searchResult);
-
-                return View(model);
+                try
+                {
+                    response = await client.SendAsync(request);
+                }
+                catch (Exception e)
+                {
+                    return View("ServiceError", new ServiceErrorModel(e));
+                }
+                    
+                if (response.IsSuccessStatusCode)
+                {
+                    string json = await response.Content.ReadAsStringAsync();
+                    return View(new PackagesModel(JObject.Parse(json)));
+                }
+                else
+                {
+                    string err = await response.Content.ReadAsStringAsync();
+                    return View("ServiceError", new ServiceErrorModel(response.StatusCode, err));
+                }
             }
             catch (Exception e)
             {

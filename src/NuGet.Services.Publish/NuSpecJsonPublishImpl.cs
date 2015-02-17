@@ -32,31 +32,8 @@ namespace NuGet.Services.Publish
             return Schema.DataTypes.Package;
         }
 
-        protected override string Validate(IDictionary<string, JObject> metadata, Stream nupkgStream)
+        protected override IList<string> Validate(Stream packageStream)
         {
-            if (metadata.Count == 0)
-            {
-                return "no metadata was found in the package";
-            }
-
-            JObject nuspec;
-            if (!metadata.TryGetValue("nuspec.json", out nuspec))
-            {
-                return "nuspec.json was found in the package";
-            }
-
-            JToken id;
-            if (!nuspec.TryGetValue("id", out id))
-            {
-                return "required property 'id' was missing from metadata";
-            }
-
-            JToken version;
-            if (!nuspec.TryGetValue("version", out version))
-            {
-                return "required property 'version' was missing from metadata";
-            }
-
             return null;
         }
     }

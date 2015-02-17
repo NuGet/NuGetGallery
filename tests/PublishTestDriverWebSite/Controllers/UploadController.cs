@@ -2,10 +2,12 @@
 using Newtonsoft.Json.Linq;
 using PublishTestDriverWebSite.Models;
 using PublishTestDriverWebSite.Utils;
+using System;
 using System.Configuration;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -17,7 +19,6 @@ namespace PublishTestDriverWebSite.Controllers
     {
         private string nugetPublishServiceBaseAddress = ConfigurationManager.AppSettings["nuget:PublishServiceBaseAddress"];
         private string nugetPublishServiceResourceId = ConfigurationManager.AppSettings["nuget:PublishServiceResourceId"];
-        private const string TenantIdClaimType = "http://schemas.microsoft.com/identity/claims/tenantid";
         private static string clientId = ConfigurationManager.AppSettings["ida:ClientId"];
         private static string appKey = ConfigurationManager.AppSettings["ida:AppKey"];
 
@@ -27,22 +28,37 @@ namespace PublishTestDriverWebSite.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Upload(HttpPostedFileBase uploadFile, string visibility)
+        public async Task<ActionResult> Upload(HttpPostedFileBase uploadFile, string access, string visibility)
         {
+            if (uploadFile == null)
+            {
+                return View("ValidationError", new ValidationErrorModel("please specify a file to upload"));
+            }
+
             string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
             AuthenticationContext authContext = new AuthenticationContext(Startup.Authority, new NaiveSessionCache(userObjectID));
             ClientCredential credential = new ClientCredential(clientId, appKey);
 
             AuthenticationResult result = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
 
-            string path = (visibility == "public") ? "/catalog/microservices/public" : "/catalog/microservices";
+            string path = GetPath(access == "public", visibility == "hidden");
 
             HttpClient client = new HttpClient();
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nugetPublishServiceBaseAddress + path);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
 
             request.Content = new StreamContent(uploadFile.InputStream);
-            HttpResponseMessage response = await client.SendAsync(request);
+
+            HttpResponseMessage response;
+
+            try
+            {
+                response = await client.SendAsync(request);
+            }
+            catch (Exception e)
+            {
+                return View("ServiceError", new ServiceErrorModel(e));
+            }
 
             string message = null;
             if (response.IsSuccessStatusCode)
@@ -51,16 +67,36 @@ namespace PublishTestDriverWebSite.Controllers
             }
             else
             {
+                //TODO: we should distinguish between system level errors - such as unable to reach the service
+                //TODO: and application level errors such as an incorrectly built package
+
                 try
                 {
                     JObject publishServiceResponse = JObject.Parse(await response.Content.ReadAsStringAsync());
                     string error = publishServiceResponse["error"].ToString();
                     message = string.Format("uploaded file \"{0}\" contains the following errors \"{1}\"", uploadFile.FileName, error);
                 }
-                catch { }
+                catch (Exception e)
+                {
+                    return View("ServiceError", new ServiceErrorModel(e));
+                }
             }
 
             return View(new UploadModel { Message = message ?? string.Format("{0} with no further details available", response.StatusCode)});
+        }
+
+        static string GetPath(bool isPublic, bool isHidden)
+        {
+            StringBuilder path = new StringBuilder("/catalog/apiapp");
+            if (isPublic)
+            {
+                path.Append("/public");
+            }
+            if (isHidden)
+            {
+                path.Append("/hidden");
+            }
+            return path.ToString();
         }
     }
 }

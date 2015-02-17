@@ -22,3 +22,7 @@ select,
 textarea {
     max-width: 280px;
 }
+
+table, th, td {
+    border: 1px solid black;
+}

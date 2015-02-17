@@ -86,6 +86,8 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri RecordDomain = new Uri(Prefixes.Record + "recordDomain");
             public static readonly Uri RecordRegistration = new Uri(Prefixes.Record + "recordRegistration");
 
+            public static readonly Uri Hidden = new Uri(Prefixes.NuGet + "hidden");
+
             // General-purpose fields
             
             public static readonly Uri Author = new Uri(Prefixes.NuGet + "author");
