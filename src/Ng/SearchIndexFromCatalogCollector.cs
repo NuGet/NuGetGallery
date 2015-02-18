@@ -2,9 +2,9 @@
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Newtonsoft.Json.Linq;
-using NuGet;
 using NuGet.Indexing;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -147,7 +147,7 @@ namespace Ng
         {
             //  note as we are not using the QueryParser we are not running this data through the analyzer so we need to mimic its behavior
             string analyzedId = id.ToLowerInvariant();
-            string analyzedVersion = SemanticVersionExtensions.Normalize(version);
+            string analyzedVersion = NuGetVersion.Parse(version).ToNormalizedString();
 
             BooleanQuery query = new BooleanQuery();
             query.Add(new BooleanClause(new TermQuery(new Term("Id", analyzedId)), Occur.MUST));
@@ -200,7 +200,7 @@ namespace Ng
             JToken type = package["@type"];
 
             //TODO: for now this is a MicroservicePackage hi-jack - later we can make this Docuemnt creation more generic
-            if (Utils.IsType(package["@context"], package, Schema.DataTypes.MicroservicePackage))
+            if (Utils.IsType(package["@context"], package, Schema.DataTypes.ApiAppPackage))
             {
                 return CreateLuceneDocument_Microservice(package, packageUrl);
             }
@@ -213,7 +213,7 @@ namespace Ng
             Document doc = CreateLuceneDocument_Core(package, packageUrl);
 
             Add(doc, "Publisher", (string)package["publisher"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "@type", Schema.DataTypes.MicroservicePackage.AbsoluteUri, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "@type", Schema.DataTypes.ApiAppPackage.AbsoluteUri, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
             return doc;
         }
@@ -231,33 +231,6 @@ namespace Ng
         {
             Document doc = new Document();
 
-            //TODO: this code to create the frameworks.txt should be dead soon and we when that is confirmed we can remove it
-            if (((IDictionary<string, JToken>)package).ContainsKey("supportedFrameworks"))
-            {
-                foreach (JToken fwk in package["supportedFrameworks"])
-                {
-                    string framework = (string)fwk;
-
-                    FrameworkName frameworkName = VersionUtility.ParseFrameworkName(framework);
-
-                    lock (_frameworkNames)
-                    {
-                        if (!_frameworkNames.ContainsKey(framework))
-                        {
-                            _frameworkNames.Add(framework, frameworkName.FullName);
-
-                            Trace.TraceInformation("New framework string: {0}, {1}", framework, frameworkName.FullName);
-
-                            using (var writer = File.AppendText("frameworks.txt"))
-                            {
-                                writer.WriteLine("{0}: {1}", framework, frameworkName.FullName);
-                            }
-                        }
-                    }
-                    Add(doc, "TargetFramework", framework == "any" ? "any" : (framework == "agnostic" ? "agnostic" : frameworkName.ToString()), Field.Store.YES /* NO */, Field.Index.NO, Field.TermVector.NO);
-                }
-            }
-
             //  Query Fields
 
             float titleBoost = 3.0f;
@@ -273,6 +246,7 @@ namespace Ng
 
             Add(doc, "Id", (string)package["id"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
             Add(doc, "IdAutocomplete", (string)package["id"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.NO);
+            Add(doc, "IdAutocompletePhrase", "/ " + (string)package["id"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "TokenizedId", (string)package["id"], Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
             Add(doc, "ShingledId", (string)package["id"], Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
             Add(doc, "Version", (string)package["version"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
@@ -290,6 +264,11 @@ namespace Ng
             Add(doc, "RequiresLicenseAcceptance", (string)package["requiresLicenseAcceptance"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "PackageSize", (string)package["packageSize"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "Language", (string)package["language"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+
+            Add(doc, "Domain", (string)package["domain"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+
+            string tenantId = (string)package["tenantId"] ?? "PUBLIC";
+            Add(doc, "TenantId", tenantId, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
             doc.Add(new NumericField("PublishedDate", Field.Store.YES, true).SetIntValue(int.Parse(package["published"].ToObject<DateTime>().ToString("yyyyMMdd"))));
 

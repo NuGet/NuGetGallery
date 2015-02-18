@@ -1,0 +1,26 @@
+﻿@model PublishTestDriverWebSite.Models.PublishModel
+@{
+    ViewBag.Title = "Validate";
+}
+
+<h1>Validation Tests</h1>
+
+@using (Html.BeginForm("CheckAccess", "Validate", FormMethod.Post, new { id = "checkAccessForm", enctype = "multipart/form-data" }))
+{
+    <fieldset class="form">
+
+        Domain:
+        <select name="domain">
+        @foreach (var domain in Model.Domains)
+        {
+            <option value="@domain">@domain</option>
+        }
+        </select>
+        &nbsp;&nbsp;
+        Id:
+        <input type="text" name="id" />
+        &nbsp;&nbsp;
+        <input type="submit" value="Check this Id is Available to Me" />
+
+    </fieldset>
+}

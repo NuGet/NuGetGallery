@@ -45,7 +45,7 @@ namespace CatalogTests
                 //CursorTests.Test0();
                 //CursorTests.Test1();
                 //CursorTests.Test2();
-                CursorTests.CreateNewCursor(args);
+                //CursorTests.CreateNewCursor(args);
 
                 //PartitioningTests.Test0();
                 //PartitioningTests.Test1();
@@ -67,6 +67,14 @@ namespace CatalogTests
                 //InstallDataBrowser.Test0();
 
                 //Feed2CatalogTests.Test0(args);
+
+                RegistrationTests.Test0();
+                //RegistrationTests.Test1();
+                //RegistrationTests.Test2();
+                //RegistrationTests.Test3();
+                //RegistrationTests.Test4();
+                //RegistrationTests.Test5();
+                //RegistrationTests.Test6();
 
                 DateTime after = DateTime.Now;
 

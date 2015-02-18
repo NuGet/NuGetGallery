@@ -1,7 +1,0 @@
-﻿{ 
-	"@context" : { 
-		"ns" : "http://tempuri.org/schema#",
-		"@vocab" : "http://tempuri.org/schema#"
-	},
-	"@type" : "ns:Class"
-}

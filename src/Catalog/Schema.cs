@@ -12,6 +12,7 @@ namespace NuGet.Services.Metadata.Catalog
         {
             public static readonly string NuGet = "http://schema.nuget.org/schema#";
             public static readonly string Catalog = "http://schema.nuget.org/catalog#";
+            public static readonly string Record = "http://schema.nuget.org/record#";
             public static readonly string Xsd = "http://www.w3.org/2001/XMLSchema#";
             public static readonly string Rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
         }
@@ -24,8 +25,9 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri PackageDependencyGroup = new Uri(Prefixes.NuGet + "PackageDependencyGroup");
             public static readonly Uri PackageDependency = new Uri(Prefixes.NuGet + "PackageDependency");
             public static readonly Uri NuGetClassicPackage = new Uri(Prefixes.NuGet + "NuGetClassicPackage");
-            public static readonly Uri MicroservicePackage = new Uri(Prefixes.NuGet + "MicroservicePackage");
+            public static readonly Uri ApiAppPackage = new Uri(Prefixes.NuGet + "ApiAppPackage");
             public static readonly Uri PowerShellPackage = new Uri(Prefixes.NuGet + "PowerShellPackage");
+            public static readonly Uri Record = new Uri(Prefixes.Record + "Record");
 
             public static readonly Uri PackageEntry = new Uri(Prefixes.NuGet + "PackageEntry");
 
@@ -37,6 +39,16 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Integer = new Uri(Prefixes.Xsd + "integer");
             public static readonly Uri DateTime = new Uri(Prefixes.Xsd + "dateTime");
             public static readonly Uri Boolean = new Uri(Prefixes.Xsd + "boolean");
+
+            public static readonly Uri Icon = new Uri(Prefixes.NuGet + "Icon");
+            public static readonly Uri Screenshot = new Uri(Prefixes.NuGet + "Screenshot");
+            public static readonly Uri ZipArchive = new Uri(Prefixes.NuGet + "ZipArchive");
+            public static readonly Uri HeroIcon = new Uri(Prefixes.NuGet + "HeroIcon");
+            public static readonly Uri LargeIcon = new Uri(Prefixes.NuGet + "LargeIcon");
+            public static readonly Uri MediumIcon = new Uri(Prefixes.NuGet + "MediumIcon");
+            public static readonly Uri SmallIcon = new Uri(Prefixes.NuGet + "SmallIcon");
+            public static readonly Uri WideIcon = new Uri(Prefixes.NuGet + "WideIcon");
+            public static readonly Uri CsmTemplate = new Uri(Prefixes.NuGet + "CsmTemplate");
         }
 
         public static class Predicates
@@ -70,6 +82,10 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri FileName = new Uri(Prefixes.Catalog + "fileName");
             public static readonly Uri Details = new Uri(Prefixes.Catalog + "details");
 
+            public static readonly Uri Domain = new Uri(Prefixes.Record + "domain");
+            public static readonly Uri RecordDomain = new Uri(Prefixes.Record + "recordDomain");
+            public static readonly Uri RecordRegistration = new Uri(Prefixes.Record + "recordRegistration");
+
             // General-purpose fields
             
             public static readonly Uri Author = new Uri(Prefixes.NuGet + "author");
@@ -77,7 +93,6 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Created = new Uri(Prefixes.NuGet + "created");
             public static readonly Uri Description = new Uri(Prefixes.NuGet + "description");
             public static readonly Uri IconUrl = new Uri(Prefixes.NuGet + "iconUrl");
-            public static readonly Uri ReportAbuse = new Uri(Prefixes.NuGet + "reportAbuse");
 
             public static readonly Uri Package = new Uri(Prefixes.NuGet + "package");
             public static readonly Uri Registration = new Uri(Prefixes.NuGet + "registration");
@@ -88,6 +103,10 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Language = new Uri(Prefixes.NuGet + "language");
             public static readonly Uri Published = new Uri(Prefixes.NuGet + "published");
             public static readonly Uri Publisher = new Uri(Prefixes.NuGet + "publisher");
+            public static readonly Uri UserName = new Uri(Prefixes.NuGet + "userName");
+            public static readonly Uri Tenant = new Uri(Prefixes.NuGet + "tenant");
+            public static readonly Uri UserId = new Uri(Prefixes.NuGet + "userId");
+            public static readonly Uri TenantId = new Uri(Prefixes.NuGet + "tenantId");
             public static readonly Uri PackageHash = new Uri(Prefixes.NuGet + "packageHash");
             public static readonly Uri PackageHashAlgorithm = new Uri(Prefixes.NuGet + "packageHashAlgorithm");
             public static readonly Uri PackageSize = new Uri(Prefixes.NuGet + "packageSize");

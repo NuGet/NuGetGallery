@@ -1,7 +1,10 @@
 ﻿using Microsoft.Owin;
 using Microsoft.Owin.Security.ActiveDirectory;
+using Microsoft.WindowsAzure.Storage;
 using Owin;
+using System;
 using System.Configuration;
+using System.IdentityModel.Tokens;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -15,11 +18,14 @@ namespace NuGet.Services.Publish
         {
             app.UseErrorPage();
 
+            string audience = ConfigurationManager.AppSettings["ida:Audience"];
+            string tenant = ConfigurationManager.AppSettings["ida:Tenant"];
+
             app.UseWindowsAzureActiveDirectoryBearerAuthentication(
                 new WindowsAzureActiveDirectoryBearerAuthenticationOptions
                 {
-                    Audience = ConfigurationManager.AppSettings["ida:Audience"],
-                    Tenant = ConfigurationManager.AppSettings["ida:Tenant"]
+                    TokenValidationParameters = new TokenValidationParameters { ValidAudience = audience },
+                    Tenant = tenant
                 });
 
             app.Run(Invoke);
@@ -27,51 +33,71 @@ namespace NuGet.Services.Publish
 
         async Task Invoke(IOwinContext context)
         {
-            switch (context.Request.Method)
+            string error = null;
+
+            try
             {
-                case "GET":
-                    await InvokeGET(context);
-                    break;
-                case "POST": 
-                    await InvokePOST(context);
-                    break;
-                default:
-                    await context.Response.WriteAsync("NotFound");
-                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    break;
+                switch (context.Request.Method)
+                {
+                    case "GET":
+                        await InvokeGET(context);
+                        break;
+                    case "POST":
+                        await InvokePOST(context);
+                        break;
+                    default:
+                        await context.Response.WriteAsync("NotFound");
+                        context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                error = e.Message;
+            }
+
+            if (error != null)
+            {
+                await ServiceHelpers.WriteErrorResponse(context, error, HttpStatusCode.InternalServerError);
             }
         }
 
         async Task InvokeGET(IOwinContext context)
         {
-            IRegistrationOwnership registrationOwnership = new AzureADRegistrationOwnership(context);
+            IRegistrationOwnership registrationOwnership = CreateRegistrationOwnership(context);
 
             switch (context.Request.Path.Value)
             {
                 case "/":
-                    await context.Response.WriteAsync("OK");
-                    context.Response.StatusCode = (int)HttpStatusCode.OK;
-                    break;
-                case "/test":
-                    await ServiceHelpers.Test(context);
-                    break;
-                case "/registrations":
-                    await PackageRegistrationsImpl.ListPackageRegistrations(context);
-                    break;
+                    {
+                        await context.Response.WriteAsync("OK");
+                        context.Response.StatusCode = (int)HttpStatusCode.OK;
+                        break;
+                    }
+                case "/domains":
+                    {
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
+                        await uploader.GetDomains(context);
+                        break;
+                    }
                 case "/checkaccess":
-                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
+                    {
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
                         await uploader.CheckAccess(context);
-                    break;
+                        break;
+                    }
                 default:
-                    await context.Response.WriteAsync("NotFound");
-                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    break;
+                    {
+                        await context.Response.WriteAsync("NotFound");
+                        context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                        break;
+                    }
             }
         }
 
         async Task InvokePOST(IOwinContext context)
         {
-            IRegistrationOwnership registrationOwnership = new AzureADRegistrationOwnership(context);
+            IRegistrationOwnership registrationOwnership = CreateRegistrationOwnership(context);
 
             switch (context.Request.Path.Value)
             {
@@ -83,13 +109,31 @@ namespace NuGet.Services.Publish
                 case "/catalog/nuspec":
                     {
                         PublishImpl uploader = new NuSpecJsonPublishImpl(registrationOwnership);
-                        await uploader.Upload(context);
+                        await uploader.Upload(context, true);
                         break;
                     }
                 case "/catalog/microservices":
                     {
-                        PublishImpl uploader = new MicroservicesPublishImpl(registrationOwnership);
-                        await uploader.Upload(context);
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
+                        await uploader.Upload(context, false);
+                        break;
+                    }
+                case "/catalog/microservices/public":
+                    {
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
+                        await uploader.Upload(context, true);
+                        break;
+                    }
+                case "/tenant/add":
+                    {
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
+                        await uploader.AddTenant(context);
+                        break;
+                    }
+                case "/tenant/remove":
+                    {
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
+                        await uploader.RemoveTenant(context);
                         break;
                     }
                 case "/catalog/powershell":
@@ -105,6 +149,18 @@ namespace NuGet.Services.Publish
                         break;
                     }
             }
+        }
+
+        IRegistrationOwnership CreateRegistrationOwnership(IOwinContext context)
+        {
+            //return new AzureADRegistrationOwnership(context);
+
+            string storagePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
+            string storageContainerOwnership = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Ownership") ?? "ownership";
+
+            CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
+
+            return new StorageRegistrationOwnership(context, account, storageContainerOwnership);
         }
     }
 }

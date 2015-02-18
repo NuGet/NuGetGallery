@@ -8,9 +8,9 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         {
             //  hard code some type inference
 
-            //  nuget:MicroservicePackage rdfs:subClassOf nuget:PackageDetails
+            //  nuget:ApiAppPackage rdfs:subClassOf nuget:PackageDetails
 
-            foreach (Triple triple in graph.GetTriplesWithPredicateObject(graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.MicroservicePackage)))
+            foreach (Triple triple in graph.GetTriplesWithPredicateObject(graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.ApiAppPackage)))
             {
                 graph.Assert(triple.Subject, triple.Predicate, graph.CreateUriNode(Schema.DataTypes.PackageDetails));
             }

@@ -1,15 +1,30 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NuGet.Services.Publish
 {
     public interface IRegistrationOwnership
     {
         bool IsAuthorized { get; }
-        Task<bool> RegistrationExists(string id);
-        Task<bool> IsAuthorizedToRegistration(string id);
-        Task CreateRegistration(string id);
-        Task DeleteRegistration(string id);
-        Task AddRegistrationOwner(string id);
+        Task<bool> IsUserAdministrator();
+
+        Task<bool> IsTenantEnabled();
+
+        Task AddTenant();
+        Task RemoveTenant();
+
+        Task<bool> IsAuthorizedToRegistration(string domain, string id);
+        Task AddRegistrationOwner(string domain, string id);
+
+        Task<bool> RegistrationExists(string domain, string id);
+        Task<bool> PackageExists(string domain, string id, string version);
+
+        string GetUserId();
         Task<string> GetUserName();
+        string GetTenantId();
+        Task<string> GetTenantName();
+
+        Task<IList<string>> GetDomains();
     }
 }

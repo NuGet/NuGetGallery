@@ -3,11 +3,8 @@ using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Web;
 using VDS.RDF;
 
 namespace NuGet.Services.Publish
@@ -16,24 +13,16 @@ namespace NuGet.Services.Publish
     {
         JObject _nuspec;
         Uri _itemType;
-        Uri _nupkgAddress;
-        long _packageSize;
-        string _packageHash;
-        DateTime _published;
-        string _publisher;
+        PublicationDetails _publicationDetails;
 
         Guid _catalogItemId;
         JObject _context;
 
-        public GraphCatalogItem(JObject nuspec, Uri itemType, Uri nupkgAddress, long packageSize, string packageHash, DateTime published, string publisher)
+        public GraphCatalogItem(JObject nuspec, Uri itemType, PublicationDetails publicationDetails)
         {
             _nuspec = nuspec;
             _itemType = itemType;
-            _nupkgAddress = nupkgAddress;
-            _packageSize = packageSize;
-            _packageHash = packageHash;
-            _published = published;
-            _publisher = publisher;
+            _publicationDetails = publicationDetails;
 
             _catalogItemId = Guid.NewGuid();
 
@@ -74,13 +63,13 @@ namespace NuGet.Services.Publish
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.CatalogTimeStamp), catalogEntry.CreateLiteralNode(TimeStamp.ToString("O"), Schema.DataTypes.DateTime));
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.CatalogCommitId), catalogEntry.CreateLiteralNode(CommitId.ToString()));
 
-            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.PackageContent), catalogEntry.CreateUriNode(_nupkgAddress));
-            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.PackageSize), catalogEntry.CreateLiteralNode(_packageSize.ToString()));
-            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.PackageHash), catalogEntry.CreateLiteralNode(_packageHash));
-            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Published), catalogEntry.CreateLiteralNode(_published.ToString("O"), Schema.DataTypes.DateTime));
-            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Publisher), catalogEntry.CreateLiteralNode(_publisher));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Published), catalogEntry.CreateLiteralNode(_publicationDetails.Published.ToString("O"), Schema.DataTypes.DateTime));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.UserName), catalogEntry.CreateLiteralNode(_publicationDetails.UserName));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Tenant), catalogEntry.CreateLiteralNode(_publicationDetails.TenantName));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.UserId), catalogEntry.CreateLiteralNode(_publicationDetails.UserId));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.TenantId), catalogEntry.CreateLiteralNode(_publicationDetails.TenantId));
 
-            //  add the nuspec.json metadata
+            //  add the nuspec metadata
 
             Uri nuspecSubject = _nuspec["@id"].ToObject<Uri>();
             IGraph nuspecGraph = Utils.CreateGraph(_nuspec);

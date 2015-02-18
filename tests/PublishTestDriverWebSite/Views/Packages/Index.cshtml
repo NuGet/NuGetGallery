@@ -5,11 +5,17 @@
 
 <h1>Packages Page</h1>
 
-<ul>
-@foreach (var registrationId in Model.Registrations)
-{
-    <li>@registrationId</li>
-}
-</ul>
-
-
+<table>
+    @foreach (var package in Model.Packages)
+    {
+    <tr>
+        <td>@package.Domain</td>
+        <td>@package.Id</td>
+        <td>@package.Version</td>
+        @if (package.IsPublic)
+        {
+            <td>PUBLIC</td>
+        }
+    </tr>
+    }
+</table>
