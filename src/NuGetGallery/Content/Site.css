@@ -1211,7 +1211,7 @@ ul.actionlist {
             padding: 0.5em;
             color: black;
             float: left;
-            height: 100px;
+            height: 120px;
         }
 
             ul.actionlist li.actionlist-item a.actionlist-item-link:hover {
