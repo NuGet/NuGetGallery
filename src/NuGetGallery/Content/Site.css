@@ -334,7 +334,7 @@ p.authors {
 }
 
 .stat-number {
-    font: 2.3em 'andale mono', 'lucida console', monospace;
+    font: 2em 'andale mono', 'lucida console', monospace;
     letter-spacing: 1px;
     line-height: 1.4em;
     margin: 0;

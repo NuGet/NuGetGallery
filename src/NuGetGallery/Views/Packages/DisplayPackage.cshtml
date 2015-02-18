@@ -51,18 +51,15 @@
     <div id="stats">
         <div class="stat">
             <p class="stat-number">@Model.TotalDownloadCount.ToString("n0")</p>
-            <p class="stat-label">
-                @(Model.TotalDownloadCount == 1 ? "Download" : "Downloads")</p>
+            <p class="stat-label">@(Model.TotalDownloadCount == 1 ? "Download" : "Downloads")</p>
         </div>
         <div class="stat">
             <p class="stat-number">@Model.DownloadCount.ToString("n0")</p>
-            <p class="stat-label">
-                @(Model.DownloadCount == 1 ? "Download" : "Downloads") of v @Model.Version</p>
+            <p class="stat-label">@(Model.DownloadCount == 1 ? "Download" : "Downloads") of v @Model.Version</p>
         </div>
         <div class="stat">
             <p class="stat-number">@Model.LastUpdated.ToNuGetShortDateString()</p>
-            <p class="stat-label">
-                Last published</p>
+            <p class="stat-label">Last published</p>
         </div>
     </div>
     <nav>
