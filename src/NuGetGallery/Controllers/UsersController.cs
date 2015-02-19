@@ -265,8 +265,7 @@ namespace NuGetGallery
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
                 .Select(p => new PackageViewModel(p)
                 {
-                    DownloadCount = p.PackageRegistration.DownloadCount,
-                    Version = null
+                    DownloadCount = p.PackageRegistration.DownloadCount
                 }).ToList();
 
             var model = new UserProfileModel(user, packages, page - 1, Constants.DefaultPackageListPageSize, Url);
