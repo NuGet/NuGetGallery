@@ -7,7 +7,7 @@
     </div>
     <div class="main">
         <header class="package-list-header">
-            <h1><a href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Title</a></h1>
+            <h1><a title="Go to Package Details for @Model.Title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Title.Abbreviate(60)</a></h1>
             <h2 id="owners-subheader">By:</h2>
             <ul class="owners">
                 @foreach (var owner in Model.Owners)

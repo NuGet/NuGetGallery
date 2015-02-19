@@ -78,9 +78,9 @@ else
                             }
                         </td>
                         <td>
-                            <a href="@Url.Package(package)"  title="View package page.">@package.Title</a>
+                            <a href="@Url.Package(package)"  title="View package page for @package.Id">@package.Title.Abbreviate(25)</a>
                         </td>
-                        <td>@package.Id</td>
+                        <td>@package.Id.Abbreviate(25)</td>
                         <td>
                             @if (String.IsNullOrEmpty(package.Description) || package.Description.Length < 65)
                             {

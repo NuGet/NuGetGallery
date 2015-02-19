@@ -4,7 +4,7 @@
     var owners = Model.Owners.Flatten(@<text>@item.Username</text>);
 }
 
-<h1 class="page-heading">Contact the Owners of "@Model.PackageId"</h1>
+<h1 class="page-heading">Contact the Owners of "@Model.PackageId.Abbreviate(50)"</h1>
 @if (Model.Owners.Any())
 {
     <p class="message">
