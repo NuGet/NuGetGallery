@@ -3,7 +3,9 @@ using Newtonsoft.Json.Linq;
 using PublishTestDriverWebSite.Models;
 using PublishTestDriverWebSite.Utils;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -60,29 +62,33 @@ namespace PublishTestDriverWebSite.Controllers
                 return View("ServiceError", new ServiceErrorModel(e));
             }
 
-            string message = null;
             if (response.IsSuccessStatusCode)
             {
-                message = "success";
+                return View(new UploadModel());
             }
             else
             {
-                //TODO: we should distinguish between system level errors - such as unable to reach the service
-                //TODO: and application level errors such as an incorrectly built package
-
                 try
                 {
                     JObject publishServiceResponse = JObject.Parse(await response.Content.ReadAsStringAsync());
-                    string error = publishServiceResponse["error"].ToString();
-                    message = string.Format("uploaded file \"{0}\" contains the following errors \"{1}\"", uploadFile.FileName, error);
+
+                    string type = publishServiceResponse["type"].ToString();
+
+                    if (type == "ValidationError")
+                    {
+                        return View(new UploadModel(publishServiceResponse["errors"].Select((t) => t.ToString())));
+                    }
+                    else
+                    {
+                        string error = publishServiceResponse["error"].ToString();
+                        return View(new UploadModel(string.Format("uploaded file \"{0}\" contains the following errors \"{1}\"", uploadFile.FileName, error)));
+                    }
                 }
                 catch (Exception e)
                 {
                     return View("ServiceError", new ServiceErrorModel(e));
                 }
             }
-
-            return View(new UploadModel { Message = message ?? string.Format("{0} with no further details available", response.StatusCode)});
         }
 
         static string GetPath(bool isPublic, bool isHidden)

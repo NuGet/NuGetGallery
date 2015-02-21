@@ -115,11 +115,13 @@ namespace NuGet.Services.Publish
                 return;
             }
 
-            if (!await _registrationOwnership.IsTenantEnabled())
-            {
-                await ServiceHelpers.WriteErrorResponse(context, "package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
-                return;
-            }
+            //TODO: tenant enablement in multi-tenant world requires recognizing the admin in a multi-tenant world
+
+            //if (!await _registrationOwnership.IsTenantEnabled())
+            //{
+            //    await ServiceHelpers.WriteErrorResponse(context, "package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
+            //    return;
+            //}
 
             Stream packageStream = context.Request.Body;
             
@@ -129,13 +131,7 @@ namespace NuGet.Services.Publish
 
             if (errors != null)
             {
-                StringBuilder sb = new StringBuilder();
-                foreach (string s in errors)
-                {
-                    sb.Append(s + "|");
-                }
-
-                await ServiceHelpers.WriteErrorResponse(context, sb.ToString(), HttpStatusCode.BadRequest);
+                await ServiceHelpers.WriteErrorResponse(context, errors, HttpStatusCode.BadRequest);
                 return;
             }
 
@@ -179,7 +175,7 @@ namespace NuGet.Services.Publish
                     await _registrationOwnership.AddRegistrationOwner(domain, id);
                 }
 
-                string publisher = await _registrationOwnership.GetUserName();
+                string publisher = await _registrationOwnership.GetPublisherName();
 
                 string tenantName;
                 string tenantId;
@@ -191,14 +187,15 @@ namespace NuGet.Services.Publish
                 }
                 else
                 {
-                    tenantName = await _registrationOwnership.GetTenantName();
+                    //tenantName = await _registrationOwnership.GetTenantName();
+                    tenantName = "unknown";
                     tenantId = _registrationOwnership.GetTenantId();
                 }
 
                 PublicationDetails publicationDetails = new PublicationDetails
                 {
                     Published = DateTime.UtcNow,
-                    UserName = await _registrationOwnership.GetUserName(),
+                    UserName = await _registrationOwnership.GetPublisherName(),
                     UserId = _registrationOwnership.GetUserId(),
                     TenantName = tenantName,
                     TenantId = tenantId,
@@ -289,6 +286,9 @@ namespace NuGet.Services.Publish
                 await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
                 return;
             }
+
+            string s1 = _registrationOwnership.GetTenantId();
+            string s2 = _registrationOwnership.GetUserId();
 
             IList<string> domains = await _registrationOwnership.GetDomains();
 

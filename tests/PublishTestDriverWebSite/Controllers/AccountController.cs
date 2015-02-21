@@ -3,6 +3,7 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OpenIdConnect;
 using PublishTestDriverWebSite.Utils;
+using System.Configuration;
 using System.Security.Claims;
 using System.Web;
 using System.Web.Mvc;
@@ -17,7 +18,9 @@ namespace PublishTestDriverWebSite.Controllers
             // Send an OpenID Connect sign-in request.
             if (!Request.IsAuthenticated)
             {
-                HttpContext.GetOwinContext().Authentication.Challenge(new AuthenticationProperties { RedirectUri = "/" }, OpenIdConnectAuthenticationDefaults.AuthenticationType);
+                HttpContext.GetOwinContext().Authentication.Challenge(
+                    new AuthenticationProperties { RedirectUri = "/" }, 
+                    OpenIdConnectAuthenticationDefaults.AuthenticationType);
             }
         }
         public void SignOut()

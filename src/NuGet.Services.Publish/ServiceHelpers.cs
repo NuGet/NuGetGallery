@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Owin;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Net;
 using System.Security.Claims;
@@ -42,7 +43,29 @@ namespace NuGet.Services.Publish
 
         public static async Task WriteErrorResponse(IOwinContext context, string error, HttpStatusCode statusCode)
         {
-            JToken content = new JObject { { "error", error } };
+            JToken content = new JObject 
+            {
+                { "type", "SimpleError" },
+                { "error", error }
+            };
+
+            await WriteResponse(context, content, statusCode);
+        }
+
+        public static async Task WriteErrorResponse(IOwinContext context, IList<string> errors, HttpStatusCode statusCode)
+        {
+            JArray array = new JArray();
+            foreach (string error in errors)
+            {
+                array.Add(error);
+            }
+
+            JToken content = new JObject
+            { 
+                { "type", "ValidationError" },
+                { "errors", array }
+            };
+
             await WriteResponse(context, content, statusCode);
         }
 

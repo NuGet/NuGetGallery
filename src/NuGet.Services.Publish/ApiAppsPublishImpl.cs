@@ -74,9 +74,11 @@ namespace NuGet.Services.Publish
                 nuspec.Add("category", new JArray("other"));
             }
 
-            string publisher = domain.Replace("-", "--").Replace(".", "-");
+            string marketplacePublisher = domain.Replace("-", "--").Replace(".", "-");
+            nuspec.Add("marketplacePublisher", marketplacePublisher);
 
-            nuspec.Add("publisher", publisher);
+            string marketplaceName = id.Replace("-", "--").Replace(".", "-");
+            nuspec.Add("marketplaceName", marketplaceName);
 
             JObject inventory;
             if (metadata.TryGetValue("inventory", out inventory))
@@ -162,20 +164,32 @@ namespace NuGet.Services.Publish
             }
             else
             {
-                JToken id;
-                if (!apiapp.TryGetValue("id", out id))
+                string id = CheckRequiredProperty(apiapp, errors, "id").ToString();
+
+                if (id.LastIndexOfAny(new[] { '/', '@' }) != -1)
                 {
-                    errors.Add("required property 'id' is missing from 'apiapp.json' file");
+                    errors.Add("'/', '@' characters are not permitted in id property");
                 }
 
-                JToken version;
-                if (!apiapp.TryGetValue("version", out version))
+                string version = CheckRequiredProperty(apiapp, errors, "version").ToString();
+                SemanticVersion semanticVersion;
+                if (!SemanticVersion.TryParse(version, out semanticVersion))
                 {
-                    errors.Add("required property 'version' is missing from 'apiapp.json' file");
+                    errors.Add("the version property must follow the Semantic Version rules, refer to 'http://semver.org'");
                 }
+
+                CheckRequiredProperty(apiapp, errors, "description");
+                CheckRequiredProperty(apiapp, errors, "title");
+                CheckRequiredProperty(apiapp, errors, "summary");
+                CheckRequiredProperty(apiapp, errors, "author");
+                CheckRequiredProperty(apiapp, errors, "domain");
             }
 
-            //CheckRequiredFile(packageStream, errors, "metadata/icons/small-icon.png");
+            CheckRequiredFile(packageStream, errors, "metadata/icons/small-icon.png");
+            CheckRequiredFile(packageStream, errors, "metadata/icons/medium-icon.png");
+            CheckRequiredFile(packageStream, errors, "metadata/icons/large-icon.png");
+            CheckRequiredFile(packageStream, errors, "metadata/icons/hero-icon.png");
+            CheckRequiredFile(packageStream, errors, "metadata/icons/wide-icon.png");
 
             if (errors.Count == 0)
             {
@@ -183,6 +197,16 @@ namespace NuGet.Services.Publish
             }
 
             return errors;
+        }
+
+        static JToken CheckRequiredProperty(JObject obj, IList<string> errors, string name)
+        {
+            JToken token;
+            if (!obj.TryGetValue(name, out token))
+            {
+                errors.Add(string.Format("required property '{0}' is missing from 'apiapp.json' file", name));
+            }
+            return token;
         }
 
         static void CheckRequiredFile(Stream packageStream, IList<string> errors, string fullName)

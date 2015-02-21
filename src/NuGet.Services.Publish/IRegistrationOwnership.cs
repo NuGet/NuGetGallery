@@ -26,5 +26,7 @@ namespace NuGet.Services.Publish
         Task<string> GetTenantName();
 
         Task<IList<string>> GetDomains();
+
+        Task<string> GetPublisherName();
     }
 }
