@@ -1,0 +1,77 @@
+{
+  "allowActAsForAllClients": null,
+  "appId": "ca2c3c8f-58e0-4d1d-8223-347301ab5496",
+  "appMetadata": {
+    "version": 0,
+    "data": []
+  },
+  "appRoles": [],
+  "availableToOtherTenants": false,
+  "displayName": "NuGet.Test.SecureService",
+  "errorUrl": null,
+  "groupMembershipClaims": null,
+  "homepage": "http://tempuri.org/login",
+  "identifierUris": [
+    "http://test.nuget.org/nugettestsecureservice"
+  ],
+  "keyCredentials": [],
+  "knownClientApplications": [],
+  "logoutUrl": null,
+  "oauth2AllowImplicitFlow": false,
+  "oauth2AllowUrlPathMatching": false,
+  "oauth2Permissions": [
+    {
+      "adminConsentDescription": "Allow the application to access NuGet.Test.SecureService on behalf of the signed-in user.",
+      "adminConsentDisplayName": "Access NuGet.Test.SecureService",
+      "id": "458ceece-af75-4145-9c8b-e76757dd69f4",
+      "isEnabled": true,
+      "origin": "Application",
+      "type": "User",
+      "userConsentDescription": "Allow the application to access NuGet.Test.SecureService on your behalf.",
+      "userConsentDisplayName": "Access NuGet.Test.SecureService",
+      "value": "user_impersonation"
+    },
+    {
+      "adminConsentDescription": "Test adminConsentDescription",
+      "adminConsentDisplayName": "Test adminConsentDisplayName",
+      "id": "76343C68-C9ED-4D27-9D6D-E44883893206",
+      "isEnabled": true,
+      "origin": "Application",
+      "type": "User",
+      "userConsentDescription": "Test userConsentDescription",
+      "userConsentDisplayName": "Test userConsentDisplayName",
+      "value": "test"
+    }
+  ],
+  "oauth2RequirePostResponse": false,
+  "passwordCredentials": [],
+  "publicClient": null,
+  "replyUrls": [
+    "http://tempuri.org/login"
+  ],
+  "requiredResourceAccess": [
+    {
+      "resourceAppId": "00000002-0000-0000-c000-000000000000",
+      "resourceAccess": [
+        {
+          "id": "311a71cc-e848-46a1-bdf8-97ff7156d8e6",
+          "type": "Scope"
+        }
+      ]
+    }
+  ],
+  "samlMetadataUrl": null,
+  "defaultPolicy": [],
+  "extensionProperties": [],
+  "objectType": "Application",
+  "objectId": "fbd9425d-0314-47a3-848c-7d6e174a33b7",
+  "deletionTimestamp": null,
+  "createdOnBehalfOf": null,
+  "createdObjects": [],
+  "manager": null,
+  "directReports": [],
+  "members": [],
+  "memberOf": [],
+  "owners": [],
+  "ownedObjects": []
+}
