@@ -20,8 +20,8 @@ namespace NuGetGallery
         {
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(_connectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference("content");
-            CloudBlockBlob blob = container.GetBlockBlobReference("stats-totals.json");
+            CloudBlobContainer container = blobClient.GetContainerReference("v3-stats0");
+            CloudBlockBlob blob = container.GetBlockBlobReference("totals.json");
 
             //Check if the report blob is present before processing it.
             if (!blob.Exists())
