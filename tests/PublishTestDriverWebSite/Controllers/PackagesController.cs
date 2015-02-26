@@ -33,19 +33,27 @@ namespace PublishTestDriverWebSite.Controllers
         // GET: Packages
         public async Task<ActionResult> Index()
         {
-            AuthenticationResult result = null;
+            AuthenticationResult authenticationResult = null;
 
             try
             {
                 string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
                 AuthenticationContext authContext = new AuthenticationContext(Startup.Authority, new NaiveSessionCache(userObjectID));
-                ClientCredential credential = new ClientCredential(clientId, appKey);
 
-                result = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+                if (Startup.Certificate == null)
+                {
+                    ClientCredential credential = new ClientCredential(clientId, appKey);
+                    authenticationResult = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+                }
+                else
+                {
+                    ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(clientId, Startup.Certificate);
+                    authenticationResult = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, clientAssertionCertificate, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+                }
 
                 HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetSearchServiceBaseAddress + "/secure/query");
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authenticationResult.AccessToken);
 
                 HttpResponseMessage response;
 

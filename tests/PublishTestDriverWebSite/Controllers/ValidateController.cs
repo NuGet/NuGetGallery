@@ -29,9 +29,19 @@ namespace PublishTestDriverWebSite.Controllers
             {
                 string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
                 AuthenticationContext authContext = new AuthenticationContext(Startup.Authority, new NaiveSessionCache(userObjectID));
-                ClientCredential credential = new ClientCredential(clientId, appKey);
 
-                AuthenticationResult authenticationResult = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+                AuthenticationResult authenticationResult;
+
+                if (Startup.Certificate == null)
+                {
+                    ClientCredential credential = new ClientCredential(clientId, appKey);
+                    authenticationResult = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+                }
+                else
+                {
+                    ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(clientId, Startup.Certificate);
+                    authenticationResult = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, clientAssertionCertificate, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+                }
 
                 HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetPublishServiceBaseAddress + "/domains");
