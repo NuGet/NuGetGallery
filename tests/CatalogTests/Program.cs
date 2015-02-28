@@ -68,13 +68,15 @@ namespace CatalogTests
 
                 //Feed2CatalogTests.Test0(args);
 
-                RegistrationTests.Test0();
+                //RegistrationTests.Test0();
                 //RegistrationTests.Test1();
                 //RegistrationTests.Test2();
                 //RegistrationTests.Test3();
                 //RegistrationTests.Test4();
                 //RegistrationTests.Test5();
                 //RegistrationTests.Test6();
+
+                RegistrationMakerTests.Test0Async().Wait();
 
                 DateTime after = DateTime.Now;
 

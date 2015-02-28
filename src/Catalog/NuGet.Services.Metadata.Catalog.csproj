@@ -134,6 +134,9 @@
     <Compile Include="Pipeline\PipelinePackage.cs" />
     <Compile Include="Pipeline\PublicationDetailsStage.cs" />
     <Compile Include="Pipeline\XmlStage.cs" />
+    <Compile Include="RegistrationKey.cs" />
+    <Compile Include="RegistrationMaker.cs" />
+    <Compile Include="RegistrationPersistence.cs" />
     <Compile Include="ReindexCatalogCollector.cs" />
     <Compile Include="HttpReadCursor.cs" />
     <Compile Include="NuspecCollector.cs" />
@@ -230,6 +233,7 @@
     <EmbeddedResource Include="sparql\All.rq" />
     <EmbeddedResource Include="sparql\SelectInlinePackage.rq" />
     <EmbeddedResource Include="sparql\SelectDistinctDependency.rq" />
+    <EmbeddedResource Include="sparql\ConstructCatalogEntryGraph.rq" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

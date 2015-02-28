@@ -164,18 +164,25 @@ namespace NuGet.Services.Publish
             }
             else
             {
-                string id = CheckRequiredProperty(apiapp, errors, "id").ToString();
-
-                if (id.LastIndexOfAny(new[] { '/', '@' }) != -1)
+                JToken idJToken = CheckRequiredProperty(apiapp, errors, "id");
+                if (idJToken != null)
                 {
-                    errors.Add("'/', '@' characters are not permitted in id property");
+                    string id = idJToken.ToString();
+                    if (id.LastIndexOfAny(new[] { '/', '@' }) != -1)
+                    {
+                        errors.Add("'/', '@' characters are not permitted in id property");
+                    }
                 }
 
-                string version = CheckRequiredProperty(apiapp, errors, "version").ToString();
-                SemanticVersion semanticVersion;
-                if (!SemanticVersion.TryParse(version, out semanticVersion))
+                JToken versionJToken = CheckRequiredProperty(apiapp, errors, "version");
+                if (versionJToken != null)
                 {
-                    errors.Add("the version property must follow the Semantic Version rules, refer to 'http://semver.org'");
+                    string version = versionJToken.ToString();
+                    SemanticVersion semanticVersion;
+                    if (!SemanticVersion.TryParse(version, out semanticVersion))
+                    {
+                        errors.Add("the version property must follow the Semantic Version rules, refer to 'http://semver.org'");
+                    }
                 }
 
                 CheckRequiredProperty(apiapp, errors, "description");
