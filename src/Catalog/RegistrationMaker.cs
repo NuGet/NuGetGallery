@@ -14,7 +14,7 @@ namespace NuGet.Services.Metadata.Catalog
     {
         public static async Task Process(string id, IDictionary<string, IGraph> newItems, StorageFactory storageFactory, Uri contentBaseAddress, int partitionSize, int packageCountThreshold)
         {
-            RegistrationPersistence registration = new RegistrationPersistence(storageFactory, id, packageCountThreshold);
+            RegistrationPersistence registration = new RegistrationPersistence(storageFactory, id, partitionSize, packageCountThreshold);
 
             IDictionary<RegistrationKey, Tuple<string, IGraph>> existing = await registration.Load();
 
