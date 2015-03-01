@@ -15,10 +15,10 @@ namespace NuGet.Services.Metadata.Catalog
             Schema.Predicates.CatalogCount
         };
 
-        Storage _storage;
+        IStorage _storage;
         IGraph _initialGraph;
 
-        public SingleGraphPersistence(Storage storage)
+        public SingleGraphPersistence(IStorage storage)
         {
             _storage = storage;
             Graph = new Graph();

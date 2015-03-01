@@ -118,6 +118,8 @@
     <Compile Include="Ownership\PackageId.cs" />
     <Compile Include="Ownership\RegistrationId.cs" />
     <Compile Include="Ownership\StorageRegistration.cs" />
+    <Compile Include="Persistence\IStorage.cs" />
+    <Compile Include="Persistence\IStorageFactory.cs" />
     <Compile Include="Pipeline\CommitDetailsStage.cs" />
     <Compile Include="Pipeline\GraphPackageMetadata.cs" />
     <Compile Include="Pipeline\NuspecStage.cs" />
@@ -134,9 +136,12 @@
     <Compile Include="Pipeline\PipelinePackage.cs" />
     <Compile Include="Pipeline\PublicationDetailsStage.cs" />
     <Compile Include="Pipeline\XmlStage.cs" />
-    <Compile Include="RegistrationKey.cs" />
-    <Compile Include="RegistrationMaker.cs" />
-    <Compile Include="RegistrationPersistence.cs" />
+    <Compile Include="Registration\RecordingStorage.cs" />
+    <Compile Include="Registration\RegistrationMakerCatalogItem.cs" />
+    <Compile Include="Registration\RegistrationMakerCatalogWriter.cs" />
+    <Compile Include="Registration\RegistrationKey.cs" />
+    <Compile Include="Registration\RegistrationMaker.cs" />
+    <Compile Include="Registration\RegistrationPersistence.cs" />
     <Compile Include="ReindexCatalogCollector.cs" />
     <Compile Include="HttpReadCursor.cs" />
     <Compile Include="NuspecCollector.cs" />
@@ -234,6 +239,7 @@
     <EmbeddedResource Include="sparql\SelectInlinePackage.rq" />
     <EmbeddedResource Include="sparql\SelectDistinctDependency.rq" />
     <EmbeddedResource Include="sparql\ConstructCatalogEntryGraph.rq" />
+    <EmbeddedResource Include="sparql\ConstructRegistrationPageContentGraph.rq" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,4 +1,5 @@
-﻿using NuGet.Services.Metadata.Catalog.Helpers;
+﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
@@ -7,31 +8,28 @@ using System.Threading.Tasks;
 using VDS.RDF;
 using VDS.RDF.Query;
 
-namespace NuGet.Services.Metadata.Catalog
+namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public class RegistrationPersistence
     {
-        IList<Uri> _loaded;
-        IList<Uri> _saved;
         Uri _registrationUri;
         int _packageCountThreshold;
         int _partitionSize;
-        Storage _storage;
+        RecordingStorage _storage;
+        Uri _registrationBaseAddress;
 
         public RegistrationPersistence(StorageFactory storageFactory, string id, int partitionSize, int packageCountThreshold)
         {
-            _storage = storageFactory.Create(id.ToLowerInvariant());
+            _storage = new RecordingStorage(storageFactory.Create(id.ToLowerInvariant()));
             _registrationUri = _storage.ResolveUri("index.json");
             _packageCountThreshold = packageCountThreshold;
             _partitionSize = partitionSize;
-
-            _loaded = new List<Uri>();
-            _saved = new List<Uri>();
+            _registrationBaseAddress = storageFactory.BaseAddress;
         }
 
         public Task<IDictionary<RegistrationKey, Tuple<string, IGraph>>> Load()
         {
-            return Load(_storage, _registrationUri, _loaded);
+            return Load(_storage, _registrationUri);
         }
 
         public async Task Save(IDictionary<RegistrationKey, Tuple<string, IGraph>> resulting)
@@ -41,15 +39,16 @@ namespace NuGet.Services.Metadata.Catalog
                 Console.WriteLine("Save: {0} : {1}", item.Key, item.Value.Item1);
             }
 
+            await Save(_storage, _registrationBaseAddress, resulting, _partitionSize, _packageCountThreshold);
 
-            await Cleanup(_loaded, _saved);
+            await Cleanup(_storage);
         }
 
         //  Load implementation
 
-        static async Task<IDictionary<RegistrationKey, Tuple<string, IGraph>>> Load(Storage storage, Uri resourceUri, IList<Uri> loaded)
+        static async Task<IDictionary<RegistrationKey, Tuple<string, IGraph>>> Load(IStorage storage, Uri resourceUri)
         {
-            IGraph graph = await LoadCatalog(storage, resourceUri, loaded);
+            IGraph graph = await LoadCatalog(storage, resourceUri);
 
             IDictionary<RegistrationKey, Tuple<string, IGraph>> resources = GetResources(graph);
 
@@ -106,10 +105,8 @@ namespace NuGet.Services.Metadata.Catalog
             resources.Add(key, Tuple.Create(catalogEntry.AbsoluteUri, graph));
         }
 
-        static async Task<IGraph> LoadCatalog(Storage storage, Uri resourceUri, IList<Uri> loaded)
+        static async Task<IGraph> LoadCatalog(IStorage storage, Uri resourceUri)
         {
-            loaded.Add(resourceUri);
-
             string json = await storage.LoadString(resourceUri);
 
             IGraph graph = Utils.CreateGraph(json);
@@ -128,7 +125,7 @@ namespace NuGet.Services.Metadata.Catalog
                 Uri pageUri = ((IUriNode)page.Subject).Uri;
                 if (pageUri != resourceUri)
                 {
-                    tasks.Add(LoadCatalogPage(storage, pageUri, loaded));
+                    tasks.Add(LoadCatalogPage(storage, pageUri));
                 }
             }
 
@@ -142,10 +139,8 @@ namespace NuGet.Services.Metadata.Catalog
             return graph;
         }
 
-        static async Task<IGraph> LoadCatalogPage(Storage storage, Uri pageUri, IList<Uri> loaded)
+        static async Task<IGraph> LoadCatalogPage(IStorage storage, Uri pageUri)
         {
-            loaded.Add(pageUri);
-
             string json = await storage.LoadString(pageUri);
             IGraph graph = Utils.CreateGraph(json);
             return graph;
@@ -153,35 +148,32 @@ namespace NuGet.Services.Metadata.Catalog
 
         //  Save implementation
 
-        static async Task Save(StorageFactory storageFactory, IDictionary<RegistrationKey, Tuple<string, IGraph>> resulting, IList<Uri> saved, int packageCountThreshold)
+        static async Task Save(IStorage storage, Uri registrationBaseAddress, IDictionary<RegistrationKey, Tuple<string, IGraph>> resulting, int partitionSize, int packageCountThreshold)
         {
-            foreach (var item in resulting)
+            IDictionary<string, IGraph> items = new Dictionary<string, IGraph>();
+
+            foreach (Tuple<string, IGraph> value in resulting.Values)
             {
-                Console.WriteLine("Save: {0} : {1}", item.Key, item.Value.Item1);
+                items.Add(value.Item1, value.Item2);
             }
 
-            /*
-            //int count = resulting
-
-            if (count < packageCountThreshold)
+            if (items.Count < packageCountThreshold)
             {
-                await SaveSmallRegistration(storage, storageFactory.BaseAddress, sortedGraphs, contentBaseAddress, partitionSize);
+                await SaveSmallRegistration(storage, registrationBaseAddress, items, partitionSize);
             }
             else
             {
-                await SaveLargeRegistration(storage, storageFactory.BaseAddress, sortedGraphs, json, contentBaseAddress, partitionSize);
+                await SaveLargeRegistration(storage, registrationBaseAddress, items, partitionSize);
             }
-            */
         }
 
-        /*
-        static async Task SaveSmallRegistration(Storage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, Uri contentBaseAddress, int partitionSize)
+        static async Task SaveSmallRegistration(IStorage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, int partitionSize)
         {
             SingleGraphPersistence graphPersistence = new SingleGraphPersistence(storage);
 
             await graphPersistence.Initialize();
 
-            await SaveRegistration(storage, registrationBaseAddress, items, null, graphPersistence, contentBaseAddress, partitionSize);
+            await SaveRegistration(storage, registrationBaseAddress, items, null, graphPersistence, partitionSize);
 
             // now the commit has happened the graphPersistence.Graph should contain all the data
 
@@ -190,45 +182,39 @@ namespace NuGet.Services.Metadata.Catalog
             await storage.Save(graphPersistence.ResourceUri, content);
         }
 
-        static async Task SaveLargeRegistration(Storage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, string existingRoot, Uri contentBaseAddress, int partitionSize)
+        static async Task SaveLargeRegistration(IStorage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, int partitionSize)
         {
-            if (existingRoot != null)
-            {
-                JToken compacted = JToken.Parse(existingRoot);
-                AddExistingItems(Utils.CreateGraph(compacted), items);
-            }
-
             IList<Uri> cleanUpList = new List<Uri>();
 
-            await SaveRegistration(storage, registrationBaseAddress, items, cleanUpList, null, contentBaseAddress, partitionSize);
-
-            // because there were multiple files some might now be irrelevant
-
-            foreach (Uri uri in cleanUpList)
-            {
-                if (uri != storage.ResolveUri("index.json"))
-                {
-                    Console.WriteLine("DELETE: {0}", uri);
-                    await storage.Delete(uri);
-                }
-            }
+            await SaveRegistration(storage, registrationBaseAddress, items, cleanUpList, null, partitionSize);
         }
 
-        static async Task SaveRegistration(Storage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, IList<Uri> cleanUpList, SingleGraphPersistence graphPersistence, Uri contentBaseAddress, int partitionSize)
+        static async Task SaveRegistration(IStorage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, IList<Uri> cleanUpList, SingleGraphPersistence graphPersistence, int partitionSize)
         {
-            using (RegistrationCatalogWriter writer = new RegistrationCatalogWriter(storage, partitionSize, cleanUpList, graphPersistence))
+            using (RegistrationMakerCatalogWriter writer = new RegistrationMakerCatalogWriter(storage, partitionSize, cleanUpList, graphPersistence))
             {
                 foreach (KeyValuePair<string, IGraph> item in items)
                 {
-                    writer.Add(new RegistrationCatalogItem(new Uri(item.Key), item.Value, contentBaseAddress, registrationBaseAddress));
+                    writer.Add(new RegistrationMakerCatalogItem(new Uri(item.Key), item.Value, registrationBaseAddress));
                 }
                 await writer.Commit(DateTime.UtcNow);
             }
         }
-        */
 
-        static async Task Cleanup(IList<Uri> loaded, IList<Uri> saved)
+        static async Task Cleanup(RecordingStorage storage)
         {
+            IList<Task> tasks = new List<Task>();
+            foreach (Uri loaded in storage.Loaded)
+            {
+                if (!storage.Saved.Contains(loaded))
+                {
+                    tasks.Add(storage.Delete(loaded));
+                }
+            }
+            if (tasks.Count > 0)
+            {
+                await Task.WhenAll(tasks.ToArray());
+            }
         }
     }
 }

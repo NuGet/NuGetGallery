@@ -1,5 +1,5 @@
 ﻿
-namespace NuGet.Services.Metadata.Catalog
+namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public class RegistrationKey
     {

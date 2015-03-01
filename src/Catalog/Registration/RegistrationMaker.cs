@@ -8,7 +8,7 @@ using VDS.RDF;
 using VDS.RDF.Query;
 using VDS.RDF.Writing;
 
-namespace NuGet.Services.Metadata.Catalog
+namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public static class RegistrationMaker
     {
@@ -18,14 +18,14 @@ namespace NuGet.Services.Metadata.Catalog
 
             IDictionary<RegistrationKey, Tuple<string, IGraph>> existing = await registration.Load();
 
-            IDictionary<RegistrationKey, Tuple<string, IGraph>> delta = Promote(newItems);
+            IDictionary<RegistrationKey, Tuple<string, IGraph>> delta = PromoteKey(newItems);
 
             IDictionary<RegistrationKey, Tuple<string, IGraph>> resulting = Apply(existing, delta);
 
             await registration.Save(resulting);
         }
 
-        static IDictionary<RegistrationKey, Tuple<string, IGraph>> Promote(IDictionary<string, IGraph> newItems)
+        static IDictionary<RegistrationKey, Tuple<string, IGraph>> PromoteKey(IDictionary<string, IGraph> newItems)
         {
             IDictionary<RegistrationKey, Tuple<string, IGraph>> promoted = new Dictionary<RegistrationKey, Tuple<string, IGraph>>();
 

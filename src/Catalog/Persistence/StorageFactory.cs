@@ -1,9 +1,8 @@
-﻿
-using System;
+﻿using System;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
-    public abstract class StorageFactory
+    public abstract class StorageFactory : IStorageFactory
     {
         public abstract Storage Create(string name = null);
 
