@@ -28,7 +28,7 @@ namespace NuGet.Services.Publish
             _registration = new StorageRegistration(storageFactory);
         }
 
-        public bool IsAuthorized
+        public bool IsAuthenticated
         {
             get
             {
@@ -88,19 +88,19 @@ namespace NuGet.Services.Publish
             return false;
         }
 
-        public Task<bool> IsTenantEnabled()
-        {
-            return _registration.IsTenantEnabled(GetTenantId());
-        }
-
-        public async Task AddTenant()
+        public async Task EnableTenant()
         {
             await _registration.EnableTenant(GetTenantId());
         }
 
-        public async Task RemoveTenant()
+        public async Task DisableTenant()
         {
             await _registration.DisableTenant(GetTenantId());
+        }
+
+        public Task<bool> HasTenantEnabled()
+        {
+            return _registration.HasTenantEnabled(GetTenantId());
         }
 
         async Task<ActiveDirectoryClient> GetActiveDirectoryClient()
@@ -112,30 +112,35 @@ namespace NuGet.Services.Publish
             return _activeDirectoryClient;
         }
 
-        public async Task<bool> RegistrationExists(string domain, string id)
+        public async Task<bool> HasRegistration(string prefix, string id)
         {
-            return await _registration.Exists(new RegistrationId { Domain = domain, Id = id });
+            return await _registration.HasRegistration(new OwnershipRegistration { Prefix = prefix, Id = id });
         }
 
-        public async Task<bool> IsAuthorizedToRegistration(string domain, string id)
+        public async Task<bool> HasOwner(string prefix, string id)
         {
             //IUser user = await GetUser();
             //string userObjectId = user.ObjectId;
             string userObjectId = GetName();
-            return await _registration.HasOwner(new RegistrationId { Domain = domain, Id = id }, userObjectId);
+            return await _registration.HasOwner(
+                new OwnershipRegistration { Prefix = prefix, Id = id },
+                new OwnershipOwner { ObjectId = userObjectId } );
         }
 
-        public async Task AddRegistrationOwner(string domain, string id)
+        public async Task AddVersion(string prefix, string id, string version)
         {
             //IUser user = await GetUser();
             //string userObjectId = user.ObjectId;
             string userObjectId = GetName();
-            await _registration.AddOwner(new RegistrationId { Domain = domain, Id = id }, userObjectId);
+            await _registration.AddVersion(
+                new OwnershipRegistration { Prefix = prefix, Id = id },
+                new OwnershipOwner { ObjectId = userObjectId },
+                version);
         }
 
-        public async Task<bool> PackageExists(string domain, string id, string version)
+        public async Task<bool> HasVersion(string prefix, string id, string version)
         {
-            return await _registration.Exists(new PackageId { Domain = domain, Id = id, Version = NuGetVersion.Parse(version) });
+            return await _registration.HasVersion(new OwnershipRegistration { Prefix = prefix, Id = id }, version);
         }
 
         async Task<IUser> GetUser()

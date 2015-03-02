@@ -115,8 +115,9 @@
     <Compile Include="CommitCollector.cs" />
     <Compile Include="Helpers\GraphHelpers.cs" />
     <Compile Include="Ownership\IRegistration.cs" />
-    <Compile Include="Ownership\PackageId.cs" />
-    <Compile Include="Ownership\RegistrationId.cs" />
+    <Compile Include="Ownership\OwnershipOwner.cs" />
+    <Compile Include="Ownership\OwnershipRecord.cs" />
+    <Compile Include="Ownership\OwnershipRegistration.cs" />
     <Compile Include="Ownership\StorageRegistration.cs" />
     <Compile Include="Persistence\IStorage.cs" />
     <Compile Include="Persistence\IStorageFactory.cs" />

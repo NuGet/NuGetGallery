@@ -8,21 +8,22 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
     {
         Task EnableTenant(string tenant);
         Task DisableTenant(string tenant);
-        Task<bool> IsTenantEnabled(string tenant);
+        Task<bool> HasTenantEnabled(string tenant);
 
-        Task AddOwner(RegistrationId registrationId, string owner);
-        Task RemoveOwner(RegistrationId registrationId, string owner);
-
-        Task Add(PackageId packageId);
-        Task Remove(PackageId packageId);
-        Task Remove(RegistrationId registrationId);
-
-        Task<bool> Exists(RegistrationId registrationId);
-        Task<bool> Exists(PackageId packageId);
-        Task<bool> HasOwner(RegistrationId registrationId, string owner);
-
-        Task<IEnumerable<string>> GetOwners(RegistrationId registrationId);
-        Task<IEnumerable<RegistrationId>> GetRegistrations(string owner);
-        Task<IEnumerable<PackageId>> GetPackages(RegistrationId registrationId);
+        Task AddOwner(OwnershipRegistration registration, OwnershipOwner owner);
+        Task RemoveOwner(OwnershipRegistration registration, OwnershipOwner owner);
+        
+        Task AddVersion(OwnershipRegistration registration, OwnershipOwner owner, string version);
+        Task RemoveVersion(OwnershipRegistration registration, string version);
+        
+        Task Remove(OwnershipRegistration registration);
+        
+        Task<bool> HasRegistration(OwnershipRegistration registration);
+        Task<bool> HasVersion(OwnershipRegistration registration, string version);
+        Task<bool> HasOwner(OwnershipRegistration registration, OwnershipOwner owner);
+        
+        Task<IEnumerable<OwnershipOwner>> GetOwners(OwnershipRegistration registration);
+        Task<IEnumerable<OwnershipRegistration>> GetRegistrations(OwnershipOwner owner);
+        Task<IEnumerable<string>> GetVersions(OwnershipRegistration registration);
     }
 }
