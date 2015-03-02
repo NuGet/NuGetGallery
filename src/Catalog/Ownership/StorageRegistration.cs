@@ -17,7 +17,7 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
             _storage = storageFactory.Create();
         }
 
-        public async Task AddTenant(string tenant)
+        public async Task EnableTenant(string tenant)
         {
             Uri resourceUri = new Uri(_storage.BaseAddress, "index.json");
 
@@ -31,7 +31,7 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
             await Save(resourceUri, graph);
         }
 
-        public async Task RemoveTenant(string tenant)
+        public async Task DisableTenant(string tenant)
         {
             Uri resourceUri = new Uri(_storage.BaseAddress, "index.json");
 
@@ -47,7 +47,7 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
             await Save(resourceUri, graph);
         }
 
-        public async Task<bool> HasTenant(string tenant)
+        public async Task<bool> IsTenantEnabled(string tenant)
         {
             Uri resourceUri = new Uri(_storage.BaseAddress, "index.json");
 
@@ -287,6 +287,21 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
             graph.Assert(registration, graph.CreateUriNode(Schema.Predicates.Id), graph.CreateLiteralNode(registrationId.Id));
 
             return registration;
+        }
+
+        public Task<IEnumerable<string>> GetOwners(RegistrationId registrationId)
+        {
+            return Task.FromResult<IEnumerable<string>>(null);
+        }
+
+        public Task<IEnumerable<RegistrationId>> GetRegistrations(string owner)
+        {
+            return Task.FromResult<IEnumerable<RegistrationId>>(null);
+        }
+
+        public Task<IEnumerable<PackageId>> GetPackages(RegistrationId registrationId)
+        {
+            return Task.FromResult<IEnumerable<PackageId>>(null);
         }
     }
 }

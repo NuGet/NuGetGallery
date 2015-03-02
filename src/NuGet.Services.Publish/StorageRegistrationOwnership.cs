@@ -90,17 +90,17 @@ namespace NuGet.Services.Publish
 
         public Task<bool> IsTenantEnabled()
         {
-            return _registration.HasTenant(GetTenantId());
+            return _registration.IsTenantEnabled(GetTenantId());
         }
 
         public async Task AddTenant()
         {
-            await _registration.AddTenant(GetTenantId());
+            await _registration.EnableTenant(GetTenantId());
         }
 
         public async Task RemoveTenant()
         {
-            await _registration.RemoveTenant(GetTenantId());
+            await _registration.DisableTenant(GetTenantId());
         }
 
         async Task<ActiveDirectoryClient> GetActiveDirectoryClient()
@@ -190,7 +190,7 @@ namespace NuGet.Services.Publish
             return name;
         }
 
-        public async Task<IList<string>> GetDomains()
+        public Task<IList<string>> GetDomains()
         {
             IList<string> domains = new List<string>();
 
@@ -223,7 +223,7 @@ namespace NuGet.Services.Publish
             }
             */
 
-            return domains;
+            return Task.FromResult(domains);
         }
 
         public Task<string> GetPublisherName()
