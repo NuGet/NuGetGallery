@@ -22,14 +22,15 @@ namespace PowerShellPublishTests
         {
             var f = File.Open(TestManifestPath, FileMode.Open);
 
-            IRegistrationOwnership registrationOwnership = new AzureADRegistrationOwnership(null);
+            IRegistrationOwnership registrationOwnership = new MockIRegistrationOwnership();
             PowerShellPublishImpl pub = new PowerShellPublishImpl(registrationOwnership);
 
             PrivateObject pubPrivateObject = new PrivateObject(pub);
             var result = pubPrivateObject.Invoke("CreateMetadataObject", "", (Stream)f) as JObject;
 
             Assert.IsNotNull(result);
-            Assert.AreEqual("Darek", result.GetValue("Author"));
+            Assert.AreEqual(1, (result.GetValue("authors") as JArray)?.Count);
+            Assert.AreEqual("Darek", result.GetValue("authors")[0].Value<string>());
             Assert.AreEqual("1.0", result.GetValue("ModuleVersion"));
             Assert.AreEqual("Microsoft", result.GetValue("CompanyName"));
             Assert.AreEqual("e4da48d8-20df-4d58-bfa6-2e54486fca5b", result.GetValue("GUID"));
@@ -43,12 +44,12 @@ namespace PowerShellPublishTests
             Assert.AreEqual(1, (result.GetValue("FunctionsToExport") as JArray)?.Count);
             Assert.AreEqual("*", result.GetValue("FunctionsToExport")[0].Value<string>());
             Assert.AreEqual(0, (result.GetValue("DscResourcesToExport") as JArray)?.Count);
-            Assert.AreEqual("http://this.is.test.license.com", result.GetValue("LicenseUri"));
-            Assert.AreEqual(null, result.GetValue("IconUri").Value<string>());
-            Assert.AreEqual(1, (result.GetValue("Tags") as JArray)?.Count);
-            Assert.AreEqual("tag1", result.GetValue("Tags")[0].Value<string>());
-            Assert.AreEqual("http://github.com/TestModule", result.GetValue("ProjectUri"));
-            Assert.AreEqual("This is our best release so far.", result.GetValue("ReleaseNotes"));
+            Assert.AreEqual("http://this.is.test.license.com", result.GetValue("licenseUrl"));
+            Assert.AreEqual(null, result.GetValue("iconUrl").Value<string>());
+            Assert.AreEqual(1, (result.GetValue("tags") as JArray)?.Count);
+            Assert.AreEqual("tag1", result.GetValue("tags")[0].Value<string>());
+            Assert.AreEqual("http://github.com/TestModule", result.GetValue("projectUrl"));
+            Assert.AreEqual("This is our best release so far.", result.GetValue("releaseNotes"));
         }
 
         [TestMethod]
@@ -56,14 +57,14 @@ namespace PowerShellPublishTests
         {
             var f = File.Open(TestEmptyManifestPath, FileMode.Open);
 
-            IRegistrationOwnership registrationOwnership = new AzureADRegistrationOwnership(null);
+            IRegistrationOwnership registrationOwnership = new MockIRegistrationOwnership();
             PowerShellPublishImpl pub = new PowerShellPublishImpl(registrationOwnership);
 
             PrivateObject pubPrivateObject = new PrivateObject(pub);
             var result = pubPrivateObject.Invoke("CreateMetadataObject", "", (Stream)f) as JObject;
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(null, result.GetValue("Author").Value<string>());
+            Assert.AreEqual(0, (result.GetValue("authors") as JArray)?.Count);
             Assert.AreEqual(null, result.GetValue("ModuleVersion").Value<string>());
             Assert.AreEqual(null, result.GetValue("CompanyName").Value<string>());
             Assert.AreEqual(null, result.GetValue("GUID").Value<string>());
@@ -74,17 +75,17 @@ namespace PowerShellPublishTests
             Assert.AreEqual(0, (result.GetValue("CmdletsToExport") as JArray)?.Count);
             Assert.AreEqual(0, (result.GetValue("FunctionsToExport") as JArray)?.Count);
             Assert.AreEqual(0, (result.GetValue("DscResourcesToExport") as JArray)?.Count);
-            Assert.AreEqual(null, result.GetValue("LicenseUri").Value<string>());
-            Assert.AreEqual(null, result.GetValue("IconUri").Value<string>());
-            Assert.AreEqual(0, (result.GetValue("Tags") as JArray)?.Count);
-            Assert.AreEqual(null, result.GetValue("ProjectUri").Value<string>());
-            Assert.AreEqual(null, result.GetValue("ReleaseNotes").Value<string>());
+            Assert.AreEqual(null, result.GetValue("licenseUrl").Value<string>());
+            Assert.AreEqual(null, result.GetValue("iconUrl").Value<string>());
+            Assert.AreEqual(0, (result.GetValue("tags") as JArray)?.Count);
+            Assert.AreEqual(null, result.GetValue("projectUrl").Value<string>());
+            Assert.AreEqual(null, result.GetValue("releaseNotes").Value<string>());
         }
 
         [TestMethod]
         public void TestIsMetadataFile()
         {
-            IRegistrationOwnership registrationOwnership = new AzureADRegistrationOwnership(null);
+            IRegistrationOwnership registrationOwnership = new MockIRegistrationOwnership();
             PowerShellPublishImpl pub = new PowerShellPublishImpl(registrationOwnership);
 
             PrivateObject pubPrivateObject = new PrivateObject(pub);
@@ -98,7 +99,7 @@ namespace PowerShellPublishTests
         {
             var f = File.Open(TestCorruptedManifestPath, FileMode.Open);
 
-            IRegistrationOwnership registrationOwnership = new AzureADRegistrationOwnership(null);
+            IRegistrationOwnership registrationOwnership = new MockIRegistrationOwnership();
             PowerShellPublishImpl pub = new PowerShellPublishImpl(registrationOwnership);
 
             PrivateObject pubPrivateObject = new PrivateObject(pub);
@@ -117,14 +118,15 @@ namespace PowerShellPublishTests
         {
             var f = File.Open(TestInvalidManifestPath, FileMode.Open);
 
-            IRegistrationOwnership registrationOwnership = new AzureADRegistrationOwnership(null);
+            IRegistrationOwnership registrationOwnership = new MockIRegistrationOwnership();
             PowerShellPublishImpl pub = new PowerShellPublishImpl(registrationOwnership);
 
             PrivateObject pubPrivateObject = new PrivateObject(pub);
             var result = pubPrivateObject.Invoke("CreateMetadataObject", "", (Stream)f) as JObject;
 
             Assert.IsNotNull(result);
-            Assert.AreEqual("Darek", result.GetValue("Author"));
+            Assert.AreEqual(1, (result.GetValue("authors") as JArray)?.Count);
+            Assert.AreEqual("Darek", result.GetValue("authors")[0].Value<string>());
             Assert.AreEqual("1.0", result.GetValue("ModuleVersion"));
             Assert.AreEqual("Microsoft", result.GetValue("CompanyName"));
             Assert.AreEqual("e4da48d8-20df-4d58-bfa6-2e54486fca5b", result.GetValue("GUID"));
@@ -138,12 +140,12 @@ namespace PowerShellPublishTests
             Assert.AreEqual(1, (result.GetValue("FunctionsToExport") as JArray)?.Count);
             Assert.AreEqual("*", result.GetValue("FunctionsToExport")[0].Value<string>());
             Assert.AreEqual(0, (result.GetValue("DscResourcesToExport") as JArray)?.Count);
-            Assert.AreEqual("http://this.is.test.license.com", result.GetValue("LicenseUri"));
-            Assert.AreEqual(null, result.GetValue("IconUri").Value<string>());
-            Assert.AreEqual(1, (result.GetValue("Tags") as JArray)?.Count);
-            Assert.AreEqual("tag1", result.GetValue("Tags")[0].Value<string>());
-            Assert.AreEqual("http://github.com/TestModule", result.GetValue("ProjectUri"));
-            Assert.AreEqual("This is our best release so far.", result.GetValue("ReleaseNotes"));
+            Assert.AreEqual("http://this.is.test.license.com", result.GetValue("licenseUrl"));
+            Assert.AreEqual(null, result.GetValue("iconUrl").Value<string>());
+            Assert.AreEqual(1, (result.GetValue("tags") as JArray)?.Count);
+            Assert.AreEqual("tag1", result.GetValue("tags")[0].Value<string>());
+            Assert.AreEqual("http://github.com/TestModule", result.GetValue("projectUrl"));
+            Assert.AreEqual("This is our best release so far.", result.GetValue("releaseNotes"));
         }
 
         [TestMethod]
@@ -151,7 +153,7 @@ namespace PowerShellPublishTests
         {
             var f = File.Open(TestMissingRequiredFieldsPath, FileMode.Open);
 
-            IRegistrationOwnership registrationOwnership = new AzureADRegistrationOwnership(null);
+            IRegistrationOwnership registrationOwnership = new MockIRegistrationOwnership();
             PowerShellPublishImpl pub = new PowerShellPublishImpl(registrationOwnership);
 
             PrivateObject pubPrivateObject = new PrivateObject(pub);
@@ -161,10 +163,7 @@ namespace PowerShellPublishTests
             var result = pubPrivateObject.Invoke("CreateMetadataObject", "", (Stream)f) as JObject;
 
             Assert.IsNotNull(result);
-            //Assert.AreEqual("Darek", result.GetValue("Author"));
-            //Assert.AreEqual("1.0", result.GetValue("ModuleVersion"));
             Assert.AreEqual("Microsoft", result.GetValue("CompanyName"));
-            //Assert.AreEqual("e4da48d8-20df-4d58-bfa6-2e54486fca5b", result.GetValue("GUID"));
             Assert.AreEqual(null, result.GetValue("PowerShellHostVersion").Value<string>());
             Assert.AreEqual(null, result.GetValue("DotNetFrameworkVersion").Value<string>());
             Assert.AreEqual(null, result.GetValue("CLRVersion").Value<string>());
@@ -175,15 +174,16 @@ namespace PowerShellPublishTests
             Assert.AreEqual(1, (result.GetValue("FunctionsToExport") as JArray)?.Count);
             Assert.AreEqual("*", result.GetValue("FunctionsToExport")[0].Value<string>());
             Assert.AreEqual(0, (result.GetValue("DscResourcesToExport") as JArray)?.Count);
-            Assert.AreEqual("http://this.is.test.license.com", result.GetValue("LicenseUri"));
-            Assert.AreEqual(null, result.GetValue("IconUri").Value<string>());
-            Assert.AreEqual(1, (result.GetValue("Tags") as JArray)?.Count);
-            Assert.AreEqual("tag1", result.GetValue("Tags")[0].Value<string>());
-            Assert.AreEqual("http://github.com/TestModule", result.GetValue("ProjectUri"));
-            Assert.AreEqual("This is our best release so far.", result.GetValue("ReleaseNotes"));
+            Assert.AreEqual("http://this.is.test.license.com", result.GetValue("licenseUrl"));
+            Assert.AreEqual(null, result.GetValue("iconUrl").Value<string>());
+            Assert.AreEqual(1, (result.GetValue("tags") as JArray)?.Count);
+            Assert.AreEqual("tag1", result.GetValue("tags")[0].Value<string>());
+            Assert.AreEqual("http://github.com/TestModule", result.GetValue("projectUrl"));
+            Assert.AreEqual("This is our best release so far.", result.GetValue("releaseNotes"));
 
             var validationMessage = pubPrivateObject.Invoke("Validate", new object[2] { null, null }) as string;
 
+            Assert.IsNotNull(validationMessage);
             Assert.IsTrue(validationMessage.Contains("Author"));
             Assert.IsTrue(validationMessage.Contains("ModuleVersion"));
             Assert.IsTrue(validationMessage.Contains("GUID"));

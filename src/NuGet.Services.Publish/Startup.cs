@@ -139,7 +139,7 @@ namespace NuGet.Services.Publish
                 case "/catalog/powershell":
                     {
                         PublishImpl uploader = new PowerShellPublishImpl(registrationOwnership);
-                        await uploader.Upload(context);
+                        await uploader.Upload(context, true);
                         break;
                     }
                 default:

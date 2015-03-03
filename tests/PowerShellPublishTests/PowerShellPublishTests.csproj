@@ -59,6 +59,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ExtractMetadataTests.cs" />
+    <Compile Include="MockIRegistrationOwnership.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -80,7 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.Publish\NuGet.Services.Publish.csproj">
-      <Project>{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}</Project>
+      <Project>{f3f6d0dd-ae7f-4bef-a8df-3638b650a849}</Project>
       <Name>NuGet.Services.Publish</Name>
     </ProjectReference>
   </ItemGroup>

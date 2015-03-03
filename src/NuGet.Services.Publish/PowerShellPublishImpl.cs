@@ -87,7 +87,7 @@ namespace NuGet.Services.Publish
 
                 if (hashtable != null)
                 {
-                    result.Author = hashtable["Author"];
+                    result.authors = ConvertObjectToJArray(hashtable["Author"]);
                     result.ModuleVersion = hashtable["ModuleVersion"];
                     result.CompanyName = hashtable["CompanyName"];
                     result.GUID = hashtable["GUID"];
@@ -100,22 +100,22 @@ namespace NuGet.Services.Publish
                     result.DscResourcesToExport = ConvertObjectToJArray(hashtable["DscResourcesToExport"]);
 
                     var privateData = hashtable["PrivateData"] as Hashtable;
-                    result.LicenseUri = null;
-                    result.IconUri = null;
-                    result.Tags = ConvertObjectToJArray(null);
-                    result.ProjectUri = null;
-                    result.ReleaseNotes = null;
+                    result.licenseUrl = null;
+                    result.iconUrl = null;
+                    result.tags = ConvertObjectToJArray(null);
+                    result.projectUrl = null;
+                    result.releaseNotes = null;
 
                     if (privateData != null)
                     {
                         var psData = privateData["PSData"] as Hashtable;
                         if (psData != null)
                         {
-                            result.LicenseUri = psData["LicenseUri"];
-                            result.IconUri = psData["IconUri"];
-                            result.Tags = ConvertObjectToJArray(psData["Tags"]);
-                            result.ProjectUri = psData["ProjectUri"];
-                            result.ReleaseNotes = psData["ReleaseNotes"];
+                            result.licenseUrl = psData["LicenseUri"];
+                            result.iconUrl = psData["IconUri"];
+                            result.tags = ConvertObjectToJArray(psData["Tags"]);
+                            result.projectUrl = psData["ProjectUri"];
+                            result.releaseNotes = psData["ReleaseNotes"];
                         }
                     }
                 }
