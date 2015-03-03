@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Publish
@@ -99,14 +100,59 @@ namespace NuGet.Services.Publish
             }
         }
 
+        static X509Certificate2 LoadCertificate()
+        {
+            string thumbprint = ConfigurationManager.AppSettings["nuget:Thumbprint"];
+
+            if (string.IsNullOrWhiteSpace(thumbprint))
+            {
+                return null;
+            }
+
+            X509Store certStore = null;
+            try
+            {
+                certStore = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+                certStore.Open(OpenFlags.ReadOnly);
+                X509Certificate2Collection certCollection = certStore.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
+                if (certCollection.Count > 0)
+                {
+                    return certCollection[0];
+                }
+                return null;
+            }
+            finally
+            {
+                if (certStore != null)
+                {
+                    certStore.Close();
+                }
+            }
+        }
+
         public static async Task<ActiveDirectoryClient> GetActiveDirectoryClient()
         {
             string authority = string.Format(aadInstance, tenant);
 
             AuthenticationContext authContext = new AuthenticationContext(authority);
 
-            ClientCredential clientCredential = new ClientCredential(clientId, appKey);
-            AuthenticationResult result = await authContext.AcquireTokenAsync(graphResourceId, clientCredential);
+            AuthenticationResult result;
+
+            if (string.IsNullOrEmpty(appKey))
+            {
+                string assertion = "";
+
+                UserAssertion userAssertion = new UserAssertion(assertion);
+
+                X509Certificate2 cert = LoadCertificate();
+                ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(clientId, cert);
+                result = await authContext.AcquireTokenAsync(graphResourceId, clientAssertionCertificate, userAssertion);
+            }
+            else
+            {
+                ClientCredential clientCredential = new ClientCredential(clientId, appKey);
+                result = await authContext.AcquireTokenAsync(graphResourceId, clientCredential);
+            }
 
             string accessToken = result.AccessToken;
 

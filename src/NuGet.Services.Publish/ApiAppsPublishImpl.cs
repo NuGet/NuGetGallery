@@ -185,18 +185,18 @@ namespace NuGet.Services.Publish
                     }
                 }
 
-                CheckRequiredProperty(apiapp, errors, "description");
+                //CheckRequiredProperty(apiapp, errors, "description");
                 CheckRequiredProperty(apiapp, errors, "title");
                 CheckRequiredProperty(apiapp, errors, "summary");
                 CheckRequiredProperty(apiapp, errors, "author");
                 CheckRequiredProperty(apiapp, errors, "domain");
             }
 
-            CheckRequiredFile(packageStream, errors, "metadata/icons/small-icon.png");
-            CheckRequiredFile(packageStream, errors, "metadata/icons/medium-icon.png");
-            CheckRequiredFile(packageStream, errors, "metadata/icons/large-icon.png");
-            CheckRequiredFile(packageStream, errors, "metadata/icons/hero-icon.png");
-            CheckRequiredFile(packageStream, errors, "metadata/icons/wide-icon.png");
+            //CheckRequiredFile(packageStream, errors, "metadata/icons/small-icon.png");
+            //CheckRequiredFile(packageStream, errors, "metadata/icons/medium-icon.png");
+            //CheckRequiredFile(packageStream, errors, "metadata/icons/large-icon.png");
+            //CheckRequiredFile(packageStream, errors, "metadata/icons/hero-icon.png");
+            //CheckRequiredFile(packageStream, errors, "metadata/icons/wide-icon.png");
 
             if (errors.Count == 0)
             {
