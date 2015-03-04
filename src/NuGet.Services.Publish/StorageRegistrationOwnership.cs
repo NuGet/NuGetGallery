@@ -4,11 +4,8 @@ using Microsoft.Owin;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Metadata.Catalog.Ownership;
 using NuGet.Services.Metadata.Catalog.Persistence;
-using NuGet.Versioning;
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -131,7 +128,7 @@ namespace NuGet.Services.Publish
         {
             //IUser user = await GetUser();
             //string userObjectId = user.ObjectId;
-            string userObjectId = GetName();
+            string userObjectId = GetUserObjectId();
             await _registration.AddVersion(
                 new OwnershipRegistration { Prefix = prefix, Id = id },
                 new OwnershipOwner { ObjectId = userObjectId },
@@ -174,15 +171,15 @@ namespace NuGet.Services.Publish
             return tenantId;
         }
 
+        public string GetUserObjectId()
+        {
+            Claim identityObjectIdClaim = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier");
+            string objectId = (identityObjectIdClaim != null) ? identityObjectIdClaim.Value : string.Empty;
+            return objectId;
+        }
+
         public string GetUserId()
         {
-            //foreach (Claim claim in ClaimsPrincipal.Current.Claims)
-            //{
-            //    string issuer = claim.Issuer;
-            //    string type = claim.Type;
-            //    string value = claim.Value;
-            //}
-
             Claim userClaim = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier");
             string userId = (userClaim != null) ? userClaim.Value : string.Empty;
             return userId;
@@ -195,11 +192,13 @@ namespace NuGet.Services.Publish
             return name;
         }
 
-        public Task<IList<string>> GetDomains()
+        public Task<IEnumerable<string>> GetDomains()
         {
             IList<string> domains = new List<string>();
 
-            domains.Add("microsoft.com");
+            domains.Add("domain1.com");
+            domains.Add("domain2.com");
+            domains.Add("domain3.com");
 
             /*
             ActiveDirectoryClient activeDirectoryClient = await GetActiveDirectoryClient();
@@ -228,7 +227,45 @@ namespace NuGet.Services.Publish
             }
             */
 
-            return Task.FromResult(domains);
+            return Task.FromResult<IEnumerable<string>>(domains);
+        }
+
+        public Task<IEnumerable<string>> GetTenants()
+        {
+            IList<string> tenants = new List<string>();
+
+            tenants.Add("tenant1.com");
+            tenants.Add("tenant2.com");
+            tenants.Add("tenant3.com");
+
+            /*
+            ActiveDirectoryClient activeDirectoryClient = await GetActiveDirectoryClient();
+
+            string tenantId = GetTenantId();
+
+            ITenantDetail tenant = activeDirectoryClient.TenantDetails
+                .Where(tenantDetail => tenantDetail.ObjectId.Equals(tenantId))
+                .ExecuteAsync().Result.CurrentPage.FirstOrDefault();
+
+            if (tenant == null)
+            {
+                throw new Exception(string.Format("unable to find tenant with object id = {0}", tenantId));
+            }
+
+            foreach (VerifiedDomain domain in tenant.VerifiedDomains)
+            {
+                if (domain.@default.HasValue && domain.@default.Value)
+                {
+                    domains.Insert(0, domain.Name);
+                }
+                else
+                {
+                    domains.Add(domain.Name);
+                }
+            }
+            */
+
+            return Task.FromResult<IEnumerable<string>>(tenants);
         }
 
         public Task<string> GetPublisherName()

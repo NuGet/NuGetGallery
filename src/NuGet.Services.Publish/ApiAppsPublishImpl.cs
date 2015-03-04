@@ -74,6 +74,14 @@ namespace NuGet.Services.Publish
                 nuspec.Add("category", new JArray("other"));
             }
 
+            JToken jtokenDescription;
+            if (!apiapp.TryGetValue("description", out jtokenDescription))
+            {
+                nuspec.Add("description", apiapp["summary"]);
+            }
+
+            //TODO: add default icons - and these would be present in the inventory - but flagged somehow
+
             string marketplacePublisher = domain.Replace("-", "--").Replace(".", "-");
             nuspec.Add("marketplacePublisher", marketplacePublisher);
 

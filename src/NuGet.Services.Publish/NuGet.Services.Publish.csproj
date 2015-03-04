@@ -198,6 +198,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MetadataHelpers.cs" />
+    <Compile Include="PublicationVisibility.cs" />
     <Compile Include="StorageRegistrationOwnership.cs" />
     <Compile Include="GraphCatalogItem.cs" />
     <Compile Include="ApiAppsPublishImpl.cs" />

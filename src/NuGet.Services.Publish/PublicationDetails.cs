@@ -12,6 +12,6 @@ namespace NuGet.Services.Publish
         public string UserName { get; set; }
         public string TenantId { get; set; }
         public string TenantName { get; set; }
-        public bool Hidden { get; set; }
+        public PublicationVisibility Visibility { get; set; }
     }
 }

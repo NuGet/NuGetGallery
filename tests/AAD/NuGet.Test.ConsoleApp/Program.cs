@@ -8,7 +8,7 @@ namespace NuGet.Test.ConsoleApp
 {
     class Program
     {
-        public const string ServiceAddress = "https://nugettestsecureservice.azurewebsites.net/claims";
+        public const string ServiceAddress = "https://nugettestaad.azurewebsites.net/claims";
 
         const string TenantName = "nuget20150223.onmicrosoft.com";
         const string ServiceResourceId = "http://nuget20150223.onmicrosoft.com/nugettestsecureservice";

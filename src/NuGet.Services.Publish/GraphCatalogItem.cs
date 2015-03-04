@@ -64,11 +64,22 @@ namespace NuGet.Services.Publish
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.CatalogCommitId), catalogEntry.CreateLiteralNode(CommitId.ToString()));
 
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Published), catalogEntry.CreateLiteralNode(_publicationDetails.Published.ToString("O"), Schema.DataTypes.DateTime));
-            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.UserName), catalogEntry.CreateLiteralNode(_publicationDetails.UserName));
-            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Tenant), catalogEntry.CreateLiteralNode(_publicationDetails.TenantName));
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.UserId), catalogEntry.CreateLiteralNode(_publicationDetails.UserId));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.UserName), catalogEntry.CreateLiteralNode(_publicationDetails.UserName));
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.TenantId), catalogEntry.CreateLiteralNode(_publicationDetails.TenantId));
-            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Hidden), catalogEntry.CreateLiteralNode(_publicationDetails.Hidden.ToString().ToLowerInvariant(), Schema.DataTypes.Boolean));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Tenant), catalogEntry.CreateLiteralNode(_publicationDetails.TenantName));
+
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Visibility), catalogEntry.CreateLiteralNode(_publicationDetails.Visibility.Visibility.ToString()));
+
+            switch (_publicationDetails.Visibility.Visibility)
+            {
+                case PublicationVisibility.VisibilityScope.Organization:
+                    catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Organization), catalogEntry.CreateLiteralNode(_publicationDetails.Visibility.Organization));
+                    break;
+                case PublicationVisibility.VisibilityScope.Subscription:
+                    catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Subscription), catalogEntry.CreateLiteralNode(_publicationDetails.Visibility.Subscription));
+                    break;
+            }
 
             //  add the nuspec metadata
 
