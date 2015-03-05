@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Management.Automation;
@@ -108,9 +109,11 @@ namespace PowerShellPublishTests
 
             pubPrivateObject.Invoke("CreateMetadataObject", "", (Stream)f);
 
-            var result = pubPrivateObject.Invoke("Validate", new object[2]{null,null}) as string;
+            var result = pubPrivateObject.Invoke("Validate", new object[1]{null}) as List<string>;
 
-            Assert.AreEqual("Unexpected element encountered.", result);
+            Assert.IsNotNull(result);
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("Unexpected element encountered.", result[0]);
         }
 
         [TestMethod]
@@ -181,12 +184,13 @@ namespace PowerShellPublishTests
             Assert.AreEqual("http://github.com/TestModule", result.GetValue("projectUrl"));
             Assert.AreEqual("This is our best release so far.", result.GetValue("releaseNotes"));
 
-            var validationMessage = pubPrivateObject.Invoke("Validate", new object[2] { null, null }) as string;
+            var validationMessage = pubPrivateObject.Invoke("Validate", new object[1] { null }) as List<string>;
 
             Assert.IsNotNull(validationMessage);
-            Assert.IsTrue(validationMessage.Contains("Author"));
-            Assert.IsTrue(validationMessage.Contains("ModuleVersion"));
-            Assert.IsTrue(validationMessage.Contains("GUID"));
+            Assert.AreEqual(1, validationMessage.Count);
+            Assert.IsTrue(validationMessage[0].Contains("Author"));
+            Assert.IsTrue(validationMessage[0].Contains("ModuleVersion"));
+            Assert.IsTrue(validationMessage[0].Contains("GUID"));
         }
     }
 }

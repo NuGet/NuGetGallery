@@ -14,7 +14,47 @@ namespace PowerShellPublishTests
             get { throw new NotImplementedException(); }
         }
 
+        public bool IsAuthenticated
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         public Task<bool> IsUserAdministrator()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task EnableTenant()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DisableTenant()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> HasTenantEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task AddVersion(string prefix, string id, string version)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> HasOwner(string prefix, string id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> HasRegistration(string prefix, string id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> HasVersion(string prefix, string id, string version)
         {
             throw new NotImplementedException();
         }
@@ -70,6 +110,21 @@ namespace PowerShellPublishTests
         }
 
         public Task<string> GetTenantName()
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<IEnumerable<string>> IRegistrationOwnership.GetDomains()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<string>> GetTenants()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetPublisherName()
         {
             throw new NotImplementedException();
         }

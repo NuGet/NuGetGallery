@@ -172,24 +172,23 @@ namespace NuGet.Services.Publish
         /// <summary>
         /// Rejects the module if no PowerShell module manifest was present
         /// </summary>
-        /// <param name="metadata"></param>
         /// <param name="nupkgStream"></param>
         /// <returns></returns>
-        protected override string Validate(IDictionary<string, JObject> metadata, Stream nupkgStream)
+        protected override IList<string> Validate(Stream nupkgStream)
         {
             if (!_wasPsd1Present)
             {
-                return "A psd1 PowerShell module manifest was missing.";
+                return new List<string>() { "A psd1 PowerShell module manifest was missing." };
             }
 
             if (_missingRequiredFields.Count > 0)
             {
-                return String.Format("The psd1 PowerShell module manifest is missing required fields: {0}.", String.Join(", ", _missingRequiredFields));
+                return new List<string>() { String.Format("The psd1 PowerShell module manifest is missing required fields: {0}.", String.Join(", ", _missingRequiredFields)) };
             }
 
             if (_exception != null)
             {
-                return _exception.Message;
+                return new List<string>() { _exception.Message };
             }
 
             return null;
