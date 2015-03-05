@@ -1,0 +1,39 @@
+﻿PREFIX nuget: <http://schema.nuget.org/schema#>
+PREFIX catalog: <http://schema.nuget.org/catalog#>
+
+CONSTRUCT
+{
+    ?catalogEntry a nuget:PackageDetails ;
+                  nuget:id ?id ;
+                  nuget:version ?version ;
+	              nuget:published ?published ;
+                  nuget:dependencyGroup ?dependency_group .
+
+    ?dependency_group a nuget:PackageDependencyGroup ;
+	                  nuget:dependency ?dependency ;
+                      nuget:targetFramework ?dependency_group_targetFramework .
+
+    ?dependency a nuget:PackageDependency ;
+	            nuget:id ?dependency_id ;
+                nuget:range ?dependency_version .
+}
+WHERE
+{
+    BIND (@catalogEntry AS ?catalogEntry)
+
+    ?catalogEntry nuget:version ?version ;
+                  nuget:id ?id ;
+	              nuget:published ?published .
+
+    OPTIONAL
+    {
+        ?catalogEntry nuget:dependencyGroup ?dependency_group .
+		OPTIONAL { ?dependency_group nuget:targetFramework ?dependency_group_targetFramework . }
+		OPTIONAL
+		{
+			?dependency_group nuget:dependency ?dependency .
+			?dependency nuget:id ?dependency_id .
+			OPTIONAL { ?dependency nuget:range ?dependency_version . }
+		}
+    }
+}

@@ -42,13 +42,23 @@ namespace PublishTestDriverWebSite.Controllers
         {
             string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
             AuthenticationContext authContext = new AuthenticationContext(Startup.Authority, new NaiveSessionCache(userObjectID));
-            ClientCredential credential = new ClientCredential(clientId, appKey);
 
-            AuthenticationResult result = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+            AuthenticationResult authenticationResult;
+
+            if (Startup.Certificate == null)
+            {
+                ClientCredential credential = new ClientCredential(clientId, appKey);
+                authenticationResult = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+            }
+            else
+            {
+                ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(clientId, Startup.Certificate);
+                authenticationResult = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, clientAssertionCertificate, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+            }
 
             HttpClient client = new HttpClient();
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nugetPublishServiceBaseAddress.TrimEnd('/') + "/tenant/" + action);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authenticationResult.AccessToken);
 
             HttpResponseMessage response = await client.SendAsync(request);
 

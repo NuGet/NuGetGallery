@@ -5,5 +5,23 @@
 
 <h1>Package Uploaded</h1>
 
-<p>@Model.Message</p>
+@if (Model.IsSuccess)
+{
+    <p>success</p>
+}
+else
+{
+    if (Model.Error != null)
+    {
+        <p>@Model.Error</p>
+    }
+    else
+    {
+        <p>Validation Errors:</p>
+        foreach (var error in Model.Errors)
+        {
+            <p>@error</p>
+        }
+    }
+}
 

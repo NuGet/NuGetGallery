@@ -27,7 +27,6 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri NuGetClassicPackage = new Uri(Prefixes.NuGet + "NuGetClassicPackage");
             public static readonly Uri ApiAppPackage = new Uri(Prefixes.NuGet + "ApiAppPackage");
             public static readonly Uri PowerShellPackage = new Uri(Prefixes.NuGet + "PowerShellPackage");
-            public static readonly Uri Record = new Uri(Prefixes.Record + "Record");
 
             public static readonly Uri PackageEntry = new Uri(Prefixes.NuGet + "PackageEntry");
 
@@ -49,6 +48,10 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri SmallIcon = new Uri(Prefixes.NuGet + "SmallIcon");
             public static readonly Uri WideIcon = new Uri(Prefixes.NuGet + "WideIcon");
             public static readonly Uri CsmTemplate = new Uri(Prefixes.NuGet + "CsmTemplate");
+
+            public static readonly Uri Record = new Uri(Prefixes.Record + "Record");
+            public static readonly Uri RecordRegistration = new Uri(Prefixes.Record + "Registration");
+            public static readonly Uri RecordOwner = new Uri(Prefixes.Record + "Owner");
         }
 
         public static class Predicates
@@ -64,6 +67,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri GalleryKey = new Uri(Prefixes.Catalog + "galleryKey");
             public static readonly Uri GalleryChecksum = new Uri(Prefixes.Catalog + "galleryChecksum");
 
+            public static readonly Uri Prefix = new Uri(Prefixes.NuGet + "prefix");
             public static readonly Uri Id = new Uri(Prefixes.NuGet + "id");
             public static readonly Uri Version = new Uri(Prefixes.NuGet + "version");
 
@@ -85,6 +89,9 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Domain = new Uri(Prefixes.Record + "domain");
             public static readonly Uri RecordDomain = new Uri(Prefixes.Record + "recordDomain");
             public static readonly Uri RecordRegistration = new Uri(Prefixes.Record + "recordRegistration");
+            public static readonly Uri ObjectId = new Uri(Prefixes.Record + "objectId");
+
+            public static readonly Uri Hidden = new Uri(Prefixes.NuGet + "hidden");
 
             // General-purpose fields
             

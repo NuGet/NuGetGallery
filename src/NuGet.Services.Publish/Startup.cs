@@ -1,4 +1,5 @@
 ﻿using Microsoft.Owin;
+using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.ActiveDirectory;
 using Microsoft.WindowsAzure.Storage;
 using Owin;
@@ -6,6 +7,8 @@ using System;
 using System.Configuration;
 using System.IdentityModel.Tokens;
 using System.Net;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 [assembly: OwinStartup(typeof(NuGet.Services.Publish.Startup))]
@@ -16,17 +19,23 @@ namespace NuGet.Services.Publish
     {
         public void Configuration(IAppBuilder app)
         {
-            app.UseErrorPage();
-
             string audience = ConfigurationManager.AppSettings["ida:Audience"];
             string tenant = ConfigurationManager.AppSettings["ida:Tenant"];
+            string aadInstance = ConfigurationManager.AppSettings["ida:AADInstance"];
 
-            app.UseWindowsAzureActiveDirectoryBearerAuthentication(
-                new WindowsAzureActiveDirectoryBearerAuthenticationOptions
+            string metadataAddress = string.Format(aadInstance, tenant) + "/federationmetadata/2007-06/federationmetadata.xml";
+
+            app.UseWindowsAzureActiveDirectoryBearerAuthentication(new WindowsAzureActiveDirectoryBearerAuthenticationOptions
+            {
+                TokenValidationParameters = new TokenValidationParameters
                 {
-                    TokenValidationParameters = new TokenValidationParameters { ValidAudience = audience },
-                    Tenant = tenant
-                });
+                    ValidAudience = audience,
+                    ValidateIssuer = true,
+                    IssuerValidator = (string issuer, SecurityToken securityToken, TokenValidationParameters validationParameters) => { return issuer; }
+                },
+                Tenant = tenant,
+                MetadataAddress = metadataAddress
+            });
 
             app.Run(Invoke);
         }
@@ -109,19 +118,43 @@ namespace NuGet.Services.Publish
                 case "/catalog/nuspec":
                     {
                         PublishImpl uploader = new NuSpecJsonPublishImpl(registrationOwnership);
-                        await uploader.Upload(context, true);
+                        await uploader.Upload(context, true, false);
                         break;
                     }
                 case "/catalog/microservices":
                     {
                         PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
-                        await uploader.Upload(context, false);
+                        await uploader.Upload(context, false, false);
                         break;
                     }
                 case "/catalog/microservices/public":
                     {
                         PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
-                        await uploader.Upload(context, true);
+                        await uploader.Upload(context, true, false);
+                        break;
+                    }
+                case "/catalog/apiapp":
+                    {
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
+                        await uploader.Upload(context, false, false);
+                        break;
+                    }
+                case "/catalog/apiapp/public":
+                    {
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
+                        await uploader.Upload(context, true, false);
+                        break;
+                    }
+                case "/catalog/apiapp/hidden":
+                    {
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
+                        await uploader.Upload(context, false, true);
+                        break;
+                    }
+                case "/catalog/apiapp/public/hidden":
+                    {
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
+                        await uploader.Upload(context, true, true);
                         break;
                     }
                 case "/tenant/add":

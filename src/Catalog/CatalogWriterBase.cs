@@ -15,7 +15,7 @@ namespace NuGet.Services.Metadata.Catalog
         protected List<CatalogItem> _batch;
         protected bool _open;
 
-        public CatalogWriterBase(Storage storage, ICatalogGraphPersistence graphPersistence = null, CatalogContext context = null)
+        public CatalogWriterBase(IStorage storage, ICatalogGraphPersistence graphPersistence = null, CatalogContext context = null)
         {
             Options.InternUris = false;
 
@@ -34,7 +34,7 @@ namespace NuGet.Services.Metadata.Catalog
             _open = false;
         }
 
-        public Storage Storage { get; private set; }
+        public IStorage Storage { get; private set; }
 
         public ICatalogGraphPersistence GraphPersistence { get; private set; }
 

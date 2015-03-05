@@ -123,9 +123,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RegistrationMakerTests.cs" />
     <Compile Include="Feed2CatalogTests.cs" />
     <Compile Include="GalleryCompareTests.cs" />
-    <Compile Include="RegistrationTests.cs" />
     <Compile Include="ReindexTests.cs" />
     <Compile Include="StorageTests.cs" />
     <Compile Include="TestCollector.cs" />

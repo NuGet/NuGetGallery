@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
-    public abstract class Storage
+    public abstract class Storage : IStorage
     {
         public Storage(Uri baseAddress)
         {

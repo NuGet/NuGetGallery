@@ -32,7 +32,7 @@ namespace NuGet.Services.Publish
         {
         }
 
-        protected virtual string Validate(IDictionary<string, JObject> metadata, Stream nupkgStream)
+        protected virtual IList<string> Validate(Stream nupkgStream)
         {
             return null;
         }
@@ -43,13 +43,13 @@ namespace NuGet.Services.Publish
 
         public async Task CheckAccess(IOwinContext context)
         {
-            if (!_registrationOwnership.IsAuthorized)
+            if (!_registrationOwnership.IsAuthenticated)
             {
                 await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
                 return;
             }
 
-            if (!await _registrationOwnership.IsTenantEnabled())
+            if (!await _registrationOwnership.HasTenantEnabled())
             {
                 await ServiceHelpers.WriteErrorResponse(context, "package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
                 return;
@@ -80,9 +80,9 @@ namespace NuGet.Services.Publish
 
             string message = string.Empty;
 
-            if (await _registrationOwnership.RegistrationExists(domain, id))
+            if (await _registrationOwnership.HasRegistration(domain, id))
             {
-                if (!await _registrationOwnership.IsAuthorizedToRegistration(domain, id))
+                if (!await _registrationOwnership.HasOwner(domain, id))
                 {
                     string s = string.Format("User does not have access to Package Registration \"{0}\" \"{1}\" Please contact the owner(s)", domain, id);
                     await ServiceHelpers.WriteErrorResponse(context, s, HttpStatusCode.Forbidden);
@@ -106,69 +106,70 @@ namespace NuGet.Services.Publish
             await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
         }
 
-        public async Task Upload(IOwinContext context, bool isPublic)
+        public async Task Upload(IOwinContext context, bool isPublic, bool isHidden)
         {
-            if (!_registrationOwnership.IsAuthorized)
+            if (!_registrationOwnership.IsAuthenticated)
             {
                 await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
                 return;
             }
 
-            if (!await _registrationOwnership.IsTenantEnabled())
+            //TODO: tenant enablement in multi-tenant world requires recognizing the admin in a multi-tenant world
+
+            //if (!await _registrationOwnership.IsTenantEnabled())
+            //{
+            //    await ServiceHelpers.WriteErrorResponse(context, "package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
+            //    return;
+            //}
+
+            Stream packageStream = context.Request.Body;
+            
+            //  validation
+
+            IList<string> errors = Validate(packageStream);
+
+            if (errors != null)
             {
-                await ServiceHelpers.WriteErrorResponse(context, "package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
+                await ServiceHelpers.WriteErrorResponse(context, errors, HttpStatusCode.BadRequest);
                 return;
             }
 
-            Stream nupkgStream = context.Request.Body;
+            //  process the package
 
             IDictionary<string, JObject> metadata = new Dictionary<string, JObject>();
 
-            await SaveArtifacts(metadata, nupkgStream);
+            await SaveArtifacts(metadata, packageStream);
 
             InferArtifactTypes(metadata);
 
-            ExtractMetadata(metadata, nupkgStream);
+            ExtractMetadata(metadata, packageStream);
 
             AddPackageContent(metadata);
 
-            string validationResponse = Validate(metadata, nupkgStream);
-
-            if (validationResponse != null)
-            {
-                await ServiceHelpers.WriteErrorResponse(context, validationResponse, HttpStatusCode.BadRequest);
-                return;
-            }
-
             string domain = GetDomain(metadata);
             string id = GetId(metadata);
+            string version = GetVersion(metadata);
 
             string error = string.Empty;
 
             try
             {
-                if (await _registrationOwnership.RegistrationExists(domain, id))
+                if (await _registrationOwnership.HasRegistration(domain, id))
                 {
-                    if (!await _registrationOwnership.IsAuthorizedToRegistration(domain, id))
+                    if (!await _registrationOwnership.HasOwner(domain, id))
                     {
                         await ServiceHelpers.WriteErrorResponse(context, "user does not have access to this registration", HttpStatusCode.Forbidden);
                         return;
                     }
 
-                    string version = GetVersion(metadata);
-
-                    if (await _registrationOwnership.PackageExists(domain, id, version))
+                    if (await _registrationOwnership.HasVersion(domain, id, version))
                     {
                         await ServiceHelpers.WriteErrorResponse(context, "this package version already exists for this registration", HttpStatusCode.Forbidden);
                         return;
                     }
                 }
-                else
-                {
-                    await _registrationOwnership.AddRegistrationOwner(domain, id);
-                }
 
-                string publisher = await _registrationOwnership.GetUserName();
+                string publisher = await _registrationOwnership.GetPublisherName();
 
                 string tenantName;
                 string tenantId;
@@ -180,17 +181,19 @@ namespace NuGet.Services.Publish
                 }
                 else
                 {
-                    tenantName = await _registrationOwnership.GetTenantName();
+                    //tenantName = await _registrationOwnership.GetTenantName();
+                    tenantName = "unknown";
                     tenantId = _registrationOwnership.GetTenantId();
                 }
 
                 PublicationDetails publicationDetails = new PublicationDetails
                 {
                     Published = DateTime.UtcNow,
-                    UserName = await _registrationOwnership.GetUserName(),
+                    UserName = await _registrationOwnership.GetPublisherName(),
                     UserId = _registrationOwnership.GetUserId(),
                     TenantName = tenantName,
-                    TenantId = tenantId
+                    TenantId = tenantId,
+                    Hidden = isHidden
                 };
 
                 Uri catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails);
@@ -200,6 +203,8 @@ namespace NuGet.Services.Publish
                     { "download", GetDownload(metadata) },
                     { "catalog", catalogAddress.ToString() }
                 };
+
+                await _registrationOwnership.AddVersion(domain, id, version);
 
                 await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
 
@@ -272,11 +277,14 @@ namespace NuGet.Services.Publish
 
         public async Task GetDomains(IOwinContext context)
         {
-            if (!_registrationOwnership.IsAuthorized)
+            if (!_registrationOwnership.IsAuthenticated)
             {
                 await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
                 return;
             }
+
+            string s1 = _registrationOwnership.GetTenantId();
+            string s2 = _registrationOwnership.GetUserId();
 
             IList<string> domains = await _registrationOwnership.GetDomains();
 
@@ -287,7 +295,7 @@ namespace NuGet.Services.Publish
 
         public async Task AddTenant(IOwinContext context)
         {
-            if (!_registrationOwnership.IsAuthorized)
+            if (!_registrationOwnership.IsAuthenticated)
             {
                 await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
                 return;
@@ -299,14 +307,14 @@ namespace NuGet.Services.Publish
                 return;
             }
 
-            await _registrationOwnership.AddTenant();
+            await _registrationOwnership.EnableTenant();
 
             context.Response.StatusCode = (int)HttpStatusCode.OK;
         }
 
         public async Task RemoveTenant(IOwinContext context)
         {
-            if (!_registrationOwnership.IsAuthorized)
+            if (!_registrationOwnership.IsAuthenticated)
             {
                 await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
                 return;
@@ -318,7 +326,7 @@ namespace NuGet.Services.Publish
                 return;
             }
 
-            await _registrationOwnership.RemoveTenant();
+            await _registrationOwnership.DisableTenant();
 
             context.Response.StatusCode = (int)HttpStatusCode.OK;
         }

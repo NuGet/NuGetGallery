@@ -1,5 +1,7 @@
-﻿using System;
+﻿using PublishTestDriverWebSite.Models;
+using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -10,7 +12,23 @@ namespace PublishTestDriverWebSite.Controllers
     {
         public ActionResult Index()
         {
-            return View();
+            HomeModel model = new HomeModel();
+
+            model.ClientId = ConfigurationManager.AppSettings["ida:ClientId"];
+            model.AADInstance = ConfigurationManager.AppSettings["ida:AADInstance"];
+            model.Tenant = ConfigurationManager.AppSettings["ida:Tenant"];
+            model.CertificateThumbprint = Startup.Thumbprint;
+
+            if (Startup.Certificate != null)
+            {
+                model.CertificateSubject = Startup.Certificate.Subject;
+            }
+            else
+            {
+                model.CertificateSubject = "(null)";
+            }
+
+            return View(model);
         }
 
         public ActionResult About()

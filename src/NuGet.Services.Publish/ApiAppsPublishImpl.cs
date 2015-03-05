@@ -4,6 +4,7 @@ using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 
 namespace NuGet.Services.Publish
 {
@@ -73,9 +74,11 @@ namespace NuGet.Services.Publish
                 nuspec.Add("category", new JArray("other"));
             }
 
-            string publisher = domain.Replace("-", "--").Replace(".", "-");
+            string marketplacePublisher = domain.Replace("-", "--").Replace(".", "-");
+            nuspec.Add("marketplacePublisher", marketplacePublisher);
 
-            nuspec.Add("publisher", publisher);
+            string marketplaceName = id.Replace("-", "--").Replace(".", "-");
+            nuspec.Add("marketplaceName", marketplaceName);
 
             JObject inventory;
             if (metadata.TryGetValue("inventory", out inventory))
@@ -149,32 +152,107 @@ namespace NuGet.Services.Publish
             }
         }
 
-        protected override string Validate(IDictionary<string, JObject> metadata, Stream nupkgStream)
+        protected override IList<string> Validate(Stream packageStream)
         {
-            if (metadata.Count == 0)
+            IList<string> errors = new List<string>();
+
+            JObject apiapp = GetJObject(packageStream, "apiapp.json");
+
+            if (apiapp == null)
             {
-                return "no metadata was found in the package";
+                errors.Add("required file 'apiapp.json' is missing from package");
+            }
+            else
+            {
+                JToken idJToken = CheckRequiredProperty(apiapp, errors, "id");
+                if (idJToken != null)
+                {
+                    string id = idJToken.ToString();
+                    if (id.LastIndexOfAny(new[] { '/', '@' }) != -1)
+                    {
+                        errors.Add("'/', '@' characters are not permitted in id property");
+                    }
+                }
+
+                JToken versionJToken = CheckRequiredProperty(apiapp, errors, "version");
+                if (versionJToken != null)
+                {
+                    string version = versionJToken.ToString();
+                    SemanticVersion semanticVersion;
+                    if (!SemanticVersion.TryParse(version, out semanticVersion))
+                    {
+                        errors.Add("the version property must follow the Semantic Version rules, refer to 'http://semver.org'");
+                    }
+                }
+
+                //CheckRequiredProperty(apiapp, errors, "description");
+                CheckRequiredProperty(apiapp, errors, "title");
+                CheckRequiredProperty(apiapp, errors, "summary");
+                CheckRequiredProperty(apiapp, errors, "author");
+                CheckRequiredProperty(apiapp, errors, "domain");
             }
 
-            JObject nuspec;
-            if (!metadata.TryGetValue("apiapp.json", out nuspec))
+            //CheckRequiredFile(packageStream, errors, "metadata/icons/small-icon.png");
+            //CheckRequiredFile(packageStream, errors, "metadata/icons/medium-icon.png");
+            //CheckRequiredFile(packageStream, errors, "metadata/icons/large-icon.png");
+            //CheckRequiredFile(packageStream, errors, "metadata/icons/hero-icon.png");
+            //CheckRequiredFile(packageStream, errors, "metadata/icons/wide-icon.png");
+
+            if (errors.Count == 0)
             {
-                return "apiapp.json was found in the package";
+                return null;
             }
 
-            JToken id;
-            if (!nuspec.TryGetValue("id", out id))
-            {
-                return "required property 'id' was missing from metadata";
-            }
+            return errors;
+        }
 
-            JToken version;
-            if (!nuspec.TryGetValue("version", out version))
+        static JToken CheckRequiredProperty(JObject obj, IList<string> errors, string name)
+        {
+            JToken token;
+            if (!obj.TryGetValue(name, out token))
             {
-                return "required property 'version' was missing from metadata";
+                errors.Add(string.Format("required property '{0}' is missing from 'apiapp.json' file", name));
             }
+            return token;
+        }
 
+        static void CheckRequiredFile(Stream packageStream, IList<string> errors, string fullName)
+        {
+            if (!FileExists(packageStream, fullName))
+            {
+                errors.Add(string.Format("required file '{0}' was missing from package", fullName));
+            }
+        }
+
+        static JObject GetJObject(Stream packageStream, string fullName)
+        {
+            using (ZipArchive archive = new ZipArchive(packageStream, ZipArchiveMode.Read, true))
+            {
+                foreach (ZipArchiveEntry zipEntry in archive.Entries)
+                {
+                    if (zipEntry.FullName == fullName)
+                    {
+                        string s = new StreamReader(zipEntry.Open()).ReadToEnd();
+                        return JObject.Parse(s);
+                    }
+                }
+            }
             return null;
+        }
+
+        static bool FileExists(Stream packageStream, string fullName)
+        {
+            using (ZipArchive archive = new ZipArchive(packageStream, ZipArchiveMode.Read, true))
+            {
+                foreach (ZipArchiveEntry zipEntry in archive.Entries)
+                {
+                    if (zipEntry.FullName == fullName)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
     }
 }
