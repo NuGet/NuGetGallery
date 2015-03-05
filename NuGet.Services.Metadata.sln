@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.22310.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Metadata.Catalog", "src\Catalog\NuGet.Services.Metadata.Catalog.csproj", "{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}"
 EndProject
@@ -48,6 +48,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{4AA08E
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublishTestDriverWebSite", "tests\PublishTestDriverWebSite\PublishTestDriverWebSite.csproj", "{DCE82063-AD00-4EA9-BB0E-B01047BC861C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PowerShellPublishTests", "tests\PowerShellPublishTests\PowerShellPublishTests.csproj", "{BF865540-994C-4D8E-A487-DEC2D0397CA8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AAD", "AAD", "{F91EB063-83EC-4194-8D62-12B9F91E4EE7}"
 EndProject
@@ -193,6 +195,18 @@ Global
 		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{DCE82063-AD00-4EA9-BB0E-B01047BC861C}.Release|x64.ActiveCfg = Release|Any CPU
+		{BF865540-994C-4D8E-A487-DEC2D0397CA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF865540-994C-4D8E-A487-DEC2D0397CA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF865540-994C-4D8E-A487-DEC2D0397CA8}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{BF865540-994C-4D8E-A487-DEC2D0397CA8}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{BF865540-994C-4D8E-A487-DEC2D0397CA8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BF865540-994C-4D8E-A487-DEC2D0397CA8}.Debug|x64.Build.0 = Debug|Any CPU
+		{BF865540-994C-4D8E-A487-DEC2D0397CA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF865540-994C-4D8E-A487-DEC2D0397CA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF865540-994C-4D8E-A487-DEC2D0397CA8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{BF865540-994C-4D8E-A487-DEC2D0397CA8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{BF865540-994C-4D8E-A487-DEC2D0397CA8}.Release|x64.ActiveCfg = Release|Any CPU
+		{BF865540-994C-4D8E-A487-DEC2D0397CA8}.Release|x64.Build.0 = Release|Any CPU
 		{59F5CE10-A505-4B45-88E2-92F7664714E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{59F5CE10-A505-4B45-88E2-92F7664714E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{59F5CE10-A505-4B45-88E2-92F7664714E4}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU

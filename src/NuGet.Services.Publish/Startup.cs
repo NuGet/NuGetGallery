@@ -147,6 +147,12 @@ namespace NuGet.Services.Publish
                         await uploader.TenantDisable(context);
                         break;
                     }
+                case "/catalog/powershell":
+                    {
+                        PublishImpl uploader = new PowerShellPublishImpl(registrationOwnership);
+                        await uploader.Upload(context);
+                        break;
+                    }
                 default:
                     {
                         await context.Response.WriteAsync("NotFound");
