@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -19,10 +20,11 @@ namespace PublishTestDriverWebSite.Controllers
     [Authorize]
     public class UploadController : Controller
     {
-        private string nugetServiceResourceId = ConfigurationManager.AppSettings["nuget:ServiceResourceId"];
-        private string nugetPublishServiceBaseAddress = ConfigurationManager.AppSettings["nuget:PublishServiceBaseAddress"];
+        private static string nugetServiceResourceId = ConfigurationManager.AppSettings["nuget:ServiceResourceId"];
+        private static string nugetPublishServiceBaseAddress = ConfigurationManager.AppSettings["nuget:PublishServiceBaseAddress"];
         private static string clientId = ConfigurationManager.AppSettings["ida:ClientId"];
         private static string appKey = ConfigurationManager.AppSettings["ida:AppKey"];
+        private static string aadInstance = ConfigurationManager.AppSettings["ida:AADInstance"];
 
         public ActionResult Index()
         {
@@ -37,26 +39,20 @@ namespace PublishTestDriverWebSite.Controllers
                 return View("ValidationError", new ValidationErrorModel("please specify a file to upload"));
             }
 
-            string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
-            AuthenticationContext authContext = new AuthenticationContext(Startup.Authority, new NaiveSessionCache(userObjectID));
+            string signedInUserID = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
+            string tenantId = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid").Value;
 
-            AuthenticationResult authenticationResult;
+            string authority = string.Format(aadInstance, tenantId);
 
-            if (Startup.Certificate == null)
-            {
-                ClientCredential credential = new ClientCredential(clientId, appKey);
-                authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
-            }
-            else
-            {
-                ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(clientId, Startup.Certificate);
-                authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, clientAssertionCertificate, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
-            }
+            AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(signedInUserID));
 
-            string path = GetPath(access == "public", visibility == "hidden");
+            ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(clientId, Startup.Certificate);
+            AuthenticationResult authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, clientAssertionCertificate, new UserIdentifier(signedInUserID, UserIdentifierType.UniqueId));
+
+            string requestUri = nugetPublishServiceBaseAddress.TrimEnd('/') + "/catalog/apiapp";
 
             HttpClient client = new HttpClient();
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nugetPublishServiceBaseAddress + path);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUri);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authenticationResult.AccessToken);
 
             request.Content = new StreamContent(uploadFile.InputStream);
@@ -101,18 +97,17 @@ namespace PublishTestDriverWebSite.Controllers
             }
         }
 
-        static string GetPath(bool isPublic, bool isHidden)
+        static string MakeQuery(string organization, string subscription)
         {
-            StringBuilder path = new StringBuilder("/catalog/apiapp");
-            if (isPublic)
+            if (organization != null)
             {
-                path.Append("/public");
+                return "?organization=" + organization;
             }
-            if (isHidden)
+            if (subscription != null)
             {
-                path.Append("/hidden");
+                return "?subscription=" + subscription;
             }
-            return path.ToString();
+            return string.Empty;
         }
     }
 }

@@ -138,6 +138,13 @@ namespace NuGet.Services.Publish
             return tenantId;
         }
 
+        public static string GetUserId()
+        {
+            Claim userClaim = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier");
+            string userId = (userClaim != null) ? userClaim.Value : string.Empty;
+            return userId;
+        }
+
         public static async Task<ActiveDirectoryClient> GetActiveDirectoryClient()
         {
             string tenantId = GetTenantId();
@@ -170,9 +177,10 @@ namespace NuGet.Services.Publish
 
             string accessToken = result.AccessToken;
 
-            Uri serviceRoot = new Uri(new Uri(graphResourceId), tenant);
+            Uri serviceRoot = new Uri(new Uri(graphResourceId), tenantId);
 
             ActiveDirectoryClient activeDirectoryClient = new ActiveDirectoryClient(serviceRoot, () => { return Task.FromResult(accessToken); });
+            IUser user = await activeDirectoryClient.Users.GetByObjectId(GetUserId()).ExecuteAsync();
 
             return activeDirectoryClient;
         }

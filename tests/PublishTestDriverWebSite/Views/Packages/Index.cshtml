@@ -10,7 +10,7 @@
         <th>Domain</th>
         <th>Id</th>
         <th>Version</th>
-        <th>Public</th>
+        <th>Visibility</th>
     </tr>
     @foreach (var package in Model.Packages)
     {
@@ -18,7 +18,7 @@
             <td>@package.Domain</td>
             <td>@package.Id</td>
             <td>@package.Version</td>
-            <td>@package.IsPublic</td>
+            <td>@package.Visibility</td>
         </tr>
     }
 </table>

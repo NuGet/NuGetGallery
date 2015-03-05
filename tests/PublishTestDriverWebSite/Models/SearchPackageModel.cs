@@ -19,7 +19,7 @@ namespace PublishTestDriverWebSite.Models
             Id = JsonUtils.Get(searchResult, "id");
             IconUrl = JsonUtils.Get(searchResult, "iconUrl");
             Version = JsonUtils.Get(searchResult, "version");
-            IsPublic = JsonUtils.GetBool(searchResult, "isPublic");
+            Visibility = JsonUtils.Get(searchResult, "visibility");
             Tags = JsonUtils.GetList(searchResult, "tags");
             Authors = JsonUtils.GetList(searchResult, "authors");
 
@@ -41,7 +41,7 @@ namespace PublishTestDriverWebSite.Models
         public string Title { get; private set; }
         public string Id { get; private set; }
         public string IconUrl { get; private set; }
-        public bool IsPublic { get; private set; }
+        public string Visibility { get; private set; }
         public List<string> Tags { get; private set; }
         public List<string> Authors { get; private set; }
         public string Version { get; private set; }
