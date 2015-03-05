@@ -58,7 +58,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="ExtractMetadataTests.cs" />
+    <None Include="ExtractMetadataTests.cs" />
     <Compile Include="MockIRegistrationOwnership.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
