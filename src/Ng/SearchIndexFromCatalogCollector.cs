@@ -202,13 +202,13 @@ namespace Ng
             //TODO: for now this is a MicroservicePackage hi-jack - later we can make this Docuemnt creation more generic
             if (Utils.IsType(package["@context"], package, Schema.DataTypes.ApiAppPackage))
             {
-                return CreateLuceneDocument_Microservice(package, packageUrl);
+                return CreateLuceneDocument_ApiApp(package, packageUrl);
             }
 
             return CreateLuceneDocument_NuGet(package, packageUrl);
         }
 
-        static Document CreateLuceneDocument_Microservice(JObject package, string packageUrl)
+        static Document CreateLuceneDocument_ApiApp(JObject package, string packageUrl)
         {
             Document doc = CreateLuceneDocument_Core(package, packageUrl);
 
@@ -267,8 +267,8 @@ namespace Ng
 
             Add(doc, "Domain", (string)package["domain"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
-            string tenantId = (string)package["tenantId"] ?? "PUBLIC";
-            Add(doc, "TenantId", tenantId, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "TenantId", (string)package["tenantId"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "Visibility", (string)package["visibility"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
             doc.Add(new NumericField("PublishedDate", Field.Store.YES, true).SetIntValue(int.Parse(package["published"].ToObject<DateTime>().ToString("yyyyMMdd"))));
 
