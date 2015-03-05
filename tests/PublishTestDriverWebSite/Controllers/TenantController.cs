@@ -14,8 +14,8 @@ namespace PublishTestDriverWebSite.Controllers
     [Authorize]
     public class TenantController : Controller
     {
+        private string nugetServiceResourceId = ConfigurationManager.AppSettings["nuget:ServiceResourceId"];
         private string nugetPublishServiceBaseAddress = ConfigurationManager.AppSettings["nuget:PublishServiceBaseAddress"];
-        private string nugetPublishServiceResourceId = ConfigurationManager.AppSettings["nuget:PublishServiceResourceId"];
         private const string TenantIdClaimType = "http://schemas.microsoft.com/identity/claims/tenantid";
         private static string clientId = ConfigurationManager.AppSettings["ida:ClientId"];
         private static string appKey = ConfigurationManager.AppSettings["ida:AppKey"];
@@ -48,12 +48,12 @@ namespace PublishTestDriverWebSite.Controllers
             if (Startup.Certificate == null)
             {
                 ClientCredential credential = new ClientCredential(clientId, appKey);
-                authenticationResult = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+                authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
             }
             else
             {
                 ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(clientId, Startup.Certificate);
-                authenticationResult = await authContext.AcquireTokenSilentAsync(nugetPublishServiceResourceId, clientAssertionCertificate, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+                authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, clientAssertionCertificate, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
             }
 
             HttpClient client = new HttpClient();

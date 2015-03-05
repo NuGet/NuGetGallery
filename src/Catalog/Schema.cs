@@ -91,7 +91,9 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri RecordRegistration = new Uri(Prefixes.Record + "recordRegistration");
             public static readonly Uri ObjectId = new Uri(Prefixes.Record + "objectId");
 
-            public static readonly Uri Hidden = new Uri(Prefixes.NuGet + "hidden");
+            public static readonly Uri Visibility = new Uri(Prefixes.NuGet + "visibility");
+            public static readonly Uri Organization = new Uri(Prefixes.NuGet + "organization");
+            public static readonly Uri Subscription = new Uri(Prefixes.NuGet + "subscription");
 
             // General-purpose fields
             

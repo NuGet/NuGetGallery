@@ -14,18 +14,20 @@ namespace NuGet.Services.Publish
 
         Task<bool> HasTenantEnabled();
 
-        Task AddVersion(string domain, string id, string version);
+        Task AddVersion(string prefix, string id, string version);
 
-        Task<bool> HasOwner(string domain, string id);
-        Task<bool> HasRegistration(string domain, string id);
-        Task<bool> HasVersion(string domain, string id, string version);
+        Task<bool> HasOwner(string prefix, string id);
+        Task<bool> HasRegistration(string prefix, string id);
+        Task<bool> HasVersion(string prefix, string id, string version);
 
         string GetUserId();
         Task<string> GetUserName();
+
         string GetTenantId();
         Task<string> GetTenantName();
 
-        Task<IList<string>> GetDomains();
+        Task<IEnumerable<string>> GetDomains();
+        Task<IEnumerable<string>> GetTenants();
 
         Task<string> GetPublisherName();
     }

@@ -9,6 +9,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace NuGet.Services.Publish
 {
@@ -53,7 +54,7 @@ namespace NuGet.Services.Publish
             await WriteResponse(context, content, statusCode);
         }
 
-        public static async Task WriteErrorResponse(IOwinContext context, IList<string> errors, HttpStatusCode statusCode)
+        public static async Task WriteErrorResponse(IOwinContext context, IEnumerable<string> errors, HttpStatusCode statusCode)
         {
             JArray array = new JArray();
             foreach (string error in errors)
@@ -130,9 +131,18 @@ namespace NuGet.Services.Publish
             }
         }
 
+        public static string GetTenantId()
+        {
+            Claim tenantClaim = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid");
+            string tenantId = (tenantClaim != null) ? tenantClaim.Value : string.Empty;
+            return tenantId;
+        }
+
         public static async Task<ActiveDirectoryClient> GetActiveDirectoryClient()
         {
-            string authority = string.Format(aadInstance, tenant);
+            string tenantId = GetTenantId();
+
+            string authority = string.Format(aadInstance, tenantId);
 
             AuthenticationContext authContext = new AuthenticationContext(authority);
 
@@ -140,11 +150,15 @@ namespace NuGet.Services.Publish
 
             if (string.IsNullOrEmpty(appKey))
             {
-                string assertion = "";
-
-                UserAssertion userAssertion = new UserAssertion(assertion);
+                //string assertion = Startup.SecurityToken.ToString();
 
                 X509Certificate2 cert = LoadCertificate();
+
+                string authHeader = HttpContext.Current.Request.Headers["Authorization"];
+                string userAccessToken = authHeader.Substring(authHeader.LastIndexOf(' ')).Trim();
+
+                UserAssertion userAssertion = new UserAssertion(userAccessToken);
+
                 ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(clientId, cert);
                 result = await authContext.AcquireTokenAsync(graphResourceId, clientAssertionCertificate, userAssertion);
             }
