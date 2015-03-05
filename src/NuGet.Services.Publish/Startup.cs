@@ -21,23 +21,26 @@ namespace NuGet.Services.Publish
     {
         public void Configuration(IAppBuilder app)
         {
-            string audience = ConfigurationManager.AppSettings["ida:Audience"];
-            string tenant = ConfigurationManager.AppSettings["ida:Tenant"];
-            string aadInstance = ConfigurationManager.AppSettings["ida:AADInstance"];
-
-            string metadataAddress = string.Format(aadInstance, tenant) + "/federationmetadata/2007-06/federationmetadata.xml";
-
-            app.UseWindowsAzureActiveDirectoryBearerAuthentication(new WindowsAzureActiveDirectoryBearerAuthenticationOptions
+            if (!HasNoSecurityConfigured())
             {
-                TokenValidationParameters = new TokenValidationParameters
+                string audience = ConfigurationManager.AppSettings["ida:Audience"];
+                string tenant = ConfigurationManager.AppSettings["ida:Tenant"];
+                string aadInstance = ConfigurationManager.AppSettings["ida:AADInstance"];
+
+                string metadataAddress = string.Format(aadInstance, tenant) + "/federationmetadata/2007-06/federationmetadata.xml";
+
+                app.UseWindowsAzureActiveDirectoryBearerAuthentication(new WindowsAzureActiveDirectoryBearerAuthenticationOptions
                 {
-                    ValidAudience = audience,
-                    ValidateIssuer = true,
-                    IssuerValidator = (string issuer, SecurityToken securityToken, TokenValidationParameters validationParameters) => { return issuer; }
-                },
-                Tenant = tenant,
-                MetadataAddress = metadataAddress
-            });
+                    TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidAudience = audience,
+                        ValidateIssuer = true,
+                        IssuerValidator = (string issuer, SecurityToken securityToken, TokenValidationParameters validationParameters) => { return issuer; }
+                    },
+                    Tenant = tenant,
+                    MetadataAddress = metadataAddress
+                });
+            }
 
             app.Run(Invoke);
         }
@@ -164,12 +167,23 @@ namespace NuGet.Services.Publish
 
         IRegistrationOwnership CreateRegistrationOwnership(IOwinContext context)
         {
-            string storagePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
-            string storageContainerOwnership = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Ownership") ?? "ownership";
+            if (HasNoSecurityConfigured())
+            {
+                return new NoSecurityRegistrationOwnership();
+            }
+
+            string storagePrimary = ConfigurationManager.AppSettings.Get("Storage.Primary");
+            string storageContainerOwnership = ConfigurationManager.AppSettings.Get("Storage.Container.Ownership") ?? "ownership";
 
             CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
 
             return new StorageRegistrationOwnership(context, account, storageContainerOwnership);
+        }
+
+        bool HasNoSecurityConfigured()
+        {
+            string noSecurity = ConfigurationManager.AppSettings.Get("NoSecurity");
+            return (!string.IsNullOrEmpty(noSecurity) && noSecurity.Equals("true", StringComparison.InvariantCultureIgnoreCase));
         }
     }
 }
