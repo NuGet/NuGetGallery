@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
@@ -164,6 +165,9 @@ namespace NuGet.Services.Publish
                 string authHeader = HttpContext.Current.Request.Headers["Authorization"];
                 string userAccessToken = authHeader.Substring(authHeader.LastIndexOf(' ')).Trim();
 
+                var bootstrapContext = ClaimsPrincipal.Current.Identities.First().BootstrapContext as System.IdentityModel.Tokens.BootstrapContext;
+                userAccessToken = bootstrapContext.Token;
+
                 UserAssertion userAssertion = new UserAssertion(userAccessToken);
 
                 ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(clientId, cert);
@@ -180,7 +184,27 @@ namespace NuGet.Services.Publish
             Uri serviceRoot = new Uri(new Uri(graphResourceId), tenantId);
 
             ActiveDirectoryClient activeDirectoryClient = new ActiveDirectoryClient(serviceRoot, () => { return Task.FromResult(accessToken); });
-            IUser user = await activeDirectoryClient.Users.GetByObjectId(GetUserId()).ExecuteAsync();
+
+            string userId = GetUserId();
+
+            // ok enough is enough lets take a look at all the claims!!!
+
+            JArray claimsArray = new JArray();
+            foreach (Claim claim in ClaimsPrincipal.Current.Claims)
+            {
+                JObject obj = new JObject();
+                obj.Add("type", claim.Type);
+                obj.Add("value", claim.Value);
+                claimsArray.Add(obj);
+            }
+
+            string allTheClaims = result.ToString();
+
+            ClaimsIdentity claimsId = ClaimsPrincipal.Current.Identity as ClaimsIdentity;
+
+            //IUser user = await activeDirectoryClient.Users.GetByObjectId(userId).ExecuteAsync();
+
+            var tenantDetails = await activeDirectoryClient.TenantDetails.ExecuteAsync();
 
             return activeDirectoryClient;
         }

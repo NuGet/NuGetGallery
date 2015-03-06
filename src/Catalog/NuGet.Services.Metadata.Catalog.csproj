@@ -137,7 +137,10 @@
     <Compile Include="Pipeline\PipelinePackage.cs" />
     <Compile Include="Pipeline\PublicationDetailsStage.cs" />
     <Compile Include="Pipeline\XmlStage.cs" />
+    <Compile Include="Registration\IRegistrationPersistence.cs" />
     <Compile Include="Registration\RecordingStorage.cs" />
+    <Compile Include="Registration\RegistrationCatalogEntry.cs" />
+    <Compile Include="Registration\RegistrationEntryKey.cs" />
     <Compile Include="Registration\RegistrationMakerCatalogItem.cs" />
     <Compile Include="Registration\RegistrationMakerCatalogWriter.cs" />
     <Compile Include="Registration\RegistrationKey.cs" />

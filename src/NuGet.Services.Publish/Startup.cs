@@ -33,6 +33,7 @@ namespace NuGet.Services.Publish
                 {
                     TokenValidationParameters = new TokenValidationParameters
                     {
+                        SaveSigninToken = true,
                         ValidAudience = audience,
                         ValidateIssuer = true,
                         IssuerValidator = (string issuer, SecurityToken securityToken, TokenValidationParameters validationParameters) => { return issuer; }

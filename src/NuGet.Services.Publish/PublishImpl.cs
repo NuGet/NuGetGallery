@@ -231,8 +231,8 @@ namespace NuGet.Services.Publish
             string tenantId = _registrationOwnership.GetTenantId();
 
             //TODO: requires Graph access
-            string tenantName = string.Empty;
-            //string tenantName = await _registrationOwnership.GetTenantName();
+            //string tenantName = string.Empty;
+            string tenantName = await _registrationOwnership.GetTenantName();
 
             PublicationDetails publicationDetails = new PublicationDetails
             {

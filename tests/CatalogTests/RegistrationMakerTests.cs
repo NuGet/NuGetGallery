@@ -11,7 +11,7 @@ namespace CatalogTests
 {
     public static class RegistrationMakerTests
     {
-        static KeyValuePair<string, IGraph> CreateTestCatalogEntry(string id, string version)
+        static KeyValuePair<string, IGraph> CreateTestCatalogEntry(string id, string version, bool isDelete = false)
         {
             Uri packageContentUri = new Uri(string.Format("https://content/{0}.zip", Guid.NewGuid()));
 
@@ -20,11 +20,34 @@ namespace CatalogTests
             INode subject = graph.CreateUriNode(subjectUri);
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Id), graph.CreateLiteralNode(id));
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Version), graph.CreateLiteralNode(version));
-            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Published), graph.CreateLiteralNode(DateTime.UtcNow.ToString("O"), Schema.DataTypes.DateTime));
-            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.PackageContent), graph.CreateUriNode(packageContentUri));
+
+            if (isDelete)
+            {
+                graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.CatalogDelete));
+            }
+            else
+            {
+                graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Published), graph.CreateLiteralNode(DateTime.UtcNow.ToString("O"), Schema.DataTypes.DateTime));
+                graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.PackageContent), graph.CreateUriNode(packageContentUri));
+            }
+
             Console.WriteLine(subjectUri);
 
-            return new KeyValuePair<string, IGraph>(subjectUri.ToString(), graph);
+            return new KeyValuePair<string, IGraph>(subjectUri.AbsoluteUri, graph);
+        }
+
+        static IDictionary<string, IGraph> CreateTestSingleEntryBatch(string id, string version)
+        {
+            IDictionary<string, IGraph> batch = new Dictionary<string, IGraph>();
+            batch.Add(CreateTestCatalogEntry(id, version));
+            return batch;
+        }
+
+        static IDictionary<string, IGraph> CreateTestSingleEntryDeleteBatch(string id, string version)
+        {
+            IDictionary<string, IGraph> batch = new Dictionary<string, IGraph>();
+            batch.Add(CreateTestCatalogEntry(id, version, true));
+            return batch;
         }
 
         public static async Task Test0Async()
@@ -45,7 +68,7 @@ namespace CatalogTests
             catalog.Add(CreateTestCatalogEntry("mypackage", "4.0.0"));
             catalog.Add(CreateTestCatalogEntry("mypackage", "5.0.0"));
             FileStorageFactory factory = new FileStorageFactory(new Uri("http://tempuri.org"), path);
-            await RegistrationMaker.Process("mypackage", catalog, factory, new Uri("http://content/"), 2, 3);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), catalog, factory, new Uri("http://content/"), 2, 3);
         }
 
         public static async Task Test1Async()
@@ -61,29 +84,60 @@ namespace CatalogTests
 
             FileStorageFactory factory = new FileStorageFactory(new Uri("http://tempuri.org"), path);
 
-            IDictionary<string, IGraph> catalog1 = new Dictionary<string, IGraph>();
-            catalog1.Add(CreateTestCatalogEntry("mypackage", "1.0.0"));
-            await RegistrationMaker.Process("mypackage", catalog1, factory, new Uri("http://content/"), 2, 3);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "1.0.0"), factory, new Uri("http://content/"), 2, 3);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "2.0.0"), factory, new Uri("http://content/"), 2, 3);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "3.0.0"), factory, new Uri("http://content/"), 2, 3);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "4.0.0"), factory, new Uri("http://content/"), 2, 3);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "5.0.0"), factory, new Uri("http://content/"), 2, 3);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "6.0.0"), factory, new Uri("http://content/"), 2, 3);
+        }
 
-            IDictionary<string, IGraph> catalog2 = new Dictionary<string, IGraph>();
-            catalog2.Add(CreateTestCatalogEntry("mypackage", "2.0.0"));
-            await RegistrationMaker.Process("mypackage", catalog2, factory, new Uri("http://content/"), 2, 3);
+        public static async Task Test2Async()
+        {
+            string path = "c:\\data\\test";
 
-            IDictionary<string, IGraph> catalog3 = new Dictionary<string, IGraph>();
-            catalog3.Add(CreateTestCatalogEntry("mypackage", "3.0.0"));
-            await RegistrationMaker.Process("mypackage", catalog3, factory, new Uri("http://content/"), 2, 3);
+            DirectoryInfo directoryInfo = new DirectoryInfo(path);
+            if (directoryInfo.Exists)
+            {
+                directoryInfo.Delete(true);
+            }
+            directoryInfo.Create();
 
-            IDictionary<string, IGraph> catalog4 = new Dictionary<string, IGraph>();
-            catalog4.Add(CreateTestCatalogEntry("mypackage", "4.0.0"));
-            await RegistrationMaker.Process("mypackage", catalog4, factory, new Uri("http://content/"), 2, 3);
+            FileStorageFactory factory = new FileStorageFactory(new Uri("http://tempuri.org"), path);
 
-            IDictionary<string, IGraph> catalog5 = new Dictionary<string, IGraph>();
-            catalog5.Add(CreateTestCatalogEntry("mypackage", "5.0.0"));
-            await RegistrationMaker.Process("mypackage", catalog5, factory, new Uri("http://content/"), 2, 3);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "1.0.0"), factory, new Uri("http://content/"), 10, 10);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "2.0.0"), factory, new Uri("http://content/"), 10, 10);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "3.0.0"), factory, new Uri("http://content/"), 10, 10);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "4.0.0"), factory, new Uri("http://content/"), 10, 10);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "5.0.0"), factory, new Uri("http://content/"), 10, 10);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "6.0.0"), factory, new Uri("http://content/"), 10, 10);
+        }
 
-            IDictionary<string, IGraph> catalog6 = new Dictionary<string, IGraph>();
-            catalog6.Add(CreateTestCatalogEntry("mypackage", "6.0.0"));
-            await RegistrationMaker.Process("mypackage", catalog6, factory, new Uri("http://content/"), 2, 3);
+        public static async Task Test3Async()
+        {
+            string path = "c:\\data\\test";
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(path);
+            if (directoryInfo.Exists)
+            {
+                directoryInfo.Delete(true);
+            }
+            directoryInfo.Create();
+
+            FileStorageFactory factory = new FileStorageFactory(new Uri("http://tempuri.org"), path);
+
+            IDictionary<string, IGraph> catalog = new Dictionary<string, IGraph>();
+            catalog.Add(CreateTestCatalogEntry("mypackage", "1.0.0"));
+            catalog.Add(CreateTestCatalogEntry("mypackage", "2.0.0"));
+            catalog.Add(CreateTestCatalogEntry("mypackage", "3.0.0"));
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), catalog, factory, new Uri("http://content/"), 2, 3);
+
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "3.0.0"), factory, new Uri("http://content/"), 10, 10);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "4.0.0"), factory, new Uri("http://content/"), 10, 10);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "5.0.0"), factory, new Uri("http://content/"), 10, 10);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "6.0.0"), factory, new Uri("http://content/"), 10, 10);
+
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryDeleteBatch("mypackage", "4.0.0"), factory, new Uri("http://content/"), 10, 10);
         }
     }
 }

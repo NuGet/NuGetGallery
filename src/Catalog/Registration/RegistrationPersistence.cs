@@ -10,7 +10,7 @@ using VDS.RDF.Query;
 
 namespace NuGet.Services.Metadata.Catalog.Registration
 {
-    public class RegistrationPersistence
+    public class RegistrationPersistence : IRegistrationPersistence
     {
         Uri _registrationUri;
         int _packageCountThreshold;
@@ -18,41 +18,41 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         RecordingStorage _storage;
         Uri _registrationBaseAddress;
 
-        public RegistrationPersistence(StorageFactory storageFactory, string id, int partitionSize, int packageCountThreshold)
+        public RegistrationPersistence(StorageFactory storageFactory, RegistrationKey registrationKey, int partitionSize, int packageCountThreshold)
         {
-            _storage = new RecordingStorage(storageFactory.Create(id.ToLowerInvariant()));
+            _storage = new RecordingStorage(storageFactory.Create(registrationKey.ToString()));
             _registrationUri = _storage.ResolveUri("index.json");
             _packageCountThreshold = packageCountThreshold;
             _partitionSize = partitionSize;
             _registrationBaseAddress = storageFactory.BaseAddress;
         }
 
-        public Task<IDictionary<RegistrationKey, Tuple<string, IGraph>>> Load()
+        public Task<IDictionary<RegistrationEntryKey, RegistrationCatalogEntry>> Load()
         {
             return Load(_storage, _registrationUri);
         }
 
-        public async Task Save(IDictionary<RegistrationKey, Tuple<string, IGraph>> resulting)
+        public async Task Save(IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> registration)
         {
-            await Save(_storage, _registrationBaseAddress, resulting, _partitionSize, _packageCountThreshold);
+            await Save(_storage, _registrationBaseAddress, registration, _partitionSize, _packageCountThreshold);
 
             await Cleanup(_storage);
         }
 
         //  Load implementation
 
-        static async Task<IDictionary<RegistrationKey, Tuple<string, IGraph>>> Load(IStorage storage, Uri resourceUri)
+        static async Task<IDictionary<RegistrationEntryKey, RegistrationCatalogEntry>> Load(IStorage storage, Uri resourceUri)
         {
             IGraph graph = await LoadCatalog(storage, resourceUri);
 
-            IDictionary<RegistrationKey, Tuple<string, IGraph>> resources = GetResources(graph);
+            IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> resources = GetResources(graph);
 
             return resources;
         }
 
-        static IDictionary<RegistrationKey, Tuple<string, IGraph>> GetResources(IGraph graph)
+        static IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> GetResources(IGraph graph)
         {
-            IDictionary<RegistrationKey, Tuple<string, IGraph>> resources = new Dictionary<RegistrationKey, Tuple<string, IGraph>>();
+            IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> resources = new Dictionary<RegistrationEntryKey, RegistrationCatalogEntry>();
 
             TripleStore store = new TripleStore();
             store.Add(graph);
@@ -82,7 +82,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return results;
         }
 
-        static void AddExistingItem(IDictionary<RegistrationKey, Tuple<string, IGraph>> resources, TripleStore store, Uri catalogEntry)
+        static void AddExistingItem(IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> resources, TripleStore store, Uri catalogEntry)
         {
             SparqlParameterizedString sparql = new SparqlParameterizedString();
             sparql.CommandText = Utils.GetResource("sparql.ConstructCatalogEntryGraph.rq");
@@ -90,14 +90,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             IGraph graph = SparqlHelpers.Construct(store, sparql.ToString());
 
-            INode subject = graph.CreateUriNode(catalogEntry);
-
-            string id = graph.GetTriplesWithSubjectPredicate(subject, graph.CreateUriNode(Schema.Predicates.Id)).First().Object.ToString();
-            string version = graph.GetTriplesWithSubjectPredicate(subject, graph.CreateUriNode(Schema.Predicates.Version)).First().Object.ToString();
-
-            RegistrationKey key = new RegistrationKey { Id = id, Version = version };
-
-            resources.Add(key, Tuple.Create(catalogEntry.AbsoluteUri, graph));
+            resources.Add(RegistrationCatalogEntry.Promote(catalogEntry.AbsoluteUri, graph));
         }
 
         static async Task<IGraph> LoadCatalog(IStorage storage, Uri resourceUri)
@@ -131,6 +124,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 graph.Merge(task.Result, true);
             }
 
+            await LoadCatalogItems(storage, graph);
+
             return graph;
         }
 
@@ -141,15 +136,53 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return graph;
         }
 
+        static async Task LoadCatalogItems(IStorage storage, IGraph graph)
+        {
+            IList<Uri> itemUris = new List<Uri>();
+
+            IEnumerable<Triple> pages = graph.GetTriplesWithPredicateObject(graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.CatalogPage));
+
+            foreach (Triple page in pages)
+            {
+                IEnumerable<Triple> items = graph.GetTriplesWithSubjectPredicate(page.Subject, graph.CreateUriNode(Schema.Predicates.CatalogItem));
+
+                foreach (Triple item in items)
+                {
+                    itemUris.Add(((IUriNode)item.Object).Uri);
+                }
+            }
+
+            IList<Task> tasks = new List<Task>();
+
+            foreach (Uri itemUri in itemUris)
+            {
+                tasks.Add(storage.LoadString(itemUri));
+            }
+
+            await Task.WhenAll(tasks.ToArray());
+
+            //TODO: if we have details at the package level and not inlined on a page we will merge them in here
+        }
+
+        static async Task<IGraph> LoadCatalogItem(IStorage storage, Uri itemUri)
+        {
+            string json = await storage.LoadString(itemUri);
+            IGraph graph = Utils.CreateGraph(json);
+            return graph;
+        }
+
         //  Save implementation
 
-        static async Task Save(IStorage storage, Uri registrationBaseAddress, IDictionary<RegistrationKey, Tuple<string, IGraph>> resulting, int partitionSize, int packageCountThreshold)
+        static async Task Save(IStorage storage, Uri registrationBaseAddress, IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> registration, int partitionSize, int packageCountThreshold)
         {
             IDictionary<string, IGraph> items = new Dictionary<string, IGraph>();
 
-            foreach (Tuple<string, IGraph> value in resulting.Values)
+            foreach (RegistrationCatalogEntry value in registration.Values)
             {
-                items.Add(value.Item1, value.Item2);
+                if (value != null)
+                {
+                    items.Add(value.ResourceUri, value.Graph);
+                }
             }
 
             if (items.Count < packageCountThreshold)
@@ -166,7 +199,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         {
             SingleGraphPersistence graphPersistence = new SingleGraphPersistence(storage);
 
-            await graphPersistence.Initialize();
+            //await graphPersistence.Initialize();
 
             await SaveRegistration(storage, registrationBaseAddress, items, null, graphPersistence, partitionSize);
 

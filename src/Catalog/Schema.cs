@@ -34,6 +34,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri CatalogPage = new Uri(Prefixes.Catalog + "CatalogPage");
             public static readonly Uri Permalink = new Uri(Prefixes.Catalog + "Permalink");
             public static readonly Uri AppendOnlyCatalog = new Uri(Prefixes.Catalog + "AppendOnlyCatalog");
+            public static readonly Uri CatalogDelete = new Uri(Prefixes.Catalog + "CatalogDelete");
 
             public static readonly Uri Integer = new Uri(Prefixes.Xsd + "integer");
             public static readonly Uri DateTime = new Uri(Prefixes.Xsd + "dateTime");

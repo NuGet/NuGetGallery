@@ -1,20 +1,26 @@
-﻿
+﻿using System;
+using System.Linq;
+using VDS.RDF;
+
 namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public class RegistrationKey
     {
+        public RegistrationKey(string id)
+        {
+            Id = id;
+        }
+
         public string Id { get; set; }
-        public string Version { get; set; }
             
         public override string ToString()
         {
-            return Id + "/" + Version;
+            return Id.ToLowerInvariant();
         }
 
         public override int GetHashCode()
         {
-            int hashCode = ToString().GetHashCode();
-            return hashCode;
+            return ToString().GetHashCode();
         }
 
         public override bool Equals(object obj)
@@ -26,7 +32,15 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 return false;
             }
 
-            return (Id == rhs.Id) && (Version == rhs.Version); 
+            return (Id == rhs.Id); 
+        }
+
+        public static RegistrationKey Promote(string resourceUri, IGraph graph)
+        {
+            INode subject = graph.CreateUriNode(new Uri(resourceUri));
+            string id = graph.GetTriplesWithSubjectPredicate(subject, graph.CreateUriNode(Schema.Predicates.Id)).First().Object.ToString();
+
+            return new RegistrationKey(id);
         }
     }
 }
