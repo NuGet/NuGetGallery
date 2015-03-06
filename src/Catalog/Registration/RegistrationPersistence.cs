@@ -34,11 +34,6 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         public async Task Save(IDictionary<RegistrationKey, Tuple<string, IGraph>> resulting)
         {
-            foreach (var item in resulting)
-            {
-                Console.WriteLine("Save: {0} : {1}", item.Key, item.Value.Item1);
-            }
-
             await Save(_storage, _registrationBaseAddress, resulting, _partitionSize, _packageCountThreshold);
 
             await Cleanup(_storage);

@@ -4,6 +4,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Linq;
 using VDS.RDF;
+using VDS.RDF.Writing;
 using VDS.RDF.Query;
 
 namespace NuGet.Services.Metadata.Catalog.Registration
@@ -28,12 +29,17 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         {
             IGraph graph = new Graph();
             INode subject = graph.CreateUriNode(GetItemAddress());
+
+            INode catalogEntry = graph.CreateUriNode(_catalogUri);
+
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.Package));
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.Permalink));
-            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.CatalogEntry), graph.CreateUriNode(_catalogUri));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.CatalogEntry), catalogEntry);
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Registration), graph.CreateUriNode(GetRegistrationAddress()));
-            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Published), graph.CreateLiteralNode(GetPublishedDate().ToString("O"), Schema.DataTypes.DateTime));
-            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.PackageContent), graph.CreateUriNode(GetPackageContentAddress()));
+
+            graph.Assert(catalogEntry, graph.CreateUriNode(Schema.Predicates.Published), graph.CreateLiteralNode(GetPublishedDate().ToString("O"), Schema.DataTypes.DateTime));
+            graph.Assert(catalogEntry, graph.CreateUriNode(Schema.Predicates.PackageContent), graph.CreateUriNode(GetPackageContentAddress()));
+
             JObject frame = context.GetJsonLdContext("context.Package.json", Schema.DataTypes.Package);
             return new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
         }

@@ -76,7 +76,8 @@ namespace CatalogTests
                 //RegistrationTests.Test5();
                 //RegistrationTests.Test6();
 
-                RegistrationMakerTests.Test0Async().Wait();
+                //RegistrationMakerTests.Test0Async().Wait();
+                RegistrationMakerTests.Test1Async().Wait();
 
                 DateTime after = DateTime.Now;
 

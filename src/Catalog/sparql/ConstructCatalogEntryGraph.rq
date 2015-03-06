@@ -7,6 +7,7 @@ CONSTRUCT
                   nuget:id ?id ;
                   nuget:version ?version ;
 	              nuget:published ?published ;
+                  nuget:packageContent ?packageContent ;
                   nuget:dependencyGroup ?dependency_group .
 
     ?dependency_group a nuget:PackageDependencyGroup ;
@@ -15,7 +16,8 @@ CONSTRUCT
 
     ?dependency a nuget:PackageDependency ;
 	            nuget:id ?dependency_id ;
-                nuget:range ?dependency_version .
+                nuget:range ?dependency_range ;
+                nuget:version ?dependency_version .
 }
 WHERE
 {
@@ -23,7 +25,8 @@ WHERE
 
     ?catalogEntry nuget:version ?version ;
                   nuget:id ?id ;
-	              nuget:published ?published .
+	              nuget:published ?published ;
+				  nuget:packageContent ?packageContent .
 
     OPTIONAL
     {
@@ -33,7 +36,8 @@ WHERE
 		{
 			?dependency_group nuget:dependency ?dependency .
 			?dependency nuget:id ?dependency_id .
-			OPTIONAL { ?dependency nuget:range ?dependency_version . }
+			OPTIONAL { ?dependency nuget:range ?dependency_range . }
+			OPTIONAL { ?dependency nuget:version ?dependency_version . }
 		}
     }
 }
