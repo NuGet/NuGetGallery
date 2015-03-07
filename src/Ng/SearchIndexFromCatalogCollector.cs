@@ -215,6 +215,11 @@ namespace Ng
             Add(doc, "Publisher", (string)package["publisher"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "@type", Schema.DataTypes.ApiAppPackage.AbsoluteUri, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
+            AddStoragePaths(doc, package, "https://nugetmspre.blob.core.windows.net/");
+
+            //BUG BUG BUG : just use https
+            AddStoragePaths(doc, package, "http://nugetmspre.blob.core.windows.net/");
+
             return doc;
         }
 
@@ -287,6 +292,31 @@ namespace Ng
             doc.Boost = DetermineLanguageBoost((string)package["id"], (string)package["language"]);
 
             return doc;
+        }
+
+        static void AddStoragePaths(Document doc, JObject package, string baseAddress)
+        {
+            int len = baseAddress.Length;
+            foreach (string storagePath in GetStoragePaths(package))
+            {
+                if (storagePath.StartsWith(baseAddress))
+                {
+                    string relativePath = storagePath.Substring(len);
+                    doc.Add(new Field("StoragePath", relativePath, Field.Store.YES, Field.Index.NOT_ANALYZED));
+                }
+            }
+        }
+
+        static IEnumerable<string> GetStoragePaths(JObject package)
+        {
+            IList<string> storagePaths = new List<string>();
+            storagePaths.Add(package["@id"].ToString());
+            storagePaths.Add(package["packageContent"].ToString());
+            foreach (JObject entry in package["entries"])
+            {
+                storagePaths.Add(entry["location"].ToString());
+            }
+            return storagePaths;
         }
     }
 }
