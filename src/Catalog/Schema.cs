@@ -30,6 +30,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             public static readonly Uri PackageEntry = new Uri(Prefixes.NuGet + "PackageEntry");
 
+            public static readonly Uri CatalogInfastructure = new Uri(Prefixes.Catalog + "CatalogInfastructure");
             public static readonly Uri CatalogRoot = new Uri(Prefixes.Catalog + "CatalogRoot");
             public static readonly Uri CatalogPage = new Uri(Prefixes.Catalog + "CatalogPage");
             public static readonly Uri Permalink = new Uri(Prefixes.Catalog + "Permalink");

@@ -12,11 +12,11 @@ namespace Ng
 {
     public static class Catalog2Lucene
     {
-        static async Task Loop(string source, string registration, Lucene.Net.Store.Directory directory, bool verbose, int interval)
+        static async Task Loop(string source, string registration, Lucene.Net.Store.Directory directory, string catalogBaseAddress, string storageBaseAddress, bool verbose, int interval)
         {
-            Func<HttpMessageHandler> handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
+            Func<HttpMessageHandler> handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose, catalogBaseAddress, storageBaseAddress);
 
-            CommitCollector collector = new SearchIndexFromCatalogCollector(new Uri(source), directory, handlerFunc);
+            CommitCollector collector = new SearchIndexFromCatalogCollector(new Uri(source), directory, catalogBaseAddress, handlerFunc);
 
             ReadWriteCursor front = new LuceneCursor(directory, MemoryCursor.Min.Value);
             
@@ -80,9 +80,18 @@ namespace Ng
                 Console.WriteLine("Lucene index will be created up to the end of the catalog (alternatively if you provide a registration it will not pass that)");
             }
 
-            Trace.TraceInformation("CONFIG source: \"{0}\" registration: \"{1}\" interval: {2} seconds", source, registration ?? "(null)", interval);
+            string catalogBaseAddress = CommandHelpers.GetCatalogBaseAddress(arguments);
 
-            Loop(source, registration, directory, verbose, interval).Wait();
+            if (catalogBaseAddress == null)
+            {
+                Console.WriteLine("No catalogBaseAddress was specified so the Lucene index will NOT contain the storage paths");
+            }
+
+            string storageBaseAddress = CommandHelpers.GetStorageBaseAddress(arguments);
+
+            Trace.TraceInformation("CONFIG source: \"{0}\" registration: \"{1}\" catalogBaseAddress: \"{2}\" storageBaseAddress: \"{3}\" interval: {4} seconds", source, registration ?? "(null)", catalogBaseAddress ?? "(null)", storageBaseAddress ?? "(null)", interval);
+
+            Loop(source, registration, directory, catalogBaseAddress, storageBaseAddress, verbose, interval).Wait();
         }
     }
 }

@@ -74,6 +74,26 @@ namespace Ng
             return value;
         }
 
+        public static string GetCatalogBaseAddress(IDictionary<string, string> arguments)
+        {
+            string value;
+            if (!arguments.TryGetValue("-catalogBaseAddress", out value))
+            {
+                return null;
+            }
+            return value;
+        }
+
+        public static string GetStorageBaseAddress(IDictionary<string, string> arguments)
+        {
+            string value;
+            if (!arguments.TryGetValue("-storageBaseAddress", out value))
+            {
+                return null;
+            }
+            return value;
+        }
+
         public static bool GetVerbose(IDictionary<string, string> arguments)
         {
             string verboseStr = "false";
@@ -322,12 +342,20 @@ namespace Ng
             }
         }
 
-        public static Func<HttpMessageHandler> GetHttpMessageHandlerFactory(bool verbose)
+        public static Func<HttpMessageHandler> GetHttpMessageHandlerFactory(bool verbose, string catalogBaseAddress = null, string storageBaseAddress = null)
         {
             Func<HttpMessageHandler> handlerFunc = null;
             if (verbose)
             {
-                handlerFunc = () => { return new VerboseHandler(); };
+                handlerFunc = () => 
+                {
+                    if (catalogBaseAddress != null)
+                    {
+                        return new VerboseHandler(new StorageAccessHandler(catalogBaseAddress, storageBaseAddress));
+                    }
+
+                    return new VerboseHandler();
+                };
             }
             return handlerFunc;
         }

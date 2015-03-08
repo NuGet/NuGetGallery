@@ -25,18 +25,23 @@ namespace Ng
         const int MaxMergeDocs = 7999;              //  Except never merge segments that have more docs than this
 
         Lucene.Net.Store.Directory _directory;
+
+        string _baseAddress;
+        
         const string _packageTemplate = "{0}/{1}.json";
 
         static Dictionary<string, string> _frameworkNames = new Dictionary<string, string>();
 
-        public SearchIndexFromCatalogCollector(Uri index, Lucene.Net.Store.Directory directory, Func<HttpMessageHandler> handlerFunc = null)
+        public SearchIndexFromCatalogCollector(Uri index, Lucene.Net.Store.Directory directory, string baseAddress, Func<HttpMessageHandler> handlerFunc = null)
             : base(index, handlerFunc)
         {
             _directory = directory;
+            _baseAddress = baseAddress;
         }
 
         protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp)
         {
+            JObject catalogIndex = (_baseAddress != null) ? await client.GetJObjectAsync(Index) : null;
             IEnumerable<JObject> catalogItems = await FetchCatalogItems(client, items);
 
             using (IndexWriter indexWriter = CreateIndexWriter(_directory))
@@ -45,7 +50,8 @@ namespace Ng
 
                 int count = 0;
 
-                count += ProcessPackages(indexWriter, catalogItems);
+                count += ProcessCatalogIndex(indexWriter, catalogIndex, _baseAddress);
+                count += ProcessPackages(indexWriter, catalogItems, _baseAddress);
                 count += ProcessPackageDeletes(indexWriter, catalogItems);
 
                 indexWriter.Commit(CreateCommitMetadata(commitTimeStamp));
@@ -72,7 +78,29 @@ namespace Ng
             return tasks.Select(t => t.Result);
         }
 
-        static int ProcessPackages(IndexWriter indexWriter, IEnumerable<JObject> catalogItems)
+        static int ProcessCatalogIndex(IndexWriter indexWriter, JObject catalogIndex, string baseAddress)
+        {
+            if (catalogIndex == null)
+            {
+                return 0;
+            }
+
+            indexWriter.DeleteDocuments(new Term("@type", Schema.DataTypes.CatalogInfastructure.AbsoluteUri));
+
+            Document doc = new Document();
+
+            Add(doc, "@type", Schema.DataTypes.CatalogInfastructure.AbsoluteUri, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "Visibility", "Public", Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+
+            IEnumerable<string> storagePaths = GetCatalogStoragePaths(catalogIndex);
+            AddStoragePaths(doc, storagePaths, baseAddress);
+
+            indexWriter.AddDocument(doc);
+
+            return 1;
+        }
+
+        static int ProcessPackages(IndexWriter indexWriter, IEnumerable<JObject> catalogItems, string baseAddress)
         {
             int i = 0;
 
@@ -91,7 +119,7 @@ namespace Ng
                 //Filter out unlisted packages
                 if (publishedDate != 19000101)
                 {
-                    Document document = MakeDocument(catalogItem);
+                    Document document = MakeDocument(catalogItem, baseAddress);
                     indexWriter.AddDocument(document);
                 }
 
@@ -155,17 +183,17 @@ namespace Ng
             return query;
         }
 
-        static Document MakeDocument(JObject catalogEntry)
+        static Document MakeDocument(JObject catalogEntry, string baseAddress)
         {
             string id = catalogEntry["id"].ToString();
             string version = catalogEntry["version"].ToString();
 
             string packageUrl = string.Format(_packageTemplate, id.ToLowerInvariant(), version.ToLowerInvariant());
 
-            return CreateLuceneDocument(catalogEntry, packageUrl);
+            return CreateLuceneDocument(catalogEntry, packageUrl, baseAddress);
         }
 
-        private static void Add(Document doc, string name, string value, Field.Store store, Field.Index index, Field.TermVector termVector, float boost = 1.0f)
+        static void Add(Document doc, string name, string value, Field.Store store, Field.Index index, Field.TermVector termVector, float boost = 1.0f)
         {
             if (value == null)
             {
@@ -177,12 +205,12 @@ namespace Ng
             doc.Add(newField);
         }
 
-        private static void Add(Document doc, string name, int value, Field.Store store, Field.Index index, Field.TermVector termVector, float boost = 1.0f)
+        static void Add(Document doc, string name, int value, Field.Store store, Field.Index index, Field.TermVector termVector, float boost = 1.0f)
         {
             Add(doc, name, value.ToString(CultureInfo.InvariantCulture), store, index, termVector, boost);
         }
 
-        private static float DetermineLanguageBoost(string id, string language)
+        static float DetermineLanguageBoost(string id, string language)
         {
             if (!string.IsNullOrWhiteSpace(language))
             {
@@ -195,30 +223,33 @@ namespace Ng
             return 1.0f;
         }
 
-        static Document CreateLuceneDocument(JObject package, string packageUrl)
+        static Document CreateLuceneDocument(JObject package, string packageUrl, string baseAddress)
         {
             JToken type = package["@type"];
 
             //TODO: for now this is a MicroservicePackage hi-jack - later we can make this Docuemnt creation more generic
             if (Utils.IsType(package["@context"], package, Schema.DataTypes.ApiAppPackage))
             {
-                return CreateLuceneDocument_ApiApp(package, packageUrl);
+                return CreateLuceneDocument_ApiApp(package, packageUrl, baseAddress);
             }
 
             return CreateLuceneDocument_NuGet(package, packageUrl);
         }
 
-        static Document CreateLuceneDocument_ApiApp(JObject package, string packageUrl)
+        static Document CreateLuceneDocument_ApiApp(JObject package, string packageUrl, string baseAddress)
         {
+            if (baseAddress == null)
+            {
+                throw new ArgumentNullException("baseAddress");
+            }
+
             Document doc = CreateLuceneDocument_Core(package, packageUrl);
 
             Add(doc, "Publisher", (string)package["publisher"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "@type", Schema.DataTypes.ApiAppPackage.AbsoluteUri, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
-            AddStoragePaths(doc, package, "https://nugetmspre.blob.core.windows.net/");
-
-            //BUG BUG BUG : just use https
-            AddStoragePaths(doc, package, "http://nugetmspre.blob.core.windows.net/");
+            IEnumerable<string> storagePaths = GetStoragePaths(package);
+            AddStoragePaths(doc, storagePaths, baseAddress);
 
             return doc;
         }
@@ -235,6 +266,8 @@ namespace Ng
         static Document CreateLuceneDocument_Core(JObject package, string packageUrl)
         {
             Document doc = new Document();
+
+            Add(doc, "@type", Schema.DataTypes.Package.AbsoluteUri, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
             //  Query Fields
 
@@ -294,10 +327,10 @@ namespace Ng
             return doc;
         }
 
-        static void AddStoragePaths(Document doc, JObject package, string baseAddress)
+        static void AddStoragePaths(Document doc, IEnumerable<string> storagePaths, string baseAddress)
         {
             int len = baseAddress.Length;
-            foreach (string storagePath in GetStoragePaths(package))
+            foreach (string storagePath in storagePaths)
             {
                 if (storagePath.StartsWith(baseAddress))
                 {
@@ -315,6 +348,17 @@ namespace Ng
             foreach (JObject entry in package["entries"])
             {
                 storagePaths.Add(entry["location"].ToString());
+            }
+            return storagePaths;
+        }
+
+        static IEnumerable<string> GetCatalogStoragePaths(JObject index)
+        {
+            IList<string> storagePaths = new List<string>();
+            storagePaths.Add(index["@id"].ToString());
+            foreach (JObject page in index["items"])
+            {
+                storagePaths.Add(page["@id"].ToString());
             }
             return storagePaths;
         }
