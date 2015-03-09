@@ -1,6 +1,7 @@
-NuGet.Services.Metadata
-======================
+# NuGet.Services.Metadata
 
-NuGet Metadata Services
+This repo contains NuGet's Metadata Service.
 
-Got bugs? File them here: https://github.com/NuGet/NuGetGallery/issues
+## Feedback
+
+Check out the [contributing](http://docs.nuget.org/contribute) page to see the best places to log issues and start discussions. The [NuGet Home](https://github.com/NuGet/Home) repo provides an overview of the different NuGet projects available.
