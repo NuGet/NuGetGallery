@@ -101,12 +101,6 @@ namespace NuGet.Services.Publish
                         await uploader.GetTenants(context);
                         break;
                     }
-                case "/checkaccess":
-                    {
-                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
-                        await uploader.CheckAccess(context);
-                        break;
-                    }
                 default:
                     {
                         await context.Response.WriteAsync("NotFound");
@@ -122,6 +116,12 @@ namespace NuGet.Services.Publish
 
             switch (context.Request.Path.Value)
             {
+                case "/checkaccess/apiapp":
+                    {
+                        CheckAccessImpl uploader = new CheckAccessImpl(registrationOwnership);
+                        await uploader.CheckAccess(context);
+                        break;
+                    }
                 case "/catalog":
                     {
                         await NuGetPublishImpl.Upload(context);
