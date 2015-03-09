@@ -34,21 +34,21 @@ namespace NuGet.Services.Publish
         {
             JObject apiapp = metadata["apiapp.json"];
 
-            string domain;
-            JToken jtokenDomain;
-            if (apiapp.TryGetValue("domain", out jtokenDomain))
+            string ns;
+            JToken jtokenNamespace;
+            if (apiapp.TryGetValue("namespace", out jtokenNamespace))
             {
-                domain = jtokenDomain.ToString();
+                ns = jtokenNamespace.ToString();
             }
             else
             {
-                domain = "nuget.org";
+                ns = "nuget.org";
             }
 
             string id = apiapp["id"].ToString();
             string version = NuGetVersion.Parse(apiapp["version"].ToString()).ToNormalizedString();
 
-            string s = string.Format("http://{0}/{1}/{2}", domain, id, version);
+            string s = string.Format("http://{0}/{1}/{2}", ns, id, version);
 
             Uri jsonLdId = new Uri(s.ToLowerInvariant());
 
@@ -63,9 +63,9 @@ namespace NuGet.Services.Publish
                 nuspec.Add(property.Name, property.Value);
             }
 
-            if (!apiapp.TryGetValue("domain", out jtokenDomain))
+            if (!apiapp.TryGetValue("namespace", out jtokenNamespace))
             {
-                nuspec.Add("domain", domain);
+                nuspec.Add("namespace", ns);
             }
 
             JToken jtokenCategory;
@@ -82,7 +82,7 @@ namespace NuGet.Services.Publish
 
             //TODO: add default icons - and these would be present in the inventory - but flagged somehow
 
-            string marketplacePublisher = domain.Replace("-", "--").Replace(".", "-");
+            string marketplacePublisher = ns.Replace("-", "--").Replace(".", "-");
             nuspec.Add("marketplacePublisher", marketplacePublisher);
 
             string marketplaceName = id.Replace("-", "--").Replace(".", "-");
@@ -197,7 +197,7 @@ namespace NuGet.Services.Publish
                 CheckRequiredProperty(apiapp, errors, "title");
                 CheckRequiredProperty(apiapp, errors, "summary");
                 CheckRequiredProperty(apiapp, errors, "author");
-                CheckRequiredProperty(apiapp, errors, "domain");
+                CheckRequiredProperty(apiapp, errors, "namespace");
             }
 
             //CheckRequiredFile(packageStream, errors, "metadata/icons/small-icon.png");

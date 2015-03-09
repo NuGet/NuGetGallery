@@ -25,11 +25,11 @@ namespace NuGet.Services.Publish
                 return;
             }
 
-            //if (!await _registrationOwnership.HasTenantEnabled())
-            //{
-            //    await ServiceHelpers.WriteErrorResponse(context, "package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
-            //    return;
-            //}
+            if (!await _registrationOwnership.HasTenantEnabled())
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
+                return;
+            }
 
             JObject body;
             if (!TryReadBody(context, out body))
@@ -94,21 +94,52 @@ namespace NuGet.Services.Publish
             return token;
         }
 
-        static async Task ProcessRequest(IOwinContext context, JObject obj)
+        async Task ProcessRequest(IOwinContext context, JObject obj)
         {
             string ns = obj["namespace"].ToString();
             string id = obj["id"].ToString();
             string version = obj["version"].ToString();
 
-            // -----------------------------------------------------------------------------------------
-            //TODO: add actual check access logic
-            // -----------------------------------------------------------------------------------------
+            JObject content;
 
-            JObject content = new JObject
+            if (await _registrationOwnership.HasRegistration(ns, id))
             {
-                { "status", true },
-                { "message", string.Format("The package identification {0}/{1}/{2} is available and access is permitted", ns, id, version) }
-            };
+                if (await _registrationOwnership.HasOwner(ns, id))
+                {
+                    if (await _registrationOwnership.HasVersion(ns, id, version))
+                    {
+                        content = new JObject
+                        {
+                            { "status", false },
+                            { "message", string.Format("The package version {0}/{1}/{2} already exists", ns, id, version) }
+                        };
+                    }
+                    else
+                    {
+                        content = new JObject
+                        {
+                            { "status", true },
+                            { "message", string.Format("The package identification {0}/{1}/{2} is available and access is permitted", ns, id, version) }
+                        };
+                    }
+                }
+                else
+                {
+                    content = new JObject
+                        {
+                            { "status", false },
+                            { "message", string.Format("The current user is not an owner of the package registration {0}/{1}", ns, id) }
+                        };
+                }
+            }
+            else
+            {
+                content = new JObject
+                {
+                    { "status", true },
+                    { "message", string.Format("The package identification {0}/{1}/{2} is available and access is permitted", ns, id, version) }
+                };
+            }
 
             await ServiceHelpers.WriteResponse(context, content, HttpStatusCode.OK);
         }

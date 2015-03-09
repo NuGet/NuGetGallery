@@ -217,7 +217,6 @@
     <Compile Include="NuSpecJsonPublishImpl.cs" />
     <Compile Include="NuGetPublishImpl.cs" />
     <Compile Include="IRegistrationOwnership.cs" />
-    <None Include="AzureADRegistrationOwnership.cs" />
     <Compile Include="ServiceHelpers.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="NaiveSessionCache.cs" />
@@ -243,7 +242,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>48814</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:8989/</IISUrl>
+          <IISUrl>https://localhost:44331/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

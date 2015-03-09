@@ -49,13 +49,11 @@ namespace NuGet.Services.Publish
                 return;
             }
 
-            //TODO: tenant enablement in multi-tenant world requires recognizing the admin in a multi-tenant world
-
-            //if (!await _registrationOwnership.IsTenantEnabled())
-            //{
-            //    await ServiceHelpers.WriteErrorResponse(context, "package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
-            //    return;
-            //}
+            if (!await _registrationOwnership.HasTenantEnabled())
+            {
+                await ServiceHelpers.WriteErrorResponse(context, "package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
+                return;
+            }
 
             PublicationVisibility publicationVisibility;
             if (!PublicationVisibility.TryCreate(context, out publicationVisibility))
@@ -88,7 +86,7 @@ namespace NuGet.Services.Publish
 
             AddPackageContent(metadata);
 
-            string prefix = GetDomain(metadata);
+            string ns = GetNamespace(metadata);
             string id = GetId(metadata);
             string version = GetVersion(metadata);
 
@@ -98,7 +96,7 @@ namespace NuGet.Services.Publish
             {
                 //  registration authorization
 
-                IEnumerable<string> authorizationErrors = await CheckRegistrationAuthorization(prefix, id, version);
+                IEnumerable<string> authorizationErrors = await CheckRegistrationAuthorization(ns, id, version);
 
                 if (validationErrors != null)
                 {
@@ -122,7 +120,7 @@ namespace NuGet.Services.Publish
 
                 //  if everything went well update the registration ownership record
 
-                await _registrationOwnership.AddVersion(prefix, id, version);
+                await _registrationOwnership.AddVersion(ns, id, version);
 
                 await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
 
@@ -137,19 +135,19 @@ namespace NuGet.Services.Publish
             await ServiceHelpers.WriteErrorResponse(context, error, HttpStatusCode.InternalServerError);
         }
 
-        async Task<IEnumerable<string>> CheckRegistrationAuthorization(string prefix, string id, string version)
+        async Task<IEnumerable<string>> CheckRegistrationAuthorization(string ns, string id, string version)
         {
             IList<string> errors = new List<string>();
 
-            if (await _registrationOwnership.HasRegistration(prefix, id))
+            if (await _registrationOwnership.HasRegistration(ns, id))
             {
-                if (!await _registrationOwnership.HasOwner(prefix, id))
+                if (!await _registrationOwnership.HasOwner(ns, id))
                 {
                     errors.Add("user does not have access to this registration");
                     return errors;
                 }
 
-                if (await _registrationOwnership.HasVersion(prefix, id, version))
+                if (await _registrationOwnership.HasVersion(ns, id, version))
                 {
                     errors.Add("this package version already exists for this registration");
                     return errors;
@@ -166,8 +164,8 @@ namespace NuGet.Services.Publish
             string tenantId = _registrationOwnership.GetTenantId();
 
             //TODO: requires Graph access
-            //string tenantName = string.Empty;
-            string tenantName = await _registrationOwnership.GetTenantName();
+            string tenantName = string.Empty;
+            //string tenantName = await _registrationOwnership.GetTenantName();
 
             PublicationDetails publicationDetails = new PublicationDetails
             {
@@ -323,10 +321,10 @@ namespace NuGet.Services.Publish
             }
         }
 
-        protected static string GetDomain(IDictionary<string, JObject> metadata)
+        protected static string GetNamespace(IDictionary<string, JObject> metadata)
         {
             JObject nuspec = metadata["nuspec"];
-            return nuspec["domain"].ToString().ToLowerInvariant();
+            return nuspec["namespace"].ToString().ToLowerInvariant();
         }
 
         protected static string GetId(IDictionary<string, JObject> metadata)

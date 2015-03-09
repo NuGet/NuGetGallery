@@ -14,11 +14,11 @@ namespace NuGet.Services.Publish
 
         Task<bool> HasTenantEnabled();
 
-        Task AddVersion(string prefix, string id, string version);
+        Task AddVersion(string ns, string id, string version);
 
-        Task<bool> HasOwner(string prefix, string id);
-        Task<bool> HasRegistration(string prefix, string id);
-        Task<bool> HasVersion(string prefix, string id, string version);
+        Task<bool> HasOwner(string ns, string id);
+        Task<bool> HasRegistration(string ns, string id);
+        Task<bool> HasVersion(string ns, string id, string version);
 
         string GetUserId();
         Task<string> GetUserName();

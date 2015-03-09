@@ -34,7 +34,7 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
             Graph.Assert(recordNode, Graph.CreateUriNode(Schema.Predicates.Owner), ownerNode);
 
             Graph.Assert(registrationNode, Graph.CreateUriNode(Schema.Predicates.Type), Graph.CreateUriNode(Schema.DataTypes.RecordRegistration));
-            Graph.Assert(registrationNode, Graph.CreateUriNode(Schema.Predicates.Prefix), Graph.CreateLiteralNode(registration.Prefix));
+            Graph.Assert(registrationNode, Graph.CreateUriNode(Schema.Predicates.Namespace), Graph.CreateLiteralNode(registration.Namespace));
             Graph.Assert(registrationNode, Graph.CreateUriNode(Schema.Predicates.Id), Graph.CreateLiteralNode(registration.Id));
             Graph.Assert(registrationNode, Graph.CreateUriNode(Schema.Predicates.Owner), ownerNode);
 
@@ -44,7 +44,33 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
             }
 
             Graph.Assert(ownerNode, Graph.CreateUriNode(Schema.Predicates.Type), Graph.CreateUriNode(Schema.DataTypes.RecordOwner));
-            Graph.Assert(ownerNode, Graph.CreateUriNode(Schema.Predicates.ObjectId), Graph.CreateLiteralNode(owner.ObjectId));
+            Graph.Assert(ownerNode, Graph.CreateUriNode(Schema.Predicates.NameIdentifier), Graph.CreateLiteralNode(owner.NameIdentifier));
+
+            if (owner.Name != null)
+            {
+                Graph.Assert(ownerNode, Graph.CreateUriNode(Schema.Predicates.Name), Graph.CreateLiteralNode(owner.Name));
+            }
+
+            if (owner.GivenName != null)
+            {
+                Graph.Assert(ownerNode, Graph.CreateUriNode(Schema.Predicates.GivenName), Graph.CreateLiteralNode(owner.GivenName));
+            }
+
+            if (owner.Surname != null)
+            {
+                Graph.Assert(ownerNode, Graph.CreateUriNode(Schema.Predicates.Surname), Graph.CreateLiteralNode(owner.Surname));
+            }
+
+            if (owner.Email != null)
+            {
+                Graph.Assert(ownerNode, Graph.CreateUriNode(Schema.Predicates.Email), Graph.CreateLiteralNode(owner.Email));
+            }
+
+            if (owner.Iss != null)
+            {
+                Graph.Assert(ownerNode, Graph.CreateUriNode(Schema.Predicates.Iss), Graph.CreateLiteralNode(owner.Iss));
+            }
+
             Graph.Assert(ownerNode, Graph.CreateUriNode(Schema.Predicates.Registration), registrationNode);
         }
 
@@ -117,9 +143,9 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
 
             foreach (Triple triple in Graph.GetTriplesWithSubjectPredicate(Graph.CreateUriNode(owner.GetUri(Base)), Graph.CreateUriNode(Schema.Predicates.Registration)))
             {
-                string prefix = Graph.GetTriplesWithSubjectPredicate(triple.Object, Graph.CreateUriNode(Schema.Predicates.Prefix)).First().Object.ToString();
+                string ns = Graph.GetTriplesWithSubjectPredicate(triple.Object, Graph.CreateUriNode(Schema.Predicates.Namespace)).First().Object.ToString();
                 string id = Graph.GetTriplesWithSubjectPredicate(triple.Object, Graph.CreateUriNode(Schema.Predicates.Id)).First().Object.ToString();
-                result.Add(new OwnershipRegistration { Prefix = prefix, Id = id });
+                result.Add(new OwnershipRegistration { Namespace = ns, Id = id });
             }
             
             return result;
@@ -131,9 +157,9 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
 
             foreach (Triple triple in Graph.GetTriplesWithSubjectPredicate(Graph.CreateUriNode(registration.GetUri(Base)), Graph.CreateUriNode(Schema.Predicates.Owner)))
             {
-                string objectId = Graph.GetTriplesWithSubjectPredicate(triple.Object, Graph.CreateUriNode(Schema.Predicates.ObjectId)).First().Object.ToString();
+                string nameIdentifier = Graph.GetTriplesWithSubjectPredicate(triple.Object, Graph.CreateUriNode(Schema.Predicates.NameIdentifier)).First().Object.ToString();
 
-                result.Add(new OwnershipOwner { ObjectId = objectId });
+                result.Add(new OwnershipOwner { NameIdentifier = nameIdentifier });
             }
 
             return result;
@@ -169,10 +195,12 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
 
         public bool HasTenantEnabled(string tenant)
         {
-            return Graph.ContainsTriple(new Triple(
-                Graph.CreateUriNode(GetRecordUri()),
-                Graph.CreateUriNode(Schema.Predicates.Tenant),
-                Graph.CreateLiteralNode(tenant)));
+            return true;
+
+            //return Graph.ContainsTriple(new Triple(
+            //    Graph.CreateUriNode(GetRecordUri()),
+            //    Graph.CreateUriNode(Schema.Predicates.Tenant),
+            //    Graph.CreateLiteralNode(tenant)));
         }
     }
 }

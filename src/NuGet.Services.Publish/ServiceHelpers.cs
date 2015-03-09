@@ -148,6 +148,8 @@ namespace NuGet.Services.Publish
 
         public static async Task<ActiveDirectoryClient> GetActiveDirectoryClient()
         {
+            // BUG BUG BUG this code does not work properly on AAD because it pesumes the objectidentifier claim which is not correct
+
             string tenantId = GetTenantId();
 
             string authority = string.Format(aadInstance, tenantId);
@@ -187,8 +189,13 @@ namespace NuGet.Services.Publish
 
             string userId = GetUserId();
 
-            // ok enough is enough lets take a look at all the claims!!!
+            var tenantDetails = await activeDirectoryClient.TenantDetails.ExecuteAsync();
 
+            return activeDirectoryClient;
+        }
+
+        static string DumpClaims()
+        {
             JArray claimsArray = new JArray();
             foreach (Claim claim in ClaimsPrincipal.Current.Claims)
             {
@@ -198,15 +205,9 @@ namespace NuGet.Services.Publish
                 claimsArray.Add(obj);
             }
 
-            string allTheClaims = result.ToString();
+            string allTheClaims = claimsArray.ToString();
 
-            ClaimsIdentity claimsId = ClaimsPrincipal.Current.Identity as ClaimsIdentity;
-
-            //IUser user = await activeDirectoryClient.Users.GetByObjectId(userId).ExecuteAsync();
-
-            var tenantDetails = await activeDirectoryClient.TenantDetails.ExecuteAsync();
-
-            return activeDirectoryClient;
+            return allTheClaims;
         }
     }
 }
