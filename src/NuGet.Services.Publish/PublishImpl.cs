@@ -3,6 +3,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Ownership;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
 using System;
@@ -11,6 +12,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Publish
@@ -170,8 +172,7 @@ namespace NuGet.Services.Publish
             PublicationDetails publicationDetails = new PublicationDetails
             {
                 Published = DateTime.UtcNow,
-                UserId = userId,
-                UserName = userName,
+                Owner = OwnershipOwner.Create(ClaimsPrincipal.Current),
                 TenantId = tenantId,
                 TenantName = tenantName,
                 Visibility = publicationVisibility

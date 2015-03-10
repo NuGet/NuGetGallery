@@ -116,6 +116,18 @@ namespace NuGet.Services.Publish
 
             switch (context.Request.Path.Value)
             {
+                case "/apiapp/checkaccess":
+                    {
+                        CheckAccessImpl uploader = new CheckAccessImpl(registrationOwnership);
+                        await uploader.CheckAccess(context);
+                        break;
+                    }
+                case "/apiapp/upload":
+                    {
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
+                        await uploader.Upload(context);
+                        break;
+                    }
                 case "/checkaccess/apiapp":
                     {
                         CheckAccessImpl uploader = new CheckAccessImpl(registrationOwnership);

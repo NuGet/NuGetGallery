@@ -118,93 +118,22 @@ namespace NuGet.Services.Publish
 
         public async Task<bool> HasOwner(string ns, string id)
         {
-            //IUser user = await GetUser();
-            //string userObjectId = user.ObjectId;
-            string nameIdentifier = GetNameIdentifier();
             return await _registration.HasOwner(
                 new OwnershipRegistration { Namespace = ns, Id = id },
-                new OwnershipOwner { NameIdentifier = nameIdentifier });
+                OwnershipOwner.Create(ClaimsPrincipal.Current));
         }
 
         public async Task AddVersion(string ns, string id, string version)
         {
             await _registration.AddVersion(
                 new OwnershipRegistration { Namespace = ns, Id = id },
-                new OwnershipOwner
-                {
-                    NameIdentifier = GetNameIdentifier(),
-                    Name = GetName(),
-                    GivenName = GetGivenName(),
-                    Surname = GetSurname(),
-                    Email = GetEmail(),
-                    Iss = GetIss()
-                },
+                OwnershipOwner.Create(ClaimsPrincipal.Current),
                 version);
         }
 
         public async Task<bool> HasVersion(string ns, string id, string version)
         {
             return await _registration.HasVersion(new OwnershipRegistration { Namespace = ns, Id = id }, version);
-        }
-
-        static string GetNameIdentifier()
-        {
-            Claim subject = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier);
-            if (subject == null)
-            {
-                throw new Exception("required Claim NameIdentifier was found on request");
-            }
-            return subject.Value;
-        }
-
-        static string GetName()
-        {
-            Claim subject = ClaimsPrincipal.Current.FindFirst(ClaimTypes.Name);
-            if (subject != null)
-            {
-                return subject.Value;
-            }
-            return null;
-        }
-
-        static string GetGivenName()
-        {
-            Claim subject = ClaimsPrincipal.Current.FindFirst(ClaimTypes.GivenName);
-            if (subject != null)
-            {
-                return subject.Value;
-            }
-            return null;
-        }
-
-        static string GetSurname()
-        {
-            Claim subject = ClaimsPrincipal.Current.FindFirst(ClaimTypes.Surname);
-            if (subject != null)
-            {
-                return subject.Value;
-            }
-            return null;
-        }
-
-        static string GetEmail()
-        {
-            Claim subject = ClaimsPrincipal.Current.FindFirst(ClaimTypes.Email);
-            if (subject != null)
-            {
-                return subject.Value;
-            }
-            return null;
-        }
-
-        static string GetIss()
-        {
-            Claim subject = ClaimsPrincipal.Current.FindFirst("iss");
-            if (subject != null)
-            {
-                return subject.Value;
-            }
-            return null;
         }
 
         async Task<IUser> GetUser()

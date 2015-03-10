@@ -238,18 +238,23 @@ namespace Ng
 
         static Document CreateLuceneDocument_ApiApp(JObject package, string packageUrl, string baseAddress)
         {
-            if (baseAddress == null)
-            {
-                throw new ArgumentNullException("baseAddress");
-            }
-
             Document doc = CreateLuceneDocument_Core(package, packageUrl);
 
             Add(doc, "Publisher", (string)package["publisher"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "@type", Schema.DataTypes.ApiAppPackage.AbsoluteUri, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
-            IEnumerable<string> storagePaths = GetStoragePaths(package);
-            AddStoragePaths(doc, storagePaths, baseAddress);
+            if (baseAddress != null)
+            {
+                IEnumerable<string> storagePaths = GetStoragePaths(package);
+                AddStoragePaths(doc, storagePaths, baseAddress);
+            }
+
+            JToken owner = package["owner"];
+            if (owner != null)
+            {
+                Add(doc, "Owner", (string)owner["nameIdentifier"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+                Add(doc, "OwnerDetails", owner.ToString(), Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
+            }
 
             return doc;
         }
@@ -326,7 +331,7 @@ namespace Ng
 
             return doc;
         }
-
+        
         static void AddStoragePaths(Document doc, IEnumerable<string> storagePaths, string baseAddress)
         {
             int len = baseAddress.Length;

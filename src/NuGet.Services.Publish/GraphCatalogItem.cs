@@ -64,10 +64,22 @@ namespace NuGet.Services.Publish
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.CatalogCommitId), catalogEntry.CreateLiteralNode(CommitId.ToString()));
 
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Published), catalogEntry.CreateLiteralNode(_publicationDetails.Published.ToString("O"), Schema.DataTypes.DateTime));
-            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.UserId), catalogEntry.CreateLiteralNode(_publicationDetails.UserId));
-            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.UserName), catalogEntry.CreateLiteralNode(_publicationDetails.UserName));
+
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.TenantId), catalogEntry.CreateLiteralNode(_publicationDetails.TenantId));
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Tenant), catalogEntry.CreateLiteralNode(_publicationDetails.TenantName));
+
+            Uri ownerUri = _publicationDetails.Owner.GetUri(GetItemAddress());
+            INode ownerSubject = catalogEntry.CreateUriNode(ownerUri);
+
+            catalogEntry.Assert(ownerSubject, catalogEntry.CreateUriNode(Schema.Predicates.NameIdentifier), catalogEntry.CreateLiteralNode(_publicationDetails.Owner.NameIdentifier));
+            catalogEntry.Assert(ownerSubject, catalogEntry.CreateUriNode(Schema.Predicates.Name), catalogEntry.CreateLiteralNode(_publicationDetails.Owner.Name));
+            catalogEntry.Assert(ownerSubject, catalogEntry.CreateUriNode(Schema.Predicates.GivenName), catalogEntry.CreateLiteralNode(_publicationDetails.Owner.GivenName));
+            catalogEntry.Assert(ownerSubject, catalogEntry.CreateUriNode(Schema.Predicates.Surname), catalogEntry.CreateLiteralNode(_publicationDetails.Owner.Surname));
+            catalogEntry.Assert(ownerSubject, catalogEntry.CreateUriNode(Schema.Predicates.Iss), catalogEntry.CreateLiteralNode(_publicationDetails.Owner.Iss));
+
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Owner), ownerSubject);
+
+            //  visibility
 
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Visibility), catalogEntry.CreateLiteralNode(_publicationDetails.Visibility.Visibility.ToString()));
 
