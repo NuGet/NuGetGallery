@@ -58,6 +58,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="ExtractMetadataTests.cs" />
     <Compile Include="MockIRegistrationOwnership.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

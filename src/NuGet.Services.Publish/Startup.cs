@@ -1,6 +1,4 @@
-﻿using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using Microsoft.Owin;
-using Microsoft.Owin.Security;
+﻿using Microsoft.Owin;
 using Microsoft.Owin.Security.ActiveDirectory;
 using Microsoft.WindowsAzure.Storage;
 using Owin;
@@ -8,9 +6,6 @@ using System;
 using System.Configuration;
 using System.IdentityModel.Tokens;
 using System.Net;
-using System.Net.Http;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
 using System.Threading.Tasks;
 
 [assembly: OwinStartup(typeof(NuGet.Services.Publish.Startup))]
