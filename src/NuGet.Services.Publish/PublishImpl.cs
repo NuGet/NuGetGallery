@@ -169,6 +169,8 @@ namespace NuGet.Services.Publish
             string tenantName = string.Empty;
             //string tenantName = await _registrationOwnership.GetTenantName();
 
+            //var client = await ServiceHelpers.GetActiveDirectoryClient();
+
             PublicationDetails publicationDetails = new PublicationDetails
             {
                 Published = DateTime.UtcNow,
