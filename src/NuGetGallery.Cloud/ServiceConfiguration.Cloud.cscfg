@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ServiceConfiguration serviceName="NuGetGallery.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*" schemaVersion="2013-10.2.2">
+<ServiceConfiguration serviceName="NuGetGallery.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*" schemaVersion="2014-06.2.4">
   <Role name="NuGetGallery">
     <Instances count="1" />
     <ConfigurationSettings>
@@ -22,12 +22,12 @@
       <Setting name="Gallery.GoogleAnalyticsPropertyId" value="" />
       <Setting name="Gallery.AzureCdnHost" value="" />
       <Setting name="Gallery.SiteRoot" value="nuget.localtest.me" />
-      <Setting name="Gallery.SearchServiceUri" value="" />
-      <Setting name="Gallery.MetricsServiceUri" value=""/>
+      <Setting name="Gallery.ServiceDiscoveryUri" value="https://api.nuget.org/v3/index.json" />
+      <Setting name="Gallery.SearchServiceResourceType" value="SearchGalleryQueryService/3.0.0-rc" />
+      <Setting name="Gallery.MetricsServiceUri" value="" />
       <Setting name="Auth.MicrosoftAccount.Enabled" value="false" />
       <Setting name="Auth.MicrosoftAccount.ClientId" value="" />
       <Setting name="Auth.MicrosoftAccount.ClientSecret" value="" />
-
       <!-- *************** -->
       <!-- STABLE SETTINGS -->
       <!-- *************** -->

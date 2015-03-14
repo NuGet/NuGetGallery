@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\packages\NuGet.Services.Build.3.0.4-rel-4\build\NuGet.Services.Build.props" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.4-rel-4\build\NuGet.Services.Build.props')" />
+  <Import Project="..\..\packages\NuGet.Services.Build.3.0.6\build\NuGet.Services.Build.props" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.6\build\NuGet.Services.Build.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -14,7 +14,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>c1eb93c0</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>da05628d</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -63,8 +63,9 @@
       <Private>True</Private>
       <HintPath>..\..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Web.XmlTransform">
-      <HintPath>..\..\packages\Microsoft.Web.Xdt.1.0.0\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
+    <Reference Include="Microsoft.Web.XmlTransform, Version=2.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Common">
       <HintPath>..\..\packages\Microsoft.WindowsAzure.Common.0.9.3-preview\lib\net45\Microsoft.WindowsAzure.Common.dll</HintPath>
@@ -82,16 +83,17 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\WindowsAzure.Storage.2.1.0.3\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Newtonsoft.Json.5.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NLog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NLog.2.0.0.2000\lib\net40\NLog.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Core, Version=2.8.50320.36, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="NuGet.Core, Version=2.8.50812.551, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Core.2.8.1\lib\net40-Client\NuGet.Core.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Core.2.8.3-alpha0001\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
@@ -305,9 +307,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsProcs_AddDownloadFact.sql" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Common\CommonResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CommonResources.Designer.cs</LastGenOutput>
@@ -322,23 +321,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsCreateTables.sql" />
-    <EmbeddedResource Include="Scripts\NuGetDownloadsDropTables.sql" />
-    <EmbeddedResource Include="Scripts\PopulateDimensions.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsFuncs_UserAgent.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsProcs_GetLastOriginalKey.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsProcs_GetPackagesForExport.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsProcs_ConfirmPackageExported.sql" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Scripts\DownloadReport_RecentPopularityByPackage.sql" />
     <EmbeddedResource Include="Scripts\DownloadReport_RecentPopularityDetail.sql" />
     <EmbeddedResource Include="Scripts\DownloadReport_RecentPopularity.sql" />
@@ -348,9 +330,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Scripts\DownloadReport_ListInactive.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsAlterTable.sql" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Scripts\DownloadReport_Last6Months.sql" />
@@ -377,9 +356,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Scripts\NuGetDownloadsAlterTable_2.sql" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
       <Name>NuGetGallery.Core</Name>
@@ -395,8 +371,8 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.4-rel-4\build\NuGet.Services.Build.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.4-rel-4\build\NuGet.Services.Build.props'))" />
-    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.4-rel-4\build\NuGet.Services.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.4-rel-4\build\NuGet.Services.Build.targets'))" />
+    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.6\build\NuGet.Services.Build.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.6\build\NuGet.Services.Build.props'))" />
+    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.6\build\NuGet.Services.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.6\build\NuGet.Services.Build.targets'))" />
   </Target>
-  <Import Project="..\..\packages\NuGet.Services.Build.3.0.4-rel-4\build\NuGet.Services.Build.targets" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.4-rel-4\build\NuGet.Services.Build.targets')" />
+  <Import Project="..\..\packages\NuGet.Services.Build.3.0.6\build\NuGet.Services.Build.targets" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.6\build\NuGet.Services.Build.targets')" />
 </Project>

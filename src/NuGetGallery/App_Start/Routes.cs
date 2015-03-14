@@ -377,13 +377,13 @@ namespace NuGetGallery
             routes.MapRoute(
                 "v2" + RouteName.DeletePackageApi,
                 "api/v2/package/{id}/{version}",
-                new { controller = "Api", action = "DeletePackage" },
+                new { controller = "Api", action = "DeletePackageApi" },
                 constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
 
             routes.MapRoute(
                 "v2" + RouteName.PublishPackageApi,
                 "api/v2/package/{id}/{version}",
-                new { controller = "Api", action = "PublishPackage" },
+                new { controller = "Api", action = "PublishPackageApi" },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(

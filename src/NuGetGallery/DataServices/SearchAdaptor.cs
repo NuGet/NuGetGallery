@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Data.Services.Providers;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -14,7 +15,7 @@ namespace NuGetGallery
         /// <summary>
         ///     Determines the maximum number of packages returned in a single page of an OData result.
         /// </summary>
-        internal const int MaxPageSize = 40;
+        internal const int MaxPageSize = 100;
 
         public static SearchFilter GetSearchFilter(string q, int page, string sortOrder, string context)
         {
@@ -57,6 +58,7 @@ namespace NuGetGallery
             }
 
             // For relevance search, Lucene returns us a paged\sorted list. OData tries to apply default ordering and Take \ Skip on top of this.
+            // It also tries to filter to latest versions, but the search service already did that!
             // We avoid it by yanking these expressions out of out the tree.
             return result.Data.InterceptWith(new DisregardODataInterceptor());
         }
@@ -79,8 +81,7 @@ namespace NuGetGallery
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = includePrerelease;
                 searchFilter.CuratedFeed = curatedFeed;
-
-                Trace.WriteLine("TODO: use target framework parameter - see #856" + targetFramework);
+                searchFilter.SupportedFramework = targetFramework;
 
                 var results = await GetResultsFromSearchService(searchService, searchFilter);
 
@@ -123,8 +124,8 @@ namespace NuGetGallery
             {
                 // The way the default paging works is WCF attempts to read up to the MaxPageSize elements. If it finds as many, it'll assume there 
                 // are more elements to be paged and generate a continuation link. Consequently we'll always ask to pull MaxPageSize elements so WCF generates the 
-                // link for us and then allow it to do a Take on the results. The alternative to do is roll our IDataServicePagingProvider, but we run into 
-                // issues since we need to manage state over concurrent requests. This seems like an easier solution.
+                // link for us and then allow it to do a Take on the results. Further down, we'll also parse $skiptoken as a custom IDataServicePagingProvider
+                // sneakily injects the Skip value in the continuation token.
                 Take = MaxPageSize,
                 Skip = 0,
                 CountOnly = path.EndsWith("$count", StringComparison.Ordinal)
@@ -160,13 +161,37 @@ namespace NuGetGallery
                 return false;
             }
 
-            string skip;
-            if (queryTerms.TryGetValue("$skip", out skip))
+            string skipStr;
+            if (queryTerms.TryGetValue("$skip", out skipStr))
             {
-                int result;
-                if (int.TryParse(skip, out result))
+                int skip;
+                if (int.TryParse(skipStr, out skip))
                 {
-                    searchFilter.Skip = result;
+                    searchFilter.Skip = skip;
+                }
+            }
+
+            string topStr;
+            if (queryTerms.TryGetValue("$top", out topStr))
+            {
+                int top;
+                if(int.TryParse(topStr, out top))
+                {
+                    searchFilter.Take = Math.Min(top, MaxPageSize);
+                }
+            }
+
+            string skipTokenStr;
+            if (queryTerms.TryGetValue("$skiptoken", out skipTokenStr))
+            {
+                var skipTokenParts = skipTokenStr.Split(',');
+                if (skipTokenParts.Length == 3) // this means our custom IDataServicePagingProvider did its magic by sneaking the Skip value into the SkipToken
+                {
+                    int skip;
+                    if (int.TryParse(skipTokenParts[2], out skip))
+                    {
+                        searchFilter.Skip = skip;
+                    }
                 }
             }
 
@@ -215,6 +240,61 @@ namespace NuGetGallery
             }
 
             return true;
+        }
+
+        public static object GetPagingProvider<TPackage>(ISearchService searchService, HttpRequestBase request)
+        {
+            // If we delegate to Lucene, we will have to do some paging tricks and inject a custom IDataServicePagingProvider
+            SearchFilter searchFilter;
+            if (request.Path.Contains("/Search") && TryReadSearchFilter(searchService.ContainsAllVersions, request.RawUrl, out searchFilter))
+            {
+                return new SearchAdaptorDataServicePagingProvider<TPackage>(searchFilter.Skip);
+            }
+            return null;
+        }
+
+        public class SearchAdaptorDataServicePagingProvider<TPackage> : IDataServicePagingProvider
+        {
+            private readonly int _currentSkip;
+            private object[] _continuationToken;
+            private Type _packageType;
+
+            public SearchAdaptorDataServicePagingProvider(int currentSkip)
+            {
+                _currentSkip = currentSkip;
+                _packageType = typeof(TPackage);
+            }
+
+            public void SetContinuationToken(IQueryable query, ResourceType resourceType, object[] continuationToken)
+            {
+                if (resourceType.FullName != _packageType.FullName)
+                {
+                    throw new ArgumentException("The paging provider can not construct a meaningful continuation token because its type is different from the ResourceType for which a continuation token is requested.");
+                }
+                
+                var materializedQuery = (query as IQueryable<TPackage>).ToList();
+                var lastElement = materializedQuery.LastOrDefault();
+                if (lastElement != null && materializedQuery.Count == MaxPageSize)
+                {
+                    string packageId = _packageType.GetProperty("Id").GetValue(lastElement).ToString();
+                    string packageVersion = _packageType.GetProperty("Version").GetValue(lastElement).ToString();
+                    _continuationToken = new object[]
+                    {
+                        packageId,
+                        packageVersion,
+                        _currentSkip + Math.Min(materializedQuery.Count, MaxPageSize)
+                    };
+                }
+                else
+                {
+                    _continuationToken = null;
+                }
+            }
+
+            public object[] GetContinuationToken(IEnumerator enumerator)
+            {
+                return _continuationToken;
+            }
         }
     }
 }

@@ -139,7 +139,11 @@ namespace NuGetGallery
             {
                 return this;
             }
-
+            if (serviceType == typeof(IDataServicePagingProvider))
+            {
+                return SearchAdaptor.GetPagingProvider<TPackage>(SearchService, HttpContext.Request);
+            }
+            
             return null;
         }
 

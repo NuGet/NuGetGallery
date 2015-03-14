@@ -51,11 +51,28 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {
+            // Handle OData-style |-separated list of frameworks.
+            string[] targetFrameworkList = (targetFramework ?? "").Split(new[] {'\'', '|'}, StringSplitOptions.RemoveEmptyEntries);
+
+            // For now, we'll just filter on the first one.
+            if (targetFrameworkList.Length > 0)
+            {
+                // Until we support multiple frameworks, we need to prefer aspnet50 over aspnetcore50.
+                if (targetFrameworkList.Contains("aspnet50"))
+                {
+                    targetFramework = "aspnet50";
+                }
+                else
+                {
+                    targetFramework = targetFrameworkList[0];
+                }
+            }
+
             var packages = PackageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Where(p => p.Listed);
-            return SearchAdaptor.SearchCore(
+            var query = SearchAdaptor.SearchCore(
                 SearchService, 
                 HttpContext.Request, 
                 packages, 
@@ -66,6 +83,8 @@ namespace NuGetGallery
                 // TODO: Async this when I can figure out OData async stuff...
                 .Result
                 .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
+            var result = query.ToList();
+            return query;
         }
 
         [WebGet]

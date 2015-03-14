@@ -334,7 +334,7 @@ p.authors {
 }
 
 .stat-number {
-    font: 2.3em 'andale mono', 'lucida console', monospace;
+    font: 2em 'andale mono', 'lucida console', monospace;
     letter-spacing: 1px;
     line-height: 1.4em;
     margin: 0;
@@ -1211,7 +1211,7 @@ ul.actionlist {
             padding: 0.5em;
             color: black;
             float: left;
-            height: 100px;
+            height: 120px;
         }
 
             ul.actionlist li.actionlist-item a.actionlist-item-link:hover {

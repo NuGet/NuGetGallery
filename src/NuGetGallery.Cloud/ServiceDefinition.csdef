@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ServiceDefinition name="NuGetGallery.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2013-10.2.2">
+<ServiceDefinition name="NuGetGallery.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2014-06.2.4">
   <LoadBalancerProbes>
-    <LoadBalancerProbe name="HTTP" path="/" protocol="http" port="80" />
+    <LoadBalancerProbe name="HTTP" path="/api/status" protocol="http" port="80" />
   </LoadBalancerProbes>
   <WebRole name="NuGetGallery" vmsize="Medium">
     <ConfigurationSettings>
@@ -21,7 +21,8 @@
       <Setting name="Gallery.LuceneIndexLocation" />
       <Setting name="Gallery.GoogleAnalyticsPropertyId" />
       <Setting name="Gallery.HasWorker" />
-      <Setting name="Gallery.SearchServiceUri" />
+      <Setting name="Gallery.ServiceDiscoveryUri" />
+      <Setting name="Gallery.SearchServiceResourceType" />
       <Setting name="Gallery.MetricsServiceUri" />
       <Setting name="Gallery.AutoUpdateSearchIndex" />
       <Setting name="Gallery.CollectPerfLogs" />

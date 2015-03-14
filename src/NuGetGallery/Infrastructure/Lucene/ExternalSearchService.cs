@@ -24,7 +24,7 @@ namespace NuGetGallery.Infrastructure.Lucene
         
         private SearchClient _client;
         private JObject _diagCache;
-        
+
         public Uri ServiceUri { get; private set; }
         
         protected IDiagnosticsSource Trace { get; private set; }
@@ -43,7 +43,8 @@ namespace NuGetGallery.Infrastructure.Lucene
 
         public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics)
         {
-            ServiceUri = config.SearchServiceUri;
+            ServiceUri = config.ServiceDiscoveryUri;
+
             Trace = diagnostics.SafeGetSource("ExternalSearchService");
 
             // Extract credentials
@@ -66,7 +67,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                 }.Uri;
             }
 
-            _client = new SearchClient(ServiceUri, credentials, new TracingHttpHandler(Trace));
+            _client = new SearchClient(ServiceUri, config.SearchServiceResourceType, credentials, new TracingHttpHandler(Trace));
         }
 
         private static readonly Task<bool> _exists = Task.FromResult(true);
@@ -102,8 +103,9 @@ namespace NuGetGallery.Infrastructure.Lucene
                 isLuceneQuery: raw,
                 countOnly: filter.CountOnly,
                 explain: false,
-                getAllVersions: filter.IncludeAllVersions);
-			sw.Stop();
+                getAllVersions: filter.IncludeAllVersions,
+                supportedFramework: filter.SupportedFramework);
+            sw.Stop();
 
             SearchResults results = null;
             if (result.IsSuccessStatusCode)

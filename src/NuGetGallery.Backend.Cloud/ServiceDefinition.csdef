@@ -1,20 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ServiceDefinition name="NuGetGallery.Backend.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2013-10.2.2">
-    <WorkerRole name="NuGetGallery.Backend" vmsize="Small">
-        <Imports>
-            <Import moduleName="Diagnostics" />
-            <Import moduleName="RemoteAccess" />
-            <Import moduleName="RemoteForwarder" />
-        </Imports>
-        <ConfigurationSettings>
-            <Setting name="Operations.Storage.Primary" />
-            <Setting name="Operations.Storage.Backup" />
-            <Setting name="Operations.Sql.Primary" />
-            <Setting name="Operations.Sql.Warehouse" />
-            <Setting name="Queue.PollInterval" />
-        </ConfigurationSettings>
-        <LocalResources>
-            <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="2048" />
-        </LocalResources>
-    </WorkerRole>
+<ServiceDefinition name="NuGetGallery.Backend.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2014-06.2.4">
+  <WorkerRole name="NuGetGallery.Backend" vmsize="Small">
+    <Imports>
+      <Import moduleName="Diagnostics" />
+      <Import moduleName="RemoteAccess" />
+      <Import moduleName="RemoteForwarder" />
+    </Imports>
+    <ConfigurationSettings>
+      <Setting name="Operations.Storage.Primary" />
+      <Setting name="Operations.Storage.Backup" />
+      <Setting name="Operations.Sql.Primary" />
+      <Setting name="Operations.Sql.Warehouse" />
+      <Setting name="Queue.PollInterval" />
+    </ConfigurationSettings>
+    <LocalResources>
+      <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="2048" />
+    </LocalResources>
+  </WorkerRole>
 </ServiceDefinition>
