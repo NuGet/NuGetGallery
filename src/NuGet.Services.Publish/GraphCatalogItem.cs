@@ -4,6 +4,7 @@ using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using VDS.RDF;
 
@@ -17,6 +18,9 @@ namespace NuGet.Services.Publish
 
         Guid _catalogItemId;
         JObject _context;
+
+        string _id;
+        string _version;
 
         public GraphCatalogItem(JObject nuspec, Uri itemType, PublicationDetails publicationDetails)
         {
@@ -42,7 +46,7 @@ namespace NuGet.Services.Publish
 
         public override Uri GetItemType()
         {
-            return _itemType;
+            return Schema.DataTypes.PackageDetails;
         }
 
         protected override string GetItemIdentity()
@@ -59,6 +63,7 @@ namespace NuGet.Services.Publish
             //  catalog infrastructure fields
 
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Type), catalogEntry.CreateUriNode(GetItemType()));
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Type), catalogEntry.CreateUriNode(_itemType));
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Type), catalogEntry.CreateUriNode(Schema.DataTypes.Permalink));
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.CatalogTimeStamp), catalogEntry.CreateLiteralNode(TimeStamp.ToString("O"), Schema.DataTypes.DateTime));
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.CatalogCommitId), catalogEntry.CreateLiteralNode(CommitId.ToString()));
@@ -111,6 +116,8 @@ namespace NuGet.Services.Publish
 
             GraphHelpers.MaterializeInference(catalogEntry);
 
+            SetIdVersionFromGraph(catalogEntry);
+
             //  create JSON content
 
             string json = Utils.CreateJson(catalogEntry, _context);
@@ -118,6 +125,50 @@ namespace NuGet.Services.Publish
             StorageContent content = new StringStorageContent(json, "application/json", "no-store");
 
             return content;
+        }
+
+        public override IGraph CreatePageContent(CatalogContext context)
+        {
+            Uri resourceUri = new Uri(GetBaseAddress() + GetRelativeAddress());
+
+            Graph graph = new Graph();
+
+            INode subject = graph.CreateUriNode(resourceUri);
+
+            INode idPredicate = graph.CreateUriNode(Schema.Predicates.Id);
+            INode versionPredicate = graph.CreateUriNode(Schema.Predicates.Version);
+
+            if (_id != null)
+            {
+                graph.Assert(subject, idPredicate, graph.CreateLiteralNode(_id));
+            }
+
+            if (_version != null)
+            {
+                graph.Assert(subject, versionPredicate, graph.CreateLiteralNode(_version));
+            }
+
+            return graph;
+        }
+
+        void SetIdVersionFromGraph(IGraph graph)
+        {
+            INode idPredicate = graph.CreateUriNode(Schema.Predicates.Id);
+            INode versionPredicate = graph.CreateUriNode(Schema.Predicates.Version);
+
+            INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
+            Triple resource = graph.GetTriplesWithPredicateObject(rdfTypePredicate, graph.CreateUriNode(GetItemType())).First();
+            Triple id = graph.GetTriplesWithSubjectPredicate(resource.Subject, idPredicate).FirstOrDefault();
+            if (id != null)
+            {
+                _id = ((ILiteralNode)id.Object).Value;
+            }
+
+            Triple version = graph.GetTriplesWithSubjectPredicate(resource.Subject, versionPredicate).FirstOrDefault();
+            if (version != null)
+            {
+                _version = ((ILiteralNode)version.Object).Value;
+            }
         }
     }
 }
