@@ -39,6 +39,10 @@
                     <li><a href="~/" runat="server">Home</a></li>
                     <li><a href="~/Admin" runat="server">Admin Home</a></li>
                     <li><a href="~/Admin/Database" runat="server">Database Admin</a></li>
+                    <% if (config.IsIntranetSite)
+                    {%>
+                    <li><a href="~/Admin/Import" runat="server">Nuget Import</a></li>
+                    <%}%>
                 </ul>
             </nav>
             <div id="body" role="main">

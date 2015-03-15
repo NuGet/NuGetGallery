@@ -294,6 +294,30 @@ namespace NuGetGallery
             return url.Action(actionName: "CancelUpload", controllerName: "Packages");
         }
 
+        /// <summary>
+        /// Gets the URL for the admin page to display details of a official NuGet package to import.
+        /// </summary>
+        /// <param name="url">The URL.</param>
+        /// <param name="packageId">The package id.</param>
+        /// <param name="version">The version.</param>
+        /// <param name="preRelease">The pre release.</param>
+        /// <param name="useVersion">if set to <c>true</c> [use version].</param>
+        /// <returns>Details page URL.</returns>
+        public static string AdminImportDetails(this UrlHelper url, string packageId, string version = null, string preRelease = null, bool useVersion = true)
+        {
+            return url.Action(
+                actionName: "Details", 
+                controllerName: "Import", 
+                routeValues: new
+                {
+                    id = packageId, 
+                    version = useVersion ? version : null, 
+                    prerelease = preRelease, 
+                    Area = "Admin"
+                });
+            //return url.Action(MVC.Admin.Import.ActionNames.Details, MVC.Admin.Import.Name, new { id = packageId, version = useVersion ? version : null, prerelease = preRelease, Area = "Admin" });
+        }
+
         private static UriBuilder GetCanonicalUrl(UrlHelper url)
         {
             UriBuilder builder = new UriBuilder(url.RequestContext.HttpContext.Request.Url);

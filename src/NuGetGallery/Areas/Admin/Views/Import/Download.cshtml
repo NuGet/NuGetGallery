@@ -1,0 +1,45 @@
+﻿@model ImportDownloadViewModel
+@{
+    ViewBag.Title = "Import NuGet Package";
+}
+
+<h1 class="page-heading">Import Official NuGet Package</h1>
+
+@ViewHelpers.UploadSequence(1, "Import")
+
+@using (Html.BeginForm("Download", "Import", FormMethod.Post, new { id = "uploadForm" }))
+{
+    <fieldset class="form">
+        <legend>Import NuGet Package</legend>
+        @Html.HiddenFor(m => m.Id)
+        @Html.HiddenFor(m => m.Version)
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true)
+        <p class="message">The package file will be imported and hosted on this NuGet Gallery server.</p>
+        
+        <h2>@Model.Id @Model.Version</h2>
+
+        <input type="submit" value="Import" title="Import the package." />
+
+        <div id="asyncUploadPanel" class="async-upload-panel">
+            <div id="asyncUploadProgressInitial" class="async-upload-progress-initial">
+                <span id="asyncUploadProgressAdvance" class="async-upload-progress-advance"></span>
+            </div>
+            <div id="asyncUploadFileName" class="async-upload-file-name"></div>
+        </div>
+    </fieldset>
+}
+
+@section BottomScripts
+{
+    @* Right now this is the only page that uses this script. If we increase our usage of it, we should put it in our bundles *@
+    <script type="text/javascript" src="@Url.Content("~/Scripts/async-file-upload.js")"></script>
+    <script type="text/javascript">
+        $(function () {
+            AsyncFileUploadManager.init(
+                '@Url.Action(actionName: "UploadPackageProgress", controllerName: "Packages")',
+                'uploadForm',
+                '@Scripts.Url("~/Scripts/jquery")');
+        });
+    </script>
+}

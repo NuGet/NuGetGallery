@@ -1,0 +1,62 @@
+﻿@using NuGetGallery
+@model ImportSearchItemViewModel
+<section class="package">
+    <div class="side">
+        <a href="@Url.AdminImportDetails(Model.Id, Model.Version, (string) ViewBag.PreRelease, Model.UseVersion)" title="View more about @Model.Title">
+            <img src="@(Model.IconUrl ?? Url.Absolute("~/Content/Images/packageDefaultIcon-50x50.png"))" alt="@Model.Id icon" onerror="this.src = '@Url.Absolute("~/Content/Images/packageDefaultIcon-50x50.png")';" />
+        </a>
+    </div>
+    <div class="main">
+        <header>
+            <h1><a href="@Url.AdminImportDetails(Model.Id, Model.Version, (string)ViewBag.PreRelease, Model.UseVersion)">@Model.Title @if (Model.UseVersion)
+                                                                                                       {
+                                                                                                           <text> @Model.Version</text>
+                                                                                                       }</a></h1>
+            <h2>By:</h2>
+            <ul class="owners">
+                @foreach (var author in Model.Authors)
+                {
+                    <li>@author</li>
+                }
+            </ul>
+        </header>
+
+        <p>
+            @if (string.IsNullOrEmpty(Model.Description) || Model.Description.Length < 350)
+            {
+                @Model.Description
+            }
+            else
+            {
+                @Model.Description.Substring(0, 350)<text>... </text>
+                <a href="@Url.AdminImportDetails(Model.Id, Model.Version, (string)ViewBag.PreRelease, Model.UseVersion)">More information</a>
+            }
+        </p>
+
+        @if (!String.IsNullOrEmpty(Model.MinClientVersion)) 
+        {
+            <div class="minimum-client-version">
+                Requires NuGet @Model.MinClientVersion or higher.
+            </div>
+        }
+    
+        <footer>
+            <p class="downloads">
+                @Model.DownloadCount.ToString("n0") downloads
+            </p>
+            
+            @if (@Model.Tags.AnySafe())
+            {
+                <div class="tags">
+                    <h2>Tags</h2>
+                    <ul class="tags">
+                        @foreach (var tag in Model.Tags)
+                        {
+                            <li><a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag">@tag</a></li>
+                        }
+                    </ul>
+                </div>
+            }
+        </footer>
+    </div>
+</section>

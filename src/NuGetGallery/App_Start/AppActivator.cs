@@ -68,7 +68,7 @@ namespace NuGetGallery
             var config = Container.Kernel.Get<IAppConfiguration>();
             BackgroundJobsPostStart(config);
             AppPostStart(config);
-            BundlingPostStart();
+            BundlingPostStart(config);
         }
 
         public static void Stop()
@@ -115,7 +115,7 @@ namespace NuGetGallery
             Trace.Listeners.Add(new DiagnosticMonitorTraceListener());
         }
 
-        private static void BundlingPostStart()
+        private static void BundlingPostStart(IAppConfiguration config)
         {
             var jQueryBundle = new ScriptBundle("~/Scripts/jquery")
                 .Include("~/Scripts/jquery-{version}.js");
@@ -152,6 +152,11 @@ namespace NuGetGallery
                 stylesBundle
                     .Include("~/Content/" + filename)
                     .Include("~/Branding/Content/" + filename);
+            }
+
+            if (config.IsIntranetSite)
+            {
+                stylesBundle.Include("~/Content/intranet.css");
             }
 
             BundleTable.Bundles.Add(stylesBundle);

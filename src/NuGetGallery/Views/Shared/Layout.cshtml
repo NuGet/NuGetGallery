@@ -28,7 +28,13 @@
         <div id="outer-wrapper">
             <div id="content-wrapper">
                 <header class="main">
-                    <div id="logo"><a href="@Url.Home()">@(Config.Current.Brand)</a></div>
+                    <div id="logo">
+                        @if (Config.Current.IsIntranetSite)
+                        {
+                            <a id="company-logo" href="@Config.Current.IntranetCompanyUrl">&nbsp;</a>
+                        }
+                        <a href="@Url.Home()">@(Config.Current.Brand)</a>
+                    </div>
                     <div id="header-sidebox">
                         <div id="searchBox" role="search">
                             <form action="@Url.PackageList()" method="get">

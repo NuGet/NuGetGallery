@@ -1,0 +1,17 @@
+﻿#company-logo {
+    background: url('Images/intranet/companyLogo.png') no-repeat;
+    width: 183px;
+    height: 47px;
+    display: block;
+    float: left;
+    margin-top: 31px;
+    margin-right: 20px;
+}
+
+#company-logo:hover {
+    text-decoration: none;
+}
+
+.success-text {
+    color: green;
+}

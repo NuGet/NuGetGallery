@@ -42,10 +42,10 @@
                            }>@label</option>
 }
 
-@helper UploadSequence(int currentStep)
+@helper UploadSequence(int currentStep, string uploadText = "Upload")
 {
     <ol class="sequence">
-        @SequenceStep(1, "Upload", currentStep)
+        @SequenceStep(1, uploadText, currentStep)
         @SequenceStep(2, "Verify Details", currentStep)
     </ol>
     <div class="clear-fix"><!--Sad Panda--></div>
