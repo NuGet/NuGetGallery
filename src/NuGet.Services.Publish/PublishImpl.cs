@@ -333,7 +333,7 @@ namespace NuGet.Services.Publish
         protected static string GetId(IDictionary<string, JObject> metadata)
         {
             JObject nuspec = metadata["nuspec"];
-            return nuspec["id"].ToString().ToLowerInvariant();
+            return nuspec["originalId"].ToString().ToLowerInvariant();
         }
 
         protected static string GetVersion(IDictionary<string, JObject> metadata)

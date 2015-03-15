@@ -64,7 +64,7 @@ WHERE
 	BIND(COALESCE(?optionalIconUrl, "") AS ?iconUrl)
 	BIND(COALESCE(?optionalLicenseUrl, "") AS ?licenseUrl)
 	BIND(COALESCE(?optionalProjectUrl, "") AS ?projectUrl)
-	BIND(COALESCE(?optionalRequireLicenseAcceptance, "") AS ?requireLicenseAcceptance)
+	BIND(COALESCE(?optionalRequireLicenseAcceptance, false) AS ?requireLicenseAcceptance)
 	BIND(COALESCE(?optionalLanguage, "") AS ?language)
 	BIND(COALESCE(?optionalAuthors, "") AS ?authors)
 	BIND(COALESCE(?optionalTag, "") AS ?tag)

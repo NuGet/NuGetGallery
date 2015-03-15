@@ -45,10 +45,12 @@ namespace NuGet.Services.Publish
                 ns = "nuget.org";
             }
 
-            string id = apiapp["id"].ToString();
+            string originalId = apiapp["id"].ToString();
+
+            string id = string.Format("{0}/{1}", ns, originalId);
             string version = NuGetVersion.Parse(apiapp["version"].ToString()).ToNormalizedString();
 
-            string s = string.Format("http://{0}/{1}/{2}", ns, id, version);
+            string s = string.Format("http://{0}/{1}", id, version);
 
             Uri jsonLdId = new Uri(s.ToLowerInvariant());
 
@@ -68,6 +70,10 @@ namespace NuGet.Services.Publish
                 nuspec.Add("namespace", ns);
             }
 
+            nuspec["id"] = id;
+            nuspec["version"] = version;
+            nuspec["originalId"] = originalId; 
+
             JToken jtokenCategory;
             if (!apiapp.TryGetValue("category", out jtokenCategory))
             {
@@ -85,7 +91,7 @@ namespace NuGet.Services.Publish
             string marketplacePublisher = ns.Replace("-", "--").Replace(".", "-");
             nuspec.Add("marketplacePublisher", marketplacePublisher);
 
-            string marketplaceName = id.Replace("-", "--").Replace(".", "-");
+            string marketplaceName = originalId.Replace("-", "--").Replace(".", "-");
             nuspec.Add("marketplaceName", marketplaceName);
 
             JObject inventory;
