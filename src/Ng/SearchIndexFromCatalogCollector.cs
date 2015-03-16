@@ -230,6 +230,9 @@ namespace Ng
             //TODO: for now this is a MicroservicePackage hi-jack - later we can make this Docuemnt creation more generic
             if (Utils.IsType(package["@context"], package, Schema.DataTypes.ApiAppPackage))
             {
+                // for now, for apiapps, we have prepended the id in the catalog with the namespace, however we don't want this to impact the Lucene index
+                package["id"] = package["originalId"];
+
                 return CreateLuceneDocument_ApiApp(package, packageUrl, baseAddress);
             }
 

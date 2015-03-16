@@ -10,6 +10,7 @@ using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
 using NuGet.Services.Metadata.Catalog;
 using VDS.RDF.Parsing.Contexts;
+using NuGet.Versioning;
 
 namespace NuGet.Services.Publish
 {
@@ -174,8 +175,10 @@ namespace NuGet.Services.Publish
         /// </summary>
         /// <param name="nupkgStream"></param>
         /// <returns></returns>
-        protected override IList<string> Validate(Stream nupkgStream)
+        protected override IList<string> Validate(Stream nupkgStream, out PackageIdentity packageIdentity)
         {
+            packageIdentity = null;
+
             if (!_wasPsd1Present)
             {
                 return new List<string>() { "A psd1 PowerShell module manifest was missing." };
@@ -190,6 +193,13 @@ namespace NuGet.Services.Publish
             {
                 return new List<string>() { _exception.Message };
             }
+
+            packageIdentity = new PackageIdentity
+            {
+                Namespace = "",
+                Id = "",
+                Version = SemanticVersion.Parse("0.0.0")
+            };
 
             return null;
         }

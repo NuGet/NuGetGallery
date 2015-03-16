@@ -10,6 +10,8 @@ namespace NuGet.Services.Publish
 {
     public class ApiAppsPublishImpl : PublishImpl
     {
+        const string DefaultPackageNamespace = "nuget.org";
+
         static ISet<string> Files = new HashSet<string> { "apiapp.json" };
 
         public ApiAppsPublishImpl(IRegistrationOwnership registrationOwnership)
@@ -98,6 +100,7 @@ namespace NuGet.Services.Publish
             if (metadata.TryGetValue("inventory", out inventory))
             {
                 nuspec.Add("entries", inventory["entries"]);
+                nuspec.Add("packageContent", inventory["packageContent"]);
             }
 
             metadata["nuspec"] = nuspec;
@@ -166,11 +169,15 @@ namespace NuGet.Services.Publish
             }
         }
 
-        protected override IList<string> Validate(Stream packageStream)
+        protected override IList<string> Validate(Stream packageStream, out PackageIdentity packageIdentity)
         {
             IList<string> errors = new List<string>();
 
             JObject apiapp = GetJObject(packageStream, "apiapp.json");
+
+            string ns = null;
+            string id = null;
+            SemanticVersion semanticVersion = null;
 
             if (apiapp == null)
             {
@@ -178,10 +185,24 @@ namespace NuGet.Services.Publish
             }
             else
             {
+                JToken namespaceJToken = CheckRequiredProperty(apiapp, errors, "namespace");
+                if (namespaceJToken != null)
+                {
+                    ns = namespaceJToken.ToString();
+                    if (ns.LastIndexOfAny(new[] { '/', '@' }) != -1)
+                    {
+                        errors.Add("'/', '@' characters are not permitted in namespace property");
+                    }
+                }
+                else
+                {
+                    ns = DefaultPackageNamespace;
+                }
+
                 JToken idJToken = CheckRequiredProperty(apiapp, errors, "id");
                 if (idJToken != null)
                 {
-                    string id = idJToken.ToString();
+                    id = idJToken.ToString();
                     if (id.LastIndexOfAny(new[] { '/', '@' }) != -1)
                     {
                         errors.Add("'/', '@' characters are not permitted in id property");
@@ -192,7 +213,6 @@ namespace NuGet.Services.Publish
                 if (versionJToken != null)
                 {
                     string version = versionJToken.ToString();
-                    SemanticVersion semanticVersion;
                     if (!SemanticVersion.TryParse(version, out semanticVersion))
                     {
                         errors.Add("the version property must follow the Semantic Version rules, refer to 'http://semver.org'");
@@ -214,9 +234,17 @@ namespace NuGet.Services.Publish
 
             if (errors.Count == 0)
             {
+                packageIdentity = new PackageIdentity
+                {
+                    Namespace = ns,
+                    Id = id,
+                    Version = semanticVersion
+                };
+
                 return null;
             }
 
+            packageIdentity = null;
             return errors;
         }
 

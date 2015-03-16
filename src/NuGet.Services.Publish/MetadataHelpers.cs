@@ -69,18 +69,21 @@ namespace NuGet.Services.Publish
             AssertType(obj, GetName(type, vocab));
         }
 
+        static IDictionary<string, string> ContentTypes = new Dictionary<string, string>
+        {
+            { "png", "image/png" },
+            { "jpeg", "image/jpeg" },
+            { "gif", "image/gif" },
+            { "json", "application/json" },
+            { "html", "text/html" },
+            { "css", "text/css" },
+            { "xml", "text/xml" },
+            { "txt", "text/plain" }
+        };
+
         public static string ContentTypeFromExtension(string name)
         {
-            string DefaultContentType = "application/octet-stream";
-
-            IDictionary<string, string> ContentTypes = new Dictionary<string, string>
-            {
-                { "png", "image/png" },
-                { "json", "application/json" },
-                { "exe", "application/octet-stream" },
-                { "dll", "application/octet-stream" },
-                { "xml", "text/xml" },
-            };
+            const string DefaultContentType = "application/octet-stream";
 
             int dot = name.LastIndexOf('.');
 
