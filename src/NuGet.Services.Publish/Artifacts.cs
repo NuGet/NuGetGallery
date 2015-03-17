@@ -80,7 +80,6 @@ namespace NuGet.Services.Publish
 
             if (await container.CreateIfNotExistsAsync())
             {
-                //TODO: good for testing not so great for multi-tenant
                 container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
             }
 
@@ -88,7 +87,7 @@ namespace NuGet.Services.Publish
 
             string contentType = MetadataHelpers.ContentTypeFromExtension(name);
 
-            CloudBlockBlob blob = container.GetBlockBlobReference(name);
+            CloudBlockBlob blob = container.GetBlockBlobReference(fullName);
             blob.Properties.ContentType = contentType;
             blob.Properties.ContentDisposition = name;
             await blob.UploadFromStreamAsync(stream);

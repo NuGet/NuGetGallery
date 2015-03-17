@@ -1,6 +1,7 @@
 ﻿using Microsoft.Owin;
 using Microsoft.Owin.Security.ActiveDirectory;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Owin;
 using System;
 using System.Configuration;
@@ -38,7 +39,38 @@ namespace NuGet.Services.Publish
                 });
             }
 
+            Initialize();
+
             app.Run(Invoke);
+        }
+
+        static void CreateContainer(string connectionString, string containerName)
+        {
+            CloudStorageAccount account = CloudStorageAccount.Parse(connectionString);
+
+            CloudBlobClient client = account.CreateCloudBlobClient();
+            CloudBlobContainer container = client.GetContainerReference(containerName);
+
+            if (container.CreateIfNotExists())
+            {
+                switch (ConfigurationManager.AppSettings["Storage.BlobContainerPublicAccessType"] ?? "Off")
+                {
+                    case "Off": container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Off });
+                        break;
+                    case "Container": container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Container });
+                        break;
+                    case "Blob": container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+                        break;
+                }
+            }
+        }
+
+        static void Initialize()
+        {
+            string connectionString = ConfigurationManager.AppSettings["Storage.Primary"];
+            CreateContainer(connectionString, ConfigurationManager.AppSettings["Storage.Container.Artifacts"]);
+            CreateContainer(connectionString, ConfigurationManager.AppSettings["Storage.Container.Catalog"]);
+            CreateContainer(connectionString, ConfigurationManager.AppSettings["Storage.Container.Ownership"]);
         }
 
         async Task Invoke(IOwinContext context)
@@ -117,30 +149,8 @@ namespace NuGet.Services.Publish
                         await uploader.CheckAccess(context);
                         break;
                     }
+                case "/upload/apiapp":  //TODO - remove this temporary additional resource 
                 case "/apiapp/upload":
-                    {
-                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
-                        await uploader.Upload(context);
-                        break;
-                    }
-                case "/checkaccess/apiapp":
-                    {
-                        CheckAccessImpl uploader = new CheckAccessImpl(registrationOwnership);
-                        await uploader.CheckAccess(context);
-                        break;
-                    }
-                case "/catalog":
-                    {
-                        await NuGetPublishImpl.Upload(context);
-                        break;
-                    }
-                case "/catalog/nuspec":
-                    {
-                        PublishImpl uploader = new NuSpecJsonPublishImpl(registrationOwnership);
-                        await uploader.Upload(context);
-                        break;
-                    }
-                case "/catalog/apiapp":
                     {
                         PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
                         await uploader.Upload(context);

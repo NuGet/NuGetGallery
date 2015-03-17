@@ -19,10 +19,12 @@ namespace NuGet.Services.Publish
     {
         const string DefaultStorageContainerCatalog = "catalog";
         const string DefaultStorageContainerPackages = "artifacts";
+        const string DefaultStorageContainerOwnership = "ownership";
 
         static string StoragePrimary;
         static string StorageContainerCatalog;
         static string StorageContainerPackages;
+        static string StorageContainerOwnership;
         static string CatalogBaseAddress;
 
         IRegistrationOwnership _registrationOwnership;
@@ -32,6 +34,7 @@ namespace NuGet.Services.Publish
             StoragePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
             StorageContainerCatalog = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Catalog") ?? DefaultStorageContainerCatalog;
             StorageContainerPackages = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Artifacts") ?? DefaultStorageContainerPackages;
+            StorageContainerOwnership = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Ownership") ?? DefaultStorageContainerOwnership;
             CatalogBaseAddress = System.Configuration.ConfigurationManager.AppSettings.Get("Catalog.BaseAddress");
         }
 
@@ -121,13 +124,13 @@ namespace NuGet.Services.Publish
 
             //  (5) update the registration ownership record
 
-            await _registrationOwnership.AddVersion(packageIdentity.Namespace, packageIdentity.Id, packageIdentity.Version.ToString());
+            await UpdateRegistrationOwnership(packageIdentity);
 
             //  (6) create response
 
             JToken response = new JObject
             { 
-                { "download", metadata["nuspec"]["metadata"] },
+                { "download", metadata["nuspec"]["packageContent"] },
                 { "catalog", catalogAddress.ToString() }
             };
 
@@ -271,25 +274,72 @@ namespace NuGet.Services.Publish
 
         static async Task<Uri> AddToCatalog(JObject nuspec, Uri itemType, PublicationDetails publicationDetails)
         {
-            CloudStorageAccount account = CloudStorageAccount.Parse(StoragePrimary);
+            StorageWriteLock writeLock = new StorageWriteLock(StoragePrimary, StorageContainerCatalog);
 
-            Storage storage;
-            if (CatalogBaseAddress == null)
+            await writeLock.AquireAsync();
+
+            Uri rootUri = null;
+
+            Exception exception = null;
+            try
             {
-                storage = new AzureStorage(account, StorageContainerCatalog);
+                CloudStorageAccount account = CloudStorageAccount.Parse(StoragePrimary);
+
+                Storage storage;
+                if (CatalogBaseAddress == null)
+                {
+                    storage = new AzureStorage(account, StorageContainerCatalog);
+                }
+                else
+                {
+                    string baseAddress = CatalogBaseAddress.TrimEnd('/') + "/" + StorageContainerCatalog;
+
+                    storage = new AzureStorage(account, StorageContainerCatalog, string.Empty, new Uri(baseAddress));
+                }
+
+                AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage);
+                writer.Add(new GraphCatalogItem(nuspec, itemType, publicationDetails));
+                await writer.Commit();
+
+                rootUri = writer.RootUri;
             }
-            else
+            catch (Exception e)
             {
-                string baseAddress = CatalogBaseAddress.TrimEnd('/') + "/" + StorageContainerCatalog;
-
-                storage = new AzureStorage(account, StorageContainerCatalog, string.Empty, new Uri(baseAddress));
+                exception = e;
             }
 
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage);
-            writer.Add(new GraphCatalogItem(nuspec, itemType, publicationDetails));
-            await writer.Commit();
+            await writeLock.ReleaseAsync();
 
-            return writer.RootUri;
+            if (exception != null)
+            {
+                throw exception;
+            }
+
+            return rootUri;
+        }
+
+        async Task UpdateRegistrationOwnership(PackageIdentity packageIdentity)
+        {
+            StorageWriteLock writeLock = new StorageWriteLock(StoragePrimary, StorageContainerOwnership);
+
+            await writeLock.AquireAsync();
+
+            Exception exception = null;
+            try
+            {
+                await _registrationOwnership.AddVersion(packageIdentity.Namespace, packageIdentity.Id, packageIdentity.Version.ToString());
+            }
+            catch (Exception e)
+            {
+                exception = e;
+            }
+
+            await writeLock.ReleaseAsync();
+
+            if (exception != null)
+            {
+                throw exception;
+            }
         }
     }
 }

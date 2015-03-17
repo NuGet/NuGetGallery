@@ -156,6 +156,7 @@
     <Compile Include="ReindexCatalogItem.cs" />
     <Compile Include="SortingCollector.cs" />
     <Compile Include="SortingGraphCollector.cs" />
+    <Compile Include="StorageWriteLock.cs" />
     <Compile Include="StoreCollector.cs" />
     <Compile Include="Test\PrintCollector.cs" />
     <Compile Include="Test\PrintCommitCollector.cs" />
