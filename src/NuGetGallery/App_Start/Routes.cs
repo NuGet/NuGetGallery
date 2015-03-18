@@ -347,6 +347,12 @@ namespace NuGetGallery
         {
             // V2 routes
             routes.MapRoute(
+                RouteName.Team,
+                "api/v2/team",
+                defaults: new { controller = "Api", action = "Team" },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
                 "v2" + RouteName.VerifyPackageKey,
                 "api/v2/verifykey/{id}/{version}",
                 new {
