@@ -20,7 +20,7 @@ namespace NuGetGallery.Helpers
             if (string.IsNullOrEmpty(input) || input.Length < length)
                 return input;
 
-            int nextSpace = input.LastIndexOf(" ", length);
+            int nextSpace = input.LastIndexOf(" ", length, StringComparison.Ordinal);
 
             return string.Format(CultureInfo.CurrentCulture, "{2}{1}{0}",
                                  morText,
