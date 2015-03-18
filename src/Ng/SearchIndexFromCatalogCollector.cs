@@ -229,7 +229,12 @@ namespace Ng
             if (Utils.IsType(package["@context"], package, Schema.DataTypes.ApiAppPackage))
             {
                 // for now, for apiapps, we have prepended the id in the catalog with the namespace, however we don't want this to impact the Lucene index
-                package["id"] = package["originalId"];
+                JToken originalId = package["originalId"];
+
+                if (originalId != null)
+                {
+                    package["id"] = originalId.ToString();
+                }
 
                 return CreateLuceneDocument_ApiApp(package, packageUrl, baseAddress);
             }
