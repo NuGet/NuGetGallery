@@ -8,6 +8,7 @@
       <Setting name="Operations.Storage.Backup" value="UseDevelopmentStorage=true" />
       <Setting name="Operations.Sql.Primary" value="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetGallery;Integrated Security=SSPI" />
       <Setting name="Operations.Sql.Warehouse" value="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetWarehouse;Integrated Security=SSPI" />
+      <Setting name="Operations.SqlDac" value="" />
       <Setting name="Queue.PollInterval" value="00:00:01" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="" />

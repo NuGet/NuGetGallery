@@ -11,6 +11,7 @@
       <Setting name="Operations.Storage.Backup" />
       <Setting name="Operations.Sql.Primary" />
       <Setting name="Operations.Sql.Warehouse" />
+      <Setting name="Operations.SqlDac" />
       <Setting name="Queue.PollInterval" />
     </ConfigurationSettings>
     <LocalResources>
