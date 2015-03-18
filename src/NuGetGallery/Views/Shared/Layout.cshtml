@@ -32,7 +32,7 @@
                     <div id="header-sidebox">
                         <div id="searchBox" role="search">
                             <form action="@Url.PackageList()" method="get">
-                                <input name="q" id="searchBoxInput" class="expanding-search" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" autocomplete="off" autofocus />
+                                <input name="q" id="searchBoxInput" class="expanding-search" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" autocomplete="off" @(Request.Url != null && (Request.Url.PathAndQuery == "/" || Request.Url.PathAndQuery == "/packages") ? "autofocus" : string.Empty) />
                                 <input id="searchBoxSubmit" type="submit" value="Submit" />
                             </form>
                         </div>
@@ -40,7 +40,7 @@
                     </div>
                 </header>
                 <nav class="main">
-                    @Html.Partial( "SiteMenu")
+                    @Html.Partial("SiteMenu")
                 </nav>
                 <div id="body" role="main">
                     @if (TempData.ContainsKey("Message"))
