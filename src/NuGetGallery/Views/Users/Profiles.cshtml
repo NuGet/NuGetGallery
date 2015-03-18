@@ -29,6 +29,10 @@
 {
     <small>(Page @(Model.PackagePage + 1) of @Model.PackagePageTotalCount) <a href="@Url.UserShowAllPackages(Model.Username)">Show all packages</a></small>
 }
+else if (Model.ShowAllPackages)
+{
+    <small><a href="@Url.User(Model.User)">Show paged package list</a></small>
+}
 </h2>
 <ul id="searchResults">
 @{

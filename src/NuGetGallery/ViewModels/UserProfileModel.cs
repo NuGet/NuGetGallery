@@ -8,6 +8,7 @@ namespace NuGetGallery
     {
         public UserProfileModel(User user, List<PackageViewModel> allPackages, int pageIndex, int pageSize, UrlHelper url)
         {
+            User = user;
             Username = user.Username;
             EmailAddress = user.EmailAddress;
             UnconfirmedEmailAddress = user.UnconfirmedEmailAddress;
@@ -29,6 +30,7 @@ namespace NuGetGallery
         }
 
         public int PackagePageTotalCount { get; private set; }
+        public User User { get; private set; }
         public string Username { get; private set; }
         public string EmailAddress { get; private set; }
         public string UnconfirmedEmailAddress { get; set; }
