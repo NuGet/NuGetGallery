@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="NuGet.Services.Metadata.CloudService" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="4" osVersion="*" schemaVersion="2014-06.2.4">
+  <Role name="NuGet.Services.Metadata">
+    <Instances count="1" />
+    <ConfigurationSettings>
+      <Setting name="Search.RegistrationBaseAddress" value="" />
+      <Setting name="Local.Lucene.Directory" value="" />
+      <Setting name="Search.IndexRefresh" value="" />
+      <Setting name="Storage.Primary" value="" />
+      <Setting name="Search.IndexContainer" value="" />
+      <Setting name="ida.Tenant" value="" />
+      <Setting name="ida.Audience" value="" />
+      <Setting name="ida.ClientId" value="" />
+      <Setting name="ida.AADInstance" value="" />
+    </ConfigurationSettings>
+    <Certificates>
+      <Certificate name="NuGetOrg" thumbprint="3751CB513B93EE67EC9F18A1F2AEC1EAC87AF9BC" thumbprintAlgorithm="sha1" />
+      <Certificate name="NuGet Service Auth" thumbprint="46F1362C87F94A4D6B778276472933A303C1EE6A" thumbprintAlgorithm="sha1" />
+    </Certificates>
+  </Role>
+</ServiceConfiguration>
