@@ -43,7 +43,7 @@ namespace NuGet.Services.Metadata.Catalog
             {
                 try
                 {
-                    return await blob.AcquireLeaseAsync(TimeSpan.FromSeconds(15), null);
+                    return await blob.AcquireLeaseAsync(timeStamp, null);
                 }
                 catch (StorageException e)
                 {
