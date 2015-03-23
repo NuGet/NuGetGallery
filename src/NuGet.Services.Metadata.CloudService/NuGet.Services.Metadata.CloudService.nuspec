@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>NuGet.Services.SecureSearch.CloudService</id>
+    <id>NuGet.Services.Metadata.CloudService</id>
     <version>$version$</version>
     <authors>Outercurve Foundation</authors>
     <owners>Outercurve Foundation</owners>
-    <licenseUrl>https://raw.githubusercontent.com/NuGet/NuGet.Services.Search/master/LICENSE</licenseUrl>
-    <projectUrl>https://github.com/NuGet/NuGet.Services.Search</projectUrl>
+    <licenseUrl>https://raw.githubusercontent.com/NuGet/NuGet.Services.Metadata/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/NuGet/NuGet.Services.Metadata</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>NuGet's secure search service.</description>
+    <description>NuGet's metadata service.</description>
     <copyright>Copyright 2015 Microsoft. NuGet is made possible by the Outercurve Foundation's open source project.</copyright>
   </metadata>  
   <files>
