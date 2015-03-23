@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Metadata.Catalog", "src\Catalog\NuGet.Services.Metadata.Catalog.csproj", "{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}"
 EndProject
@@ -60,6 +60,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Test.ConsoleApp", "tests\AAD\NuGet.Test.ConsoleApp\NuGet.Test.ConsoleApp.csproj", "{22D27042-82DD-49D4-A95D-FD0D9D5D9E1B}"
 EndProject
 Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "PublishAzureCloudService", "PublishAzureCloudService\PublishAzureCloudService.ccproj", "{E92C2A00-9BDE-44AB-9243-143A2ADD88AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Indexing", "src\NuGet.Indexing\NuGet.Indexing.csproj", "{DDB34145-870F-42C3-9663-A9390CEE1E35}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -249,6 +251,16 @@ Global
 		{E92C2A00-9BDE-44AB-9243-143A2ADD88AB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{E92C2A00-9BDE-44AB-9243-143A2ADD88AB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{E92C2A00-9BDE-44AB-9243-143A2ADD88AB}.Release|x64.ActiveCfg = Release|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
