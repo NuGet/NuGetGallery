@@ -31,11 +31,5 @@ namespace NuGet.Services.Publish
         {
             return Schema.DataTypes.Package;
         }
-
-        protected override IList<string> Validate(Stream packageStream, out PackageIdentity packageIdentity)
-        {
-            packageIdentity = null;
-            return null;
-        }
     }
 }

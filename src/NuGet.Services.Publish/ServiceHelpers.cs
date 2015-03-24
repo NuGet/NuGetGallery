@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
@@ -208,6 +209,22 @@ namespace NuGet.Services.Publish
             string allTheClaims = claimsArray.ToString();
 
             return allTheClaims;
+        }
+
+        public static async Task<JObject> ReadJObject(Stream stream)
+        {
+            try
+            {
+                using (TextReader reader = new StreamReader(stream))
+                {
+                    string json = await reader.ReadToEndAsync();
+                    return JObject.Parse(json);
+                }
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
         }
     }
 }

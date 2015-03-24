@@ -156,6 +156,12 @@ namespace NuGet.Services.Publish
                         await uploader.Upload(context);
                         break;
                     }
+                case "/apiapp/edit":
+                    {
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
+                        await uploader.Edit(context);
+                        break;
+                    }
                 case "/tenant/enable":
                     {
                         PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);

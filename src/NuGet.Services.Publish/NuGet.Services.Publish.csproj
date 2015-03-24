@@ -211,6 +211,7 @@
     <Compile Include="CheckAccessImpl.cs" />
     <Compile Include="MetadataHelpers.cs" />
     <Compile Include="NoSecurityRegistrationOwnership.cs" />
+    <Compile Include="PackageArtifact.cs" />
     <Compile Include="PackageIdentity.cs" />
     <Compile Include="PublicationVisibility.cs" />
     <Compile Include="StorageRegistrationOwnership.cs" />
@@ -228,6 +229,8 @@
     <Compile Include="ServiceHelpers.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="NaiveSessionCache.cs" />
+    <Compile Include="EditValidationResult.cs" />
+    <Compile Include="ValidationResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">

@@ -11,6 +11,7 @@ using System.Management.Automation.Runspaces;
 using NuGet.Services.Metadata.Catalog;
 using VDS.RDF.Parsing.Contexts;
 using NuGet.Versioning;
+using System.Threading.Tasks;
 
 namespace NuGet.Services.Publish
 {
@@ -175,33 +176,30 @@ namespace NuGet.Services.Publish
         /// </summary>
         /// <param name="nupkgStream"></param>
         /// <returns></returns>
-        protected override IList<string> Validate(Stream nupkgStream, out PackageIdentity packageIdentity)
+        protected override Task<ValidationResult> Validate(Stream nupkgStream)
         {
-            packageIdentity = null;
+            ValidationResult result = new ValidationResult();
 
             if (!_wasPsd1Present)
             {
-                return new List<string>() { "A psd1 PowerShell module manifest was missing." };
+                result.Errors.Add("A psd1 PowerShell module manifest was missing.");
+                return Task.FromResult<ValidationResult>(result);
             }
 
             if (_missingRequiredFields.Count > 0)
             {
-                return new List<string>() { String.Format("The psd1 PowerShell module manifest is missing required fields: {0}.", String.Join(", ", _missingRequiredFields)) };
+                result.Errors.Add(string.Format("The psd1 PowerShell module manifest is missing required fields: {0}.", String.Join(", ", _missingRequiredFields)));
+                return Task.FromResult<ValidationResult>(result);
             }
 
-            if (_exception != null)
-            {
-                return new List<string>() { _exception.Message };
-            }
-
-            packageIdentity = new PackageIdentity
+            result.PackageIdentity = new PackageIdentity
             {
                 Namespace = "",
                 Id = "",
                 Version = SemanticVersion.Parse("0.0.0")
             };
 
-            return null;
+            return Task.FromResult<ValidationResult>(result);
         }
     }
 }
