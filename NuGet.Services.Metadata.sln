@@ -27,21 +27,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MennoCopy", "src\Tools\Menn
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Publish", "src\NuGet.Services.Publish\NuGet.Services.Publish.csproj", "{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PublishScripts", "PublishScripts", "{DC40D872-BF4E-453A-96EF-1A0BF3DD3D60}"
-	ProjectSection(SolutionItems) = preProject
-		PublishScripts\AzureWebsitePublishModule.psm1 = PublishScripts\AzureWebsitePublishModule.psm1
-		PublishScripts\Publish-WebApplicationWebsite.ps1 = PublishScripts\Publish-WebApplicationWebsite.ps1
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configurations", "Configurations", "{9D362AFD-C5A8-40DA-B9EE-C457E8EBC920}"
-	ProjectSection(SolutionItems) = preProject
-		PublishScripts\Configurations\NuGetServicesGateway-WAWS-dev.json = PublishScripts\Configurations\NuGetServicesGateway-WAWS-dev.json
-		PublishScripts\Configurations\NuGetServicesPublish-WAWS-dev.json = PublishScripts\Configurations\NuGetServicesPublish-WAWS-dev.json
-		PublishScripts\Configurations\NuGetTestSecureService-WAWS-dev.json = PublishScripts\Configurations\NuGetTestSecureService-WAWS-dev.json
-		PublishScripts\Configurations\NuGetTestWebSite-WAWS-dev.json = PublishScripts\Configurations\NuGetTestWebSite-WAWS-dev.json
-		PublishScripts\Configurations\PublishTestDriverWebSite-WAWS-dev.json = PublishScripts\Configurations\PublishTestDriverWebSite-WAWS-dev.json
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{4AA08EEB-BA47-4ECD-94F3-0700DD50E693}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\packages.config = .nuget\packages.config
@@ -294,7 +279,6 @@ Global
 		{6F18CEEE-4FD0-4F26-A2A1-A78F990F96D1} = {E935D13C-AF64-4896-A1B2-FA5D048C40F4}
 		{2DE8E090-D2C2-4FE1-8F16-6EFB5447EC8D} = {E935D13C-AF64-4896-A1B2-FA5D048C40F4}
 		{7AE1E48A-9F7C-463D-ACAD-3312CB0B97CB} = {C86C6DEE-84E1-4E4E-8868-6755D7A8E0E4}
-		{9D362AFD-C5A8-40DA-B9EE-C457E8EBC920} = {DC40D872-BF4E-453A-96EF-1A0BF3DD3D60}
 		{59F5CE10-A505-4B45-88E2-92F7664714E4} = {F91EB063-83EC-4194-8D62-12B9F91E4EE7}
 		{F8499B7A-739E-4F60-B99A-A6C64A259322} = {F91EB063-83EC-4194-8D62-12B9F91E4EE7}
 		{22D27042-82DD-49D4-A95D-FD0D9D5D9E1B} = {F91EB063-83EC-4194-8D62-12B9F91E4EE7}

@@ -29,7 +29,6 @@ namespace NuGet.Services.Metadata
             }
             catch
             {
-                // https://www.youtube.com/watch?v=F7xB4l8_frc
             }
 
             // Get value from environment
