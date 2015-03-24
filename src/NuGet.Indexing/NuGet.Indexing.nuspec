@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>https://github.com/NuGet/NuGet.Services.Search/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/NuGet/NuGet.Services.Search</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright 2014 Outercurve Foundation</copyright>
+    <tags>nuget services search index lucene</tags>
+  </metadata>
+</package>

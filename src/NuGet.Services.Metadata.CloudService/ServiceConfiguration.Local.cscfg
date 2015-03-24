@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="NuGet.Services.Metadata.CloudService" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="4" osVersion="*" schemaVersion="2014-06.2.4">
+  <Role name="NuGet.Services.Metadata">
+    <Instances count="1" />
+    <ConfigurationSettings>
+      <Setting name="Search.RegistrationBaseAddress" value="http://tempuri.org/registration/" />
+      <Setting name="Local.Lucene.Directory" value="c:\data\index20150317" />
+      <Setting name="Search.IndexRefresh" value="8" />
+      <Setting name="Storage.Primary" value="" />
+      <Setting name="Search.IndexContainer" value="" />
+      <Setting name="ida.Tenant" value="common" />
+      <Setting name="ida.Audience" value="https://services-ppe.nuget.org" />
+      <Setting name="ida.ClientId" value="12568cc7-49dd-4ad6-99c3-6a8248e84623" />
+      <Setting name="ida.AADInstance" value="https://login.windows-ppe.net/{0}" />
+    </ConfigurationSettings>
+    <Certificates>
+      <Certificate name="NuGetOrg" thumbprint="3751CB513B93EE67EC9F18A1F2AEC1EAC87AF9BC" thumbprintAlgorithm="sha1" />
+      <Certificate name="NuGet Service Auth" thumbprint="46F1362C87F94A4D6B778276472933A303C1EE6A" thumbprintAlgorithm="sha1" />
+    </Certificates>
+  </Role>
+</ServiceConfiguration>

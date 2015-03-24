@@ -4,7 +4,6 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Owin;
 using System;
-using System.Configuration;
 using System.IdentityModel.Tokens;
 using System.Net;
 using System.Threading.Tasks;
@@ -15,13 +14,20 @@ namespace NuGet.Services.Publish
 {
     public class Startup
     {
+        private static readonly ConfigurationService _configurationService;
+
+        static Startup()
+        {
+            _configurationService = new ConfigurationService();
+        }
+
         public void Configuration(IAppBuilder app)
         {
             if (!HasNoSecurityConfigured())
             {
-                string audience = ConfigurationManager.AppSettings["ida:Audience"];
-                string tenant = ConfigurationManager.AppSettings["ida:Tenant"];
-                string aadInstance = ConfigurationManager.AppSettings["ida:AADInstance"];
+                string audience = _configurationService.Get("ida.Audience");
+                string tenant = _configurationService.Get("ida.Tenant");
+                string aadInstance = _configurationService.Get("ida.AADInstance");
 
                 string metadataAddress = string.Format(aadInstance, tenant) + "/federationmetadata/2007-06/federationmetadata.xml";
 
@@ -53,7 +59,7 @@ namespace NuGet.Services.Publish
 
             if (container.CreateIfNotExists())
             {
-                switch (ConfigurationManager.AppSettings["Storage.BlobContainerPublicAccessType"] ?? "Off")
+                switch (_configurationService.Get("Storage.BlobContainerPublicAccessType") ?? "Off")
                 {
                     case "Off": container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Off });
                         break;
@@ -67,10 +73,10 @@ namespace NuGet.Services.Publish
 
         static void Initialize()
         {
-            string connectionString = ConfigurationManager.AppSettings["Storage.Primary"];
-            CreateContainer(connectionString, ConfigurationManager.AppSettings["Storage.Container.Artifacts"]);
-            CreateContainer(connectionString, ConfigurationManager.AppSettings["Storage.Container.Catalog"]);
-            CreateContainer(connectionString, ConfigurationManager.AppSettings["Storage.Container.Ownership"]);
+            string connectionString = _configurationService.Get("Storage.Primary");
+            CreateContainer(connectionString, _configurationService.Get("Storage.Container.Artifacts"));
+            CreateContainer(connectionString, _configurationService.Get("Storage.Container.Catalog"));
+            CreateContainer(connectionString, _configurationService.Get("Storage.Container.Ownership"));
         }
 
         async Task Invoke(IOwinContext context)
@@ -196,8 +202,8 @@ namespace NuGet.Services.Publish
                 return new NoSecurityRegistrationOwnership();
             }
 
-            string storagePrimary = ConfigurationManager.AppSettings.Get("Storage.Primary");
-            string storageContainerOwnership = ConfigurationManager.AppSettings.Get("Storage.Container.Ownership") ?? "ownership";
+            string storagePrimary = _configurationService.Get("Storage.Primary");
+            string storageContainerOwnership = _configurationService.Get("Storage.Container.Ownership") ?? "ownership";
 
             CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
 
@@ -206,7 +212,7 @@ namespace NuGet.Services.Publish
 
         bool HasNoSecurityConfigured()
         {
-            string noSecurity = ConfigurationManager.AppSettings.Get("NoSecurity");
+            string noSecurity = _configurationService.Get("NoSecurity");
             return (!string.IsNullOrEmpty(noSecurity) && noSecurity.Equals("true", StringComparison.InvariantCultureIgnoreCase));
         }
     }

@@ -17,11 +17,20 @@ namespace NuGet.Services.Publish
 {
     public static class ServiceHelpers
     {
-        static string graphResourceId = ConfigurationManager.AppSettings["ida:GraphResourceId"];
-        static string aadInstance = ConfigurationManager.AppSettings["ida:AADInstance"];
-        static string clientId = ConfigurationManager.AppSettings["ida:ClientId"];
-        static string appKey = ConfigurationManager.AppSettings["ida:AppKey"];
-        static string tenant = ConfigurationManager.AppSettings["ida:Tenant"];
+        private static readonly string _graphResourceId;
+        private static readonly string _clientId;
+        private static readonly string _aadInstance;
+        private static readonly string _appKey;
+        private static readonly ConfigurationService _configurationService;
+
+        static ServiceHelpers()
+        {
+            _configurationService = new ConfigurationService();
+            _graphResourceId = _configurationService.Get("ida.GraphResourceId");
+            _aadInstance = _configurationService.Get("ida.AADInstance");
+            _clientId = _configurationService.Get("ida.ClientId");
+            _appKey = _configurationService.Get("ida.AppKey");
+        }
 
         public static async Task Test(IOwinContext context)
         {
@@ -105,7 +114,7 @@ namespace NuGet.Services.Publish
 
         static X509Certificate2 LoadCertificate()
         {
-            string thumbprint = ConfigurationManager.AppSettings["nuget:Thumbprint"];
+            string thumbprint = _configurationService.Get("nuget.Thumbprint");
 
             if (string.IsNullOrWhiteSpace(thumbprint))
             {
@@ -153,13 +162,13 @@ namespace NuGet.Services.Publish
 
             string tenantId = GetTenantId();
 
-            string authority = string.Format(aadInstance, tenantId);
+            string authority = string.Format(_aadInstance, tenantId);
 
             AuthenticationContext authContext = new AuthenticationContext(authority);
 
             AuthenticationResult result;
 
-            if (string.IsNullOrEmpty(appKey))
+            if (string.IsNullOrEmpty(_appKey))
             {
                 //string assertion = Startup.SecurityToken.ToString();
 
@@ -173,18 +182,18 @@ namespace NuGet.Services.Publish
 
                 UserAssertion userAssertion = new UserAssertion(userAccessToken);
 
-                ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(clientId, cert);
-                result = await authContext.AcquireTokenAsync(graphResourceId, clientAssertionCertificate, userAssertion);
+                ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(_clientId, cert);
+                result = await authContext.AcquireTokenAsync(_graphResourceId, clientAssertionCertificate, userAssertion);
             }
             else
             {
-                ClientCredential clientCredential = new ClientCredential(clientId, appKey);
-                result = await authContext.AcquireTokenAsync(graphResourceId, clientCredential);
+                ClientCredential clientCredential = new ClientCredential(_clientId, _appKey);
+                result = await authContext.AcquireTokenAsync(_graphResourceId, clientCredential);
             }
 
             string accessToken = result.AccessToken;
 
-            Uri serviceRoot = new Uri(new Uri(graphResourceId), tenantId);
+            Uri serviceRoot = new Uri(new Uri(_graphResourceId), tenantId);
 
             ActiveDirectoryClient activeDirectoryClient = new ActiveDirectoryClient(serviceRoot, () => { return Task.FromResult(accessToken); });
 
