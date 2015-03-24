@@ -13,6 +13,7 @@
   </metadata>  
   <files>
     <file src="bin\$configuration$\app.publish\*.cspkg" />
-    <file src="ServiceConfiguration.$TargetProfile$.cscfg" />	
+    <file src="ServiceConfiguration.Cloud.cscfg" />
+	<file src="PreDeploy.ps1" />
   </files>
 </package>
