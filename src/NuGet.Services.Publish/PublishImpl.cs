@@ -201,11 +201,11 @@ namespace NuGet.Services.Publish
 
             //  (1) generate any new or replacement artifacts based on the current catalogEntry and the editMetadata
 
-            IDictionary<string, PackageArtifact> artifacts = await GenerateNewArtifactsFromEdit(metadata, validationResult.CatalogEntry, validationResult.EditMetadata, StoragePrimary);
+            IDictionary<string, PackageArtifact> artifacts = await GenerateNewArtifactsFromEdit(metadata, validationResult.CatalogEntry, validationResult.EditMetadata, _storagePrimary);
             
             //  (2) save the new package
 
-            await Artifacts.Save(metadata, artifacts, StoragePrimary, StorageContainerPackages);
+            await Artifacts.Save(metadata, artifacts, _storagePrimary, _storageContainerPackages);
 
             InferArtifactTypes(metadata);
 
@@ -469,18 +469,18 @@ namespace NuGet.Services.Publish
 
         static Storage CreateStorage()
         {
-            CloudStorageAccount account = CloudStorageAccount.Parse(StoragePrimary);
+            CloudStorageAccount account = CloudStorageAccount.Parse(_storagePrimary);
 
             Storage storage;
-            if (CatalogBaseAddress == null)
+            if (_catalogBaseAddress == null)
             {
-                storage = new AzureStorage(account, StorageContainerCatalog);
+                storage = new AzureStorage(account, _storageContainerCatalog);
             }
             else
             {
-                string baseAddress = CatalogBaseAddress.TrimEnd('/') + "/" + StorageContainerCatalog;
+                string baseAddress = _catalogBaseAddress.TrimEnd('/') + "/" + _storageContainerCatalog;
 
-                storage = new AzureStorage(account, StorageContainerCatalog, string.Empty, new Uri(baseAddress));
+                storage = new AzureStorage(account, _storageContainerCatalog, string.Empty, new Uri(baseAddress));
             }
 
             return storage;
