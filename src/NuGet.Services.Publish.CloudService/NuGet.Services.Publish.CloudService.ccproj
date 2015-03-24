@@ -5,13 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>2.5</ProductVersion>
-    <ProjectGuid>a02a584b-02f3-40dc-804f-344f03926f9f</ProjectGuid>
+    <ProjectGuid>8a829025-5d87-4df3-82e8-18f2abc513fb</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGet.Services.SecureSearch.Cloud</RootNamespace>
-    <AssemblyName>NuGet.Services.SecureSearch.Cloud</AssemblyName>
+    <RootNamespace>NuGet.Services.Publish.CloudService</RootNamespace>
+    <AssemblyName>NuGet.Services.Publish.CloudService</AssemblyName>
     <StartDevelopmentStorage>True</StartDevelopmentStorage>
-    <Name>NuGet.Services.Metadata.CloudService</Name>
+    <Name>NuGet.Services.Publish.CloudService</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -37,20 +37,20 @@
     <ServiceConfiguration Include="ServiceConfiguration.Cloud.cscfg" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="NuGet.Services.MetadataContent" />
-  </ItemGroup>
-  <ItemGroup>
-    <DiagnosticsConfiguration Include="NuGet.Services.MetadataContent\diagnostics.wadcfgx" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\NuGet.Services.Metadata\NuGet.Services.Metadata.csproj">
-      <Name>NuGet.Services.Metadata</Name>
-      <Project>{bba2feae-6872-4b3d-a4ea-ced639618426}</Project>
+    <ProjectReference Include="..\NuGet.Services.Publish\NuGet.Services.Publish.csproj">
+      <Name>NuGet.Services.Publish</Name>
+      <Project>{f3f6d0dd-ae7f-4bef-a8df-3638b650a849}</Project>
       <Private>True</Private>
       <RoleType>Web</RoleType>
-      <RoleName>NuGet.Services.Metadata</RoleName>
+      <RoleName>NuGet.Services.Publish</RoleName>
       <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="NuGet.Services.PublishContent\" />
+  </ItemGroup>
+  <ItemGroup>
+    <DiagnosticsConfiguration Include="NuGet.Services.PublishContent\diagnostics.wadcfgx" />
   </ItemGroup>
   <!-- Import the target files for this project template -->
   <PropertyGroup>

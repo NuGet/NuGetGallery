@@ -17,28 +17,30 @@ namespace NuGet.Services.Publish
 {
     public abstract class PublishImpl
     {
-        const string DefaultStorageContainerCatalog = "catalog";
-        const string DefaultStorageContainerPackages = "artifacts";
-        const string DefaultStorageContainerOwnership = "ownership";
+        private const string DefaultStorageContainerCatalog = "catalog";
+        private const string DefaultStorageContainerPackages = "artifacts";
+        private const string DefaultStorageContainerOwnership = "ownership";
 
-        static string StoragePrimary;
-        static string StorageContainerCatalog;
-        static string StorageContainerPackages;
-        static string StorageContainerOwnership;
-        static string CatalogBaseAddress;
+        private static readonly string _storagePrimary;
+        private static readonly string _storageContainerCatalog;
+        private static readonly string _storageContainerPackages;
+        private static readonly string _storageContainerOwnership;
+        private static readonly string _catalogBaseAddress;
 
-        IRegistrationOwnership _registrationOwnership;
+        private readonly IRegistrationOwnership _registrationOwnership;
 
         static PublishImpl()
         {
-            StoragePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
-            StorageContainerCatalog = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Catalog") ?? DefaultStorageContainerCatalog;
-            StorageContainerPackages = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Artifacts") ?? DefaultStorageContainerPackages;
-            StorageContainerOwnership = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Ownership") ?? DefaultStorageContainerOwnership;
-            CatalogBaseAddress = System.Configuration.ConfigurationManager.AppSettings.Get("Catalog.BaseAddress");
+            var configurationService = new ConfigurationService();
+
+            _storagePrimary = configurationService.Get("Storage.Primary");
+            _storageContainerCatalog = configurationService.Get("Storage.Container.Catalog") ?? DefaultStorageContainerCatalog;
+            _storageContainerPackages = configurationService.Get("Storage.Container.Artifacts") ?? DefaultStorageContainerPackages;
+            _storageContainerOwnership = configurationService.Get("Storage.Container.Ownership") ?? DefaultStorageContainerOwnership;
+            _catalogBaseAddress = configurationService.Get("Catalog.BaseAddress");
         }
 
-        public PublishImpl(IRegistrationOwnership registrationOwnership)
+        protected PublishImpl(IRegistrationOwnership registrationOwnership)
         {
             _registrationOwnership = registrationOwnership;
         }
@@ -106,7 +108,7 @@ namespace NuGet.Services.Publish
 
             //  (1) save all the artifacts
 
-            await Artifacts.Save(metadata, packageStream, StoragePrimary, StorageContainerPackages);
+            await Artifacts.Save(metadata, packageStream, _storagePrimary, _storageContainerPackages);
 
             InferArtifactTypes(metadata);
 
@@ -274,7 +276,7 @@ namespace NuGet.Services.Publish
 
         static async Task<Uri> AddToCatalog(JObject nuspec, Uri itemType, PublicationDetails publicationDetails)
         {
-            StorageWriteLock writeLock = new StorageWriteLock(StoragePrimary, StorageContainerCatalog);
+            StorageWriteLock writeLock = new StorageWriteLock(_storagePrimary, _storageContainerCatalog);
 
             await writeLock.AquireAsync();
 
@@ -283,18 +285,18 @@ namespace NuGet.Services.Publish
             Exception exception = null;
             try
             {
-                CloudStorageAccount account = CloudStorageAccount.Parse(StoragePrimary);
+                CloudStorageAccount account = CloudStorageAccount.Parse(_storagePrimary);
 
                 Storage storage;
-                if (CatalogBaseAddress == null)
+                if (_catalogBaseAddress == null)
                 {
-                    storage = new AzureStorage(account, StorageContainerCatalog);
+                    storage = new AzureStorage(account, _storageContainerCatalog);
                 }
                 else
                 {
-                    string baseAddress = CatalogBaseAddress.TrimEnd('/') + "/" + StorageContainerCatalog;
+                    string baseAddress = _catalogBaseAddress.TrimEnd('/') + "/" + _storageContainerCatalog;
 
-                    storage = new AzureStorage(account, StorageContainerCatalog, string.Empty, new Uri(baseAddress));
+                    storage = new AzureStorage(account, _storageContainerCatalog, string.Empty, new Uri(baseAddress));
                 }
 
                 AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage);
@@ -320,7 +322,7 @@ namespace NuGet.Services.Publish
 
         async Task UpdateRegistrationOwnership(PackageIdentity packageIdentity)
         {
-            StorageWriteLock writeLock = new StorageWriteLock(StoragePrimary, StorageContainerOwnership);
+            StorageWriteLock writeLock = new StorageWriteLock(_storagePrimary, _storageContainerOwnership);
 
             await writeLock.AquireAsync();
 

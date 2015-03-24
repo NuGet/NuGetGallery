@@ -52,6 +52,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Metadata", "
 EndProject
 Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGet.Services.Metadata.CloudService", "src\NuGet.Services.Metadata.CloudService\NuGet.Services.Metadata.CloudService.ccproj", "{A02A584B-02F3-40DC-804F-344F03926F9F}"
 EndProject
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGet.Services.Publish.CloudService", "src\NuGet.Services.Publish.CloudService\NuGet.Services.Publish.CloudService.ccproj", "{8A829025-5D87-4DF3-82E8-18F2ABC513FB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -270,6 +272,16 @@ Global
 		{A02A584B-02F3-40DC-804F-344F03926F9F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{A02A584B-02F3-40DC-804F-344F03926F9F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{A02A584B-02F3-40DC-804F-344F03926F9F}.Release|x64.ActiveCfg = Release|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

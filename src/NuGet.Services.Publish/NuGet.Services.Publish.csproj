@@ -203,11 +203,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Artifacts.cs" />
     <Compile Include="CheckAccessImpl.cs" />
+    <Compile Include="ConfigurationService.cs" />
     <Compile Include="MetadataHelpers.cs" />
     <Compile Include="NoSecurityRegistrationOwnership.cs" />
     <Compile Include="PackageIdentity.cs" />
