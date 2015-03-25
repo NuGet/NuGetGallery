@@ -277,10 +277,10 @@ namespace NuGet.Services.Metadata.Catalog
             return total;
         }
 
-        public static bool IsType(JToken context, JObject obj, Uri type)
+        public static bool IsType(JToken context, JToken obj, Uri type)
         {
             JToken objTypeToken;
-            if (obj.TryGetValue("@type", out objTypeToken))
+            if (((JObject)obj).TryGetValue("@type", out objTypeToken))
             {
                 if (objTypeToken is JArray)
                 {

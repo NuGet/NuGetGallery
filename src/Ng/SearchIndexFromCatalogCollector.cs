@@ -46,15 +46,12 @@ namespace Ng
             {
                 Trace.TraceInformation("Index contains {0} documents", indexWriter.NumDocs());
 
-                int count = 0;
-
-                count += ProcessCatalogIndex(indexWriter, catalogIndex, _baseAddress);
-                count += ProcessPackages(indexWriter, catalogItems, _baseAddress);
-                count += ProcessPackageDeletes(indexWriter, catalogItems);
+                ProcessCatalogIndex(indexWriter, catalogIndex, _baseAddress);
+                ProcessCatalogItems(indexWriter, catalogItems, _baseAddress);
 
                 indexWriter.Commit(CreateCommitMetadata(commitTimeStamp));
 
-                Trace.TraceInformation("COMMIT {0} documents, index contains {1} documents commitTimeStamp {2}", count, indexWriter.NumDocs(), commitTimeStamp.ToString("O"));
+                Trace.TraceInformation("COMMIT index contains {0} documents commitTimeStamp {1}", indexWriter.NumDocs(), commitTimeStamp.ToString("O"));
             }
 
             return true;
@@ -76,11 +73,11 @@ namespace Ng
             return tasks.Select(t => t.Result);
         }
 
-        static int ProcessCatalogIndex(IndexWriter indexWriter, JObject catalogIndex, string baseAddress)
+        static void ProcessCatalogIndex(IndexWriter indexWriter, JObject catalogIndex, string baseAddress)
         {
             if (catalogIndex == null)
             {
-                return 0;
+                return;
             }
 
             indexWriter.DeleteDocuments(new Term("@type", Schema.DataTypes.CatalogInfastructure.AbsoluteUri));
@@ -94,65 +91,83 @@ namespace Ng
             AddStoragePaths(doc, storagePaths, baseAddress);
 
             indexWriter.AddDocument(doc);
-
-            return 1;
         }
 
-        static void NormalizeId(JObject catalogEntry)
+        static void ProcessCatalogItems(IndexWriter indexWriter, IEnumerable<JObject> catalogItems, string baseAddress)
+        {
+            int count = 0;
+
+            foreach (JObject catalogItem in catalogItems)
+            {
+                Trace.TraceInformation("Process CatalogItem {0}", catalogItem["@id"]);
+
+                NormalizeId(catalogItem);
+
+                if (Utils.IsType(GetContext(catalogItem), catalogItem, Schema.DataTypes.PackageDetails))
+                {
+                    ProcessPackageDetails(indexWriter, catalogItem, baseAddress);
+                }
+                else if (Utils.IsType(GetContext(catalogItem), catalogItem, Schema.DataTypes.PackageDelete))
+                {
+                    ProcessPackageDelete(indexWriter, catalogItem);
+                }
+                else
+                {
+                    Trace.TraceInformation("Unrecognized @type ignoring CatalogItem");
+                }
+
+                count++;
+            }
+
+            Trace.TraceInformation("Processed {0} CatalogItems", count);
+        }
+
+        static void NormalizeId(JObject catalogItem)
         {
             // for now, for apiapps, we have prepended the id in the catalog with the namespace, however we don't want this to impact the Lucene index
-            JToken originalId = catalogEntry["originalId"];
+            JToken originalId = catalogItem["originalId"];
             if (originalId != null)
             {
-                catalogEntry["id"] = originalId.ToString();
+                catalogItem["id"] = originalId.ToString();
             }
         }
 
-        static int ProcessPackages(IndexWriter indexWriter, IEnumerable<JObject> catalogItems, string baseAddress)
+        static JToken GetContext(JObject catalogItem)
         {
-            int i = 0;
-
-            foreach (JObject catalogItem in catalogItems.Where(x => x["@type"].ToString().ToLowerInvariant().Contains("packagedetails")))
-            {
-                NormalizeId(catalogItem);
-
-                indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem["id"].ToString(), catalogItem["version"].ToString()));
-
-                int publishedDate = 0;
-                JToken publishedValue;
-
-                if (catalogItem.TryGetValue("published", out publishedValue))
-                {
-                   publishedDate = int.Parse(publishedValue.ToObject<DateTime>().ToString("yyyyMMdd"));
-                }
-                              
-                //Filter out unlisted packages
-                if (publishedDate != 19000101)
-                {
-                    Document document = MakeDocument(catalogItem, baseAddress);
-                    indexWriter.AddDocument(document);
-                }
-
-                i++;
-            }
-
-            return i;
+            return catalogItem["@context"];
         }
 
-        static int ProcessPackageDeletes(IndexWriter indexWriter, IEnumerable<JObject> catalogItems)
+        static void ProcessPackageDetails(IndexWriter indexWriter, JObject catalogItem, string baseAddress)
         {
-            int i = 0;
+            indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem));
 
-            foreach (JObject catalogItem in catalogItems.Where(x => x["@type"].ToString().ToLowerInvariant().Contains("packagedelete")))
+            if (IsListed(catalogItem))
             {
-                NormalizeId(catalogItem);
-
-                indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem["id"].ToString(), catalogItem["version"].ToString()));
-
-                i++;
+                Document document = MakeDocument(catalogItem, baseAddress);
+                indexWriter.AddDocument(document);
             }
+        }
 
-            return i;
+        static bool IsListed(JObject catalogItem)
+        {
+            int publishedDate = 0;
+            JToken publishedValue;
+
+            if (catalogItem.TryGetValue("published", out publishedValue))
+            {
+                publishedDate = int.Parse(publishedValue.ToObject<DateTime>().ToString("yyyyMMdd"));
+
+                return (publishedDate != 19000101);
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        static void ProcessPackageDelete(IndexWriter indexWriter, JObject catalogItem)
+        {
+            indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem));
         }
 
         IDictionary<string, string> CreateCommitMetadata(DateTime commitTimeStamp)
@@ -183,16 +198,33 @@ namespace Ng
             return indexWriter;
         }
 
-        static Query CreateDeleteQuery(string id, string version)
+        static Query CreateDeleteQuery(JObject catalogItem)
         {
+            string id = catalogItem["id"].ToString();
+            string version = catalogItem["version"].ToString();
+
             //  note as we are not using the QueryParser we are not running this data through the analyzer so we need to mimic its behavior
             string analyzedId = id.ToLowerInvariant();
             string analyzedVersion = NuGetVersion.Parse(version).ToNormalizedString();
 
-            BooleanQuery query = new BooleanQuery();
-            query.Add(new BooleanClause(new TermQuery(new Term("Id", analyzedId)), Occur.MUST));
-            query.Add(new BooleanClause(new TermQuery(new Term("Version", analyzedVersion)), Occur.MUST));
-            return query;
+            JToken nsJToken;
+            if (catalogItem.TryGetValue("namespace", out nsJToken))
+            {
+                string ns = nsJToken.ToString();
+
+                BooleanQuery query = new BooleanQuery();
+                query.Add(new BooleanClause(new TermQuery(new Term("Id", analyzedId)), Occur.MUST));
+                query.Add(new BooleanClause(new TermQuery(new Term("Version", analyzedVersion)), Occur.MUST));
+                query.Add(new BooleanClause(new TermQuery(new Term("Namespace", ns)), Occur.MUST));
+                return query;
+            }
+            else
+            {
+                BooleanQuery query = new BooleanQuery();
+                query.Add(new BooleanClause(new TermQuery(new Term("Id", analyzedId)), Occur.MUST));
+                query.Add(new BooleanClause(new TermQuery(new Term("Version", analyzedVersion)), Occur.MUST));
+                return query;
+            }
         }
 
         static Document MakeDocument(JObject catalogEntry, string baseAddress)
