@@ -10,7 +10,7 @@
     <copyright>Copyright Outercurve Foundation</copyright>
   </metadata>
   <files>
-    <add src="bin\$configuration$\*.*" target="Ng"/>
-	<add src="" />
+    <file src="bin\$configuration$\*.*" target="Ng"/>
+	<file src="ng.cmd" />
   </files>
 </package>
