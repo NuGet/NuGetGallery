@@ -10,6 +10,7 @@
     <copyright>Copyright Outercurve Foundation</copyright>
   </metadata>
   <files>
-    <add src="bin\$configuration$\*.*" />
+    <add src="bin\$configuration$\*.*" target="Ng"/>
+	<add src="" />
   </files>
 </package>
