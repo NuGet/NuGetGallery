@@ -233,6 +233,7 @@
     <Compile Include="NaiveSessionCache.cs" />
     <Compile Include="EditValidationResult.cs" />
     <Compile Include="ValidationResult.cs" />
+    <Compile Include="WebRole.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">
