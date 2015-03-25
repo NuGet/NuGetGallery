@@ -223,6 +223,7 @@ namespace NuGet.Services.Publish
 
             foreach (JObject entry in catalogEntry["entries"])
             {
+                // package.zip doesn't have a fullName
                 JToken fullnameJToken;
                 if (!entry.TryGetValue("fullName", out fullnameJToken))
                 {
@@ -244,6 +245,7 @@ namespace NuGet.Services.Publish
                     {
                         artifacts.Add(fullname, new PackageArtifact { Stream = stream });
                     }
+                    // else DELETE
                 }
                 else
                 {

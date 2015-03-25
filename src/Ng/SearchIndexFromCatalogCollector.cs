@@ -98,12 +98,24 @@ namespace Ng
             return 1;
         }
 
+        static void NormalizeId(JObject catalogEntry)
+        {
+            // for now, for apiapps, we have prepended the id in the catalog with the namespace, however we don't want this to impact the Lucene index
+            JToken originalId = catalogEntry["originalId"];
+            if (originalId != null)
+            {
+                catalogEntry["id"] = originalId.ToString();
+            }
+        }
+
         static int ProcessPackages(IndexWriter indexWriter, IEnumerable<JObject> catalogItems, string baseAddress)
         {
             int i = 0;
 
             foreach (JObject catalogItem in catalogItems.Where(x => x["@type"].ToString().ToLowerInvariant().Contains("packagedetails")))
             {
+                NormalizeId(catalogItem);
+
                 indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem["id"].ToString(), catalogItem["version"].ToString()));
 
                 int publishedDate = 0;
@@ -133,6 +145,8 @@ namespace Ng
 
             foreach (JObject catalogItem in catalogItems.Where(x => x["@type"].ToString().ToLowerInvariant().Contains("packagedelete")))
             {
+                NormalizeId(catalogItem);
+
                 indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem["id"].ToString(), catalogItem["version"].ToString()));
 
                 i++;
@@ -221,25 +235,19 @@ namespace Ng
             return 1.0f;
         }
 
-        static Document CreateLuceneDocument(JObject package, string packageUrl, string baseAddress)
+        static Document CreateLuceneDocument(JObject catalogEntry, string packageUrl, string baseAddress)
         {
-            JToken type = package["@type"];
+            JToken type = catalogEntry["@type"];
 
             //TODO: for now this is a MicroservicePackage hi-jack - later we can make this Docuemnt creation more generic
-            if (Utils.IsType(package["@context"], package, Schema.DataTypes.ApiAppPackage))
+            if (Utils.IsType(catalogEntry["@context"], catalogEntry, Schema.DataTypes.ApiAppPackage))
             {
-                // for now, for apiapps, we have prepended the id in the catalog with the namespace, however we don't want this to impact the Lucene index
-                JToken originalId = package["originalId"];
+                NormalizeId(catalogEntry);
 
-                if (originalId != null)
-                {
-                    package["id"] = originalId.ToString();
-                }
-
-                return CreateLuceneDocument_ApiApp(package, packageUrl, baseAddress);
+                return CreateLuceneDocument_ApiApp(catalogEntry, packageUrl, baseAddress);
             }
 
-            return CreateLuceneDocument_NuGet(package, packageUrl);
+            return CreateLuceneDocument_NuGet(catalogEntry, packageUrl);
         }
 
         static Document CreateLuceneDocument_ApiApp(JObject package, string packageUrl, string baseAddress)
