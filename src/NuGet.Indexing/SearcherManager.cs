@@ -1,35 +1,33 @@
 ﻿using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Lucene.Net.Store;
 using System;
 using System.Threading;
-using Lucene.Net.Store;
 
 namespace NuGet.Indexing
 {
     public class SearcherManager
     {
-        private object _sync = new object();
-
-        private IndexSearcher _currentSearcher;
+        private readonly object _sync = new object();
+        private bool _reopening;
+        private Lazy<IndexSearcher> _currentSearcher;
 
         public Directory Directory { get; private set; }
 
         public SearcherManager(Directory directory)
         {
             Directory = directory;
-            _currentSearcher = new IndexSearcher(IndexReader.Open(Directory, true));
+            _currentSearcher = new Lazy<IndexSearcher>(() => new IndexSearcher(IndexReader.Open(Directory, true)));
         }
 
         public void Open()
         {
-            Warm(_currentSearcher);
+            Warm(_currentSearcher.Value);
         }
 
         protected virtual void Warm(IndexSearcher searcher)
         {
         }
-
-        private bool _reopening = false;
 
         private void StartReopen()
         {
@@ -51,7 +49,6 @@ namespace NuGet.Indexing
                 Monitor.PulseAll(_sync);
             }
         }
-
         public void MaybeReopen()
         {
             StartReopen();
@@ -61,8 +58,8 @@ namespace NuGet.Indexing
                 IndexSearcher searcher = Get();
                 try
                 {
-                    IndexReader newReader = _currentSearcher.IndexReader.Reopen();
-                    if (newReader != _currentSearcher.IndexReader)
+                    IndexReader newReader = _currentSearcher.Value.IndexReader.Reopen();
+                    if (newReader != _currentSearcher.Value.IndexReader)
                     {
                         IndexSearcher newSearcher = new IndexSearcher(newReader);
                         Warm(newSearcher);
@@ -84,8 +81,8 @@ namespace NuGet.Indexing
         {
             lock (_sync)
             {
-                _currentSearcher.IndexReader.IncRef();
-                return _currentSearcher;
+                _currentSearcher.Value.IndexReader.IncRef();
+                return _currentSearcher.Value;
             }
         }
 
@@ -101,8 +98,8 @@ namespace NuGet.Indexing
         {
             lock (_sync)
             {
-                Release(_currentSearcher);
-                _currentSearcher = newSearcher;
+                Release(_currentSearcher.Value);
+                _currentSearcher = new Lazy<IndexSearcher>(() => newSearcher);
             }
         }
 

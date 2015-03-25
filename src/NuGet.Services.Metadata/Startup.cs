@@ -1,15 +1,15 @@
-﻿using System;
+﻿using Microsoft.Owin;
+using Microsoft.Owin.Security.ActiveDirectory;
+using NuGet.Indexing;
+using Owin;
+using System;
 using System.IdentityModel.Tokens;
+using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Owin;
-using Microsoft.Owin.Security.ActiveDirectory;
-using NuGet.Indexing;
-using NuGet.Services.Metadata;
-using Owin;
 
-[assembly: OwinStartup(typeof(Startup))]
+[assembly: OwinStartup(typeof(NuGet.Services.Metadata.Startup))]
 
 namespace NuGet.Services.Metadata
 {
@@ -36,7 +36,7 @@ namespace NuGet.Services.Metadata
                 {
                     ValidAudience = audience,
                     ValidateIssuer = true,
-                    IssuerValidator = (string issuer, SecurityToken securityToken, TokenValidationParameters validationParameters) => { return issuer; }
+                    IssuerValidator = (string issuer, SecurityToken securityToken, TokenValidationParameters validationParameters) => issuer
                 },
                 Tenant = tenant,
                 MetadataAddress = metadataAddress
@@ -44,19 +44,40 @@ namespace NuGet.Services.Metadata
 
             _searcherManager = CreateSearcherManager();
 
-            _searcherManager.Open();
-
-            string searchIndexRefresh = _configurationService.Get("Search.IndexRefresh") ?? "180";
-            int seconds;
-            if (!int.TryParse(searchIndexRefresh, out seconds))
+            try
             {
-                seconds = 180;
+                _searcherManager.Open();
+
+                string searchIndexRefresh = _configurationService.Get("Search.IndexRefresh") ?? "180";
+                int seconds;
+                if (!int.TryParse(searchIndexRefresh, out seconds))
+                {
+                    seconds = 180;
+                }
+
+                _gate = 0;
+                _timer = new Timer(ReopenCallback, 0, 0, seconds * 1000);
+
+                app.Run(Invoke);
             }
+            catch (FileNotFoundException)
+            {
+                // thrown when the Lucene index is not found
+                app.Run(async context =>
+                {
+                    switch (context.Request.Path.Value)
+                    {
+                        case "/":
+                            await context.Response.WriteAsync("Lucene index not found!");
+                            context.Response.StatusCode = (int)HttpStatusCode.OK;
+                            break;
 
-            _gate = 0;
-            _timer = new Timer(new TimerCallback(ReopenCallback), 0, 0, seconds * 1000);
-
-            app.Run(Invoke);
+                        default:
+                            context.Response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
+                            break;
+                    }
+                });
+            }
         }
 
         void ReopenCallback(object obj)
@@ -123,7 +144,7 @@ namespace NuGet.Services.Metadata
                     await context.Response.WriteAsync("OK");
                     context.Response.StatusCode = (int)HttpStatusCode.OK;
                     break;
-                
+
                 case "/query":
                     await SecureQueryImpl.Query(context, _searcherManager, ServiceHelpers.GetTenant(), ServiceHelpers.GetNameIdentifier());
                     break;
@@ -135,7 +156,7 @@ namespace NuGet.Services.Metadata
                 case "/find":
                     await SecureFindImpl.Find(context, _searcherManager, ServiceHelpers.GetTenant());
                     break;
-                
+
                 case "/segments":
                     await ServiceInfoImpl.Segments(context, _searcherManager);
                     break;
@@ -143,7 +164,7 @@ namespace NuGet.Services.Metadata
                 case "/stats":
                     await ServiceInfoImpl.Stats(context, _searcherManager);
                     break;
-                
+
                 default:
                     string storagePrimary = _configurationService.Get("Storage.Primary");
                     MetadataImpl.Access(context, string.Empty, _searcherManager, storagePrimary, 30);
