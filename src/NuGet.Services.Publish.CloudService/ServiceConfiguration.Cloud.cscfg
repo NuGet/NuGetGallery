@@ -15,8 +15,7 @@
       <Setting name="Storage.BlobContainerPublicAccessType" value="" />
     </ConfigurationSettings>
     <Certificates>
-      <Certificate name="NuGetOrg" thumbprint="3751CB513B93EE67EC9F18A1F2AEC1EAC87AF9BC" thumbprintAlgorithm="sha1" />
-      <Certificate name="NuGet Service Auth" thumbprint="46F1362C87F94A4D6B778276472933A303C1EE6A" thumbprintAlgorithm="sha1" />
+      <Certificate name="NuGetOrg" thumbprint="C5385DB24F7AAE13FE38AD014A6504E5B2F6955B" thumbprintAlgorithm="sha1" />
     </Certificates>
   </Role>
 </ServiceConfiguration>

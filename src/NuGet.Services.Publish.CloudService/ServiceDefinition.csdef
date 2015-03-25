@@ -14,8 +14,7 @@
       <InputEndpoint name="HttpsEndpoint" protocol="https" port="443" certificate="NuGetOrg" />
     </Endpoints>
     <Certificates>
-      <Certificate name="NuGetOrg" storeLocation="LocalMachine" storeName="My" />
-      <Certificate name="NuGet Service Auth" storeLocation="CurrentUser" storeName="My" />
+      <Certificate name="NuGetOrg" storeLocation="CurrentUser" storeName="My" />
     </Certificates>
     <ConfigurationSettings>
       <Setting name="ida.GraphResourceId" />
