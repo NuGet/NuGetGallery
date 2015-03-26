@@ -133,7 +133,15 @@ namespace NuGetGallery.Configuration
             }
 
             string cloudValue = GetCloudSetting(settingName);
-            return String.IsNullOrEmpty(cloudValue) ? value : cloudValue;
+            if (string.IsNullOrEmpty(cloudValue))
+            {
+                return value;
+            }
+            else if (cloudValue == "null")
+            {
+                return null;
+            }
+            return cloudValue;
         }
 
         public bool _notInCloud = false;
