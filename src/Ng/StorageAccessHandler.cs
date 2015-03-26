@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,8 +7,8 @@ namespace Ng
 {
     public class StorageAccessHandler : DelegatingHandler
     {
-        string _catalogBaseAddress;
-        string _storageBaseAddress;
+        private readonly string _catalogBaseAddress;
+        private readonly string _storageBaseAddress;
 
         public StorageAccessHandler(string catalogBaseAddress, string storageBaseAddress)
             : base(new HttpClientHandler())

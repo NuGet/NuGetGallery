@@ -17,16 +17,15 @@ namespace Ng
 {
     public class SearchIndexFromCatalogCollector : CommitCollector
     {
-        const int MergeFactor = 10;
+        private const string _packageTemplate = "{0}/{1}.json";
+        private const int MergeFactor = 10;
 
         //  Define the size of a file in a level (exponentially) and the count of files that constitue a level
-        const int MaxMergeDocs = 7999;              //  Except never merge segments that have more docs than this
+        private const int MaxMergeDocs = 7999;              //  Except never merge segments that have more docs than this
 
-        Lucene.Net.Store.Directory _directory;
-
-        string _baseAddress;
+        private readonly Lucene.Net.Store.Directory _directory;
+        private readonly string _baseAddress;
         
-        const string _packageTemplate = "{0}/{1}.json";
 
         static Dictionary<string, string> _frameworkNames = new Dictionary<string, string>();
 
@@ -150,13 +149,10 @@ namespace Ng
 
         static bool IsListed(JObject catalogItem)
         {
-            int publishedDate = 0;
             JToken publishedValue;
-
             if (catalogItem.TryGetValue("published", out publishedValue))
             {
-                publishedDate = int.Parse(publishedValue.ToObject<DateTime>().ToString("yyyyMMdd"));
-
+                var publishedDate = int.Parse(publishedValue.ToObject<DateTime>().ToString("yyyyMMdd"));
                 return (publishedDate != 19000101);
             }
             else

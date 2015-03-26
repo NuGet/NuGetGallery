@@ -148,6 +148,7 @@
     <Compile Include="Facets.cs" />
     <Compile Include="IdentifierAutocompleteAnalyzer.cs" />
     <Compile Include="LatestVersionFilter.cs" />
+    <Compile Include="LocalFrameworksList.cs" />
     <Compile Include="MetadataImpl.cs" />
     <Compile Include="PackageTenantId.cs" />
     <Compile Include="SecureSearcherManager.cs" />
@@ -176,6 +177,7 @@
     <Compile Include="StorageDownloadCounts.cs" />
     <Compile Include="StorageDownloadLookup.cs" />
     <Compile Include="PublicFilter.cs" />
+    <Compile Include="StorageFrameworksList.cs" />
     <Compile Include="TenantFilter.cs" />
     <Compile Include="TypeFilter.cs" />
     <Compile Include="UpdateIndexTask.cs" />
