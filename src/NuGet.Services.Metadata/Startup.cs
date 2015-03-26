@@ -1,5 +1,6 @@
 ﻿using Microsoft.Owin;
 using Microsoft.Owin.Security.ActiveDirectory;
+using Microsoft.WindowsAzure.Storage;
 using NuGet.Indexing;
 using Owin;
 using System;
@@ -42,42 +43,19 @@ namespace NuGet.Services.Metadata
                 MetadataAddress = metadataAddress
             });
 
-            _searcherManager = CreateSearcherManager();
-
-            try
+            string searchIndexRefresh = _configurationService.Get("Search.IndexRefresh") ?? "180";
+            int seconds;
+            if (!int.TryParse(searchIndexRefresh, out seconds))
             {
-                _searcherManager.Open();
-
-                string searchIndexRefresh = _configurationService.Get("Search.IndexRefresh") ?? "180";
-                int seconds;
-                if (!int.TryParse(searchIndexRefresh, out seconds))
-                {
-                    seconds = 180;
-                }
-
-                _gate = 0;
-                _timer = new Timer(ReopenCallback, 0, 0, seconds * 1000);
-
-                app.Run(Invoke);
+                seconds = 60;
             }
-            catch (FileNotFoundException)
-            {
-                // thrown when the Lucene index is not found
-                app.Run(async context =>
-                {
-                    switch (context.Request.Path.Value)
-                    {
-                        case "/":
-                            await context.Response.WriteAsync("Lucene index not found!");
-                            context.Response.StatusCode = (int)HttpStatusCode.OK;
-                            break;
 
-                        default:
-                            context.Response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
-                            break;
-                    }
-                });
-            }
+            _searcherManager = null;
+
+            _gate = 0;
+            _timer = new Timer(ReopenCallback, 0, 10, seconds * 1000);
+
+            app.Run(Invoke);
         }
 
         void ReopenCallback(object obj)
@@ -89,9 +67,42 @@ namespace NuGet.Services.Metadata
                 return;
             }
 
-            _searcherManager.MaybeReopen();
+            if (_searcherManager == null)
+            {
+                TrySetSearcherManager();
+            }
+            else
+            {
+                TryMaybeReopen();
+            }
+
             Interlocked.Decrement(ref _gate);
             return;
+        }
+
+        public void TrySetSearcherManager()
+        {
+            try
+            {
+                _searcherManager = CreateSearcherManager();
+                _searcherManager.Open();
+            }
+            catch (FileNotFoundException)
+            {
+                _searcherManager = null;
+            }
+        }
+
+        public void TryMaybeReopen()
+        {
+            try
+            {
+                _searcherManager.MaybeReopen();
+            }
+            catch (StorageException)
+            {
+                _searcherManager = null;
+            }
         }
 
         public SecureSearcherManager CreateSearcherManager()
@@ -138,10 +149,17 @@ namespace NuGet.Services.Metadata
 
         public async Task Invoke(IOwinContext context)
         {
+            if (_searcherManager == null)
+            {
+                await context.Response.WriteAsync("no index loaded");
+                context.Response.StatusCode = (int)HttpStatusCode.OK;
+                return;
+            }
+
             switch (context.Request.Path.Value)
             {
                 case "/":
-                    await context.Response.WriteAsync("OK");
+                    await context.Response.WriteAsync("READY.");
                     context.Response.StatusCode = (int)HttpStatusCode.OK;
                     break;
 

@@ -10,19 +10,19 @@ namespace NuGet.Indexing
     {
         private readonly object _sync = new object();
         private bool _reopening;
-        private Lazy<IndexSearcher> _currentSearcher;
+        private IndexSearcher _currentSearcher;
 
         public Directory Directory { get; private set; }
 
         public SearcherManager(Directory directory)
         {
             Directory = directory;
-            _currentSearcher = new Lazy<IndexSearcher>(() => new IndexSearcher(IndexReader.Open(Directory, true)));
+            _currentSearcher = new IndexSearcher(IndexReader.Open(Directory, true));
         }
 
         public void Open()
         {
-            Warm(_currentSearcher.Value);
+            Warm(_currentSearcher);
         }
 
         protected virtual void Warm(IndexSearcher searcher)
@@ -58,8 +58,8 @@ namespace NuGet.Indexing
                 IndexSearcher searcher = Get();
                 try
                 {
-                    IndexReader newReader = _currentSearcher.Value.IndexReader.Reopen();
-                    if (newReader != _currentSearcher.Value.IndexReader)
+                    IndexReader newReader = _currentSearcher.IndexReader.Reopen();
+                    if (newReader != _currentSearcher.IndexReader)
                     {
                         IndexSearcher newSearcher = new IndexSearcher(newReader);
                         Warm(newSearcher);
@@ -81,8 +81,8 @@ namespace NuGet.Indexing
         {
             lock (_sync)
             {
-                _currentSearcher.Value.IndexReader.IncRef();
-                return _currentSearcher.Value;
+                _currentSearcher.IndexReader.IncRef();
+                return _currentSearcher;
             }
         }
 
@@ -98,8 +98,8 @@ namespace NuGet.Indexing
         {
             lock (_sync)
             {
-                Release(_currentSearcher.Value);
-                _currentSearcher = new Lazy<IndexSearcher>(() => newSearcher);
+                Release(_currentSearcher);
+                _currentSearcher = newSearcher;
             }
         }
 
