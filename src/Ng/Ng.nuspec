@@ -11,5 +11,7 @@
   </metadata>
   <files>
     <file src="bin\$configuration$\*.*" target="Ng"/>
+    <file src="Scripts\Catalog2LuceneV3.cmd" />
+    <file src="Scripts\Catalog2RegistrationV3.cmd" />
   </files>
 </package>
