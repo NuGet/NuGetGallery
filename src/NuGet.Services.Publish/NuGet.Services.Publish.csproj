@@ -222,6 +222,7 @@
     <Compile Include="PackageArtifact.cs" />
     <Compile Include="PackageIdentity.cs" />
     <Compile Include="PublicationVisibility.cs" />
+    <Compile Include="SafeRoleEnvironment.cs" />
     <Compile Include="StorageRegistrationOwnership.cs" />
     <Compile Include="GraphCatalogItem.cs" />
     <Compile Include="ApiAppsPublishImpl.cs" />

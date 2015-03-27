@@ -21,7 +21,7 @@ namespace NuGet.Services.Metadata
             // Get value from Cloud Services (if it throws, just ignore)
             try
             {
-                if (RoleEnvironment.IsAvailable)
+                if (SafeRoleEnvironment.IsAvailable)
                 {
                     value = RoleEnvironment.GetConfigurationSettingValue(key);
                     return true;

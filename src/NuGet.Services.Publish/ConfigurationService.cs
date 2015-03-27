@@ -17,11 +17,11 @@ namespace NuGet.Services.Publish
         public bool TryGet(string key, out string value)
         {
             if (key == null) throw new ArgumentNullException("key");
-
+            
             // Get value from Cloud Services (if it throws, just ignore)
             try
             {
-                if (RoleEnvironment.IsAvailable)
+                if (SafeRoleEnvironment.IsAvailable)
                 {
                     value = RoleEnvironment.GetConfigurationSettingValue(key);
                     return true;
