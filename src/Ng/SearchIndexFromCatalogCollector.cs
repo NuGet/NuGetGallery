@@ -48,6 +48,8 @@ namespace Ng
                 ProcessCatalogIndex(indexWriter, catalogIndex, _baseAddress);
                 ProcessCatalogItems(indexWriter, catalogItems, _baseAddress);
 
+                indexWriter.ExpungeDeletes();
+
                 indexWriter.Commit(CreateCommitMetadata(commitTimeStamp));
 
                 Trace.TraceInformation("COMMIT index contains {0} documents commitTimeStamp {1}", indexWriter.NumDocs(), commitTimeStamp.ToString("O"));
@@ -74,20 +76,20 @@ namespace Ng
 
         static void ProcessCatalogIndex(IndexWriter indexWriter, JObject catalogIndex, string baseAddress)
         {
-            if (catalogIndex == null)
-            {
-                return;
-            }
-
             indexWriter.DeleteDocuments(new Term("@type", Schema.DataTypes.CatalogInfastructure.AbsoluteUri));
 
             Document doc = new Document();
 
             Add(doc, "@type", Schema.DataTypes.CatalogInfastructure.AbsoluteUri, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "Visibility", "Public", Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "Id", "", Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "Version", "0.0.0", Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
-            IEnumerable<string> storagePaths = GetCatalogStoragePaths(catalogIndex);
-            AddStoragePaths(doc, storagePaths, baseAddress);
+            if (catalogIndex != null)
+            {
+                IEnumerable<string> storagePaths = GetCatalogStoragePaths(catalogIndex);
+                AddStoragePaths(doc, storagePaths, baseAddress);
+            }
 
             indexWriter.AddDocument(doc);
         }
@@ -138,6 +140,8 @@ namespace Ng
 
         static void ProcessPackageDetails(IndexWriter indexWriter, JObject catalogItem, string baseAddress)
         {
+            Trace.TraceInformation("ProcessPackageDetails");
+
             indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem));
 
             if (IsListed(catalogItem))
@@ -163,6 +167,8 @@ namespace Ng
 
         static void ProcessPackageDelete(IndexWriter indexWriter, JObject catalogItem)
         {
+            Trace.TraceInformation("ProcessPackageDelete");
+
             indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem));
         }
 

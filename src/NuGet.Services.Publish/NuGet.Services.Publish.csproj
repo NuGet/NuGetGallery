@@ -209,10 +209,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Artifacts.cs" />
+    <Compile Include="CatalogHelpers.cs" />
     <Compile Include="CheckAccessImpl.cs" />
+    <Compile Include="Configuration.cs" />
     <Compile Include="ConfigurationService.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="DeleteCatalogItem.cs" />
+    <Compile Include="DeleteImpl.cs" />
     <Compile Include="MetadataHelpers.cs" />
     <Compile Include="NoSecurityRegistrationOwnership.cs" />
+    <Compile Include="OwnershipHelpers.cs" />
     <Compile Include="PackageArtifact.cs" />
     <Compile Include="PackageIdentity.cs" />
     <Compile Include="PublicationVisibility.cs" />
@@ -232,6 +238,7 @@
     <Compile Include="Startup.cs" />
     <Compile Include="NaiveSessionCache.cs" />
     <Compile Include="EditValidationResult.cs" />
+    <Compile Include="ValidationHelpers.cs" />
     <Compile Include="ValidationResult.cs" />
     <Compile Include="WebRole.cs" />
   </ItemGroup>

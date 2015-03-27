@@ -4,10 +4,10 @@ using Microsoft.Owin;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
@@ -30,6 +30,16 @@ namespace NuGet.Services.Publish
             _aadInstance = _configurationService.Get("ida.AADInstance");
             _clientId = _configurationService.Get("ida.ClientId");
             _appKey = _configurationService.Get("ida.AppKey");
+        }
+
+        public static JObject LoadContext(string name)
+        {
+            string assName = Assembly.GetExecutingAssembly().GetName().Name;
+            using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(assName + "." + name))
+            {
+                string json = new StreamReader(stream).ReadToEnd();
+                return JObject.Parse(json);
+            }
         }
 
         public static async Task Test(IOwinContext context)

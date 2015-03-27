@@ -29,13 +29,6 @@ namespace NuGet.Indexing
             return new OpenBitSetLookupFilter(openBitSetLookup);
         }
 
-        static string GetId(Document document)
-        {
-            string id = document.Get("Id");
-            string ns = document.Get("Namespace");
-            return (ns == null) ? id : string.Format("{0}/{1}", ns, id);
-        }
-
         static IDictionary<string, Tuple<NuGetVersion, string, int>> MakeLatestVersionLookup(IndexReader indexReader, bool prerelease)
         {
             IDictionary<string, Tuple<NuGetVersion, string, int>> lookup = new Dictionary<string, Tuple<NuGetVersion, string, int>>();
@@ -51,11 +44,21 @@ namespace NuGet.Indexing
 
                     Document document = segmentReader.Document(n);
 
-                    NuGetVersion currentVersion = NuGetVersion.Parse(document.Get("Version"));
+                    NuGetVersion currentVersion = GetVersion(document);
+
+                    if (currentVersion == null)
+                    {
+                        continue;
+                    }
 
                     if (!currentVersion.IsPrerelease || prerelease)
                     {
                         string id = GetId(document);
+
+                        if (id == null)
+                        {
+                            continue;
+                        }
 
                         Tuple<NuGetVersion, string, int> existingVersion;
                         if (lookup.TryGetValue(id, out existingVersion))
@@ -74,6 +77,19 @@ namespace NuGet.Indexing
             }
 
             return lookup;
+        }
+
+        static NuGetVersion GetVersion(Document document)
+        {
+            string version = document.Get("Version");
+            return (version == null) ? null : new NuGetVersion(version);
+        }
+
+        static string GetId(Document document)
+        {
+            string id = document.Get("Id");
+            string ns = document.Get("Namespace");
+            return (ns == null) ? id : string.Format("{0}/{1}", ns, id);
         }
     }
 }

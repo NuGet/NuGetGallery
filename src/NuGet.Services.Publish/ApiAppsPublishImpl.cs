@@ -182,13 +182,13 @@ namespace NuGet.Services.Publish
             }
             else
             {
-                result.PackageIdentity = ValidateIdentity(apiapp, result.Errors);
+                result.PackageIdentity = ValidationHelpers.ValidateIdentity(apiapp, result.Errors);
 
                 //CheckRequiredProperty(apiapp, errors, "description");
-                CheckRequiredProperty(apiapp, result.Errors, "title");
-                CheckRequiredProperty(apiapp, result.Errors, "summary");
-                CheckRequiredProperty(apiapp, result.Errors, "author");
-                CheckRequiredProperty(apiapp, result.Errors, "namespace");
+                ValidationHelpers.CheckRequiredProperty(apiapp, result.Errors, "title");
+                ValidationHelpers.CheckRequiredProperty(apiapp, result.Errors, "summary");
+                ValidationHelpers.CheckRequiredProperty(apiapp, result.Errors, "author");
+                ValidationHelpers.CheckRequiredProperty(apiapp, result.Errors, "namespace");
             }
 
             //CheckRequiredFile(packageStream, errors, "metadata/icons/small-icon.png");
@@ -296,67 +296,6 @@ namespace NuGet.Services.Publish
             return artifacts;
         }
 
-        static PackageIdentity ValidateIdentity(JObject metadata, IList<string> errors)
-        {
-            string ns = null;
-            string id = null;
-            SemanticVersion semanticVersion = null;
-
-            JToken namespaceJToken = CheckRequiredProperty(metadata, errors, "namespace");
-            if (namespaceJToken != null)
-            {
-                ns = namespaceJToken.ToString();
-                if (ns.LastIndexOfAny(new[] { '/', '@' }) != -1)
-                {
-                    errors.Add("'/', '@' characters are not permitted in namespace property");
-                }
-            }
-            else
-            {
-                ns = DefaultPackageNamespace;
-            }
-
-            JToken idJToken = CheckRequiredProperty(metadata, errors, "id");
-            if (idJToken != null)
-            {
-                id = idJToken.ToString();
-                if (id.LastIndexOfAny(new[] { '/', '@' }) != -1)
-                {
-                    errors.Add("'/', '@' characters are not permitted in id property");
-                }
-            }
-
-            JToken versionJToken = CheckRequiredProperty(metadata, errors, "version");
-            if (versionJToken != null)
-            {
-                string version = versionJToken.ToString();
-                if (!SemanticVersion.TryParse(version, out semanticVersion))
-                {
-                    errors.Add("the version property must follow the Semantic Version rules, refer to 'http://semver.org'");
-                }
-            }
-
-            return new PackageIdentity { Namespace = ns, Id = id, Version = semanticVersion };
-        }
-
-        static JToken CheckRequiredProperty(JObject obj, IList<string> errors, string name)
-        {
-            JToken token;
-            if (!obj.TryGetValue(name, out token))
-            {
-                errors.Add(string.Format("required property '{0}' is missing from 'apiapp.json' file", name));
-            }
-            return token;
-        }
-
-        static void CheckRequiredFile(Stream packageStream, IList<string> errors, string fullName)
-        {
-            if (!FileExists(packageStream, fullName))
-            {
-                errors.Add(string.Format("required file '{0}' was missing from package", fullName));
-            }
-        }
-
         static JObject GetJObject(Stream packageStream, string fullName)
         {
             using (ZipArchive archive = new ZipArchive(packageStream, ZipArchiveMode.Read, true))
@@ -371,21 +310,6 @@ namespace NuGet.Services.Publish
                 }
             }
             return null;
-        }
-
-        static bool FileExists(Stream packageStream, string fullName)
-        {
-            using (ZipArchive archive = new ZipArchive(packageStream, ZipArchiveMode.Read, true))
-            {
-                foreach (ZipArchiveEntry zipEntry in archive.Entries)
-                {
-                    if (zipEntry.FullName == fullName)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
         }
     }
 }

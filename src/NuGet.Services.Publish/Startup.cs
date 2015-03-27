@@ -118,7 +118,7 @@ namespace NuGet.Services.Publish
             {
                 case "/":
                     {
-                        await context.Response.WriteAsync("OK");
+                        await context.Response.WriteAsync("READY.");
                         context.Response.StatusCode = (int)HttpStatusCode.OK;
                         break;
                     }
@@ -149,6 +149,7 @@ namespace NuGet.Services.Publish
 
             switch (context.Request.Path.Value)
             {
+                case "/checkaccess/apiapp":
                 case "/apiapp/checkaccess":
                     {
                         CheckAccessImpl uploader = new CheckAccessImpl(registrationOwnership);
@@ -162,10 +163,17 @@ namespace NuGet.Services.Publish
                         await uploader.Upload(context);
                         break;
                     }
+                case "/edit/apiapp":
                 case "/apiapp/edit":
                     {
                         PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
                         await uploader.Edit(context);
+                        break;
+                    }
+                case "/delete":
+                    {
+                        DeleteImpl deleteImpl = new DeleteImpl(registrationOwnership);
+                        await deleteImpl.Delete(context);
                         break;
                     }
                 case "/tenant/enable":

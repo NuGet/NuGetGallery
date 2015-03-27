@@ -1,9 +1,6 @@
 ﻿using Microsoft.Owin;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Ownership;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,35 +8,13 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Publish
 {
     public abstract class PublishImpl
     {
-        private const string DefaultStorageContainerCatalog = "catalog";
-        private const string DefaultStorageContainerPackages = "artifacts";
-        private const string DefaultStorageContainerOwnership = "ownership";
-
-        private static readonly string _storagePrimary;
-        private static readonly string _storageContainerCatalog;
-        private static readonly string _storageContainerPackages;
-        private static readonly string _storageContainerOwnership;
-        private static readonly string _catalogBaseAddress;
-
         private readonly IRegistrationOwnership _registrationOwnership;
-
-        static PublishImpl()
-        {
-            var configurationService = new ConfigurationService();
-
-            _storagePrimary = configurationService.Get("Storage.Primary");
-            _storageContainerCatalog = configurationService.Get("Storage.Container.Catalog") ?? DefaultStorageContainerCatalog;
-            _storageContainerPackages = configurationService.Get("Storage.Container.Artifacts") ?? DefaultStorageContainerPackages;
-            _storageContainerOwnership = configurationService.Get("Storage.Container.Ownership") ?? DefaultStorageContainerOwnership;
-            _catalogBaseAddress = configurationService.Get("Catalog.BaseAddress");
-        }
 
         protected PublishImpl(IRegistrationOwnership registrationOwnership)
         {
@@ -107,7 +82,7 @@ namespace NuGet.Services.Publish
 
             //  registration authorization
 
-            IList<string> authorizationErrors = await CheckRegistrationAuthorization(validationResult.PackageIdentity);
+            IList<string> authorizationErrors = await OwnershipHelpers.CheckRegistrationAuthorization(_registrationOwnership, validationResult.PackageIdentity);
 
             if (authorizationErrors.Count > 0)
             {
@@ -121,7 +96,7 @@ namespace NuGet.Services.Publish
 
             //  (1) save all the artifacts
 
-            await Artifacts.Save(metadata, packageStream, _storagePrimary, _storageContainerPackages);
+            await Artifacts.Save(metadata, packageStream, Configuration.StoragePrimary, Configuration.StorageContainerArtifacts);
 
             InferArtifactTypes(metadata);
 
@@ -131,7 +106,7 @@ namespace NuGet.Services.Publish
 
             //  (3) gather all the publication details
 
-            PublicationDetails publicationDetails = await CreatePublicationDetails(publicationVisibility);
+            PublicationDetails publicationDetails = await OwnershipHelpers.CreatePublicationDetails(_registrationOwnership, publicationVisibility);
 
             //  (4) add the new item to the catalog
 
@@ -187,7 +162,7 @@ namespace NuGet.Services.Publish
 
             //  registration authorization
 
-            IList<string> authorizationErrors = await CheckRegistrationAuthorizationForEdit(validationResult.PackageIdentity);
+            IList<string> authorizationErrors = await OwnershipHelpers.CheckRegistrationAuthorizationForEdit(_registrationOwnership, validationResult.PackageIdentity);
 
             if (authorizationErrors.Count > 0)
             {
@@ -201,11 +176,11 @@ namespace NuGet.Services.Publish
 
             //  (1) generate any new or replacement artifacts based on the current catalogEntry and the editMetadata
 
-            IDictionary<string, PackageArtifact> artifacts = await GenerateNewArtifactsFromEdit(metadata, validationResult.CatalogEntry, validationResult.EditMetadata, _storagePrimary);
+            IDictionary<string, PackageArtifact> artifacts = await GenerateNewArtifactsFromEdit(metadata, validationResult.CatalogEntry, validationResult.EditMetadata, Configuration.StoragePrimary);
             
             //  (2) save the new package
 
-            await Artifacts.Save(metadata, artifacts, _storagePrimary, _storageContainerPackages);
+            await Artifacts.Save(metadata, artifacts, Configuration.StoragePrimary, Configuration.StorageContainerArtifacts);
 
             InferArtifactTypes(metadata);
 
@@ -215,7 +190,7 @@ namespace NuGet.Services.Publish
 
             //  (4) gather all the publication details
 
-            PublicationDetails publicationDetails = await CreatePublicationDetails(publicationVisibility);
+            PublicationDetails publicationDetails = await OwnershipHelpers.CreatePublicationDetails(_registrationOwnership, publicationVisibility);
 
             //  (5) add the new item to the catalog
 
@@ -236,73 +211,6 @@ namespace NuGet.Services.Publish
             await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
         }
 
-        async Task<IList<string>> CheckRegistrationAuthorization(PackageIdentity packageIdentity)
-        {
-            IList<string> errors = new List<string>();
-
-            if (await _registrationOwnership.HasRegistration(packageIdentity.Namespace, packageIdentity.Id))
-            {
-                if (!await _registrationOwnership.HasOwner(packageIdentity.Namespace, packageIdentity.Id))
-                {
-                    errors.Add("user does not have access to this registration");
-                    return errors;
-                }
-
-                if (await _registrationOwnership.HasVersion(packageIdentity.Namespace, packageIdentity.Id, packageIdentity.Version.ToString()))
-                {
-                    errors.Add("this package version already exists for this registration");
-                    return errors;
-                }
-            }
-
-            return errors;
-        }
-
-        async Task<IList<string>> CheckRegistrationAuthorizationForEdit(PackageIdentity packageIdentity)
-        {
-            IList<string> errors = new List<string>();
-
-            if (await _registrationOwnership.HasRegistration(packageIdentity.Namespace, packageIdentity.Id))
-            {
-                if (!await _registrationOwnership.HasOwner(packageIdentity.Namespace, packageIdentity.Id))
-                {
-                    errors.Add("user does not have access to this registration");
-                    return errors;
-                }
-            }
-            else
-            {
-                errors.Add("this package does not exits in the ownership record");
-            }
-
-            return errors;
-        }
-
-        async Task<PublicationDetails> CreatePublicationDetails(PublicationVisibility publicationVisibility)
-        {
-            string userId = _registrationOwnership.GetUserId();
-            string userName = await _registrationOwnership.GetPublisherName();
-            string tenantId = _registrationOwnership.GetTenantId();
-
-            //TODO: requires Graph access
-            string tenantName = string.Empty;
-            //string tenantName = await _registrationOwnership.GetTenantName();
-
-            //var client = await ServiceHelpers.GetActiveDirectoryClient();
-
-            PublicationDetails publicationDetails = new PublicationDetails
-            {
-                Published = DateTime.UtcNow,
-                Owner = OwnershipOwner.Create(ClaimsPrincipal.Current),
-                TenantId = tenantId,
-                TenantName = tenantName,
-                Visibility = publicationVisibility
-            };
-
-            return publicationDetails;
-        }
-
-
         async Task<EditValidationResult> ValidateEdit(Stream metadataStream)
         {
             EditValidationResult result = new EditValidationResult();
@@ -315,7 +223,7 @@ namespace NuGet.Services.Publish
                 JToken catalogEntryAddress;
                 if (editMetadata.TryGetValue("catalogEntry", out catalogEntryAddress))
                 {
-                    JObject catalogEntry = await LoadFromCatalog(catalogEntryAddress.ToString());
+                    JObject catalogEntry = await CatalogHelpers.LoadFromCatalog(catalogEntryAddress.ToString(), Configuration.StoragePrimary, Configuration.StorageContainerCatalog, Configuration.CatalogBaseAddress);
 
                     if (catalogEntry != null)
                     {
@@ -426,69 +334,15 @@ namespace NuGet.Services.Publish
             }
         }
 
-        static async Task<Uri> AddToCatalog(JObject nuspec, Uri itemType, PublicationDetails publicationDetails)
+        static Task<Uri> AddToCatalog(JObject nuspec, Uri itemType, PublicationDetails publicationDetails)
         {
-            StorageWriteLock writeLock = new StorageWriteLock(_storagePrimary, _storageContainerCatalog);
-
-            await writeLock.AquireAsync();
-
-            Uri rootUri = null;
-
-            Exception exception = null;
-            try
-            {
-                Storage storage = CreateStorage();
-
-                AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage);
-                writer.Add(new GraphCatalogItem(nuspec, itemType, publicationDetails));
-                await writer.Commit();
-
-                rootUri = writer.RootUri;
-            }
-            catch (Exception e)
-            {
-                exception = e;
-            }
-
-            await writeLock.ReleaseAsync();
-
-            if (exception != null)
-            {
-                throw exception;
-            }
-
-            return rootUri;
-        }
-
-        async Task<JObject> LoadFromCatalog(string catalogEntryAddress)
-        {
-            Storage storage = CreateStorage();
-            string json = await storage.LoadString(new Uri(catalogEntryAddress));
-            return JObject.Parse(json);
-        }
-
-        static Storage CreateStorage()
-        {
-            CloudStorageAccount account = CloudStorageAccount.Parse(_storagePrimary);
-
-            Storage storage;
-            if (_catalogBaseAddress == null)
-            {
-                storage = new AzureStorage(account, _storageContainerCatalog);
-            }
-            else
-            {
-                string baseAddress = _catalogBaseAddress.TrimEnd('/') + "/" + _storageContainerCatalog;
-
-                storage = new AzureStorage(account, _storageContainerCatalog, string.Empty, new Uri(baseAddress));
-            }
-
-            return storage;
+            CatalogItem catalogItem = new GraphCatalogItem(nuspec, itemType, publicationDetails);
+            return CatalogHelpers.AddToCatalog(catalogItem, Configuration.StoragePrimary, Configuration.StorageContainerCatalog, Configuration.CatalogBaseAddress);
         }
 
         async Task UpdateRegistrationOwnership(PackageIdentity packageIdentity)
         {
-            StorageWriteLock writeLock = new StorageWriteLock(_storagePrimary, _storageContainerOwnership);
+            StorageWriteLock writeLock = new StorageWriteLock(Configuration.StoragePrimary, Configuration.StorageContainerOwnership);
 
             await writeLock.AquireAsync();
 

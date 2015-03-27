@@ -73,9 +73,7 @@ namespace NuGet.Indexing
             }
         }
 
-        //TODO: combine the following functions
-
-        public static async Task Stats(IOwinContext context, NuGetSearcherManager searcherManager)
+        public static async Task Stats(IOwinContext context, SearcherManager searcherManager)
         {
             searcherManager.MaybeReopen();
 
@@ -87,8 +85,9 @@ namespace NuGet.Indexing
 
                 JObject result = new JObject();
                 result.Add("numDocs", indexReader.NumDocs());
-                result.Add("indexName", searcherManager.IndexName);
-                result.Add("lastReopen", searcherManager.LastReopen.ToString("o"));
+                result.Add("indexName", GetIndexName(searcherManager));
+                result.Add("lastReopen", GetLastReopen(searcherManager));
+                result.Add("commitUserData", GetCommitUserData(indexReader));
 
                 await ServiceHelpers.WriteResponse(context, System.Net.HttpStatusCode.OK, result);
             }
@@ -98,27 +97,46 @@ namespace NuGet.Indexing
             }
         }
 
-        public static async Task Stats(IOwinContext context, SecureSearcherManager searcherManager)
+        static string GetIndexName(SearcherManager searcherManager)
         {
-            searcherManager.MaybeReopen();
-
-            IndexSearcher searcher = searcherManager.Get();
-
-            try
+            //TODO: consolidate when we combine the SearcherManager types
+            if (searcherManager is NuGetSearcherManager)
             {
-                IndexReader indexReader = searcher.IndexReader;
-
-                JObject result = new JObject();
-                result.Add("numDocs", indexReader.NumDocs());
-                result.Add("indexName", searcherManager.IndexName);
-                result.Add("lastReopen", searcherManager.LastReopen.ToString("o"));
-
-                await ServiceHelpers.WriteResponse(context, System.Net.HttpStatusCode.OK, result);
+                return ((NuGetSearcherManager)searcherManager).IndexName;
             }
-            finally
+            if (searcherManager is SecureSearcherManager)
             {
-                searcherManager.Release(searcher);
+                return ((SecureSearcherManager)searcherManager).IndexName;
             }
+            return string.Empty;
+        }
+
+        static string GetLastReopen(SearcherManager searcherManager)
+        {
+            //TODO: consolidate when we combine the SearcherManager types
+            if (searcherManager is NuGetSearcherManager)
+            {
+                return ((NuGetSearcherManager)searcherManager).LastReopen.ToString("o");
+            }
+            if (searcherManager is SecureSearcherManager)
+            {
+                return ((SecureSearcherManager)searcherManager).LastReopen.ToString("o");
+            }
+            return string.Empty;
+        }
+
+        static JObject GetCommitUserData(IndexReader indexReader)
+        {
+            JObject obj = new JObject();
+            IDictionary<string, string> commitUserData = indexReader.CommitUserData;
+            if (commitUserData != null)
+            {
+                foreach (var item in commitUserData)
+                {
+                    obj.Add(item.Key, item.Value);
+                }
+            }
+            return obj;
         }
     }
 }
