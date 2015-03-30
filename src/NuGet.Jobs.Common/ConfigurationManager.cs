@@ -61,6 +61,11 @@ namespace NuGet.Jobs.Common
         public const string SourceContainerName = "SourceContainerName";
         public const string DestinationContainerName = "DestinationContainerName";
         public const string CursorBlob = "CursorBlob";
+
+        // Arguments specific to Search* jobs
+        public const string DataStorageAccount = "DataStorageAccount";
+        public const string DataContainerName = "DataContainerName";
+        public const string LocalIndexFolder = "LocalIndexFolder";
     }
     /// <summary>
     /// This class is used to retrieve and expose the known azure configuration settings 
