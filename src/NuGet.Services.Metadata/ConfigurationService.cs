@@ -23,7 +23,7 @@ namespace NuGet.Services.Metadata
             {
                 if (SafeRoleEnvironment.IsAvailable)
                 {
-                    value = RoleEnvironment.GetConfigurationSettingValue(key);
+                    value = SafeRoleEnvironment.GetConfigurationSettingValue(key);
                     return true;
                 }
             }

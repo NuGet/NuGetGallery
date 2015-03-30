@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.WindowsAzure.ServiceRuntime;
+using System;
 using System.IO;
 using System.Reflection;
 
@@ -36,6 +37,17 @@ namespace NuGet.Services.Metadata
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Delegate the call because we don't want RoleEnvironment appearing in the function scope of the caller because that
+        /// would trigger the assembly load: teh very thing we are attempting to avoid
+        /// </summary>
+        /// <param name="configurationSettingName"></param>
+        /// <returns></returns>
+        public static string GetConfigurationSettingValue(string configurationSettingName)
+        {
+            return RoleEnvironment.GetConfigurationSettingValue(configurationSettingName);
         }
 
         /// <summary>
