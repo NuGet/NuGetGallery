@@ -342,26 +342,7 @@ namespace NuGet.Services.Publish
 
         async Task UpdateRegistrationOwnership(PackageIdentity packageIdentity)
         {
-            StorageWriteLock writeLock = new StorageWriteLock(Configuration.StoragePrimary, Configuration.StorageContainerOwnership);
-
-            await writeLock.AquireAsync();
-
-            Exception exception = null;
-            try
-            {
-                await _registrationOwnership.AddVersion(packageIdentity.Namespace, packageIdentity.Id, packageIdentity.Version.ToString());
-            }
-            catch (Exception e)
-            {
-                exception = e;
-            }
-
-            await writeLock.ReleaseAsync();
-
-            if (exception != null)
-            {
-                throw exception;
-            }
+            await _registrationOwnership.AddVersion(packageIdentity.Namespace, packageIdentity.Id, packageIdentity.Version.ToString());
         }
     }
 }

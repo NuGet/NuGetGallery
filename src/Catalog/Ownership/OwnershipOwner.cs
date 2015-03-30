@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Claims;
+using System.Text;
 
 namespace NuGet.Services.Metadata.Catalog.Ownership
 {
@@ -16,6 +17,13 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
         {
             string fragment = string.Format("#owner/{0}", NameIdentifier);
             return new Uri(baseAddress, fragment);
+        }
+
+        public string GetKey()
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(NameIdentifier);
+            string base64 = Convert.ToBase64String(bytes);
+            return base64;
         }
 
         public static OwnershipOwner Create(ClaimsPrincipal claimsPrinciple)

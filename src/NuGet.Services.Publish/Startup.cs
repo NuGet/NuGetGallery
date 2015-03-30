@@ -2,6 +2,7 @@
 using Microsoft.Owin.Security.ActiveDirectory;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using NuGet.Services.Metadata.Catalog.Ownership;
 using Owin;
 using System;
 using System.IdentityModel.Tokens;
@@ -76,7 +77,9 @@ namespace NuGet.Services.Publish
             string connectionString = _configurationService.Get("Storage.Primary");
             CreateContainer(connectionString, _configurationService.Get("Storage.Container.Artifacts"));
             CreateContainer(connectionString, _configurationService.Get("Storage.Container.Catalog"));
-            CreateContainer(connectionString, _configurationService.Get("Storage.Container.Ownership"));
+            //CreateContainer(connectionString, _configurationService.Get("Storage.Container.Ownership"));
+
+            TableStorageRegistration.Initialize(connectionString);
         }
 
         async Task Invoke(IOwinContext context)
@@ -210,12 +213,14 @@ namespace NuGet.Services.Publish
                 return new NoSecurityRegistrationOwnership();
             }
 
+            //string storagePrimary = _configurationService.Get("Storage.Primary");
+            //string storageContainerOwnership = _configurationService.Get("Storage.Container.Ownership") ?? "ownership";
+            //CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
+            //return new StorageRegistrationOwnership(context, account, storageContainerOwnership);
+
             string storagePrimary = _configurationService.Get("Storage.Primary");
-            string storageContainerOwnership = _configurationService.Get("Storage.Container.Ownership") ?? "ownership";
-
             CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
-
-            return new StorageRegistrationOwnership(context, account, storageContainerOwnership);
+            return new StorageRegistrationOwnership(context, account);
         }
 
         bool HasNoSecurityConfigured()
