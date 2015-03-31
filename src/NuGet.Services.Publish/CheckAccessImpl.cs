@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -19,6 +20,8 @@ namespace NuGet.Services.Publish
 
         public async Task CheckAccess(IOwinContext context)
         {
+            Trace.TraceInformation("CheckAccessImpl.CheckAccess");
+
             if (!_registrationOwnership.IsAuthenticated)
             {
                 await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
@@ -45,6 +48,8 @@ namespace NuGet.Services.Publish
                 await ServiceHelpers.WriteErrorResponse(context, validationErrors, HttpStatusCode.BadRequest);
                 return;
             }
+
+            Trace.TraceInformation("CheckAccess process request");
 
             await ProcessRequest(context, body);
         }

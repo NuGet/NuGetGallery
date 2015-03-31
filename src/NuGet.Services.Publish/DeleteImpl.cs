@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -20,6 +21,8 @@ namespace NuGet.Services.Publish
 
         public async Task Delete(IOwinContext context)
         {
+            Trace.TraceInformation("DeleteImpl.Upload");
+
             if (!_registrationOwnership.IsAuthenticated)
             {
                 await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
@@ -61,19 +64,27 @@ namespace NuGet.Services.Publish
                 return;
             }
 
+            Trace.TraceInformation("DELETE Processing package {0}/{1}/{2}", validationResult.PackageIdentity.Namespace, validationResult.PackageIdentity.Id, validationResult.PackageIdentity.Version);
+
             //  process delete
 
             //  (1) gather all the publication details
 
             PublicationDetails publicationDetails = await OwnershipHelpers.CreatePublicationDetails(_registrationOwnership, publicationVisibility);
 
+            Trace.TraceInformation("CreatePublicationDetails");
+
             //  (2) add the new item to the catalog
 
             Uri catalogAddress = await AddToCatalog(validationResult.PackageIdentity, publicationDetails);
 
+            Trace.TraceInformation("AddToCatalog");
+
             //  (3) update the registration ownership record
 
             await UpdateRegistrationOwnership(validationResult.PackageIdentity);
+
+            Trace.TraceInformation("UpdateRegistrationOwnership");
 
             //  (4) create response
 

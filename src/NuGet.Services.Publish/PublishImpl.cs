@@ -4,6 +4,7 @@ using NuGet.Services.Metadata.Catalog;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -49,6 +50,8 @@ namespace NuGet.Services.Publish
 
         public async Task Upload(IOwinContext context)
         {
+            Trace.TraceInformation("PublishImpl.Upload");
+
             if (!_registrationOwnership.IsAuthenticated)
             {
                 await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
@@ -90,6 +93,8 @@ namespace NuGet.Services.Publish
                 return;
             }
 
+            Trace.TraceInformation("UPLOAD Processing package {0}/{1}/{2}", validationResult.PackageIdentity.Namespace, validationResult.PackageIdentity.Id, validationResult.PackageIdentity.Version);
+
             //  process the package
 
             IDictionary<string, JObject> metadata = new Dictionary<string, JObject>();
@@ -98,23 +103,33 @@ namespace NuGet.Services.Publish
 
             await Artifacts.Save(metadata, packageStream, Configuration.StoragePrimary, Configuration.StorageContainerArtifacts);
 
+            Trace.TraceInformation("Save");
+
             InferArtifactTypes(metadata);
 
             //  (2) promote the relevant peices of metadata so they later can appear on the catalog page 
 
             ExtractMetadata(metadata, packageStream);
 
+            Trace.TraceInformation("ExtractMetadata");
+
             //  (3) gather all the publication details
 
             PublicationDetails publicationDetails = await OwnershipHelpers.CreatePublicationDetails(_registrationOwnership, publicationVisibility);
+
+            Trace.TraceInformation("CreatePublicationDetails");
 
             //  (4) add the new item to the catalog
 
             Uri catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails);
 
+            Trace.TraceInformation("AddToCatalog");
+
             //  (5) update the registration ownership record
 
             await UpdateRegistrationOwnership(validationResult.PackageIdentity);
+
+            Trace.TraceInformation("UpdateRegistrationOwnership");
 
             //  (6) create response
 
@@ -129,6 +144,8 @@ namespace NuGet.Services.Publish
 
         public async Task Edit(IOwinContext context)
         {
+            Trace.TraceInformation("PublishImpl.Upload");
+
             if (!_registrationOwnership.IsAuthenticated)
             {
                 await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
@@ -170,6 +187,8 @@ namespace NuGet.Services.Publish
                 return;
             }
 
+            Trace.TraceInformation("EDIT Processing package {0}/{1}/{2}", validationResult.PackageIdentity.Namespace, validationResult.PackageIdentity.Id, validationResult.PackageIdentity.Version);
+
             //  process the edit
 
             IDictionary<string, JObject> metadata = new Dictionary<string, JObject>();
@@ -177,6 +196,8 @@ namespace NuGet.Services.Publish
             //  (1) generate any new or replacement artifacts based on the current catalogEntry and the editMetadata
 
             IDictionary<string, PackageArtifact> artifacts = await GenerateNewArtifactsFromEdit(metadata, validationResult.CatalogEntry, validationResult.EditMetadata, Configuration.StoragePrimary);
+
+            Trace.TraceInformation("GenerateNewArtifactsFromEdit");
             
             //  (2) save the new package
 
@@ -184,21 +205,31 @@ namespace NuGet.Services.Publish
 
             InferArtifactTypes(metadata);
 
+            Trace.TraceInformation("Save");
+
             //  (3) promote the relevant peices of metadata so they later can appear on the catalog page 
 
             GenerateNuspec(metadata);
+
+            Trace.TraceInformation("GenerateNuspec");
 
             //  (4) gather all the publication details
 
             PublicationDetails publicationDetails = await OwnershipHelpers.CreatePublicationDetails(_registrationOwnership, publicationVisibility);
 
+            Trace.TraceInformation("CreatePublicationDetails");
+
             //  (5) add the new item to the catalog
 
             Uri catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails);
 
+            Trace.TraceInformation("AddToCatalog");
+
             //  (6) update the registration ownership record
 
             await UpdateRegistrationOwnership(validationResult.PackageIdentity);
+
+            Trace.TraceInformation("UpdateRegistrationOwnership");
 
             //  (7) create response
 

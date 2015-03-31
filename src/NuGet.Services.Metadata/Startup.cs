@@ -4,6 +4,7 @@ using Microsoft.WindowsAzure.Storage;
 using NuGet.Indexing;
 using Owin;
 using System;
+using System.Diagnostics;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Net;
@@ -19,7 +20,15 @@ namespace NuGet.Services.Metadata
         Timer _timer;
         SecureSearcherManager _searcherManager;
         int _gate;
-        private readonly ConfigurationService _configurationService = new ConfigurationService();
+
+        private static readonly ConfigurationService _configurationService;
+
+        static Startup()
+        {
+            Trace.TraceInformation("Startup");
+
+            _configurationService = new ConfigurationService();
+        }
 
         public void Configuration(IAppBuilder app)
         {
@@ -149,44 +158,60 @@ namespace NuGet.Services.Metadata
 
         public async Task Invoke(IOwinContext context)
         {
-            if (_searcherManager == null)
+            string error = null;
+
+            try
             {
-                await context.Response.WriteAsync("no index loaded");
-                context.Response.StatusCode = (int)HttpStatusCode.OK;
-                return;
+                if (_searcherManager == null)
+                {
+                    await context.Response.WriteAsync("no index loaded");
+                    context.Response.StatusCode = (int)HttpStatusCode.OK;
+                    return;
+                }
+
+                switch (context.Request.Path.Value)
+                {
+                    case "/":
+                        await context.Response.WriteAsync("READY.");
+                        context.Response.StatusCode = (int)HttpStatusCode.OK;
+                        break;
+
+                    case "/query":
+                        await SecureQueryImpl.Query(context, _searcherManager, ServiceHelpers.GetTenant(), ServiceHelpers.GetNameIdentifier());
+                        break;
+
+                    case "/owner":
+                        await SecureQueryImpl.QueryByOwner(context, _searcherManager, ServiceHelpers.GetTenant(), ServiceHelpers.GetNameIdentifier());
+                        break;
+
+                    case "/find":
+                        await SecureFindImpl.Find(context, _searcherManager, ServiceHelpers.GetTenant());
+                        break;
+
+                    case "/segments":
+                        await ServiceInfoImpl.Segments(context, _searcherManager);
+                        break;
+
+                    case "/stats":
+                        await ServiceInfoImpl.Stats(context, _searcherManager);
+                        break;
+
+                    default:
+                        string storagePrimary = _configurationService.Get("Storage.Primary");
+                        MetadataImpl.Access(context, string.Empty, _searcherManager, storagePrimary, 30);
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError("Invoke Exception: {0} {1}", e.GetType().Name, e.Message);
+
+                error = e.Message;
             }
 
-            switch (context.Request.Path.Value)
+            if (error != null)
             {
-                case "/":
-                    await context.Response.WriteAsync("READY.");
-                    context.Response.StatusCode = (int)HttpStatusCode.OK;
-                    break;
-
-                case "/query":
-                    await SecureQueryImpl.Query(context, _searcherManager, ServiceHelpers.GetTenant(), ServiceHelpers.GetNameIdentifier());
-                    break;
-
-                case "/owner":
-                    await SecureQueryImpl.QueryByOwner(context, _searcherManager, ServiceHelpers.GetTenant(), ServiceHelpers.GetNameIdentifier());
-                    break;
-
-                case "/find":
-                    await SecureFindImpl.Find(context, _searcherManager, ServiceHelpers.GetTenant());
-                    break;
-
-                case "/segments":
-                    await ServiceInfoImpl.Segments(context, _searcherManager);
-                    break;
-
-                case "/stats":
-                    await ServiceInfoImpl.Stats(context, _searcherManager);
-                    break;
-
-                default:
-                    string storagePrimary = _configurationService.Get("Storage.Primary");
-                    MetadataImpl.Access(context, string.Empty, _searcherManager, storagePrimary, 30);
-                    break;
+                await Utils.WriteErrorResponse(context, error, HttpStatusCode.InternalServerError);
             }
         }
     }

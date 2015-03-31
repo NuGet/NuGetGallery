@@ -5,6 +5,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Services.Metadata.Catalog.Ownership;
 using Owin;
 using System;
+using System.Diagnostics;
 using System.IdentityModel.Tokens;
 using System.Net;
 using System.Threading.Tasks;
@@ -19,6 +20,8 @@ namespace NuGet.Services.Publish
 
         static Startup()
         {
+            Trace.TraceInformation("Startup");
+
             _configurationService = new ConfigurationService();
         }
 
@@ -26,6 +29,8 @@ namespace NuGet.Services.Publish
         {
             if (!HasNoSecurityConfigured())
             {
+                Trace.TraceInformation("Using AAD middleware");
+
                 string audience = _configurationService.Get("ida.Audience");
                 string tenant = _configurationService.Get("ida.Tenant");
                 string aadInstance = _configurationService.Get("ida.AADInstance");
@@ -60,7 +65,11 @@ namespace NuGet.Services.Publish
 
             if (container.CreateIfNotExists())
             {
-                switch (_configurationService.Get("Storage.BlobContainerPublicAccessType") ?? "Off")
+                string blobContainerPublicAccessType = _configurationService.Get("Storage.BlobContainerPublicAccessType") ?? "Off";
+
+                Trace.TraceInformation("Crreating container {0} permission {1}", containerName, blobContainerPublicAccessType);
+
+                switch (blobContainerPublicAccessType)
                 {
                     case "Off": container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Off });
                         break;
@@ -104,6 +113,8 @@ namespace NuGet.Services.Publish
             }
             catch (Exception e)
             {
+                Trace.TraceError("Invoke Exception: {0} {1}", e.GetType().Name, e.Message);
+
                 error = e.Message;
             }
 
