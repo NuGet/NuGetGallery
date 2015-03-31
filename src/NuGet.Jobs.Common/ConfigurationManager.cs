@@ -15,6 +15,7 @@ namespace NuGet.Jobs.Common
         public const string StorageGallery = "NUGETJOBS_STORAGE_GALLERY";
         public const string StoragePrimary = "NUGETJOBS_STORAGE_PRIMARY";
         public const string StorageBackup = "NUGETJOBS_STORAGE_BACKUP";
+        public const string WarehouseStorage = "NUGETJOBS_STORAGE_WAREHOUSE";
     }
 
     /// <summary>
@@ -61,6 +62,10 @@ namespace NuGet.Jobs.Common
         public const string SourceContainerName = "SourceContainerName";
         public const string DestinationContainerName = "DestinationContainerName";
         public const string CursorBlob = "CursorBlob";
+
+        //Arguments specific to CreateWarehouseReports job
+        public const string WarehouseStorageAccount = "WarehouseStorageAccount";
+        public const string WarehouseContainerName = "WarehouseContainerName";
     }
     /// <summary>
     /// This class is used to retrieve and expose the known azure configuration settings 
