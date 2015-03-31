@@ -236,6 +236,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [ActionName("GetNuGetExeApi")]
+        [RequireHttps]
         [OutputCache(VaryByParam = "none", Location = OutputCacheLocation.ServerAndClient, Duration = 600)]
         public virtual Task<ActionResult> GetNuGetExe()
         {
