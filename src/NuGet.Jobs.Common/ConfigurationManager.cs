@@ -66,6 +66,11 @@ namespace NuGet.Jobs.Common
         //Arguments specific to CreateWarehouseReports job
         public const string WarehouseStorageAccount = "WarehouseStorageAccount";
         public const string WarehouseContainerName = "WarehouseContainerName";
+
+        // Arguments specific to Search* jobs
+        public const string DataStorageAccount = "DataStorageAccount";
+        public const string DataContainerName = "DataContainerName";
+        public const string LocalIndexFolder = "LocalIndexFolder";
     }
     /// <summary>
     /// This class is used to retrieve and expose the known azure configuration settings 

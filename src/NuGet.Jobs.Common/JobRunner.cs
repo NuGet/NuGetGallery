@@ -25,7 +25,7 @@ namespace NuGet.Jobs.Common
             if(consoleLogOnly)
             {
                 job.SetJobTraceListener(new JobTraceListener(job.JobName));
-                Trace.TraceWarning("You have chosen not to log in Azure blob storage. Note that this is NOT recommended");
+                Trace.TraceWarning("You have chosen not to log messages to Azure blob storage. Note that this is NOT recommended");
             }
             else
             {
