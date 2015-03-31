@@ -56,7 +56,7 @@ namespace NuGet.Services.Publish
             JToken token;
             if (!obj.TryGetValue(name, out token))
             {
-                errors.Add(string.Format("required property '{0}' is missing from 'apiapp.json' file", name));
+                errors.Add(string.Format("required property '{0}' is missing from metadata", name));
             }
             return token;
         }
@@ -67,6 +67,22 @@ namespace NuGet.Services.Publish
             {
                 errors.Add(string.Format("required file '{0}' was missing from package", fullName));
             }
+        }
+
+        public static bool PropertyExists(JObject obj, string propertyName)
+        {
+            JToken property;
+            return obj.TryGetValue(propertyName, out property);
+        }
+
+        public static bool CheckDisallowedEditProperty(JObject obj, string propertyName, IList<string> errors)
+        {
+            if (ValidationHelpers.PropertyExists(obj, propertyName))
+            {
+                errors.Add(string.Format("edit requests should not specify \"{0}\"", propertyName));
+                return true;
+            }
+            return false;
         }
 
         static bool FileExists(Stream packageStream, string fullName)

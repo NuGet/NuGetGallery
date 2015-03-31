@@ -218,6 +218,16 @@ namespace NuGet.Services.Publish
             JObject editMetadata = await ServiceHelpers.ReadJObject(metadataStream);
             if (editMetadata != null)
             {
+                ValidationHelpers.CheckDisallowedEditProperty(editMetadata, "namespace", result.Errors);
+                ValidationHelpers.CheckDisallowedEditProperty(editMetadata, "id", result.Errors);
+                ValidationHelpers.CheckDisallowedEditProperty(editMetadata, "version", result.Errors);
+
+                if (result.Errors.Count > 0)
+                {
+                    // the edit request was invalid so don't waste any more cycles on this request 
+                    return result;
+                }
+
                 result.EditMetadata = editMetadata;
 
                 JToken catalogEntryAddress;
