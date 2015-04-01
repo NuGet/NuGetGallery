@@ -1,5 +1,8 @@
 ﻿using Microsoft.Owin;
+using Microsoft.Owin.FileSystems;
 using Microsoft.Owin.Security.ActiveDirectory;
+using Microsoft.Owin.StaticFiles;
+using Microsoft.Owin.StaticFiles.Infrastructure;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Indexing;
 using Owin;
@@ -34,6 +37,32 @@ namespace NuGet.Services.Metadata
         {
             app.UseErrorPage();
 
+            //  search test console
+
+            app.Use(async (context, next) =>
+            {
+                if (String.Equals(context.Request.Path.Value, "/console", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Redirect to trailing slash to maintain relative links
+                    context.Response.Redirect(context.Request.PathBase + context.Request.Path + "/");
+                    context.Response.StatusCode = 301;
+                    return;
+                }
+                else if (String.Equals(context.Request.Path.Value, "/console/", StringComparison.OrdinalIgnoreCase))
+                {
+                    context.Request.Path = new PathString("/console/Index.html");
+                }
+                await next();
+            });
+
+            app.UseStaticFiles(new StaticFileOptions(new SharedOptions
+            {
+                RequestPath = new PathString("/console"),
+                FileSystem = new EmbeddedResourceFileSystem(typeof(Startup).Assembly, "NuGet.Services.Metadata.Console")
+            }));
+
+            //  AAD integration - adding this middleware gives us the claims
+
             string audience = _configurationService.Get("ida.Audience");
             string tenant = _configurationService.Get("ida.Tenant");
             string aadInstance = _configurationService.Get("ida.AADInstance");
@@ -51,6 +80,8 @@ namespace NuGet.Services.Metadata
                 Tenant = tenant,
                 MetadataAddress = metadataAddress
             });
+
+            //  start the service running - the Lucene index needs to be reopened regularly on a background thread
 
             string searchIndexRefresh = _configurationService.Get("Search.IndexRefresh") ?? "180";
             int seconds;

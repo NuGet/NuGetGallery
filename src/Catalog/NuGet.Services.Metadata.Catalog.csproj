@@ -156,6 +156,7 @@
     <Compile Include="SortingGraphCollector.cs" />
     <Compile Include="StorageWriteLock.cs" />
     <Compile Include="StoreCollector.cs" />
+    <Compile Include="Test\FindCollector.cs" />
     <Compile Include="Test\PrintCollector.cs" />
     <Compile Include="Test\PrintCommitCollector.cs" />
     <Compile Include="TransHttpClient.cs" />
