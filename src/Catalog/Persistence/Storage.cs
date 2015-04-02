@@ -142,11 +142,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             int baseAddressLength = address.Length;
 
-            if (uri.Scheme.Equals("https"))
-            {
-                baseAddressLength += 1;
-            }
-
             string name = s.Substring(baseAddressLength);
             return name;
         }
