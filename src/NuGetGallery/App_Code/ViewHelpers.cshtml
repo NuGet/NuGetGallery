@@ -136,7 +136,7 @@
                 <text>
                     Deployed from
                     @if(ver.CommitUri != null) {
-                        @: <a href="@ver.CommitUri.AbsoluteUri">@ver.ShortCommit</a>.
+                        @: <a href="@ver.CommitUri.AbsoluteUri.Replace("git://github.com", "https://github.com")">@ver.ShortCommit</a>.
                     } else {
                         @: @ver.ShortCommit.
                     }
