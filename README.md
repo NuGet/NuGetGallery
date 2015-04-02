@@ -9,7 +9,7 @@ website for the NuGet client. For information about the NuGet clients, visit htt
  1. Visual Studio 2013
  2. PowerShell 2.0 (comes with Windows 7+)
  3. [NuGet](http://docs.nuget.org/docs/start-here/installing-nuget)
- 4. [Windows Azure SDK v2.2](http://www.microsoft.com/windowsazure/sdk/) - Note that later versions may be supported, but will require you to manually upgrade the ".Cloud" projects in the solution.
+ 4. [Windows Azure SDK](http://www.microsoft.com/windowsazure/sdk/) - Note that you may have to manually upgrade the ".Cloud" projects in the solution if a different SDK version is used.
  5. (Optional, for unit tests) [xUnit for Visual Studio 2012 and 2013](http://visualstudiogallery.msdn.microsoft.com/463c5987-f82b-46c8-a97e-b1cde42b9099)
 2. Clone it!
     
@@ -22,8 +22,8 @@ website for the NuGet client. For information about the NuGet clients, visit htt
     ```
 4. Set up the website in IIS Express!
  1. We highly recommend using IIS Express. Use the [Web Platform Installer](http://microsoft.com/web) to install it if you don't have it already (it comes with recent versions of VS and WebMatrix though)
- 2. In an ADMIN powershell prompt, run the .\tools\Enable-LocalTestMe.ps1 file. It allows non-admins to host websites at: http://nuget.localtest.me, it configures an IIS Express site at that URL and creates a self-signed SSL certificate. For more information on localtest.me, check out [readme.localtest.me](http://readme.localtest.me)
- 3. If you're having trouble, go to the Project Properties for the Website project, click on the Web tab and change the URL to localhost:port where _port_ is some port number above 1024.
+ 2. In an ADMIN powershell prompt, run the `.\tools\Enable-LocalTestMe.ps1` file. It allows non-admins to host websites at: `http(s)://nuget.localtest.me`, it configures an IIS Express site at that URL and creates a self-signed SSL certificate. For more information on `localtest.me`, check out [readme.localtest.me](http://readme.localtest.me).
+ 3. If you're having trouble, go to the _Project Properties_ for the Website project, click on the _Web_ tab and change the URL to `localhost:port` where _port_ is some port number above 1024.
 
 5. Create the Database!
  1. Open Visual Studio 2013
