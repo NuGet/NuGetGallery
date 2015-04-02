@@ -240,7 +240,7 @@ namespace NuGet.Services.Publish
                     return JObject.Parse(json);
                 }
             }
-            catch (Exception e)
+            catch (FormatException)
             {
                 return null;
             }

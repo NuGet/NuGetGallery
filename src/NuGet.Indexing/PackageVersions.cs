@@ -27,26 +27,46 @@ namespace NuGet.Indexing
 
                 Document document = reader[i];
 
-                if (document.GetValues("@type").Contains("http://schema.nuget.org/schema#Package"))
+                NuGetVersion currentVersion = GetVersion(document);
+
+                if (currentVersion == null)
                 {
-                    string id = document.Get("Id").ToLowerInvariant();
-                    NuGetVersion version = NuGetVersion.Parse(document.Get("Version"));
-
-                    List<NuGetVersion> versions;
-                    if (!_registrations.TryGetValue(id, out versions))
-                    {
-                        versions = new List<NuGetVersion>();
-                        _registrations.Add(id, versions);
-                    }
-
-                    versions.Add(version);
+                    continue;
                 }
+
+                string id = GetId(document);
+
+                if (id == null)
+                {
+                    continue;
+                }
+
+                List<NuGetVersion> versions;
+                if (!_registrations.TryGetValue(id, out versions))
+                {
+                    versions = new List<NuGetVersion>();
+                    _registrations.Add(id, versions);
+                }
+
+                versions.Add(currentVersion);
             }
 
             foreach (List<NuGetVersion> values in _registrations.Values)
             {
                 values.Sort();
             }
+        }
+
+        static NuGetVersion GetVersion(Document document)
+        {
+            string version = document.Get("Version");
+            return (version == null) ? null : new NuGetVersion(version);
+        }
+
+        static string GetId(Document document)
+        {
+            string id = document.Get("Id");
+            return (id == null) ?  null : id.ToLowerInvariant();
         }
 
         public JArray[] CreateVersionsLookUp(IDictionary<string, IDictionary<string, int>> downloadLookup, Uri registrationBaseAddress)
@@ -121,9 +141,11 @@ namespace NuGet.Indexing
 
                 Document document = _reader[i];
 
-                if (document.GetValues("@type").Contains("http://schema.nuget.org/schema#Package"))
+                NuGetVersion currentVersion = GetVersion(document);
+                string id = GetId(document);
+
+                if (currentVersion != null && id != null)
                 {
-                    string id = document.Get("Id").ToLowerInvariant();
                     versionsByDoc[i] = versionsById[id];
                 }
                 else

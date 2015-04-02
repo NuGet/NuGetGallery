@@ -31,7 +31,7 @@ namespace NuGet.Services.Metadata
                     {
                         IsAvailable = isAvailableProperty != null && (bool)isAvailableProperty.GetValue(null, new object[] { });
                     }
-                    catch (TargetInvocationException e)
+                    catch (TargetInvocationException)
                     {
                         IsAvailable = false;
                     }

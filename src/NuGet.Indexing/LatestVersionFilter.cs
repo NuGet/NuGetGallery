@@ -89,7 +89,8 @@ namespace NuGet.Indexing
         {
             string id = document.Get("Id");
             string ns = document.Get("Namespace");
-            return (ns == null) ? id : string.Format("{0}/{1}", ns, id);
+            string fullname = (ns == null) ? id : string.Format("{0}/{1}", ns, id);
+            return (fullname == null) ? null : fullname.ToLowerInvariant();
         }
     }
 }

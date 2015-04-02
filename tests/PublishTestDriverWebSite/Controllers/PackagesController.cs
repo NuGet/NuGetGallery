@@ -70,7 +70,7 @@ namespace PublishTestDriverWebSite.Controllers
                     return View("ServiceError", new ServiceErrorModel(response.StatusCode, err));
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 if (Request.QueryString["reauth"] == "True")
                 {
@@ -89,12 +89,6 @@ namespace PublishTestDriverWebSite.Controllers
 
                 return View();
             }
-
-
-            //
-            // If the call failed for any other reason, show the user an error.
-            //
-            return View("Error");
         }
     }
 }

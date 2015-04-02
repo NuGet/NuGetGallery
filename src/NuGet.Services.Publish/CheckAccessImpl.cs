@@ -65,8 +65,7 @@ namespace NuGet.Services.Publish
                     return true;
                 }
             }
-            //TODO: catch more specific Exception
-            catch (Exception e)
+            catch (FormatException)
             {
                 body = null;
                 return false;

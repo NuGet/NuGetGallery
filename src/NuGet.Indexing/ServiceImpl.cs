@@ -38,10 +38,16 @@ namespace NuGet.Indexing
                 includePrerelease = false;
             }
 
-            bool includeExplanation = false;
+            bool includeExplanation;
             if (!bool.TryParse(context.Request.Query["explanation"], out includeExplanation))
             {
                 includeExplanation = false;
+            }
+
+            bool applyFilter;
+            if (!bool.TryParse(context.Request.Query["filter"], out applyFilter))
+            {
+                applyFilter = true;
             }
 
             string projectType = context.Request.Query["projectType"] ?? string.Empty;
@@ -52,23 +58,31 @@ namespace NuGet.Indexing
 
             string scheme = context.Request.Uri.Scheme;
 
-            return QuerySearch(searcherManager, scheme, q, countOnly, projectType, supportedFramework, includePrerelease, skip, take, includeExplanation);
+            return QuerySearch(searcherManager, scheme, q, countOnly, projectType, supportedFramework, includePrerelease, skip, take, includeExplanation, applyFilter);
         }
 
-        public static JToken QuerySearch(NuGetSearcherManager searcherManager, string scheme, string q, bool countOnly, string projectType, string supportedFramework, bool includePrerelease, int skip, int take, bool includeExplanation)
+        public static JToken QuerySearch(NuGetSearcherManager searcherManager, string scheme, string q, bool countOnly, string projectType, string supportedFramework, bool includePrerelease, int skip, int take, bool includeExplanation, bool applyFilter)
         {
             IndexSearcher searcher = searcherManager.Get();
             try
             {
-                Filter filter = searcherManager.GetFilter(includePrerelease, supportedFramework);
-
-                //TODO: uncomment these lines when we have an index that contains the appropriate @type field in every document
-                //Filter typeFilter = new CachingWrapperFilter(new TypeFilter("http://schema.nuget.org/schema#NuGetClassicPackage"));
-                //filter = new ChainedFilter(new Filter[] { filter, typeFilter }, ChainedFilter.Logic.AND);
-
                 Query query = MakeQuery(q, searcherManager);
+                TopDocs topDocs;
 
-                TopDocs topDocs = searcher.Search(query, filter, skip + take);
+                if (applyFilter)
+                {
+                    Filter filter = searcherManager.GetFilter(includePrerelease, supportedFramework);
+
+                    //TODO: uncomment these lines when we have an index that contains the appropriate @type field in every document
+                    //Filter typeFilter = new CachingWrapperFilter(new TypeFilter("http://schema.nuget.org/schema#NuGetClassicPackage"));
+                    //filter = new ChainedFilter(new Filter[] { filter, typeFilter }, ChainedFilter.Logic.AND);
+
+                    topDocs = searcher.Search(query, filter, skip + take);
+                }
+                else
+                {
+                    topDocs = searcher.Search(query, skip + take);
+                }
 
                 return MakeResult(searcher, scheme, topDocs, skip, take, searcherManager, includeExplanation, query);
             }
