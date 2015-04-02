@@ -30,7 +30,7 @@ namespace NuGetGallery.FunctionalTests
                 yield return logonPost;
                 logonPost = null;
 
-                WebTestRequest accountPageRequest = new WebTestRequest("https://nuget-int-1-v2gallery.cloudapp.net/account");
+                WebTestRequest accountPageRequest = new WebTestRequest(UrlHelper.AccountPageUrl);
                 ExtractHiddenFields extractionRule1 = AssertAndValidationHelper.GetDefaultExtractHiddenFields();
                 accountPageRequest.ExtractValues += new EventHandler<ExtractionEventArgs>(extractionRule1.Extract);
                 yield return accountPageRequest;
