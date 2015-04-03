@@ -84,15 +84,10 @@
                 <li><a href="@Url.Action(actionName: "ReportAbuse", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Report the package as abusive">
                         Report Abuse</a></li>
             }
-            @if (User.Identity.IsAuthenticated)
-            {
-                <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file.">Download</a></li>
-                <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)">Open in Package Explorer</a></li>
-            }
-            else
-            {
-                <li><a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">How to Download</a></li>
-            }
+
+            <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file.">Download</a> <a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">(how-to)</a></li>
+            <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)">Open in Package Explorer</a></li>
+
             @if (Model.IsOwner(User))
             {
                 <li><a href="@Url.EditPackage(Model.Id, Model.Version)">Edit Package</a></li>
