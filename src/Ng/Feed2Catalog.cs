@@ -162,7 +162,7 @@ namespace Ng
                     }
                     else
                     {
-                        Trace.TraceWarning("Unable to download: {0}", uri);
+                        throw new Exception(string.Format("Unable to download: {0} http status: {1}", uri, response.StatusCode));
                     }
                 }
 
