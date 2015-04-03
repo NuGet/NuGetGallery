@@ -63,14 +63,19 @@ namespace NuGet.Services.Metadata.Catalog
             if (_packageContentAddress == null)
             {
                 INode subject = _catalogItem.CreateUriNode(_catalogUri);
-                //string id = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Id)).FirstOrDefault().Object.ToString().ToLowerInvariant();
-                //string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString().ToLowerInvariant();
-                //string path = string.Format("packages/{0}.{1}.nupkg", id.ToLowerInvariant(), version.ToLowerInvariant());
-                //_packageContentAddress = new Uri(_packageContentBaseAddress, path);
 
-                INode packageContentNode = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.PackageContent)).FirstOrDefault().Object;
-
-                return new Uri(packageContentNode.ToString());
+                Triple packageContentTriple = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.PackageContent)).FirstOrDefault();
+                if (packageContentTriple != null)
+                {
+                    _packageContentAddress = new Uri(packageContentTriple.Object.ToString());
+                }
+                else
+                {
+                    string id = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Id)).FirstOrDefault().Object.ToString().ToLowerInvariant();
+                    string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString().ToLowerInvariant();
+                    string path = string.Format("packages/{0}.{1}.nupkg", id.ToLowerInvariant(), version.ToLowerInvariant());
+                    _packageContentAddress = new Uri(_packageContentBaseAddress, path);
+                }
             }
 
             return _packageContentAddress;
