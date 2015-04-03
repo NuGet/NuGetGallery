@@ -162,7 +162,17 @@ namespace Ng
                     }
                     else
                     {
-                        throw new Exception(string.Format("Unable to download: {0} http status: {1}", uri, response.StatusCode));
+                        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                        {
+                            //  the feed is out of sync with the actual package storage - if we don't have the package there is nothing to be done we might as well move onto the next package
+                            Trace.TraceWarning(string.Format("Unable to download: {0} http status: {1}", uri, response.StatusCode));
+                        }
+                        else
+                        {
+                            //  this should trigger a restart - of this program - and not more the cursor forward
+                            Trace.TraceError(string.Format("Unable to download: {0} http status: {1}", uri, response.StatusCode));
+                            throw new Exception(string.Format("Unable to download: {0} http status: {1}", uri, response.StatusCode));
+                        }
                     }
                 }
 
