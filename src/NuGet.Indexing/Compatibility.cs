@@ -120,8 +120,21 @@ namespace NuGet.Indexing
                 }
 
                 Document document = reader.Document(doc);
-                string id = document.GetField("Id").StringValue.ToLowerInvariant();
-                NuGetVersion version = new NuGetVersion(document.GetField("Version").StringValue);
+
+                string id = PackageVersions.GetId(document);
+
+                if (id == null)
+                {
+                    continue;
+                }
+
+                NuGetVersion version = PackageVersions.GetVersion(document);
+
+                if (version == null)
+                {
+                    continue;
+                }
+
                 Field[] frameworks = document.GetFields("TargetFramework");
 
                 foreach (KeyValuePair<string, ISet<string>> frameworkKV in frameworkCompatibility)

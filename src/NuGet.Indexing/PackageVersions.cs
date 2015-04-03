@@ -57,13 +57,13 @@ namespace NuGet.Indexing
             }
         }
 
-        static NuGetVersion GetVersion(Document document)
+        public static NuGetVersion GetVersion(Document document)
         {
             string version = document.Get("Version");
             return (version == null) ? null : new NuGetVersion(version);
         }
 
-        static string GetId(Document document)
+        public static string GetId(Document document)
         {
             string id = document.Get("Id");
             return (id == null) ?  null : id.ToLowerInvariant();

@@ -37,21 +37,21 @@ namespace NuGet.Indexing
             {
                 for (int n = 0; n < segmentReader.MaxDoc; n++)
                 {
-                    if (indexReader.IsDeleted(n))
+                    if (segmentReader.IsDeleted(n))
                     {
                         continue;
                     }
 
                     Document document = segmentReader.Document(n);
 
-                    NuGetVersion currentVersion = GetVersion(document);
+                    NuGetVersion version = GetVersion(document);
 
-                    if (currentVersion == null)
+                    if (version == null)
                     {
                         continue;
                     }
 
-                    if (!currentVersion.IsPrerelease || prerelease)
+                    if (!version.IsPrerelease || prerelease)
                     {
                         string id = GetId(document);
 
@@ -63,14 +63,14 @@ namespace NuGet.Indexing
                         Tuple<NuGetVersion, string, int> existingVersion;
                         if (lookup.TryGetValue(id, out existingVersion))
                         {
-                            if (currentVersion > existingVersion.Item1)
+                            if (version > existingVersion.Item1)
                             {
-                                lookup[id] = Tuple.Create(currentVersion, segmentReader.SegmentName, n);
+                                lookup[id] = Tuple.Create(version, segmentReader.SegmentName, n);
                             }
                         }
                         else
                         {
-                            lookup.Add(id, Tuple.Create(currentVersion, segmentReader.SegmentName, n));
+                            lookup.Add(id, Tuple.Create(version, segmentReader.SegmentName, n));
                         }
                     }
                 }

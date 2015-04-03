@@ -187,5 +187,21 @@ namespace CatalogTests
                 Console.WriteLine(version);
             }
         }
+
+        public static void Test3()
+        {
+            Console.WriteLine("IntegrityTests.Test2");
+
+            string catalog = "https://nugetdevstorage.blob.core.windows.net/catalog/index.json";
+
+            Func<HttpMessageHandler> handlerFunc = () =>
+            {
+                return new VerboseHandler();
+            };
+
+            PrintCommitCollector collector = new PrintCommitCollector(new Uri(catalog), handlerFunc);
+
+            collector.Run().Wait();
+        }
     }
 }
