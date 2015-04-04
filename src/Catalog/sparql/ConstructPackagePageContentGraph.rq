@@ -13,7 +13,8 @@ CONSTRUCT
                     nuget:version ?version ;
                     nuget:dependencyGroup ?dependency_group ;
 	                nuget:published ?published ;
-                    nuget:description ?description ;
+					nuget:listed ?listed ;
+			        nuget:description ?description ;
                     nuget:title ?title ;
                     nuget:summary ?summary ;
                     nuget:iconUrl ?iconUrl ;
@@ -41,11 +42,11 @@ WHERE
     BIND (@packageContent AS ?packageContent)
 
 	BIND (IRI(CONCAT(STR(@baseAddress), "index.json")) AS ?registration)
-
+	
     ?catalogPackage nuget:version ?version ;
                     nuget:id ?id ;
 	                nuget:published ?published .
-
+					
 	OPTIONAL { ?catalogPackage nuget:description ?optionalDescription . }
 	OPTIONAL { ?catalogPackage nuget:title ?optionalTitle . }
 	OPTIONAL { ?catalogPackage nuget:summary ?optionalSummary . }
@@ -64,23 +65,27 @@ WHERE
 	BIND(COALESCE(?optionalIconUrl, "") AS ?iconUrl)
 	BIND(COALESCE(?optionalLicenseUrl, "") AS ?licenseUrl)
 	BIND(COALESCE(?optionalProjectUrl, "") AS ?projectUrl)
-	BIND(COALESCE(?optionalRequireLicenseAcceptance, false) AS ?requireLicenseAcceptance)
+	BIND(COALESCE(?optionalRequireLicenseAcceptance, "") AS ?requireLicenseAcceptance)
 	BIND(COALESCE(?optionalLanguage, "") AS ?language)
 	BIND(COALESCE(?optionalAuthors, "") AS ?authors)
 	BIND(COALESCE(?optionalTag, "") AS ?tag)
 	BIND(COALESCE(?optionalMinClientVersion, "") AS ?minClientVersion)
-
+	BIND (IF (year(?published) = 1900, false, true) as ?listed)
+	
     OPTIONAL
     {
         ?catalogPackage nuget:dependencyGroup ?dependency_group .
-        ?dependency_group nuget:dependency ?dependency .
 
-        OPTIONAL { ?dependency_group nuget:targetFramework ?dependency_group_targetFramework . }
+		OPTIONAL { ?dependency_group nuget:targetFramework ?dependency_group_targetFramework . }
         
-        ?dependency nuget:id ?dependency_id .
+		OPTIONAL
+		{ 
+			?dependency_group nuget:dependency ?dependency .
+	        ?dependency nuget:id ?dependency_id .
         
-        BIND (IRI(CONCAT(STR(@registrationBaseAddress), LCASE(?dependency_id), "/index.json")) AS ?dependency_registration)
+			BIND (IRI(CONCAT(STR(@registrationBaseAddress), LCASE(?dependency_id), "/index.json")) AS ?dependency_registration)
         
-        OPTIONAL { ?dependency nuget:range ?dependency_version . }
+			OPTIONAL { ?dependency nuget:range ?dependency_version . }
+		}
     }
 }

@@ -94,7 +94,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         }
 
         public Uri BaseAddress { get; private set; }
-        
+        public abstract bool Exists(string fileName);
+
         public bool Verbose
         {
             get;

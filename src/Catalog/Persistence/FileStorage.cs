@@ -23,6 +23,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             ResetStatistics();
         }
 
+        //File exists
+        public override bool Exists(string fileName)
+        {
+            return System.IO.File.Exists(fileName);
+        }
+
         public string Path
         { 
             get;

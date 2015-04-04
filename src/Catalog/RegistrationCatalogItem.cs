@@ -18,6 +18,7 @@ namespace NuGet.Services.Metadata.Catalog
         Uri _registrationBaseAddress;
         Uri _registrationAddress;
         DateTime _publishedDate;
+        Boolean _listed;
 
         public RegistrationCatalogItem(Uri catalogUri, IGraph catalogItem, Uri packageContentBaseAddress, Uri registrationBaseAddress)
         {
@@ -37,6 +38,7 @@ namespace NuGet.Services.Metadata.Catalog
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Registration), graph.CreateUriNode(GetRegistrationAddress()));
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.PackageContent), graph.CreateUriNode(GetPackageContentAddress()));
             graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Published), graph.CreateLiteralNode(GetPublishedDate().ToString("O"), Schema.DataTypes.DateTime));
+            graph.Assert(subject, graph.CreateUriNode(Schema.Predicates.Listed), graph.CreateLiteralNode(_listed.ToString(), Schema.DataTypes.Boolean));
             JObject frame = context.GetJsonLdContext("context.Package.json", Schema.DataTypes.Package);
             return new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
         }
@@ -103,7 +105,8 @@ namespace NuGet.Services.Metadata.Catalog
                     }
                 }
             }
-
+            _publishedDate = _publishedDate.ToUniversalTime();
+            _listed = (_publishedDate.Year == 1900) ? false : true;
             return _publishedDate;
 
         }

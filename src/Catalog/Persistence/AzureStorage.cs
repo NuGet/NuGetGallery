@@ -58,6 +58,21 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return uri;
         }
 
+        //Blob exists
+        public override bool Exists(string fileName)
+        {
+            Uri packageRegistrationUri = ResolveUri(fileName);
+            string blobName = GetName(packageRegistrationUri);
+
+            CloudBlockBlob blob = _directory.GetBlockBlobReference(blobName);
+
+            if (blob.Exists())
+            {
+                return true;
+            }
+            return false;
+        }
+
         //  save
 
         protected override async Task OnSave(Uri resourceUri, StorageContent content)
