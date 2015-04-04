@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,6 +29,16 @@ namespace Ng
             public DateTime packageCreatedDate;
             public DateTime packageLastEditedDate;
             public DateTime packagePublishedDate;
+        }
+
+        static Uri MakePackageUri(string source, string id, string version)
+        {
+            string address = string.Format("{0}/Packages?$filter=Id%20eq%20'{1}'%20and%20Version%20eq%20'{2}'&$select=Created,LastEdited,Published",
+                source.Trim('/'),
+                id,
+                version);
+
+            return new Uri(address);
         }
 
         static Uri MakeCreatedUri(string source, DateTime since, int top = 100)
@@ -122,11 +133,11 @@ namespace Ng
             return result;
         }
 
-        static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<Tuple<Uri, PackageDates>>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, bool createdPackages)
+        static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<Tuple<Uri, PackageDates>>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, bool? createdPackages = null)
         {
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 550);
 
-            DateTime lastDate = createdPackages ? lastCreated : lastEdited;
+            DateTime lastDate = createdPackages.HasValue ? (createdPackages.Value ? lastCreated : lastEdited) : DateTime.MinValue;
 
             if (packages == null || packages.Count == 0)
             {
@@ -179,10 +190,14 @@ namespace Ng
                 lastDate = entry.Key;
             }
 
-            lastCreated = createdPackages ? lastDate : lastCreated;
-            lastEdited = !createdPackages ? lastDate : lastEdited;
-            IGraph commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, lastEdited);
+            if (createdPackages.HasValue)
+            {
+                lastCreated = createdPackages.Value ? lastDate : lastCreated;
+                lastEdited = !createdPackages.Value ? lastDate : lastEdited;
+            }
 
+            IGraph commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, lastEdited);
+            
             await writer.Commit(commitMetadata);
 
             Trace.TraceInformation("COMMIT");
@@ -323,6 +338,95 @@ namespace Ng
                 nullableStartDate = startDate;
             }
             Loop(gallery, storageFactory, verbose, interval, nullableStartDate).Wait();
+        }
+
+        static void PackagePrintUsage()
+        {
+            Console.WriteLine("Usage: ng package2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] -id <id> -versione <version>");
+        }
+
+        public static void Package(string[] args)
+        {
+            IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
+            if (arguments == null)
+            {
+                PackagePrintUsage();
+                return;
+            }
+
+            string gallery = CommandHelpers.GetGallery(arguments);
+            if (gallery == null)
+            {
+                PackagePrintUsage();
+                return;
+            }
+
+            bool verbose = CommandHelpers.GetVerbose(arguments);
+
+            string id = CommandHelpers.GetId(arguments);
+            if (id == null)
+            {
+                PackagePrintUsage();
+                return;
+            }
+
+            string version = CommandHelpers.GetVersion(arguments);
+            if (version == null)
+            {
+                PackagePrintUsage();
+                return;
+            }
+
+            StorageFactory storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
+            if (storageFactory == null)
+            {
+                PrintUsage();
+                return;
+            }
+
+            if (verbose)
+            {
+                Trace.Listeners.Add(new ConsoleTraceListener());
+                Trace.AutoFlush = true;
+            }
+
+            ProcessSinglePackage(gallery, storageFactory, id, version, verbose).Wait();
+        }
+
+        static async Task ProcessSinglePackage(string gallery, StorageFactory storageFactory, string id, string version, bool verbose)
+        {
+            int timeout = 300;
+
+            Func<HttpMessageHandler> handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
+
+            HttpMessageHandler handler = (handlerFunc != null) ? handlerFunc() : new WebRequestHandler { AllowPipelining = true };
+
+            using (HttpClient client = new HttpClient(handler))
+            {
+                client.Timeout = TimeSpan.FromSeconds(timeout);
+
+                Uri uri = MakePackageUri(gallery, id, version);
+
+                SortedList<DateTime, IList<Tuple<Uri, PackageDates>>> packages = await GetPackages(client, uri, "Created");
+
+                if (packages.Count == 1)
+                {
+                    if (packages.First().Value.Count == 1)
+                    {
+                        Storage storage = storageFactory.Create();
+
+                        //  the idea here is to leave the lastCreated and lastEdited values exactly as they were
+
+                        const string LastCreated = "nuget:lastCreated";
+                        const string LastEdited = "nuget:lastEdited";
+
+                        DateTime lastCreated = await GetCatalogProperty(storage, LastCreated) ?? DateTime.MinValue.ToUniversalTime();
+                        DateTime lastEdited = await GetCatalogProperty(storage, LastEdited) ?? DateTime.MinValue.ToUniversalTime();
+
+                        DateTime d = await DownloadMetadata2Catalog(client, packages, storage, lastCreated, lastEdited);
+                    }
+                }
+            }
         }
     }
 }

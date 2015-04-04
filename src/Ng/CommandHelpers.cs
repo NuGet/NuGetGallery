@@ -94,6 +94,26 @@ namespace Ng
             return value;
         }
 
+        public static string GetId(IDictionary<string, string> arguments)
+        {
+            string value;
+            if (!arguments.TryGetValue("-id", out value))
+            {
+                return null;
+            }
+            return value;
+        }
+
+        public static string GetVersion(IDictionary<string, string> arguments)
+        {
+            string value;
+            if (!arguments.TryGetValue("-version", out value))
+            {
+                return null;
+            }
+            return value;
+        }
+
         public static bool GetVerbose(IDictionary<string, string> arguments)
         {
             string verboseStr = "false";

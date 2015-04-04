@@ -9,7 +9,7 @@ namespace Ng
     {
         static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng [feed2catalog|catalog2registration|catalog2lucene|frameworkcompatibility|copylucene|checklucene|clearlucene]");
+            Console.WriteLine("Usage: ng [package2catalog|feed2catalog|catalog2registration|catalog2lucene|frameworkcompatibility|copylucene|checklucene|clearlucene]");
         }
 
         static void Main(string[] args)
@@ -33,6 +33,9 @@ namespace Ng
 
                 switch (args[0])
                 {
+                    case "package2catalog":
+                        Feed2Catalog.Package(args);
+                        break;
                     case "feed2catalog" :
                         Feed2Catalog.Run(args);
                         break;
