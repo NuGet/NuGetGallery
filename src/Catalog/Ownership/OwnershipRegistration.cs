@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace NuGet.Services.Metadata.Catalog.Ownership
 {
@@ -12,6 +13,15 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
             string ns = string.IsNullOrEmpty(Namespace) ? "nuget.org" : Namespace;
             string fragment = string.Format("#registration/{0}/{1}", ns, Id);
             return new Uri(baseAddress, fragment);
+        }
+
+        public string GetKey()
+        {
+            string ns = string.IsNullOrEmpty(Namespace) ? "nuget.org" : Namespace;
+            string key = string.Format("{0}/{1}", ns, Id);
+            byte[] bytes = Encoding.UTF8.GetBytes(key);
+            string base64 = Convert.ToBase64String(bytes);
+            return base64;
         }
     }
 }

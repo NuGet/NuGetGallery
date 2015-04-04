@@ -21,27 +21,22 @@ namespace NuGet.Services.Metadata.Catalog
 
         protected override async Task ProcessSortedBatch(CollectorHttpClient client, KeyValuePair<string, IList<JObject>> sortedBatch, JToken context)
         {
-            ConcurrentDictionary<string, IGraph> graphs = new ConcurrentDictionary<string, IGraph>();
+            IDictionary<string, IGraph> graphs = new Dictionary<string, IGraph>();
 
-            ParallelOptions options = new ParallelOptions();
-            options.MaxDegreeOfParallelism = 8;
-
-            Parallel.ForEach(sortedBatch.Value, options, item =>
+            foreach (JObject item in sortedBatch.Value)
             {
                 if (Utils.IsType((JObject)context, item, _types))
                 {
                     string itemUri = item["@id"].ToString();
-                    var task = client.GetGraphAsync(new Uri(itemUri));
-                    task.Wait();
-
-                    if (!graphs.TryAdd(itemUri, task.Result))
-                    {
-                        throw new Exception("Duplicate graph: " + itemUri);
-                    }
+                    IGraph graph = await client.GetGraphAsync(new Uri(itemUri));
+                    graphs.Add(itemUri, graph);
                 }
-            });
+            }
 
-            await ProcessGraphs(new KeyValuePair<string, IDictionary<string, IGraph>>(sortedBatch.Key, graphs));
+            if (graphs.Count > 0)
+            {
+                await ProcessGraphs(new KeyValuePair<string, IDictionary<string, IGraph>>(sortedBatch.Key, graphs));
+            }
         }
 
         protected abstract Task ProcessGraphs(KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs);

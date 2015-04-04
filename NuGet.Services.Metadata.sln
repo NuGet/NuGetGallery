@@ -27,21 +27,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MennoCopy", "src\Tools\Menn
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Publish", "src\NuGet.Services.Publish\NuGet.Services.Publish.csproj", "{F3F6D0DD-AE7F-4BEF-A8DF-3638B650A849}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PublishScripts", "PublishScripts", "{DC40D872-BF4E-453A-96EF-1A0BF3DD3D60}"
-	ProjectSection(SolutionItems) = preProject
-		PublishScripts\AzureWebsitePublishModule.psm1 = PublishScripts\AzureWebsitePublishModule.psm1
-		PublishScripts\Publish-WebApplicationWebsite.ps1 = PublishScripts\Publish-WebApplicationWebsite.ps1
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configurations", "Configurations", "{9D362AFD-C5A8-40DA-B9EE-C457E8EBC920}"
-	ProjectSection(SolutionItems) = preProject
-		PublishScripts\Configurations\NuGetServicesGateway-WAWS-dev.json = PublishScripts\Configurations\NuGetServicesGateway-WAWS-dev.json
-		PublishScripts\Configurations\NuGetServicesPublish-WAWS-dev.json = PublishScripts\Configurations\NuGetServicesPublish-WAWS-dev.json
-		PublishScripts\Configurations\NuGetTestSecureService-WAWS-dev.json = PublishScripts\Configurations\NuGetTestSecureService-WAWS-dev.json
-		PublishScripts\Configurations\NuGetTestWebSite-WAWS-dev.json = PublishScripts\Configurations\NuGetTestWebSite-WAWS-dev.json
-		PublishScripts\Configurations\PublishTestDriverWebSite-WAWS-dev.json = PublishScripts\Configurations\PublishTestDriverWebSite-WAWS-dev.json
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{4AA08EEB-BA47-4ECD-94F3-0700DD50E693}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\packages.config = .nuget\packages.config
@@ -59,7 +44,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Test.WebSite", "tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Test.ConsoleApp", "tests\AAD\NuGet.Test.ConsoleApp\NuGet.Test.ConsoleApp.csproj", "{22D27042-82DD-49D4-A95D-FD0D9D5D9E1B}"
 EndProject
-Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "PublishAzureCloudService", "PublishAzureCloudService\PublishAzureCloudService.ccproj", "{E92C2A00-9BDE-44AB-9243-143A2ADD88AB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Indexing", "src\NuGet.Indexing\NuGet.Indexing.csproj", "{DDB34145-870F-42C3-9663-A9390CEE1E35}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Metadata", "src\NuGet.Services.Metadata\NuGet.Services.Metadata.csproj", "{BBA2FEAE-6872-4B3D-A4EA-CED639618426}"
+EndProject
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGet.Services.Metadata.CloudService", "src\NuGet.Services.Metadata.CloudService\NuGet.Services.Metadata.CloudService.ccproj", "{A02A584B-02F3-40DC-804F-344F03926F9F}"
+EndProject
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGet.Services.Publish.CloudService", "src\NuGet.Services.Publish.CloudService\NuGet.Services.Publish.CloudService.ccproj", "{8A829025-5D87-4DF3-82E8-18F2ABC513FB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -239,16 +230,46 @@ Global
 		{22D27042-82DD-49D4-A95D-FD0D9D5D9E1B}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{22D27042-82DD-49D4-A95D-FD0D9D5D9E1B}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{22D27042-82DD-49D4-A95D-FD0D9D5D9E1B}.Release|x64.ActiveCfg = Release|Any CPU
-		{E92C2A00-9BDE-44AB-9243-143A2ADD88AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E92C2A00-9BDE-44AB-9243-143A2ADD88AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E92C2A00-9BDE-44AB-9243-143A2ADD88AB}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{E92C2A00-9BDE-44AB-9243-143A2ADD88AB}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{E92C2A00-9BDE-44AB-9243-143A2ADD88AB}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{E92C2A00-9BDE-44AB-9243-143A2ADD88AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E92C2A00-9BDE-44AB-9243-143A2ADD88AB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E92C2A00-9BDE-44AB-9243-143A2ADD88AB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{E92C2A00-9BDE-44AB-9243-143A2ADD88AB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{E92C2A00-9BDE-44AB-9243-143A2ADD88AB}.Release|x64.ActiveCfg = Release|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Release|x64.ActiveCfg = Release|Any CPU
+		{BBA2FEAE-6872-4B3D-A4EA-CED639618426}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBA2FEAE-6872-4B3D-A4EA-CED639618426}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBA2FEAE-6872-4B3D-A4EA-CED639618426}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{BBA2FEAE-6872-4B3D-A4EA-CED639618426}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{BBA2FEAE-6872-4B3D-A4EA-CED639618426}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BBA2FEAE-6872-4B3D-A4EA-CED639618426}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBA2FEAE-6872-4B3D-A4EA-CED639618426}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBA2FEAE-6872-4B3D-A4EA-CED639618426}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{BBA2FEAE-6872-4B3D-A4EA-CED639618426}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{BBA2FEAE-6872-4B3D-A4EA-CED639618426}.Release|x64.ActiveCfg = Release|Any CPU
+		{A02A584B-02F3-40DC-804F-344F03926F9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A02A584B-02F3-40DC-804F-344F03926F9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A02A584B-02F3-40DC-804F-344F03926F9F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{A02A584B-02F3-40DC-804F-344F03926F9F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{A02A584B-02F3-40DC-804F-344F03926F9F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A02A584B-02F3-40DC-804F-344F03926F9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A02A584B-02F3-40DC-804F-344F03926F9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A02A584B-02F3-40DC-804F-344F03926F9F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{A02A584B-02F3-40DC-804F-344F03926F9F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{A02A584B-02F3-40DC-804F-344F03926F9F}.Release|x64.ActiveCfg = Release|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{8A829025-5D87-4DF3-82E8-18F2ABC513FB}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -258,7 +279,6 @@ Global
 		{6F18CEEE-4FD0-4F26-A2A1-A78F990F96D1} = {E935D13C-AF64-4896-A1B2-FA5D048C40F4}
 		{2DE8E090-D2C2-4FE1-8F16-6EFB5447EC8D} = {E935D13C-AF64-4896-A1B2-FA5D048C40F4}
 		{7AE1E48A-9F7C-463D-ACAD-3312CB0B97CB} = {C86C6DEE-84E1-4E4E-8868-6755D7A8E0E4}
-		{9D362AFD-C5A8-40DA-B9EE-C457E8EBC920} = {DC40D872-BF4E-453A-96EF-1A0BF3DD3D60}
 		{59F5CE10-A505-4B45-88E2-92F7664714E4} = {F91EB063-83EC-4194-8D62-12B9F91E4EE7}
 		{F8499B7A-739E-4F60-B99A-A6C64A259322} = {F91EB063-83EC-4194-8D62-12B9F91E4EE7}
 		{22D27042-82DD-49D4-A95D-FD0D9D5D9E1B} = {F91EB063-83EC-4194-8D62-12B9F91E4EE7}

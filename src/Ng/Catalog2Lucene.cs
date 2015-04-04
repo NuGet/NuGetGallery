@@ -1,6 +1,4 @@
-﻿using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Index;
-using NuGet.Services.Metadata.Catalog;
+﻿using NuGet.Services.Metadata.Catalog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

@@ -1,9 +1,11 @@
 ﻿using Microsoft.Owin;
 using Microsoft.Owin.Security.ActiveDirectory;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using NuGet.Services.Metadata.Catalog.Ownership;
 using Owin;
 using System;
-using System.Configuration;
+using System.Diagnostics;
 using System.IdentityModel.Tokens;
 using System.Net;
 using System.Threading.Tasks;
@@ -14,13 +16,24 @@ namespace NuGet.Services.Publish
 {
     public class Startup
     {
+        private static readonly ConfigurationService _configurationService;
+
+        static Startup()
+        {
+            Trace.TraceInformation("Startup");
+
+            _configurationService = new ConfigurationService();
+        }
+
         public void Configuration(IAppBuilder app)
         {
             if (!HasNoSecurityConfigured())
             {
-                string audience = ConfigurationManager.AppSettings["ida:Audience"];
-                string tenant = ConfigurationManager.AppSettings["ida:Tenant"];
-                string aadInstance = ConfigurationManager.AppSettings["ida:AADInstance"];
+                Trace.TraceInformation("Using AAD middleware");
+
+                string audience = _configurationService.Get("ida.Audience");
+                string tenant = _configurationService.Get("ida.Tenant");
+                string aadInstance = _configurationService.Get("ida.AADInstance");
 
                 string metadataAddress = string.Format(aadInstance, tenant) + "/federationmetadata/2007-06/federationmetadata.xml";
 
@@ -38,7 +51,44 @@ namespace NuGet.Services.Publish
                 });
             }
 
+            Initialize();
+
             app.Run(Invoke);
+        }
+
+        static void CreateContainer(string connectionString, string containerName)
+        {
+            CloudStorageAccount account = CloudStorageAccount.Parse(connectionString);
+
+            CloudBlobClient client = account.CreateCloudBlobClient();
+            CloudBlobContainer container = client.GetContainerReference(containerName);
+
+            if (container.CreateIfNotExists())
+            {
+                string blobContainerPublicAccessType = _configurationService.Get("Storage.BlobContainerPublicAccessType") ?? "Off";
+
+                Trace.TraceInformation("Crreating container {0} permission {1}", containerName, blobContainerPublicAccessType);
+
+                switch (blobContainerPublicAccessType)
+                {
+                    case "Off": container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Off });
+                        break;
+                    case "Container": container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Container });
+                        break;
+                    case "Blob": container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+                        break;
+                }
+            }
+        }
+
+        static void Initialize()
+        {
+            string connectionString = _configurationService.Get("Storage.Primary");
+            CreateContainer(connectionString, _configurationService.Get("Storage.Container.Artifacts"));
+            CreateContainer(connectionString, _configurationService.Get("Storage.Container.Catalog"));
+            //CreateContainer(connectionString, _configurationService.Get("Storage.Container.Ownership"));
+
+            TableStorageRegistration.Initialize(connectionString);
         }
 
         async Task Invoke(IOwinContext context)
@@ -63,6 +113,8 @@ namespace NuGet.Services.Publish
             }
             catch (Exception e)
             {
+                Trace.TraceError("Invoke Exception: {0} {1}", e.GetType().Name, e.Message);
+
                 error = e.Message;
             }
 
@@ -80,7 +132,7 @@ namespace NuGet.Services.Publish
             {
                 case "/":
                     {
-                        await context.Response.WriteAsync("OK");
+                        await context.Response.WriteAsync("READY.");
                         context.Response.StatusCode = (int)HttpStatusCode.OK;
                         break;
                     }
@@ -111,39 +163,31 @@ namespace NuGet.Services.Publish
 
             switch (context.Request.Path.Value)
             {
+                case "/checkaccess/apiapp":
                 case "/apiapp/checkaccess":
                     {
                         CheckAccessImpl uploader = new CheckAccessImpl(registrationOwnership);
                         await uploader.CheckAccess(context);
                         break;
                     }
+                case "/upload/apiapp":  //TODO - remove this temporary additional resource 
                 case "/apiapp/upload":
                     {
                         PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
                         await uploader.Upload(context);
                         break;
                     }
-                case "/checkaccess/apiapp":
-                    {
-                        CheckAccessImpl uploader = new CheckAccessImpl(registrationOwnership);
-                        await uploader.CheckAccess(context);
-                        break;
-                    }
-                case "/catalog":
-                    {
-                        await NuGetPublishImpl.Upload(context);
-                        break;
-                    }
-                case "/catalog/nuspec":
-                    {
-                        PublishImpl uploader = new NuSpecJsonPublishImpl(registrationOwnership);
-                        await uploader.Upload(context);
-                        break;
-                    }
-                case "/catalog/apiapp":
+                case "/edit/apiapp":
+                case "/apiapp/edit":
                     {
                         PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
-                        await uploader.Upload(context);
+                        await uploader.Edit(context);
+                        break;
+                    }
+                case "/delete":
+                    {
+                        DeleteImpl deleteImpl = new DeleteImpl(registrationOwnership);
+                        await deleteImpl.Delete(context);
                         break;
                     }
                 case "/tenant/enable":
@@ -180,17 +224,19 @@ namespace NuGet.Services.Publish
                 return new NoSecurityRegistrationOwnership();
             }
 
-            string storagePrimary = ConfigurationManager.AppSettings.Get("Storage.Primary");
-            string storageContainerOwnership = ConfigurationManager.AppSettings.Get("Storage.Container.Ownership") ?? "ownership";
+            //string storagePrimary = _configurationService.Get("Storage.Primary");
+            //string storageContainerOwnership = _configurationService.Get("Storage.Container.Ownership") ?? "ownership";
+            //CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
+            //return new StorageRegistrationOwnership(context, account, storageContainerOwnership);
 
+            string storagePrimary = _configurationService.Get("Storage.Primary");
             CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
-
-            return new StorageRegistrationOwnership(context, account, storageContainerOwnership);
+            return new StorageRegistrationOwnership(context, account);
         }
 
         bool HasNoSecurityConfigured()
         {
-            string noSecurity = ConfigurationManager.AppSettings.Get("NoSecurity");
+            string noSecurity = _configurationService.Get("NoSecurity");
             return (!string.IsNullOrEmpty(noSecurity) && noSecurity.Equals("true", StringComparison.InvariantCultureIgnoreCase));
         }
     }

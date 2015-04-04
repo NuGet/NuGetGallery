@@ -23,6 +23,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Package = new Uri(Prefixes.NuGet + "Package");
             public static readonly Uri PackageRegistration = new Uri(Prefixes.NuGet + "PackageRegistration");
             public static readonly Uri PackageDetails = new Uri(Prefixes.NuGet + "PackageDetails");
+            public static readonly Uri PackageDelete = new Uri(Prefixes.NuGet + "PackageDelete");
             public static readonly Uri PackageDependencyGroup = new Uri(Prefixes.NuGet + "PackageDependencyGroup");
             public static readonly Uri PackageDependency = new Uri(Prefixes.NuGet + "PackageDependency");
             public static readonly Uri NuGetClassicPackage = new Uri(Prefixes.NuGet + "NuGetClassicPackage");
@@ -72,6 +73,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Prefix = new Uri(Prefixes.NuGet + "prefix");
             public static readonly Uri Id = new Uri(Prefixes.NuGet + "id");
             public static readonly Uri Version = new Uri(Prefixes.NuGet + "version");
+            public static readonly Uri OriginalId = new Uri(Prefixes.NuGet + "originalId");
 
             public static readonly Uri Upper = new Uri(Prefixes.NuGet + "upper");
             public static readonly Uri Lower = new Uri(Prefixes.NuGet + "lower");

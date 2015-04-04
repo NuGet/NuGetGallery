@@ -1,41 +1,23 @@
 ﻿using Microsoft.Owin;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Ownership;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Publish
 {
     public abstract class PublishImpl
     {
-        const string DefaultStorageContainerCatalog = "catalog";
-        const string DefaultStorageContainerPackages = "artifacts";
+        private readonly IRegistrationOwnership _registrationOwnership;
 
-        static string StoragePrimary;
-        static string StorageContainerCatalog;
-        static string StorageContainerPackages;
-        static string CatalogBaseAddress;
-
-        IRegistrationOwnership _registrationOwnership;
-
-        static PublishImpl()
-        {
-            StoragePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
-            StorageContainerCatalog = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Catalog") ?? DefaultStorageContainerCatalog;
-            StorageContainerPackages = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Container.Artifacts") ?? DefaultStorageContainerPackages;
-            CatalogBaseAddress = System.Configuration.ConfigurationManager.AppSettings.Get("Catalog.BaseAddress");
-        }
-
-        public PublishImpl(IRegistrationOwnership registrationOwnership)
+        protected PublishImpl(IRegistrationOwnership registrationOwnership)
         {
             _registrationOwnership = registrationOwnership;
         }
@@ -43,7 +25,15 @@ namespace NuGet.Services.Publish
         protected abstract bool IsMetadataFile(string fullName);
         protected abstract JObject CreateMetadataObject(string fullname, Stream stream);
         protected abstract Uri GetItemType();
-        protected abstract IList<string> Validate(Stream nupkgStream, out PackageIdentity packageIdentity);
+
+        protected virtual Task<ValidationResult> Validate(Stream nupkgStream)
+        {
+            return Task.FromResult(new ValidationResult());
+        }
+
+        protected virtual void ValidateEdit(EditValidationResult result)
+        {
+        }
 
         protected virtual void InferArtifactTypes(IDictionary<string, JObject> metadata)
         {
@@ -53,8 +43,15 @@ namespace NuGet.Services.Publish
         {
         }
 
+        protected virtual Task<IDictionary<string, PackageArtifact>> GenerateNewArtifactsFromEdit(IDictionary<string, JObject> metadata, JObject catalogEntry, JObject editMetadata, string storagePrimary)
+        {
+            return Task.FromResult<IDictionary<string, PackageArtifact>>(new Dictionary<string, PackageArtifact>());
+        }
+
         public async Task Upload(IOwinContext context)
         {
+            Trace.TraceInformation("PublishImpl.Upload");
+
             if (!_registrationOwnership.IsAuthenticated)
             {
                 await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
@@ -75,27 +72,28 @@ namespace NuGet.Services.Publish
             }
 
             Stream packageStream = context.Request.Body;
-            PackageIdentity packageIdentity;
 
             //  validation
 
-            IEnumerable<string> validationErrors = Validate(packageStream, out packageIdentity);
+            ValidationResult validationResult = await Validate(packageStream);
 
-            if (validationErrors != null)
+            if (validationResult.HasErrors)
             {
-                await ServiceHelpers.WriteErrorResponse(context, validationErrors, HttpStatusCode.BadRequest);
+                await ServiceHelpers.WriteErrorResponse(context, validationResult.Errors, HttpStatusCode.BadRequest);
                 return;
             }
 
             //  registration authorization
 
-            IEnumerable<string> authorizationErrors = await CheckRegistrationAuthorization(packageIdentity);
+            IList<string> authorizationErrors = await OwnershipHelpers.CheckRegistrationAuthorization(_registrationOwnership, validationResult.PackageIdentity);
 
-            if (authorizationErrors != null)
+            if (authorizationErrors.Count > 0)
             {
                 await ServiceHelpers.WriteErrorResponse(context, authorizationErrors, HttpStatusCode.Forbidden);
                 return;
             }
+
+            Trace.TraceInformation("UPLOAD Processing package {0}/{1}/{2}", validationResult.PackageIdentity.Namespace, validationResult.PackageIdentity.Id, validationResult.PackageIdentity.Version);
 
             //  process the package
 
@@ -103,7 +101,9 @@ namespace NuGet.Services.Publish
 
             //  (1) save all the artifacts
 
-            await Artifacts.Save(metadata, packageStream, StoragePrimary, StorageContainerPackages);
+            await Artifacts.Save(metadata, packageStream, Configuration.StoragePrimary, Configuration.StorageContainerArtifacts);
+
+            Trace.TraceInformation("Save");
 
             InferArtifactTypes(metadata);
 
@@ -111,78 +111,184 @@ namespace NuGet.Services.Publish
 
             ExtractMetadata(metadata, packageStream);
 
+            Trace.TraceInformation("ExtractMetadata");
+
             //  (3) gather all the publication details
 
-            PublicationDetails publicationDetails = await CreatePublicationDetails(publicationVisibility);
+            PublicationDetails publicationDetails = await OwnershipHelpers.CreatePublicationDetails(_registrationOwnership, publicationVisibility);
+
+            Trace.TraceInformation("CreatePublicationDetails");
 
             //  (4) add the new item to the catalog
 
             Uri catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails);
 
+            Trace.TraceInformation("AddToCatalog");
+
             //  (5) update the registration ownership record
 
-            await _registrationOwnership.AddVersion(packageIdentity.Namespace, packageIdentity.Id, packageIdentity.Version.ToString());
+            await UpdateRegistrationOwnership(validationResult.PackageIdentity);
+
+            Trace.TraceInformation("UpdateRegistrationOwnership");
 
             //  (6) create response
 
             JToken response = new JObject
             { 
-                { "download", metadata["nuspec"]["metadata"] },
+                { "download", metadata["nuspec"]["packageContent"] },
                 { "catalog", catalogAddress.ToString() }
             };
 
             await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
         }
 
-        async Task<IEnumerable<string>> CheckRegistrationAuthorization(PackageIdentity packageIdentity)
+        public async Task Edit(IOwinContext context)
         {
-            IList<string> errors = new List<string>();
+            Trace.TraceInformation("PublishImpl.Upload");
 
-            if (await _registrationOwnership.HasRegistration(packageIdentity.Namespace, packageIdentity.Id))
+            if (!_registrationOwnership.IsAuthenticated)
             {
-                if (!await _registrationOwnership.HasOwner(packageIdentity.Namespace, packageIdentity.Id))
-                {
-                    errors.Add("user does not have access to this registration");
-                    return errors;
-                }
-
-                if (await _registrationOwnership.HasVersion(packageIdentity.Namespace, packageIdentity.Id, packageIdentity.Version.ToString()))
-                {
-                    errors.Add("this package version already exists for this registration");
-                    return errors;
-                }
+                await ServiceHelpers.WriteErrorResponse(context, "user does not have access to the service", HttpStatusCode.Forbidden);
+                return;
             }
 
-            if (errors.Count == 0)
+            if (!await _registrationOwnership.HasTenantEnabled())
             {
-                return null;
+                await ServiceHelpers.WriteErrorResponse(context, "package publication has not been enabled in this tenant", HttpStatusCode.Forbidden);
+                return;
             }
 
-            return errors;
-        }
-
-        async Task<PublicationDetails> CreatePublicationDetails(PublicationVisibility publicationVisibility)
-        {
-            string userId = _registrationOwnership.GetUserId();
-            string userName = await _registrationOwnership.GetPublisherName();
-            string tenantId = _registrationOwnership.GetTenantId();
-
-            //TODO: requires Graph access
-            string tenantName = string.Empty;
-            //string tenantName = await _registrationOwnership.GetTenantName();
-
-            //var client = await ServiceHelpers.GetActiveDirectoryClient();
-
-            PublicationDetails publicationDetails = new PublicationDetails
+            PublicationVisibility publicationVisibility;
+            if (!PublicationVisibility.TryCreate(context, out publicationVisibility))
             {
-                Published = DateTime.UtcNow,
-                Owner = OwnershipOwner.Create(ClaimsPrincipal.Current),
-                TenantId = tenantId,
-                TenantName = tenantName,
-                Visibility = publicationVisibility
+                await ServiceHelpers.WriteErrorResponse(context, "specify either organization OR subscription NOT BOTH", HttpStatusCode.BadRequest);
+                return;
+            }
+
+            Stream metadataStream = context.Request.Body;
+
+            //  validation
+
+            EditValidationResult validationResult = await ValidateEdit(metadataStream);
+
+            if (validationResult.HasErrors)
+            {
+                await ServiceHelpers.WriteErrorResponse(context, validationResult.Errors, HttpStatusCode.BadRequest);
+                return;
+            }
+
+            //  registration authorization
+
+            IList<string> authorizationErrors = await OwnershipHelpers.CheckRegistrationAuthorizationForEdit(_registrationOwnership, validationResult.PackageIdentity);
+
+            if (authorizationErrors.Count > 0)
+            {
+                await ServiceHelpers.WriteErrorResponse(context, authorizationErrors, HttpStatusCode.Forbidden);
+                return;
+            }
+
+            Trace.TraceInformation("EDIT Processing package {0}/{1}/{2}", validationResult.PackageIdentity.Namespace, validationResult.PackageIdentity.Id, validationResult.PackageIdentity.Version);
+
+            //  process the edit
+
+            IDictionary<string, JObject> metadata = new Dictionary<string, JObject>();
+
+            //  (1) generate any new or replacement artifacts based on the current catalogEntry and the editMetadata
+
+            IDictionary<string, PackageArtifact> artifacts = await GenerateNewArtifactsFromEdit(metadata, validationResult.CatalogEntry, validationResult.EditMetadata, Configuration.StoragePrimary);
+
+            Trace.TraceInformation("GenerateNewArtifactsFromEdit");
+            
+            //  (2) save the new package
+
+            await Artifacts.Save(metadata, artifacts, Configuration.StoragePrimary, Configuration.StorageContainerArtifacts);
+
+            InferArtifactTypes(metadata);
+
+            Trace.TraceInformation("Save");
+
+            //  (3) promote the relevant peices of metadata so they later can appear on the catalog page 
+
+            GenerateNuspec(metadata);
+
+            Trace.TraceInformation("GenerateNuspec");
+
+            //  (4) gather all the publication details
+
+            PublicationDetails publicationDetails = await OwnershipHelpers.CreatePublicationDetails(_registrationOwnership, publicationVisibility);
+
+            Trace.TraceInformation("CreatePublicationDetails");
+
+            //  (5) add the new item to the catalog
+
+            Uri catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails);
+
+            Trace.TraceInformation("AddToCatalog");
+
+            //  (6) update the registration ownership record
+
+            await UpdateRegistrationOwnership(validationResult.PackageIdentity);
+
+            Trace.TraceInformation("UpdateRegistrationOwnership");
+
+            //  (7) create response
+
+            JToken response = new JObject
+            { 
+                { "download", metadata["nuspec"]["packageContent"] },
+                { "catalog", catalogAddress.ToString() }
             };
 
-            return publicationDetails;
+            await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
+        }
+
+        async Task<EditValidationResult> ValidateEdit(Stream metadataStream)
+        {
+            EditValidationResult result = new EditValidationResult();
+
+            JObject editMetadata = await ServiceHelpers.ReadJObject(metadataStream);
+            if (editMetadata != null)
+            {
+                ValidationHelpers.CheckDisallowedEditProperty(editMetadata, "namespace", result.Errors);
+                ValidationHelpers.CheckDisallowedEditProperty(editMetadata, "id", result.Errors);
+                ValidationHelpers.CheckDisallowedEditProperty(editMetadata, "version", result.Errors);
+
+                if (result.Errors.Count > 0)
+                {
+                    // the edit request was invalid so don't waste any more cycles on this request 
+                    return result;
+                }
+
+                result.EditMetadata = editMetadata;
+
+                JToken catalogEntryAddress;
+                if (editMetadata.TryGetValue("catalogEntry", out catalogEntryAddress))
+                {
+                    JObject catalogEntry = await CatalogHelpers.LoadFromCatalog(catalogEntryAddress.ToString(), Configuration.StoragePrimary, Configuration.StorageContainerCatalog, Configuration.CatalogBaseAddress);
+
+                    if (catalogEntry != null)
+                    {
+                        result.CatalogEntry = catalogEntry;
+                        result.PackageIdentity = PackageIdentity.FromCatalogEntry(catalogEntry);
+
+                        ValidateEdit(result);
+                    }
+                    else
+                    {
+                        result.Errors.Add("unable to load catalogEntry");
+                    }
+                }
+                else
+                {
+                    result.Errors.Add("corresponding catalogEntry must be specified");
+                }
+            }
+            else
+            {
+                result.Errors.Add("unable to read content as JSON");
+            }
+
+            return result;
         }
 
         public async Task GetDomains(IOwinContext context)
@@ -269,27 +375,15 @@ namespace NuGet.Services.Publish
             }
         }
 
-        static async Task<Uri> AddToCatalog(JObject nuspec, Uri itemType, PublicationDetails publicationDetails)
+        static Task<Uri> AddToCatalog(JObject nuspec, Uri itemType, PublicationDetails publicationDetails)
         {
-            CloudStorageAccount account = CloudStorageAccount.Parse(StoragePrimary);
+            CatalogItem catalogItem = new GraphCatalogItem(nuspec, itemType, publicationDetails);
+            return CatalogHelpers.AddToCatalog(catalogItem, Configuration.StoragePrimary, Configuration.StorageContainerCatalog, Configuration.CatalogBaseAddress);
+        }
 
-            Storage storage;
-            if (CatalogBaseAddress == null)
-            {
-                storage = new AzureStorage(account, StorageContainerCatalog);
-            }
-            else
-            {
-                string baseAddress = CatalogBaseAddress.TrimEnd('/') + "/" + StorageContainerCatalog;
-
-                storage = new AzureStorage(account, StorageContainerCatalog, string.Empty, new Uri(baseAddress));
-            }
-
-            AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage);
-            writer.Add(new GraphCatalogItem(nuspec, itemType, publicationDetails));
-            await writer.Commit();
-
-            return writer.RootUri;
+        async Task UpdateRegistrationOwnership(PackageIdentity packageIdentity)
+        {
+            await _registrationOwnership.AddVersion(packageIdentity.Namespace, packageIdentity.Id, packageIdentity.Version.ToString());
         }
     }
 }

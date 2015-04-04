@@ -71,6 +71,73 @@ namespace NuGet.Services.Publish
             };
         }
 
+        public static async Task Save(IDictionary<string, JObject> metadata, IDictionary<string, PackageArtifact> artifacts, string storagePrimary, string storageContainerPackages)
+        {
+            string root = Guid.NewGuid().ToString();
+
+            IList<Task<Tuple<string, Uri, Stream>>> tasks = new List<Task<Tuple<string, Uri, Stream>>>();
+
+            MemoryStream packageStream = new MemoryStream();
+
+            JArray entries = new JArray();
+
+            using (ZipArchive archive = new ZipArchive(packageStream, ZipArchiveMode.Create, true))
+            {
+                foreach (KeyValuePair<string, PackageArtifact> artifact in artifacts)
+                {
+                    ZipArchiveEntry zipArchiveEntry = archive.CreateEntry(artifact.Key);
+
+                    JObject entry = new JObject();
+
+                    entry["fullName"] = artifact.Key;
+
+                    using (Stream zipArchiveEntryStream = zipArchiveEntry.Open())
+                    {
+                        if (artifact.Value.Stream != null)
+                        {
+                            artifact.Value.Stream.Seek(0, SeekOrigin.Begin);
+                            artifact.Value.Stream.CopyTo(zipArchiveEntryStream);
+
+                            artifact.Value.Stream.Seek(0, SeekOrigin.Begin);
+                            Tuple<string, Uri, Stream> result = await SaveFile(artifact.Value.Stream, root + "/package", artifact.Key, storagePrimary, storageContainerPackages);
+
+                            entry["location"] = result.Item2.ToString();
+                        }
+                        else
+                        {
+                            Stream existingArtifact = await LoadFile(artifact.Value.Location, storagePrimary);
+                            existingArtifact.CopyTo(zipArchiveEntryStream);
+
+                            entry["location"] = artifact.Value.Location;
+                        }
+                    }
+
+                    entries.Add(entry);
+                }
+            }
+
+            packageStream.Seek(0, SeekOrigin.Begin);
+            Tuple<string, Uri, Stream> packageEntry = await SaveFile(packageStream, root, "package.zip", storagePrimary, storageContainerPackages);
+
+            string packageContent = packageEntry.Item2.ToString();
+
+            JObject packageItem = new JObject
+            {
+                { "@type", new JArray { MetadataHelpers.GetName(Schema.DataTypes.Package, Schema.Prefixes.NuGet), MetadataHelpers.GetName(Schema.DataTypes.ZipArchive, Schema.Prefixes.NuGet) } },
+                { "location", packageContent },
+                { "size", packageStream.Length },
+                { "hash", Utils.GenerateHash(packageStream) }
+            };
+
+            entries.Add(packageItem);
+
+            metadata["inventory"] = new JObject
+            { 
+                { "entries", entries },
+                { "packageContent", packageContent }
+            };
+        }
+
         static async Task<Tuple<string, Uri, Stream>> SaveFile(Stream stream, string path, string name, string storagePrimary, string storageContainerPackages)
         {
             CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
@@ -80,7 +147,6 @@ namespace NuGet.Services.Publish
 
             if (await container.CreateIfNotExistsAsync())
             {
-                //TODO: good for testing not so great for multi-tenant
                 container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
             }
 
@@ -88,12 +154,24 @@ namespace NuGet.Services.Publish
 
             string contentType = MetadataHelpers.ContentTypeFromExtension(name);
 
-            CloudBlockBlob blob = container.GetBlockBlobReference(name);
+            CloudBlockBlob blob = container.GetBlockBlobReference(fullName);
             blob.Properties.ContentType = contentType;
             blob.Properties.ContentDisposition = name;
             await blob.UploadFromStreamAsync(stream);
 
             return Tuple.Create(name, blob.Uri, stream);
+        }
+
+        public static async Task<Stream> LoadFile(string location, string storagePrimary)
+        {
+            CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
+
+            CloudBlockBlob blob = new CloudBlockBlob(new Uri(location), account.Credentials);
+            MemoryStream stream = new MemoryStream();
+            await blob.DownloadToStreamAsync(stream);
+            stream.Seek(0, SeekOrigin.Begin);
+
+            return stream;
         }
     }
 }

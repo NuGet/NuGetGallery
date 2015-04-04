@@ -195,7 +195,6 @@
     <EmbeddedResource Include="context\nuget.json" />
     <EmbeddedResource Include="context\microservices.json" />
     <EmbeddedResource Include="context\catalog.json" />
-    <None Include="Properties\PublishProfiles\NuGetServicesPublish.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -204,15 +203,26 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Artifacts.cs" />
+    <Compile Include="CatalogHelpers.cs" />
     <Compile Include="CheckAccessImpl.cs" />
+    <Compile Include="Configuration.cs" />
+    <Compile Include="ConfigurationService.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="DeleteCatalogItem.cs" />
+    <Compile Include="DeleteImpl.cs" />
     <Compile Include="MetadataHelpers.cs" />
     <Compile Include="NoSecurityRegistrationOwnership.cs" />
+    <Compile Include="OwnershipHelpers.cs" />
+    <Compile Include="PackageArtifact.cs" />
     <Compile Include="PackageIdentity.cs" />
     <Compile Include="PublicationVisibility.cs" />
+    <Compile Include="SafeRoleEnvironment.cs" />
     <Compile Include="StorageRegistrationOwnership.cs" />
     <Compile Include="GraphCatalogItem.cs" />
     <Compile Include="ApiAppsPublishImpl.cs" />
@@ -228,6 +238,10 @@
     <Compile Include="ServiceHelpers.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="NaiveSessionCache.cs" />
+    <Compile Include="EditValidationResult.cs" />
+    <Compile Include="ValidationHelpers.cs" />
+    <Compile Include="ValidationResult.cs" />
+    <Compile Include="WebRole.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">

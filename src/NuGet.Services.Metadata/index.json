@@ -1,0 +1,20 @@
+{
+	"version": "1.0.0",
+	"resources": [
+		{
+			"@id": "https://nugetservicessecuresearch.azurewebsites.net/query",
+			"@type": "ApiAppSearchQueryService"
+		},
+		{
+			"@id": "http://nugetservicessecuresearch.azurewebsites.net/find",
+			"@type": "ApiAppFindService"
+		},
+		{
+			"@id": "http://nugetservicespublish.azurewebsites.net/apiapp",
+			"@type": "ApiAppPublish"
+		}
+	],
+	"@context": {
+		"@vocab": "http://schema.nuget.org/services#"
+	}
+}

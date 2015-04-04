@@ -15,6 +15,13 @@ namespace NuGet.Services.Publish
 {
     public static class NuGetPublishImpl
     {
+        private static readonly ConfigurationService _configurationService;
+
+        static NuGetPublishImpl()
+        {
+            _configurationService = new ConfigurationService();
+        }
+
         public static async Task Upload(IOwinContext context)
         {
             string name = await ValidateRequest(context);
@@ -71,7 +78,7 @@ namespace NuGet.Services.Publish
 
         static async Task<Uri> SaveNupkg(Stream nupkgStream, string name)
         {
-            string storagePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
+            string storagePrimary = _configurationService.Get("Storage.Primary");
             CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
 
             CloudBlobClient client = account.CreateCloudBlobClient();
@@ -94,7 +101,7 @@ namespace NuGet.Services.Publish
 
         static async Task<Uri> AddToCatalog(Stream nupkgStream)
         {
-            string storagePrimary = System.Configuration.ConfigurationManager.AppSettings.Get("Storage.Primary");
+            string storagePrimary = _configurationService.Get("Storage.Primary");
             CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
 
             Storage storage = new AzureStorage(account, "catalog");

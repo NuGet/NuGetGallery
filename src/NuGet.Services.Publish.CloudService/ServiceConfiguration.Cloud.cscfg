@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="NuGet.Services.Publish.CloudService" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="4" osVersion="*" schemaVersion="2014-06.2.4">
+  <Role name="NuGet.Services.Publish">
+    <Instances count="1" />
+    <ConfigurationSettings>
+      <Setting name="ida.GraphResourceId" value="" />
+      <Setting name="ida.Tenant" value="" />
+      <Setting name="ida.Audience" value="" />
+      <Setting name="ida.ClientId" value="" />
+      <Setting name="ida.AADInstance" value="" />
+      <Setting name="Storage.Primary" value="" />
+      <Setting name="Storage.Container.Artifacts" value="" />
+      <Setting name="Storage.Container.Catalog" value="" />
+      <Setting name="Storage.Container.Ownership" value="" />
+      <Setting name="Storage.BlobContainerPublicAccessType" value="" />
+    </ConfigurationSettings>
+    <Certificates>
+      <Certificate name="NuGetOrg" thumbprint="C5385DB24F7AAE13FE38AD014A6504E5B2F6955B" thumbprintAlgorithm="sha1" />
+    </Certificates>
+  </Role>
+</ServiceConfiguration>

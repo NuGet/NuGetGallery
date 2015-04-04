@@ -27,6 +27,12 @@ namespace NuGet.Services.Publish
             _registration = new StorageRegistration(storageFactory);
         }
 
+        public StorageRegistrationOwnership(IOwinContext context, CloudStorageAccount account)
+        {
+            _context = context;
+            _registration = new TableStorageRegistration(account);
+        }
+
         public bool IsAuthenticated
         {
             get

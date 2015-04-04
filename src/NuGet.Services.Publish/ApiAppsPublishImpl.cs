@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Threading.Tasks;
 
 namespace NuGet.Services.Publish
 {
@@ -169,61 +170,25 @@ namespace NuGet.Services.Publish
             }
         }
 
-        protected override IList<string> Validate(Stream packageStream, out PackageIdentity packageIdentity)
+        protected override Task<ValidationResult> Validate(Stream packageStream)
         {
-            IList<string> errors = new List<string>();
+            ValidationResult result = new ValidationResult();
 
             JObject apiapp = GetJObject(packageStream, "apiapp.json");
 
-            string ns = null;
-            string id = null;
-            SemanticVersion semanticVersion = null;
-
             if (apiapp == null)
             {
-                errors.Add("required file 'apiapp.json' is missing from package");
+                result.Errors.Add("required file 'apiapp.json' is missing from package");
             }
             else
             {
-                JToken namespaceJToken = CheckRequiredProperty(apiapp, errors, "namespace");
-                if (namespaceJToken != null)
-                {
-                    ns = namespaceJToken.ToString();
-                    if (ns.LastIndexOfAny(new[] { '/', '@' }) != -1)
-                    {
-                        errors.Add("'/', '@' characters are not permitted in namespace property");
-                    }
-                }
-                else
-                {
-                    ns = DefaultPackageNamespace;
-                }
-
-                JToken idJToken = CheckRequiredProperty(apiapp, errors, "id");
-                if (idJToken != null)
-                {
-                    id = idJToken.ToString();
-                    if (id.LastIndexOfAny(new[] { '/', '@' }) != -1)
-                    {
-                        errors.Add("'/', '@' characters are not permitted in id property");
-                    }
-                }
-
-                JToken versionJToken = CheckRequiredProperty(apiapp, errors, "version");
-                if (versionJToken != null)
-                {
-                    string version = versionJToken.ToString();
-                    if (!SemanticVersion.TryParse(version, out semanticVersion))
-                    {
-                        errors.Add("the version property must follow the Semantic Version rules, refer to 'http://semver.org'");
-                    }
-                }
+                result.PackageIdentity = ValidationHelpers.ValidateIdentity(apiapp, result.Errors);
 
                 //CheckRequiredProperty(apiapp, errors, "description");
-                CheckRequiredProperty(apiapp, errors, "title");
-                CheckRequiredProperty(apiapp, errors, "summary");
-                CheckRequiredProperty(apiapp, errors, "author");
-                CheckRequiredProperty(apiapp, errors, "namespace");
+                ValidationHelpers.CheckRequiredProperty(apiapp, result.Errors, "title");
+                ValidationHelpers.CheckRequiredProperty(apiapp, result.Errors, "summary");
+                ValidationHelpers.CheckRequiredProperty(apiapp, result.Errors, "author");
+                ValidationHelpers.CheckRequiredProperty(apiapp, result.Errors, "namespace");
             }
 
             //CheckRequiredFile(packageStream, errors, "metadata/icons/small-icon.png");
@@ -232,38 +197,103 @@ namespace NuGet.Services.Publish
             //CheckRequiredFile(packageStream, errors, "metadata/icons/hero-icon.png");
             //CheckRequiredFile(packageStream, errors, "metadata/icons/wide-icon.png");
 
-            if (errors.Count == 0)
+            return Task.FromResult(result);
+        }
+
+        protected override async Task<IDictionary<string, PackageArtifact>> GenerateNewArtifactsFromEdit(IDictionary<string, JObject> metadata, JObject catalogEntry, JObject editMetadata, string storagePrimary)
+        {
+            IDictionary<string, PackageArtifact> artifacts = new Dictionary<string, PackageArtifact>();
+
+            IDictionary<string, Stream> newEntries = new Dictionary<string, Stream>();
+
+            JToken entries;
+            if (editMetadata.TryGetValue("entries", out entries))
             {
-                packageIdentity = new PackageIdentity
+                foreach (JObject entry in entries)
                 {
-                    Namespace = ns,
-                    Id = id,
-                    Version = semanticVersion
-                };
+                    string fullname = entries["fullname"].ToString();
 
-                return null;
+                    newEntries.Add(fullname, null);
+                }
             }
 
-            packageIdentity = null;
-            return errors;
-        }
+            // copy existing except those specified in the editMetadata
 
-        static JToken CheckRequiredProperty(JObject obj, IList<string> errors, string name)
-        {
-            JToken token;
-            if (!obj.TryGetValue(name, out token))
+            string apiappLocation = null;
+
+            foreach (JObject entry in catalogEntry["entries"])
             {
-                errors.Add(string.Format("required property '{0}' is missing from 'apiapp.json' file", name));
-            }
-            return token;
-        }
+                // package.zip doesn't have a fullName
+                JToken fullnameJToken;
+                if (!entry.TryGetValue("fullName", out fullnameJToken))
+                {
+                    continue;
+                }
 
-        static void CheckRequiredFile(Stream packageStream, IList<string> errors, string fullName)
-        {
-            if (!FileExists(packageStream, fullName))
-            {
-                errors.Add(string.Format("required file '{0}' was missing from package", fullName));
+                string fullname = fullnameJToken.ToString();
+
+                if (fullname == "apiapp.json")
+                {
+                    apiappLocation = entry["location"].ToString();
+                    continue;
+                }
+
+                Stream stream;
+                if (newEntries.TryGetValue(fullname, out stream))
+                {
+                    if (stream != null)
+                    {
+                        artifacts.Add(fullname, new PackageArtifact { Stream = stream });
+                    }
+                    // else DELETE
+                }
+                else
+                {
+                    artifacts.Add(fullname, new PackageArtifact { Location = entry["location"].ToString() });
+                }
             }
+
+            if (apiappLocation == null)
+            {
+                throw new Exception("unable to find apiapp.json file for existing package");
+            }
+
+            //  load existing apiapp.json
+
+            JObject apiapp;
+            Stream apiappStream = await Artifacts.LoadFile(apiappLocation, storagePrimary);
+            using (StreamReader reader = new StreamReader(apiappStream))
+            {
+                apiapp = JObject.Parse(reader.ReadToEnd());
+            }
+
+            //  apply changes
+
+            foreach (JProperty property in editMetadata.Properties())
+            {
+                if (property.Name == "catalogEntry")
+                {
+                    continue;
+                }
+
+                if (property.Name == "entries")
+                {
+                    continue;
+                }
+
+                apiapp[property.Name] = property.Value;
+            }
+
+            MemoryStream newApiappStream = new MemoryStream();
+            StreamWriter writer = new StreamWriter(newApiappStream);
+            writer.Write(apiapp.ToString());
+            writer.Flush();
+            newApiappStream.Seek(0, SeekOrigin.Begin);
+
+            metadata["apiapp.json"] = apiapp;
+            artifacts.Add("apiapp.json", new PackageArtifact { Stream = newApiappStream });
+
+            return artifacts;
         }
 
         static JObject GetJObject(Stream packageStream, string fullName)
@@ -280,21 +310,6 @@ namespace NuGet.Services.Publish
                 }
             }
             return null;
-        }
-
-        static bool FileExists(Stream packageStream, string fullName)
-        {
-            using (ZipArchive archive = new ZipArchive(packageStream, ZipArchiveMode.Read, true))
-            {
-                foreach (ZipArchiveEntry zipEntry in archive.Entries)
-                {
-                    if (zipEntry.FullName == fullName)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
         }
     }
 }

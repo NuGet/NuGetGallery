@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceDefinition name="NuGet.Services.Metadata.CloudService" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2014-06.2.4">
+  <WebRole name="NuGet.Services.Metadata" vmsize="Small">
+    <Sites>
+      <Site name="Web">
+        <Bindings>
+          <Binding name="Endpoint1" endpointName="HttpEndpoint" />
+          <Binding name="Endpoint1" endpointName="HttpsEndpoint" />
+        </Bindings>
+      </Site>
+    </Sites>
+    <Endpoints>
+      <InputEndpoint name="HttpEndpoint" protocol="http" port="80" />
+      <InputEndpoint name="HttpsEndpoint" protocol="https" port="443" certificate="NuGetOrg" />
+    </Endpoints>
+    <Certificates>
+      <Certificate name="NuGetOrg" storeLocation="CurrentUser" storeName="My" />
+    </Certificates>
+    <ConfigurationSettings>
+      <Setting name="Search.RegistrationBaseAddress" />
+      <Setting name="Local.Lucene.Directory" />
+      <Setting name="Search.IndexRefresh" />
+      <Setting name="Storage.Primary" />
+      <Setting name="Search.IndexContainer" />
+      <Setting name="ida.Tenant" />
+      <Setting name="ida.Audience" />
+      <Setting name="ida.ClientId" />
+      <Setting name="ida.AADInstance" />
+    </ConfigurationSettings>
+  </WebRole>
+</ServiceDefinition>

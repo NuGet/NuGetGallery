@@ -140,7 +140,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 address += "/";
             }
             string s = uri.ToString();
-            string name = s.Substring(address.Length);
+
+            int baseAddressLength = address.Length;
+
+            string name = s.Substring(baseAddressLength);
             return name;
         }
 

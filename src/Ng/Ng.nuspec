@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Ng</id>
+    <version>$version$</version>
+    <title>Ng</title>
+    <authors>Outercurve Foundation</authors>
+    <owners>Outercurve Foundation</owners>
+    <description>Ng</description>
+    <copyright>Copyright Outercurve Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\*.*" target="Ng"/>
+    <file src="Scripts\Catalog2LuceneV3.cmd" />
+    <file src="Scripts\Catalog2RegistrationV3.cmd" />
+  </files>
+</package>

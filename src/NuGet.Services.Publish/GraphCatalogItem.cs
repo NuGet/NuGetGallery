@@ -3,9 +3,7 @@ using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using VDS.RDF;
 
 namespace NuGet.Services.Publish
@@ -30,18 +28,8 @@ namespace NuGet.Services.Publish
 
             _catalogItemId = Guid.NewGuid();
 
-            _context = LoadContext("context.catalog.json");
+            _context = ServiceHelpers.LoadContext("context.catalog.json");
             _context["@type"] = GetItemType().AbsoluteUri;
-        }
-
-        static JObject LoadContext(string name)
-        {
-            string assName = Assembly.GetExecutingAssembly().GetName().Name;
-            using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(assName + "." + name))
-            {
-                string json = new StreamReader(stream).ReadToEnd();
-                return JObject.Parse(json);
-            }
         }
 
         public override Uri GetItemType()

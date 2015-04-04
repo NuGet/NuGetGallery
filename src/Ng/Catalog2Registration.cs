@@ -3,7 +3,6 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,7 +14,7 @@ namespace Ng
         {
             CommitCollector collector = new RegistrationCatalogCollector(new Uri(source), storageFactory, CommandHelpers.GetHttpMessageHandlerFactory(verbose))
             {
-                ContentBaseAddress = new Uri(contentBaseAddress)
+                ContentBaseAddress = contentBaseAddress == null ? null : new Uri(contentBaseAddress)
             };
 
             Storage storage = storageFactory.Create();
@@ -61,11 +60,6 @@ namespace Ng
             int interval = CommandHelpers.GetInterval(arguments);
 
             string contentBaseAddress = CommandHelpers.GetContentBaseAddress(arguments);
-            if (contentBaseAddress == null)
-            {
-                PrintUsage();
-                return;
-            }
 
             StorageFactory storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
             if (storageFactory == null)

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Test;
 using System;
 using System.Collections.Generic;
@@ -142,6 +143,65 @@ namespace CatalogTests
             Console.WriteLine("Totals:");
             Console.WriteLine("    Registration: {0}", Total(packagesFromRegistration));
             Console.WriteLine("    Catalog:      {0}", Total(packagesFromCatalog));
+        }
+
+        public static void Test1()
+        {
+            Console.WriteLine("IntegrityTests.Test1");
+
+            string catalog = "https://api.nuget.org/v3/catalog0/index.json";
+
+            Func<HttpMessageHandler> handlerFunc = () =>
+            {
+                return new VerboseHandler();
+            };
+
+            DistinctPackageIdCollector collector = new DistinctPackageIdCollector(new Uri(catalog), handlerFunc, 20);
+
+            collector.Run().Wait();
+
+            HashSet<string> packagesFromCatalog = collector.Result;
+
+            Console.WriteLine(packagesFromCatalog.Count);
+        }
+
+        public static void Test2()
+        {
+            Console.WriteLine("IntegrityTests.Test2");
+
+            string catalog = "https://api.nuget.org/v3/catalog0/index.json";
+
+            Func<HttpMessageHandler> handlerFunc = () =>
+            {
+                return new VerboseHandler();
+            };
+
+            FindCollector collector = new FindCollector(new Uri(catalog), handlerFunc, 20);
+
+            collector.Run().Wait();
+
+            Console.WriteLine(collector.Result.Count);
+
+            foreach (string version in collector.Result["xunit.core"])
+            {
+                Console.WriteLine(version);
+            }
+        }
+
+        public static void Test3()
+        {
+            Console.WriteLine("IntegrityTests.Test2");
+
+            string catalog = "https://nugetdevstorage.blob.core.windows.net/catalog/index.json";
+
+            Func<HttpMessageHandler> handlerFunc = () =>
+            {
+                return new VerboseHandler();
+            };
+
+            PrintCommitCollector collector = new PrintCommitCollector(new Uri(catalog), handlerFunc);
+
+            collector.Run().Wait();
         }
     }
 }

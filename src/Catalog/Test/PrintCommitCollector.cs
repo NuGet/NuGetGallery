@@ -15,14 +15,16 @@ namespace NuGet.Services.Metadata.Catalog.Test
 
         protected override Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp)
         {
-            Console.WriteLine();
+            Console.WriteLine("------------------------------------------------");
             Console.WriteLine("COMMIT: {0}", commitTimeStamp.ToString("O"));
 
             foreach (JToken item in items)
             {
+                Console.WriteLine("{0} {1}", item["@id"], item["@type"]);
                 Console.WriteLine("{0} {1} {2}", item["nuget:id"], item["nuget:version"], item["commitId"]);
             }
 
+            Console.WriteLine("------------------------------------------------");
             return Task.FromResult(true);
         }
     }

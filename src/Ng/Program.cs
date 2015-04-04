@@ -9,11 +9,14 @@ namespace Ng
     {
         static void PrintUsage()
         {
-            Console.WriteLine("Usage: ng [feed2catalog|catalog2registration|catalog2lucene|frameworkcompatibility|copylucene|checklucene|clearlucene]");
+            Console.WriteLine("Usage: ng [package2catalog|feed2catalog|catalog2registration|catalog2lucene|frameworkcompatibility|copylucene|checklucene|clearlucene]");
         }
 
         static void Main(string[] args)
         {
+            Trace.Listeners.Add(new ConsoleTraceListener());
+            Trace.AutoFlush = true;
+
             if (args.Length > 0 && String.Equals("dbg", args[0], StringComparison.OrdinalIgnoreCase))
             {
                 args = args.Skip(1).ToArray();
@@ -30,6 +33,9 @@ namespace Ng
 
                 switch (args[0])
                 {
+                    case "package2catalog":
+                        Feed2Catalog.Package(args);
+                        break;
                     case "feed2catalog" :
                         Feed2Catalog.Run(args);
                         break;
@@ -58,9 +64,6 @@ namespace Ng
             }
             catch (Exception e)
             {
-                Trace.Listeners.Add(new ConsoleTraceListener());
-                Trace.AutoFlush = true;
-
                 Utils.TraceException(e);
             }
             Trace.Close();
