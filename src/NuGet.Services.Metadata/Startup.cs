@@ -196,7 +196,7 @@ namespace NuGet.Services.Metadata
                 if (_searcherManager == null)
                 {
                     await context.Response.WriteAsync("no index loaded");
-                    context.Response.StatusCode = (int)HttpStatusCode.OK;
+                    context.Response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
                     return;
                 }
 

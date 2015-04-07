@@ -97,7 +97,7 @@ namespace NuGet.Indexing
                 string ns = document.Get("Namespace");
                 if (ns != null)
                 {
-                    id = string.Format("{0}/{1}", ns, id);
+                    id = string.Format("{0}.{1}", ns, id);
                 }
 
                 JObject obj = new JObject();

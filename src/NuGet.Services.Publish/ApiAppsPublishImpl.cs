@@ -12,8 +12,9 @@ namespace NuGet.Services.Publish
     public class ApiAppsPublishImpl : PublishImpl
     {
         const string DefaultPackageNamespace = "nuget.org";
+        const string ApiAppMetadata = "content/apiapp.json";
 
-        static ISet<string> Files = new HashSet<string> { "apiapp.json" };
+        static ISet<string> Files = new HashSet<string> { ApiAppMetadata };
 
         public ApiAppsPublishImpl(IRegistrationOwnership registrationOwnership)
             : base(registrationOwnership)
@@ -35,7 +36,7 @@ namespace NuGet.Services.Publish
 
         protected override void GenerateNuspec(IDictionary<string, JObject> metadata)
         {
-            JObject apiapp = metadata["apiapp.json"];
+            JObject apiapp = metadata[ApiAppMetadata];
 
             string ns;
             JToken jtokenNamespace;
@@ -50,7 +51,7 @@ namespace NuGet.Services.Publish
 
             string originalId = apiapp["id"].ToString();
 
-            string id = string.Format("{0}/{1}", ns, originalId);
+            string id = string.Format("{0}.{1}", ns, originalId);
             string version = NuGetVersion.Parse(apiapp["version"].ToString()).ToNormalizedString();
 
             string s = string.Format("http://{0}/{1}", id, version);
@@ -174,11 +175,11 @@ namespace NuGet.Services.Publish
         {
             ValidationResult result = new ValidationResult();
 
-            JObject apiapp = GetJObject(packageStream, "apiapp.json");
+            JObject apiapp = GetJObject(packageStream, ApiAppMetadata);
 
             if (apiapp == null)
             {
-                result.Errors.Add("required file 'apiapp.json' is missing from package");
+                result.Errors.Add(string.Format("required file '{0}' is missing from package", ApiAppMetadata));
             }
             else
             {
@@ -232,7 +233,7 @@ namespace NuGet.Services.Publish
 
                 string fullname = fullnameJToken.ToString();
 
-                if (fullname == "apiapp.json")
+                if (fullname == ApiAppMetadata)
                 {
                     apiappLocation = entry["location"].ToString();
                     continue;
@@ -255,7 +256,7 @@ namespace NuGet.Services.Publish
 
             if (apiappLocation == null)
             {
-                throw new Exception("unable to find apiapp.json file for existing package");
+                throw new Exception(string.Format("unable to find '{0}' file for existing package", ApiAppMetadata));
             }
 
             //  load existing apiapp.json
@@ -290,8 +291,8 @@ namespace NuGet.Services.Publish
             writer.Flush();
             newApiappStream.Seek(0, SeekOrigin.Begin);
 
-            metadata["apiapp.json"] = apiapp;
-            artifacts.Add("apiapp.json", new PackageArtifact { Stream = newApiappStream });
+            metadata[ApiAppMetadata] = apiapp;
+            artifacts.Add(ApiAppMetadata, new PackageArtifact { Stream = newApiappStream });
 
             return artifacts;
         }
