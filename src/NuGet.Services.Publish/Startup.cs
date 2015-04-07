@@ -132,7 +132,7 @@ namespace NuGet.Services.Publish
             {
                 case "/":
                     {
-                        await context.Response.WriteAsync("READY.");
+                        await context.Response.WriteAsync("READY...");
                         context.Response.StatusCode = (int)HttpStatusCode.OK;
                         break;
                     }
