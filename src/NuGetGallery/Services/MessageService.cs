@@ -179,7 +179,7 @@ The {0} Team";
                 CultureInfo.CurrentCulture,
                 body,
                 Config.GalleryOwner.DisplayName,
-                HttpUtility.UrlDecode(confirmationUrl),
+                HttpUtility.UrlDecode(confirmationUrl).Replace("_", "\\_"),
                 confirmationUrl);
 
             using (var mailMessage = new MailMessage())
@@ -208,7 +208,7 @@ The {0} Team";
                 CultureInfo.CurrentCulture,
                 body,
                 Config.GalleryOwner.DisplayName,
-                HttpUtility.UrlDecode(confirmationUrl),
+                HttpUtility.UrlDecode(confirmationUrl).Replace("_", "\\_"),
                 confirmationUrl);
 
             using (var mailMessage = new MailMessage())
