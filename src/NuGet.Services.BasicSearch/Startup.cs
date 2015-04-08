@@ -1,14 +1,13 @@
-﻿using Microsoft.Owin;
-using Microsoft.Owin.FileSystems;
-using Microsoft.Owin.StaticFiles;
-using Microsoft.Owin.StaticFiles.Infrastructure;
-using Newtonsoft.Json.Linq;
-using NuGet.Indexing;
-using Owin;
-using System;
+﻿using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Owin;
+using Microsoft.Owin.FileSystems;
+using Microsoft.Owin.StaticFiles;
+using Microsoft.Owin.StaticFiles.Infrastructure;
+using NuGet.Indexing;
+using Owin;
 
 [assembly: OwinStartup(typeof(NuGet.Services.BasicSearch.Startup))]
 
