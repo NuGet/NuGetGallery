@@ -7,7 +7,7 @@
         "details": "catalog:details",
         "catalog:commitTimeStamp": { "@type": "xsd:dateTime" },
         "published": { "@type": "xsd:dateTime" },
-        "category": { "@container" : "@set" },
+        "categories": { "@container" : "@set" },
         "entries": { "@container" : "@set" },
         "links": { "@container" : "@set" },
         "tags": { "@container" : "@set" }

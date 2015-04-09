@@ -16,9 +16,22 @@ namespace NuGet.Services.Publish
 
         static ISet<string> Files = new HashSet<string> { ApiAppMetadata };
 
+        ICategorizationPermission _categorizationPermission;
+
+        public ApiAppsPublishImpl(IRegistrationOwnership registrationOwnership, ICategorizationPermission categorizationPermission)
+            : base(registrationOwnership)
+        {
+            _categorizationPermission = categorizationPermission;
+        }
+
         public ApiAppsPublishImpl(IRegistrationOwnership registrationOwnership)
             : base(registrationOwnership)
         {
+        }
+
+        bool IsAllowedToSpecifyCategory(string id)
+        {
+            return (_categorizationPermission == null) ? false : _categorizationPermission.IsAllowedToSpecifyCategory(id);
         }
 
         protected override bool IsMetadataFile(string fullName)
@@ -76,12 +89,16 @@ namespace NuGet.Services.Publish
 
             nuspec["id"] = id;
             nuspec["version"] = version;
-            nuspec["originalId"] = originalId; 
+            nuspec["originalId"] = originalId;
 
-            JToken jtokenCategory;
-            if (!apiapp.TryGetValue("category", out jtokenCategory))
+            JToken jtokenCategories;
+            if (IsAllowedToSpecifyCategory(id) && apiapp.TryGetValue("categories", out jtokenCategories))
             {
-                nuspec.Add("category", new JArray("other"));
+                nuspec.Add("categories", jtokenCategories);
+            }
+            else
+            {
+                nuspec.Add("categories", new JArray("community"));
             }
 
             JToken jtokenDescription;
@@ -192,11 +209,11 @@ namespace NuGet.Services.Publish
                 ValidationHelpers.CheckRequiredProperty(apiapp, result.Errors, "namespace");
             }
 
-            //CheckRequiredFile(packageStream, errors, "metadata/icons/small-icon.png");
-            //CheckRequiredFile(packageStream, errors, "metadata/icons/medium-icon.png");
-            //CheckRequiredFile(packageStream, errors, "metadata/icons/large-icon.png");
-            //CheckRequiredFile(packageStream, errors, "metadata/icons/hero-icon.png");
-            //CheckRequiredFile(packageStream, errors, "metadata/icons/wide-icon.png");
+            //CheckRequiredFile(packageStream, result.Errors, "content/metadata/icons/small-icon.png");
+            //CheckRequiredFile(packageStream, result.Errors, "content/metadata/icons/medium-icon.png");
+            //CheckRequiredFile(packageStream, result.Errors, "content/metadata/icons/large-icon.png");
+            //CheckRequiredFile(packageStream, result.Errors, "content/metadata/icons/hero-icon.png");
+            //CheckRequiredFile(packageStream, result.Errors, "content/metadata/icons/wide-icon.png");
 
             return Task.FromResult(result);
         }
