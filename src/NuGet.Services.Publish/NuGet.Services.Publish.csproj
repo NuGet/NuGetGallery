@@ -216,6 +216,7 @@
     <Compile Include="Constants.cs" />
     <Compile Include="DeleteCatalogItem.cs" />
     <Compile Include="DeleteImpl.cs" />
+    <Compile Include="ListValidationResult.cs" />
     <Compile Include="StorageCategorizationPermission.cs" />
     <Compile Include="ICategorizationPermission.cs" />
     <Compile Include="MetadataHelpers.cs" />

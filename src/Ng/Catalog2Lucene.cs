@@ -41,7 +41,7 @@ namespace Ng
         public static void Run(string[] args)
         {
             IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null)
+            if (arguments == null || arguments.Count == 0)
             {
                 PrintUsage();
                 return;
