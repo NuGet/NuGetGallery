@@ -160,10 +160,18 @@ namespace NuGetGallery.DataServices
                     SearchTerm = BuildQuery(comparisons),
                     IncludePrerelease = true,
                     IncludeAllVersions = true,
-                    Take = 40,
+                    Take = Take(comparisons),
                     CuratedFeed = new CuratedFeed() { Name = Feed },
                     SortOrder = SortOrder.Relevance
                 }).Result.Data.ToV2FeedPackageQuery(SiteRoot, IncludeLicenseReport);
+            }
+
+            private static int Take(IList<Tuple<Target, string>> c)
+            {
+                // Fixes https://github.com/NuGet/NuGetGallery/issues/2390
+                // The idea is to limit the number of results to be "just one" in we search by Id and Version (as that's our key, it should only ever yield 1 result but we want a failsafe here).
+                // When a different comparison is done, just take 40 results.
+                return (c.Count == 2 && ((c[0].Item1 == Target.Id && c[1].Item1 == Target.Version) || (c[1].Item1 == Target.Id && c[0].Item1 == Target.Version))) ? 1 : 40;
             }
 
             private static string BuildQuery(IList<Tuple<Target, string>> comparisons)
