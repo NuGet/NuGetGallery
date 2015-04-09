@@ -17,6 +17,8 @@ namespace NuGetGallery
         /// </summary>
         internal const int MaxPageSize = 100;
 
+        internal static DateTime? IndexTimestampUtc { get; private set; }
+
         public static SearchFilter GetSearchFilter(string q, int page, string sortOrder, string context)
         {
             var searchFilter = new SearchFilter(context)
@@ -48,6 +50,9 @@ namespace NuGetGallery
         public static async Task<IQueryable<Package>> GetResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
         {
             var result = await searchService.Search(searchFilter);
+
+            // Store IndexTimestampUtc
+            IndexTimestampUtc = result.IndexTimestampUtc;
 
             // For count queries, we can ask the SearchService to not filter the source results. This would avoid hitting the database and consequently make
             // it very fast.

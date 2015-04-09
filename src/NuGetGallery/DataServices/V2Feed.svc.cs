@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Services;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Runtime.Versioning;
 using System.ServiceModel.Web;
 using System.Web.Mvc;
@@ -35,6 +36,7 @@ namespace NuGetGallery
                 {
                     Packages = PackageRepository
                         .GetAll()
+                        .Where(PackageIsAvailableFromSearchService())
                         .UseSearchService(SearchService, null, Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
                         .WithoutVersionSort()
                         .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
@@ -46,6 +48,16 @@ namespace NuGetGallery
         {
             InitializeServiceBase(config);
             config.SetServiceOperationAccessRule("GetUpdates", ServiceOperationRights.AllRead);
+        }
+
+        private static Expression<Func<Package, bool>> PackageIsAvailableFromSearchService()
+        {
+            if (!SearchAdaptor.IndexTimestampUtc.HasValue)
+            {
+                return p => true;
+            }
+
+            return p => p.Published <= SearchAdaptor.IndexTimestampUtc.Value;
         }
 
         [WebGet]
@@ -91,6 +103,7 @@ namespace NuGetGallery
         public IQueryable<V2FeedPackage> FindPackagesById(string id)
         {
             return PackageRepository.GetAll().Include(p => p.PackageRegistration)
+                .Where(PackageIsAvailableFromSearchService())
                 .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
                 .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
         }
@@ -158,6 +171,7 @@ namespace NuGetGallery
                 .Where(p =>
                     p.Listed && (includePrerelease || !p.IsPrerelease) &&
                     idValues.Contains(p.PackageRegistration.Id.ToLower()))
+                .Where(PackageIsAvailableFromSearchService())
                 .OrderBy(p => p.PackageRegistration.Id);
 
             return GetUpdates(packages, versionLookup, targetFrameworkValues, includeAllVersions).AsQueryable()
