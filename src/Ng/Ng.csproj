@@ -175,6 +175,9 @@
     <None Include="packages.config" />
     <None Include="Scripts\Catalog2LuceneV3.cmd" />
     <None Include="Scripts\Catalog2RegistrationV3.cmd" />
+    <None Include="Scripts\PreDeploy.ps1" />
+    <None Include="Scripts\PostDeploy.ps1" />
+    <None Include="Scripts\nssm.exe" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">

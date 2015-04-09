@@ -13,5 +13,8 @@
     <file src="bin\$configuration$\*.*" target="Ng"/>
     <file src="Scripts\Catalog2LuceneV3.cmd" />
     <file src="Scripts\Catalog2RegistrationV3.cmd" />
+    <file src="Scripts\PreDeploy.ps1" />
+    <file src="Scripts\PostDeploy.ps1" />
+    <file src="Scripts\nssm.exe" />
   </files>
 </package>
