@@ -14,9 +14,6 @@ namespace Ng
 
         static void Main(string[] args)
         {
-            Trace.Listeners.Add(new ConsoleTraceListener());
-            Trace.AutoFlush = true;
-
             if (args.Length > 0 && String.Equals("dbg", args[0], StringComparison.OrdinalIgnoreCase))
             {
                 args = args.Skip(1).ToArray();

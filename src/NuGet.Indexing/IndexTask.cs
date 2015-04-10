@@ -37,7 +37,8 @@ namespace NuGet.Indexing
                 manager = PackageSearcherManager.CreateAzure(
                     StorageAccount,
                     Container,
-                    DataContainer);
+                    DataContainer,
+                    requireDownloadCounts : false);
             }
             else if (!string.IsNullOrEmpty(Folder))
             {

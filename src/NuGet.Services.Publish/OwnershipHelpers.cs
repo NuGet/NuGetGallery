@@ -44,7 +44,7 @@ namespace NuGet.Services.Publish
             }
             else
             {
-                errors.Add("this package does not exits in the ownership record");
+                errors.Add("this package does not exist in the ownership record");
             }
 
             return errors;

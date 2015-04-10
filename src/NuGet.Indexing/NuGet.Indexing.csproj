@@ -144,6 +144,7 @@
     <Compile Include="Compatibility.cs" />
     <Compile Include="DownloadCounts.cs" />
     <Compile Include="DownloadLookup.cs" />
+    <Compile Include="EmptyDownloadCounts.cs" />
     <Compile Include="FacetedDocument.cs" />
     <Compile Include="Facets.cs" />
     <Compile Include="IdentifierAutocompleteAnalyzer.cs" />

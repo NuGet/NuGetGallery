@@ -94,6 +94,12 @@ namespace NuGet.Indexing
                 string version = document.Get("Version");
                 string owner = document.Get("Owner");
 
+                string ns = document.Get("Namespace");
+                if (ns != null)
+                {
+                    id = string.Format("{0}.{1}", ns, id);
+                }
+
                 JObject obj = new JObject();
                 obj["@id"] = new Uri(registrationBaseAddress, url).AbsoluteUri;
                 obj["@type"] = document.Get("@type"); ;

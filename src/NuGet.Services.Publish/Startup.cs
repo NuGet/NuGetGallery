@@ -160,6 +160,7 @@ namespace NuGet.Services.Publish
         async Task InvokePOST(IOwinContext context)
         {
             IRegistrationOwnership registrationOwnership = CreateRegistrationOwnership(context);
+            ICategorizationPermission categorizationPermission = CategorizationPermission();
 
             switch (context.Request.Path.Value)
             {
@@ -232,6 +233,11 @@ namespace NuGet.Services.Publish
             string storagePrimary = _configurationService.Get("Storage.Primary");
             CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
             return new StorageRegistrationOwnership(context, account);
+        }
+
+        ICategorizationPermission CategorizationPermission()
+        {
+            return new StorageCategorizationPermission();
         }
 
         bool HasNoSecurityConfigured()

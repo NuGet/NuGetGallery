@@ -156,7 +156,8 @@ namespace NuGet.Indexing
         public static PackageSearcherManager CreateAzure(
             CloudStorageAccount storageAccount,
             string indexContainer = null,
-            string dataContainer = null)
+            string dataContainer = null,
+            bool requireDownloadCounts = true)
         {
             if (String.IsNullOrEmpty(indexContainer))
             {
@@ -170,11 +171,17 @@ namespace NuGet.Indexing
                 dataPath = "data/";
             }
 
+            DownloadCounts downloadCounts = requireDownloadCounts
+                    ?
+                (DownloadCounts)new StorageDownloadCounts(storageAccount, dataContainer, dataPath + DownloadCounts.FileName)
+                    :
+                (DownloadCounts)new EmptyDownloadCounts();
+
             return new PackageSearcherManager(
                 indexContainer,
                 new AzureDirectory(storageAccount, indexContainer, new RAMDirectory()),
                 new StorageRankings(storageAccount, dataContainer, dataPath + Rankings.FileName),
-                new StorageDownloadCounts(storageAccount, dataContainer, dataPath + DownloadCounts.FileName),
+                downloadCounts,
                 new StorageFrameworksList(storageAccount, dataContainer, dataPath + FrameworksList.FileName));
         }
 

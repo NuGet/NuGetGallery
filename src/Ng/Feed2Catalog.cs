@@ -41,6 +41,15 @@ namespace Ng
             return new Uri(address);
         }
 
+        static Uri MakePackageUri(string source, string id)
+        {
+            string address = string.Format("{0}/Packages?$filter=Id%20eq%20'{1}'&$select=Created,LastEdited,Published",
+                source.Trim('/'),
+                id);
+
+            return new Uri(address);
+        }
+
         static Uri MakeCreatedUri(string source, DateTime since, int top = 100)
         {
             string address = string.Format("{0}/Packages?$filter=Created gt DateTime'{1}'&$top={2}&$orderby=Created&$select=Created,LastEdited,Published",
@@ -299,7 +308,7 @@ namespace Ng
         public static void Run(string[] args)
         {
             IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null)
+            if (arguments == null || arguments.Count == 0)
             {
                 PrintUsage();
                 return;
@@ -342,13 +351,13 @@ namespace Ng
 
         static void PackagePrintUsage()
         {
-            Console.WriteLine("Usage: ng package2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] -id <id> -versione <version>");
+            Console.WriteLine("Usage: ng package2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] -id <id> [-versione <version>]");
         }
 
         public static void Package(string[] args)
         {
             IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
-            if (arguments == null)
+            if (arguments == null || arguments.Count == 0)
             {
                 PackagePrintUsage();
                 return;
@@ -371,11 +380,6 @@ namespace Ng
             }
 
             string version = CommandHelpers.GetVersion(arguments);
-            if (version == null)
-            {
-                PackagePrintUsage();
-                return;
-            }
 
             StorageFactory storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
             if (storageFactory == null)
@@ -390,10 +394,10 @@ namespace Ng
                 Trace.AutoFlush = true;
             }
 
-            ProcessSinglePackage(gallery, storageFactory, id, version, verbose).Wait();
+            ProcessPackages(gallery, storageFactory, id, version, verbose).Wait();
         }
 
-        static async Task ProcessSinglePackage(string gallery, StorageFactory storageFactory, string id, string version, bool verbose)
+        static async Task ProcessPackages(string gallery, StorageFactory storageFactory, string id, string version, bool verbose)
         {
             int timeout = 300;
 
@@ -405,27 +409,25 @@ namespace Ng
             {
                 client.Timeout = TimeSpan.FromSeconds(timeout);
 
-                Uri uri = MakePackageUri(gallery, id, version);
+                //  if teh version is specified a single package is processed otherwise all the packages corresponding to that id are processed
+
+                Uri uri = (version == null) ? MakePackageUri(gallery, id) : MakePackageUri(gallery, id, version);
 
                 SortedList<DateTime, IList<Tuple<Uri, PackageDates>>> packages = await GetPackages(client, uri, "Created");
 
-                if (packages.Count == 1)
-                {
-                    if (packages.First().Value.Count == 1)
-                    {
-                        Storage storage = storageFactory.Create();
+                Trace.TraceInformation("downloading {0} packages", packages.Select(t => t.Value.Count).Sum());
 
-                        //  the idea here is to leave the lastCreated and lastEdited values exactly as they were
+                Storage storage = storageFactory.Create();
 
-                        const string LastCreated = "nuget:lastCreated";
-                        const string LastEdited = "nuget:lastEdited";
+                //  the idea here is to leave the lastCreated and lastEdited values exactly as they were
 
-                        DateTime lastCreated = await GetCatalogProperty(storage, LastCreated) ?? DateTime.MinValue.ToUniversalTime();
-                        DateTime lastEdited = await GetCatalogProperty(storage, LastEdited) ?? DateTime.MinValue.ToUniversalTime();
+                const string LastCreated = "nuget:lastCreated";
+                const string LastEdited = "nuget:lastEdited";
 
-                        DateTime d = await DownloadMetadata2Catalog(client, packages, storage, lastCreated, lastEdited);
-                    }
-                }
+                DateTime lastCreated = await GetCatalogProperty(storage, LastCreated) ?? DateTime.MinValue.ToUniversalTime();
+                DateTime lastEdited = await GetCatalogProperty(storage, LastEdited) ?? DateTime.MinValue.ToUniversalTime();
+
+                DateTime d = await DownloadMetadata2Catalog(client, packages, storage, lastCreated, lastEdited);
             }
         }
     }

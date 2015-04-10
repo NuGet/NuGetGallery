@@ -83,7 +83,7 @@ namespace NuGet.Services.Metadata
 
             //  start the service running - the Lucene index needs to be reopened regularly on a background thread
 
-            string searchIndexRefresh = _configurationService.Get("Search.IndexRefresh") ?? "180";
+            string searchIndexRefresh = _configurationService.Get("Search.IndexRefresh") ?? "15";
             int seconds;
             if (!int.TryParse(searchIndexRefresh, out seconds))
             {
@@ -196,7 +196,7 @@ namespace NuGet.Services.Metadata
                 if (_searcherManager == null)
                 {
                     await context.Response.WriteAsync("no index loaded");
-                    context.Response.StatusCode = (int)HttpStatusCode.OK;
+                    context.Response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
                     return;
                 }
 

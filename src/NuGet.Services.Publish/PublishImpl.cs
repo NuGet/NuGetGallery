@@ -144,7 +144,7 @@ namespace NuGet.Services.Publish
 
         public async Task Edit(IOwinContext context)
         {
-            Trace.TraceInformation("PublishImpl.Upload");
+            Trace.TraceInformation("PublishImpl.Edit");
 
             if (!_registrationOwnership.IsAuthenticated)
             {
@@ -246,12 +246,12 @@ namespace NuGet.Services.Publish
         {
             EditValidationResult result = new EditValidationResult();
 
-            JObject editMetadata = await ServiceHelpers.ReadJObject(metadataStream);
-            if (editMetadata != null)
+            JObject metadata = await ServiceHelpers.ReadJObject(metadataStream);
+            if (metadata != null)
             {
-                ValidationHelpers.CheckDisallowedEditProperty(editMetadata, "namespace", result.Errors);
-                ValidationHelpers.CheckDisallowedEditProperty(editMetadata, "id", result.Errors);
-                ValidationHelpers.CheckDisallowedEditProperty(editMetadata, "version", result.Errors);
+                ValidationHelpers.CheckDisallowedEditProperty(metadata, "namespace", result.Errors);
+                ValidationHelpers.CheckDisallowedEditProperty(metadata, "id", result.Errors);
+                ValidationHelpers.CheckDisallowedEditProperty(metadata, "version", result.Errors);
 
                 if (result.Errors.Count > 0)
                 {
@@ -259,10 +259,10 @@ namespace NuGet.Services.Publish
                     return result;
                 }
 
-                result.EditMetadata = editMetadata;
+                result.EditMetadata = metadata;
 
                 JToken catalogEntryAddress;
-                if (editMetadata.TryGetValue("catalogEntry", out catalogEntryAddress))
+                if (metadata.TryGetValue("catalogEntry", out catalogEntryAddress))
                 {
                     JObject catalogEntry = await CatalogHelpers.LoadFromCatalog(catalogEntryAddress.ToString(), Configuration.StoragePrimary, Configuration.StorageContainerCatalog, Configuration.CatalogBaseAddress);
 
@@ -281,6 +281,43 @@ namespace NuGet.Services.Publish
                 else
                 {
                     result.Errors.Add("corresponding catalogEntry must be specified");
+                }
+            }
+            else
+            {
+                result.Errors.Add("unable to read content as JSON");
+            }
+
+            return result;
+        }
+
+        public async Task List(IOwinContext context)
+        {
+            Trace.TraceInformation("PublishImpl.List");
+
+            ListValidationResult validationResult = await ValidateList(context.Request.Body);
+        }
+
+        async Task<ListValidationResult> ValidateList(Stream metadataStream)
+        {
+            ListValidationResult result = new ListValidationResult();
+
+            JObject metadata = await ServiceHelpers.ReadJObject(metadataStream);
+            if (metadata != null)
+            {
+                ValidationHelpers.CheckDisallowedEditProperty(metadata, "namespace", result.Errors);
+                ValidationHelpers.CheckDisallowedEditProperty(metadata, "id", result.Errors);
+                ValidationHelpers.CheckDisallowedEditProperty(metadata, "version", result.Errors);
+
+                if (result.Errors.Count > 0)
+                {
+                    // the edit request was invalid so don't waste any more cycles on this request 
+                    return result;
+                }
+
+                JToken listed;
+                if (metadata.TryGetValue("listed", out listed))
+                {
                 }
             }
             else
