@@ -20,7 +20,7 @@
         <article>
             <p>
                 <span class="smaller">
-                    xLast Published: <time datetime="@Model.LastUpdated.ToJavaScriptUTC()" pubdate>@Model.LastUpdated.ToNuGetShortDateString()</time> |
+                    Last Published: <time datetime="@Model.LastUpdated.ToJavaScriptUTC()" pubdate>@Model.LastUpdated.ToNuGetShortDateString()</time> |
                     Latest Version: @Model.Version @(Model.Prerelease ? "(prerelease)" : "")
                 </span>
             </p>
