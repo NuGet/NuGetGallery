@@ -12,12 +12,14 @@ namespace NuGet.Services.Metadata.Catalog
         {
             public static readonly string NuGet = "http://schema.nuget.org/schema#";
             public static readonly string Catalog = "http://schema.nuget.org/catalog#";
+            public static readonly string Record = "http://schema.nuget.org/record#";
             public static readonly string Xsd = "http://www.w3.org/2001/XMLSchema#";
             public static readonly string Rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
         }
 
         public static class DataTypes
         {
+            public static readonly Uri CatalogInfastructure = new Uri(Prefixes.Catalog + "CatalogInfastructure");
             public static readonly Uri Package = new Uri(Prefixes.NuGet + "Package");
             public static readonly Uri PackageRegistration = new Uri(Prefixes.NuGet + "PackageRegistration");
             public static readonly Uri PackageDetails = new Uri(Prefixes.NuGet + "PackageDetails");
@@ -30,7 +32,6 @@ namespace NuGet.Services.Metadata.Catalog
 
             public static readonly Uri PackageEntry = new Uri(Prefixes.NuGet + "PackageEntry");
 
-            public static readonly Uri CatalogInfastructure = new Uri(Prefixes.Catalog + "CatalogInfastructure");
             public static readonly Uri CatalogRoot = new Uri(Prefixes.Catalog + "CatalogRoot");
             public static readonly Uri CatalogPage = new Uri(Prefixes.Catalog + "CatalogPage");
             public static readonly Uri Permalink = new Uri(Prefixes.Catalog + "Permalink");
@@ -51,9 +52,9 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri WideIcon = new Uri(Prefixes.NuGet + "WideIcon");
             public static readonly Uri CsmTemplate = new Uri(Prefixes.NuGet + "CsmTemplate");
 
-            public static readonly Uri Record = new Uri(Prefixes.NuGet + "Record");
-            public static readonly Uri RecordRegistration = new Uri(Prefixes.NuGet + "Registration");
-            public static readonly Uri RecordOwner = new Uri(Prefixes.NuGet + "Owner");
+            public static readonly Uri Record = new Uri(Prefixes.Record + "Record");
+            public static readonly Uri RecordRegistration = new Uri(Prefixes.Record + "Registration");
+            public static readonly Uri RecordOwner = new Uri(Prefixes.Record + "Owner");
         }
 
         public static class Predicates
@@ -69,7 +70,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri GalleryKey = new Uri(Prefixes.Catalog + "galleryKey");
             public static readonly Uri GalleryChecksum = new Uri(Prefixes.Catalog + "galleryChecksum");
 
-            public static readonly Uri Namespace = new Uri(Prefixes.NuGet + "namespace");
+            public static readonly Uri Prefix = new Uri(Prefixes.NuGet + "prefix");
             public static readonly Uri Id = new Uri(Prefixes.NuGet + "id");
             public static readonly Uri Version = new Uri(Prefixes.NuGet + "version");
             public static readonly Uri OriginalId = new Uri(Prefixes.NuGet + "originalId");
@@ -89,12 +90,10 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri FileName = new Uri(Prefixes.Catalog + "fileName");
             public static readonly Uri Details = new Uri(Prefixes.Catalog + "details");
 
-            public static readonly Uri NameIdentifier = new Uri(Prefixes.NuGet + "nameIdentifier");
-            public static readonly Uri GivenName = new Uri(Prefixes.NuGet + "givenName");
-            public static readonly Uri Surname = new Uri(Prefixes.NuGet + "surname");
-            public static readonly Uri ObjectId = new Uri(Prefixes.NuGet + "objectId");
-            public static readonly Uri Email = new Uri(Prefixes.NuGet + "email");
-            public static readonly Uri Iss = new Uri(Prefixes.NuGet + "iss");
+            public static readonly Uri Domain = new Uri(Prefixes.Record + "domain");
+            public static readonly Uri RecordDomain = new Uri(Prefixes.Record + "recordDomain");
+            public static readonly Uri RecordRegistration = new Uri(Prefixes.Record + "recordRegistration");
+            public static readonly Uri ObjectId = new Uri(Prefixes.Record + "objectId");
 
             public static readonly Uri Visibility = new Uri(Prefixes.NuGet + "visibility");
             public static readonly Uri Organization = new Uri(Prefixes.NuGet + "organization");
@@ -113,6 +112,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             public static readonly Uri LastCreated = new Uri(Prefixes.NuGet + "lastCreated");
             public static readonly Uri LastEdited = new Uri(Prefixes.NuGet + "lastEdited");
+            public static readonly Uri Listed = new Uri(Prefixes.NuGet + "listed");
 
             public static readonly Uri Language = new Uri(Prefixes.NuGet + "language");
             public static readonly Uri Published = new Uri(Prefixes.NuGet + "published");
@@ -137,6 +137,14 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri LicenseName = new Uri(Prefixes.NuGet + "licenseName");
             public static readonly Uri SupportedFramework = new Uri(Prefixes.NuGet + "supportedFramework");
             public static readonly Uri Owner = new Uri(Prefixes.NuGet + "owner");
+            public static readonly Uri Namespace = new Uri(Prefixes.NuGet + "namespace");
+            
+
+            public static readonly Uri NameIdentifier = new Uri(Prefixes.NuGet + "nameIdentifier");
+            public static readonly Uri GivenName = new Uri(Prefixes.NuGet + "givenName");
+            public static readonly Uri Surname = new Uri(Prefixes.NuGet + "surname");
+            public static readonly Uri Email = new Uri(Prefixes.NuGet + "email");
+            public static readonly Uri Iss = new Uri(Prefixes.NuGet + "iss");
         }
     }
 }

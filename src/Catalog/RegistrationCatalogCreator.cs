@@ -11,7 +11,10 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public static class RegistrationCatalogCreator
     {
-        public static async Task ProcessGraphs(
+        static List<string> existingVersionsWithID;
+        static List<string> existingVersionsWithoutID;
+
+         public static async Task ProcessGraphs(
             string id,
             IDictionary<string, IGraph> sortedGraphs,
             StorageFactory storageFactory,
@@ -19,6 +22,9 @@ namespace NuGet.Services.Metadata.Catalog
             int partitionSize,
             int packageCountThreshold)
         {
+            int versionAlreadyExistsCount = 0;
+            existingVersionsWithID = new List<string>();
+            
             try
             {
                 Storage storage = storageFactory.Create(id.ToLowerInvariant());
@@ -28,7 +34,28 @@ namespace NuGet.Services.Metadata.Catalog
 
                 int count = Utils.CountItems(json);
 
-                int total = count + sortedGraphs.Count;
+                //Determine if there are any versions that are existing already
+                CollectorHttpClient httpClient = new CollectorHttpClient();
+                foreach (var graph in sortedGraphs)
+                {
+                    JObject jsonContent = await httpClient.GetJObjectAsync(new Uri(graph.Key));
+                    string existingId = jsonContent["@id"].ToString();
+                    string existingVersionWithId = existingId.Substring(existingId.LastIndexOf("/") + 1);
+
+                    string existingVersion = jsonContent["version"].ToString() + ".json";
+                    
+                    //Determine if the version is actually available
+                    //In Registration blobs, the format is /packageID/packageVersion.json
+                    //So to check the existence of version we need to know only the version.json
+                    if (storage.Exists(existingVersion))
+                    {
+                        //When we compare later in AddExistingItems, we need the "packageId.packageversion.json" for comparison so store it with Id
+                        existingVersionsWithID.Add(existingVersionWithId);
+                        versionAlreadyExistsCount++;
+                    }
+                }
+
+                int total = count + sortedGraphs.Count - versionAlreadyExistsCount;
 
                 if (total < packageCountThreshold)
                 {
@@ -107,7 +134,14 @@ namespace NuGet.Services.Metadata.Catalog
             foreach (SparqlResult row in rows)
             {
                 string packageUri = ((IUriNode)row["catalogPackage"]).Uri.AbsoluteUri;
-                items[packageUri] = graph;
+                string jsonFileName = packageUri.Substring(packageUri.LastIndexOf("/") + 1);
+                
+                //If items already has that version, then skip it
+                //Add only the new ones
+                if (!existingVersionsWithID.Contains(jsonFileName))
+                {
+                    items[packageUri] = graph;
+                }
             }
         }
     }

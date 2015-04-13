@@ -77,6 +77,11 @@ namespace NuGet.Services.Metadata.Catalog
             DateTime published = GetPublished() ?? TimeStamp;
             graph.Assert(resource.Subject, publishedPredicate, graph.CreateLiteralNode(published.ToString("O"), Schema.DataTypes.DateTime));
 
+            //  listed
+            INode listedPredicated = graph.CreateUriNode(Schema.Predicates.Listed);
+            Boolean listed = GetListed(published);
+            graph.Assert(resource.Subject, listedPredicated, graph.CreateLiteralNode(listed.ToString(), Schema.DataTypes.Boolean));
+
             //  created
             INode createdPredicate = graph.CreateUriNode(Schema.Predicates.Created);
             DateTime created = GetCreated() ?? TimeStamp;
@@ -144,6 +149,16 @@ namespace NuGet.Services.Metadata.Catalog
             }
 
             return graph;
+        }
+
+        private bool GetListed(DateTime published)
+        {
+            //If the published date is 1900/01/01, then the package is unlisted
+            if (published.ToUniversalTime() == Convert.ToDateTime("1900-01-01T00:00:00Z"))
+            {
+                return false;
+            }
+            return true;
         }
 
         protected void SetIdVersionFromGraph(IGraph graph)

@@ -45,7 +45,7 @@ namespace PublishTestDriverWebSite.Controllers
                 AuthenticationResult authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, clientAssertionCertificate, new UserIdentifier(signedInUserID, UserIdentifierType.UniqueId));
 
                 HttpClient client = new HttpClient();
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetSearchServiceBaseAddress + "/secure/query");
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetSearchServiceBaseAddress + "/query");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authenticationResult.AccessToken);
 
                 HttpResponseMessage response;

@@ -718,50 +718,59 @@ namespace NuGet.Indexing
         {
             log.WriteLine("ApplyDeletes");
 
-            PackageQueryParser queryParser = new PackageQueryParser(Lucene.Net.Util.Version.LUCENE_30, "Id", new PackageAnalyzer());
-
-            // Collect all the packages
-            var packages = packageKeys.Select(k => fetch(k));
-
-            using (IndexWriter indexWriter = CreateIndexWriter(directory, false))
+            try
             {
-                var dirtyDocuments = new List<FacetedDocument>();
-                IDictionary<string, string> commitUserData;
-                using (var reader = indexWriter.GetReader())
+                PackageQueryParser queryParser = new PackageQueryParser(Lucene.Net.Util.Version.LUCENE_30, "Id", new PackageAnalyzer());
+
+                // Collect all the packages
+                var packages = packageKeys.Select(k => fetch(k));
+
+                using (IndexWriter indexWriter = CreateIndexWriter(directory, false))
                 {
-                    commitUserData = reader.CommitUserData;
-                    
-                    // Group by Id
-                    foreach (var group in packages.GroupBy(p => p.Package.PackageRegistration.Id))
+                    var dirtyDocuments = new List<FacetedDocument>();
+                    IDictionary<string, string> commitUserData;
+                    using (var reader = indexWriter.GetReader())
                     {
-                        // Collect existing documents
-                        IEnumerable<FacetedDocument> existing = CollectExistingDocuments(perfTracker, indexWriter.GetReader(), group.Key);
+                        commitUserData = reader.CommitUserData;
 
-                        // Remove the documents we need to remove
-                        foreach (var package in group)
+                        // Group by Id
+                        foreach (var group in packages.GroupBy(p => p.Package.PackageRegistration.Id))
                         {
-                            Query query = NumericRangeQuery.NewIntRange("Key", package.Package.Key, package.Package.Key, true, true);
-                            indexWriter.DeleteDocuments(query);
-                            existing = existing.Where(d =>
-                                !SemanticVersion.Parse(package.Package.NormalizedVersion).Equals(d.Version));
+                            // Collect existing documents
+                            IEnumerable<FacetedDocument> existing = CollectExistingDocuments(perfTracker, indexWriter.GetReader(), group.Key);
+
+                            // Remove the documents we need to remove
+                            foreach (var package in group)
+                            {
+                                Query query = NumericRangeQuery.NewIntRange("Key", package.Package.Key, package.Package.Key, true, true);
+                                indexWriter.DeleteDocuments(query);
+                                existing = existing.Where(d =>
+                                    !SemanticVersion.Parse(package.Package.NormalizedVersion).Equals(d.Version));
+                            }
+
+                            // Recalculate facets
+                            UpdateFacets(group.Key, existing.ToList(), projectFxs, perfTracker);
+
+                            // Add dirty documents
+                            dirtyDocuments.AddRange(existing.Where(d => d.Dirty));
                         }
-
-                        // Recalculate facets
-                        UpdateFacets(group.Key, existing.ToList(), projectFxs, perfTracker);
-
-                        // Add dirty documents
-                        dirtyDocuments.AddRange(existing.Where(d => d.Dirty));
                     }
+
+                    // Process dirty documents
+                    WriteDirtyDocuments(dirtyDocuments, indexWriter, perfTracker);
+
+                    commitUserData["count"] = packageKeys.Count.ToString();
+                    commitUserData["commit-description"] = "delete";
+
+                    log.WriteLine("Commit {0} deletes", packageKeys.Count);
+                    indexWriter.Commit(commitUserData);
+
+
                 }
+            }
+            catch (Exception)
+            {
 
-                // Process dirty documents
-                WriteDirtyDocuments(dirtyDocuments, indexWriter, perfTracker);
-
-                commitUserData["count"] = packageKeys.Count.ToString();
-                commitUserData["commit-description"] = "delete";
-
-                log.WriteLine("Commit {0} deletes", packageKeys.Count);
-                indexWriter.Commit(commitUserData);
             }
         }
 
