@@ -436,6 +436,10 @@ p.authors {
 
 /* List Packages Page */
 
+.smaller {
+    font-size: 0.85em;
+}
+
 .search h1 {
     font-size: 2.3em;
     margin: 0;

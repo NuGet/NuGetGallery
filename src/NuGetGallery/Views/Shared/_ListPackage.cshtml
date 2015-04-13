@@ -19,12 +19,10 @@
 
         <article>
             <p>
-                <small>
-                    Last  Published: <time datetime="@Model.LastUpdated.ToJavaScriptUTC()" pubdate>@Model.LastUpdated.ToNuGetShortDateString()</time>
-                </small>
-                <small>
+                <span class="smaller">
+                    xLast Published: <time datetime="@Model.LastUpdated.ToJavaScriptUTC()" pubdate>@Model.LastUpdated.ToNuGetShortDateString()</time> |
                     Latest Version: @Model.Version @(Model.Prerelease ? "(prerelease)" : "")
-                </small>
+                </span>
             </p>
             <p>
                 @Model.Description.TruncateAtWordBoundary(350, "<text>... </text>", string.Format(System.Globalization.CultureInfo.CurrentCulture, "<a href=\"{0}\">More information</a>", @Url.Package(Model)))
