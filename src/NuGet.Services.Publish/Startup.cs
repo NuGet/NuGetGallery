@@ -164,24 +164,21 @@ namespace NuGet.Services.Publish
 
             switch (context.Request.Path.Value)
             {
-                case "/checkaccess/apiapp":
                 case "/apiapp/checkaccess":
                     {
                         CheckAccessImpl uploader = new CheckAccessImpl(registrationOwnership);
                         await uploader.CheckAccess(context);
                         break;
                     }
-                case "/upload/apiapp":  //TODO - remove this temporary additional resource 
                 case "/apiapp/upload":
                     {
-                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership, categorizationPermission);
                         await uploader.Upload(context);
                         break;
                     }
-                case "/edit/apiapp":
                 case "/apiapp/edit":
                     {
-                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership, categorizationPermission);
                         await uploader.Edit(context);
                         break;
                     }
@@ -237,7 +234,9 @@ namespace NuGet.Services.Publish
 
         ICategorizationPermission CategorizationPermission()
         {
-            return new StorageCategorizationPermission();
+            string storagePrimary = _configurationService.Get("Storage.Primary");
+            CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
+            return new StorageCategorizationPermission(account);
         }
 
         bool HasNoSecurityConfigured()

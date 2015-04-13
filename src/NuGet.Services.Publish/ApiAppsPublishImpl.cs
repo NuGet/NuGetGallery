@@ -29,9 +29,9 @@ namespace NuGet.Services.Publish
         {
         }
 
-        bool IsAllowedToSpecifyCategory(string id)
+        async Task<bool> IsAllowedToSpecifyCategory(string id)
         {
-            return (_categorizationPermission == null) ? false : _categorizationPermission.IsAllowedToSpecifyCategory(id);
+            return (_categorizationPermission == null) ? false : await _categorizationPermission.IsAllowedToSpecifyCategory(id);
         }
 
         protected override bool IsMetadataFile(string fullName)
@@ -47,7 +47,7 @@ namespace NuGet.Services.Publish
             return obj;
         }
 
-        protected override void GenerateNuspec(IDictionary<string, JObject> metadata)
+        protected override async Task GenerateNuspec(IDictionary<string, JObject> metadata)
         {
             JObject apiapp = metadata[ApiAppMetadata];
 
@@ -92,13 +92,20 @@ namespace NuGet.Services.Publish
             nuspec["originalId"] = originalId;
 
             JToken jtokenCategories;
-            if (IsAllowedToSpecifyCategory(id) && apiapp.TryGetValue("categories", out jtokenCategories))
+            if (await IsAllowedToSpecifyCategory(id) && apiapp.TryGetValue("categories", out jtokenCategories))
             {
-                nuspec.Add("categories", jtokenCategories);
+                if (jtokenCategories is JArray)
+                {
+                    nuspec["categories"] = jtokenCategories;
+                }
+                else
+                {
+                    nuspec["categories"] = new JArray(jtokenCategories.ToString());
+                }
             }
             else
             {
-                nuspec.Add("categories", new JArray("community"));
+                nuspec["categories"] = new JArray("community");
             }
 
             JToken jtokenDescription;

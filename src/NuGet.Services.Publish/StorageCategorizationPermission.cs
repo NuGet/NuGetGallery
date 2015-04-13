@@ -1,11 +1,47 @@
 ﻿
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Threading.Tasks;
+
 namespace NuGet.Services.Publish
 {
     public class StorageCategorizationPermission : ICategorizationPermission
     {
-        public bool IsAllowedToSpecifyCategory(string id)
+        CloudStorageAccount _account;
+
+        public StorageCategorizationPermission(CloudStorageAccount account)
         {
-            return true;
+            _account = account;
+        }
+
+        public async Task<bool> IsAllowedToSpecifyCategory(string id)
+        {
+            CloudBlobClient client = _account.CreateCloudBlobClient();
+            CloudBlobContainer container = client.GetContainerReference("categorization");
+            CloudBlockBlob blob = container.GetBlockBlobReference("allowed.json");
+
+            try
+            {
+                string json = await blob.DownloadTextAsync();
+
+                JObject obj = JObject.Parse(json);
+
+                foreach (string registration in obj["registrations"])
+                {
+                    if (registration.Equals(id, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

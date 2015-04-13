@@ -39,8 +39,9 @@ namespace NuGet.Services.Publish
         {
         }
 
-        protected virtual void GenerateNuspec(IDictionary<string, JObject> metadata)
+        protected virtual Task GenerateNuspec(IDictionary<string, JObject> metadata)
         {
+            return Task.FromResult(0);
         }
 
         protected virtual Task<IDictionary<string, PackageArtifact>> GenerateNewArtifactsFromEdit(IDictionary<string, JObject> metadata, JObject catalogEntry, JObject editMetadata, string storagePrimary)
@@ -109,7 +110,7 @@ namespace NuGet.Services.Publish
 
             //  (2) promote the relevant peices of metadata so they later can appear on the catalog page 
 
-            ExtractMetadata(metadata, packageStream);
+            await ExtractMetadata(metadata, packageStream);
 
             Trace.TraceInformation("ExtractMetadata");
 
@@ -209,7 +210,7 @@ namespace NuGet.Services.Publish
 
             //  (3) promote the relevant peices of metadata so they later can appear on the catalog page 
 
-            GenerateNuspec(metadata);
+            await GenerateNuspec(metadata);
 
             Trace.TraceInformation("GenerateNuspec");
 
@@ -390,7 +391,7 @@ namespace NuGet.Services.Publish
             context.Response.StatusCode = (int)HttpStatusCode.OK;
         }
 
-        void ExtractMetadata(IDictionary<string, JObject> metadata, Stream nupkgStream)
+        async Task ExtractMetadata(IDictionary<string, JObject> metadata, Stream nupkgStream)
         {
             using (ZipArchive archive = new ZipArchive(nupkgStream, ZipArchiveMode.Read, true))
             {
@@ -408,7 +409,7 @@ namespace NuGet.Services.Publish
 
             if (!metadata.ContainsKey("nuspec"))
             {
-                GenerateNuspec(metadata);
+                await GenerateNuspec(metadata);
             }
         }
 
