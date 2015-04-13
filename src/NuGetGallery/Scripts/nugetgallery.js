@@ -5,10 +5,10 @@
         $.get(app.root + 'api/v2/service-alert?cachebust=' + new Date().getTime())
             .done(function (data) {
                 if (typeof data === 'string' && data.length > 0) {
-                    $('#service-alert').html(data).slideDown('fast');
+                    $('#service-alert').html(data).show();
                 }
                 else {
-                    $('#service-alert').slideUp('fast').html();
+                    $('#service-alert').hide().html();
                 }
             }) // If this fails, just silently show no status.
     }
