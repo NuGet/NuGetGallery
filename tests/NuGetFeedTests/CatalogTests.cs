@@ -1,13 +1,10 @@
 ﻿using Newtonsoft.Json;
-using NuGet;
 using NuGet.Services.Metadata.Catalog;
 using NuGetFeed;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VDS.RDF;
 using Xunit;
 

@@ -1,11 +1,7 @@
 ﻿using NuGetFeed;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace NuGetFeedTests
 {
@@ -16,7 +12,7 @@ namespace NuGetFeedTests
         private DirectoryInfo _root;
         private Config _config;
 
-        public FunctionalTests()
+        protected FunctionalTests()
         {
             _needsCleanup = false;
             _testRootDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
