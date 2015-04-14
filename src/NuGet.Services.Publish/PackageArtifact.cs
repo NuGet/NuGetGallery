@@ -7,5 +7,6 @@ namespace NuGet.Services.Publish
     {
         public Stream Stream { get; set; }
         public string Location { get; set; }
+        public JObject PackageEntry { get; set; }
     }
 }

@@ -8,11 +8,7 @@ namespace NuGet.Services.Publish
 {
     public class EditValidationResult : ValidationResult
     {
-        public EditValidationResult()
-            : base()
-        {
-        }
-
+        public bool Listed { get; set; }
         public JObject EditMetadata { get; set; }
         public JObject CatalogEntry { get; set; }
     }

@@ -73,7 +73,7 @@ namespace NuGet.Services.Publish
             }
 
             Stream packageStream = context.Request.Body;
-
+            
             //  validation
 
             ValidationResult validationResult = await Validate(packageStream);
@@ -83,7 +83,7 @@ namespace NuGet.Services.Publish
                 await ServiceHelpers.WriteErrorResponse(context, validationResult.Errors, HttpStatusCode.BadRequest);
                 return;
             }
-
+            
             //  registration authorization
 
             IList<string> authorizationErrors = await OwnershipHelpers.CheckRegistrationAuthorization(_registrationOwnership, validationResult.PackageIdentity);
@@ -94,7 +94,16 @@ namespace NuGet.Services.Publish
                 return;
             }
 
-            Trace.TraceInformation("UPLOAD Processing package {0}/{1}/{2}", validationResult.PackageIdentity.Namespace, validationResult.PackageIdentity.Id, validationResult.PackageIdentity.Version);
+            //  listed
+
+            bool isListed = true;
+            string unlist = context.Request.Query["unlist"];
+            if (unlist != null)
+            {
+                isListed = !unlist.Equals(Boolean.TrueString, StringComparison.InvariantCultureIgnoreCase);
+            }
+
+            Trace.TraceInformation("UPLOAD Processing package {0}/{1}/{2} listed: {3}", validationResult.PackageIdentity.Namespace, validationResult.PackageIdentity.Id, validationResult.PackageIdentity.Version, isListed);
 
             //  process the package
 
@@ -122,7 +131,7 @@ namespace NuGet.Services.Publish
 
             //  (4) add the new item to the catalog
 
-            Uri catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails);
+            Uri catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails, isListed);
 
             Trace.TraceInformation("AddToCatalog");
 
@@ -188,7 +197,7 @@ namespace NuGet.Services.Publish
                 return;
             }
 
-            Trace.TraceInformation("EDIT Processing package {0}/{1}/{2}", validationResult.PackageIdentity.Namespace, validationResult.PackageIdentity.Id, validationResult.PackageIdentity.Version);
+            Trace.TraceInformation("EDIT Processing package {0}/{1}/{2} listed: {3}", validationResult.PackageIdentity.Namespace, validationResult.PackageIdentity.Id, validationResult.PackageIdentity.Version, validationResult.Listed);
 
             //  process the edit
 
@@ -222,7 +231,7 @@ namespace NuGet.Services.Publish
 
             //  (5) add the new item to the catalog
 
-            Uri catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails);
+            Uri catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails, validationResult.Listed);
 
             Trace.TraceInformation("AddToCatalog");
 
@@ -272,6 +281,23 @@ namespace NuGet.Services.Publish
                         result.CatalogEntry = catalogEntry;
                         result.PackageIdentity = PackageIdentity.FromCatalogEntry(catalogEntry);
 
+                        JToken isListed;
+                        if (metadata.TryGetValue("listed", out isListed))
+                        {
+                            if (isListed.Type != JTokenType.Boolean)
+                            {
+                                result.Errors.Add("listed must be a boolean value");
+                            }
+                            else
+                            {
+                                result.Listed = isListed.ToObject<bool>();
+                            }
+                        }
+                        else
+                        {
+                            result.Listed = catalogEntry["listed"].ToObject<bool>();
+                        }
+
                         ValidateEdit(result);
                     }
                     else
@@ -282,43 +308,6 @@ namespace NuGet.Services.Publish
                 else
                 {
                     result.Errors.Add("corresponding catalogEntry must be specified");
-                }
-            }
-            else
-            {
-                result.Errors.Add("unable to read content as JSON");
-            }
-
-            return result;
-        }
-
-        public async Task List(IOwinContext context)
-        {
-            Trace.TraceInformation("PublishImpl.List");
-
-            ListValidationResult validationResult = await ValidateList(context.Request.Body);
-        }
-
-        async Task<ListValidationResult> ValidateList(Stream metadataStream)
-        {
-            ListValidationResult result = new ListValidationResult();
-
-            JObject metadata = await ServiceHelpers.ReadJObject(metadataStream);
-            if (metadata != null)
-            {
-                ValidationHelpers.CheckDisallowedEditProperty(metadata, "namespace", result.Errors);
-                ValidationHelpers.CheckDisallowedEditProperty(metadata, "id", result.Errors);
-                ValidationHelpers.CheckDisallowedEditProperty(metadata, "version", result.Errors);
-
-                if (result.Errors.Count > 0)
-                {
-                    // the edit request was invalid so don't waste any more cycles on this request 
-                    return result;
-                }
-
-                JToken listed;
-                if (metadata.TryGetValue("listed", out listed))
-                {
                 }
             }
             else
@@ -413,9 +402,9 @@ namespace NuGet.Services.Publish
             }
         }
 
-        static Task<Uri> AddToCatalog(JObject nuspec, Uri itemType, PublicationDetails publicationDetails)
+        static Task<Uri> AddToCatalog(JObject nuspec, Uri itemType, PublicationDetails publicationDetails, bool isListed)
         {
-            CatalogItem catalogItem = new GraphCatalogItem(nuspec, itemType, publicationDetails);
+            CatalogItem catalogItem = new GraphCatalogItem(nuspec, itemType, publicationDetails, isListed);
             return CatalogHelpers.AddToCatalog(catalogItem, Configuration.StoragePrimary, Configuration.StorageContainerCatalog, Configuration.CatalogBaseAddress);
         }
 

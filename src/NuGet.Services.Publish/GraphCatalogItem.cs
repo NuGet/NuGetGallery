@@ -13,6 +13,7 @@ namespace NuGet.Services.Publish
         JObject _nuspec;
         Uri _itemType;
         PublicationDetails _publicationDetails;
+        bool _isListed;
 
         Guid _catalogItemId;
         JObject _context;
@@ -20,11 +21,12 @@ namespace NuGet.Services.Publish
         string _id;
         string _version;
 
-        public GraphCatalogItem(JObject nuspec, Uri itemType, PublicationDetails publicationDetails)
+        public GraphCatalogItem(JObject nuspec, Uri itemType, PublicationDetails publicationDetails, bool isListed)
         {
             _nuspec = nuspec;
             _itemType = itemType;
             _publicationDetails = publicationDetails;
+            _isListed = isListed;
 
             _catalogItemId = Guid.NewGuid();
 
@@ -85,6 +87,10 @@ namespace NuGet.Services.Publish
                     catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Subscription), catalogEntry.CreateLiteralNode(_publicationDetails.Visibility.Subscription));
                     break;
             }
+
+            //  listed
+
+            catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Listed), catalogEntry.CreateLiteralNode(_isListed.ToString(), Schema.DataTypes.Boolean));
 
             //  add the nuspec metadata
 

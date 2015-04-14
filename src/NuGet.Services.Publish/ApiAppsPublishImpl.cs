@@ -252,6 +252,7 @@ namespace NuGet.Services.Publish
                 JToken fullnameJToken;
                 if (!entry.TryGetValue("fullName", out fullnameJToken))
                 {
+                    artifacts.Add("package", new PackageArtifact { PackageEntry = entry });
                     continue;
                 }
 
@@ -283,16 +284,23 @@ namespace NuGet.Services.Publish
                 throw new Exception(string.Format("unable to find '{0}' file for existing package", ApiAppMetadata));
             }
 
-            //  load existing apiapp.json
+            //  load of existing apiapp.json
 
             JObject apiapp;
+
             Stream apiappStream = await Artifacts.LoadFile(apiappLocation, storagePrimary);
             using (StreamReader reader = new StreamReader(apiappStream))
             {
                 apiapp = JObject.Parse(reader.ReadToEnd());
             }
 
+            //  the apiapp file will be needed later for the generation of the catalogEntry
+
+            metadata[ApiAppMetadata] = apiapp;
+
             //  apply changes
+
+            bool requiresRewrittenApiApp = false;
 
             foreach (JProperty property in editMetadata.Properties())
             {
@@ -306,17 +314,31 @@ namespace NuGet.Services.Publish
                     continue;
                 }
 
+                if (property.Name == "listed")
+                {
+                    continue;
+                }
+
                 apiapp[property.Name] = property.Value;
+                requiresRewrittenApiApp = true;
             }
 
-            MemoryStream newApiappStream = new MemoryStream();
-            StreamWriter writer = new StreamWriter(newApiappStream);
-            writer.Write(apiapp.ToString());
-            writer.Flush();
-            newApiappStream.Seek(0, SeekOrigin.Begin);
+            if (requiresRewrittenApiApp)
+            {
+                MemoryStream newApiappStream = new MemoryStream();
+                StreamWriter writer = new StreamWriter(newApiappStream);
+                writer.Write(apiapp.ToString());
+                writer.Flush();
+                newApiappStream.Seek(0, SeekOrigin.Begin);
 
-            metadata[ApiAppMetadata] = apiapp;
-            artifacts.Add(ApiAppMetadata, new PackageArtifact { Stream = newApiappStream });
+                artifacts.Add(ApiAppMetadata, new PackageArtifact { Stream = newApiappStream });
+            }
+            else
+            {
+                //  no changes were applied to the apiapp file and so the catalogEntry can just point at the existing one
+
+                artifacts.Add(ApiAppMetadata, new PackageArtifact { Location = apiappLocation });
+            }
 
             return artifacts;
         }
