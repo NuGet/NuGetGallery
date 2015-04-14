@@ -65,6 +65,9 @@ if ($sites.appcmd.SITE -is [system.array]) {
 } else {
 	$defaultSite = $sites.appcmd.SITE.Attributes[0].Value.ToString()
 }
+$ethernetIp = Get-NetIPAddress | Where-Object { $_.AddressFamily -eq "IPv4" -and $_.PrefixOrigin -eq "Dhcp" }
+$ethernetIp = $ethernetIp.IPv4Address
+
 $additionalSSL | where { ![String]::IsNullOrEmpty($_) } | foreach {
     $parts = $_.Split(":")`
 
@@ -73,6 +76,8 @@ $additionalSSL | where { ![String]::IsNullOrEmpty($_) } | foreach {
 	$thumbprint = $parts[2]
 	
 	echo "Adding binding to site $defaultSite for URL https://$hostname`:$port with SNI certificate $thumbprint"
-	&$appcmd set site /site.name:"$defaultSite" /+"bindings.[protocol='https',bindingInformation='*:$port`:$hostname',sslFlags='3']" /commit:apphost
+	&$appcmd set site /site.name:"$defaultSite" /+"bindings.[protocol='https',bindingInformation='$ethernetIp`:$port`:$hostname',sslFlags='1']" /commit:apphost
 	netsh http add sslcert hostnameport=$hostname`:$port certhash=$thumbprint appid='{4dc3e181-e14b-4a21-b022-59fc669b0914}' certstorename=MY
+
+	&$appcmd set site /site.name:"$defaultSite" /-"bindings.[protocol='https',bindingInformation='$ethernetIp`:443:']" /commit:apphost
 }
