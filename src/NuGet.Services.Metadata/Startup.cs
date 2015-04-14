@@ -195,9 +195,16 @@ namespace NuGet.Services.Metadata
             {
                 if (_searcherManager == null)
                 {
-                    await context.Response.WriteAsync("no index loaded");
-                    context.Response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
-                    return;
+                    // first hit should try to set the searcher manager if not set yet
+                    TrySetSearcherManager();
+
+                    if (_searcherManager == null)
+                    {
+                        // something is wrong...
+                        await context.Response.WriteAsync("no index loaded");
+                        context.Response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
+                        return;
+                    }
                 }
 
                 switch (context.Request.Path.Value)
