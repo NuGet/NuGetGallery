@@ -57,6 +57,12 @@
     <Folder Include="NuGetGalleryContent\bin" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="NuGetGalleryContent\bin\AdditionalSSL.cmd">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="NuGetGalleryContent\bin\AdditionalSSL.ps1">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="NuGetGalleryContent\bin\Startup.cmd">
       <SubType>Content</SubType>
     </Content>

@@ -42,6 +42,7 @@
     </Sites>
     <Startup>
       <Task commandLine="Startup.cmd" executionContext="elevated" taskType="simple" />
+      <Task commandLine="AdditionalSSL.cmd" executionContext="elevated" taskType="background" />
     </Startup>
     <Endpoints>
       <InputEndpoint name="HttpEndpoint" protocol="http" port="80" loadBalancerProbe="HTTP" />
