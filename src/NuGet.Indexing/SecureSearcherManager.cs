@@ -14,11 +14,14 @@ namespace NuGet.Indexing
     {
         IDictionary<string, Filter> _filters;
         Filter _publicFilter;
+
         IDictionary<string, JArray[]> _versionsByDoc;
         JArray[] _versionListsByDoc;
 
         Filter _latestVersion;
+        Filter _latestVersionIncludeUnlisted;
         Filter _latestVersionIncludePrerelease;
+        Filter _latestVersionIncludePrereleaseIncludeUnlisted;
 
         public string IndexName { get; private set; }
         public IDictionary<string, Uri> RegistrationBaseAddress { get; private set; }
@@ -59,8 +62,10 @@ namespace NuGet.Indexing
             }
             _publicFilter = new CachingWrapperFilter(new PublicFilter());
 
-            _latestVersion = new CachingWrapperFilter(LatestVersionFilter.Create(searcher.IndexReader, false));
-            _latestVersionIncludePrerelease = new CachingWrapperFilter(LatestVersionFilter.Create(searcher.IndexReader, true));
+            _latestVersion = new CachingWrapperFilter(LatestVersionFilter.Create(searcher.IndexReader, false, false));
+            _latestVersionIncludeUnlisted = new CachingWrapperFilter(LatestVersionFilter.Create(searcher.IndexReader, false, true));
+            _latestVersionIncludePrerelease = new CachingWrapperFilter(LatestVersionFilter.Create(searcher.IndexReader, true, false));
+            _latestVersionIncludePrereleaseIncludeUnlisted = new CachingWrapperFilter(LatestVersionFilter.Create(searcher.IndexReader, true, true));
 
             // Recalculate precalculated Versions arrays 
             PackageVersions packageVersions = new PackageVersions(searcher.IndexReader);
@@ -74,11 +79,12 @@ namespace NuGet.Indexing
             LastReopen = DateTime.UtcNow;
         }
 
-        public Filter GetFilter(string tenantId, string[] types, bool includePrerelease)
+        public Filter GetFilter(string tenantId, string[] types, bool includePrerelease, bool includeUnlisted)
         {
             Filter visibilityFilter = GetVisibilityFilter(tenantId);
             Filter typeFilter = new CachingWrapperFilter(new TypeFilter(types));
-            Filter versionFilter = includePrerelease ? _latestVersionIncludePrerelease : _latestVersion;
+            Filter versionFilter = GetVersionFilter(includePrerelease, includeUnlisted);
+            
             return new ChainedFilter(new Filter[] { visibilityFilter, versionFilter, typeFilter }, ChainedFilter.Logic.AND);
         }
 
@@ -86,10 +92,20 @@ namespace NuGet.Indexing
         {
             Filter visibilityFilter = GetVisibilityFilter(tenantId);
             Filter typeFilter = new CachingWrapperFilter(new TypeFilter(types));
+
             return new ChainedFilter(new Filter[] { visibilityFilter, typeFilter }, ChainedFilter.Logic.AND);
         }
 
-        public Filter GetVisibilityFilter(string tenantId)
+        Filter GetVersionFilter(bool includePrerelease, bool includeUnlisted)
+        {
+            return includePrerelease
+                    ?
+                (includeUnlisted ? _latestVersionIncludePrereleaseIncludeUnlisted : _latestVersionIncludePrerelease)
+                    :
+                (includeUnlisted ? _latestVersionIncludeUnlisted : _latestVersion);
+        }
+
+        Filter GetVisibilityFilter(string tenantId)
         {
             Filter tenantFilter;
             if (tenantId != null && _filters.TryGetValue(tenantId, out tenantFilter))

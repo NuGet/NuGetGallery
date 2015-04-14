@@ -1,6 +1,7 @@
 ﻿using Lucene.Net.Documents;
 using Microsoft.Owin;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -71,6 +72,15 @@ namespace NuGet.Indexing
             if (value != null)
             {
                 obj[to] = value;
+            }
+        }
+
+        public static void AddFieldBool(JObject obj, Document document, string to, string from)
+        {
+            string value = document.Get(from);
+            if (value != null)
+            {
+                obj[to] = value.Equals("True", StringComparison.InvariantCultureIgnoreCase);
             }
         }
 

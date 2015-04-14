@@ -57,7 +57,7 @@ namespace NuGet.Indexing
             IndexSearcher searcher = searcherManager.Get();
             try
             {
-                Filter filter = searcherManager.GetFilter(tenantId, new string [] { "http://schema.nuget.org/schema#ApiAppPackage" }, includePrerelease);
+                Filter filter = searcherManager.GetFilter(tenantId, new string [] { "http://schema.nuget.org/schema#ApiAppPackage" }, includePrerelease, false);
 
                 Query query = MakeQuery(q);
 
@@ -102,7 +102,7 @@ namespace NuGet.Indexing
 
                 JObject obj = new JObject();
                 obj["@id"] = new Uri(registrationBaseAddress, url).AbsoluteUri;
-                obj["@type"] = document.Get("@type"); ;
+                obj["@type"] = document.Get("@type");
                 obj["registration"] = new Uri(registrationBaseAddress, string.Format("{0}/index.json", id.ToLowerInvariant())).AbsoluteUri;
                 obj["id"] = id;
 
@@ -110,6 +110,8 @@ namespace NuGet.Indexing
 
                 ServiceHelpers.AddField(obj, document, "packageContent", "PackageContent");
                 ServiceHelpers.AddField(obj, document, "catalogEntry", "CatalogEntry");
+
+                ServiceHelpers.AddFieldBool(obj, document, "listed", "Listed");
 
                 ServiceHelpers.AddField(obj, document, "tenantId", "TenantId");
                 ServiceHelpers.AddField(obj, document, "namespace", "Namespace");
@@ -197,7 +199,7 @@ namespace NuGet.Indexing
             IndexSearcher searcher = searcherManager.Get();
             try
             {
-                Filter filter = searcherManager.GetFilter(tenantId, new string[] { "http://schema.nuget.org/schema#ApiAppPackage" }, includePrerelease);
+                Filter filter = searcherManager.GetFilter(tenantId, new string[] { "http://schema.nuget.org/schema#ApiAppPackage" }, includePrerelease, true);
 
                 Query query = new TermQuery(new Term("Owner", currentOwner));
 

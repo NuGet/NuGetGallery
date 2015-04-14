@@ -373,6 +373,8 @@ namespace Ng
             Add(doc, "PackageContent", (string)package["packageContent"], Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
             Add(doc, "CatalogEntry", (string)package["@id"], Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
 
+            Add(doc, "Listed", (string)package["listed"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+
             doc.Boost = DetermineLanguageBoost((string)package["id"], (string)package["language"]);
 
             return doc;

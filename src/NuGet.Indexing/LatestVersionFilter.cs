@@ -10,7 +10,7 @@ namespace NuGet.Indexing
 {
     public static class LatestVersionFilter
     {
-        public static Filter Create(IndexReader indexReader, bool prerelease)
+        public static Filter Create(IndexReader indexReader, bool includePrerelease, bool includeUnlisted)
         {
             IDictionary<string, OpenBitSet> openBitSetLookup = new Dictionary<string, OpenBitSet>();
 
@@ -19,7 +19,7 @@ namespace NuGet.Indexing
                 openBitSetLookup.Add(segmentReader.SegmentName, new OpenBitSet());
             }
 
-            IDictionary<string, Tuple<NuGetVersion, string, int>> lookup = MakeLatestVersionLookup(indexReader, prerelease);
+            IDictionary<string, Tuple<NuGetVersion, string, int>> lookup = MakeLatestVersionLookup(indexReader, includePrerelease, includeUnlisted);
 
             foreach (Tuple<NuGetVersion, string, int> entry in lookup.Values)
             {
@@ -29,7 +29,7 @@ namespace NuGet.Indexing
             return new OpenBitSetLookupFilter(openBitSetLookup);
         }
 
-        static IDictionary<string, Tuple<NuGetVersion, string, int>> MakeLatestVersionLookup(IndexReader indexReader, bool prerelease)
+        static IDictionary<string, Tuple<NuGetVersion, string, int>> MakeLatestVersionLookup(IndexReader indexReader, bool includePrerelease, bool includeUnlisted)
         {
             IDictionary<string, Tuple<NuGetVersion, string, int>> lookup = new Dictionary<string, Tuple<NuGetVersion, string, int>>();
 
@@ -51,26 +51,31 @@ namespace NuGet.Indexing
                         continue;
                     }
 
-                    if (!version.IsPrerelease || prerelease)
+                    bool isListed = GetListed(document);
+
+                    if (isListed || includeUnlisted)
                     {
-                        string id = GetId(document);
-
-                        if (id == null)
+                        if (!version.IsPrerelease || includePrerelease)
                         {
-                            continue;
-                        }
+                            string id = GetId(document);
 
-                        Tuple<NuGetVersion, string, int> existingVersion;
-                        if (lookup.TryGetValue(id, out existingVersion))
-                        {
-                            if (version > existingVersion.Item1)
+                            if (id == null)
                             {
-                                lookup[id] = Tuple.Create(version, segmentReader.SegmentName, n);
+                                continue;
                             }
-                        }
-                        else
-                        {
-                            lookup.Add(id, Tuple.Create(version, segmentReader.SegmentName, n));
+
+                            Tuple<NuGetVersion, string, int> existingVersion;
+                            if (lookup.TryGetValue(id, out existingVersion))
+                            {
+                                if (version > existingVersion.Item1)
+                                {
+                                    lookup[id] = Tuple.Create(version, segmentReader.SegmentName, n);
+                                }
+                            }
+                            else
+                            {
+                                lookup.Add(id, Tuple.Create(version, segmentReader.SegmentName, n));
+                            }
                         }
                     }
                 }
@@ -83,6 +88,12 @@ namespace NuGet.Indexing
         {
             string version = document.Get("Version");
             return (version == null) ? null : new NuGetVersion(version);
+        }
+
+        static bool GetListed(Document document)
+        {
+            string listed = document.Get("Listed");
+            return (listed == null) ? false : listed.Equals("true", StringComparison.InvariantCultureIgnoreCase);
         }
 
         static string GetId(Document document)
