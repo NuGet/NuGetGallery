@@ -57,9 +57,14 @@ $ips | where { ![String]::IsNullOrEmpty($_) } | foreach {
 $setting = [Microsoft.WindowsAzure.ServiceRuntime.RoleEnvironment]::GetConfigurationSettingValue("Startup.AdditionalSSL");
 $additionalSSL = $setting.Split(","); # e.g. foo.bar:443:thumbprint,bar.baz:443:FEDCBA
 
-# Register additional SSL bindings
+# Register additional SSL bindings - note that the certificates must be added to the VM (ServiceDefinition.csdef)
 $sites = [xml](&$appcmd list sites /xml)
-$defaultSite = $sites.appcmd.SITE[0].Attributes[0].Value.ToString()
+$defaultSite = $null
+if ($sites.appcmd.SITE -is [system.array]) {
+	$defaultSite = $sites.appcmd.SITE[0].Attributes[0].Value.ToString() 
+} else {
+	$defaultSite = $sites.appcmd.SITE.Attributes[0].Value.ToString()
+}
 $additionalSSL | where { ![String]::IsNullOrEmpty($_) } | foreach {
     $parts = $_.Split(":")`
 

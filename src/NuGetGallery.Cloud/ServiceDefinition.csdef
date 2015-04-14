@@ -64,6 +64,7 @@
     </Imports>
     <Certificates>
       <Certificate name="SSLCertificate" storeLocation="LocalMachine" storeName="My" />
+      <Certificate name="SecondarySSLCertificate" storeLocation="LocalMachine" storeName="My" />
     </Certificates>
     <LocalResources>
       <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="2048" />

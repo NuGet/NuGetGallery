@@ -57,6 +57,7 @@
     <Certificates>
       <!-- Totally bogus set of Hex digits that get replaced by the actual thumbprints when generating a CSCFG -->
       <Certificate name="SSLCertificate" thumbprint="D2CA3A778E08936DD4C61E2734158B0044831010" thumbprintAlgorithm="sha1" />
+      <Certificate name="SecondarySSLCertificate" thumbprint="D2CA3A778E08936DD4C61E2734158B0044831010" thumbprintAlgorithm="sha1" />
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="D2CA3A778E08936DD4C61E2734158B0044831010" thumbprintAlgorithm="sha1" />
     </Certificates>
   </Role>
