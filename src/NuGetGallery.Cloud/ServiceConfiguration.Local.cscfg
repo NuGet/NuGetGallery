@@ -52,6 +52,7 @@
       <Setting name="Gallery.ReadOnlyMode" value="false" />
       <Setting name="Gallery.FeedOnlyMode" value="false" />
       <Setting name="Startup.BlockedIPs" value="" />
+      <Setting name="Startup.AdditionalSSL" value="" />
     </ConfigurationSettings>
     <Certificates>
       <!-- Totally bogus set of Hex digits that get replaced by the actual thumbprints when generating a CSCFG -->

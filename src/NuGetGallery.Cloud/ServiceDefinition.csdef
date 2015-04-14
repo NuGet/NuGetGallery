@@ -30,6 +30,7 @@
       <Setting name="Auth.MicrosoftAccount.ClientId" />
       <Setting name="Auth.MicrosoftAccount.ClientSecret" />
       <Setting name="Startup.BlockedIPs" />
+      <Setting name="Startup.AdditionalSSL" />
     </ConfigurationSettings>
     <Sites>
       <Site name="Web">
