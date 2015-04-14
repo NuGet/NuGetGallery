@@ -13,7 +13,7 @@ Import-Module ServerManager
 [Reflection.Assembly]::LoadWithPartialName("Microsoft.WindowsAzure.ServiceRuntime");
 
 # Wait for the site to be provisioned
-while ((Get-Website).Count == 0) {
+while ((Get-Website).Count -eq 0) {
     Write-Host "Waiting for website to be provisioned..."
     Start-Sleep 10
 }
@@ -45,4 +45,5 @@ $additionalSSL | where { ![String]::IsNullOrEmpty($_) } | foreach {
 	netsh http add sslcert hostnameport=$hostname`:$port certhash=$thumbprint appid='{4dc3e181-e14b-4a21-b022-59fc669b0914}' certstorename=MY
 
 	&$appcmd set site /site.name:"$defaultSite" /-"bindings.[protocol='https',bindingInformation='$ethernetIp`:443:']" /commit:apphost
+    netsh http delete sslcert ipport=$ethernetIp`:443
 }
