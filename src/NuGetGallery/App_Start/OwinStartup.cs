@@ -14,6 +14,7 @@ using NuGetGallery.Configuration;
 using System.Security.Claims;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
+using System.Web.Mvc;
 
 [assembly: OwinStartup(typeof(NuGetGallery.OwinStartup))]
 
@@ -30,6 +31,9 @@ namespace NuGetGallery
             
             // Configure logging
             app.SetLoggerFactory(new DiagnosticsLoggerFactory());
+
+            // Remove X-AspNetMvc-Version header
+            MvcHandler.DisableMvcResponseHeader = true;
 
             if (config.Current.RequireSSL)
             {
