@@ -72,6 +72,10 @@ namespace NuGet.Services.Publish
                 return;
             }
 
+            //  no-commit mode - used for just running the validation
+
+            bool isCommit = GetIsCommit(context);
+
             Stream packageStream = context.Request.Body;
             
             //  validation
@@ -103,7 +107,7 @@ namespace NuGet.Services.Publish
                 isListed = !unlist.Equals(Boolean.TrueString, StringComparison.InvariantCultureIgnoreCase);
             }
 
-            Trace.TraceInformation("UPLOAD Processing package {0}/{1}/{2} listed: {3}", validationResult.PackageIdentity.Namespace, validationResult.PackageIdentity.Id, validationResult.PackageIdentity.Version, isListed);
+            Trace.TraceInformation("UPLOAD Processing package {0}/{1}/{2} isListed: {3} isCommit: {4}", validationResult.PackageIdentity.Namespace, validationResult.PackageIdentity.Id, validationResult.PackageIdentity.Version, isListed, isCommit);
 
             //  process the package
 
@@ -111,9 +115,12 @@ namespace NuGet.Services.Publish
 
             //  (1) save all the artifacts
 
-            await Artifacts.Save(metadata, packageStream, Configuration.StoragePrimary, Configuration.StorageContainerArtifacts);
+            if (isCommit)
+            {
+                await Artifacts.Save(metadata, packageStream, Configuration.StoragePrimary, Configuration.StorageContainerArtifacts);
 
-            Trace.TraceInformation("Save");
+                Trace.TraceInformation("Save");
+            }
 
             InferArtifactTypes(metadata);
 
@@ -131,25 +138,40 @@ namespace NuGet.Services.Publish
 
             //  (4) add the new item to the catalog
 
-            Uri catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails, isListed);
+            Uri catalogAddress = null;
 
-            Trace.TraceInformation("AddToCatalog");
+            if (isCommit)
+            {
+                catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails, isListed);
+
+                Trace.TraceInformation("AddToCatalog");
+            }
 
             //  (5) update the registration ownership record
 
-            await UpdateRegistrationOwnership(validationResult.PackageIdentity);
+            if (isCommit)
+            {
+                await UpdateRegistrationOwnership(validationResult.PackageIdentity);
 
-            Trace.TraceInformation("UpdateRegistrationOwnership");
+                Trace.TraceInformation("UpdateRegistrationOwnership");
+            }
 
             //  (6) create response
 
-            JToken response = new JObject
-            { 
-                { "download", metadata["nuspec"]["packageContent"] },
-                { "catalog", catalogAddress.ToString() }
-            };
+            if (isCommit)
+            {
+                JToken response = new JObject
+                { 
+                    { "download", metadata["nuspec"]["packageContent"] },
+                    { "catalog", catalogAddress.ToString() }
+                };
 
-            await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
+                await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.Created);
+            }
+            else
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.OK;
+            }
         }
 
         public async Task Edit(IOwinContext context)
@@ -378,6 +400,16 @@ namespace NuGet.Services.Publish
             await _registrationOwnership.DisableTenant();
 
             context.Response.StatusCode = (int)HttpStatusCode.OK;
+        }
+
+        bool GetIsCommit(IOwinContext context)
+        {
+            string s = context.Request.Query["commit"];
+            if (s != null)
+            {
+                return !s.Equals("false", StringComparison.InvariantCultureIgnoreCase);
+            }
+            return true;
         }
 
         async Task ExtractMetadata(IDictionary<string, JObject> metadata, Stream nupkgStream)
