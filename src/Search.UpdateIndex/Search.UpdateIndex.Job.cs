@@ -30,6 +30,10 @@ namespace Search.UpdateIndex
         /// The container in DataStorageAccount in which FrameworksList.FileName can be found. Default is 'ng-search-data'
         /// </summary>
         private string DataContainerName { get; set; }
+        /// <summary>
+        /// The container in DataStorageAccount where Lucene Search Index is present.
+        /// </summary>
+        private string ContainerName { get; set; }
         private string IndexFolder { get; set; }
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
@@ -55,9 +59,9 @@ namespace Search.UpdateIndex
                 DataContainerName = DefaultDataContainerName;
             }
 
-            IndexFolder =
-                JobConfigManager.GetArgument(jobArgsDictionary,
-                    JobArgumentNames.IndexFolder);
+            ContainerName =
+               JobConfigManager.TryGetArgument(jobArgsDictionary,
+                   JobArgumentNames.ContainerName);
 
             // Initialized successfully, return true
             return true;
@@ -65,20 +69,14 @@ namespace Search.UpdateIndex
 
         public override Task<bool> Run()
         {
-            FrameworksList frameworksList = new StorageFrameworksList(DataStorageAccount, DataContainerName, FrameworksList.FileName);
-            Lucene.Net.Store.Directory directory = new SimpleFSDirectory(new DirectoryInfo(IndexFolder));
-
+                      
             // Run the task
             UpdateIndexTask task = new UpdateIndexTask()
             {
                 SqlConnectionString = PackageDatabase.ConnectionString,
                 StorageAccount = DataStorageAccount,
-                Container = String.IsNullOrEmpty(IndexFolder) ?
-                    (IndexFolder ?? "ng-search") :
-                    null,
+                Container = ContainerName,
                 DataContainer = DataContainerName,
-                Folder = IndexFolder,
-           
             };
             task.Execute();
             return Task.FromResult(true);

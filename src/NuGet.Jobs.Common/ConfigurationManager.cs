@@ -71,6 +71,8 @@ namespace NuGet.Jobs.Common
         public const string DataStorageAccount = "DataStorageAccount";
         public const string DataContainerName = "DataContainerName";
         public const string LocalIndexFolder = "LocalIndexFolder";
+        public const string IndexFolder = "IndexFolder";
+        public const string ContainerName = "ContainerName";
     }
     /// <summary>
     /// This class is used to retrieve and expose the known azure configuration settings 

@@ -15,9 +15,10 @@ namespace Stats.CreateWarehouseReports.Helpers
             return ReadResourceFile(name, typeof(ResourceHelpers).Assembly);
         }
 
-        public static async Task<string> ReadResourceFile(string name, Assembly asm)
+        public static async Task<string> ReadResourceFile(string resourceName, Assembly asm)
         {
-            using (var stream = asm.GetManifestResourceStream(name))
+            string assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(assemblyName + "." + resourceName))
             using (var reader = new StreamReader(stream))
             {
                 return await reader.ReadToEndAsync();

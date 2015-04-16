@@ -1,12 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-<<<<<<< HEAD
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
-=======
-# Visual Studio 14
-VisualStudioVersion = 14.0.22728.0
->>>>>>> 6c968b24eeb1c64723680bc73170bcc65e2ba1f6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.Updater", "src\Catalog.Updater\Catalog.Updater.csproj", "{5825F5A5-6584-473B-BB64-1409FAF3C814}"
 EndProject
@@ -44,13 +39,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.CalculateTotals", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.AppConfig.AzureJobTraceListener", "src\Tests.AppConfig.AzureJobTraceListener\Tests.AppConfig.AzureJobTraceListener.csproj", "{C520044F-0D65-4A12-BC0E-57FB3AAA7546}"
 EndProject
-<<<<<<< HEAD
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.CreateWarehouseReports", "Stats.CreateWarehouseReports\Stats.CreateWarehouseReports.csproj", "{06FD181A-0547-4FE9-9E52-F4A98B8924F6}"
-=======
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.CreateWarehouseReports", "src\Stats.CreateWarehouseReports\Stats.CreateWarehouseReports.csproj", "{06FD181A-0547-4FE9-9E52-F4A98B8924F6}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Search", "Search", "{57F34E9A-3A98-4E48-BF76-D49CB9CB3323}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search.RebuildIndex", "src\Search.RebuildIndex\Search.RebuildIndex.csproj", "{B865DC6D-30DF-414A-BD38-A98343736E5B}"
->>>>>>> 6c968b24eeb1c64723680bc73170bcc65e2ba1f6
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search.UpdateIndex", "src\Search.UpdateIndex\Search.UpdateIndex.csproj", "{71135398-BF06-4105-9BC0-5D1880E9D645}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -98,17 +93,18 @@ Global
 		{C520044F-0D65-4A12-BC0E-57FB3AAA7546}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C520044F-0D65-4A12-BC0E-57FB3AAA7546}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C520044F-0D65-4A12-BC0E-57FB3AAA7546}.Release|Any CPU.Build.0 = Release|Any CPU
-<<<<<<< HEAD
 		{06FD181A-0547-4FE9-9E52-F4A98B8924F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{06FD181A-0547-4FE9-9E52-F4A98B8924F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06FD181A-0547-4FE9-9E52-F4A98B8924F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{06FD181A-0547-4FE9-9E52-F4A98B8924F6}.Release|Any CPU.Build.0 = Release|Any CPU
-=======
 		{B865DC6D-30DF-414A-BD38-A98343736E5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B865DC6D-30DF-414A-BD38-A98343736E5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B865DC6D-30DF-414A-BD38-A98343736E5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B865DC6D-30DF-414A-BD38-A98343736E5B}.Release|Any CPU.Build.0 = Release|Any CPU
->>>>>>> 6c968b24eeb1c64723680bc73170bcc65e2ba1f6
+		{71135398-BF06-4105-9BC0-5D1880E9D645}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71135398-BF06-4105-9BC0-5D1880E9D645}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71135398-BF06-4105-9BC0-5D1880E9D645}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71135398-BF06-4105-9BC0-5D1880E9D645}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -123,10 +119,8 @@ Global
 		{A08F0185-4DA3-4D5B-BF0C-B178596D5789} = {FA5644B5-4F08-43F6-86B3-039374312A47}
 		{7DE24E1D-153D-47B7-BEA5-A97808A01075} = {3B227DEE-B610-440F-866E-6F79D413B21F}
 		{C520044F-0D65-4A12-BC0E-57FB3AAA7546} = {6A776396-02B1-475D-A104-26940ADB04AB}
-<<<<<<< HEAD
 		{06FD181A-0547-4FE9-9E52-F4A98B8924F6} = {3B227DEE-B610-440F-866E-6F79D413B21F}
-=======
 		{B865DC6D-30DF-414A-BD38-A98343736E5B} = {57F34E9A-3A98-4E48-BF76-D49CB9CB3323}
->>>>>>> 6c968b24eeb1c64723680bc73170bcc65e2ba1f6
+		{71135398-BF06-4105-9BC0-5D1880E9D645} = {57F34E9A-3A98-4E48-BF76-D49CB9CB3323}
 	EndGlobalSection
 EndGlobal

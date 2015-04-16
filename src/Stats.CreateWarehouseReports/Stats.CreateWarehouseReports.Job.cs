@@ -134,17 +134,19 @@ namespace Stats.CreateWarehouseReports
 
             Parallel.ForEach(packages, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, package =>
             {
-                //CreateReport(
-                //    PackageReportDetailBaseName + package.PackageId.ToLowerInvariant(),
-                //    "Scripts.DownloadReport_RecentPopularityDetailByPackage.sql",
-                //    t =>
-                //    {
-                //        var jobj = MakeReportJson(t);
-                //        TotalDownloads(jobj);
-                //        SortItems(jobj);
-                //        return jobj.ToString(JsonFormat.SerializerSettings.Formatting);
-                //    },
-                //    Tuple.Create("@PackageId", 128, package.PackageId)).Wait();
+               
+
+                CreateReport(
+                    PackageReportDetailBaseName + package.PackageId.ToLowerInvariant(),
+                    "Scripts.DownloadReport_RecentPopularityDetailByPackage.sql",
+                    t =>
+                    {
+                        var jobj = MakeReportJson(t);
+                        TotalDownloads(jobj);
+                        SortItems(jobj);
+                        return jobj.ToString();
+                    },
+                    Tuple.Create("@PackageId", 128, package.PackageId)).Wait();
                 if (!all)
                 {
                     ConfirmPackageExport(package).Wait();
@@ -483,7 +485,13 @@ namespace Stats.CreateWarehouseReports
                 new SqlConnectionStringBuilder(
                     JobConfigManager.GetArgument(jobArgsDictionary,
                         JobArgumentNames.SourceDatabase,
-                        EnvironmentVariableKeys.SqlWarehouse));
+                        EnvironmentVariableKeys.SqlGallery));
+
+            WarehouseConnection =
+                    new SqlConnectionStringBuilder(
+                        JobConfigManager.GetArgument(jobArgsDictionary,
+                            JobArgumentNames.DestinationDatabase,
+                            EnvironmentVariableKeys.SqlWarehouse));
 
             Destination = CloudStorageAccount.Parse(
                                         JobConfigManager.GetArgument(jobArgsDictionary,
