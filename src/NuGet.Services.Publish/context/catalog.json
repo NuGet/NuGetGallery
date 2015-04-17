@@ -10,6 +10,7 @@
         "categories": { "@container" : "@set" },
         "entries": { "@container" : "@set" },
         "links": { "@container" : "@set" },
-        "tags": { "@container" : "@set" }
+        "tags": { "@container": "@set" },
+        "packageContent": { "@type": "@id" }
     }
 }

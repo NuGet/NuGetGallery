@@ -139,5 +139,25 @@ namespace CatalogTests
 
             await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryDeleteBatch("mypackage", "4.0.0"), factory, new Uri("http://content/"), 10, 10);
         }
+
+        public static async Task Test4Async()
+        {
+            Uri catalogUri = new Uri("https://nugetdevstorage.blob.core.windows.net/catalog/index.json");
+
+            string path = "c:\\data\\registration20150417";
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(path);
+            if (directoryInfo.Exists)
+            {
+                directoryInfo.Delete(true);
+            }
+            directoryInfo.Create();
+
+            FileStorageFactory factory = new FileStorageFactory(new Uri("http://tempuri.org"), path);
+
+            CollectorBase collector = new RegistrationCollector(catalogUri, factory);
+
+            await collector.Run();
+        }
     }
 }

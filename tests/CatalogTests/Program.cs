@@ -80,13 +80,14 @@ namespace CatalogTests
                 //RegistrationMakerTests.Test1Async().Wait();
                 //RegistrationMakerTests.Test2Async().Wait();
                 //RegistrationMakerTests.Test3Async().Wait();
+                RegistrationMakerTests.Test4Async().Wait();
 
                 //ApiAppsTests.Test0Async().Wait();
                 //ApiAppsTests.Test1Async().Wait();
 
                 //IntegrityTests.Test1();
                 //IntegrityTests.Test2();
-                IntegrityTests.Test3();
+                //IntegrityTests.Test3();
 
                 DateTime after = DateTime.Now;
 

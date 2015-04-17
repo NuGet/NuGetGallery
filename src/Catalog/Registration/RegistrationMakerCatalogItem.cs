@@ -6,6 +6,7 @@ using System.Linq;
 using VDS.RDF;
 using VDS.RDF.Writing;
 using VDS.RDF.Query;
+using System.Globalization;
 
 namespace NuGet.Services.Metadata.Catalog.Registration
 {
@@ -14,14 +15,17 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         Uri _catalogUri;
         IGraph _catalogItem;
         Uri _itemAddress;
+        Uri _packageContentBaseAddress;
+        Uri _packageContentAddress;
         Uri _registrationBaseAddress;
         Uri _registrationAddress;
         DateTime _publishedDate;
 
-        public RegistrationMakerCatalogItem(Uri catalogUri, IGraph catalogItem, Uri registrationBaseAddress)
+        public RegistrationMakerCatalogItem(Uri catalogUri, IGraph catalogItem, Uri registrationBaseAddress, Uri packageContentBaseAddress = null)
         {
             _catalogUri = catalogUri;
             _catalogItem = catalogItem;
+            _packageContentBaseAddress = packageContentBaseAddress;
             _registrationBaseAddress = registrationBaseAddress;
         }
 
@@ -88,7 +92,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
                     if (node != null)
                     {
-                        _publishedDate = DateTime.Parse(node.Value);
+                        _publishedDate = DateTime.ParseExact(node.Value, "O", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
                     }
                 }
             }
@@ -99,8 +103,25 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         Uri GetPackageContentAddress()
         {
-            INode subject = _catalogItem.CreateUriNode(_catalogUri);
-            return ((IUriNode)_catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.PackageContent)).First().Object).Uri;
+            if (_packageContentAddress == null)
+            {
+                INode subject = _catalogItem.CreateUriNode(_catalogUri);
+
+                Triple packageContentTriple = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.PackageContent)).FirstOrDefault();
+                if (packageContentTriple != null)
+                {
+                    _packageContentAddress = new Uri(packageContentTriple.Object.ToString());
+                }
+                else
+                {
+                    string id = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Id)).FirstOrDefault().Object.ToString().ToLowerInvariant();
+                    string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString().ToLowerInvariant();
+                    string path = string.Format("packages/{0}.{1}.nupkg", id.ToLowerInvariant(), version.ToLowerInvariant());
+                    _packageContentAddress = new Uri(_packageContentBaseAddress, path);
+                }
+            }
+
+            return _packageContentAddress;
         }
 
         public override IGraph CreatePageContent(CatalogContext context)

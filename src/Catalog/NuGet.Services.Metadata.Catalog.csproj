@@ -136,6 +136,7 @@
     <Compile Include="Pipeline\PipelinePackage.cs" />
     <Compile Include="Pipeline\PublicationDetailsStage.cs" />
     <Compile Include="Pipeline\XmlStage.cs" />
+    <Compile Include="Registration\RegistrationCollector.cs" />
     <Compile Include="Registration\IRegistrationPersistence.cs" />
     <Compile Include="Registration\RecordingStorage.cs" />
     <Compile Include="Registration\RegistrationCatalogEntry.cs" />
