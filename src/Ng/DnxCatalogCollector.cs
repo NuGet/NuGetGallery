@@ -91,7 +91,7 @@ namespace Ng
 
         async Task SaveNuspec(Storage storage, string id, string version, string nuspec)
         {
-            string relativeAddress = string.Format("{1}/{0}.{1}.nuspec", id, version);
+            string relativeAddress = string.Format("{1}/{0}.nuspec", id, version);
             Uri nuspecUri = new Uri(storage.BaseAddress, relativeAddress);
             await storage.Save(nuspecUri, new StringStorageContent(nuspec, "text/xml"));
         }

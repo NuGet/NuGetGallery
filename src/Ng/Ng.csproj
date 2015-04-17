@@ -178,6 +178,7 @@
     <None Include="Ng.nuspec" />
     <None Include="packages.config" />
     <None Include="Scripts\Catalog2LuceneV3.cmd" />
+    <None Include="Scripts\Catalog2DnxV3.cmd" />
     <None Include="Scripts\Catalog2RegistrationV3.cmd" />
     <None Include="Scripts\PreDeploy.ps1" />
     <None Include="Scripts\PostDeploy.ps1" />
