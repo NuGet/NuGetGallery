@@ -20,7 +20,7 @@ Set-Service -Name $serviceNameC2L -DisplayName "NuGet - Catalog2LuceneV3 - $serv
 sc.exe failure $serviceNameC2L reset= 30 actions= restart/5000 
 
 ## Catalog2DnxV3
-$installC2D = "nssm install $serviceNameC2L $currentDirectory\Catalog2DnxV3.cmd"
+$installC2D = "nssm install $installC2D $currentDirectory\Catalog2DnxV3.cmd"
 cmd /C $installC2D 
 Set-Service -Name $serviceNameC2D -DisplayName "NuGet - Catalog2DnxV3 - $serviceNameC2D" -Description "Runs Catalog2DnxV3." -StartupType Automatic
 sc.exe failure $serviceNameC2D reset= 30 actions= restart/5000 
