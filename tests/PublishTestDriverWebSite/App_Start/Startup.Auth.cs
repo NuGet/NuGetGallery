@@ -7,7 +7,6 @@ using PublishTestDriverWebSite.Utils;
 using System;
 using System.Configuration;
 using System.Globalization;
-using System.IdentityModel.Claims;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
@@ -41,6 +40,7 @@ namespace PublishTestDriverWebSite
         static string postLogoutRedirectUri = ConfigurationManager.AppSettings["ida:PostLogoutRedirectUri"];
 
         public static readonly string Authority = String.Format(CultureInfo.InvariantCulture, aadInstance, tenant);
+        public static readonly string AuthorityFormat = aadInstance.TrimEnd('/') + "/";
 
         // This is the resource ID of the AAD Graph API.  We'll need this to request a token to call the Graph API.
         static string graphResourceId = ConfigurationManager.AppSettings["ida:GraphResourceId"];
@@ -118,12 +118,12 @@ namespace PublishTestDriverWebSite
                             
                             var code = context.Code;
 
-                            string signedInUserID = context.AuthenticationTicket.Identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                            string userObjectID = context.AuthenticationTicket.Identity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
                             string tenantId = context.AuthenticationTicket.Identity.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid").Value;
 
                             string authority = string.Format(aadInstance, tenantId);
 
-                            AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(signedInUserID));
+                            AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(userObjectID));
                             ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(clientId, Certificate);
                             AuthenticationResult result = await authContext.AcquireTokenByAuthorizationCodeAsync(code, new Uri(HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Path)), clientAssertionCertificate, graphResourceId);
                         },

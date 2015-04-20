@@ -28,8 +28,11 @@ namespace PublishTestDriverWebSite.Controllers
             try
             {
                 string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
-                AuthenticationContext authContext = new AuthenticationContext(Startup.Authority, new NaiveSessionCache(userObjectID));
+                string tenantId = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid").Value;
 
+                string authority = string.Format(Startup.AuthorityFormat, tenantId);
+
+                AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(userObjectID));
                 AuthenticationResult authenticationResult;
 
                 if (Startup.Certificate == null)
@@ -80,7 +83,11 @@ namespace PublishTestDriverWebSite.Controllers
             try
             {
                 string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
-                AuthenticationContext authContext = new AuthenticationContext(Startup.Authority, new NaiveSessionCache(userObjectID));
+                string tenantId = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid").Value;
+
+                string authority = string.Format(Startup.AuthorityFormat, tenantId);
+
+                AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(userObjectID));
                 ClientCredential credential = new ClientCredential(clientId, appKey);
 
                 AuthenticationResult result = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));

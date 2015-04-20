@@ -41,7 +41,11 @@ namespace PublishTestDriverWebSite.Controllers
         async Task<ActionResult> Send(string action)
         {
             string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
-            AuthenticationContext authContext = new AuthenticationContext(Startup.Authority, new NaiveSessionCache(userObjectID));
+            string tenantId = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid").Value;
+
+            string authority = string.Format(Startup.AuthorityFormat, tenantId);
+
+            AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(userObjectID));
 
             AuthenticationResult authenticationResult;
 
