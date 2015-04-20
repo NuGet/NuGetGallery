@@ -14,21 +14,20 @@ namespace NuGet.Indexing
     {
         public static async Task Find(IOwinContext context, SecureSearcherManager searcherManager, string tenantId)
         {
-            string ns = context.Request.Query["namespace"];
             string id = context.Request.Query["id"];
             string version = context.Request.Query["version"];
 
             HttpStatusCode statusCode;
             JToken result;
-            if (!string.IsNullOrEmpty(ns) && !string.IsNullOrEmpty(id))
+            if (!string.IsNullOrEmpty(id))
             {
                 if (string.IsNullOrEmpty(version))
                 {
-                    result = FindById(searcherManager, ns, id, tenantId, context.Request.Uri.Scheme);
+                    result = FindById(searcherManager, id, tenantId, context.Request.Uri.Scheme);
                 }
                 else
                 {
-                    result = FindByIdAndVersion(searcherManager, ns, id, version, tenantId, context.Request.Uri.Scheme);
+                    result = FindByIdAndVersion(searcherManager, id, version, tenantId, context.Request.Uri.Scheme);
                 }
 
                 if (result == null)
@@ -43,25 +42,23 @@ namespace NuGet.Indexing
             }
             else
             {
-                result = new JObject { { "error", "namespace and id are required parameters" } };
+                result = new JObject { { "error", "id is a required parameter" } };
                 statusCode = HttpStatusCode.BadRequest;
             }
 
             await ServiceHelpers.WriteResponse(context, statusCode, result);
         }
 
-        static JToken FindByIdAndVersion(SecureSearcherManager searcherManager, string ns, string id, string version, string tenantId, string scheme)
+        static JToken FindByIdAndVersion(SecureSearcherManager searcherManager, string id, string version, string tenantId, string scheme)
         {
             IndexSearcher searcher = searcherManager.Get();
             try
             {
-                string analyzedNs = ns.ToLowerInvariant();
                 string analyzedId = id.ToLowerInvariant();
                 string analyzedVersion = NuGetVersion.Parse(version).ToNormalizedString();
 
                 BooleanQuery query = new BooleanQuery();
-                query.Add(new BooleanClause(new TermQuery(new Term("Namespace", analyzedNs)), Occur.MUST));
-                query.Add(new BooleanClause(new TermQuery(new Term("Id", analyzedId)), Occur.MUST));
+                query.Add(new BooleanClause(new TermQuery(new Term("FullId", analyzedId)), Occur.MUST));
                 query.Add(new BooleanClause(new TermQuery(new Term("Version", analyzedVersion)), Occur.MUST));
 
                 Filter filter = searcherManager.GetFilter(tenantId, new string [] { "http://schema.nuget.org/schema#ApiAppPackage" });
@@ -91,17 +88,15 @@ namespace NuGet.Indexing
             }
         }
 
-        static JToken FindById(SecureSearcherManager searcherManager, string ns, string id, string tenantId, string scheme)
+        static JToken FindById(SecureSearcherManager searcherManager, string id, string tenantId, string scheme)
         {
             IndexSearcher searcher = searcherManager.Get();
             try
             {
-                string analyzedNs = ns.ToLowerInvariant();
                 string analyzedId = id.ToLowerInvariant();
 
                 BooleanQuery query = new BooleanQuery();
-                query.Add(new BooleanClause(new TermQuery(new Term("Namespace", analyzedNs)), Occur.MUST));
-                query.Add(new BooleanClause(new TermQuery(new Term("Id", analyzedId)), Occur.MUST));
+                query.Add(new BooleanClause(new TermQuery(new Term("FullId", analyzedId)), Occur.MUST));
 
                 Filter filter = searcherManager.GetFilter(tenantId, new string [] { "http://schema.nuget.org/schema#ApiAppPackage" });
 
@@ -111,7 +106,7 @@ namespace NuGet.Indexing
                 {
                     Uri registrationBaseAddress = searcherManager.RegistrationBaseAddress[scheme];
                     JObject registrationObj = new JObject();
-                    string registrationRelativeAddress = string.Format("{0}/{1}/index.json", ns.ToLowerInvariant(), id.ToLowerInvariant());
+                    string registrationRelativeAddress = string.Format("{0}/index.json", id.ToLowerInvariant());
                     registrationObj["registration"] = new Uri(registrationBaseAddress, registrationRelativeAddress).AbsoluteUri;
 
                     JArray data = new JArray();

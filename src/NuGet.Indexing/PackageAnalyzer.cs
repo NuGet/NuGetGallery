@@ -30,6 +30,8 @@ namespace NuGet.Indexing
                 { "Authors", new DescriptionAnalyzer() },
                 { "Owners", new DescriptionAnalyzer() },
                 { "Tags", new TagsAnalyzer() },
+                { "FullId", new IdentifierKeywordAnalyzer() },
+                { "Namespace", new IdentifierKeywordAnalyzer() },
                 { "__default", new KeywordAnalyzer() } // The "__default" field is only used during initial query parsing. It should just be tokenized as a keyword for later processing.
             };
         }
