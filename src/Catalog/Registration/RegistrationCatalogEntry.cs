@@ -36,7 +36,20 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         static bool IsListed(INode subject, IGraph graph)
         {
-            return graph.ContainsTriple(new Triple(subject, graph.CreateUriNode(Schema.Predicates.Listed), graph.CreateLiteralNode("true", Schema.DataTypes.Boolean)));
+            //return graph.ContainsTriple(new Triple(subject, graph.CreateUriNode(Schema.Predicates.Listed), graph.CreateLiteralNode("true", Schema.DataTypes.Boolean)));
+
+            Triple listed = graph.GetTriplesWithSubjectPredicate(subject, graph.CreateUriNode(Schema.Predicates.Listed)).FirstOrDefault();
+            if (listed != null)
+            {
+                return ((ILiteralNode)listed.Object).Value.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+            }
+            Triple published = graph.GetTriplesWithSubjectPredicate(subject, graph.CreateUriNode(Schema.Predicates.Published)).FirstOrDefault();
+            if (published != null)
+            {
+                DateTime publishedDate = DateTime.Parse(((ILiteralNode)published.Object).Value);
+                return publishedDate.Year != 1900;
+            }
+            return true;
         }
     }
 }

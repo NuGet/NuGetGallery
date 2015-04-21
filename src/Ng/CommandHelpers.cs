@@ -114,6 +114,17 @@ namespace Ng
             return value;
         }
 
+        public static bool GetUnlistShouldDelete(IDictionary<string, string> arguments)
+        {
+            string unlistShouldDeleteStr = null;
+            if (arguments.TryGetValue("-unlistShouldDelete", out unlistShouldDeleteStr))
+            {
+                return unlistShouldDeleteStr.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+            }
+
+            return false;
+        }
+
         public static bool GetVerbose(IDictionary<string, string> arguments)
         {
             string verboseStr = "false";
@@ -169,7 +180,6 @@ namespace Ng
             string value;
             if (!arguments.TryGetValue("-contentBaseAddress", out value))
             {
-                TraceRequiredArgument("-contentBaseAddress");
                 return null;
             }
             return value;

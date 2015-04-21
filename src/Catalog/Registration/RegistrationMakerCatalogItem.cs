@@ -92,7 +92,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
                     if (node != null)
                     {
-                        _publishedDate = DateTime.ParseExact(node.Value, "O", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+                        _publishedDate = DateTime.Parse(node.Value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
                     }
                 }
             }

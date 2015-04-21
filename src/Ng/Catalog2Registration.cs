@@ -1,5 +1,6 @@
 ﻿using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Metadata.Catalog.Registration;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,11 +11,12 @@ namespace Ng
 {
     public static class Catalog2Registration
     {
-        static async Task Loop(string source, StorageFactory storageFactory, string contentBaseAddress, bool verbose, int interval)
+        static async Task Loop(string source, StorageFactory storageFactory, string contentBaseAddress, bool unlistShouldDelete, bool verbose, int interval)
         {
-            CommitCollector collector = new RegistrationCatalogCollector(new Uri(source), storageFactory, CommandHelpers.GetHttpMessageHandlerFactory(verbose))
+            CommitCollector collector = new RegistrationCollector(new Uri(source), storageFactory, CommandHelpers.GetHttpMessageHandlerFactory(verbose))
             {
-                ContentBaseAddress = contentBaseAddress == null ? null : new Uri(contentBaseAddress)
+                ContentBaseAddress = contentBaseAddress == null ? null : new Uri(contentBaseAddress),
+                UnlistShouldDelete = unlistShouldDelete
             };
 
             Storage storage = storageFactory.Create();
@@ -55,6 +57,8 @@ namespace Ng
                 return;
             }
 
+            bool unlistShouldDelete = CommandHelpers.GetUnlistShouldDelete(arguments);
+
             bool verbose = CommandHelpers.GetVerbose(arguments);
 
             int interval = CommandHelpers.GetInterval(arguments);
@@ -76,7 +80,7 @@ namespace Ng
 
             Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\" interval: {2} seconds", source, storageFactory, interval);
 
-            Loop(source, storageFactory, contentBaseAddress, verbose, interval).Wait();
+            Loop(source, storageFactory, contentBaseAddress, unlistShouldDelete, verbose, interval).Wait();
         }
     }
 }

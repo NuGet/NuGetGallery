@@ -144,8 +144,9 @@ namespace CatalogTests
         {
             //Uri catalogUri = new Uri("https://nugetdevstorage.blob.core.windows.net/catalog/index.json");
             Uri catalogUri = new Uri("https://nugetjohtaylo.blob.core.windows.net/catalog/index.json");
+            //Uri catalogUri = new Uri("https://api.nuget.org/v3/catalog0/index.json");
 
-            string path = "c:\\data\\registration20150420";
+            string path = "c:\\data\\registration20150421";
 
             DirectoryInfo directoryInfo = new DirectoryInfo(path);
             if (directoryInfo.Exists)
@@ -158,7 +159,8 @@ namespace CatalogTests
 
             CollectorBase collector = new RegistrationCollector(catalogUri, factory)
             {
-                UnlistShouldDelete = true
+                UnlistShouldDelete = true,
+                Concurrent = false
             };
 
             await collector.Run();

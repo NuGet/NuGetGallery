@@ -12,7 +12,10 @@ namespace NuGet.Services.Metadata.Catalog
         public SortingCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null)
             : base(index, handlerFunc)
         {
+            Concurrent = true;
         }
+
+        public bool Concurrent { get; set; }
 
         protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp)
         {
@@ -39,6 +42,11 @@ namespace NuGet.Services.Metadata.Catalog
                 Task task = ProcessSortedBatch(client, sortedBatch, context);
 
                 tasks.Add(task);
+
+                if (!Concurrent)
+                {
+                    task.Wait();
+                }
             }
 
             await Task.WhenAll(tasks.ToArray());
