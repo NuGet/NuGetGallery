@@ -1,6 +1,7 @@
 ﻿using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -8,21 +9,33 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public static class RegistrationMaker
     {
-        public static async Task Process(RegistrationKey registrationKey, IDictionary<string, IGraph> newItems, StorageFactory storageFactory, Uri contentBaseAddress, int partitionSize, int packageCountThreshold)
+        public static async Task Process(RegistrationKey registrationKey, IDictionary<string, IGraph> newItems, StorageFactory storageFactory, Uri contentBaseAddress, int partitionSize, int packageCountThreshold, bool unlistShouldDelete = false)
         {
-            IRegistrationPersistence registration = new RegistrationPersistence(storageFactory, registrationKey, partitionSize, packageCountThreshold);
+            Trace.TraceInformation("RegistrationMaker.Process: registrationKey = {0} newItems: {1}", registrationKey, newItems.Count);
+
+            IRegistrationPersistence registration = new RegistrationPersistence(storageFactory, registrationKey, partitionSize, packageCountThreshold, contentBaseAddress);
+
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> existing = await registration.Load();
-            IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> delta = PromoteRegistrationKey(newItems);
+
+            Trace.TraceInformation("RegistrationMaker.Process: existing = {0}", existing.Count);
+
+            IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> delta = PromoteRegistrationKey(newItems, unlistShouldDelete);
+
+            Trace.TraceInformation("RegistrationMaker.Process: delta = {0}", delta.Count);
+            
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> resulting = Apply(existing, delta);
+
+            Trace.TraceInformation("RegistrationMaker.Process: resulting = {0}", resulting.Count);
+            
             await registration.Save(resulting);
         }
 
-        static IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> PromoteRegistrationKey(IDictionary<string, IGraph> newItems)
+        static IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> PromoteRegistrationKey(IDictionary<string, IGraph> newItems, bool unlistShouldDelete)
         {
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> promoted = new Dictionary<RegistrationEntryKey, RegistrationCatalogEntry>();
             foreach (var newItem in newItems)
             {
-                promoted.Add(RegistrationCatalogEntry.Promote(newItem.Key, newItem.Value));
+                promoted.Add(RegistrationCatalogEntry.Promote(newItem.Key, newItem.Value, unlistShouldDelete));
             }
             return promoted;
         }

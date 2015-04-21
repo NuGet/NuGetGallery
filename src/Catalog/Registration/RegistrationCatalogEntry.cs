@@ -15,14 +15,16 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         public string ResourceUri { get; set; }
         public IGraph Graph { get; set; }
 
-        public static KeyValuePair<RegistrationEntryKey, RegistrationCatalogEntry> Promote(string resourceUri, IGraph graph)
+        public static KeyValuePair<RegistrationEntryKey, RegistrationCatalogEntry> Promote(string resourceUri, IGraph graph, bool unlistShouldDelete = false)
         {
             INode subject = graph.CreateUriNode(new Uri(resourceUri));
             string version = graph.GetTriplesWithSubjectPredicate(subject, graph.CreateUriNode(Schema.Predicates.Version)).First().Object.ToString();
 
             RegistrationEntryKey registrationEntryKey = new RegistrationEntryKey(RegistrationKey.Promote(resourceUri, graph), version);
 
-            RegistrationCatalogEntry registrationCatalogEntry = IsDelete(subject, graph) ? null : new RegistrationCatalogEntry(resourceUri, graph);
+            bool deleteByUnlisting = unlistShouldDelete & !IsListed(subject, graph);
+
+            RegistrationCatalogEntry registrationCatalogEntry = deleteByUnlisting | IsDelete(subject, graph) ? null : new RegistrationCatalogEntry(resourceUri, graph);
 
             return new KeyValuePair<RegistrationEntryKey, RegistrationCatalogEntry>(registrationEntryKey, registrationCatalogEntry);
         }
@@ -30,6 +32,11 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         static bool IsDelete(INode subject, IGraph graph)
         {
             return graph.ContainsTriple(new Triple(subject, graph.CreateUriNode(Schema.Predicates.Type), graph.CreateUriNode(Schema.DataTypes.CatalogDelete)));
+        }
+
+        static bool IsListed(INode subject, IGraph graph)
+        {
+            return graph.ContainsTriple(new Triple(subject, graph.CreateUriNode(Schema.Predicates.Listed), graph.CreateLiteralNode("true", Schema.DataTypes.Boolean)));
         }
     }
 }

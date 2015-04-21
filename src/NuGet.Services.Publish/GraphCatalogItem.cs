@@ -31,6 +31,9 @@ namespace NuGet.Services.Publish
             _catalogItemId = Guid.NewGuid();
 
             _context = ServiceHelpers.LoadContext("context.catalog.json");
+
+            _nuspec["@context"] = _context["@context"];
+
             _context["@type"] = GetItemType().AbsoluteUri;
         }
 

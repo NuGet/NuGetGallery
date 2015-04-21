@@ -2,7 +2,6 @@
     "@context": {
         "@vocab": "http://schema.nuget.org/schema#",
         "catalog": "http://schema.nuget.org/catalog#",
-        "ema": "http://json-schema.org/schemas/2014-11-01/microservice.json#",
         "xsd": "http://www.w3.org/2001/XMLSchema#",
         "details": "catalog:details",
         "catalog:commitTimeStamp": { "@type": "xsd:dateTime" },

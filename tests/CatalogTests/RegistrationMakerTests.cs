@@ -142,9 +142,10 @@ namespace CatalogTests
 
         public static async Task Test4Async()
         {
-            Uri catalogUri = new Uri("https://nugetdevstorage.blob.core.windows.net/catalog/index.json");
+            //Uri catalogUri = new Uri("https://nugetdevstorage.blob.core.windows.net/catalog/index.json");
+            Uri catalogUri = new Uri("https://nugetjohtaylo.blob.core.windows.net/catalog/index.json");
 
-            string path = "c:\\data\\registration20150417";
+            string path = "c:\\data\\registration20150420";
 
             DirectoryInfo directoryInfo = new DirectoryInfo(path);
             if (directoryInfo.Exists)
@@ -155,7 +156,10 @@ namespace CatalogTests
 
             FileStorageFactory factory = new FileStorageFactory(new Uri("http://tempuri.org"), path);
 
-            CollectorBase collector = new RegistrationCollector(catalogUri, factory);
+            CollectorBase collector = new RegistrationCollector(catalogUri, factory)
+            {
+                UnlistShouldDelete = true
+            };
 
             await collector.Run();
         }

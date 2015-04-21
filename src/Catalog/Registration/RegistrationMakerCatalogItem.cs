@@ -138,8 +138,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                     sparql.CommandText = Utils.GetResource("sparql.ConstructRegistrationPageContentGraph.rq");
 
                     sparql.SetUri("package", GetItemAddress());
-                    sparql.SetUri("catalogPackage", _catalogUri);
+                    sparql.SetUri("catalogEntry", _catalogUri);
                     sparql.SetUri("baseAddress", BaseAddress);
+                    sparql.SetUri("packageContent", GetPackageContentAddress());
                     sparql.SetUri("registrationBaseAddress", _registrationBaseAddress);
 
                     content = SparqlHelpers.Construct(store, sparql.ToString());

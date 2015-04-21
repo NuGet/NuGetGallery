@@ -193,8 +193,6 @@
   <ItemGroup>
     <Content Include="packages.config" />
     <Content Include="ApplicationInsights.config" />
-    <EmbeddedResource Include="context\nuget.json" />
-    <EmbeddedResource Include="context\microservices.json" />
     <EmbeddedResource Include="context\catalog.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
