@@ -70,10 +70,10 @@ namespace NuGet.Services.Publish
             INode ownerSubject = catalogEntry.CreateUriNode(ownerUri);
 
             catalogEntry.Assert(ownerSubject, catalogEntry.CreateUriNode(Schema.Predicates.NameIdentifier), catalogEntry.CreateLiteralNode(_publicationDetails.Owner.NameIdentifier));
-            catalogEntry.Assert(ownerSubject, catalogEntry.CreateUriNode(Schema.Predicates.Name), catalogEntry.CreateLiteralNode(_publicationDetails.Owner.Name));
+            //catalogEntry.Assert(ownerSubject, catalogEntry.CreateUriNode(Schema.Predicates.Name), catalogEntry.CreateLiteralNode(_publicationDetails.Owner.Name));
             catalogEntry.Assert(ownerSubject, catalogEntry.CreateUriNode(Schema.Predicates.GivenName), catalogEntry.CreateLiteralNode(_publicationDetails.Owner.GivenName));
             catalogEntry.Assert(ownerSubject, catalogEntry.CreateUriNode(Schema.Predicates.Surname), catalogEntry.CreateLiteralNode(_publicationDetails.Owner.Surname));
-            catalogEntry.Assert(ownerSubject, catalogEntry.CreateUriNode(Schema.Predicates.Iss), catalogEntry.CreateLiteralNode(_publicationDetails.Owner.Iss));
+            //catalogEntry.Assert(ownerSubject, catalogEntry.CreateUriNode(Schema.Predicates.Iss), catalogEntry.CreateLiteralNode(_publicationDetails.Owner.Iss));
 
             catalogEntry.Assert(catalogEntrySubject, catalogEntry.CreateUriNode(Schema.Predicates.Owner), ownerSubject);
 

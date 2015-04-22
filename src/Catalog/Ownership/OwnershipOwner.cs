@@ -39,7 +39,7 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
             };
         }
 
-        static string Get(ClaimsPrincipal claimsPrinciple, string type, bool isRequired = true)
+        static string Get(ClaimsPrincipal claimsPrinciple, string type, bool isRequired = false)
         {
             Claim subject = ClaimsPrincipal.Current.FindFirst(type);
             if (subject == null)
