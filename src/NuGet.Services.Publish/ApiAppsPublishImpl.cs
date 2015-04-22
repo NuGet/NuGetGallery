@@ -17,11 +17,13 @@ namespace NuGet.Services.Publish
         static ISet<string> Files = new HashSet<string> { ApiAppMetadata };
 
         ICategorizationPermission _categorizationPermission;
+        Uri _imagesUri;
 
-        public ApiAppsPublishImpl(IRegistrationOwnership registrationOwnership, ICategorizationPermission categorizationPermission)
+        public ApiAppsPublishImpl(IRegistrationOwnership registrationOwnership, ICategorizationPermission categorizationPermission, Uri imagesUri)
             : base(registrationOwnership)
         {
             _categorizationPermission = categorizationPermission;
+            _imagesUri = imagesUri;
         }
 
         public ApiAppsPublishImpl(IRegistrationOwnership registrationOwnership)
@@ -129,7 +131,40 @@ namespace NuGet.Services.Publish
                 nuspec.Add("packageContent", inventory["packageContent"]);
             }
 
+            AddDefaultEntries((JArray)nuspec["entries"]);
+
             metadata["nuspec"] = nuspec;
+        }
+
+        void AddDefaultEntries(JArray entries)
+        {
+            HashSet<string> fullNames = new HashSet<string>();
+            foreach (JObject entry in entries)
+            {
+                JToken fullName = entry["fullName"];
+
+                if (fullName != null)
+                {
+                    fullNames.Add(fullName.ToString());
+                }
+            }
+
+            AddDefault(entries, fullNames, "metadata/icons/large-icon.png", "/apiapps/large.png");
+            AddDefault(entries, fullNames, "metadata/icons/medium-icon.png", "/apiapps/medium.png");
+            AddDefault(entries, fullNames, "metadata/icons/small-icon.png", "/apiapps/small.png");
+            AddDefault(entries, fullNames, "metadata/icons/wide-icon.png", "/apiapps/wide.png");
+        }
+
+        void AddDefault(JArray entries, HashSet<string> fullNames, string fullname, string relativeAddress)
+        {
+            if (!fullNames.Contains(fullname))
+            {
+                entries.Add(new JObject
+                {
+                    { "fullName", fullname },
+                    { "location", new Uri(_imagesUri.AbsoluteUri + relativeAddress).AbsoluteUri }
+                });
+            }
         }
 
         protected override Uri GetItemType()

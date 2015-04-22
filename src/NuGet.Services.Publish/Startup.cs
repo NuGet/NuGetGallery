@@ -18,6 +18,8 @@ namespace NuGet.Services.Publish
     {
         private static readonly ConfigurationService _configurationService;
 
+        private static Uri _imagesUri;
+
         static Startup()
         {
             Trace.TraceInformation("Startup");
@@ -89,6 +91,16 @@ namespace NuGet.Services.Publish
             //CreateContainer(connectionString, _configurationService.Get("Storage.Container.Ownership"));
 
             TableStorageRegistration.Initialize(connectionString);
+
+            string images = _configurationService.Get("Storage.Container.Images");
+            if (images == null)
+            {
+                images = "images";
+            }
+            CloudStorageAccount account = CloudStorageAccount.Parse(connectionString);
+            CloudBlobClient client = account.CreateCloudBlobClient();
+            CloudBlobContainer container = client.GetContainerReference(images);
+            _imagesUri = container.Uri;
         }
 
         async Task Invoke(IOwinContext context)
@@ -172,13 +184,13 @@ namespace NuGet.Services.Publish
                     }
                 case "/apiapp/upload":
                     {
-                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership, categorizationPermission);
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership, categorizationPermission, _imagesUri);
                         await uploader.Upload(context);
                         break;
                     }
                 case "/apiapp/edit":
                     {
-                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership, categorizationPermission);
+                        PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership, categorizationPermission, _imagesUri);
                         await uploader.Edit(context);
                         break;
                     }
