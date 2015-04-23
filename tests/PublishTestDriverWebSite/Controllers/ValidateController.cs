@@ -19,7 +19,6 @@ namespace PublishTestDriverWebSite.Controllers
     {
         private string nugetServiceResourceId = ConfigurationManager.AppSettings["nuget:ServiceResourceId"];
         private string nugetPublishServiceBaseAddress = ConfigurationManager.AppSettings["nuget:PublishServiceBaseAddress"];
-        private const string TenantIdClaimType = "http://schemas.microsoft.com/identity/claims/tenantid";
         private static string clientId = ConfigurationManager.AppSettings["ida:ClientId"];
         private static string appKey = ConfigurationManager.AppSettings["ida:AppKey"];
 
@@ -29,7 +28,9 @@ namespace PublishTestDriverWebSite.Controllers
             {
                 var signedInUserId = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-                string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
+                var userObjectIdClaim = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier");
+                var userObjectId = userObjectIdClaim != null ? userObjectIdClaim.Value : signedInUserId;
+
                 string tenantId = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid").Value;
 
                 string authority = string.Format(Startup.AuthorityFormat, tenantId);
@@ -41,12 +42,12 @@ namespace PublishTestDriverWebSite.Controllers
                 if (Startup.Certificate == null)
                 {
                     ClientCredential credential = new ClientCredential(clientId, appKey);
-                    authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+                    authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, credential, new UserIdentifier(userObjectId, UserIdentifierType.UniqueId));
                 }
                 else
                 {
                     ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(clientId, Startup.Certificate);
-                    authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, clientAssertionCertificate, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+                    authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, clientAssertionCertificate, new UserIdentifier(userObjectId, UserIdentifierType.UniqueId));
                 }
 
                 HttpClient client = new HttpClient();

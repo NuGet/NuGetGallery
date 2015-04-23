@@ -41,8 +41,9 @@ namespace PublishTestDriverWebSite.Controllers
         async Task<ActionResult> Send(string action)
         {
             var signedInUserId = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var userObjectIdClaim = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier");
+            var userObjectId = userObjectIdClaim != null ? userObjectIdClaim.Value : signedInUserId;
 
-            string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
             string tenantId = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid").Value;
 
             string authority = string.Format(Startup.AuthorityFormat, tenantId);
@@ -54,12 +55,12 @@ namespace PublishTestDriverWebSite.Controllers
             if (Startup.Certificate == null)
             {
                 ClientCredential credential = new ClientCredential(clientId, appKey);
-                authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+                authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, credential, new UserIdentifier(userObjectId, UserIdentifierType.UniqueId));
             }
             else
             {
                 ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(clientId, Startup.Certificate);
-                authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, clientAssertionCertificate, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
+                authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, clientAssertionCertificate, new UserIdentifier(userObjectId, UserIdentifierType.UniqueId));
             }
 
             HttpClient client = new HttpClient();
