@@ -102,7 +102,7 @@ namespace PublishTestDriverWebSite.Controllers
                 string query = string.Format("?domain={0}&id={1}", domain, id);
 
                 HttpClient client = new HttpClient();
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetPublishServiceBaseAddress + "/checkaccess" + query);
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, nugetPublishServiceBaseAddress + "/apiapps/checkaccess" + query);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
 
                 HttpResponseMessage response = await client.SendAsync(request);

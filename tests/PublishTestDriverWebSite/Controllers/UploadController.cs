@@ -39,17 +39,21 @@ namespace PublishTestDriverWebSite.Controllers
                 return View("ValidationError", new ValidationErrorModel("please specify a file to upload"));
             }
 
-            string signedInUserID = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var signedInUserId = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            var userObjectIdClaim = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier");
+            var userObjectId = userObjectIdClaim != null ? userObjectIdClaim.Value : signedInUserId;
+
             string tenantId = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid").Value;
 
             string authority = string.Format(aadInstance, tenantId);
 
-            AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(signedInUserID));
+            AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(signedInUserId));
 
             ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(clientId, Startup.Certificate);
-            AuthenticationResult authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, clientAssertionCertificate, new UserIdentifier(signedInUserID, UserIdentifierType.UniqueId));
+            AuthenticationResult authenticationResult = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, clientAssertionCertificate, new UserIdentifier(userObjectId, UserIdentifierType.UniqueId));
 
-            string requestUri = nugetPublishServiceBaseAddress.TrimEnd('/') + "/catalog/apiapp";
+            string requestUri = nugetPublishServiceBaseAddress.TrimEnd('/') + "/apiapp/upload";
 
             HttpClient client = new HttpClient();
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUri);
