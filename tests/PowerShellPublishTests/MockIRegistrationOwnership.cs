@@ -59,6 +59,11 @@ namespace PowerShellPublishTests
             throw new NotImplementedException();
         }
 
+        public Task<bool> HasNamespace(string ns)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> IsTenantEnabled()
         {
             throw new NotImplementedException();

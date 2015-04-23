@@ -12,6 +12,12 @@ namespace NuGet.Services.Publish
         {
             IList<string> errors = new List<string>();
 
+            if (!await registrationOwnership.HasNamespace(packageIdentity.Namespace))
+            {
+                errors.Add("user is not allowed to publish in this namespace");
+                return errors;
+            }
+
             if (await registrationOwnership.HasRegistration(packageIdentity.Namespace, packageIdentity.Id))
             {
                 if (!await registrationOwnership.HasOwner(packageIdentity.Namespace, packageIdentity.Id))
@@ -33,6 +39,12 @@ namespace NuGet.Services.Publish
         public static async Task<IList<string>> CheckRegistrationAuthorizationForEdit(IRegistrationOwnership registrationOwnership, PackageIdentity packageIdentity)
         {
             IList<string> errors = new List<string>();
+
+            if (!await registrationOwnership.HasNamespace(packageIdentity.Namespace))
+            {
+                errors.Add("user is not allowed to publish in this namespace");
+                return errors;
+            }
 
             if (await registrationOwnership.HasRegistration(packageIdentity.Namespace, packageIdentity.Id))
             {

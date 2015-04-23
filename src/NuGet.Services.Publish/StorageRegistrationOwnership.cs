@@ -2,12 +2,11 @@
 using Microsoft.Azure.ActiveDirectory.GraphClient.Extensions;
 using Microsoft.Owin;
 using Microsoft.WindowsAzure.Storage;
-using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Ownership;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -142,6 +141,22 @@ namespace NuGet.Services.Publish
             return await _registration.HasVersion(new OwnershipRegistration { Namespace = ns, Id = id }, version);
         }
 
+        public async Task<bool> HasNamespace(string ns)
+        {
+            var domains = (await GetDomains()).ToList();
+            if (domains.Any())
+            {
+                // Check if the user can publish on the namespace
+                return domains.Any(d => d.Equals(ns, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // TODO: What if the user has no allowed domains. Do we return true? False? Or something else?
+            // Example: foo@outlook.com makes this request and has 0 AAD namespaces. Do we return true/false here?
+            // In other words: do we allow publishing to this namespace or not?
+            // Went with true, so the registration records take over in further validation.
+            return true;
+        }
+
         async Task<IUser> GetUser()
         {
             ActiveDirectoryClient activeDirectoryClient = await GetActiveDirectoryClient();
@@ -187,42 +202,42 @@ namespace NuGet.Services.Publish
             return userId;
         }
 
-        public Task<IEnumerable<string>> GetDomains()
+        public async Task<IEnumerable<string>> GetDomains()
         {
             IList<string> domains = new List<string>();
 
-            domains.Add("domain1.com");
-            domains.Add("domain2.com");
-            domains.Add("domain3.com");
-
-            /*
-            ActiveDirectoryClient activeDirectoryClient = await GetActiveDirectoryClient();
-
-            string tenantId = GetTenantId();
-
-            ITenantDetail tenant = activeDirectoryClient.TenantDetails
-                .Where(tenantDetail => tenantDetail.ObjectId.Equals(tenantId))
-                .ExecuteAsync().Result.CurrentPage.FirstOrDefault();
-
-            if (tenant == null)
+            // If no userId claim is present, we are having a Microsoft Account (MSA) requesting the domains.
+            // AAD has no notion of the domains supported there, and will fail the call. Instead of going in, just return an empty list.
+            var userId = GetUserId();
+            if (!string.IsNullOrEmpty(userId))
             {
-                throw new Exception(string.Format("unable to find tenant with object id = {0}", tenantId));
+                ActiveDirectoryClient activeDirectoryClient = await GetActiveDirectoryClient();
+
+                string tenantId = GetTenantId();
+
+                ITenantDetail tenant = activeDirectoryClient.TenantDetails
+                    .Where(tenantDetail => tenantDetail.ObjectId.Equals(tenantId))
+                    .ExecuteAsync().Result.CurrentPage.FirstOrDefault();
+
+                if (tenant == null)
+                {
+                    throw new Exception(string.Format("unable to find tenant with object id = {0}", tenantId));
+                }
+
+                foreach (VerifiedDomain domain in tenant.VerifiedDomains)
+                {
+                    if (domain.@default.HasValue && domain.@default.Value)
+                    {
+                        domains.Insert(0, domain.Name);
+                    }
+                    else
+                    {
+                        domains.Add(domain.Name);
+                    }
+                }
             }
 
-            foreach (VerifiedDomain domain in tenant.VerifiedDomains)
-            {
-                if (domain.@default.HasValue && domain.@default.Value)
-                {
-                    domains.Insert(0, domain.Name);
-                }
-                else
-                {
-                    domains.Add(domain.Name);
-                }
-            }
-            */
-
-            return Task.FromResult<IEnumerable<string>>(domains);
+            return domains;
         }
 
         public Task<IEnumerable<string>> GetTenants()
