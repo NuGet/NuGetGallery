@@ -124,7 +124,7 @@ namespace NuGet.Services.Publish
 
         static X509Certificate2 LoadCertificate()
         {
-            string thumbprint = _configurationService.Get("nuget.Thumbprint");
+            string thumbprint = _configurationService.Get("graphapi.Thumbprint");
 
             if (string.IsNullOrWhiteSpace(thumbprint))
             {
@@ -185,8 +185,6 @@ namespace NuGet.Services.Publish
 
                 if (string.IsNullOrEmpty(_appKey))
                 {
-                    //string assertion = Startup.SecurityToken.ToString();
-
                     X509Certificate2 cert = LoadCertificate();
 
                     string authHeader = HttpContext.Current.Request.Headers["Authorization"];

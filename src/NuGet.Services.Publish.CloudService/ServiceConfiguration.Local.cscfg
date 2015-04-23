@@ -13,9 +13,11 @@
       <Setting name="Storage.Container.Catalog" value="catalog" />
       <Setting name="Storage.Container.Ownership" value="ownership" />
       <Setting name="Storage.BlobContainerPublicAccessType" value="Blob" />
+      <Setting name="graphapi.Thumbprint" value="" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="NuGetOrg" thumbprint="C5385DB24F7AAE13FE38AD014A6504E5B2F6955B" thumbprintAlgorithm="sha1" />
+      <Certificate name="ServicesAuth" thumbprint="23552CFEA867E69E1341C1A656CFA0578D70A888" thumbprintAlgorithm="sha1" />
     </Certificates>
   </Role>
 </ServiceConfiguration>

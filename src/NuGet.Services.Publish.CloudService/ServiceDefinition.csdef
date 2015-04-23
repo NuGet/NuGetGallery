@@ -15,6 +15,7 @@
     </Endpoints>
     <Certificates>
       <Certificate name="NuGetOrg" storeLocation="CurrentUser" storeName="My" />
+      <Certificate name="ServicesAuth" storeLocation="CurrentUser" storeName="My" />
     </Certificates>
     <ConfigurationSettings>
       <Setting name="ida.GraphResourceId" />
@@ -27,6 +28,7 @@
       <Setting name="Storage.Container.Catalog" />
       <Setting name="Storage.Container.Ownership" />
       <Setting name="Storage.BlobContainerPublicAccessType" />
+      <Setting name="graphapi.Thumbprint" />
     </ConfigurationSettings>
   </WebRole>
 </ServiceDefinition>
