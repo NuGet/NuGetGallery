@@ -8,6 +8,7 @@ using System;
 using System.Configuration;
 using System.Globalization;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
@@ -118,12 +119,12 @@ namespace PublishTestDriverWebSite
                             
                             var code = context.Code;
 
-                            string userObjectID = context.AuthenticationTicket.Identity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
+                            var signedInUserId = context.AuthenticationTicket.Identity.FindFirst(ClaimTypes.NameIdentifier).Value;
                             string tenantId = context.AuthenticationTicket.Identity.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid").Value;
 
                             string authority = string.Format(aadInstance, tenantId);
 
-                            AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(userObjectID));
+                            AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(signedInUserId));
                             ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(clientId, Certificate);
                             AuthenticationResult result = await authContext.AcquireTokenByAuthorizationCodeAsync(code, new Uri(HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Path)), clientAssertionCertificate, graphResourceId);
                         },

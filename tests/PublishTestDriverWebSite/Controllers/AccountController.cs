@@ -26,12 +26,12 @@ namespace PublishTestDriverWebSite.Controllers
         public void SignOut()
         {
             // Remove all cache entries for this user and send an OpenID Connect sign-out request.
-            string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
+            var signedInUserId = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
             string tenantId = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid").Value;
 
             string authority = string.Format(Startup.AuthorityFormat, tenantId);
 
-            AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(userObjectID));
+            AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(signedInUserId));
             authContext.TokenCache.Clear();
 
             HttpContext.GetOwinContext().Authentication.SignOut(

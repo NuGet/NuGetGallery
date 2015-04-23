@@ -27,12 +27,15 @@ namespace PublishTestDriverWebSite.Controllers
         {
             try
             {
+                var signedInUserId = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
+
                 string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
                 string tenantId = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid").Value;
 
                 string authority = string.Format(Startup.AuthorityFormat, tenantId);
 
-                AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(userObjectID));
+                AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(signedInUserId));
+
                 AuthenticationResult authenticationResult;
 
                 if (Startup.Certificate == null)
@@ -82,12 +85,15 @@ namespace PublishTestDriverWebSite.Controllers
         {
             try
             {
+                var signedInUserId = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
+
                 string userObjectID = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
                 string tenantId = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid").Value;
 
                 string authority = string.Format(Startup.AuthorityFormat, tenantId);
 
-                AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(userObjectID));
+                AuthenticationContext authContext = new AuthenticationContext(authority, new NaiveSessionCache(signedInUserId));
+
                 ClientCredential credential = new ClientCredential(clientId, appKey);
 
                 AuthenticationResult result = await authContext.AcquireTokenSilentAsync(nugetServiceResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
