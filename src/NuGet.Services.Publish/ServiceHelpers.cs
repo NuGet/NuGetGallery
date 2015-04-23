@@ -166,52 +166,56 @@ namespace NuGet.Services.Publish
             return userId;
         }
 
+        /// <summary>
+        /// Gets an Active Directory client.
+        /// </summary>
+        /// <returns>An ActiveDirectoryClient instance.</returns>
+        /// <remarks>When no objectidentifier claim is present, this will return null.</remarks>
         public static async Task<ActiveDirectoryClient> GetActiveDirectoryClient()
         {
-            // BUG BUG BUG this code does not work properly on AAD because it pesumes the objectidentifier claim which is not correct
+            // When no objectidentifier claim is present, this will return null.
+            if (!string.IsNullOrEmpty(GetUserId())) { 
+                string tenantId = GetTenantId();
 
-            string tenantId = GetTenantId();
+                string authority = string.Format(_aadInstance, tenantId);
 
-            string authority = string.Format(_aadInstance, tenantId);
+                AuthenticationContext authContext = new AuthenticationContext(authority);
 
-            AuthenticationContext authContext = new AuthenticationContext(authority);
+                AuthenticationResult result;
 
-            AuthenticationResult result;
+                if (string.IsNullOrEmpty(_appKey))
+                {
+                    //string assertion = Startup.SecurityToken.ToString();
 
-            if (string.IsNullOrEmpty(_appKey))
-            {
-                //string assertion = Startup.SecurityToken.ToString();
+                    X509Certificate2 cert = LoadCertificate();
 
-                X509Certificate2 cert = LoadCertificate();
+                    string authHeader = HttpContext.Current.Request.Headers["Authorization"];
+                    string userAccessToken = authHeader.Substring(authHeader.LastIndexOf(' ')).Trim();
 
-                string authHeader = HttpContext.Current.Request.Headers["Authorization"];
-                string userAccessToken = authHeader.Substring(authHeader.LastIndexOf(' ')).Trim();
+                    var bootstrapContext = ClaimsPrincipal.Current.Identities.First().BootstrapContext as System.IdentityModel.Tokens.BootstrapContext;
+                    userAccessToken = bootstrapContext.Token;
 
-                var bootstrapContext = ClaimsPrincipal.Current.Identities.First().BootstrapContext as System.IdentityModel.Tokens.BootstrapContext;
-                userAccessToken = bootstrapContext.Token;
+                    UserAssertion userAssertion = new UserAssertion(userAccessToken);
 
-                UserAssertion userAssertion = new UserAssertion(userAccessToken);
+                    ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(_clientId, cert);
+                    result = await authContext.AcquireTokenAsync(_graphResourceId, clientAssertionCertificate, userAssertion);
+                }
+                else
+                {
+                    ClientCredential clientCredential = new ClientCredential(_clientId, _appKey);
+                    result = await authContext.AcquireTokenAsync(_graphResourceId, clientCredential);
+                }
 
-                ClientAssertionCertificate clientAssertionCertificate = new ClientAssertionCertificate(_clientId, cert);
-                result = await authContext.AcquireTokenAsync(_graphResourceId, clientAssertionCertificate, userAssertion);
+                string accessToken = result.AccessToken;
+
+                Uri serviceRoot = new Uri(new Uri(_graphResourceId), tenantId);
+
+                ActiveDirectoryClient activeDirectoryClient = new ActiveDirectoryClient(serviceRoot, () => { return Task.FromResult(accessToken); });
+
+                return activeDirectoryClient;
             }
-            else
-            {
-                ClientCredential clientCredential = new ClientCredential(_clientId, _appKey);
-                result = await authContext.AcquireTokenAsync(_graphResourceId, clientCredential);
-            }
 
-            string accessToken = result.AccessToken;
-
-            Uri serviceRoot = new Uri(new Uri(_graphResourceId), tenantId);
-
-            ActiveDirectoryClient activeDirectoryClient = new ActiveDirectoryClient(serviceRoot, () => { return Task.FromResult(accessToken); });
-
-            string userId = GetUserId();
-
-            var tenantDetails = await activeDirectoryClient.TenantDetails.ExecuteAsync();
-
-            return activeDirectoryClient;
+            return null;
         }
 
         static string DumpClaims()

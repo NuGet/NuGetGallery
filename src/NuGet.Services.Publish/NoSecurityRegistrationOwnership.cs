@@ -50,6 +50,11 @@ namespace NuGet.Services.Publish
             return Task.FromResult<bool>(false);
         }
 
+        public Task<bool> HasNamespace(string ns)
+        {
+            return Task.FromResult<bool>(true);
+        }
+
         public string GetUserId()
         {
             return "unknown";

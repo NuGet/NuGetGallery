@@ -19,6 +19,7 @@ namespace NuGet.Services.Publish
         Task<bool> HasOwner(string ns, string id);
         Task<bool> HasRegistration(string ns, string id);
         Task<bool> HasVersion(string ns, string id, string version);
+        Task<bool> HasNamespace(string ns);
 
         string GetUserId();
         Task<string> GetUserName();
