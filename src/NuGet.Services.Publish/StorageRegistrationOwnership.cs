@@ -206,7 +206,7 @@ namespace NuGet.Services.Publish
         {
             IList<string> domains = new List<string>();
 
-            // If no userId caim is present, we are having a Microsoft Account (MSA) requesting the domains.
+            // If no userId claim is present, we are having a Microsoft Account (MSA) requesting the domains.
             // AAD has no notion of the domains supported there, and will fail the call. Instead of going in, just return an empty list.
             var userId = GetUserId();
             if (!string.IsNullOrEmpty(userId))
