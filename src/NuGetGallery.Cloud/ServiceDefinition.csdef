@@ -3,7 +3,8 @@
   <LoadBalancerProbes>
     <LoadBalancerProbe name="HTTP" path="/api/status" protocol="http" port="80" />
   </LoadBalancerProbes>
-  <WebRole name="NuGetGallery" vmsize="Medium">
+  <!-- Size of the instances -->
+  <WebRole name="NuGetGallery" vmsize="Large">
     <ConfigurationSettings>
       <Setting name="Gallery.Brand" />
       <Setting name="Gallery.Environment" />
