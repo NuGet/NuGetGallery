@@ -1,0 +1,23 @@
+﻿@using NuGetGallery
+@model IEnumerable<ImportDependency>
+<h3>Dependencies</h3>
+@if (Model.Any())
+{
+    <ul id="dependencySets">
+        <li>
+            <ul class="dependencySet">
+                @foreach (var dependency in Model)
+                {
+                    <li>
+                        <a href="@Url.AdminImportDetails(dependency.Id)">@dependency.Id</a>
+                        <span>@dependency.VersionSpec</span>
+                    </li>
+                }
+            </ul>
+        </li>
+    </ul>
+}
+else
+{
+    <p>This package has no dependencies.</p>
+}

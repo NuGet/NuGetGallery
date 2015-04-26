@@ -16,6 +16,9 @@
       <Setting name="Gallery.FeedOnlyMode" />
       <Setting name="Gallery.StorageType" />
       <Setting name="Gallery.SmtpUri" />
+      <Setting name="Gallery.IsIntranetSite" />
+      <Setting name="Gallery.IntranetCompanyUrl" /> 
+      <Setting name="Gallery.OfficialNuGetUrl" />        
       <Setting name="Gallery.FacebookAppId" />
       <Setting name="Gallery.SiteRoot" />
       <Setting name="Gallery.AzureCdnHost" />

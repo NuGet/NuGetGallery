@@ -124,5 +124,29 @@ namespace NuGetGallery.Configuration
         /// Gets a boolean indicating if the search index should be updated automatically in the background
         /// </summary>
         bool AutoUpdateSearchIndex { get; set; }
+
+        /// <summary>
+        /// Gets the URL for the official NuGet packages feed.
+        /// </summary>
+        /// <value>
+        /// The official NuGet packages feed URL.
+        /// </value>
+        string OfficialNuGetUrl { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this Gallery should be run as a company intranet site.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if intranet site; otherwise, <c>false</c>.
+        /// </value>
+        bool IsIntranetSite { get; set; }
+
+        /// <summary>
+        /// Gets the intranet company URL.
+        /// </summary>
+        /// <value>
+        /// The intranet company URL.
+        /// </value>
+        string IntranetCompanyUrl { get; set; }
     }
 }

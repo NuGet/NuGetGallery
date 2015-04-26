@@ -64,6 +64,20 @@
                 View Application Configuration
             </p>
         </li>
+        @if (Config.Current.IsIntranetSite)        
+        {
+        <li>
+            <h2>
+                <a class="action-menu-link" href="@Url.Action(actionName: "", controllerName: "Import")">
+                    <i class="icon-trash action-menu-icon"></i>
+                    <span class="action-menu-text">NuGet Import</span>
+                </a>
+            </h2>
+            <p>
+                Import packages from the official NuGet repository
+            </p>
+        </li>
+        }
     </ul>
     <div>
         NuGet.Core version:

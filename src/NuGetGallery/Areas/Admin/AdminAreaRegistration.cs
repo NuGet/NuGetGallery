@@ -24,6 +24,12 @@ namespace NuGetGallery.Areas.Admin
             DynamicDataManager.Register(context.Routes, "Admin/Database", config);
 
             context.MapRoute(
+                "Admin_import",
+                "Admin/Import/{action}/{id}",
+                new { controller = "Import", action = "Search", id = UrlParameter.Optional }
+            );
+
+            context.MapRoute(
                 "Admin_default",
                 "Admin/{controller}/{action}/{id}",
                 new { controller="Home", action = "Index", id = UrlParameter.Optional }

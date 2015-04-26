@@ -1,0 +1,225 @@
+@using NuGetGallery
+@model ImportPackageViewModel
+@{
+    ViewBag.Title = Model.Title + " " + Model.Version;
+    ViewBag.Tab = "Packages";
+    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+    var absolutePackageUrl = Url.Absolute(Url.AdminImportDetails(Model.Id));
+    var defaultIcon = Url.Content("~/Content/Images/packageDefaultIcon-50x50.png");
+    var packageIcon = Model.IconUrl ?? defaultIcon;
+}
+@section SocialMeta {
+    @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
+        <meta property="fb:app_id" content="@ViewBag.FacebookAppID" /> 
+    }
+    <meta property="og:title"       content="@Model.Title" />
+    <meta property="og:type"        content="nugetgallery:package" /> 
+    <meta property="og:url"         content="@absolutePackageUrl" /> 
+    <meta property="og:description" content="@Model.Description" /> 
+    <meta property="og:determiner"  content="a" />
+    <meta property="og:image"       content="@packageIcon" />
+}
+@section BottomScripts {
+    @* Facebook SDK *@
+    <div id="fb-root"></div>
+    <script>(function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s); js.id = id;
+    @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
+        @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=@ViewBag.FacebookAppID";
+    } else {
+        @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+    }
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
+
+    @* Twitter SDK *@
+    <script>!function (d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (!d.getElementById(id)) { js = d.createElement(s); js.id = id; js.src = "//platform.twitter.com/widgets.js"; fjs.parentNode.insertBefore(js, fjs); } }(document, "script", "twitter-wjs");</script>
+}
+@section SideColumn {
+    <img class="logo" src="@packageIcon" alt="Icon for package @Model.Id" onerror="this.src='@defaultIcon';" />
+    <div id="stats">
+        <div class="stat">
+            <p class="stat-number">@Model.DownloadCount.ToString("n0")</p>
+            <p class="stat-label">
+                Downloads</p>
+        </div>        
+        <div class="stat">
+            <p class="stat-number">@Model.LastUpdated.ToShortDateString()</p>
+            <p class="stat-label">
+                Last update</p>
+        </div>
+    </div>
+    <nav>
+        <ul class="links">
+            @if (!String.IsNullOrEmpty(Model.ProjectUrl))
+            {
+                <li><a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package">
+                        Project Site</a></li>
+            }
+            @if (!String.IsNullOrEmpty(Model.LicenseUrl))
+            {
+                <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
+            }
+            @if (Model.IsOwner(User))
+            {
+                <li><a href="@Url.Action(actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Contact the NuGet team for help with your package">
+                        Contact Support</a></li>
+            }
+            else
+            {
+                <li><a href="@Url.Action(actionName: "ReportAbuse", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Report the package as abusive">
+                        Report Abuse</a></li>
+            }
+            <li><a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.Id })" title="Ask the package owners a question">Contact Owners</a></li>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file.">Download</a></li>
+                <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)">Open in Package Explorer</a></li>
+            }
+            else
+            {
+                <li><a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">How to Download</a></li>
+            }
+            @if (StatisticsHelper.IsStatisticsPageAvailable)
+            {
+                <li><a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">Package Statistics</a></li>
+            }
+        </ul>
+    </nav>
+}
+<div class="package-page">
+    @if (Model.Prerelease)
+    {
+        <p class="prerelease-message">
+            This is a prerelease version of @Model.Title.
+        </p>
+    }
+    else if (!Model.IsLatestVersionAvailable)
+    {
+        <p class="not-latest-message">
+            This is not the <a href="@Url.AdminImportDetails(Model.Id)" title="View the latest version">latest
+                                version</a> of @Model.Title available.
+        </p>
+    }
+    <hgroup class="page-heading">
+        <h1>@Model.Title</h1>
+        <h2>@Model.Version</h2>
+    </hgroup>
+    @foreach (var line in Model.Description.ToStringSafe().Split('\n'))
+    {
+        <p>@line</p>
+    }
+
+    <p>
+        To install @Model.Title, run the following command in the <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">
+                                                                      Package Manager Console</a>
+    </p>
+    <div class="nuget-badge">
+        <p>
+            <code>PM&gt; Install-Package @Model.Id
+                @if (!Model.LatestVersion)
+                {
+                    <text> -Version @Model.Version</text>
+                }
+                @if (Model.Prerelease)
+                {
+                    <text> -Pre </text>
+                }</code></p>
+    </div>
+    @if (!String.IsNullOrEmpty(Model.MinClientVersion)) 
+    { 
+        <p>Requires NuGet @Model.MinClientVersion or higher.</p>
+    }
+    <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>
+    <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
+
+    @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
+    {
+        <h3>Release Notes</h3>
+        foreach (var note in Model.ReleaseNotes.Split('\n'))
+        {
+            <p>@note</p>
+        }
+    }
+
+    <h3>Authors</h3>
+    <ul class="authors">
+        @foreach (var author in Model.Authors)
+        {
+            <li>@author</li>
+        }
+    </ul>
+    @if (!String.IsNullOrEmpty(Model.Copyright))
+    {
+        <h3>Copyright</h3>
+        <p>@Model.Copyright</p>
+    }
+    @if (@Model.Tags.AnySafe())
+    {
+        <h3>Tags</h3>
+        <ul class="tags">
+            @foreach (var tag in Model.Tags)
+            {
+                <li><a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag">@tag</a></li>
+            }
+        </ul>
+    }
+    @Html.Partial("_PackageDependencies", Model.Dependencies)
+    <h3>Version History</h3>
+    <table class="sexy-table">
+        <thead>
+            <tr>
+                <th class="first">
+                    Version
+                </th>
+                <th>
+                    Size
+                </th>
+                <th class="@(Model.IsOwner(User) ? "" : "last")">
+                    Last updated
+                </th>
+                <th class="last">
+                    Import
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var packageVersion in Model.PackageVersions)
+            {
+                <tr class="versionTableRow @if (packageVersion.LatestVersion)
+                                            {
+                                                <text>recommended </text>
+                                            }">
+                    <td class="version" @if (packageVersion.LatestVersion)
+                                        {
+                                            <text>title="Latest Version"</text>
+                                        }>
+                        @if (!packageVersion.IsCurrent(Model))
+                        {
+                            <a href="@Url.AdminImportDetails(Model.Id, Model.Version, (string)ViewBag.PreRelease)">@packageVersion.Title @packageVersion.Version</a>
+                        }
+                        else
+                        {
+                            <span>@packageVersion.Title @packageVersion.Version</span>
+                        }
+                    </td>
+                    <td>@string.Format("{0:n0} KB", packageVersion.PackageSize)
+                    </td>
+                    <td>@packageVersion.LastUpdated.ToString("D")
+                    </td>
+                    <td>@if (packageVersion.Existing)
+                        {
+                            <span class="success-text">Exists</span>
+                        } 
+                        else 
+                        {
+                            <a href="@Url.Action("Download", new { packageVersion.Id, packageVersion.Version })">Import</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
