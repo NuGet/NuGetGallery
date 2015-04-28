@@ -120,9 +120,11 @@ namespace NuGet.Indexing
                 ServiceHelpers.AddField(obj, document, "summary", "Summary");
                 ServiceHelpers.AddField(obj, document, "title", "Title");
                 ServiceHelpers.AddField(obj, document, "iconUrl", "IconUrl");
+                ServiceHelpers.AddField(obj, document, "homepage", "Homepage");
                 ServiceHelpers.AddFieldAsObject(obj, document, "owner", "OwnerDetails");
                 ServiceHelpers.AddFieldAsArray(obj, document, "tags", "Tags");
                 ServiceHelpers.AddFieldAsArray(obj, document, "authors", "Authors");
+                ServiceHelpers.AddFieldAsArray(obj, document, "categories", "Categories");
 
                 obj["version"] = version;
                 obj["versions"] = searcherManager.GetVersions(scheme, scoreDoc.Doc);
