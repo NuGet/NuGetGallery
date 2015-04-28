@@ -120,6 +120,7 @@ namespace NuGet.Indexing
                 ServiceHelpers.AddField(obj, document, "summary", "Summary");
                 ServiceHelpers.AddField(obj, document, "title", "Title");
                 ServiceHelpers.AddField(obj, document, "iconUrl", "IconUrl");
+                ServiceHelpers.AddFieldAsObject(obj, document, "license", "LicenseDetails");
                 ServiceHelpers.AddFieldAsObject(obj, document, "owner", "OwnerDetails");
                 ServiceHelpers.AddFieldAsArray(obj, document, "tags", "Tags");
                 ServiceHelpers.AddFieldAsArray(obj, document, "authors", "Authors");

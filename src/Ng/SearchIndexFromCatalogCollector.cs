@@ -302,6 +302,12 @@ namespace Ng
                 Add(doc, "OwnerDetails", owner.ToString(), Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
             }
 
+            JToken license = package["license"];
+            if (license != null)
+            {
+                Add(doc, "LicenseDetails", license.ToString(), Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
+            }
+
             return doc;
         }
 
