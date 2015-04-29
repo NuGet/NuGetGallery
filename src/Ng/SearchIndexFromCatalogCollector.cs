@@ -311,6 +311,16 @@ namespace Ng
             Add(doc, "Homepage", (string)package["homepage"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "Categories", string.Join(" ", (package["categories"] ?? new JArray()).Select(s => (string)s)), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
+            JArray entries = package["entries"] as JArray;
+            if (entries != null)
+            {
+                var smallIcon = entries.FirstOrDefault(e => e["@type"] != null && ((JArray) e["@type"]).Contains(Schema.DataTypes.SmallIcon));
+                if (smallIcon != null)
+                {
+                    Add(doc, "IconUrl", (string)smallIcon["location"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+                }
+            }
+
             return doc;
         }
 
