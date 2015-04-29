@@ -314,7 +314,7 @@ namespace Ng
             JArray entries = package["entries"] as JArray;
             if (entries != null)
             {
-                var smallIcon = entries.FirstOrDefault(e => e["@type"] is JArray && ((JArray)e["@type"]).Contains(Schema.DataTypes.SmallIcon));
+                var smallIcon = entries.FirstOrDefault(e => e["@type"] is JArray && ((JArray)e["@type"]).Any(t => (string)t == "SmallIcon"));
                 if (smallIcon != null)
                 {
                     Add(doc, "IconUrl", (string)smallIcon["location"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
