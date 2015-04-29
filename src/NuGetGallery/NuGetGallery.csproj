@@ -383,6 +383,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
+    <Compile Include="DataServices\LastUpdatedHijacker.cs" />
+    <Compile Include="DataServices\QueryInterceptor.cs" />
     <Compile Include="Diagnostics\PerfCounters.cs" />
     <Compile Include="Diagnostics\ProcessPerfEvents.cs" />
     <Compile Include="App_Start\OwinStartup.cs" />
@@ -1455,7 +1457,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>80</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://nuget.localtest.me</IISUrl>
+          <IISUrl>http://localhost:8989</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

@@ -35,6 +35,7 @@ namespace NuGetGallery
                 {
                     Packages = PackageRepository
                         .GetAll()
+                        .UseLastUpdatedRewrite()
                         .UseSearchService(SearchService, null, Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
                         .WithoutVersionSort()
                         .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
