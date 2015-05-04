@@ -67,7 +67,7 @@ To contribute to the gallery, make sure to create a fork first. Make your change
 the Git Workflow. When you are done with your changes, send us a pull request.
 
 ## Copyright and License
-Copyright 2011 Outercurve Foundation
+Copyright 2015 .NET Foundation
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with 
 the License. You may obtain a copy of the License in the LICENSE file, or at:
