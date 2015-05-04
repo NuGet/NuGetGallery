@@ -4,10 +4,10 @@
     <id>Ng</id>
     <version>$version$</version>
     <title>Ng</title>
-    <authors>Outercurve Foundation</authors>
-    <owners>Outercurve Foundation</owners>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
     <description>Ng</description>
-    <copyright>Copyright Outercurve Foundation</copyright>
+    <copyright>Copyright .NET Foundation</copyright>
   </metadata>
   <files>
     <file src="bin\$configuration$\*.*" target="Ng"/>

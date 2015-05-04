@@ -11,7 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes></releaseNotes>
-    <copyright>Copyright 2014 Outercurve Foundation</copyright>
+    <copyright>Copyright 2014 .NET Foundation</copyright>
     <tags>nuget services search index lucene</tags>
   </metadata>
 </package>
