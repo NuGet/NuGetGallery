@@ -24,9 +24,10 @@ namespace Stats.AggregateInGallery
         public SqlConnectionStringBuilder PackageDatabase { get; set; }
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
-        {
+        {           
             try
             {
+               
                 PackageDatabase =
                     new SqlConnectionStringBuilder(
                         JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase, EnvironmentVariableKeys.SqlGallery));
@@ -141,7 +142,7 @@ namespace Stats.AggregateInGallery
             using (var connection = await PackageDatabase.ConnectTo())
             {
                 var command = new SqlCommand(AggregateStatsSql, connection);
-                command.Parameters.AddWithValue("@BatchSize", batchSize);
+                command.Parameters.AddWithValue("@BatchSize", batchSize);            
 
                 return await command.ExecuteScalarAsync() as int? ?? 0;
             }
@@ -214,12 +215,11 @@ BEGIN TRANSACTION
 
     -- Aggregate Package-level stats
 	UPDATE      Packages
-    SET         Packages.DownloadCount = Packages.DownloadCount + stats.DownloadCount,
-    			Packages.LastUpdated = GetUtcDate()
+    SET         Packages.DownloadCount = Packages.DownloadCount + stats.DownloadCount    			
     OUTPUT      inserted.PackageRegistrationKey INTO @AffectedPackages
     FROM        Packages
-    INNER JOIN  @DownloadStats stats ON Packages.[Key] = stats.PackageKey        
-    
+    INNER JOIN  @DownloadStats stats ON Packages.[Key] = stats.PackageKey            
+ 
     -- Aggregate PackageRegistration stats
     UPDATE      PackageRegistrations
     SET         DownloadCount = TotalDownloadCount
