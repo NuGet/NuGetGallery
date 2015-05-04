@@ -3,8 +3,8 @@
   <metadata>
     <id>NuGetGallery.Backend.Cloud</id>
     <version>0.0.0</version>
-    <authors>Outercurve Foundation</authors>
-    <owners>Outercurve Foundation</owners>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
     <licenseUrl>https://github.com/NuGet/NuGetGallery/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/NuGet/NuGetGallery</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>

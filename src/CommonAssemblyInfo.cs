@@ -4,9 +4,9 @@ using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyCompany("Outercurve Foundation")]
+[assembly: AssemblyCompany(".NET Foundation")]
 [assembly: AssemblyProduct("NuGet Services")]
-[assembly: AssemblyCopyright("\x00a9 Outercurve Foundation. All rights reserved.")]
+[assembly: AssemblyCopyright("\x00a9 .NET Foundation. All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]

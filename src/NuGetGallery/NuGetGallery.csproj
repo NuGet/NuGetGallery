@@ -977,6 +977,7 @@
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
     <Content Include="App_Data\Files\Content\ReadOnly.md" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
+    <Content Include="Content\Logos\dnf.png" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
@@ -1163,7 +1164,6 @@
     <Content Include="Content\font-awesome\font-awesome.min.css" />
     <Content Include="Content\font\fontawesome-webfont.svg" />
     <Content Include="Content\Images\errorPage.png" />
-    <Content Include="Content\Logos\outercurve.png" />
     <Content Include="Content\Images\icons\nuget_32_mono_b.png" />
     <Content Include="Content\Images\icons\nuget_32_mono_w.png" />
     <Content Include="Content\Images\YourPackage.png" />
