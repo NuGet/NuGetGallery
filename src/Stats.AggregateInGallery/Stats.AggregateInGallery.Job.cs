@@ -16,6 +16,7 @@ namespace Stats.AggregateInGallery
         private static int CurrentFailures = 0;
         private static int CurrentMinBatchSize = MinBatchSize;
         private static int CurrentMaxBatchSize = MaxBatchSize;
+        private static int IsUpdateLastUpdatedOnDownload = 0;
         private static Dictionary<double, int> BatchTimes = new Dictionary<double, int>();
 
         /// <summary>
@@ -27,6 +28,17 @@ namespace Stats.AggregateInGallery
         {
             try
             {
+                IsUpdateLastUpdatedOnDownload = Convert.ToInt32(JobConfigManager.GetArgument(jobArgsDictionary, "IsUpdateLastUpdatedOnDownload"));
+            }
+            catch(FormatException e)
+            {
+                //if invalid value is passed, log it and set the value to 0 which is the default.
+                Trace.TraceError(e.ToString());
+                IsUpdateLastUpdatedOnDownload = 0;
+            }
+            try
+            {
+               
                 PackageDatabase =
                     new SqlConnectionStringBuilder(
                         JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase, EnvironmentVariableKeys.SqlGallery));
@@ -142,6 +154,7 @@ namespace Stats.AggregateInGallery
             {
                 var command = new SqlCommand(AggregateStatsSql, connection);
                 command.Parameters.AddWithValue("@BatchSize", batchSize);
+                command.Parameters.AddWithValue("UpdateLastUpdated", IsUpdateLastUpdatedOnDownload);
 
                 return await command.ExecuteScalarAsync() as int? ?? 0;
             }
@@ -157,6 +170,7 @@ DECLARE @UpdatedGallerySettings TABLE
 
 DECLARE     @LatestGallerySettingPlusOffset INT
 DECLARE     @Offset INT = @BatchSize
+DECLARE     @IsUpdateLastUpdatedOnDownload INT = @UpdateLastUpdated
 
 BEGIN TRANSACTION
 
@@ -214,12 +228,18 @@ BEGIN TRANSACTION
 
     -- Aggregate Package-level stats
 	UPDATE      Packages
-    SET         Packages.DownloadCount = Packages.DownloadCount + stats.DownloadCount,
-    			Packages.LastUpdated = GetUtcDate()
+    SET         Packages.DownloadCount = Packages.DownloadCount + stats.DownloadCount    			
     OUTPUT      inserted.PackageRegistrationKey INTO @AffectedPackages
     FROM        Packages
     INNER JOIN  @DownloadStats stats ON Packages.[Key] = stats.PackageKey        
     
+    -- Optionally update lastUpdated on Package-level
+	If(@updatedLastUpdatedOnDownload = 1)
+	UPDATE      Packages
+	SET         Packages.LastUpdated = GetUtcDate()		
+	FROM        Packages
+    INNER JOIN  @DownloadStats stats ON Packages.[Key] = stats.PackageKey       
+
     -- Aggregate PackageRegistration stats
     UPDATE      PackageRegistrations
     SET         DownloadCount = TotalDownloadCount
