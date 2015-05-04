@@ -1,4 +1,5 @@
 ﻿@using System.Linq.Expressions
+@using Glimpse.Core.Extensions
 @model VerifyPackageRequest
 @{
     ViewBag.Title = "Verify Package";
@@ -11,7 +12,7 @@
 
 <h2>Verify Details</h2>
 <p class="long note">
-    You have successfully uploaded a package. But you have not yet published it in the gallery. The package metadata 
+    You have successfully uploaded a package. But you have not yet published it in the gallery. The package metadata
     is shown below. Please verify the details and make any necessary changes. Then click submit.
 </p>
 <p class="long note">
@@ -42,7 +43,7 @@
     object temp = func.Compile().Invoke(Model);
     string value = temp == null ? null : temp.ToString();
     <div class="form-field">
-        <div style="display: block" >
+        <div style="display: block">
             @Html.Label(formid, name, new { style = "display: inline-block" })
             <button type="button" class="edit-button" id="@(formid + "Button")"><span class="icon-edit" title="Edit"></span></button>
             <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo" title="Undo Edit"></span></button>
@@ -77,76 +78,168 @@
 {
     <fieldset class="form">
         <legend>Verify Package Details</legend>
-    <ul id="packageDetails" style="border-bottom: 1px solid gray; margin-bottom: 1em;">
-        <li>@ReadOnlyField("Package ID", "Id", Model.Id)</li>
-        <li>@ReadOnlyField("Version", "Version", Model.Version)</li>
-        <li>@ReadOnlyField("License URL", "LicenseUrl", Model.LicenseUrl, link: true)</li>
-        <li>@EditableField("Title", m => m.Edit.VersionTitle)</li>
-        <li>@EditableField("Description", m => m.Edit.Description)</li>
-        <li>@EditableField("Summary", m => m.Edit.Summary)</li>
-        <li>@EditableField("Icon URL", m => m.Edit.IconUrl, link: true)</li>
-        <li>@EditableField("Project URL", m => m.Edit.ProjectUrl, link: true)</li>
-        <li>@EditableField("Authors", m => m.Edit.Authors)</li>
-        <li>@EditableField("Copyright", m => m.Edit.Copyright)</li>
-        <li>@EditableField("Tags", m => m.Edit.Tags)</li>
-        <li>@EditableField("Release Notes", m => m.Edit.ReleaseNotes, pre: true)</li>
+        <ul id="packageDetails" style="border-bottom: 1px solid gray; margin-bottom: 1em;">
+            <li>@ReadOnlyField("Package ID", "Id", Model.Id)</li>
+            <li>@ReadOnlyField("Version", "Version", Model.Version)</li>
+            <li>@ReadOnlyField("Minimum NuGet Client Version", "MinClientVersion", Model.MinClientVersion.ToStringSafe())</li>
+            <li>@ReadOnlyField("License URL", "LicenseUrl", Model.LicenseUrl, link: true)</li>
+            <li>@ReadOnlyField("Language", "Language", Model.Language)</li>
+            <li>@EditableField("Title", m => m.Edit.VersionTitle)</li>
+            <li>@EditableField("Description", m => m.Edit.Description)</li>
+            <li>@EditableField("Summary", m => m.Edit.Summary)</li>
+            <li>@EditableField("Icon URL", m => m.Edit.IconUrl, link: true)</li>
+            <li>@EditableField("Project URL", m => m.Edit.ProjectUrl, link: true)</li>
+            <li>@EditableField("Authors", m => m.Edit.Authors)</li>
+            <li>@EditableField("Copyright", m => m.Edit.Copyright)</li>
+            <li>@EditableField("Tags", m => m.Edit.Tags)</li>
+            <li>@EditableField("Release Notes", m => m.Edit.ReleaseNotes, pre: true)</li>
 
-        @if (!String.IsNullOrEmpty(Model.LicenseUrl))
-        {
-            <li>
-                <h4>Requires License Acceptance
-                    @{
-                        var formid2 = "Edit_RequiresLicenseAcceptance";
-                        <button type="button" class="edit-button" id="@(formid2 + "Button")"><span class="icon-edit"></span></button>
-                        <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
-                    }
-                </h4>
-                <div style="position: relative">
-                    <div id="Edit_RequiresLicenseAcceptanceText">
-                        <p>@(Model.Edit.RequiresLicenseAcceptance ? "Yes" : "No")</p>
+            @if (Model.DependencySets != null && Model.DependencySets.Any())
+            {
+                <li>
+                    <h4>
+                        Dependencies
+                    </h4>
+                    <div style="position: relative">
+                        <ul>
+                            @foreach (var dependencyset in Model.DependencySets)
+                            {
+                                if (dependencyset.TargetFramework != null)
+                                {
+                                    <li>
+                                        <b>@dependencyset.TargetFramework.FullName</b>
+
+                                        <ul style="padding-left: 15px">
+                                            @foreach (var dependency in dependencyset.Dependencies)
+                                            {
+                                                <li>@dependency.Id @dependency.VersionSpec.ToString()</li>
+                                            }
+                                        </ul>
+                                    </li>
+                                }
+                                else
+                                {
+                                    foreach (var dependency in dependencyset.Dependencies)
+                                    {
+                                        <li>@dependency.Id @dependency.VersionSpec.ToString()</li>
+                                    }
+                                }
+                            }
+                        </ul>
                     </div>
-                    <div id="Edit_RequiresLicenseAcceptanceField" style="display: none; width: 100%">
-                        <div class="form-field" style="display: inline">
-                            @Html.DropDownList("Edit.RequiresLicenseAcceptance",
+                </li>
+            }
+
+            @if (Model.FrameworkAssembliesBySupportedFrameworks.Any())
+            {
+                <li>
+                    <h4>
+                        Framework Assembly References
+                    </h4>
+                    <div style="position: relative">
+                        <ul>
+                            @foreach (var framework in Model.FrameworkAssembliesBySupportedFrameworks)
+                            {
+                                <li>
+                                    <b>@framework.Key</b>
+
+                                    <ul style="padding-left: 15px">
+                                        @foreach (var assembly in framework.Value)
+                                        {
+                                            <li>@assembly</li>
+                                        }
+                                    </ul>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </li>
+            }
+
+            @if (!String.IsNullOrEmpty(Model.LicenseUrl))
+            {
+                <li>
+                    <h4>
+                        Requires License Acceptance
+                        @{
+                var formid2 = "Edit_RequiresLicenseAcceptance";
+                <button type="button" class="edit-button" id="@(formid2 + "Button")"><span class="icon-edit"></span></button>
+                            <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
+                        }
+                    </h4>
+                    <div style="position: relative">
+                        <div id="Edit_RequiresLicenseAcceptanceText">
+                            <p>@(Model.Edit.RequiresLicenseAcceptance ? "Yes" : "No")</p>
+                        </div>
+                        <div id="Edit_RequiresLicenseAcceptanceField" style="display: none; width: 100%">
+                            <div class="form-field" style="display: inline">
+                                @Html.DropDownList("Edit.RequiresLicenseAcceptance",
                                 new List<SelectListItem>
                                 {
                                     new SelectListItem { Text = "Yes", Value = "true" },
                                     new SelectListItem { Text = "No", Value = "false" },
                                 })
-                            @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+                                @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            }
+            
+            <li>
+                <h4>
+                    Development Dependency
+                    @{
+        var formidDevDep = "Edit_DevelopmentDependency";
+        <button type="button" class="edit-button" id="@(formidDevDep + "Button")"><span class="icon-edit"></span></button>
+                        <button type="button" class="undo-button" id="@("Undo" + formidDevDep)" style="display: none"><span class="icon-undo"></span></button>
+                    }
+                </h4>
+                <div style="position: relative">
+                    <div id="Edit_DevelopmentDependencyText">
+                        <p>@(Model.Edit.DevelopmentDependency ? "Yes" : "No")</p>
+                    </div>
+                    <div id="Edit_DevelopmentDependencyField" style="display: none; width: 100%">
+                        <div class="form-field" style="display: inline">
+                            @Html.DropDownList("Edit.DevelopmentDependency",
+                                new List<SelectListItem>
+                                {
+                                    new SelectListItem { Text = "Yes", Value = "true" },
+                                    new SelectListItem { Text = "No", Value = "false" },
+                                })
+                            @Html.ValidationMessageFor(model => model.Edit.DevelopmentDependency)
                         </div>
                     </div>
                 </div>
             </li>
-        }
 
-        <li>
-            <h4>Listed in Search Results</h4>
+            <li>
+                <h4>Listed in Search Results</h4>
                 <div class="form-field">
-                   @Html.DropDownList("Listed",
+                    @Html.DropDownList("Listed",
                             new List<SelectListItem>
                             {
                                 new SelectListItem { Text = "Yes", Value = "true", Selected = true },
                                 new SelectListItem { Text = "No", Value = "false" },
                             })
-                        @Html.ValidationMessageFor(model => model.Listed)
+                    @Html.ValidationMessageFor(model => model.Listed)
                     @*<label for="Listed" class="checkbox">
-                        List this package in search results. 
-                    </label>*@
+                            List this package in search results.
+                        </label>*@
                 </div>
-        </li>
-    </ul>
+            </li>
+        </ul>
 
-    @Html.AntiForgeryToken()
-    <input id="verifyUploadSubmit" type="submit" value="Submit" title="Verify Details &amp; Submit" /> 
-    <a class="cancel" href="@Url.CancelUpload()" title="Cancel the upload in progress.">Cancel</a>
-</fieldset>
+        @Html.AntiForgeryToken()
+        <input id="verifyUploadSubmit" type="submit" value="Submit" title="Verify Details &amp; Submit" />
+        <a class="cancel" href="@Url.CancelUpload()" title="Cancel the upload in progress.">Cancel</a>
+    </fieldset>
 }
 
 @section BottomScripts {
     <script>
-        $(function() {
-            $('a.cancel').click(function() {
+        $(function () {
+            $('a.cancel').click(function () {
                 var $anchor = $(this);
                 var $form = $anchor.parents('form');
                 $form.attr('action', '@Url.CancelUpload()');
@@ -209,13 +302,17 @@
             @if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
             {
                 <text>
-                SetupInput('Edit_RequiresLicenseAcceptance');
+            SetupInput('Edit_RequiresLicenseAcceptance');
 
-                // Fix our SetupInput function to work with RequiresLicenseAcceptance
-                // Set up the defaultValue property on the <select> element - which doesn't have a defaultValue defined by default for some reason
-                $("#Edit_RequiresLicenseAcceptance")[0].defaultValue = "@(Model.Edit.RequiresLicenseAcceptance ? "true" : "false")";
-                </text>
+            // Fix our SetupInput function to work with RequiresLicenseAcceptance
+            // Set up the defaultValue property on the <select> element - which doesn't have a defaultValue defined by default for some reason
+            $("#Edit_RequiresLicenseAcceptance")[0].defaultValue = "@(Model.Edit.RequiresLicenseAcceptance ? "true" : "false")";
+            </text>
             }
+            
+            SetupInput('Edit_DevelopmentDependency');
+            $("#Edit_DevelopmentDependency")[0].defaultValue = "@(Model.Edit.DevelopmentDependency ? "true" : "false")";
+
         });
     </script>
 }

@@ -781,15 +781,19 @@ namespace NuGetGallery
                     packageMetadata = package.Metadata;
                 }
             }
-
             var model = new VerifyPackageRequest
             {
                 Id = packageMetadata.Id,
                 Version = packageMetadata.Version.ToNormalizedStringSafe(),
                 LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull(),
                 Listed = true,
+                Language = packageMetadata.Language,
+                MinClientVersion = packageMetadata.MinClientVersion,
+                DependencySets = packageMetadata.DependencySets,
+                FrameworkAssemblies = packageMetadata.FrameworkAssemblies,
                 Edit = new EditPackageVersionRequest
                 {
+                    DevelopmentDependency = packageMetadata.DevelopmentDependency,
                     Authors = packageMetadata.Authors.Flatten(),
                     Copyright = packageMetadata.Copyright,
                     Description = packageMetadata.Description,
@@ -848,6 +852,7 @@ namespace NuGetGallery
                 if (formData.Edit != null)
                 {
                     pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != nugetPackage.Metadata.RequireLicenseAcceptance;
+                    pendEdit = pendEdit || formData.Edit.DevelopmentDependency != nugetPackage.Metadata.DevelopmentDependency;
 
                     pendEdit = pendEdit || IsDifferent(formData.Edit.IconUrl, nugetPackage.Metadata.IconUrl.ToEncodedUrlStringOrNull());
                     pendEdit = pendEdit || IsDifferent(formData.Edit.ProjectUrl, nugetPackage.Metadata.ProjectUrl.ToEncodedUrlStringOrNull());

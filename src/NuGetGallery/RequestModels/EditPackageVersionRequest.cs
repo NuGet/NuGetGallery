@@ -101,5 +101,7 @@ namespace NuGetGallery
 
         [Display(Name = RequiresLicenseAcceptanceStr)]
         public bool RequiresLicenseAcceptance { get; set; }
+
+        public bool DevelopmentDependency { get; set; }
     }
 }
