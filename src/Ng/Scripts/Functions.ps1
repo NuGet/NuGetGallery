@@ -19,7 +19,7 @@ Function Install-NuGetService() {
 
 	$installService = "nssm install $ServiceName $ScriptToRun"
 	cmd /C $installService 
-	Set-Service -Name $ServiceName -DisplayName "$ServiceTitle - $ServiceName" -Description "Runs $ScriptToRun." -StartupType Automatic
+	Set-Service -Name $ServiceName -DisplayName "$ServiceTitle - $ServiceName" -Description "Runs $ServiceTitle." -StartupType Automatic
 	sc.exe failure $ServiceName reset= 30 actions= restart/5000 
 
 	# Run service
