@@ -9,7 +9,7 @@
 
 	title #{Jobs.aacatalog2registration.Title}
 
-    start /w Ng.exe catalog2registration -source #{Jobs.ngcatalog2dnx.Catalog.Source} -contentBaseAddress #{Jobs.ngcatalog2dnx.ContentBaseAddress} -storageBaseAddress #{Jobs.ngcatalog2dnx.StorageBaseAddress} -storageType azure -storageAccountName #{Jobs.ngcatalog2dnx.Registration.StorageAccount.Name} -storageKeyValue #{Jobs.ngcatalog2dnx.Registration.StorageAccount.Key} -storageContainer #{Jobs.ngcatalog2dnx.Registration.Container} -verbose true -interval #{Jobs.aacatalog2registration.Interval}
+    start /w Ng.exe catalog2registration -source #{Jobs.aacatalog2registration.Catalog.Source} -contentBaseAddress #{Jobs.aacatalog2registration.ContentBaseAddress} -storageBaseAddress #{Jobs.aacatalog2registration.StorageBaseAddress} -storageType azure -storageAccountName #{Jobs.aacatalog2registration.Registration.StorageAccount.Name} -storageKeyValue #{Jobs.aacatalog2registration.Registration.StorageAccount.Key} -storageContainer #{Jobs.aacatalog2registration.Registration.Container} -verbose true -interval #{Jobs.aacatalog2registration.Interval}
 
 	echo "Finished - aacatalog2registration"
 
