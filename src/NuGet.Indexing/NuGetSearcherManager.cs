@@ -1,6 +1,8 @@
-﻿using Lucene.Net.Search;
+﻿using Lucene.Net.Index;
+using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.Store.Azure;
+using Lucene.Net.Util;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
 using System;
@@ -13,6 +15,7 @@ namespace NuGet.Indexing
     public class NuGetSearcherManager : SearcherManager
     {
         Tuple<IDictionary<string, Filter>, IDictionary<string, Filter>> _filters;
+        IDictionary<string, Tuple<OpenBitSet, OpenBitSet>> _latestBitSets;
         IDictionary<string, JArray[]> _versionsByDoc;
         JArray[] _versionListsByDoc;
 
@@ -128,6 +131,9 @@ namespace NuGet.Indexing
             // Recalculate all the framework compatibility filters
             _filters = Compatibility.Warm(searcher.IndexReader, _currentFrameworkCompatibility.Value);
 
+            // Recalculate all the latest / latestPrerelease bitSets 
+            _latestBitSets = CreateLatestBitSets(searcher.IndexReader, _filters);
+
             // Recalculate precalculated Versions arrays 
             PackageVersions packageVersions = new PackageVersions(searcher.IndexReader);
             
@@ -187,6 +193,41 @@ namespace NuGet.Indexing
             return null;
         }
 
+        public Tuple<OpenBitSet, OpenBitSet> GetBitSets(string supportedFramework)
+        {
+            string frameworkFullName;
+
+            if (string.IsNullOrEmpty(supportedFramework))
+            {
+                frameworkFullName = "any";
+            }
+            else
+            {
+                FrameworkName frameworkName = VersionUtility.ParseFrameworkName(supportedFramework);
+                frameworkFullName = frameworkName.FullName;
+                if (frameworkFullName == "Unsupported,Version=v0.0")
+                {
+                    try
+                    {
+                        frameworkName = new FrameworkName(supportedFramework);
+                        frameworkFullName = frameworkName.FullName;
+                    }
+                    catch (ArgumentException)
+                    {
+                        frameworkFullName = "any";
+                    }
+                }
+            }
+
+            Tuple<OpenBitSet, OpenBitSet> result;
+            if (_latestBitSets.TryGetValue(frameworkFullName, out result))
+            {
+                return result;
+            }
+
+            return _latestBitSets["any"];
+        }
+
         public JArray GetVersions(string scheme, int doc)
         {
             return _versionsByDoc[scheme][doc];
@@ -195,6 +236,21 @@ namespace NuGet.Indexing
         public JArray GetVersionLists(int doc)
         {
             return _versionListsByDoc[doc];
+        }
+
+        static IDictionary<string, Tuple<OpenBitSet, OpenBitSet>> CreateLatestBitSets(IndexReader reader, Tuple<IDictionary<string, Filter>, IDictionary<string, Filter>> filters)
+        {
+            IDictionary<string, Tuple<OpenBitSet, OpenBitSet>> result = new Dictionary<string, Tuple<OpenBitSet, OpenBitSet>>();
+
+            foreach (KeyValuePair<string, Filter> item in filters.Item1)
+            {
+                OpenBitSet item1 = BitSetCollector.CreateBitSet(reader, item.Value);
+                OpenBitSet item2 = BitSetCollector.CreateBitSet(reader, filters.Item2[item.Key]);
+
+                result.Add(item.Key, Tuple.Create(item1, item2));
+            }
+
+            return result;
         }
     }
 }

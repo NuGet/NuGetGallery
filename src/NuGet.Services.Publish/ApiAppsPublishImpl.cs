@@ -107,7 +107,7 @@ namespace NuGet.Services.Publish
             }
             else
             {
-                nuspec["categories"] = new JArray("community");
+                nuspec["categories"] = new JArray("apiapps-community");
             }
 
             JToken jtokenDescription;

@@ -143,6 +143,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BitSetCollector.cs" />
     <Compile Include="ChainedFilter.cs" />
     <Compile Include="Compatibility.cs" />
     <Compile Include="DownloadCounts.cs" />
@@ -150,6 +151,7 @@
     <Compile Include="EmptyDownloadCounts.cs" />
     <Compile Include="FacetedDocument.cs" />
     <Compile Include="Facets.cs" />
+    <Compile Include="GalleryServiceImpl.cs" />
     <Compile Include="IdentifierAutocompleteAnalyzer.cs" />
     <Compile Include="LatestVersionFilter.cs" />
     <Compile Include="LocalFrameworksList.cs" />

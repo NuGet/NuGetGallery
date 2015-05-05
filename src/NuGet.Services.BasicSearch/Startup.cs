@@ -133,6 +133,9 @@ namespace NuGet.Services.BasicSearch
                 case "/autocomplete":
                     await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.AutoComplete(context, _searcherManager));
                     break;
+                case "/search/query":
+                    await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, GalleryServiceImpl.Query(context, _searcherManager));
+                    break;
                 case "/targetframeworks":
                     await ServiceInfoImpl.TargetFrameworks(context, _searcherManager);
                     break;

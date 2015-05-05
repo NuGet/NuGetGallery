@@ -23,7 +23,10 @@ namespace NuGet.Indexing
 
             foreach (Tuple<NuGetVersion, string, int> entry in lookup.Values)
             {
-                openBitSetLookup[entry.Item2].Set(entry.Item3);
+                string segmentName = entry.Item2;
+                int segmentDocumentId = entry.Item3;
+
+                openBitSetLookup[segmentName].Set(segmentDocumentId);
             }
 
             return new OpenBitSetLookupFilter(openBitSetLookup);
