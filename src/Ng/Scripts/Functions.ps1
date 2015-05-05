@@ -1,5 +1,3 @@
-. "Functions.ps1" 
-
 Function Uninstall-NuGetService() {
 	Param ([string]$ServiceName)
 

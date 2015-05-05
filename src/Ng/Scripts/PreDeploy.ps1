@@ -1,4 +1,4 @@
-. "Functions.ps1" 
+. .\Functions.ps1
 
 $serviceNameC2R = $OctopusParameters["Jobs.Catalog2Registration.Service.Name"]
 $serviceNameC2L = $OctopusParameters["Jobs.Catalog2Lucene.Service.Name"]
