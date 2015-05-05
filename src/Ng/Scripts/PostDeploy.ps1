@@ -12,7 +12,7 @@ $jobsToInstall.Split("{;}") | %{
 	$scriptToRun = $OctopusParameters["Jobs.$serviceName.Script"]
 	$scriptToRun = "$currentDirectory\scriptToRun"
 
-	Install-NuGetService -ServiceName $serviceName -ServiceTitle $serviceTitle -ScriptToRun scriptToRun
+	Install-NuGetService -ServiceName $serviceName -ServiceTitle $serviceTitle -ScriptToRun $scriptToRun
 }
 
 Write-Host Installed services.
