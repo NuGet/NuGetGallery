@@ -1,15 +1,11 @@
 . .\Functions.ps1
 
-$serviceNameC2R = $OctopusParameters["Jobs.Catalog2Registration.Service.Name"]
-$serviceNameC2L = $OctopusParameters["Jobs.Catalog2Lucene.Service.Name"]
-$serviceNameC2D = $OctopusParameters["Jobs.Catalog2Dnx.Service.Name"]
-
-# Stop and remove services
+$jobsToInstall = $OctopusParameters["Jobs.ServiceNames"].Split("{,}")
 
 Write-Host Removing services...
 
-Uninstall-NuGetService -ServiceName $serviceNameC2R
-Uninstall-NuGetService -ServiceName $serviceNameC2L
-Uninstall-NuGetService -ServiceName $serviceNameC2D
+$jobsToInstall.Split("{;}") | %{
+	Uninstall-NuGetService -ServiceName $_
+}
 
 Write-Host Removed services.

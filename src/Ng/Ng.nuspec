@@ -11,8 +11,8 @@
   </metadata>
   <files>
     <file src="bin\$configuration$\*.*" target="Ng"/>
-    <file src="Scripts\Catalog2LuceneV3.cmd" />
-    <file src="Scripts\Catalog2RegistrationV3.cmd" />
+    <file src="Scripts\ApiAppsCatalog2LuceneV3.cmd" />
+    <file src="Scripts\ApiAppsCatalog2RegistrationV3.cmd" />
     <file src="Scripts\Catalog2DnxV3.cmd" />
     <file src="Scripts\Functions.ps1" />
     <file src="Scripts\PreDeploy.ps1" />
