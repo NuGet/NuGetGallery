@@ -1,16 +1,16 @@
 @echo OFF
+	
+cd Ng
 
 :Top
-	echo "Starting job - Catalog2Dnx"
-	
-	cd Ng
+	echo "Starting job - ngcatalog2dnx"
 
-	set NUGETJOBS_STORAGE_PRIMARY=#{Jobs.Catalog2Dnx.Storage.Primary}
+	set NUGETJOBS_STORAGE_PRIMARY=#{Jobs.ngcatalog2dnx.Storage.Primary}
 
-	title #{Jobs.Catalog2Dnx.Title}
+	title #{Jobs.ngcatalog2dnx.Title}
 
-    start /w Ng.exe catalog2dnx -source #{Jobs.Catalog2Dnx.Catalog.Source} -contentBaseAddress #{Jobs.Catalog2Dnx.ContentBaseAddress} -storageType azure -storageAccountName #{Jobs.Catalog2Dnx.Registration.StorageAccount.Name} -storageKeyValue #{Jobs.Catalog2Dnx.Registration.StorageAccount.Key} -storageContainer #{Jobs.Catalog2Dnx.Registration.Container} -verbose true -interval #{Jobs.Catalog2Dnx.Interval}
+    start /w Ng.exe catalog2dnx -source #{Jobs.ngcatalog2dnx.Catalog.Source} -contentBaseAddress #{Jobs.ngcatalog2dnx.ContentBaseAddress} -storageType azure -storageAccountName #{Jobs.ngcatalog2dnx.Registration.StorageAccount.Name} -storageKeyValue #{Jobs.ngcatalog2dnx.Registration.StorageAccount.Key} -storageContainer #{Jobs.ngcatalog2dnx.Registration.Container} -verbose true -interval #{Jobs.ngcatalog2dnx.Interval}
 
-	echo "Finished - Catalog2Dnx"
+	echo "Finished - ngcatalog2dnx"
 
 	goto Top
