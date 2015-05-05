@@ -8,8 +8,8 @@ $serviceNameC2D = $OctopusParameters["Jobs.Catalog2Dnx.Service.Name"]
 
 Write-Host Removing services...
 
-Uninstall-NuGetService($serviceNameC2R)
-Uninstall-NuGetService($serviceNameC2L)
-Uninstall-NuGetService($serviceNameC2D)
+Uninstall-NuGetService -ServiceName $serviceNameC2R
+Uninstall-NuGetService -ServiceName $serviceNameC2L
+Uninstall-NuGetService -ServiceName $serviceNameC2D
 
 Write-Host Removed services.

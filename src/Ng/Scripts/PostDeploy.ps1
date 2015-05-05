@@ -11,6 +11,6 @@ $titleC2D = $OctopusParameters["Jobs.Catalog2Dnx.Title"]
 $currentDirectory = [string](Get-Location)
 
 # Install services	
-Install-NuGetService($serviceNameC2R, $titleC2R, "$currentDirectory\Catalog2RegistrationV3.cmd")
-Install-NuGetService($serviceNameC2L, $titleC2L, "$currentDirectory\Catalog2LuceneV3.cmd")
-Install-NuGetService($serviceNameC2D, $titleC2D, "$currentDirectory\Catalog2DnxV3.cmd")
+Install-NuGetService -ServiceName $serviceNameC2R -ServiceTitle $titleC2R -ScriptToRun "$currentDirectory\Catalog2RegistrationV3.cmd"
+Install-NuGetService -ServiceName $serviceNameC2L -ServiceTitle $titleC2L -ScriptToRun "$currentDirectory\Catalog2LuceneV3.cmd"
+Install-NuGetService -ServiceName $serviceNameC2D -ServiceTitle $titleC2D -ScriptToRun "$currentDirectory\Catalog2DnxV3.cmd"
