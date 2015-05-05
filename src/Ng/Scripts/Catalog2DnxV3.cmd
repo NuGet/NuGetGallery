@@ -1,9 +1,9 @@
 @echo OFF
+	
+cd Ng
 
 :Top
 	echo "Starting job - ngcatalog2dnx"
-	
-	cd Ng
 
 	set NUGETJOBS_STORAGE_PRIMARY=#{Jobs.ngcatalog2dnx.Storage.Primary}
 
