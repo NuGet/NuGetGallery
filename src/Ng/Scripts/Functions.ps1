@@ -18,15 +18,13 @@ Function Install-NuGetService() {
 	Write-Host Installing service $ServiceName...
 
 	$installService = "nssm install $ServiceName $ScriptToRun"
-	cmd /C $installService 
+	cmd /C $installService
+	
 	Set-Service -Name $ServiceName -DisplayName "$ServiceTitle - $ServiceName" -Description "Runs $ServiceTitle." -StartupType Automatic
 	sc.exe failure $ServiceName reset= 30 actions= restart/5000 
 
 	# Run service
-	net start $serviceNameC2R
+	net start $ServiceName
 		
 	Write-Host Installed service $ServiceName.
 }
-
-
-
