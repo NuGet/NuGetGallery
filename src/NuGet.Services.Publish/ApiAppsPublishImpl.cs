@@ -149,10 +149,10 @@ namespace NuGet.Services.Publish
                 }
             }
 
-            AddDefault(entries, fullNames, "metadata/icons/large-icon.png", "/apiapps/large.png");
-            AddDefault(entries, fullNames, "metadata/icons/medium-icon.png", "/apiapps/medium.png");
-            AddDefault(entries, fullNames, "metadata/icons/small-icon.png", "/apiapps/small.png");
-            AddDefault(entries, fullNames, "metadata/icons/wide-icon.png", "/apiapps/wide.png");
+            AddDefault(entries, fullNames, "content/metadata/icons/large.png", "/apiapps/large.png");
+            AddDefault(entries, fullNames, "content/metadata/icons/medium.png", "/apiapps/medium.png");
+            AddDefault(entries, fullNames, "content/metadata/icons/small.png", "/apiapps/small.png");
+            AddDefault(entries, fullNames, "content/metadata/icons/wide.png", "/apiapps/wide.png");
         }
 
         void AddDefault(JArray entries, HashSet<string> fullNames, string fullname, string relativeAddress)
@@ -187,42 +187,42 @@ namespace NuGet.Services.Publish
                 {
                     string fullName = fullNameToken.ToString();
 
-                    if (fullName.StartsWith("metadata/screenshots"))
+                    if (fullName.StartsWith("content/metadata/screenshots"))
                     {
                         MetadataHelpers.AssertType(entry, Schema.DataTypes.Screenshot, Schema.Prefixes.NuGet);
                     }
 
-                    if (fullName.StartsWith("metadata/icons"))
+                    if (fullName.StartsWith("content/metadata/icons"))
                     {
                         MetadataHelpers.AssertType(entry, Schema.DataTypes.Icon, Schema.Prefixes.NuGet);
                     }
 
-                    if (fullName.StartsWith("metadata/deploymentTemplates"))
+                    if (fullName.StartsWith("content/metadata/deploymentTemplates"))
                     {
                         MetadataHelpers.AssertType(entry, Schema.DataTypes.CsmTemplate, Schema.Prefixes.NuGet);
                     }
 
-                    if (fullName == "metadata/icons/hero-icon.png")
+                    if (fullName == "content/metadata/icons/hero.png")
                     {
                         MetadataHelpers.AssertType(entry, Schema.DataTypes.HeroIcon, Schema.Prefixes.NuGet);
                     }
 
-                    if (fullName == "metadata/icons/large-icon.png")
+                    if (fullName == "content/metadata/icons/large.png")
                     {
                         MetadataHelpers.AssertType(entry, Schema.DataTypes.LargeIcon, Schema.Prefixes.NuGet);
                     }
 
-                    if (fullName == "metadata/icons/medium-icon.png")
+                    if (fullName == "content/metadata/icons/medium.png")
                     {
                         MetadataHelpers.AssertType(entry, Schema.DataTypes.MediumIcon, Schema.Prefixes.NuGet);
                     }
 
-                    if (fullName == "metadata/icons/small-icon.png")
+                    if (fullName == "content/metadata/icons/small.png")
                     {
                         MetadataHelpers.AssertType(entry, Schema.DataTypes.SmallIcon, Schema.Prefixes.NuGet);
                     }
 
-                    if (fullName == "metadata/icons/wide-icon.png")
+                    if (fullName == "content/metadata/icons/wide.png")
                     {
                         MetadataHelpers.AssertType(entry, Schema.DataTypes.WideIcon, Schema.Prefixes.NuGet);
                     }
