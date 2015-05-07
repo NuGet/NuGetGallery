@@ -378,10 +378,15 @@ namespace Ng
             Add(doc, "MinClientVersion", (string)package["minClientVersion"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "ReleaseNotes", (string)package["releaseNotes"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "Copyright", (string)package["copyright"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            
             Add(doc, "LicenseUrl", (string)package["licenseUrl"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "RequiresLicenseAcceptance", (string)package["requiresLicenseAcceptance"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "PackageSize", (string)package["packageSize"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "Language", (string)package["language"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            
+            Add(doc, "PackageHash", (string)package["packageHash"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            Add(doc, "PackageHashAlgorithm", (string)package["packageHashAlgorithm"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            Add(doc, "PackageSize", (string)package["packageSize"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            
+            Add(doc, "Language", (string)package["language"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
 
             string fullId = (package["namespace"] != null) ? string.Format("{0}.{1}", package["namespace"], package["id"]) : (string)package["id"];
             Add(doc, "FullId", fullId, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
@@ -405,6 +410,18 @@ namespace Ng
             Add(doc, "CatalogEntry", (string)package["@id"], Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
 
             Add(doc, "Listed", (string)package["listed"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+
+            //  The following fields are added for back compatibility with the V2 gallery
+
+            Add(doc, "OriginalVersion", (string)package["verbatimVersion"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            Add(doc, "OriginalCreated", (string)package["created"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            Add(doc, "OriginalLastEdited", (string)package["lastEdited"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            Add(doc, "OriginalPublished", (string)package["published"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+
+            Add(doc, "LicenseNames", (string)package["licenseNames"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            Add(doc, "LicenseReportUrl", (string)package["licenseReportUrl"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+
+            //TODO: add dependency summary
 
             doc.Boost = DetermineLanguageBoost((string)package["id"], (string)package["language"]);
 

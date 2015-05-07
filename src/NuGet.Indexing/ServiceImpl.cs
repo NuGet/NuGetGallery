@@ -126,6 +126,8 @@ namespace NuGet.Indexing
                 AddField(obj, document, "summary", "Summary");
                 AddField(obj, document, "title", "Title");
                 AddField(obj, document, "iconUrl", "IconUrl");
+                AddField(obj, document, "licenseUrl", "LicenseUrl");
+                AddField(obj, document, "projectUrl", "ProjectUrl");
                 AddFieldAsArray(obj, document, "tags", "Tags");
                 AddFieldAsArray(obj, document, "authors", "Authors");
 

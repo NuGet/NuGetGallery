@@ -15,14 +15,11 @@ namespace NuGet.Indexing
             _path = path;
         }
 
-        protected override JObject LoadJson()
+        protected override string LoadJson()
         {
             using (StreamReader textReader = new StreamReader(Path))
             {
-                using (JsonReader jsonReader = new JsonTextReader(textReader))
-                {
-                    return JObject.Load(jsonReader);
-                }
+                return textReader.ReadToEnd();
             }
         }
     }

@@ -11,6 +11,8 @@ using VDS.RDF.Parsing;
 
 namespace NuGet.Services.Metadata.Catalog
 {
+    //TODO: don't use virtual function overloads to pass around what has become arbitrary properties
+
     public abstract class PackageCatalogItem : AppendOnlyCatalogItem
     {
         protected string _id;
@@ -53,6 +55,16 @@ namespace NuGet.Services.Metadata.Catalog
             return null;
         }
 
+        protected virtual string GetLicenseNames()
+        {
+            return null;
+        }
+
+        protected virtual string GetLicenseReportUrl()
+        {
+            return null;
+        }
+
         // Additional catalog item sections
         protected virtual IEnumerable<GraphAddon> GetAddons()
         {
@@ -91,7 +103,23 @@ namespace NuGet.Services.Metadata.Catalog
             INode lastEditedPredicate = graph.CreateUriNode(Schema.Predicates.LastEdited);
             DateTime lastEdited = GetLastEdited() ?? DateTime.MinValue;
             graph.Assert(resource.Subject, lastEditedPredicate, graph.CreateLiteralNode(lastEdited.ToString("O"), Schema.DataTypes.DateTime));
-            
+
+            //  licenseNames
+            string licenseNames = GetLicenseNames();
+            if (licenseNames != null)
+            {
+                INode licenseNamesPredicate = graph.CreateUriNode(Schema.Predicates.LicenseNames);
+                graph.Assert(resource.Subject, licenseNamesPredicate, graph.CreateLiteralNode(licenseNames));
+            }
+
+            //  licenseReportUrl
+            string licenseReportUrl = GetLicenseReportUrl();
+            if (licenseReportUrl != null)
+            {
+                INode licenseReportUrlPredicate = graph.CreateUriNode(Schema.Predicates.LicenseReportUrl);
+                graph.Assert(resource.Subject, licenseReportUrlPredicate, graph.CreateLiteralNode(licenseReportUrl));
+            }
+
             ////  refreshed
             //INode refreshedPredicate = graph.CreateUriNode(Schema.Predicates.Refreshed);
             //DateTime listed = GetRefreshed() ?? TimeStamp;

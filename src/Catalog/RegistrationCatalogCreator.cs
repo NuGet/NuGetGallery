@@ -12,7 +12,6 @@ namespace NuGet.Services.Metadata.Catalog
     public static class RegistrationCatalogCreator
     {
         static List<string> existingVersionsWithID;
-        static List<string> existingVersionsWithoutID;
 
          public static async Task ProcessGraphs(
             string id,

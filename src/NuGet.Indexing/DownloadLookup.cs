@@ -1,5 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System.IO;
 
 namespace NuGet.Indexing
 {
@@ -7,29 +9,40 @@ namespace NuGet.Indexing
     {
         public static readonly string FileName = "downloads.v1.json";
         public abstract string Path { get; }
-        protected abstract JObject LoadJson();
+        protected abstract string LoadJson();
 
         public IDictionary<string, IDictionary<string, int>> Load()
         {
             IDictionary<string, IDictionary<string, int>> result = new Dictionary<string, IDictionary<string, int>>();
 
-            JObject obj = LoadJson();
-            if (obj != null)
+            string json = LoadJson();
+
+            using (TextReader reader = new StringReader(json))
             {
-                foreach (JObject record in obj.PropertyValues())
+                using (JsonReader jsonReader = new JsonTextReader(reader))
                 {
-                    string id = record["Id"].ToString().ToLowerInvariant();
-                    string version = record["Version"].ToString();
-                    int downloads = record["Downloads"].ToObject<int>();
+                    jsonReader.Read();
 
-                    IDictionary<string, int> versions;
-                    if (!result.TryGetValue(id, out versions))
+                    while (jsonReader.Read())
                     {
-                        versions = new Dictionary<string, int>();
-                        result.Add(id, versions);
-                    }
+                        if (jsonReader.TokenType == JsonToken.StartObject)
+                        {
+                            JToken record = JToken.ReadFrom(jsonReader);
 
-                    versions.Add(version, downloads);
+                            string id = record["Id"].ToString().ToLowerInvariant();
+                            string version = record["Version"].ToString();
+                            int downloads = record["Downloads"].ToObject<int>();
+
+                            IDictionary<string, int> versions;
+                            if (!result.TryGetValue(id, out versions))
+                            {
+                                versions = new Dictionary<string, int>();
+                                result.Add(id, versions);
+                            }
+
+                            versions.Add(version, downloads);
+                        }
+                    }
                 }
             }
 

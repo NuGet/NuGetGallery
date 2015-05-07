@@ -13,10 +13,12 @@ namespace NuGet.Services.Metadata.Catalog
         IEnumerable<PackageEntry> _entries;
         long? _packageSize;
         string _packageHash;
-        private readonly IEnumerable<GraphAddon> _catalogSections;
-        private DateTime? _createdDate;
-        private DateTime? _lastEditedDate;
-        private DateTime? _publishedDate;
+        readonly IEnumerable<GraphAddon> _catalogSections;
+        DateTime? _createdDate;
+        DateTime? _lastEditedDate;
+        DateTime? _publishedDate;
+        string _licenseNames;
+        string _licenseReportUrl;
 
         public NuspecPackageCatalogItem(string path)
         {
@@ -37,7 +39,7 @@ namespace NuGet.Services.Metadata.Catalog
             _catalogSections = catalogSections;
         }
 
-        public NuspecPackageCatalogItem(XDocument nuspec, DateTime? refreshed = null, IEnumerable<PackageEntry> entries = null, long? packageSize = null, string packageHash = null, IEnumerable<GraphAddon> catalogSections = null, DateTime? createdDate =null, DateTime? lastEditedDate = null, DateTime? publishedDate = null)
+        public NuspecPackageCatalogItem(XDocument nuspec, DateTime? refreshed = null, IEnumerable<PackageEntry> entries = null, long? packageSize = null, string packageHash = null, IEnumerable<GraphAddon> catalogSections = null, DateTime? createdDate =null, DateTime? lastEditedDate = null, DateTime? publishedDate = null, string licenseNames = null, string licenseReportUrl = null)
         {
             _nuspec = nuspec;
             _refreshed = refreshed;
@@ -48,6 +50,8 @@ namespace NuGet.Services.Metadata.Catalog
             _createdDate = createdDate;
             _lastEditedDate = lastEditedDate;
             _publishedDate = publishedDate;
+            _licenseNames = licenseNames;
+            _licenseReportUrl = licenseReportUrl;
         }
 
         public string Path
@@ -88,6 +92,16 @@ namespace NuGet.Services.Metadata.Catalog
         protected override DateTime? GetLastEdited()
         {
             return _lastEditedDate;
+        }
+
+        protected override string GetLicenseNames()
+        {
+            return _licenseNames;
+        }
+
+        protected override string GetLicenseReportUrl()
+        {
+            return _licenseReportUrl;
         }
 
         protected override DateTime? GetCreated()

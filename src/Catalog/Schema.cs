@@ -131,6 +131,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Summary = new Uri(Prefixes.NuGet + "summary");
             public static readonly Uri Title = new Uri(Prefixes.NuGet + "title");
             public static readonly Uri LicenseUrl = new Uri(Prefixes.NuGet + "licenseUrl");
+            public static readonly Uri LicenseNames = new Uri(Prefixes.NuGet + "licenseNames");
             public static readonly Uri LicenseReportUrl = new Uri(Prefixes.NuGet + "licenseReportUrl");
             public static readonly Uri MinimumClientVersion = new Uri(Prefixes.NuGet + "minimumClientVersion");
             public static readonly Uri Tag = new Uri(Prefixes.NuGet + "tag");

@@ -17,15 +17,14 @@ namespace NuGet.Indexing
             _blob = container.GetBlockBlobReference(blobName);
         }
 
-        protected override JObject LoadJson()
+        protected override string LoadJson()
         {
             if (!_blob.Exists())
             {
                 return null;
             }
             string json = _blob.DownloadText();
-            JObject obj = JObject.Parse(json);
-            return obj;
+            return json;
         }
     }
 }

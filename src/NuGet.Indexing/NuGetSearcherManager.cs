@@ -121,29 +121,32 @@ namespace NuGet.Indexing
 
         protected override void Warm(IndexSearcher searcher)
         {
-            searcher.Search(new MatchAllDocsQuery(), 1);
+            lock (this)
+            {
+                searcher.Search(new MatchAllDocsQuery(), 1);
 
-            // Reload download counts and rankings synchronously
-            _currentDownloadCounts.Reload();
-            _currentRankings.Reload();
-            _currentFrameworkCompatibility.Reload();
+                // Reload download counts and rankings synchronously
+                _currentDownloadCounts.Reload();
+                _currentRankings.Reload();
+                _currentFrameworkCompatibility.Reload();
 
-            // Recalculate all the framework compatibility filters
-            _filters = Compatibility.Warm(searcher.IndexReader, _currentFrameworkCompatibility.Value);
+                // Recalculate all the framework compatibility filters
+                _filters = Compatibility.Warm(searcher.IndexReader, _currentFrameworkCompatibility.Value);
 
-            // Recalculate all the latest / latestPrerelease bitSets 
-            _latestBitSets = CreateLatestBitSets(searcher.IndexReader, _filters);
+                // Recalculate all the latest / latestPrerelease bitSets 
+                _latestBitSets = CreateLatestBitSets(searcher.IndexReader, _filters);
 
-            // Recalculate precalculated Versions arrays 
-            PackageVersions packageVersions = new PackageVersions(searcher.IndexReader);
-            
-            _versionsByDoc = new Dictionary<string, JArray[]>();
-            _versionsByDoc["http"] = packageVersions.CreateVersionsLookUp(_currentDownloadCounts.Value, RegistrationBaseAddress["http"]);
-            _versionsByDoc["https"] = packageVersions.CreateVersionsLookUp(_currentDownloadCounts.Value, RegistrationBaseAddress["https"]);
+                // Recalculate precalculated Versions arrays 
+                PackageVersions packageVersions = new PackageVersions(searcher.IndexReader);
 
-            _versionListsByDoc = packageVersions.CreateVersionListsLookUp();
+                _versionsByDoc = new Dictionary<string, JArray[]>();
+                _versionsByDoc["http"] = packageVersions.CreateVersionsLookUp(_currentDownloadCounts.Value, RegistrationBaseAddress["http"]);
+                _versionsByDoc["https"] = packageVersions.CreateVersionsLookUp(_currentDownloadCounts.Value, RegistrationBaseAddress["https"]);
 
-            LastReopen = DateTime.UtcNow;
+                _versionListsByDoc = packageVersions.CreateVersionListsLookUp();
+
+                LastReopen = DateTime.UtcNow;
+            }
         }
 
         public IDictionary<string, int> GetRankings(string name = null)
@@ -190,7 +193,7 @@ namespace NuGet.Indexing
                 return filter;
             }
 
-            return null;
+            return lookUp["any"];
         }
 
         public Tuple<OpenBitSet, OpenBitSet> GetBitSets(string supportedFramework)

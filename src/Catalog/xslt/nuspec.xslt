@@ -121,6 +121,9 @@
               <ng:version>
                 <xsl:value-of select="obj:NormalizeVersion(.)"/>
               </ng:version>
+              <ng:verbatimVersion>
+                <xsl:value-of select="."/>
+              </ng:verbatimVersion>
               <ng:isPrerelease rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">
                 <xsl:value-of select="obj:IsPrerelease(.)"/>
               </ng:isPrerelease>

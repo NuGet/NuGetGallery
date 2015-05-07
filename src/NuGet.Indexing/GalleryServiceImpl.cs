@@ -172,8 +172,8 @@ namespace NuGet.Indexing
 
                 packageObj.Add("PackageRegistration", registrationObj);
 
-                packageObj.Add("Version", document.Get("Version"));                                             //TODO: use alternative field for original data
-                packageObj.Add("NormalizedVersion", document.Get("Version"));                                   //TODO: use alternative field for original data
+                packageObj.Add("Version", document.Get("OriginalVersion"));
+                packageObj.Add("NormalizedVersion", document.Get("Version"));
                 packageObj.Add("Title", document.Get("Title"));
                 packageObj.Add("Description", document.Get("Description"));
                 packageObj.Add("Summary", document.Get("Summary"));
@@ -187,22 +187,22 @@ namespace NuGet.Indexing
                 packageObj.Add("IsLatestStable", latestBitSets.Item1.Get(scoreDoc.Doc));
                 packageObj.Add("IsLatest", latestBitSets.Item2.Get(scoreDoc.Doc));
                 packageObj.Add("Listed", bool.Parse(document.Get("Listed") ?? "true"));
-                packageObj.Add("Created", document.Get("PublishedDate"));                                       //TODO: use alternative field for original data format
-                packageObj.Add("Published", document.Get("PublishedDate"));                                     //TODO: use alternative field for original data format
-                packageObj.Add("LastUpdated", document.Get("LastEditedDate"));                                  //TODO: use alternative field for original data format
-                packageObj.Add("LastEdited", document.Get("LastEditedDate"));                                   //TODO: use alternative field for original data format
+                packageObj.Add("Created", document.Get("OriginalCreated"));
+                packageObj.Add("Published", document.Get("OriginalPublished"));
+                packageObj.Add("LastUpdated", document.Get("OriginalPublished"));
+                packageObj.Add("LastEdited", document.Get("OriginalEditedDate"));
                 packageObj.Add("DownloadCount", 0);                                                             //TODO: use download count file
                 packageObj.Add("FlattenedDependencies", "");                                                    //TODO: data is missing from index
                 packageObj.Add("Dependencies", new JArray());                                                   //TODO: data is missing from index
                 packageObj.Add("SupportedFrameworks", new JArray());                                            //TODO: data is missing from index
                 packageObj.Add("MinClientVersion", document.Get("MinClientVersion"));
-                packageObj.Add("Hash", document.Get("Hash"));                                                   //TODO: data is missing from index
-                packageObj.Add("HashAlgorithm", "SHA512");                                                      //TODO: data is missing from index
+                packageObj.Add("Hash", document.Get("PackageHash"));
+                packageObj.Add("HashAlgorithm", document.Get("PackageHashAlgorithm"));
                 packageObj.Add("PackageFileSize", int.Parse(document.Get("PackageSize") ?? "0"));
                 packageObj.Add("LicenseUrl", document.Get("LicenseUrl"));
                 packageObj.Add("RequiresLicenseAcceptance", bool.Parse(document.Get("RequiresLicenseAcceptance") ?? "true"));
-                packageObj.Add("LicenseNames", document.Get("LicenseNames"));                                   //TODO: data is missing from index
-                packageObj.Add("LicenseReportUrl", document.Get("LicenseReportUrl"));                           //TODO: data is missing from index
+                packageObj.Add("LicenseNames", document.Get("LicenseNames"));
+                packageObj.Add("LicenseReportUrl", document.Get("LicenseReportUrl"));
                 packageObj.Add("HideLicenseReport", bool.Parse(document.Get("HideLicenseReport") ?? "true"));   //TODO: data is missing from index
 
                 array.Add(packageObj);

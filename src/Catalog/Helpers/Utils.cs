@@ -506,7 +506,7 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
-        public static CatalogItem CreateCatalogItem(Stream stream, DateTime? refreshed, string packageHash, string originName, DateTime? createdDate = null, DateTime? lastEditedDate = null, DateTime? publishedDate = null)
+        public static CatalogItem CreateCatalogItem(Stream stream, DateTime? refreshed, string packageHash, string originName, DateTime? createdDate = null, DateTime? lastEditedDate = null, DateTime? publishedDate = null, string licenseNames = null, string licenseReportUrl = null)
         {
             try
             {
@@ -515,7 +515,7 @@ namespace NuGet.Services.Metadata.Catalog
                 // additional sections
                 var addons = new GraphAddon[] { GetPackedData(stream, originName) };
 
-                return new NuspecPackageCatalogItem(metadata.Item1, refreshed, metadata.Item2, metadata.Item3, metadata.Item4, addons, createdDate, lastEditedDate, publishedDate);
+                return new NuspecPackageCatalogItem(metadata.Item1, refreshed, metadata.Item2, metadata.Item3, metadata.Item4, addons, createdDate, lastEditedDate, publishedDate, licenseNames, licenseReportUrl);
             }
             catch (InvalidDataException e)
             {

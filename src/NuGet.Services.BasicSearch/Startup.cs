@@ -21,7 +21,7 @@ namespace NuGet.Services.BasicSearch
 
         public void Configuration(IAppBuilder app)
         {
-            app.UseErrorPage();
+            //app.UseErrorPage();
 
             //  search test console
 
