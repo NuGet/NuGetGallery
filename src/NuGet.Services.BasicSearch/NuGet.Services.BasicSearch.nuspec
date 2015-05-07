@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>$id$</id>
+    <id>NuGet.Services.BasicSearch</id>
     <version>$version$</version>
     <title>$title$</title>
     <authors>.Net Foundation</authors>
-    <owners>$author$</owners>
+    <owners>.Net Foundation</owners>
     <licenseUrl>https://github.com/NuGet/NuGet.Services.Metadata/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/NuGet/NuGet.Services.Metadata</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
