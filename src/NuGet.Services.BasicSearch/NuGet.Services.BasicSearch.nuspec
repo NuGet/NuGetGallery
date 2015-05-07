@@ -4,9 +4,9 @@
     <id>$id$</id>
     <version>$version$</version>
     <title>$title$</title>
-    <authors>$author$</authors>
+    <authors>.Net Foundation</authors>
     <owners>$author$</owners>
-    <licenseUrl>https://github.com/NuGet/NuGet.Services.Metadata</licenseUrl>
+    <licenseUrl>https://github.com/NuGet/NuGet.Services.Metadata/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/NuGet/NuGet.Services.Metadata</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
@@ -14,4 +14,8 @@
     <copyright>Copyright 2014 .NET Foundation</copyright>
     <tags>nuget V3 search services</tags>
   </metadata>
+   <files>
+    <file src="Deploy.ps1" />
+    <file src="obj\NuGet.Services.BasicSearch.zip" />
+  </files>
 </package>
