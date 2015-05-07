@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>https://github.com/NuGet/NuGet.Services.Metadata</licenseUrl>
+    <projectUrl>https://github.com/NuGet/NuGet.Services.Metadata</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright 2014 .NET Foundation</copyright>
+    <tags>nuget V3 search services</tags>
+  </metadata>
+</package>
