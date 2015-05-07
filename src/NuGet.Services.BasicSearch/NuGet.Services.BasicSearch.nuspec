@@ -3,13 +3,13 @@
   <metadata>
     <id>NuGet.Services.BasicSearch</id>
     <version>$version$</version>
-    <title>$title$</title>
+    <title>NuGet.Services.BasicSearch</title>
     <authors>.Net Foundation</authors>
     <owners>.Net Foundation</owners>
     <licenseUrl>https://github.com/NuGet/NuGet.Services.Metadata/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/NuGet/NuGet.Services.Metadata</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>$description$</description>
+    <description>Basic Search service for v3</description>
     <releaseNotes></releaseNotes>
     <copyright>Copyright 2014 .NET Foundation</copyright>
     <tags>nuget V3 search services</tags>
