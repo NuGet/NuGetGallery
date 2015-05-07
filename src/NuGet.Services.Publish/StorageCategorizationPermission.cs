@@ -19,8 +19,8 @@ namespace NuGet.Services.Publish
         public async Task<bool> IsAllowedToSpecifyCategory(string id)
         {
             CloudBlobClient client = _account.CreateCloudBlobClient();
-            CloudBlobContainer container = client.GetContainerReference("categorization");
-            CloudBlockBlob blob = container.GetBlockBlobReference("allowed.json");
+            CloudBlobContainer container = client.GetContainerReference("apiapps-v3-index");
+            CloudBlockBlob blob = container.GetBlockBlobReference("trusted-packages.json");
 
             try
             {
