@@ -310,7 +310,11 @@ namespace NuGet.Services.Publish
                 }
                 else
                 {
-                    artifacts.Add(fullname, new PackageArtifact { Location = entry["location"].ToString() });
+                    // todo: there is an odd case where entries without location are present - circumvent it for now
+                    if (entry["location"] != null)
+                    {
+                        artifacts.Add(fullname, new PackageArtifact {Location = entry["location"].ToString()});
+                    }
                 }
             }
 
