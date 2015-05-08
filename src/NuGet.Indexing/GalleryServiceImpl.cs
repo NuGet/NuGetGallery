@@ -163,12 +163,14 @@ namespace NuGet.Indexing
 
                 Document document = searcher.Doc(scoreDoc.Doc);
 
+                Tuple<int, int> downloadCounts = manager.GetDownloadCounts(document.Get("Id"), document.Get("Version"));
+
                 JObject packageObj = new JObject();
 
                 JObject registrationObj = new JObject();
 
-                registrationObj.Add("Id", document.Get("id"));
-                registrationObj.Add("DownloadCount", 0);
+                registrationObj.Add("Id", document.Get("Id"));
+                registrationObj.Add("DownloadCount", downloadCounts.Item1);
 
                 packageObj.Add("PackageRegistration", registrationObj);
 
@@ -191,10 +193,10 @@ namespace NuGet.Indexing
                 packageObj.Add("Published", document.Get("OriginalPublished"));
                 packageObj.Add("LastUpdated", document.Get("OriginalPublished"));
                 packageObj.Add("LastEdited", document.Get("OriginalEditedDate"));
-                packageObj.Add("DownloadCount", 0);                                                             //TODO: use download count file
-                packageObj.Add("FlattenedDependencies", "");                                                    //TODO: data is missing from index
-                packageObj.Add("Dependencies", new JArray());                                                   //TODO: data is missing from index
-                packageObj.Add("SupportedFrameworks", new JArray());                                            //TODO: data is missing from index
+                packageObj.Add("DownloadCount", downloadCounts.Item2);
+                packageObj.Add("FlattenedDependencies", "");                                         //TODO: data is missing from index
+                packageObj.Add("Dependencies", new JArray());                                        //TODO: data is missing from index
+                packageObj.Add("SupportedFrameworks", new JArray());                                 //TODO: data is missing from index
                 packageObj.Add("MinClientVersion", document.Get("MinClientVersion"));
                 packageObj.Add("Hash", document.Get("PackageHash"));
                 packageObj.Add("HashAlgorithm", document.Get("PackageHashAlgorithm"));

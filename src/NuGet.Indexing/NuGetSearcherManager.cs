@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Versioning;
 
 namespace NuGet.Indexing
@@ -239,6 +240,27 @@ namespace NuGet.Indexing
         public JArray GetVersionLists(int doc)
         {
             return _versionListsByDoc[doc];
+        }
+
+        public Tuple<int, int> GetDownloadCounts(string id, string version)
+        {
+            IDictionary<string, IDictionary<string, int>> idLookUp = _currentDownloadCounts.Value;
+
+            IDictionary<string, int> versionsLookUp;
+            if (idLookUp.TryGetValue(id.ToLowerInvariant(), out versionsLookUp))
+            {
+                int packageCount;
+                if (!versionsLookUp.TryGetValue(version, out packageCount))
+                {
+                    packageCount = 0;
+                }
+
+                int registrationCount = versionsLookUp.Values.Sum();
+
+                return Tuple.Create(registrationCount, packageCount);
+            }
+
+            return Tuple.Create(0, 0);
         }
 
         static IDictionary<string, Tuple<OpenBitSet, OpenBitSet>> CreateLatestBitSets(IndexReader reader, Tuple<IDictionary<string, Filter>, IDictionary<string, Filter>> filters)
