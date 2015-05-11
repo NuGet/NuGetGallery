@@ -1,5 +1,5 @@
-﻿// Adapted from http://code.msdn.microsoft.com/windowsazure/Windows-Azure-SQL-Database-5eb17fe2
-
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
