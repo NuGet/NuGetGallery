@@ -17,7 +17,6 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using NuGet.Jobs.Common;
 using Stats.CreateWarehouseReports.Helpers;
-using Stats.CreateWarehouseReports.Resources;
 
 namespace Stats.CreateWarehouseReports
 {

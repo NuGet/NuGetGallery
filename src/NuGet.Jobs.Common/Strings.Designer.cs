@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Stats.CreateWarehouseReports.Resources
+namespace NuGet.Jobs.Common
 {
     using System;
     
@@ -23,21 +23,23 @@ namespace Stats.CreateWarehouseReports.Resources
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Strings {
+    public class Strings {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Strings() {
+        public Strings()
+        {
         }
         
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager
+        {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NuGet.Services.Work.Strings", typeof(Strings).Assembly);
@@ -52,7 +54,8 @@ namespace Stats.CreateWarehouseReports.Resources
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture
+        {
             get {
                 return resourceCulture;
             }
@@ -64,7 +67,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to Failed to get the Totals from the query -- no records were returned..
         /// </summary>
-        internal static string CalculateStatsTotalsJob_NoData {
+        public static string CalculateStatsTotalsJob_NoData {
             get {
                 return ResourceManager.GetString("CalculateStatsTotalsJob_NoData", resourceCulture);
             }
@@ -73,7 +76,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to Source database &apos;{0}&apos; was not found..
         /// </summary>
-        internal static string CreateOnlineDatabaseBackupJob_MissingSourceDatabase {
+        public static string CreateOnlineDatabaseBackupJob_MissingSourceDatabase {
             get {
                 return ResourceManager.GetString("CreateOnlineDatabaseBackupJob_MissingSourceDatabase", resourceCulture);
             }
@@ -82,7 +85,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to Unknown warehouse report: &apos;{0}&apos;.
         /// </summary>
-        internal static string CreateWarehouseReportsJob_UnknownReport {
+        public static string CreateWarehouseReportsJob_UnknownReport {
             get {
                 return ResourceManager.GetString("CreateWarehouseReportsJob_UnknownReport", resourceCulture);
             }
@@ -91,7 +94,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to The Event Source &apos;{0}&apos; does not have a public static field &quot;Log&quot; containing an instance of it. Event Sources must implement this pattern for all jobs..
         /// </summary>
-        internal static string EventSourceInstanceManager_EventSourceDoesNotHaveLogField {
+        public static string EventSourceInstanceManager_EventSourceDoesNotHaveLogField {
             get {
                 return ResourceManager.GetString("EventSourceInstanceManager_EventSourceDoesNotHaveLogField", resourceCulture);
             }
@@ -100,7 +103,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to Package has no manifest: {0} {1} (URL: {2}).
         /// </summary>
-        internal static string HandlePackageEditsJob_MissingManifest {
+        public static string HandlePackageEditsJob_MissingManifest {
             get {
                 return ResourceManager.GetString("HandlePackageEditsJob_MissingManifest", resourceCulture);
             }
@@ -109,7 +112,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to Package has multiple manifests: {0} {1} (URL: {2}).
         /// </summary>
-        internal static string HandlePackageEditsJob_MultipleManifests {
+        public static string HandlePackageEditsJob_MultipleManifests {
             get {
                 return ResourceManager.GetString("HandlePackageEditsJob_MultipleManifests", resourceCulture);
             }
@@ -118,7 +121,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to An invocation result cannot be incomplete!.
         /// </summary>
-        internal static string InvocationResult_CannotBeIncomplete {
+        public static string InvocationResult_CannotBeIncomplete {
             get {
                 return ResourceManager.GetString("InvocationResult_CannotBeIncomplete", resourceCulture);
             }
@@ -127,7 +130,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to An invocation result in the &apos;{0}&apos; state must include a Continuation.
         /// </summary>
-        internal static string InvocationResult_ResultMustHaveContinuation {
+        public static string InvocationResult_ResultMustHaveContinuation {
             get {
                 return ResourceManager.GetString("InvocationResult_ResultMustHaveContinuation", resourceCulture);
             }
@@ -136,7 +139,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to An invocation result in the &apos;{0}&apos; state must include an Exception.
         /// </summary>
-        internal static string InvocationResult_ResultMustHaveException {
+        public static string InvocationResult_ResultMustHaveException {
             get {
                 return ResourceManager.GetString("InvocationResult_ResultMustHaveException", resourceCulture);
             }
@@ -145,7 +148,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to An invocation result in the &apos;{0}&apos; state must not include a Continuation.
         /// </summary>
-        internal static string InvocationResult_ResultMustNotHaveContinuation {
+        public static string InvocationResult_ResultMustNotHaveContinuation {
             get {
                 return ResourceManager.GetString("InvocationResult_ResultMustNotHaveContinuation", resourceCulture);
             }
@@ -154,7 +157,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to An invocation result in the &apos;{0}&apos; state must not include an Exception.
         /// </summary>
-        internal static string InvocationResult_ResultMustNotHaveException {
+        public static string InvocationResult_ResultMustNotHaveException {
             get {
                 return ResourceManager.GetString("InvocationResult_ResultMustNotHaveException", resourceCulture);
             }
@@ -163,7 +166,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to An invocation result in the &apos;{0}&apos; state must not include an RescheduleIn time.
         /// </summary>
-        internal static string InvocationResult_ResultMustNotHaveRescheduleIn {
+        public static string InvocationResult_ResultMustNotHaveRescheduleIn {
             get {
                 return ResourceManager.GetString("InvocationResult_ResultMustNotHaveRescheduleIn", resourceCulture);
             }
@@ -172,7 +175,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to Invalid Invocation ID in message: &apos;{0}&apos;.
         /// </summary>
-        internal static string InvocationsQueue_InvalidInvocationId {
+        public static string InvocationsQueue_InvalidInvocationId {
             get {
                 return ResourceManager.GetString("InvocationsQueue_InvalidInvocationId", resourceCulture);
             }
@@ -181,7 +184,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to Cannot construct job from this job description, it was loaded from a table.
         /// </summary>
-        internal static string JobDescription_CannotBeConstructed {
+        public static string JobDescription_CannotBeConstructed {
             get {
                 return ResourceManager.GetString("JobDescription_CannotBeConstructed", resourceCulture);
             }
@@ -190,7 +193,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to Attempted to invoke continuation of non-async job: {0}..
         /// </summary>
-        internal static string JobDispatcher_AsyncContinuationOfNonAsyncJob {
+        public static string JobDispatcher_AsyncContinuationOfNonAsyncJob {
             get {
                 return ResourceManager.GetString("JobDispatcher_AsyncContinuationOfNonAsyncJob", resourceCulture);
             }
@@ -199,7 +202,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to LocalServiceHost failed to start..
         /// </summary>
-        internal static string LocalWorker_FailedToStart {
+        public static string LocalWorker_FailedToStart {
             get {
                 return ResourceManager.GetString("LocalWorker_FailedToStart", resourceCulture);
             }
@@ -208,7 +211,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to Unknown job: {0}.
         /// </summary>
-        internal static string UnknownJobException_Message {
+        public static string UnknownJobException_Message {
             get {
                 return ResourceManager.GetString("UnknownJobException_Message", resourceCulture);
             }
@@ -217,7 +220,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to JSON data does not match schema..
         /// </summary>
-        internal static string UpdateLicenseReportsJob_JsonDoesNotMatchSchema {
+        public static string UpdateLicenseReportsJob_JsonDoesNotMatchSchema {
             get {
                 return ResourceManager.GetString("UpdateLicenseReportsJob_JsonDoesNotMatchSchema", resourceCulture);
             }
@@ -226,7 +229,7 @@ namespace Stats.CreateWarehouseReports.Resources
         /// <summary>
         ///   Looks up a localized string similar to One of Destination or OutputDirectory must be specified or available from the environment.
         /// </summary>
-        internal static string WarehouseJob_NoDestinationAvailable {
+        public static string WarehouseJob_NoDestinationAvailable {
             get {
                 return ResourceManager.GetString("WarehouseJob_NoDestinationAvailable", resourceCulture);
             }

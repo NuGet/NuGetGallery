@@ -75,6 +75,22 @@ namespace NuGet.Jobs.Common
         public const string LocalIndexFolder = "LocalIndexFolder";
         public const string IndexFolder = "IndexFolder";
         public const string ContainerName = "ContainerName";
+
+        //Other
+        public const string CommandTimeOut = "CommandTimeOut";
+        public const string RankingCount = "RankingCount";
+        public const string RetryCount = "RetryCount";
+        public const string MaxManifestSize = "MaxManifestSize";
+
+        //Arguments specific to HandlePackageEdits
+        public const string SourceStorage = "SourceStorage";
+        public const string BackupStorage = "BackupStorage";
+        public const string BackupContainerName = "BackupContainerName";
+
+        //Arguments specific to UpdateLicenseReports
+        public const string LicenseReportService = "LicenseReportService";
+        public const string LicenseReportUser = "LicenseReportUser";
+        public const string LicenseReportPassword = "LicenseReportPassword";
     }
     /// <summary>
     /// This class is used to retrieve and expose the known azure configuration settings 
