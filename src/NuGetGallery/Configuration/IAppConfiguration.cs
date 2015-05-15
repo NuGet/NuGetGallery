@@ -1,8 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.ComponentModel;
 using System.Net.Mail;
+
 namespace NuGetGallery.Configuration
 {
     public interface IAppConfiguration
@@ -106,6 +107,11 @@ namespace NuGetGallery.Configuration
         /// Gets the App ID of the Facebook app associated with this deployment
         /// </summary>
         string FacebookAppId { get; set; }
+
+        /// <summary>
+        /// Gets the Application Insights instrumentation key associated with this deployment.
+        /// </summary>
+        string AppInsightsInstrumentationKey { get; set; }
 
         /// <summary>
         /// Gets the protocol-independent site root

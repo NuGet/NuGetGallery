@@ -1,15 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Configuration;
-using System.Diagnostics;
-using System.Globalization;
 using System.Net.Mail;
-using System.Web;
-using Microsoft.WindowsAzure.ServiceRuntime;
 
 namespace NuGetGallery.Configuration
 {
@@ -122,6 +117,11 @@ namespace NuGetGallery.Configuration
         public string FacebookAppId { get; set; }
 
         /// <summary>
+        /// Gets the Application Insights instrumentation key associated with this deployment.
+        /// </summary>
+        public string AppInsightsInstrumentationKey { get; set; }
+
+        /// <summary>
         /// Gets the protocol-independent site root
         /// </summary>
         public string SiteRoot { get; set; }
@@ -135,7 +135,7 @@ namespace NuGetGallery.Configuration
         /// Gets a boolean indicating if perf logs should be collected
         /// </summary>
         public bool CollectPerfLogs { get; set; }
-        
+
         /// <summary>
         /// Gets a boolean indicating if the search index should be updated automatically in the background
         /// </summary>

@@ -7,12 +7,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Configuration;
 using System.Globalization;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Configuration;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using NuGetGallery.Authentication;
-using NuGetGallery.Authentication.Providers;
 using PoliteCaptcha;
 
 namespace NuGetGallery.Configuration
