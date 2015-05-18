@@ -1,0 +1,31 @@
+﻿@model PublishTestDriverWebSite.Models.AgreementModel
+@{
+    ViewBag.Title = "Agreement";
+}
+
+<h1>Agreement Tests</h1>
+
+<pre>
+    Agreement: @Model.Agreement
+    Version:  @Model.AgreementVersion
+    Email: @Model.Email
+    Date accepted: @Model.DateAccepted
+    Accepted: @Model.Accepted
+</pre>
+
+<p>@Model.Message</p>
+
+@if (!Model.Accepted)
+{
+    using (Html.BeginForm("Acceptance", "Agreement", FormMethod.Post))
+    {
+        <fieldset class="form">
+            <input type="hidden" name="agreement" value="@Model.Agreement"/>
+            <input type="hidden" name="agreementVersion" value="@Model.AgreementVersion" />
+            Email: <input type="text" name="email" value="@Model.Email" />
+            <input type="hidden" name="accept" value="true" />
+
+            <input type="submit" value="Accept the agreement"/>
+        </fieldset>
+    }
+}

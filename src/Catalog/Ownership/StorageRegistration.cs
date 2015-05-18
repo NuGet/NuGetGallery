@@ -5,6 +5,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -108,6 +109,16 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
         {
             OwnershipRecord record = await Load();
             return record.GetVersions(registration);
+        }
+
+        public Task<AgreementRecord> GetAgreement(string agreement, string agreementVersion, ClaimsPrincipal claimsPrincipal)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AgreementRecord> AcceptAgreement(string agreement, string agreementVersion, string email, ClaimsPrincipal claimsPrincipal)
+        {
+            throw new NotImplementedException();
         }
 
         //  implementation helpers

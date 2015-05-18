@@ -1,8 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Ownership;
 
 namespace NuGet.Services.Publish
 {
@@ -33,5 +34,7 @@ namespace NuGet.Services.Publish
         Task<IEnumerable<string>> GetTenants();
 
         Task<string> GetPublisherName();
+        Task<AgreementRecord> GetAgreement(string agreement, string agreementVersion);
+        Task<AgreementRecord> AcceptAgreement(string agreement, string agreementVersion, string email);
     }
 }
