@@ -68,7 +68,7 @@ namespace Ng
             if (verbose)
             {
                 Trace.Listeners.Add(new ConsoleTraceListener());
-                Trace.AutoFlush = true;
+                //Trace.AutoFlush = true;
             }
 
             int interval = CommandHelpers.GetInterval(arguments);
