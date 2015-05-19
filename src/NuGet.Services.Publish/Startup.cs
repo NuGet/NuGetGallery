@@ -162,6 +162,12 @@ namespace NuGet.Services.Publish
                         await uploader.GetTenants(context);
                         break;
                     }
+                case "/agreements":
+                    {
+                        AgreementImpl agreement = new AgreementImpl(registrationOwnership);
+                        await agreement.GetAgreementAcceptance(context);
+                        break;
+                    }
                 default:
                     {
                         await context.Response.WriteAsync("NotFound");
@@ -212,6 +218,12 @@ namespace NuGet.Services.Publish
                     {
                         PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership);
                         await uploader.TenantDisable(context);
+                        break;
+                    }
+                case "/agreements/accept":
+                    {
+                        AgreementImpl agreement = new AgreementImpl(registrationOwnership);
+                        await agreement.AcceptAgreement(context);
                         break;
                     }
                 case "/catalog/powershell":

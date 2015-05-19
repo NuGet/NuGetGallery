@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NuGet.Services.Metadata.Catalog.Ownership;
 using NuGet.Services.Publish;
 
 namespace PowerShellPublishTests
@@ -132,6 +133,16 @@ namespace PowerShellPublishTests
         }
 
         public Task<string> GetPublisherName()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AgreementRecord> GetAgreement(string agreement, string agreementVersion)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AgreementRecord> AcceptAgreement(string agreement, string agreementVersion, string email)
         {
             throw new NotImplementedException();
         }

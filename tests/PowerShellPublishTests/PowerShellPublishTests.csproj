@@ -81,6 +81,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Catalog\NuGet.Services.Metadata.Catalog.csproj">
+      <Project>{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}</Project>
+      <Name>NuGet.Services.Metadata.Catalog</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\NuGet.Services.Publish\NuGet.Services.Publish.csproj">
       <Project>{f3f6d0dd-ae7f-4bef-a8df-3638b650a849}</Project>
       <Name>NuGet.Services.Publish</Name>

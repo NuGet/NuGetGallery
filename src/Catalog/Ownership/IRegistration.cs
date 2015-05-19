@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Ownership
@@ -27,5 +28,8 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
         Task<IEnumerable<OwnershipOwner>> GetOwners(OwnershipRegistration registration);
         Task<IEnumerable<OwnershipRegistration>> GetRegistrations(OwnershipOwner owner);
         Task<IEnumerable<string>> GetVersions(OwnershipRegistration registration);
+
+        Task<AgreementRecord> GetAgreement(string agreement, string agreementVersion, ClaimsPrincipal claimsPrincipal);
+        Task<AgreementRecord> AcceptAgreement(string agreement, string agreementVersion, string email, ClaimsPrincipal claimsPrincipal);
     }
 }

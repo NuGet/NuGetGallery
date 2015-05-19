@@ -112,6 +112,7 @@
     <Compile Include="CatalogIndexReader.cs" />
     <Compile Include="CommitCollector.cs" />
     <Compile Include="Helpers\GraphHelpers.cs" />
+    <Compile Include="Ownership\AgreementRecord.cs" />
     <Compile Include="Ownership\IRegistration.cs" />
     <Compile Include="Ownership\OwnershipOwner.cs" />
     <Compile Include="Ownership\OwnershipRecord.cs" />

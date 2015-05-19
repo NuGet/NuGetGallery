@@ -1,7 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NuGet.Services.Metadata.Catalog.Ownership;
 
 namespace NuGet.Services.Publish
 {
@@ -90,6 +93,16 @@ namespace NuGet.Services.Publish
         public Task<string> GetPublisherName()
         {
             return Task.FromResult("unknown");
+        }
+
+        public Task<AgreementRecord> GetAgreement(string agreement, string agreementVersion)
+        {
+            return Task.FromResult(new AgreementRecord { Agreement = agreement, AgreementVersion = agreementVersion });
+        }
+
+        public Task<AgreementRecord> AcceptAgreement(string agreement, string agreementVersion, string email)
+        {
+            return Task.FromResult(new AgreementRecord { Agreement = agreement, AgreementVersion = agreementVersion, DateAccepted = DateTime.UtcNow });
         }
     }
 }

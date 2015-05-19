@@ -207,6 +207,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AgreementImpl.cs" />
     <Compile Include="Artifacts.cs" />
     <Compile Include="CatalogHelpers.cs" />
     <Compile Include="CheckAccessImpl.cs" />

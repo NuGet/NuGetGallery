@@ -4,6 +4,8 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Ownership
@@ -11,6 +13,7 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
     public class TableStorageRegistration : IRegistration
     {
         const string OwnershipTableName = "ownership";
+        const string AgreementTableName = "agreement";
         const string OwnerType = "Owner";
         const string PackageType = "Package";
 
@@ -64,6 +67,41 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
             throw new NotImplementedException();
         }
 
+        public async Task<AgreementRecord> GetAgreement(string agreement, string agreementVersion, ClaimsPrincipal claimsPrincipal)
+        {
+            CloudTableClient client = _account.CreateCloudTableClient();
+            CloudTable table = client.GetTableReference(AgreementTableName);
+           
+            TableQuery<AgreementRecordEntity> query = new TableQuery<AgreementRecordEntity>()
+                    .Where(TableQuery.CombineFilters(
+                        TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal,  AgreementRecord.GetKey(claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier).Value, agreement)),
+                        TableOperators.And,
+                        TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, agreementVersion)));
+
+            TableQuerySegment<AgreementRecordEntity> segment =
+                await table.ExecuteQuerySegmentedAsync(query, new TableContinuationToken());
+
+            if (segment.Results.Count > 0)
+            {
+                var entity = segment.Results.First();
+                return entity.ToAgreementRecord();
+            }
+
+            return null;
+        }
+
+        public async Task<AgreementRecord> AcceptAgreement(string agreement, string agreementVersion, string email, ClaimsPrincipal claimsPrincipal)
+        {
+            var record = AgreementRecord.Create(claimsPrincipal, agreement, agreementVersion, email);
+
+            CloudTableClient client = _account.CreateCloudTableClient();
+            CloudTable table = client.GetTableReference(AgreementTableName);
+            TableOperation operation = TableOperation.InsertOrReplace(AgreementRecordEntity.FromAgreementRecord(record));
+            await table.ExecuteAsync(operation);
+
+            return record;
+        }
+
         public Task<bool> HasOwner(OwnershipRegistration registration, OwnershipOwner owner)
         {
             return ExistsAsync(_account, registration.GetKey(), owner.GetKey());
@@ -101,12 +139,14 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
 
         // initialization
 
-        public static Task Initialize(string connectionString)
+        public static async Task Initialize(string connectionString)
         {
             CloudStorageAccount account = CloudStorageAccount.Parse(connectionString);
             CloudTableClient client = account.CreateCloudTableClient();
-            CloudTable table = client.GetTableReference(OwnershipTableName);
-            return table.CreateIfNotExistsAsync();
+            CloudTable ownershipTable = client.GetTableReference(OwnershipTableName);
+            CloudTable agreementTable = client.GetTableReference(AgreementTableName);
+            await ownershipTable.CreateIfNotExistsAsync();
+            await agreementTable.CreateIfNotExistsAsync();
         }
 
         // implementation helpers
@@ -148,6 +188,51 @@ namespace NuGet.Services.Metadata.Catalog.Ownership
                 EntityType = entityType;
             }
             public string EntityType { get; set; }
+        }
+
+        class AgreementRecordEntity : TableEntity
+        {
+            public AgreementRecordEntity()
+            {
+            }
+
+            public AgreementRecordEntity(string partitionKey, string rowKey)
+                : base(partitionKey, rowKey)
+            {
+            }
+            
+            public string NameIdentifier { get; set; }
+            public string Iss { get; set; }
+            public string Email { get; set; }
+            public string Agreement { get; set; }
+            public string AgreementVersion { get; set; }
+            public DateTime DateAccepted { get; set; }
+
+            public AgreementRecord ToAgreementRecord()
+            {
+                return new AgreementRecord()
+                {
+                    NameIdentifier = NameIdentifier,
+                    Iss = Iss,
+                    Email = Email,
+                    Agreement = Agreement,
+                    AgreementVersion = AgreementVersion,
+                    DateAccepted = DateAccepted
+                };
+            }
+
+            public static AgreementRecordEntity FromAgreementRecord(AgreementRecord record)
+            {
+                return new AgreementRecordEntity(AgreementRecord.GetKey(record.NameIdentifier, record.Agreement), record.AgreementVersion)
+                {
+                    NameIdentifier = record.NameIdentifier,
+                    Iss = record.Iss,
+                    Email = record.Email,
+                    Agreement = record.Agreement,
+                    AgreementVersion = record.AgreementVersion,
+                    DateAccepted = record.DateAccepted
+                };
+            }
         }
     }
 }
