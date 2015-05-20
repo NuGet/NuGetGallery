@@ -37,13 +37,13 @@ namespace NuGet.Services.Publish
             }
 
             JObject body;
-            if (!TryReadBody(context, out body))
+            if (!RequestHelpers.TryReadBody(context, out body))
             {
                 await ServiceHelpers.WriteErrorResponse(context, "request body content must be JSON", HttpStatusCode.BadRequest);
                 return;
             }
 
-            IEnumerable<string> validationErrors = Validate(body);
+            IEnumerable<string> validationErrors = ValidationHelpers.CheckRequiredProperties(body, "namespace", "id", "version");
 
             if (validationErrors != null)
             {
@@ -55,51 +55,7 @@ namespace NuGet.Services.Publish
 
             await ProcessRequest(context, body);
         }
-
-        static bool TryReadBody(IOwinContext context, out JObject body)
-        {
-            try
-            {
-                using (StreamReader reader = new StreamReader(context.Request.Body))
-                {
-                    JObject obj = JObject.Parse(reader.ReadToEnd());
-                    body = obj;
-                    return true;
-                }
-            }
-            catch (FormatException)
-            {
-                body = null;
-                return false;
-            }
-        }
-
-        static IEnumerable<string> Validate(JObject obj)
-        {
-            IList<string> errors = new List<string>();
-
-            CheckRequiredProperty(obj, errors, "namespace");
-            CheckRequiredProperty(obj, errors, "id");
-            CheckRequiredProperty(obj, errors, "version");
-
-            if (errors.Count == 0)
-            {
-                return null;
-            }
-
-            return errors;
-        }
-
-        static JToken CheckRequiredProperty(JObject obj, IList<string> errors, string name)
-        {
-            JToken token;
-            if (!obj.TryGetValue(name, out token))
-            {
-                errors.Add(string.Format("required property '{0}' is missing from request", name));
-            }
-            return token;
-        }
-
+        
         async Task ProcessRequest(IOwinContext context, JObject obj)
         {
             string ns = obj["namespace"].ToString();

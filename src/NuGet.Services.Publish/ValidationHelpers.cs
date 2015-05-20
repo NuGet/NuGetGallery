@@ -5,6 +5,7 @@ using NuGet.Versioning;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using Microsoft.Owin;
 
 namespace NuGet.Services.Publish
 {
@@ -61,6 +62,49 @@ namespace NuGet.Services.Publish
                 errors.Add(string.Format("required property '{0}' is missing from metadata", name));
             }
             return token;
+        }
+
+        public static IEnumerable<string> CheckRequiredProperties(JObject obj, params string[] properties)
+        {
+            IList<string> errors = new List<string>();
+
+            foreach (var property in properties)
+            {
+                ValidationHelpers.CheckRequiredProperty(obj, errors, property);
+            }
+         
+            if (errors.Count == 0)
+            {
+                return null;
+            }
+
+            return errors;
+        }
+
+        public static string CheckRequiredRequestParameter(IOwinRequest request, IList<string> errors, string name)
+        {
+            if (string.IsNullOrEmpty(request.Query[name]))
+            {
+                errors.Add(string.Format("required property '{0}' is missing from metadata", name));
+            }
+            return request.Query[name];
+        }
+
+        public static IEnumerable<string> CheckRequiredRequestParameters(IOwinRequest request, params string[] properties)
+        {
+            IList<string> errors = new List<string>();
+
+            foreach (var property in properties)
+            {
+                ValidationHelpers.CheckRequiredRequestParameter(request, errors, property);
+            }
+
+            if (errors.Count == 0)
+            {
+                return null;
+            }
+
+            return errors;
         }
 
         public static void CheckRequiredFile(Stream packageStream, IList<string> errors, string fullName)

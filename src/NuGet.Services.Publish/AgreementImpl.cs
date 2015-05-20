@@ -1,9 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
+
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -37,8 +36,7 @@ namespace NuGet.Services.Publish
                 return;
             }
             
-            IEnumerable<string> validationErrors = ValidateGetAgreementAcceptance(context);
-
+            IEnumerable<string> validationErrors = ValidationHelpers.CheckRequiredRequestParameters(context.Request, "agreement", "agreementVersion");
             if (validationErrors != null)
             {
                 await ServiceHelpers.WriteErrorResponse(context, validationErrors, HttpStatusCode.BadRequest);
@@ -74,27 +72,6 @@ namespace NuGet.Services.Publish
             
             await ServiceHelpers.WriteResponse(context, content, HttpStatusCode.OK);
         }
-        
-        static IEnumerable<string> ValidateGetAgreementAcceptance(IOwinContext context)
-        {
-            IList<string> errors = new List<string>();
-
-            if (string.IsNullOrEmpty(context.Request.Query["agreement"]))
-            {
-                errors.Add("required property 'agreement' is missing from request");
-            } 
-            if (string.IsNullOrEmpty(context.Request.Query["agreementVersion"]))
-            {
-                errors.Add("required property \'agreementVersion\' is missing from request");
-            }
-
-            if (errors.Count == 0)
-            {
-                return null;
-            }
-
-            return errors;
-        }
 
         public async Task AcceptAgreement(IOwinContext context)
         {
@@ -113,14 +90,13 @@ namespace NuGet.Services.Publish
             }
 
             JObject body;
-            if (!TryReadBody(context, out body))
+            if (!RequestHelpers.TryReadBody(context, out body))
             {
                 await ServiceHelpers.WriteErrorResponse(context, "request body content must be JSON", HttpStatusCode.BadRequest);
                 return;
             }
 
-            IEnumerable<string> validationErrors = ValidateAcceptAgreement(body);
-
+            IEnumerable<string> validationErrors = ValidationHelpers.CheckRequiredProperties(body, "agreement", "agreementVersion");
             if (validationErrors != null)
             {
                 await ServiceHelpers.WriteErrorResponse(context, validationErrors, HttpStatusCode.BadRequest);
@@ -153,49 +129,6 @@ namespace NuGet.Services.Publish
             }
 
             await ServiceHelpers.WriteResponse(context, content, HttpStatusCode.OK);
-        }
-
-        static bool TryReadBody(IOwinContext context, out JObject body)
-        {
-            try
-            {
-                using (StreamReader reader = new StreamReader(context.Request.Body))
-                {
-                    JObject obj = JObject.Parse(reader.ReadToEnd());
-                    body = obj;
-                    return true;
-                }
-            }
-            catch (FormatException)
-            {
-                body = null;
-                return false;
-            }
-        }
-
-        static IEnumerable<string> ValidateAcceptAgreement(JObject obj)
-        {
-            IList<string> errors = new List<string>();
-
-            CheckRequiredProperty(obj, errors, "agreement");
-            CheckRequiredProperty(obj, errors, "agreementVersion");
-
-            if (errors.Count == 0)
-            {
-                return null;
-            }
-
-            return errors;
-        }
-
-        static JToken CheckRequiredProperty(JObject obj, IList<string> errors, string name)
-        {
-            JToken token;
-            if (!obj.TryGetValue(name, out token))
-            {
-                errors.Add(string.Format("required property '{0}' is missing from request", name));
-            }
-            return token;
         }
     }
 }
