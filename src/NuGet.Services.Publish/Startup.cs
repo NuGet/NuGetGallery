@@ -140,7 +140,7 @@ namespace NuGet.Services.Publish
 
         async Task InvokeGET(IOwinContext context)
         {
-            IRegistrationOwnership registrationOwnership = CreateRegistrationOwnership(context);
+            IRegistrationOwnership registrationOwnership = CreateRegistrationOwnership();
 
             switch (context.Request.Path.Value)
             {
@@ -179,7 +179,7 @@ namespace NuGet.Services.Publish
 
         async Task InvokePOST(IOwinContext context)
         {
-            IRegistrationOwnership registrationOwnership = CreateRegistrationOwnership(context);
+            IRegistrationOwnership registrationOwnership = CreateRegistrationOwnership();
             ICategorizationPermission categorizationPermission = CategorizationPermission();
 
             switch (context.Request.Path.Value)
@@ -241,7 +241,7 @@ namespace NuGet.Services.Publish
             }
         }
 
-        IRegistrationOwnership CreateRegistrationOwnership(IOwinContext context)
+        IRegistrationOwnership CreateRegistrationOwnership()
         {
             if (HasNoSecurityConfigured())
             {
@@ -255,7 +255,7 @@ namespace NuGet.Services.Publish
 
             string storagePrimary = _configurationService.Get("Storage.Primary");
             CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
-            return new StorageRegistrationOwnership(context, account);
+            return new StorageRegistrationOwnership(account);
         }
 
         ICategorizationPermission CategorizationPermission()

@@ -117,7 +117,6 @@
     <Compile Include="Ownership\OwnershipOwner.cs" />
     <Compile Include="Ownership\OwnershipRecord.cs" />
     <Compile Include="Ownership\OwnershipRegistration.cs" />
-    <Compile Include="Ownership\StorageRegistration.cs" />
     <Compile Include="Ownership\TableStorageRegistration.cs" />
     <Compile Include="Persistence\IStorage.cs" />
     <Compile Include="Persistence\IStorageFactory.cs" />

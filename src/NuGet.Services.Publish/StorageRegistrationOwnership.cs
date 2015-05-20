@@ -16,21 +16,11 @@ namespace NuGet.Services.Publish
 {
     public class StorageRegistrationOwnership : IRegistrationOwnership
     {
-        IOwinContext _context;
         ActiveDirectoryClient _activeDirectoryClient;
-        IRegistration _registration;
+        readonly IRegistration _registration;
 
-        public StorageRegistrationOwnership(IOwinContext context, CloudStorageAccount account, string ownershipContainer)
+        public StorageRegistrationOwnership(CloudStorageAccount account)
         {
-            _context = context;
-
-            StorageFactory storageFactory = new AzureStorageFactory(account, ownershipContainer);
-            _registration = new StorageRegistration(storageFactory);
-        }
-
-        public StorageRegistrationOwnership(IOwinContext context, CloudStorageAccount account)
-        {
-            _context = context;
             _registration = new TableStorageRegistration(account);
         }
 
