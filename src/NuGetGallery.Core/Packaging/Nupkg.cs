@@ -62,8 +62,9 @@ namespace NuGetGallery.Packaging
             }
 
             _stream = stream;
-            _archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen);
+            _archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen);         
             _manifest = SafelyLoadManifest(_archive);
+            _parts = SafelyLoadParts(_archive);
         }
 
         public void Dispose()
@@ -148,7 +149,7 @@ namespace NuGetGallery.Packaging
                     bool added = ret.Add(partName);
                     if (!added && !interleaved)
                     {
-                        throw new InvalidDataException("Duplicate Part Name");
+                        throw new InvalidDataException(string.Format("Duplicate Part Name {0} found in the package.",partName));
                     }
                 }
 
@@ -201,7 +202,7 @@ namespace NuGetGallery.Packaging
             //  and UNIX file systems etc..."
             if (zipEntryName.Contains('\\'))
             {
-                throw new InvalidDataException("The zip entry name violates zip format");
+                throw new InvalidDataException(string.Format("The zip entry {0} has backward slash as path separator and will not be compatible in non-Windows OS",zipEntryName));
             }
 
             // If it matches the pattern for 'piece of interleaved part' then interleaved is true, and we trim off the piece specifier

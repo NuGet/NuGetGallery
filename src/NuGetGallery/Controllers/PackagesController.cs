@@ -195,6 +195,12 @@ namespace NuGetGallery
                     ModelState.AddModelError(String.Empty, ipex.Message);
                     return View();
                 }
+                catch (InvalidDataException idex)
+                {
+                    idex.Log();
+                    ModelState.AddModelError(String.Empty, idex.Message);
+                    return View();
+                }
                 catch (Exception ex)
                 {
                     ex.Log();
@@ -913,6 +919,10 @@ namespace NuGetGallery
             catch (InvalidPackageException ipex)
             {
                 caught = ipex.AsUserSafeException();
+            }
+                catch(InvalidDataException idex)
+            {
+                caught = idex.AsUserSafeException();
             }
             catch (Exception ex)
             {
