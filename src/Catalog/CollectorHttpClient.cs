@@ -35,9 +35,14 @@ namespace NuGet.Services.Metadata.Catalog
 
         public virtual Task<JObject> GetJObjectAsync(Uri address)
         {
+            return GetJObjectAsync(address, CancellationToken.None);
+        }
+
+        public virtual Task<JObject> GetJObjectAsync(Uri address, CancellationToken token)
+        {
             InReqCount();
 
-            Task<string> task = GetStringAsync(address);
+            Task<string> task = GetStringAsync(address, token);
             return task.ContinueWith<JObject>((t) =>
             {
                 try
@@ -53,7 +58,12 @@ namespace NuGet.Services.Metadata.Catalog
 
         public virtual Task<IGraph> GetGraphAsync(Uri address)
         {
-            Task<JObject> task = GetJObjectAsync(address);
+            return GetGraphAsync(address, CancellationToken.None);
+        }
+
+        public virtual Task<IGraph> GetGraphAsync(Uri address, CancellationToken token)
+        {
+            Task<JObject> task = GetJObjectAsync(address, token);
             return task.ContinueWith<IGraph>((t) =>
             {
                 try
@@ -63,6 +73,22 @@ namespace NuGet.Services.Metadata.Catalog
                 catch (Exception e)
                 {
                     throw new Exception(string.Format("GetGraphAsync({0})", address), e);
+                }
+            });
+        }
+
+        public virtual Task<string> GetStringAsync(Uri address, CancellationToken token)
+        {
+            Task<HttpResponseMessage> task = GetAsync(address, token);
+            return task.ContinueWith<string>((t) =>
+            {
+                try
+                {
+                    return task.Result.Content.ReadAsStringAsync().Result;
+                }
+                catch (Exception e)
+                {
+                    throw new Exception(string.Format("GetStringAsync({0})", address), e);
                 }
             });
         }
