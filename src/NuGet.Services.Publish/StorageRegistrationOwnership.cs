@@ -1,4 +1,6 @@
-﻿using Microsoft.Azure.ActiveDirectory.GraphClient;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+using Microsoft.Azure.ActiveDirectory.GraphClient;
 using Microsoft.Azure.ActiveDirectory.GraphClient.Extensions;
 using Microsoft.Owin;
 using Microsoft.WindowsAzure.Storage;
@@ -14,21 +16,11 @@ namespace NuGet.Services.Publish
 {
     public class StorageRegistrationOwnership : IRegistrationOwnership
     {
-        IOwinContext _context;
         ActiveDirectoryClient _activeDirectoryClient;
-        IRegistration _registration;
+        readonly IRegistration _registration;
 
-        public StorageRegistrationOwnership(IOwinContext context, CloudStorageAccount account, string ownershipContainer)
+        public StorageRegistrationOwnership(CloudStorageAccount account)
         {
-            _context = context;
-
-            StorageFactory storageFactory = new AzureStorageFactory(account, ownershipContainer);
-            _registration = new StorageRegistration(storageFactory);
-        }
-
-        public StorageRegistrationOwnership(IOwinContext context, CloudStorageAccount account)
-        {
-            _context = context;
             _registration = new TableStorageRegistration(account);
         }
 
@@ -150,11 +142,8 @@ namespace NuGet.Services.Publish
                 return domains.Any(d => d.Equals(ns, StringComparison.OrdinalIgnoreCase));
             }
 
-            // TODO: What if the user has no allowed domains. Do we return true? False? Or something else?
-            // Example: foo@outlook.com makes this request and has 0 AAD namespaces. Do we return true/false here?
-            // In other words: do we allow publishing to this namespace or not?
-            // Went with true, so the registration records take over in further validation.
-            return true;
+            // No allowed domains? Return false.
+            return false;
         }
 
         async Task<IUser> GetUser()
@@ -283,6 +272,16 @@ namespace NuGet.Services.Publish
             Claim nameClaim = ClaimsPrincipal.Current.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name");
             string name = (nameClaim != null) ? nameClaim.Value : string.Empty;
             return Task.FromResult(name);
+        }
+
+        public async Task<AgreementRecord> GetAgreement(string agreement, string agreementVersion)
+        {
+            return await _registration.GetAgreement(agreement, agreementVersion, ClaimsPrincipal.Current);
+        }
+
+        public async Task<AgreementRecord> AcceptAgreement(string agreement, string agreementVersion, string email)
+        {
+            return await _registration.AcceptAgreement(agreement, agreementVersion, email, ClaimsPrincipal.Current);
         }
     }
 }

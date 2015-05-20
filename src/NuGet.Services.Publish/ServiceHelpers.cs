@@ -1,4 +1,6 @@
-﻿using Microsoft.Azure.ActiveDirectory.GraphClient;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+using Microsoft.Azure.ActiveDirectory.GraphClient;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Owin;
 using Newtonsoft.Json.Linq;

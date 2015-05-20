@@ -1,8 +1,11 @@
-﻿using Newtonsoft.Json.Linq;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+using Newtonsoft.Json.Linq;
 using NuGet.Versioning;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using Microsoft.Owin;
 
 namespace NuGet.Services.Publish
 {
@@ -61,6 +64,49 @@ namespace NuGet.Services.Publish
             return token;
         }
 
+        public static IEnumerable<string> CheckRequiredProperties(JObject obj, params string[] properties)
+        {
+            IList<string> errors = new List<string>();
+
+            foreach (var property in properties)
+            {
+                CheckRequiredProperty(obj, errors, property);
+            }
+         
+            if (errors.Count == 0)
+            {
+                return null;
+            }
+
+            return errors;
+        }
+
+        public static string CheckRequiredRequestParameter(IOwinRequest request, IList<string> errors, string name)
+        {
+            if (string.IsNullOrEmpty(request.Query[name]))
+            {
+                errors.Add(string.Format("required property '{0}' is missing from metadata", name));
+            }
+            return request.Query[name];
+        }
+
+        public static IEnumerable<string> CheckRequiredRequestParameters(IOwinRequest request, params string[] properties)
+        {
+            IList<string> errors = new List<string>();
+
+            foreach (var property in properties)
+            {
+                CheckRequiredRequestParameter(request, errors, property);
+            }
+
+            if (errors.Count == 0)
+            {
+                return null;
+            }
+
+            return errors;
+        }
+
         public static void CheckRequiredFile(Stream packageStream, IList<string> errors, string fullName)
         {
             if (!FileExists(packageStream, fullName))
@@ -77,7 +123,7 @@ namespace NuGet.Services.Publish
 
         public static bool CheckDisallowedEditProperty(JObject obj, string propertyName, IList<string> errors)
         {
-            if (ValidationHelpers.PropertyExists(obj, propertyName))
+            if (PropertyExists(obj, propertyName))
             {
                 errors.Add(string.Format("edit requests should not specify \"{0}\"", propertyName));
                 return true;

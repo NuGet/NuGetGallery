@@ -151,6 +151,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\AgreementController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\PackagesController.cs" />
     <Compile Include="Controllers\TenantController.cs" />
@@ -159,6 +160,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\AgreementModel.cs" />
     <Compile Include="Models\HomeModel.cs" />
     <Compile Include="Models\PackagesModel.cs" />
     <Compile Include="Models\PublishModel.cs" />
@@ -233,6 +235,8 @@
     <Content Include="Views\Tenant\Remove.cshtml" />
     <Content Include="Views\Shared\ServiceError.cshtml" />
     <Content Include="Views\Shared\ValidationError.cshtml" />
+    <Content Include="Views\Agreement\Acceptance.cshtml" />
+    <Content Include="Views\Agreement\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

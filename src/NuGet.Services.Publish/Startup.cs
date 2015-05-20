@@ -1,4 +1,6 @@
-﻿using Microsoft.Owin;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+using Microsoft.Owin;
 using Microsoft.Owin.Security.ActiveDirectory;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -138,7 +140,7 @@ namespace NuGet.Services.Publish
 
         async Task InvokeGET(IOwinContext context)
         {
-            IRegistrationOwnership registrationOwnership = CreateRegistrationOwnership(context);
+            IRegistrationOwnership registrationOwnership = CreateRegistrationOwnership();
 
             switch (context.Request.Path.Value)
             {
@@ -160,6 +162,12 @@ namespace NuGet.Services.Publish
                         await uploader.GetTenants(context);
                         break;
                     }
+                case "/agreements":
+                    {
+                        AgreementImpl agreement = new AgreementImpl(registrationOwnership);
+                        await agreement.GetAgreementAcceptance(context);
+                        break;
+                    }
                 default:
                     {
                         await context.Response.WriteAsync("NotFound");
@@ -171,7 +179,7 @@ namespace NuGet.Services.Publish
 
         async Task InvokePOST(IOwinContext context)
         {
-            IRegistrationOwnership registrationOwnership = CreateRegistrationOwnership(context);
+            IRegistrationOwnership registrationOwnership = CreateRegistrationOwnership();
             ICategorizationPermission categorizationPermission = CategorizationPermission();
 
             switch (context.Request.Path.Value)
@@ -212,6 +220,12 @@ namespace NuGet.Services.Publish
                         await uploader.TenantDisable(context);
                         break;
                     }
+                case "/agreements/accept":
+                    {
+                        AgreementImpl agreement = new AgreementImpl(registrationOwnership);
+                        await agreement.AcceptAgreement(context);
+                        break;
+                    }
                 case "/catalog/powershell":
                     {
                         PublishImpl uploader = new PowerShellPublishImpl(registrationOwnership);
@@ -227,7 +241,7 @@ namespace NuGet.Services.Publish
             }
         }
 
-        IRegistrationOwnership CreateRegistrationOwnership(IOwinContext context)
+        IRegistrationOwnership CreateRegistrationOwnership()
         {
             if (HasNoSecurityConfigured())
             {
@@ -241,7 +255,7 @@ namespace NuGet.Services.Publish
 
             string storagePrimary = _configurationService.Get("Storage.Primary");
             CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
-            return new StorageRegistrationOwnership(context, account);
+            return new StorageRegistrationOwnership(account);
         }
 
         ICategorizationPermission CategorizationPermission()

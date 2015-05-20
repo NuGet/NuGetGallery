@@ -1,24 +1,20 @@
-﻿using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System.Web;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
 namespace NuGet.Services.Publish
 {
     public class NaiveSessionCache: TokenCache
     {
         private static readonly object FileLock = new object();
-        string UserObjectId = string.Empty;
-        string CacheId = string.Empty;
+        readonly string _cacheId;
         public NaiveSessionCache(string userId)
         {
-            UserObjectId = userId;
-            CacheId = UserObjectId + "_TokenCache";
+            _cacheId = userId + "_TokenCache";
 
-            this.AfterAccess = AfterAccessNotification;
-            this.BeforeAccess = BeforeAccessNotification;
+            AfterAccess = AfterAccessNotification;
+            BeforeAccess = BeforeAccessNotification;
             Load();
         }
 
@@ -26,7 +22,7 @@ namespace NuGet.Services.Publish
         {
             lock (FileLock)
             {
-                this.Deserialize((byte[])HttpContext.Current.Session[CacheId]);
+                Deserialize((byte[])HttpContext.Current.Session[_cacheId]);
             }
         }
 
@@ -35,9 +31,9 @@ namespace NuGet.Services.Publish
             lock (FileLock)
             {
                 // reflect changes in the persistent store
-                HttpContext.Current.Session[CacheId] = this.Serialize();
+                HttpContext.Current.Session[_cacheId] = Serialize();
                 // once the write operation took place, restore the HasStateChanged bit to false
-                this.HasStateChanged = false;
+                HasStateChanged = false;
             }
         }
 
@@ -45,7 +41,7 @@ namespace NuGet.Services.Publish
         public override void Clear()
         {
             base.Clear();
-            System.Web.HttpContext.Current.Session.Remove(CacheId);
+            HttpContext.Current.Session.Remove(_cacheId);
         }
 
         public override void DeleteItem(TokenCacheItem item)
@@ -65,7 +61,7 @@ namespace NuGet.Services.Publish
         void AfterAccessNotification(TokenCacheNotificationArgs args)
         {
             // if the access operation resulted in a cache update
-            if (this.HasStateChanged)
+            if (HasStateChanged)
             {
                 Persist();                  
             }

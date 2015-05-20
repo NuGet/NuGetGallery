@@ -1,8 +1,9 @@
-﻿using JsonLD.Core;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+using JsonLD.Core;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.JsonLDIntegration;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,15 +13,12 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Xsl;
 using VDS.RDF;
 using VDS.RDF.Parsing;
 using VDS.RDF.Writing;
-using System.Globalization;
-using NuGet.Versioning;
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -67,7 +65,7 @@ namespace NuGet.Services.Metadata.Catalog
         static XslCompiledTransform CreateTransform(string name)
         {
             XslCompiledTransform transform = new XslCompiledTransform();
-            transform.Load(XmlReader.Create(new StreamReader(Utils.GetResourceStream(name))));
+            transform.Load(XmlReader.Create(new StreamReader(GetResourceStream(name))));
             return transform;
         }
 
@@ -90,7 +88,7 @@ namespace NuGet.Services.Metadata.Catalog
         {
             TurtleParser parser = new TurtleParser();
             IGraph g = new Graph();
-            parser.Load(g, new StreamReader(Utils.GetResourceStream(name)));
+            parser.Load(g, new StreamReader(GetResourceStream(name)));
             return g;
         }
 
@@ -122,7 +120,7 @@ namespace NuGet.Services.Metadata.Catalog
             using (XmlWriter writer = result.CreateWriter())
             {
                 XslCompiledTransform xslt = new XslCompiledTransform();
-                xslt.Load(XmlReader.Create(new StreamReader(Utils.GetResourceStream("xslt.normalizeNuspecNamespace.xslt"))));
+                xslt.Load(XmlReader.Create(new StreamReader(GetResourceStream("xslt.normalizeNuspecNamespace.xslt"))));
                 xslt.Transform(original.CreateReader(), writer);
             }
 
@@ -131,7 +129,7 @@ namespace NuGet.Services.Metadata.Catalog
 
         public static string CreateHtmlView(Uri resource, string frame, string baseAddress)
         {
-            XDocument original = XDocument.Load(new StreamReader(Utils.GetResourceStream("html.view.html")));
+            XDocument original = XDocument.Load(new StreamReader(GetResourceStream("html.view.html")));
             XslCompiledTransform transform = CreateTransform("xslt.view.xslt");
             XsltArgumentList arguments = new XsltArgumentList();
             arguments.AddParam("resource", "", resource.ToString());
@@ -309,7 +307,7 @@ namespace NuGet.Services.Metadata.Catalog
         {
             foreach (Uri type in types)
             {
-                if (Utils.IsType(context, obj, type))
+                if (IsType(context, obj, type))
                 {
                     return true;
                 }
@@ -493,7 +491,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             using (ZipArchive package = new ZipArchive(stream, ZipArchiveMode.Read, true))
             {
-                XDocument nuspec = Utils.GetNuspec(package);
+                XDocument nuspec = GetNuspec(package);
 
                 if (nuspec == null)
                 {

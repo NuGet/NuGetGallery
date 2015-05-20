@@ -1,4 +1,6 @@
-﻿using Lucene.Net.Store;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+using Lucene.Net.Store;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using NuGet.Indexing;

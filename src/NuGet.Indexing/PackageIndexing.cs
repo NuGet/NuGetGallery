@@ -1,4 +1,6 @@
-﻿using Lucene.Net.Documents;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Newtonsoft.Json.Linq;
@@ -158,7 +160,7 @@ namespace NuGet.Indexing
                     lastEditsIndexTime = DateTime.MinValue.ToString();
                 }
 
-                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(lastEditsIndexTime, highestPackageKey, rangeToIndex.Count, "add"));
+                indexWriter.Commit(CreateCommitMetadata(lastEditsIndexTime, highestPackageKey, rangeToIndex.Count, "add"));
 
                 log.WriteLine("commit done");
             }
@@ -383,7 +385,7 @@ namespace NuGet.Indexing
         {
             using (IndexWriter indexWriter = CreateIndexWriter(directory, true))
             {
-                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(DateTime.MinValue, 0, 0, "creation"));
+                indexWriter.Commit(CreateCommitMetadata(DateTime.MinValue, 0, 0, "creation"));
             }
         }
 
@@ -655,7 +657,7 @@ namespace NuGet.Indexing
                 }
 
                 log.WriteLine("Commit {0} adds", packageKeys.Count);
-                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(lastEditsIndexTime, packageKeys.Max(), packageKeys.Count, "add"));
+                indexWriter.Commit(CreateCommitMetadata(lastEditsIndexTime, packageKeys.Max(), packageKeys.Count, "add"));
             }
         }
 
