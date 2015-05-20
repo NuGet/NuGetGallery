@@ -70,7 +70,7 @@ namespace NuGet.Services.Publish
 
             foreach (var property in properties)
             {
-                ValidationHelpers.CheckRequiredProperty(obj, errors, property);
+                CheckRequiredProperty(obj, errors, property);
             }
          
             if (errors.Count == 0)
@@ -96,7 +96,7 @@ namespace NuGet.Services.Publish
 
             foreach (var property in properties)
             {
-                ValidationHelpers.CheckRequiredRequestParameter(request, errors, property);
+                CheckRequiredRequestParameter(request, errors, property);
             }
 
             if (errors.Count == 0)
@@ -123,7 +123,7 @@ namespace NuGet.Services.Publish
 
         public static bool CheckDisallowedEditProperty(JObject obj, string propertyName, IList<string> errors)
         {
-            if (ValidationHelpers.PropertyExists(obj, propertyName))
+            if (PropertyExists(obj, propertyName))
             {
                 errors.Add(string.Format("edit requests should not specify \"{0}\"", propertyName));
                 return true;

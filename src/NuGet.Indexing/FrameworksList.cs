@@ -27,7 +27,7 @@ namespace NuGet.Indexing
             }
             var data = obj.Value<JArray>("data");
             var list = data.Select(t => new FrameworkName(t.ToString())).ToList();
-            list.Add(FrameworksList.AnyFramework);
+            list.Add(AnyFramework);
             return list;
         }
 

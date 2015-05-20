@@ -160,7 +160,7 @@ namespace NuGet.Indexing
                     lastEditsIndexTime = DateTime.MinValue.ToString();
                 }
 
-                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(lastEditsIndexTime, highestPackageKey, rangeToIndex.Count, "add"));
+                indexWriter.Commit(CreateCommitMetadata(lastEditsIndexTime, highestPackageKey, rangeToIndex.Count, "add"));
 
                 log.WriteLine("commit done");
             }
@@ -385,7 +385,7 @@ namespace NuGet.Indexing
         {
             using (IndexWriter indexWriter = CreateIndexWriter(directory, true))
             {
-                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(DateTime.MinValue, 0, 0, "creation"));
+                indexWriter.Commit(CreateCommitMetadata(DateTime.MinValue, 0, 0, "creation"));
             }
         }
 
@@ -657,7 +657,7 @@ namespace NuGet.Indexing
                 }
 
                 log.WriteLine("Commit {0} adds", packageKeys.Count);
-                indexWriter.Commit(PackageIndexing.CreateCommitMetadata(lastEditsIndexTime, packageKeys.Max(), packageKeys.Count, "add"));
+                indexWriter.Commit(CreateCommitMetadata(lastEditsIndexTime, packageKeys.Max(), packageKeys.Count, "add"));
             }
         }
 
