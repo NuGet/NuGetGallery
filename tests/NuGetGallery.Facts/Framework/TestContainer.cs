@@ -1,23 +1,19 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Microsoft.Owin;
 using Moq;
 using Ninject;
-using Ninject.Modules;
 using NuGetGallery.Configuration;
-using Xunit.Extensions;
 
 namespace NuGetGallery.Framework
 {
-    public class TestContainer : TestClass, IDisposable
+    public class TestContainer : IDisposable
     {
         public IKernel Kernel { get; private set; }
 
@@ -37,7 +33,7 @@ namespace NuGetGallery.Framework
             var c = Kernel.Get<TController>();
             c.ControllerContext = new ControllerContext(
                 new RequestContext(Kernel.Get<HttpContextBase>(), new RouteData()), c);
-            
+
             var routeCollection = new RouteCollection();
             Routes.RegisterRoutes(routeCollection);
             c.Url = new UrlHelper(c.ControllerContext.RequestContext, routeCollection);
@@ -48,7 +44,7 @@ namespace NuGetGallery.Framework
                 appCtrl.OwinContext = Kernel.Get<IOwinContext>();
                 appCtrl.NuGetContext.Config = Kernel.Get<ConfigurationService>();
             }
-            
+
             return c;
         }
 

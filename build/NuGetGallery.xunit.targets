@@ -1,6 +1,6 @@
 <Project DefaultTargets="RunFacts" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
-		<XunitMsBuildRunner Include="$(MSBuildThisFileDirectory)..\packages\xunit.*\lib\net20\xunit.runner.msbuild.dll" />
+		<XunitMsBuildRunner Include="$(MSBuildThisFileDirectory)..\packages\NuGet.Services.Build.*\tools\xunit.runner.msbuild.dll" />
     </ItemGroup>
     <PropertyGroup>
 	    <BuildDependsOn>
@@ -11,6 +11,6 @@
     <UsingTask TaskName="Xunit.Runner.MSBuild.xunit" AssemblyFile="@(XunitMsBuildRunner)" Condition="Exists('@(XunitMsBuildRunner)')" /> 
     
     <Target Name="RunFacts" Condition="'$(RunFacts)' == 'true' And Exists('@(XunitMsBuildRunner)')" Inputs="$(TargetPath)" Outputs="$(OutputPath)$(MSBuildProjectName).results.xml">
-        <xunit Assembly="$(TargetPath)" Xml="$(OutputPath)$(MSBuildProjectName).results.xml" />
+        <xunit Assemblies="$(TargetPath)" Xml="$(OutputPath)$(MSBuildProjectName).results.xml" />
     </Target>
 </Project>

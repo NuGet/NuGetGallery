@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -7,14 +8,12 @@ using System.Web.Mvc;
 using Moq;
 using NuGetGallery.Configuration;
 using Xunit;
-using Xunit.Extensions;
 
 namespace NuGetGallery
 {
     public class FileSystemFileStorgeServiceFacts
     {
         private static readonly Uri HttpRequestUrl = new Uri("http://nuget.org/something");
-        private static readonly Uri HttpsRequestUrl = new Uri("https://nuget.org/something");
 
         private const string FakeConfiguredFileStorageDirectory = "theFileStorageDirectory";
 
@@ -49,11 +48,11 @@ namespace NuGetGallery
             [Theory]
             [InlineData(null)]
             [InlineData("")]
-            public void WillThrowIfFolderNameIsNull(string folderName)
+            public async Task WillThrowIfFolderNameIsNull(string folderName)
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(
                     () => service.CreateDownloadFileActionResultAsync(
                         HttpRequestUrl,
                         folderName,
@@ -65,11 +64,11 @@ namespace NuGetGallery
             [Theory]
             [InlineData(null)]
             [InlineData("")]
-            public void WillThrowIfFileNameIsNull(string fileName)
+            public async Task WillThrowIfFileNameIsNull(string fileName)
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(
                     () => service.CreateDownloadFileActionResultAsync(
                         HttpRequestUrl,
                         Constants.PackagesFolderName,
@@ -133,11 +132,11 @@ namespace NuGetGallery
             [Theory]
             [InlineData(null)]
             [InlineData("")]
-            public void WillThrowIfFolderNameIsNull(string folderName)
+            public async Task WillThrowIfFolderNameIsNull(string folderName)
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(
                     () => service.DeleteFileAsync(
                         folderName,
                         "theFileName"));
@@ -148,11 +147,11 @@ namespace NuGetGallery
             [Theory]
             [InlineData(null)]
             [InlineData("")]
-            public void WillThrowIfFileNameIsNull(string fileName)
+            public async Task WillThrowIfFileNameIsNull(string fileName)
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(
                     () => service.DeleteFileAsync(
                         Constants.PackagesFolderName,
                         fileName));
@@ -194,11 +193,11 @@ namespace NuGetGallery
             [Theory]
             [InlineData(null)]
             [InlineData("")]
-            public void WillThrowIfFolderNameIsNull(string folderName)
+            public async Task WillThrowIfFolderNameIsNull(string folderName)
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(
                     () => service.GetFileAsync(
                         folderName,
                         "theFileName"));
@@ -209,11 +208,11 @@ namespace NuGetGallery
             [Theory]
             [InlineData(null)]
             [InlineData("")]
-            public void WillThrowIfFileNameIsNull(string fileName)
+            public async Task WillThrowIfFileNameIsNull(string fileName)
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(
                     () => service.GetFileAsync(
                         Constants.PackagesFolderName,
                         fileName));
@@ -289,11 +288,11 @@ namespace NuGetGallery
             [Theory]
             [InlineData(null)]
             [InlineData("")]
-            public void WillThrowIfFolderNameIsNull(string folderName)
+            public async Task WillThrowIfFolderNameIsNull(string folderName)
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(() => service.SaveFileAsync(folderName, "theFileName", CreateFileStream()));
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.SaveFileAsync(folderName, "theFileName", CreateFileStream()));
 
                 Assert.Equal("folderName", ex.ParamName);
             }
@@ -301,21 +300,21 @@ namespace NuGetGallery
             [Theory]
             [InlineData(null)]
             [InlineData("")]
-            public void WillThrowIfFileNameIsNull(string fileName)
+            public async Task WillThrowIfFileNameIsNull(string fileName)
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(() => service.SaveFileAsync("theFolderName", fileName, CreateFileStream()));
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.SaveFileAsync("theFolderName", fileName, CreateFileStream()));
 
                 Assert.Equal("fileName", ex.ParamName);
             }
 
             [Fact]
-            public void WillThrowIfFileStreamIsNull()
+            public async Task WillThrowIfFileStreamIsNull()
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(() => service.SaveFileAsync("theFolderName", "theFileName", null));
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.SaveFileAsync("theFolderName", "theFileName", null));
 
                 Assert.Equal("packageFile", ex.ParamName);
             }

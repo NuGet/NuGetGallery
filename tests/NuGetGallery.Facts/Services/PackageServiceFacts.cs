@@ -1,31 +1,21 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
-using System.Threading.Tasks;
 using Moq;
 using NuGet;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using Xunit;
-using Xunit.Extensions;
 
 namespace NuGetGallery
 {
     public class PackageServiceFacts
     {
-        private static Package CreatePackage(string id, string version)
-        {
-            return new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = id },
-                    Version = version,
-                };
-        }
-
         private static Mock<INupkg> CreateNuGetPackage(Action<Mock<IPackageMetadata>> setupMetadata = null)
         {
             var nugetPackage = new Mock<INupkg>();
@@ -84,11 +74,11 @@ namespace NuGetGallery
         }
 
         private static IPackageService CreateService(
-            Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null, 
-            Mock<IEntityRepository<Package>> packageRepository = null, 
-            Mock<IEntityRepository<PackageStatistics>> packageStatsRepo = null, 
-            Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null, 
-            Mock<IIndexingService> indexingService = null, 
+            Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null,
+            Mock<IEntityRepository<Package>> packageRepository = null,
+            Mock<IEntityRepository<PackageStatistics>> packageStatsRepo = null,
+            Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
+            Mock<IIndexingService> indexingService = null,
             Action<Mock<PackageService>> setup = null)
         {
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
@@ -320,7 +310,7 @@ namespace NuGetGallery
                     {
                         mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
                     });
-                
+
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
@@ -355,8 +345,8 @@ namespace NuGetGallery
 
                 var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
-                // Yes, I know this is a lot of asserts. Yes, I know I broke the golden, one assert per test rule. 
-                // That said, it's still asserting one "thing": that the package data was read. 
+                // Yes, I know this is a lot of asserts. Yes, I know I broke the golden, one assert per test rule.
+                // That said, it's still asserting one "thing": that the package data was read.
                 // I'm sorry, but I just can't imagine adding a test per property.
                 // Note that there is no assertion on package identifier, because that's at the package registration level (and covered in another test).
                 Assert.Equal("01.0.42.0", package.Version);
@@ -649,7 +639,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
                 var versionString = "1.0.0-".PadRight(65, 'a');
-                var nugetPackage = 
+                var nugetPackage =
                     CreateNuGetPackage(m => m.Setup(x => x.Version).Returns(SemanticVersion.Parse(versionString)));
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
@@ -805,7 +795,7 @@ namespace NuGetGallery
             private void WillThrowIfTheNuGetPackageTitleIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage =  CreateNuGetPackage(m => m.Setup(x => x.Title).Returns("theTitle".PadRight(4001, '_')));
+                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.Title).Returns("theTitle".PadRight(4001, '_')));
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
@@ -817,7 +807,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var service = CreateService();
-                var nugetPackage =  CreateNuGetPackage(m => m.Setup(x => x.Language).Returns(new string('a', 21)));
+                var nugetPackage = CreateNuGetPackage(m => m.Setup(x => x.Language).Returns(new string('a', 21)));
 
                 // Act
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
@@ -1059,7 +1049,7 @@ namespace NuGetGallery
                             new Exception("This should not be called when the version is specified."));
                     });
 
-                Assert.DoesNotThrow(() => service.FindPackageByIdAndVersion("theId", "1.0.42"));
+                service.FindPackageByIdAndVersion("theId", "1.0.42");
 
                 // Nothing to assert because it's too complicated to test the actual LINQ expression.
                 // What we're testing via the throw above is that it didn't load the registration and get the latest version.
@@ -1169,7 +1159,7 @@ namespace NuGetGallery
             public void ReturnsAListedPackage()
             {
                 var owner = new User { Username = "someone" };
-                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { owner }};
+                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { owner } };
                 var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true };
                 packageRegistration.Packages.Add(package);
 
@@ -1795,7 +1785,7 @@ namespace NuGetGallery
                 {
                     PackageRegistration = new PackageRegistration { Id = "Foo" },
                     Version = "1.0",
-                    HideLicenseReport = false 
+                    HideLicenseReport = false
                 };
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository);

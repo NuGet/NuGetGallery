@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,7 +15,7 @@ using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using Moq;
 using NuGetGallery.Configuration;
 using Xunit;
-using Xunit.Extensions;
+using Xunit.Sdk;
 
 namespace NuGetGallery
 {
@@ -46,9 +47,7 @@ namespace NuGetGallery
 
             private bool IncludePermissions { get; set; }
 
-            public override IEnumerable<object[]> GetData(
-                MethodInfo methodUnderTest,
-                Type[] parameterTypes)
+            public override IEnumerable<object[]> GetData(MethodInfo testMethod)
             {
                 var folderNames = new List<object[]>
                     {
@@ -269,7 +268,7 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                
+
                 var fakeBlob = new Mock<ISimpleCloudBlob>();
 
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
