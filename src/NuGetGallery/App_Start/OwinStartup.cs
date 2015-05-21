@@ -1,21 +1,19 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using Owin;
-using Ninject;
+using System.Web.Mvc;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
-using Microsoft.Owin.Extensions;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
+using Ninject;
 using NuGetGallery.Authentication;
-using NuGetGallery.Configuration;
-using System.Security.Claims;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
+using NuGetGallery.Configuration;
+using Owin;
 
 [assembly: OwinStartup(typeof(NuGetGallery.OwinStartup))]
 
@@ -29,7 +27,7 @@ namespace NuGetGallery
             // Get config
             var config = Container.Kernel.Get<ConfigurationService>();
             var auth = Container.Kernel.Get<AuthenticationService>();
-            
+
             // Configure logging
             app.SetLoggerFactory(new DiagnosticsLoggerFactory());
 
