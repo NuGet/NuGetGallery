@@ -4,7 +4,7 @@
     ViewBag.Tab = "Packages";
 }
 
-<h1 class="page-heading"><em>@Model.Title @Model.Version</em> Listing</h1>
+<h1 class="page-heading"><em>@Model.Title.Abbreviate(40) @Model.Version</em> Listing</h1>
 <p class="message">
     Permanently deleting packages is not supported, but you can control how they are listed.
 </p>
