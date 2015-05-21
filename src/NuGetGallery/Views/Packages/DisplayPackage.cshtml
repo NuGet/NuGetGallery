@@ -330,7 +330,9 @@
                             }
                             else
                             {
-                                <span>@packageVersion.Title @packageVersion.Version (this version)</span>
+                                <a href="@Url.Package(packageVersion)">
+                                @packageVersion.Title @packageVersion.Version (this version)
+                                </a>
                             }
                         </td>
                         <td>@packageVersion.DownloadCount
