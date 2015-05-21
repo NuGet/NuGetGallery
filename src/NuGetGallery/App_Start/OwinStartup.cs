@@ -1,6 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -16,6 +14,7 @@ using NuGetGallery.Configuration;
 using System.Security.Claims;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
+using System.Web.Mvc;
 
 [assembly: OwinStartup(typeof(NuGetGallery.OwinStartup))]
 
@@ -32,6 +31,9 @@ namespace NuGetGallery
             
             // Configure logging
             app.SetLoggerFactory(new DiagnosticsLoggerFactory());
+
+            // Remove X-AspNetMvc-Version header
+            MvcHandler.DisableMvcResponseHeader = true;
 
             if (config.Current.RequireSSL)
             {
