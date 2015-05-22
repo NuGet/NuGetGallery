@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ServiceDefinition name="NuGetGallery.Backend.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2014-06.2.4">
+<ServiceDefinition name="NuGetGallery.Backend.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2015-04.2.6">
   <WorkerRole name="NuGetGallery.Backend" vmsize="Small">
     <Imports>
-      <Import moduleName="Diagnostics" />
       <Import moduleName="RemoteAccess" />
       <Import moduleName="RemoteForwarder" />
     </Imports>
@@ -12,6 +11,7 @@
       <Setting name="Operations.Sql.Primary" />
       <Setting name="Operations.Sql.Warehouse" />
       <Setting name="Queue.PollInterval" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
     </ConfigurationSettings>
     <LocalResources>
       <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="2048" />

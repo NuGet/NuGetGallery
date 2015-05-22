@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Claims;
@@ -27,7 +27,7 @@ using NuGetGallery.Jobs;
 using WebActivator;
 using WebBackgrounder;
 
-[assembly: WebActivator.PreApplicationStartMethod(typeof(AppActivator), "PreStart")]
+[assembly: PreApplicationStartMethod(typeof(AppActivator), "PreStart")]
 [assembly: PostApplicationStartMethod(typeof(AppActivator), "PostStart")]
 [assembly: ApplicationShutdownMethod(typeof(AppActivator), "Stop")]
 
@@ -83,7 +83,7 @@ namespace NuGetGallery
         {
             var ret = new RazorViewEngine();
 
-            ret.AreaMasterLocationFormats = 
+            ret.AreaMasterLocationFormats =
                 ret.AreaViewLocationFormats =
                 ret.AreaPartialViewLocationFormats =
                 new string[]
@@ -93,7 +93,7 @@ namespace NuGetGallery
                 "~/Areas/{2}/Views/Shared/{0}.cshtml",
             };
 
-            ret.MasterLocationFormats = 
+            ret.MasterLocationFormats =
                 ret.ViewLocationFormats  =
                 ret.PartialViewLocationFormats =
                 new string[]
@@ -193,8 +193,8 @@ namespace NuGetGallery
             if (!configuration.HasWorker)
             {
                 jobs.Add(
-                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5), 
-                        () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false), 
+                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5),
+                        () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false),
                         timeout: TimeSpan.FromMinutes(5)));
             }
             if (configuration.CollectPerfLogs)

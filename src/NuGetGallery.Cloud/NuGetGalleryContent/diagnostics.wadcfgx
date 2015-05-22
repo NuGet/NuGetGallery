@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<DiagnosticsConfiguration xmlns="http://schemas.microsoft.com/ServiceHosting/2010/10/DiagnosticsConfiguration">
+  <PublicConfig xmlns="http://schemas.microsoft.com/ServiceHosting/2010/10/DiagnosticsConfiguration">
+    <WadCfg>
+      <DiagnosticMonitorConfiguration overallQuotaInMB="4096">
+        <DiagnosticInfrastructureLogs scheduledTransferPeriod="PT1M" scheduledTransferLogLevelFilter="Error" />
+        <Directories scheduledTransferPeriod="PT1M">
+          <IISLogs containerName="wad-iis-requestlogs" />
+          <FailedRequestLogs containerName="wad-failedrequestlogs" />
+          <DataSources>
+            <DirectoryConfiguration containerName="ng-v2gallery-logs">
+              <LocalResource relativePath="." name="Logs" />
+            </DirectoryConfiguration>
+          </DataSources>
+        </Directories>
+        <PerformanceCounters scheduledTransferPeriod="PT1M">
+          <PerformanceCounterConfiguration counterSpecifier="\Memory\Available MBytes" sampleRate="PT3M" />
+          <PerformanceCounterConfiguration counterSpecifier="\Processor(_Total)\% Processor Time" sampleRate="PT1S" />
+          <PerformanceCounterConfiguration counterSpecifier="\.NET CLR Jit(_Global_)\% Time in Jit" sampleRate="PT1S" />
+          <PerformanceCounterConfiguration counterSpecifier="\.NET CLR Loading(_Global_)\% Time Loading" sampleRate="PT1S" />
+          <PerformanceCounterConfiguration counterSpecifier="\.NET CLR LocksAndThreads(_Global_)\Contention Rate / sec" sampleRate="PT1S" />
+          <PerformanceCounterConfiguration counterSpecifier="\.NET CLR Memory(_Global_)\# Bytes in all Heaps" sampleRate="PT1S" />
+          <PerformanceCounterConfiguration counterSpecifier="\.NET CLR Networking(_Global_)\Connections Established" sampleRate="PT1S" />
+          <PerformanceCounterConfiguration counterSpecifier="\Memory\Committed Bytes" sampleRate="PT1S" />
+          <PerformanceCounterConfiguration counterSpecifier="\Memory\Private Bytes" sampleRate="PT1S" />
+          <PerformanceCounterConfiguration counterSpecifier="\ASP.NET Applications(__Total__)\Requests/Sec" sampleRate="PT1S" />
+          <PerformanceCounterConfiguration counterSpecifier="\ASP.NET Applications(__Total__)\Errors Total/Sec" sampleRate="PT1S" />
+          <PerformanceCounterConfiguration counterSpecifier="\ASP.NET\Requests Queued" sampleRate="PT1S" />
+          <PerformanceCounterConfiguration counterSpecifier="\ASP.NET\Requests Rejected" sampleRate="PT1S" />
+        </PerformanceCounters>
+        <WindowsEventLog scheduledTransferPeriod="PT1M">
+          <DataSource name="System!*" />
+        </WindowsEventLog>
+        <CrashDumps directoryQuotaPercentage="6" containerName="wad-crash-dumps">
+          <CrashDumpConfiguration processName="WaIISHost.exe" />
+          <CrashDumpConfiguration processName="WaWorkerHost.exe" />
+          <CrashDumpConfiguration processName="w3wp.exe" />
+        </CrashDumps>
+        <Logs scheduledTransferPeriod="PT1M" scheduledTransferLogLevelFilter="Verbose" />
+      </DiagnosticMonitorConfiguration>
+    </WadCfg>
+    <StorageAccount />
+  </PublicConfig>
+  <PrivateConfig xmlns="http://schemas.microsoft.com/ServiceHosting/2010/10/DiagnosticsConfiguration">
+    <StorageAccount name="" endpoint="" />
+  </PrivateConfig>
+  <IsEnabled>true</IsEnabled>
+</DiagnosticsConfiguration>
