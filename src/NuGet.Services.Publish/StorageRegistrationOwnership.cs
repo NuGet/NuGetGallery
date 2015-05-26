@@ -177,26 +177,19 @@ namespace NuGet.Services.Publish
             return tenantId;
         }
 
-        public string GetUserObjectId()
+        public string GetUserId()
         {
             Claim identityObjectIdClaim = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier");
             string objectId = (identityObjectIdClaim != null) ? identityObjectIdClaim.Value : string.Empty;
             return objectId;
         }
 
-        public string GetUserId()
-        {
-            Claim userClaim = ClaimsPrincipal.Current.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier");
-            string userId = (userClaim != null) ? userClaim.Value : string.Empty;
-            return userId;
-        }
-
         public async Task<IEnumerable<string>> GetDomains()
         {
             IList<string> domains = new List<string>();
 
-            // If no userId claim is present, we are having a Microsoft Account (MSA) requesting the domains.
-            // AAD has no notion of the domains supported there, and will fail the call. Instead of going in, just return an empty list.
+            // If no http://schemas.microsoft.com/identity/claims/objectidentifier claim is present, we are having a Microsoft Account (MSA) requesting the domains.
+            // AAD has no notion of the domains supported there, and will fail the call. Instead of going in, just skip the call to AAD.
             var userId = GetUserId();
             if (!string.IsNullOrEmpty(userId))
             {
