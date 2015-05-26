@@ -956,6 +956,10 @@
     <Compile Include="Migrations\201311261928187_NullifyOldColumns.Designer.cs">
       <DependentUpon>201311261928187_NullifyOldColumns.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201505261416326_UniquePackageRegistration.cs" />
+    <Compile Include="Migrations\201505261416326_UniquePackageRegistration.Designer.cs">
+      <DependentUpon>201505261416326_UniquePackageRegistration.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -1387,6 +1391,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201311261928187_NullifyOldColumns.resx">
       <DependentUpon>201311261928187_NullifyOldColumns.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201505261416326_UniquePackageRegistration.resx">
+      <DependentUpon>201505261416326_UniquePackageRegistration.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
