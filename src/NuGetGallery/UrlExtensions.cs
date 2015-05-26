@@ -209,14 +209,14 @@ namespace NuGetGallery
             {
                 result = url.Action(actionName: "Profiles",
                                     controllerName: "Users",
-                                    routeValues: new { username = user.Username },
+                                    routeValues: new { username = user.Username.TrimEnd() },
                                     protocol: scheme);
             }
             else
             {
                 result = url.Action(actionName: "Profiles",
                                     controllerName: "Users",
-                                    routeValues: new { username = user.Username, page = page },
+                                    routeValues: new { username = user.Username.TrimEnd(), page = page },
                                     protocol: scheme);
             }
 
