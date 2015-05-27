@@ -4,6 +4,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NuGet.Indexing
 {
@@ -23,22 +24,17 @@ namespace NuGet.Indexing
 
                 while (jsonReader.Read())
                 {
-                    if (jsonReader.TokenType == JsonToken.StartObject)
+                    if (jsonReader.TokenType == JsonToken.StartArray)
                     {
                         JToken record = JToken.ReadFrom(jsonReader);
-
-                        string id = record["Id"].ToString().ToLowerInvariant();
-                        string version = record["Version"].ToString();
-                        int downloads = record["Downloads"].ToObject<int>();
-
-                        IDictionary<string, int> versions;
-                        if (!result.TryGetValue(id, out versions))
+                        string id = record[0].ToString().ToLowerInvariant();
+                        IDictionary<string, int> versions = new Dictionary<string, int>();
+                        foreach (JToken token in record)
                         {
-                            versions = new Dictionary<string, int>();
-                            result.Add(id, versions);
+                            if (token.Count() == 2)
+                                versions.Add(token[0].ToString().ToLowerInvariant(), token[1].ToObject<int>());
                         }
-
-                        versions.Add(version, downloads);
+                        result.Add(id, versions);
                     }
                 }
             }
