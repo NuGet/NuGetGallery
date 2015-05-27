@@ -17,7 +17,8 @@ namespace NuGet.Indexing
         public IDictionary<string, IDictionary<string, int>> Load()
         {
             IDictionary<string, IDictionary<string, int>> result = new Dictionary<string, IDictionary<string, int>>();
-
+            //The data in downloads.v1.json will be an array of Package records - which has Id, Array of Versions and download count.
+            //[["AutofacContrib.NSubstitute",["2.4.3.700",406],["2.5.0",137]],["Assman.Core",["2.0.7",138]]....
             using (JsonReader jsonReader = GetReader())
             {
                 jsonReader.Read();
