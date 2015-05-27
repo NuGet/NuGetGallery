@@ -81,6 +81,7 @@ namespace NuGet.Jobs.Common
         public const string RankingCount = "RankingCount";
         public const string RetryCount = "RetryCount";
         public const string MaxManifestSize = "MaxManifestSize";
+        public const string OutputDirectory = "OutputDirectory";
 
         //Arguments specific to HandlePackageEdits
         public const string SourceStorage = "SourceStorage";
