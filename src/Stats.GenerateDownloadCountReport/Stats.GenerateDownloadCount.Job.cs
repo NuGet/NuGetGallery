@@ -24,41 +24,41 @@ namespace Stats.GenerateDownloadCount
             SELECT p.[Key] AS PackageKey, pr.Id, p.NormalizedVersion, p.DownloadCount, pr.DownloadCount AS 'AllVersionsDownloadCount'
             FROM Packages p WITH (NOLOCK)
             INNER JOIN PackageRegistrations pr ON p.PackageRegistrationKey = pr.[Key]";
-        private const string GetRecentDataScript = @"-- Work Service / GenerateDownloadCountReport / GetRecentDataScript
-            DECLARE @Install int
-            DECLARE @Update int
-
-            -- Get the IDs of the Operations we're interested in
-            SELECT @Install = [Id] FROM Dimension_Operation WHERE Operation = 'Install';
-            SELECT @Update = [Id] FROM Dimension_Operation WHERE Operation = 'Update';
-
-            -- Group data by Dimension_Package_Id and stuff it in a table variable
-            DECLARE @temp TABLE(
-	            Dimension_Package_Id int,
-	            InstallCount int,
-	            UpdateCount int);
-
-            WITH cte AS(
-	            SELECT
-		            Dimension_Package_Id, 
-		            (CASE WHEN Dimension_Operation_Id = @Install THEN 1 ELSE 0 END) AS [Install],
-		            (CASE WHEN Dimension_Operation_Id = @Update THEN 1 ELSE 0 END) AS [Update]
-	            FROM Fact_Download WITH(NOLOCK)
-	            WHERE Dimension_Operation_Id = @Install OR Dimension_Operation_Id = @Update 
-            )
-            INSERT INTO @temp(Dimension_Package_Id, InstallCount, UpdateCount)
-            SELECT
-	            [Dimension_Package_Id],
-	            SUM([Install]) AS InstallCount, 
-	            SUM([Update]) AS UpdateCount
-            FROM cte
-            INNER JOIN Dimension_Package ON Dimension_Package.Id = cte.Dimension_Package_Id
-            GROUP BY Dimension_Package_Id
-
-            -- Get the actual PackageId and PackageVersion using the Dimension_Package_Id in the table variable
-            SELECT Dimension_Package.PackageId, Dimension_Package.PackageVersion, t.InstallCount, t.UpdateCount
-            FROM @temp t
-            INNER JOIN Dimension_Package ON Dimension_Package.Id = t.Dimension_Package_Id";
+//        private const string GetRecentDataScript = @"-- Work Service / GenerateDownloadCountReport / GetRecentDataScript
+//            DECLARE @Install int
+//            DECLARE @Update int
+//
+//            -- Get the IDs of the Operations we're interested in
+//            SELECT @Install = [Id] FROM Dimension_Operation WHERE Operation = 'Install';
+//            SELECT @Update = [Id] FROM Dimension_Operation WHERE Operation = 'Update';
+//
+//            -- Group data by Dimension_Package_Id and stuff it in a table variable
+//            DECLARE @temp TABLE(
+//	            Dimension_Package_Id int,
+//	            InstallCount int,
+//	            UpdateCount int);
+//
+//            WITH cte AS(
+//	            SELECT
+//		            Dimension_Package_Id, 
+//		            (CASE WHEN Dimension_Operation_Id = @Install THEN 1 ELSE 0 END) AS [Install],
+//		            (CASE WHEN Dimension_Operation_Id = @Update THEN 1 ELSE 0 END) AS [Update]
+//	            FROM Fact_Download WITH(NOLOCK)
+//	            WHERE Dimension_Operation_Id = @Install OR Dimension_Operation_Id = @Update 
+//            )
+//            INSERT INTO @temp(Dimension_Package_Id, InstallCount, UpdateCount)
+//            SELECT
+//	            [Dimension_Package_Id],
+//	            SUM([Install]) AS InstallCount, 
+//	            SUM([Update]) AS UpdateCount
+//            FROM cte
+//            INNER JOIN Dimension_Package ON Dimension_Package.Id = cte.Dimension_Package_Id
+//            GROUP BY Dimension_Package_Id
+//
+//            -- Get the actual PackageId and PackageVersion using the Dimension_Package_Id in the table variable
+//            SELECT Dimension_Package.PackageId, Dimension_Package.PackageVersion, t.InstallCount, t.UpdateCount
+//            FROM @temp t
+//            INNER JOIN Dimension_Package ON Dimension_Package.Id = t.Dimension_Package_Id";
 
         public static readonly string DefaultContainerName = "ng-search-data";
         public static readonly string ReportName = "downloads.v1.json";
@@ -91,40 +91,50 @@ namespace Stats.GenerateDownloadCount
             }
             Trace.TraceInformation(String.Format("Gathered {0} rows of data.", downloadData.Count));
 
-            // Gather recent activity data from warehouse
-            IList<RecentActivityData> recentActivityData;
-            Trace.TraceInformation(String.Format("Gathering Recent Activity Counts from {0}/{1}...",WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog));
-            using (var connection = await WarehouseConnection.ConnectTo())
-            {
-                recentActivityData = (await connection.QueryWithRetryAsync<RecentActivityData>(GetRecentDataScript, commandTimeout: 180)).ToList();
-            }
-            Trace.TraceInformation(String.Format("Gathered {0} rows of data.", recentActivityData.Count));
+            //// Gather recent activity data from warehouse
+            //IList<RecentActivityData> recentActivityData;
+            //Trace.TraceInformation(String.Format("Gathering Recent Activity Counts from {0}/{1}...",WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog));
+            //using (var connection = await WarehouseConnection.ConnectTo())
+            //{
+            //    recentActivityData = (await connection.QueryWithRetryAsync<RecentActivityData>(GetRecentDataScript, commandTimeout: 180)).ToList();
+            //}
+            //Trace.TraceInformation(String.Format("Gathered {0} rows of data.", recentActivityData.Count));
 
-            // Join!
-            Trace.TraceInformation("Joining data in memory...");
-            IDictionary<int, FullDownloadData> data =
-                downloadData.GroupJoin(
-                    recentActivityData,
-                    dcd => GetKey(dcd.Id, dcd.NormalizedVersion),
-                    rad => GetKey(rad.PackageId, rad.PackageVersion),
+            //// Join!
+            //Trace.TraceInformation("Joining data in memory...");
+            //IDictionary<int, FullDownloadData> data =
+            //    downloadData.GroupJoin(
+            //        recentActivityData,
+            //        dcd => GetKey(dcd.Id, dcd.NormalizedVersion),
+            //        rad => GetKey(rad.PackageId, rad.PackageVersion),
 
-                    (dcd, rads) => new {
-                        Key = dcd.PackageKey, 
-                        Value = new FullDownloadData()
-                        {
-                            Id = dcd.Id,
-                            Version = dcd.NormalizedVersion,
-                            Downloads = dcd.DownloadCount,
-                            RegistrationDownloads = dcd.AllVersionsDownloadCount,
-                            Installs = rads.Any() ? rads.Sum(r => r.InstallCount) : 0, 
-                            Updates = rads.Any() ? rads.Sum(r => r.UpdateCount) : 0
-                        }
-                    },
-                    StringComparer.OrdinalIgnoreCase)
-                    .ToDictionary(pair => pair.Key, pair => pair.Value);
-            Trace.TraceInformation("Joined data.");
+            //        (dcd, rads) => new {
+            //            Key = dcd.PackageKey, 
+            //            Value = new FullDownloadData()
+            //            {
+            //                Id = dcd.Id,
+            //                Version = dcd.NormalizedVersion,
+            //                Downloads = dcd.DownloadCount,
+            //                RegistrationDownloads = dcd.AllVersionsDownloadCount,
+            //                Installs = rads.Any() ? rads.Sum(r => r.InstallCount) : 0, 
+            //                Updates = rads.Any() ? rads.Sum(r => r.UpdateCount) : 0
+            //            }
+            //        },
+            //        StringComparer.OrdinalIgnoreCase)
+            //        .ToDictionary(pair => pair.Key, pair => pair.Value);
+            //Trace.TraceInformation("Joined data.");
 
             // Write the report
+            IEnumerable<IGrouping<string,DownloadCountData>> groupedPackageVersionData =   downloadData.GroupBy(item => item.Id);
+            List<PackageRegistrationDownloadData> registrationsData = new List<PackageRegistrationDownloadData>();
+            foreach(IGrouping<string,DownloadCountData> registrationData in groupedPackageVersionData)
+            {
+                List<PackageVersionDownloadData> versionsData = new List<PackageVersionDownloadData>();
+                versionsData.Add(new PackageVersionDownloadData(registrationData.Select()
+                registrationsData.Add(
+            }
+
+
             await WriteReport(JObject.FromObject(data), ReportName, Formatting.None);
             return true;
         }
@@ -215,6 +225,25 @@ namespace Stats.GenerateDownloadCount
             public string NormalizedVersion { get; set; }
             public int DownloadCount { get; set; }
             public int AllVersionsDownloadCount { get; set; }
+        }
+
+        public class PackageRegistrationDownloadData
+        {
+            public string Id { get; set; }
+            public int RegistrationDownloadCount { get; set; }
+            public List<PackageVersionDownloadData> AllVersions { get; set; }
+        }
+
+        public class PackageVersionDownloadData
+        { 
+            public string NormalizedVersion { get; set; }
+            public int DownloadCount { get; set; }
+            public PackageVersionDownloadData(string normalizedVersion,int downloadCount)
+            {
+                this.NormalizedVersion = normalizedVersion;
+                this.DownloadCount = downloadCount;
+            }
+         
         }
 
         public class RecentActivityData
