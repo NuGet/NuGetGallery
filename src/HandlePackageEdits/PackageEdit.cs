@@ -50,11 +50,8 @@ namespace HandlePackageEdits
             metadata.Authors = Authors;
             metadata.Copyright = Copyright;
             metadata.Description = Description;
-            metadata.IconUrl = IconUrl;
-            if (!String.IsNullOrEmpty(LicenseUrl.Trim()))
-            {
-                metadata.LicenseUrl = LicenseUrl;
-            }
+            metadata.IconUrl = IconUrl;          
+            metadata.LicenseUrl = LicenseUrl;          
             metadata.ProjectUrl = ProjectUrl;
             metadata.ReleaseNotes = ReleaseNotes;
             metadata.RequireLicenseAcceptance = RequiresLicenseAcceptance;
