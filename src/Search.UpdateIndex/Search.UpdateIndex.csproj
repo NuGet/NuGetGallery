@@ -128,8 +128,8 @@
       <HintPath>..\packages\Nuget.Core.2.8.3-alpha0001\lib\net40-Client\NuGet.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Indexing, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Indexing.3.0.125-r-master\lib\net45\NuGet.Indexing.dll</HintPath>
+    <Reference Include="NuGet.Indexing, Version=3.0.43.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Indexing.3.0.43-r-master\lib\net45\NuGet.Indexing.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=1.0.7.0, Culture=neutral, PublicKeyToken=2e465378e3b1a8dd, processorArchitecture=MSIL">
