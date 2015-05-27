@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.IO;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace NuGet.Indexing
 {
@@ -19,14 +21,14 @@ namespace NuGet.Indexing
             _blob = container.GetBlockBlobReference(blobName);
         }
 
-        protected override string LoadJson()
+        protected override JsonReader GetReader()
         {
             if (!_blob.Exists())
             {
                 return null;
             }
-            string json = _blob.DownloadText();
-            return json;
+
+            return new JsonTextReader(new StreamReader(_blob.OpenRead()));
         }
     }
 }

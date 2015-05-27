@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
@@ -23,7 +24,7 @@ namespace NuGet.Indexing
         JArray[] _versionListsByDoc;
 
         public static readonly TimeSpan RankingRefreshRate = TimeSpan.FromHours(24);
-        public static readonly TimeSpan DownloadCountRefreshRate = TimeSpan.FromMinutes(5);
+        public static readonly TimeSpan DownloadCountRefreshRate = TimeSpan.FromHours(1);
         public static readonly TimeSpan FrameworkCompatibilityRefreshRate = TimeSpan.FromHours(24);
 
         IndexData<IDictionary<string, IDictionary<string, int>>> _currentRankings;

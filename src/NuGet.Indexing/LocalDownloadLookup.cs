@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.IO;
 
 namespace NuGet.Indexing
@@ -17,12 +17,9 @@ namespace NuGet.Indexing
             _path = path;
         }
 
-        protected override string LoadJson()
+        protected override JsonReader GetReader()
         {
-            using (StreamReader textReader = new StreamReader(Path))
-            {
-                return textReader.ReadToEnd();
-            }
+            return new JsonTextReader(new StreamReader(File.OpenRead(Path)));
         }
     }
 }
