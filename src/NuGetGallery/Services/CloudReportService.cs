@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -10,7 +10,7 @@ namespace NuGetGallery
 {
     public class CloudReportService : IReportService
     {
-        private string _connectionString;
+        private readonly string _connectionString;
 
         public CloudReportService(string connectionString)
         {
@@ -28,13 +28,12 @@ namespace NuGetGallery
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference("stats");
             CloudBlockBlob blob = container.GetBlockBlobReference("popularity/" + name);
+
             //Check if the report blob is present before processing it.
             if(!blob.Exists())
             {
                 throw new StatisticsReportNotFoundException();
             }
-            
-            MemoryStream stream = new MemoryStream();
 
             await blob.FetchAttributesAsync();
             string content = await blob.DownloadTextAsync();
