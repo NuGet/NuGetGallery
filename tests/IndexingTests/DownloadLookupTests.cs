@@ -1,11 +1,11 @@
-﻿using Newtonsoft.Json;
-using NuGet.Indexing;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using NuGet.Indexing;
 using Xunit;
 
 namespace IndexingTests
@@ -27,7 +27,7 @@ namespace IndexingTests
 
         [Theory]
         [InlineData(@"[[""AutofacContrib.NSubstitute"",[""2.4.3.700"",406],[""2.5.0"",137]],[""AutofacContrib.NSubstitute"",[""3"",0],[""2.5"",0]]]")]
-        public void DownloadLookUp_NoExceptionThrownWithDeuplicateKeys(string json)
+        public void DownloadLookUp_NoExceptionThrownWithDuplicateKeys(string json)
         {
             StringDownloadLookup downloadLookup = new StringDownloadLookup(json);
             IDictionary<string, IDictionary<string, int>> packages = downloadLookup.Load();
