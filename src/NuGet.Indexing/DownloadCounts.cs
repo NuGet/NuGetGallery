@@ -9,23 +9,6 @@ using Newtonsoft.Json.Linq;
 
 namespace NuGet.Indexing
 {
-    public abstract class DownloadCounts
-    {
-        public static readonly string FileName = "downloads.v1.json";
-        public abstract string Path { get; }
-        protected abstract JObject LoadJson();
-
-        public IDictionary<int, DownloadCountRecord> Load()
-        {
-            JObject obj = LoadJson();
-            if (obj == null)
-            {
-                return new Dictionary<int, DownloadCountRecord>();
-            }
-            return obj.ToObject<IDictionary<int, DownloadCountRecord>>();
-        }
-    }
-
     public class DownloadCountRecord
     {
         public int Downloads { get; set; }
