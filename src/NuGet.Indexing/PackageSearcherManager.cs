@@ -1,16 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Lucene.Net.Search;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Threading;
 using System.Diagnostics;
-using System.Runtime.Versioning;
 using System.IO;
+using System.Linq;
+using System.Runtime.Versioning;
+using System.Threading;
+using System.Threading.Tasks;
+using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.Store.Azure;
 using Microsoft.WindowsAzure.Storage;
+
 
 namespace NuGet.Indexing
 {
@@ -19,30 +21,30 @@ namespace NuGet.Indexing
         public static readonly TimeSpan FrameworksRefreshRate = TimeSpan.FromHours(24);
         public static readonly TimeSpan PortableFrameworksRefreshRate = TimeSpan.FromHours(24);
         public static readonly TimeSpan RankingRefreshRate = TimeSpan.FromHours(24);
-        public static readonly TimeSpan DownloadCountRefreshRate = TimeSpan.FromMinutes(5);
+        public static readonly TimeSpan DownloadCountRefreshRate = TimeSpan.FromHours(1);
 
         IndexData<IDictionary<string, IDictionary<string, int>>> _currentRankings;
-        IndexData<IDictionary<int, DownloadCountRecord>> _currentDownloadCounts;
+        IndexData<IDictionary<string, IDictionary<string, int>>> _currentDownloadCounts;
         IndexData<IList<FrameworkName>> _currentFrameworkList;
 
         public DateTime DownloadCountsUpdatedUtc { get { return _currentDownloadCounts.LastUpdatedUtc; } }
         public DateTime RankingsUpdatedUtc { get { return _currentRankings.LastUpdatedUtc; } }
         public DateTime FrameworkListUpdatedUtc { get { return _currentFrameworkList.LastUpdatedUtc; } }
         public Rankings Rankings { get; private set; }
-        public DownloadCounts DownloadCounts { get; private set; }
+        public DownloadLookup DownloadCounts { get; private set; }
         public FrameworksList Frameworks { get; private set; }
         public Guid Id { get; private set; }
         public string IndexName { get; private set; }
 
-        protected PackageSearcherManager(string indexName, Lucene.Net.Store.Directory directory, Rankings rankings, DownloadCounts downloadCounts, FrameworksList frameworks)
+        protected PackageSearcherManager(string indexName, Lucene.Net.Store.Directory directory, Rankings rankings, DownloadLookup downloadCounts, FrameworksList frameworks)
             : base(directory)
         {
             Rankings = rankings;
             DownloadCounts = downloadCounts;
             Frameworks = frameworks;
-            IndexName = indexName;
+            IndexName = indexName;      
 
-            _currentDownloadCounts = new IndexData<IDictionary<int, DownloadCountRecord>>(
+            _currentDownloadCounts = new IndexData<IDictionary<string, IDictionary<string, int>>>(
                 "DownloadCounts",
                 DownloadCounts.Path,
                 DownloadCounts.Load,
@@ -92,7 +94,7 @@ namespace NuGet.Indexing
             return tempRankings["Rank"];
         }
 
-        public DownloadCountRecord GetDownloadCounts(int packageKey)
+        public DownloadCountRecord GetDownloadCount(string packageId,string normalizedVersion)
         {
             _currentDownloadCounts.MaybeReload();
 
@@ -100,13 +102,23 @@ namespace NuGet.Indexing
             var downloadCounts = _currentDownloadCounts.Value;
             if (downloadCounts != null)
             {
-                DownloadCountRecord record;
-                if (downloadCounts.TryGetValue(packageKey, out record))
-                {
-                    return record;
-                }
-            }
 
+                DownloadCountRecord record = new DownloadCountRecord();
+                IDictionary<string,int> versions;
+                if (downloadCounts.TryGetValue(packageId, out versions))
+                {
+                    int downloadCount;
+                    if(versions.TryGetValue(normalizedVersion,out downloadCount))
+                    {
+                       record.Downloads = downloadCount;
+                    }
+                    record.RegistrationDownloads = versions.Values.Sum();
+                    // Set install and updates to downloadcount.This data is not being used anywhere in V2 Gallery and will be removed eventually.
+                    record.Installs = downloadCount;
+                    record.Updates = downloadCount;
+                }
+                return record;
+            }
             return null;
         }
 
@@ -134,14 +146,14 @@ namespace NuGet.Indexing
             }
             if (String.IsNullOrEmpty(downloadCountsFile))
             {
-                downloadCountsFile = Path.Combine(localDirectory, "data", DownloadCounts.FileName);
+                downloadCountsFile = Path.Combine(localDirectory, "data", DownloadLookup.FileName);
             }
             var dir = new DirectoryInfo(localDirectory);
             return new PackageSearcherManager(
                 dir.Name,
                 new SimpleFSDirectory(dir),
                 new LocalRankings(rankingsFile),
-                new LocalDownloadCounts(downloadCountsFile),
+                new LocalDownloadLookup(downloadCountsFile),
                 new LocalFrameworksList(frameworksFile));
         }
 
@@ -173,11 +185,11 @@ namespace NuGet.Indexing
                 dataPath = "data/";
             }
 
-            DownloadCounts downloadCounts = requireDownloadCounts
+            DownloadLookup downloadCounts = requireDownloadCounts
                     ?
-                (DownloadCounts)new StorageDownloadCounts(storageAccount, dataContainer, dataPath + DownloadCounts.FileName)
+                (DownloadLookup)new StorageDownloadLookup(storageAccount, dataContainer, dataPath + DownloadLookup.FileName)
                     :
-                (DownloadCounts)new EmptyDownloadCounts();
+                (DownloadLookup)new LocalDownloadLookup(null);
 
             return new PackageSearcherManager(
                 indexContainer,

@@ -250,11 +250,12 @@ namespace NuGet.Indexing
                 Document doc = searcher.Doc(scoreDoc.Doc);
                 string data = doc.Get("Data");
 
-                string key = doc.Get("Key");
-                int keyVal;
-                if (!String.IsNullOrEmpty(key) && Int32.TryParse(key, out keyVal))
+                string id = doc.Get("Id");
+                string version = doc.Get("NormalizedVersion");          
+                
+                if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(version))
                 {
-                    DownloadCountRecord countRecord = manager.GetDownloadCounts(keyVal);
+                    DownloadCountRecord countRecord = manager.GetDownloadCount(id,version);
                     if (countRecord != null)
                     {
                         // Patch the data in to the JSON
