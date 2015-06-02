@@ -146,9 +146,7 @@
     <Compile Include="BitSetCollector.cs" />
     <Compile Include="ChainedFilter.cs" />
     <Compile Include="Compatibility.cs" />
-    <Compile Include="DownloadCounts.cs" />
     <Compile Include="DownloadLookup.cs" />
-    <Compile Include="EmptyDownloadCounts.cs" />
     <Compile Include="FacetedDocument.cs" />
     <Compile Include="Facets.cs" />
     <Compile Include="GalleryServiceImpl.cs" />
@@ -167,7 +165,6 @@
     <Compile Include="LocalFrameworkCompatibility.cs" />
     <Compile Include="FrameworkCompatibility.cs" />
     <Compile Include="IndexData.cs" />
-    <Compile Include="LocalDownloadCounts.cs" />
     <Compile Include="FrameworksList.cs" />
     <Compile Include="GalleryExport.cs" />
     <Compile Include="FullBuildTask.cs" />
@@ -180,7 +177,6 @@
     <Compile Include="OpenBitSetLookupFilter.cs" />
     <Compile Include="PerfEventTracker.cs" />
     <Compile Include="ServiceImpl.cs" />
-    <Compile Include="StorageDownloadCounts.cs" />
     <Compile Include="StorageDownloadLookup.cs" />
     <Compile Include="PublicFilter.cs" />
     <Compile Include="StorageFrameworksList.cs" />
