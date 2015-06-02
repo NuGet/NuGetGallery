@@ -250,20 +250,18 @@ namespace NuGet.Indexing
                 Document doc = searcher.Doc(scoreDoc.Doc);
                 string data = doc.Get("Data");
 
-                string id = doc.Get("Id");
-                string version = doc.Get("NormalizedVersion");          
-                
-                if (!String.IsNullOrEmpty(id) && !String.IsNullOrEmpty(version))
+                string id = doc.Get("Id");               
+                NuGet.Versioning.NuGetVersion ngVersion = new Versioning.NuGetVersion(doc.Get("Version"));               
+                     
+                if (!String.IsNullOrEmpty(id) && ngVersion != null)
                 {
-                    DownloadCountRecord countRecord = manager.GetDownloadCount(id,version);
+                    Tuple<int,int> countRecord = manager.GetDownloadCount(id,ngVersion.ToNormalizedString());
                     if (countRecord != null)
                     {
                         // Patch the data in to the JSON
                         JObject parsed = JObject.Parse(data);
-                        parsed["DownloadCount"] = countRecord.Downloads;
-                        parsed["PackageRegistration"]["DownloadCount"] = countRecord.RegistrationDownloads;
-                        parsed.Add("Installs", countRecord.Installs);
-                        parsed.Add("Updates", countRecord.Updates);
+                        parsed["DownloadCount"] = countRecord.Item1;
+                        parsed["PackageRegistration"]["DownloadCount"] = countRecord.Item2;                      
                         data = parsed.ToString(Formatting.None);
                     }
                 }

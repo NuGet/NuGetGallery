@@ -94,32 +94,28 @@ namespace NuGet.Indexing
             return tempRankings["Rank"];
         }
 
-        public DownloadCountRecord GetDownloadCount(string packageId,string normalizedVersion)
+        public Tuple<int,int> GetDownloadCount(string packageId,string normalizedVersion)
         {
             _currentDownloadCounts.MaybeReload();
 
             // Capture the current value and use it
             var downloadCounts = _currentDownloadCounts.Value;
             if (downloadCounts != null)
-            {
-
-                DownloadCountRecord record = new DownloadCountRecord();
+            {                                
                 IDictionary<string,int> versions;
-                if (downloadCounts.TryGetValue(packageId, out versions))
+                if (downloadCounts.TryGetValue(packageId.ToLowerInvariant(), out versions))
                 {
+                    int registrationDownloads = versions.Values.Sum();                    
                     int downloadCount;
-                    if(versions.TryGetValue(normalizedVersion,out downloadCount))
+                    if(!versions.TryGetValue(normalizedVersion,out downloadCount))
                     {
-                       record.Downloads = downloadCount;
+                        //assume value as 0 if version not found.
+                        downloadCount = 0;
                     }
-                    record.RegistrationDownloads = versions.Values.Sum();
-                    // Set install and updates to downloadcount.This data is not being used anywhere in V2 Gallery and will be removed eventually.
-                    record.Installs = downloadCount;
-                    record.Updates = downloadCount;
-                }
-                return record;
+                    return new Tuple<int, int>(downloadCount, registrationDownloads);
+                }                
             }
-            return null;
+            return new Tuple<int,int>(0,0);
         }
 
         public IList<FrameworkName> GetFrameworks()

@@ -146,7 +146,6 @@
     <Compile Include="BitSetCollector.cs" />
     <Compile Include="ChainedFilter.cs" />
     <Compile Include="Compatibility.cs" />
-    <Compile Include="DownloadCounts.cs" />
     <Compile Include="DownloadLookup.cs" />
     <Compile Include="FacetedDocument.cs" />
     <Compile Include="Facets.cs" />
