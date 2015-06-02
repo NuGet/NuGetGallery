@@ -85,7 +85,7 @@ namespace NuGet.Indexing
             return array;
         }
 
-        private static JArray ToJson_PackageDependencies(ICollection<GalleryPackageDependency> dependencies)
+        internal static JArray ToJson_PackageDependencies(ICollection<GalleryPackageDependency> dependencies)
         {
             JArray array = new JArray();
             foreach (GalleryPackageDependency packageDependency in dependencies)
@@ -99,7 +99,7 @@ namespace NuGet.Indexing
             return array;
         }
 
-        private static JArray ToJson_SupportedFrameworks(ICollection<PackageFramework> supportedFrameworks)
+        internal static JArray ToJson_SupportedFrameworks(ICollection<PackageFramework> supportedFrameworks)
         {
             JArray array = new JArray();
             foreach (PackageFramework packageFramework in supportedFrameworks)
