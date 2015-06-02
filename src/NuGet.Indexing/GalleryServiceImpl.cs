@@ -196,9 +196,9 @@ namespace NuGet.Indexing
                 packageObj.Add("LastUpdated", document.Get("OriginalPublished"));
                 packageObj.Add("LastEdited", document.Get("OriginalEditedDate"));
                 packageObj.Add("DownloadCount", downloadCounts.Item2);
-                packageObj.Add("FlattenedDependencies", "");                                         //TODO: data is missing from index
-                packageObj.Add("Dependencies", new JArray());                                        //TODO: data is missing from index
-                packageObj.Add("SupportedFrameworks", new JArray());                                 //TODO: data is missing from index
+                packageObj.Add("FlattenedDependencies", document.Get("FlattenedDependencies"));                                         
+                packageObj.Add("Dependencies", JArray.Parse(document.Get("Dependencies")));                                        
+                packageObj.Add("SupportedFrameworks", JArray.Parse(document.Get("SupportedFrameworks")));                               
                 packageObj.Add("MinClientVersion", document.Get("MinClientVersion"));
                 packageObj.Add("Hash", document.Get("PackageHash"));
                 packageObj.Add("HashAlgorithm", document.Get("PackageHashAlgorithm"));

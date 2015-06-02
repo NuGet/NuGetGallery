@@ -22,6 +22,7 @@ namespace NuGet.Indexing
 {
     public static class PackageIndexing
     {
+        private const string _packageTemplate = "{0}/{1}.json";
         const int MaxDocumentsPerCommit = 800;      //  The maximum number of Lucene documents in a single commit. The min size for a segment.
         const int MergeFactor = 10;                 //  Define the size of a file in a level (exponentially) and the count of files that constitue a level
         const int MaxMergeDocs = 7999;              //  Except never merge segments that have more docs than this 
@@ -55,6 +56,7 @@ namespace NuGet.Indexing
                 IDictionary<int, IEnumerable<string>> feeds = GalleryExport.GetFeedsByPackageRegistration(sqlConnectionString, log, verbose: false);
 
                 int highestPackageKey = 0;
+                int loopCount = 0;
                 while (true)
                 {
                     log.WriteLine("get the checksums from the gallery");
@@ -63,7 +65,11 @@ namespace NuGet.Indexing
                     log.WriteLine("get packages from gallery where the Package.Key > {0}", highestPackageKey);
                     List<Package> packages = GalleryExport.GetPublishedPackagesSince(sqlConnectionString, highestPackageKey, log, verbose: false);
 
-                    if (packages.Count == 0)
+                    //if (packages.Count == 0)
+                    //{
+                    //    break;
+                    //}
+                    if(loopCount >= 2)
                     {
                         break;
                     }
@@ -80,6 +86,7 @@ namespace NuGet.Indexing
                     {
                         SummarizePerf(log, perfTracker);
                     }
+                    loopCount++;
                 }
             }
 
@@ -125,26 +132,13 @@ namespace NuGet.Indexing
             log.WriteLine("begin AddToIndex");
 
             int highestPackageKey = -1;
-
-            var groups = rangeToIndex.GroupBy(d => d.Package.PackageRegistration.Id).ToList();
-
-            // Collect documents to change
-            var dirtyDocs = new List<FacetedDocument>();
-            using (var reader = IndexReader.Open(directory, readOnly: true))
-            using (perfTracker.TrackEvent("CalculateChanges", ""))
-            {
-                foreach (var group in groups)
-                {
-                    var newDirtyDocs = DetermineDirtyDocuments(projectFxs, perfTracker, reader, group.Key, group);
-
-                    // (Re-)Add any dirty documents to the index
-                    dirtyDocs.AddRange(newDirtyDocs);
-                }
-            }
-
             using (IndexWriter indexWriter = CreateIndexWriter(directory, create: false))
             {
-                WriteDirtyDocuments(dirtyDocs, indexWriter, perfTracker);
+                // Just write the document to index. No Facet.
+                foreach (IndexDocumentData data in rangeToIndex)
+                {
+                    indexWriter.AddDocument(CreateLuceneDocument(data));
+                }
 
                 highestPackageKey = rangeToIndex.Max(i => i.Package.Key);
 
@@ -186,7 +180,7 @@ namespace NuGet.Indexing
             {
                 using (perfTracker.TrackEvent("AddDocument", "{0} v{1}", dirtyDoc.Id, dirtyDoc.Version))
                 {
-                    indexWriter.AddDocument(CreateLuceneDocument(dirtyDoc));
+                 //   indexWriter.AddDocument(CreateLuceneDocument(dirtyDoc));
                 }
             }
         }
@@ -485,10 +479,18 @@ namespace NuGet.Indexing
             return 1.0f;
         }
 
-        // ----------------------------------------------------------------------------------------------------------------------------------------
-        private static Document CreateLuceneDocument(FacetedDocument documentData)
+        /* Open questions:
+        1. Should we propogate curated feed data to V3 ?
+        2. Should the Package Key added to Lucene ? Is it used as high water mark or anything ?
+        3. How to add "CatalogEntry", "TenantId", "Visibility" values.
+        4. Where does the below fields that show up in search query come from :
+           "@id": "http://api.nuget.org/v3/registration0/nunit.runners/2.6.4.json",
+           "@type": "Package",
+           "registration": "http://api.nuget.org/v3/registration0/nunit.runners/index.json",
+         */
+        private static Document CreateLuceneDocument(IndexDocumentData data)
         {
-            Package package = documentData.Data.Package;
+            Package package = data.Package;
 
             Document doc = new Document();
 
@@ -506,62 +508,90 @@ namespace NuGet.Indexing
             string title = package.Title ?? package.PackageRegistration.Id;
 
             Add(doc, "Id", package.PackageRegistration.Id, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
+            Add(doc, "IdAutocomplete", package.PackageRegistration.Id, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.NO);
+            Add(doc, "IdAutocompletePhrase", "/ " + package.PackageRegistration.Id, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);            
             Add(doc, "TokenizedId", package.PackageRegistration.Id, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
             Add(doc, "ShingledId", package.PackageRegistration.Id, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
             Add(doc, "Version", package.Version, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, idBoost);
-            Add(doc, "Title", title, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, titleBoost);
-            Add(doc, "Tags", package.Tags, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, 1.5f);
-            Add(doc, "Description", package.Description, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            Add(doc, "Authors", package.FlattenedAuthors, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "Title", title, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, titleBoost);
+            Add(doc, "Tags", package.Tags, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, 1.5f);
+            Add(doc, "Description", package.Description, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "Authors", package.FlattenedAuthors, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
             foreach (User owner in package.PackageRegistration.Owners)
             {
-                Add(doc, "Owners", owner.Username, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+                Add(doc, "Owners", owner.Username, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             }
 
-            //  Sorting:
+            Add(doc, "Summary", package.Summary, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "IconUrl", package.IconUrl, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "ProjectUrl", package.ProjectUrl, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "MinClientVersion", package.MinClientVersion, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "ReleaseNotes", package.ReleaseNotes, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "Copyright", package.Copyright, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+
+            Add(doc, "LicenseUrl", package.LicenseUrl, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "RequiresLicenseAcceptance", package.RequiresLicenseAcceptance.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+
+            Add(doc, "PackageHash", package.Hash, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            Add(doc, "PackageHashAlgorithm", package.HashAlgorithm, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            Add(doc, "PackageSize", package.PackageFileSize.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+
+            
+            Add(doc, "Language", package.Language, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+
+            //string fullId = (package["namespace"] != null) ? string.Format("{0}.{1}", package["namespace"], package["id"]) : (string)package["id"];
+            //Add(doc, "FullId", fullId, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            //Add(doc, "Namespace", (string)package["namespace"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            //Add(doc, "TenantId", (string)package["tenantId"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            //Add(doc, "Visibility", (string)package["visibility"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
             doc.Add(new NumericField("PublishedDate", Field.Store.YES, true).SetIntValue(int.Parse(package.Published.ToString("yyyyMMdd"))));
 
-            DateTime lastEdited = package.LastEdited ?? package.Published;
+            DateTime lastEdited = (DateTime)(package.LastEdited ?? package.Published);
             doc.Add(new NumericField("EditedDate", Field.Store.YES, true).SetIntValue(int.Parse(lastEdited.ToString("yyyyMMdd"))));
 
-            string displayName = String.IsNullOrEmpty(package.Title) ? package.PackageRegistration.Id : package.Title;
+            string displayName = String.IsNullOrEmpty(package.Title) ? package.PackageRegistration.Id: package.Title;
             displayName = displayName.ToLower(CultureInfo.CurrentCulture);
             Add(doc, "DisplayName", displayName, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
 
-            Add(doc, "IsLatest", package.IsLatest ? 1 : 0, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "IsLatestStable", package.IsLatestStable ? 1 : 0, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "Listed", package.Listed ? 1 : 0, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            string packageUrl = string.Format(_packageTemplate, package.PackageRegistration.Id.ToLowerInvariant(), package.Version.ToLowerInvariant());
 
-            if (documentData.Data.Feeds != null)
-            {
-                foreach (string feed in documentData.Data.Feeds)
-                {
-                    //  Store this to aid with debugging
-                    Add(doc, "CuratedFeed", feed, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-                }
-            }
+            Add(doc, "Url", packageUrl.ToString(), Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
+                        
+            //Add(doc, "PackageContent", (string)package["packageContent"], Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
+            //Add(doc, "CatalogEntry", (string)package["@id"], Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
 
-            //  Add Package Key so we can quickly retrieve ranges of packages (in order to support the synchronization with the gallery)
+            Add(doc, "Listed", package.Listed.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            Add(doc, "FlattenedDependencies", package.FlattenedDependencies, Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
+            Add(doc, "Dependencies",PackageJson.ToJson_PackageDependencies(package.Dependencies).ToString(), Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
+            Add(doc, "SupportedFrameworks", PackageJson.ToJson_SupportedFrameworks(package.SupportedFrameworks).ToString(), Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
 
-            doc.Add(new NumericField("Key", Field.Store.YES, true).SetIntValue(package.Key));
+            //  The following fields are added for back compatibility with the V2 gallery
+            // Ques: Should any specific format need to be applied for ToString on these DateTime (like how we have in catalog entry).
+            // Add(doc, "OriginalVersion", package."verbatimVersion", Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            Add(doc, "OriginalCreated", package.Created.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            Add(doc, "OriginalLastEdited", package.LastEdited.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            Add(doc, "OriginalPublished", package.Published.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
 
-            doc.Add(new NumericField("Checksum", Field.Store.YES, true).SetIntValue(documentData.Data.Checksum));
+            Add(doc, "LicenseNames", package.LicenseNames, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            Add(doc, "LicenseReportUrl", package.LicenseReportUrl, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
 
-            //  Data we want to store in index - these cannot be queried
+        
+            // Ques: Should these be stored as bits or string ? In current v3 lucene listed is string.
+            //Add(doc, "IsLatest", package.IsLatest ? 1 : 0, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            //Add(doc, "IsLatestStable", package.IsLatestStable ? 1 : 0, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            //Add(doc, "Listed", package.Listed ? 1 : 0, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
 
-            JObject obj = PackageJson.ToJson(package);
-            string data = obj.ToString(Formatting.None);
-
-            Add(doc, "Data", data, Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
-
-            // Add facets
-            foreach (var facet in documentData.DocFacets)
-            {
-                Add(doc, "Facet", facet, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO);
-            }
-
+            // Ques: Should we carry over curated feed data in V3 index ?
+            //if (documentData.Data.Feeds != null)
+            //{
+            //    foreach (string feed in documentData.Data.Feeds)
+            //    {
+            //        //  Store this to aid with debugging
+            //        Add(doc, "CuratedFeed", feed, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            //    }
+            //}            
             doc.Boost = DetermineLanguageBoost(package.PackageRegistration.Id, package.Language);
 
             return doc;
