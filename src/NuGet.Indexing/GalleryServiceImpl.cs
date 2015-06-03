@@ -162,12 +162,10 @@ namespace NuGet.Indexing
             if (!searcher.IndexReader.CommitUserData.TryGetValue("commitTimeStamp", out timestamp))
             {
                 timestamp = DateTime.MinValue.ToString();
-            }
-            
+            }            
             obj.Add("IndexTimestampUtc",timestamp);
           
             JArray array = new JArray();
-
             Tuple<OpenBitSet, OpenBitSet> latestBitSets = manager.GetBitSets(null);
 
             for (int i = skip; i < Math.Min(skip + take, topDocs.ScoreDocs.Length); i++)
