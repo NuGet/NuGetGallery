@@ -37,7 +37,7 @@ namespace NuGet.Indexing
         //  this function will incrementally build an index from the gallery using a high water mark stored in the commit metadata
         //  this function is useful for building a fresh index as in that case it is more efficient than diff-ing approach
 
-        public static void RebuildIndex(string sqlConnectionString, Lucene.Net.Store.Directory directory, FrameworksList frameworks, TextWriter log = null, PerfEventTracker perfTracker = null)
+        public static void RebuildIndex(string sqlConnectionString, Lucene.Net.Store.Directory directory,TextWriter log = null, PerfEventTracker perfTracker = null)
         {
             perfTracker = perfTracker ?? new PerfEventTracker();
             log = log ?? DefaultTraceWriter;
@@ -49,8 +49,6 @@ namespace NuGet.Indexing
             {
                 // Empty the index, we're rebuilding
                 CreateNewEmptyIndex(directory);
-
-                var projectFxs = frameworks.Load();
 
                 log.WriteLine("get curated feeds by PackageRegistration");
                 IDictionary<int, IEnumerable<string>> feeds = GalleryExport.GetFeedsByPackageRegistration(sqlConnectionString, log, verbose: false);
@@ -78,7 +76,7 @@ namespace NuGet.Indexing
                     List<IndexDocumentData> indexDocumentData = MakeIndexDocumentData(packages, feeds, checksums);
                     highestPackageKey = indexDocumentData.Max(d => d.Package.Key);
 
-                    AddPackagesToIndex(indexDocumentData, directory, log, projectFxs, perfTracker);
+                    AddPackagesToIndex(indexDocumentData, directory, log, perfTracker);
 
                     // Summarize performance
                     // (Save some time by not bothering if the log is "null")
@@ -113,7 +111,7 @@ namespace NuGet.Indexing
             perfTracker.Clear();
         }
 
-        private static void AddPackagesToIndex(List<IndexDocumentData> indexDocumentData, Lucene.Net.Store.Directory directory, TextWriter log, IEnumerable<FrameworkName> projectFxs, PerfEventTracker perfTracker)
+        private static void AddPackagesToIndex(List<IndexDocumentData> indexDocumentData, Lucene.Net.Store.Directory directory, TextWriter log, PerfEventTracker perfTracker)
         {
             log.WriteLine("About to add {0} packages", indexDocumentData.Count);
 
@@ -123,11 +121,11 @@ namespace NuGet.Indexing
 
                 List<IndexDocumentData> rangeToIndex = indexDocumentData.GetRange(index, count);
 
-                AddToIndex(directory, rangeToIndex, log, projectFxs, perfTracker);
+                AddToIndex(directory, rangeToIndex, log, perfTracker);
             }
         }
 
-        private static void AddToIndex(Lucene.Net.Store.Directory directory, List<IndexDocumentData> rangeToIndex, TextWriter log, IEnumerable<FrameworkName> projectFxs, PerfEventTracker perfTracker)
+        private static void AddToIndex(Lucene.Net.Store.Directory directory, List<IndexDocumentData> rangeToIndex, TextWriter log, PerfEventTracker perfTracker)
         {
             log.WriteLine("begin AddToIndex");
 
