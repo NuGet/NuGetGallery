@@ -15,10 +15,14 @@ namespace Stats.CollectAzureCdnLogs
         private const string _dot = ".";
         private const char _zero = '0';
         private const string _contentTypeGzip = "application/x-gzip";
-        private bool _hasParsedFileName;
 
         public RawLogFileInfo(Uri uri)
         {
+            if (uri == null)
+            {
+                throw new ArgumentNullException("uri");
+            }
+
             ContentType = "text/plain";
             Uri = uri;
 
@@ -33,7 +37,7 @@ namespace Stats.CollectAzureCdnLogs
         public int RollingFileNumber { get; private set; }
         public Uri Uri { get; private set; }
         public string ContentType { get; private set; }
-        public bool PendingDownload { get; private set; }
+        public bool IsPendingDownload { get; private set; }
 
         public override string ToString()
         {
@@ -46,17 +50,12 @@ namespace Stats.CollectAzureCdnLogs
         /// </summary>
         private void TryParseFileName()
         {
-            if (_hasParsedFileName)
-            {
-                return;
-            }
-
             FileName = Uri.LocalPath.Split(new[] { Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries).Last();
 
             var fileNameParts = FileName.Split(new[] { _underscore }, StringSplitOptions.RemoveEmptyEntries);
             if (fileNameParts.Count() == 4)
             {
-                AzureCdnPlatform = AzureCdnPlatformExtensions.TryParseAzureCdnPlatformPrefix(fileNameParts[0]);
+                AzureCdnPlatform = AzureCdnPlatformExtensions.ParseAzureCdnPlatformPrefix(fileNameParts[0]);
                 AzureCdnAccountNumber = fileNameParts[1];
                 GeneratedDate = TryParseGeneratedDate(fileNameParts[2]);
 
@@ -65,37 +64,35 @@ namespace Stats.CollectAzureCdnLogs
                 if (lastPart.Count() == 3)
                 {
                     RollingFileNumber = TryParseRollingFileNumber(lastPart[0]);
-                    Extension = string.Join(_dot, lastPart[1], lastPart[2]);
+                    Extension = _dot + string.Join(_dot, lastPart[1], lastPart[2]);
 
                     if (Extension.EndsWith(FileExtensions.Gzip, StringComparison.InvariantCultureIgnoreCase))
                     {
                         ContentType = _contentTypeGzip;
                     }
-
-                    _hasParsedFileName = true;
+                    else
+                    {
+                        throw new InvalidRawLogFileNameException(FileName);
+                    }
                 }
                 else if (lastPart.Count() == 4)
                 {
                     // found an already renamed file?
                     RollingFileNumber = TryParseRollingFileNumber(lastPart[0]);
-                    Extension = string.Join(_dot, lastPart[1], lastPart[2], lastPart[3]);
+                    Extension = _dot + string.Join(_dot, lastPart[1], lastPart[2], lastPart[3]);
                     if (Extension.EndsWith(FileExtensions.Download, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        PendingDownload = true;
+                        IsPendingDownload = true;
                         ContentType = _contentTypeGzip;
                     }
-
-                    _hasParsedFileName = true;
                 }
                 else
                 {
-                    _hasParsedFileName = true;
                     throw new InvalidRawLogFileNameException(FileName);
                 }
             }
             else
             {
-                _hasParsedFileName = true;
                 throw new InvalidRawLogFileNameException(FileName);
             }
         }

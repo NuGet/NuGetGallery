@@ -42,19 +42,6 @@ namespace Stats.CollectAzureCdnLogs
                 _ftpUsername = JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourceUsername);
                 _ftpPassword = JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourcePassword);
 
-                if (string.IsNullOrEmpty(ftpLogFolder))
-                {
-                    throw new ArgumentException("Job parameter for FTP Source Uri is not defined.");
-                }
-                if (string.IsNullOrEmpty(_azureCdnAccountNumber))
-                {
-                    throw new ArgumentException("Job parameter for Azure CDN Account Number is not defined.");
-                }
-                if (string.IsNullOrEmpty(_cloudStorageContainerName))
-                {
-                    throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Container Name is not defined.");
-                }
-
                 _ftpServerUri = ValidateFtpUri(ftpLogFolder);
                 _azureCdnPlatform = ValidateAzureCdnPlatform(azureCdnPlatform);
                 _cloudStorageAccount = ValidateAzureCloudStorageAccount(cloudStorageAccount);

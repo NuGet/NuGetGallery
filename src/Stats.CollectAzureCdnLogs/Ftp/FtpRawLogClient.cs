@@ -143,7 +143,7 @@ namespace Stats.CollectAzureCdnLogs.Ftp
         public async Task<Uri> RenameAsync(RawLogFileInfo rawLogFile, string newFileName)
         {
             Uri rawLogUri;
-            if (!rawLogFile.PendingDownload)
+            if (!rawLogFile.IsPendingDownload)
             {
                 if (await RenameAsync(rawLogFile.Uri, newFileName))
                 {

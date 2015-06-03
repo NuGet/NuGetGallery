@@ -29,7 +29,7 @@ namespace Stats.CollectAzureCdnLogs
             }
         }
 
-        public static AzureCdnPlatform TryParseAzureCdnPlatformPrefix(string prefix)
+        public static AzureCdnPlatform ParseAzureCdnPlatformPrefix(string prefix)
         {
             if (string.Equals(prefix, _largeHttpObjectPrefix, StringComparison.InvariantCultureIgnoreCase))
             {
