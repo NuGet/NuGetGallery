@@ -145,6 +145,7 @@ namespace NuGet.Services.BasicSearch
                     await ServiceInfoImpl.Segments(context, _searcherManager.GetSegments());
                     break;
                 case "/stats":
+                case "/search/diag":
                     await ServiceInfoImpl.Stats(context, _searcherManager);
                     break;
                 default:
