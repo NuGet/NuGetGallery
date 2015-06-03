@@ -302,22 +302,14 @@ namespace NuGet.Indexing
             Add(doc, "MinClientVersion", package.MinClientVersion, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "ReleaseNotes", package.ReleaseNotes, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "Copyright", package.Copyright, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "Language", package.Language, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
 
             Add(doc, "LicenseUrl", package.LicenseUrl, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "RequiresLicenseAcceptance", package.RequiresLicenseAcceptance.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
             Add(doc, "PackageHash", package.Hash, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
             Add(doc, "PackageHashAlgorithm", package.HashAlgorithm, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            Add(doc, "PackageSize", package.PackageFileSize.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-
-            
-            Add(doc, "Language", package.Language, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-
-            //string fullId = (package["namespace"] != null) ? string.Format("{0}.{1}", package["namespace"], package["id"]) : (string)package["id"];
-            //Add(doc, "FullId", fullId, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            //Add(doc, "Namespace", (string)package["namespace"], Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            //Add(doc, "TenantId", (string)package["tenantId"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            //Add(doc, "Visibility", (string)package["visibility"], Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "PackageSize", package.PackageFileSize.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);                       
 
             doc.Add(new NumericField("PublishedDate", Field.Store.YES, true).SetIntValue(int.Parse(package.Published.ToString("yyyyMMdd"))));
 
@@ -331,10 +323,6 @@ namespace NuGet.Indexing
             string packageUrl = string.Format(_packageTemplate, package.PackageRegistration.Id.ToLowerInvariant(), package.Version.ToLowerInvariant());
 
             Add(doc, "Url", packageUrl.ToString(), Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
-                        
-            //Add(doc, "PackageContent", (string)package["packageContent"], Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
-            //Add(doc, "CatalogEntry", (string)package["@id"], Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
-
             Add(doc, "Listed", package.Listed.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
             Add(doc, "FlattenedDependencies", package.FlattenedDependencies, Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
             Add(doc, "Dependencies",PackageJson.ToJson_PackageDependencies(package.Dependencies).ToString(), Field.Store.YES, Field.Index.NO, Field.TermVector.NO);
@@ -342,29 +330,14 @@ namespace NuGet.Indexing
 
             //  The following fields are added for back compatibility with the V2 gallery
             // Ques: Should any specific format need to be applied for ToString on these DateTime (like how we have in catalog entry).
-            // Add(doc, "OriginalVersion", package."verbatimVersion", Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            Add(doc, "OriginalVersion", package.Version.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
             Add(doc, "OriginalCreated", package.Created.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
             Add(doc, "OriginalLastEdited", package.LastEdited.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
             Add(doc, "OriginalPublished", package.Published.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
 
             Add(doc, "LicenseNames", package.LicenseNames, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
             Add(doc, "LicenseReportUrl", package.LicenseReportUrl, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-
-        
-            // Ques: Should these be stored as bits or string ? In current v3 lucene listed is string.
-            //Add(doc, "IsLatest", package.IsLatest ? 1 : 0, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            //Add(doc, "IsLatestStable", package.IsLatestStable ? 1 : 0, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            //Add(doc, "Listed", package.Listed ? 1 : 0, Field.Store.NO, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-
-            // Ques: Should we carry over curated feed data in V3 index ?
-            //if (documentData.Data.Feeds != null)
-            //{
-            //    foreach (string feed in documentData.Data.Feeds)
-            //    {
-            //        //  Store this to aid with debugging
-            //        Add(doc, "CuratedFeed", feed, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            //    }
-            //}            
+           
             doc.Boost = DetermineLanguageBoost(package.PackageRegistration.Id, package.Language);
 
             return doc;
