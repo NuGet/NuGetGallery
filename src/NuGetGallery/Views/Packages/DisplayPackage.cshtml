@@ -187,6 +187,15 @@
             There is a newer prerelease version of this package available. See the version list below for details.
         </p>
     }
+
+    @if (Model.Listed && !Model.IsProbablyIndexed(Model.IndexLastWriteTime))
+    {
+        <p class="message warning">
+            <strong>This package has not been indexed yet.</strong> It will appear in search results and will be available for install/restore after indexing is completed.<br/><br/>
+            Search index last updated <time class="timeago" datetime="@Model.IndexLastWriteTime.Value.ToJavaScriptUTC()">@Model.IndexLastWriteTime.Value.ToNuGetShortDateTimeString() UTC</time>.
+        </p>
+    }
+
     <div class="package-page-heading">
         <h1>@Model.Title</h1>
         <h2>@Model.Version</h2>
@@ -303,48 +312,52 @@
                 </th>
                 @if (Model.IsOwner(User))
                 {
-                    <th class="last">
-                        Listed
-                    </th>
+                    <th class="last">Listed</th>
                 }
             </tr>
         </thead>
         <tbody>
-            @foreach (var packageVersion in Model.PackageVersions)
+        @foreach (var packageVersion in Model.PackageVersions)
+        {
+            var rowClass = packageVersion.LatestStableVersion ? "recommended" : null;
+            var cellTitle = packageVersion.LatestStableVersion ? "Latest Stable Version" : null;
+            if (packageVersion.Listed || Model.IsOwner(User))
             {
-                var rowClass = packageVersion.LatestStableVersion ? "recommended" : null;
-                var cellTitle = packageVersion.LatestStableVersion ? "Latest Stable Version" : null;
-                if (packageVersion.Listed || Model.IsOwner(User))
-                {
-                    <tr class="versionTableRow @rowClass">
-                        <td class="version" title="@cellTitle">
-                            @if (!packageVersion.IsCurrent(Model))
-                            {
-                                <a href="@Url.Package(packageVersion)">
-                                    @packageVersion.Title 
-                                    @packageVersion.Version
-                                    @if(packageVersion.LatestStableVersion) {
-                                        @:(latest stable)
-                                    }
-                                </a>
-                            }
-                            else
-                            {
-                                <span>@packageVersion.Title @packageVersion.Version (this version)</span>
-                            }
-                        </td>
-                        <td>@packageVersion.DownloadCount
-                        </td>
-                        <td>@packageVersion.LastUpdated.ToNuGetLongDateString()
-                        </td>
-                        @if (Model.IsOwner(User))
+                <tr class="versionTableRow @rowClass">
+                    <td class="version" title="@cellTitle">
+                        @if (!packageVersion.IsCurrent(Model))
                         {
-                            <td><a href="@Url.DeletePackage(packageVersion)" class="delete">@(packageVersion.Listed ? "yes" : "no")</a>
-                            </td>
+                            <a href="@Url.Package(packageVersion)">
+                                @packageVersion.Title
+                                @packageVersion.Version
+                                @if (packageVersion.LatestStableVersion)
+                                {
+                                    @:(latest stable)
+                                }
+                            </a>
                         }
-                    </tr>
-                }
+                        else
+                        {
+                            <span>@packageVersion.Title @packageVersion.Version (this version)</span>
+                        }
+
+                        @if (!packageVersion.IsProbablyIndexed(Model.IndexLastWriteTime))
+                        {
+                            <span title="This package has not been indexed yet. It will appear in search results and will be available for install/restore after indexing is completed.">pending</span>
+                        }
+                    </td>
+                    <td>@packageVersion.DownloadCount
+                    </td>
+                    <td>@packageVersion.LastUpdated.ToNuGetLongDateString()
+                    </td>
+                    @if (Model.IsOwner(User))
+                    {
+                        <td><a href="@Url.DeletePackage(packageVersion)" class="delete">@(packageVersion.Listed ? "yes" : "no")</a>
+                        </td>
+                    }
+                </tr>
             }
+        }
         </tbody>
     </table>
 </div>

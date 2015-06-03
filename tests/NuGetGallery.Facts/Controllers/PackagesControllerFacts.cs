@@ -151,7 +151,7 @@ namespace NuGetGallery
                 var controller = CreateController();
 
                 // Act
-                var result = controller.DisplayPackage("Foo", "01.01.01");
+                var result = controller.DisplayPackage("Foo", "01.01.01").Result;
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new
@@ -173,7 +173,7 @@ namespace NuGetGallery
                               .ReturnsNull();
 
                 // Act
-                var result = controller.DisplayPackage("Foo", "1.1.1");
+                var result = controller.DisplayPackage("Foo", "1.1.1").Result;
 
                 // Assert
                 ResultAssert.IsNotFound(result);
@@ -184,8 +184,9 @@ namespace NuGetGallery
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
+                var indexingService = new Mock<IIndexingService>();
                 var controller = CreateController(
-                    packageService: packageService);
+                    packageService: packageService, indexingService: indexingService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 packageService.Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", true))
@@ -201,8 +202,10 @@ namespace NuGetGallery
                                   Title = "A test package!"
                               });
 
+                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+
                 // Act
-                var result = controller.DisplayPackage("Foo", "1.1.1");
+                var result = controller.DisplayPackage("Foo", "1.1.1").Result;
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -259,12 +262,14 @@ namespace NuGetGallery
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
+                var indexingService = new Mock<IIndexingService>();
                 var editPackageService = new Mock<EditPackageService>();
                 var httpContext = new Mock<HttpContextBase>();
                 var httpCachePolicy = new Mock<HttpCachePolicyBase>();
                 var controller = CreateController(
                     packageService: packageService,
                     editPackageService: editPackageService,
+                    indexingService: indexingService,
                     httpContext: httpContext);
                 controller.SetCurrentUser(TestUtility.FakeUser);
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
@@ -288,8 +293,10 @@ namespace NuGetGallery
                     .Setup(e => e.GetPendingMetadata(package))
                     .ReturnsNull();
 
+                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+
                 // Act
-                var result = controller.DisplayPackage("Foo", "1.1.1");
+                var result = controller.DisplayPackage("Foo", "1.1.1").Result;
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -303,12 +310,14 @@ namespace NuGetGallery
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
+                var indexingService = new Mock<IIndexingService>();
                 var editPackageService = new Mock<EditPackageService>();
                 var httpContext = new Mock<HttpContextBase>();
                 var httpCachePolicy = new Mock<HttpCachePolicyBase>();
                 var controller = CreateController(
                     packageService: packageService,
                     editPackageService: editPackageService,
+                    indexingService: indexingService,
                     httpContext: httpContext);
                 controller.SetCurrentUser(TestUtility.FakeUser);
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
@@ -334,8 +343,10 @@ namespace NuGetGallery
                         Title = "A modified package!"
                     });
 
+                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+
                 // Act
-                var result = controller.DisplayPackage("Foo", "1.1.1");
+                var result = controller.DisplayPackage("Foo", "1.1.1").Result;
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
