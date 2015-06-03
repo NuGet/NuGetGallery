@@ -54,7 +54,7 @@ namespace NuGet.Indexing
                 IDictionary<int, IEnumerable<string>> feeds = GalleryExport.GetFeedsByPackageRegistration(sqlConnectionString, log, verbose: false);
 
                 int highestPackageKey = 0;
-                int loopCount = 0;
+            
                 while (true)
                 {
                     log.WriteLine("get the checksums from the gallery");
@@ -62,15 +62,6 @@ namespace NuGet.Indexing
 
                     log.WriteLine("get packages from gallery where the Package.Key > {0}", highestPackageKey);
                     List<Package> packages = GalleryExport.GetPublishedPackagesSince(sqlConnectionString, highestPackageKey, log, verbose: false);
-
-                    //if (packages.Count == 0)
-                    //{
-                    //    break;
-                    //}
-                    if(loopCount >= 2)
-                    {
-                        break;
-                    }
 
                     log.WriteLine("associate the feeds and checksum data with each packages");
                     List<IndexDocumentData> indexDocumentData = MakeIndexDocumentData(packages, feeds, checksums);
@@ -83,8 +74,7 @@ namespace NuGet.Indexing
                     if (!ReferenceEquals(TextWriter.Null, log) && !ReferenceEquals(PerfEventTracker.Null, perfTracker))
                     {
                         SummarizePerf(log, perfTracker);
-                    }
-                    loopCount++;
+                    }                  
                 }
             }
 
@@ -148,7 +138,7 @@ namespace NuGet.Indexing
 
                 if (lastEditsIndexTime == null)
                 {
-                    //  this should never happen but if it did Lucene would throw 
+                    // this should never happen but if it did Lucene would throw 
                     lastEditsIndexTime = DateTime.MinValue.ToString();
                 }
 
@@ -159,220 +149,7 @@ namespace NuGet.Indexing
 
             log.WriteLine("end AddToIndex");
         }
-
-        private static void WriteDirtyDocuments(List<FacetedDocument> dirtyDocs, IndexWriter indexWriter, PerfEventTracker perfTracker)
-        {
-            // Delete dirty documents and flush
-            foreach (var dirtyDoc in dirtyDocs.Where(d => d.Dirty))
-            {
-                indexWriter.DeleteDocuments(dirtyDoc.GetQuery());
-            }
-
-            using (perfTracker.TrackEvent("FlushingDeletes", ""))
-            {
-                indexWriter.Flush(triggerMerge: false, flushDocStores: true, flushDeletes: true);
-            }
-
-            // (Re-)add dirty documents
-            foreach (var dirtyDoc in dirtyDocs)
-            {
-                using (perfTracker.TrackEvent("AddDocument", "{0} v{1}", dirtyDoc.Id, dirtyDoc.Version))
-                {
-                 //   indexWriter.AddDocument(CreateLuceneDocument(dirtyDoc));
-                }
-            }
-        }
-
-        private static IEnumerable<FacetedDocument> DetermineDirtyDocuments(IEnumerable<FrameworkName> projectFxs, PerfEventTracker perfTracker, IndexReader reader, string id, IEnumerable<IndexDocumentData> data)
-        {
-            using (perfTracker.TrackEvent("Processdata", id))
-            {
-                // Get all documents matching the ID of this data.
-                var documents = CollectExistingDocuments(perfTracker, reader, id);
-
-                // Add the new documents
-                using (perfTracker.TrackEvent("CreateNewDocuments", id))
-                {
-                    foreach (var package in data)
-                    {
-                        documents.Add(new FacetedDocument(package));
-                    }
-                }
-
-                // Process the facets
-                UpdateFacets(id, documents, projectFxs, perfTracker);
-
-                return documents.Where(d => d.Dirty);
-            }
-        }
-
-        private static List<FacetedDocument> CollectExistingDocuments(PerfEventTracker perfTracker, IndexReader reader, string id)
-        {
-            var docs = reader.TermDocs(new Term("Id", id.ToLowerInvariant()));
-            var documents = new List<FacetedDocument>();
-            using (perfTracker.TrackEvent("GetExistingDocuments", id))
-            {
-                while (docs.Next())
-                {
-                    documents.Add(new FacetedDocument(reader.Document(docs.Doc)));
-                }
-            }
-            return documents;
-        }
-
-        private static void UpdateFacets(string packageId, IList<FacetedDocument> documents, IEnumerable<FrameworkName> projectFxs, PerfEventTracker perfTracker)
-        {
-            using (perfTracker.TrackEvent("UpdateFacets", "{0} ({1} items)", packageId, documents.Count))
-            {
-                // Collect all the current latest versions into dictionaries
-                IDictionary<string, List<FacetedDocument>> existingFacets = new Dictionary<string, List<FacetedDocument>>(StringComparer.OrdinalIgnoreCase);
-
-                using (perfTracker.TrackEvent("FindExistingFacets", packageId))
-                {
-                    foreach (var document in documents.Where(d => !d.IsNew))
-                    {
-                        foreach (var projectFx in projectFxs)
-                        {
-                            AddToExistingFacetsList(existingFacets, document, projectFx, Facets.LatestStableVersion(projectFx));
-                            AddToExistingFacetsList(existingFacets, document, projectFx, Facets.LatestPrereleaseVersion(projectFx));
-                        }
-                    }
-                }
-
-                IDictionary<string, FacetedDocument> candidateNewFacets = new Dictionary<string, FacetedDocument>();
-
-                // Process the new documents
-                var newDocs = documents.Where(d => d.IsNew).OrderByDescending(d => d.Version).ToList();
-                documents = null; // Done with the master list of all documents
-
-                using (perfTracker.TrackEvent("DetermineNewLatestVersions", packageId))
-                {
-                    foreach (var doc in newDocs)
-                    {
-                        if (!String.IsNullOrEmpty(doc.Version.SpecialVersion))
-                        {
-                            doc.AddFacet(Facets.PrereleaseVersion);
-                        }
-                        if (doc.Data.Package.Listed)
-                        {
-                            doc.AddFacet(Facets.Listed);
-                        }
-                        var packageFxs = doc.Data.Package.SupportedFrameworks
-                            .Select(fx =>
-                            {
-                                using (perfTracker.TrackEvent("ParseFrameworkName", fx.TargetFramework))
-                                {
-                                    return VersionUtility.ParseFrameworkName(fx.TargetFramework);
-                                }
-                            })
-                            .ToList();
-
-                        // Process each target framework
-                        foreach (var projectFx in projectFxs)
-                        {
-                            if (projectFx == FrameworksList.AnyFramework || VersionUtility.IsCompatible(projectFx, packageFxs))
-                            {
-                                ProcessCompatibleVersion(packageId, perfTracker, candidateNewFacets, doc, projectFx);
-                            }
-                        }
-                    }
-                }
-
-                // Adjust facets as needed
-                using (perfTracker.TrackEvent("AdjustProjectFxes", packageId))
-                {
-                    foreach (var projectFx in projectFxs)
-                    {
-                        using (perfTracker.TrackEvent("AdjustProjectFx", "{0} ({1})", packageId, projectFx.FullName))
-                        {
-                            UpdateLatestVersionFacet(existingFacets, candidateNewFacets, Facets.LatestStableVersion(projectFx));
-                            UpdateLatestVersionFacet(existingFacets, candidateNewFacets, Facets.LatestPrereleaseVersion(projectFx));
-                        }
-                    }
-                }
-            }
-        }
-
-        private static void ProcessCompatibleVersion(string packageId, PerfEventTracker perfTracker, IDictionary<string, FacetedDocument> candidateNewFacets, FacetedDocument doc, FrameworkName projectFx)
-        {
-            using (perfTracker.TrackEvent("ProcessCompatibleVersion", "{0} v{1} (fx:{2})", packageId, doc.Version, projectFx))
-            {
-                // Add compatible facet
-                doc.AddFacet(Facets.Compatible(projectFx));
-
-                // If listed, process it against latest versions
-                if (doc.Data.Package.Listed)
-                {
-                    // Check it against the current latest prerelease and swap latests if necessary
-                    string latestPreFacet = Facets.LatestPrereleaseVersion(projectFx);
-                    string latestStableFacet = Facets.LatestStableVersion(projectFx);
-                    if (!candidateNewFacets.ContainsKey(latestPreFacet))
-                    {
-                        candidateNewFacets[latestPreFacet] = doc;
-                    }
-
-                    // If this package is a stable version, do the same for latest stable
-                    if (String.IsNullOrEmpty(doc.Version.SpecialVersion) && !candidateNewFacets.ContainsKey(latestStableFacet))
-                    {
-                        candidateNewFacets[latestStableFacet] = doc;
-                    }
-                }
-            }
-        }
-
-        private static void AddToExistingFacetsList(IDictionary<string, List<FacetedDocument>> existingFacets, FacetedDocument document, FrameworkName projectFx, string facet)
-        {
-            if (document.HasFacet(facet))
-            {
-                List<FacetedDocument> existingList;
-                if (!existingFacets.TryGetValue(facet, out existingList))
-                {
-                    existingList = new List<FacetedDocument>();
-                    existingFacets[facet] = existingList;
-                }
-                existingList.Add(document);
-            }
-        }
-
-        private static void UpdateLatestVersionFacet(IDictionary<string, List<FacetedDocument>> existingValuesByFacet, IDictionary<string, FacetedDocument> candidateNewValueByFacet, string facet)
-        {
-            FacetedDocument newValue;
-            if (candidateNewValueByFacet.TryGetValue(facet, out newValue))
-            {
-                List<FacetedDocument> existingValues;
-                FacetedDocument trueLatest = newValue;
-                if (existingValuesByFacet.TryGetValue(facet, out existingValues))
-                {
-                    // Find the true latest
-                    var oldLatest = existingValues.Where(d => d.Data.Package.Listed).OrderByDescending(d => d.Version).FirstOrDefault();
-                    if (oldLatest != null && oldLatest.Version > trueLatest.Version)
-                    {
-                        trueLatest = oldLatest;
-                    }
-
-                    // Remove the facets from all the existing values, unless one of them happens to be the new one
-                    foreach (var existing in existingValues)
-                    {
-                        if (existing != trueLatest)
-                        {
-                            existing.RemoveFacet(facet);
-                        }
-                    }
-                }
-
-                // Add the facet to the new value (this is idempotent, so it's ok if the document already has the facet)
-                trueLatest.AddFacet(facet);
-            }
-        }
-
-        private static void RemoveLatestFacets(string facet, IEnumerable<FacetedDocument> currentLatests)
-        {
-            foreach (var doc in currentLatests)
-            {
-                doc.RemoveFacet(facet);
-            }
-        }
-
+      
         public static void CreateNewEmptyIndex(Lucene.Net.Store.Directory directory)
         {
             using (IndexWriter indexWriter = CreateIndexWriter(directory, true))
@@ -387,14 +164,7 @@ namespace NuGet.Indexing
             indexWriter.MergeFactor = MergeFactor;
             indexWriter.MaxMergeDocs = MaxMergeDocs;
 
-            indexWriter.SetSimilarity(new CustomSimilarity());
-
-            //StreamWriter streamWriter = new StreamWriter(Console.OpenStandardOutput());
-            //indexWriter.SetInfoStream(streamWriter);
-            //streamWriter.Flush();
-
-            // this should theoretically work but appears to cause empty commit commitMetadata to not be saved
-            //((LogMergePolicy)indexWriter.MergePolicy).SetUseCompoundFile(false);
+            indexWriter.SetSimilarity(new CustomSimilarity());           
             return indexWriter;
         }
 
@@ -594,216 +364,7 @@ namespace NuGet.Indexing
 
             return doc;
         }
-
-        public static void UpdateIndex(bool whatIf, List<int> adds, List<int> updates, List<int> deletes, Func<int, IndexDocumentData> fetch, Lucene.Net.Store.Directory directory, TextWriter log, PerfEventTracker perfTracker, IEnumerable<FrameworkName> projectFxs)
-        {
-            log = log ?? DefaultTraceWriter;
-
-            if (whatIf)
-            {
-                log.WriteLine("WhatIf mode");
-
-                Apply(adds, keys => WhatIf_ApplyAdds(keys, fetch, directory, log));
-                Apply(updates, keys => WhatIf_ApplyUpdates(keys, fetch, directory, log));
-                Apply(deletes, keys => WhatIf_ApplyDeletes(keys, fetch, directory, log));
-            }
-            else
-            {
-                Apply(adds, keys => ApplyAdds(keys, fetch, directory, log, perfTracker, projectFxs));
-                Apply(updates, keys => ApplyUpdates(keys, fetch, directory, log, perfTracker, projectFxs));
-                Apply(deletes, keys => ApplyDeletes(keys, fetch, directory, log, perfTracker, projectFxs));
-            }
-        }
-
-        private static void Apply(List<int> packageKeys, Action<List<int>> action)
-        {
-            for (int index = 0; index < packageKeys.Count; index += MaxDocumentsPerCommit)
-            {
-                int count = Math.Min(MaxDocumentsPerCommit, packageKeys.Count - index);
-                List<int> range = packageKeys.GetRange(index, count);
-                action(range);
-            }
-        }
-
-        private static void WhatIf_ApplyAdds(List<int> packageKeys, Func<int, IndexDocumentData> fetch, Lucene.Net.Store.Directory directory, TextWriter log)
-        {
-            log.WriteLine("[WhatIf] adding...");
-            foreach (int packageKey in packageKeys)
-            {
-                IndexDocumentData documentData = fetch(packageKey);
-                log.WriteLine("{0} {1} {2}", packageKey, documentData.Package.PackageRegistration.Id, documentData.Package.Version);
-            }
-        }
-
-        private static void WhatIf_ApplyUpdates(List<int> packageKeys, Func<int, IndexDocumentData> fetch, Lucene.Net.Store.Directory directory, TextWriter log)
-        {
-            log.WriteLine("[WhatIf] updating...");
-            foreach (int packageKey in packageKeys)
-            {
-                IndexDocumentData documentData = fetch(packageKey);
-                log.WriteLine("{0} {1} {2}", packageKey, documentData.Package.PackageRegistration.Id, documentData.Package.Version);
-            }
-        }
-
-        private static void WhatIf_ApplyDeletes(List<int> packageKeys, Func<int, IndexDocumentData> fetch, Lucene.Net.Store.Directory directory, TextWriter log)
-        {
-            log.WriteLine("[WhatIf] deleting...");
-            foreach (int packageKey in packageKeys)
-            {
-                log.WriteLine("{0}", packageKey);
-            }
-        }
-
-        private static void ApplyAdds(List<int> packageKeys, Func<int, IndexDocumentData> fetch, Lucene.Net.Store.Directory directory, TextWriter log, PerfEventTracker perfTracker, IEnumerable<FrameworkName> projectFxs)
-        {
-            log.WriteLine("ApplyAdds");
-
-            // Collect all the packages
-            var packages = packageKeys.Select(k => fetch(k));
-
-            using (IndexWriter indexWriter = CreateIndexWriter(directory, false))
-            {
-                IDictionary<string, string> commitUserData;
-                var dirtyDocuments = new List<FacetedDocument>();
-                using (var reader = indexWriter.GetReader())
-                {
-                    commitUserData = reader.CommitUserData;
-                    foreach (var group in packages.GroupBy(p => p.Package.PackageRegistration.Id))
-                    {
-                        var newDirtyDocs = DetermineDirtyDocuments(projectFxs, perfTracker, reader, group.Key, group);
-                        dirtyDocuments.AddRange(newDirtyDocs);
-                    }
-                }
-
-                WriteDirtyDocuments(dirtyDocuments, indexWriter, perfTracker);
-
-                string lastEditsIndexTime = commitUserData["last-edits-index-time"];
-                if (lastEditsIndexTime == null)
-                {
-                    //  this should never happen but if it did Lucene would throw 
-                    lastEditsIndexTime = DateTime.MinValue.ToString();
-                }
-
-                log.WriteLine("Commit {0} adds", packageKeys.Count);
-                indexWriter.Commit(CreateCommitMetadata(lastEditsIndexTime, packageKeys.Max(), packageKeys.Count, "add"));
-            }
-        }
-
-        private static void ApplyUpdates(List<int> packageKeys, Func<int, IndexDocumentData> fetch, Lucene.Net.Store.Directory directory, TextWriter log, PerfEventTracker perfTracker, IEnumerable<FrameworkName> projectFxs)
-        {
-            log.WriteLine("ApplyUpdates");
-
-            PackageQueryParser queryParser = new PackageQueryParser(Lucene.Net.Util.Version.LUCENE_30, "Id", new PackageAnalyzer());
-
-            // Collect all the packages
-            var packages = packageKeys.Select(k => fetch(k));
-
-            using (IndexWriter indexWriter = CreateIndexWriter(directory, false))
-            {
-                var dirtyDocuments = new List<FacetedDocument>();
-                IDictionary<string, string> commitUserData;
-                using (var reader = indexWriter.GetReader())
-                {
-                    commitUserData = reader.CommitUserData;
-
-                    // Group by Id
-                    foreach (var group in packages.GroupBy(p => p.Package.PackageRegistration.Id))
-                    {
-                        // Collect existing documents
-                        IList<FacetedDocument> existing = CollectExistingDocuments(perfTracker, indexWriter.GetReader(), group.Key).ToList();
-
-                        // Replace the documents we need to replace
-                        foreach (var package in group)
-                        {
-                            Query query = NumericRangeQuery.NewIntRange("Key", package.Package.Key, package.Package.Key, true, true);
-                            indexWriter.DeleteDocuments(query);
-                            var existingDoc = existing.FirstOrDefault(d => SemanticVersion.Parse(package.Package.NormalizedVersion).Equals(d.Version));
-                            if (existingDoc != null)
-                            {
-                                existing.Remove(existingDoc);
-                            }
-                            existing.Add(new FacetedDocument(package));
-                        }
-
-                        // Recalculate facets
-                        UpdateFacets(group.Key, existing, projectFxs, perfTracker);
-
-                        // Add dirty documents
-                        dirtyDocuments.AddRange(existing.Where(d => d.Dirty));
-                    }
-                }
-
-                // Process dirty documents
-                WriteDirtyDocuments(dirtyDocuments, indexWriter, perfTracker);
-
-                commitUserData["count"] = packageKeys.Count.ToString();
-                commitUserData["commit-description"] = "update";
-
-                log.WriteLine("Commit {0} updates (delete and re-add)", packageKeys.Count);
-                indexWriter.Commit(commitUserData);
-            }
-        }
-
-        private static void ApplyDeletes(List<int> packageKeys, Func<int, IndexDocumentData> fetch, Lucene.Net.Store.Directory directory, TextWriter log, PerfEventTracker perfTracker, IEnumerable<FrameworkName> projectFxs)
-        {
-            log.WriteLine("ApplyDeletes");
-
-            try
-            {
-                PackageQueryParser queryParser = new PackageQueryParser(Lucene.Net.Util.Version.LUCENE_30, "Id", new PackageAnalyzer());
-
-                // Collect all the packages
-                var packages = packageKeys.Select(k => fetch(k));
-
-                using (IndexWriter indexWriter = CreateIndexWriter(directory, false))
-                {
-                    var dirtyDocuments = new List<FacetedDocument>();
-                    IDictionary<string, string> commitUserData;
-                    using (var reader = indexWriter.GetReader())
-                    {
-                        commitUserData = reader.CommitUserData;
-
-                        // Group by Id
-                        foreach (var group in packages.GroupBy(p => p.Package.PackageRegistration.Id))
-                        {
-                            // Collect existing documents
-                            IEnumerable<FacetedDocument> existing = CollectExistingDocuments(perfTracker, indexWriter.GetReader(), group.Key);
-
-                            // Remove the documents we need to remove
-                            foreach (var package in group)
-                            {
-                                Query query = NumericRangeQuery.NewIntRange("Key", package.Package.Key, package.Package.Key, true, true);
-                                indexWriter.DeleteDocuments(query);
-                                existing = existing.Where(d =>
-                                    !SemanticVersion.Parse(package.Package.NormalizedVersion).Equals(d.Version));
-                            }
-
-                            // Recalculate facets
-                            UpdateFacets(group.Key, existing.ToList(), projectFxs, perfTracker);
-
-                            // Add dirty documents
-                            dirtyDocuments.AddRange(existing.Where(d => d.Dirty));
-                        }
-                    }
-
-                    // Process dirty documents
-                    WriteDirtyDocuments(dirtyDocuments, indexWriter, perfTracker);
-
-                    commitUserData["count"] = packageKeys.Count.ToString();
-                    commitUserData["commit-description"] = "delete";
-
-                    log.WriteLine("Commit {0} deletes", packageKeys.Count);
-                    indexWriter.Commit(commitUserData);
-
-
-                }
-            }
-            catch (Exception)
-            {
-
-            }
-        }
-
+    
         //  helper functions
 
         public static IDictionary<int, IndexDocumentData> LoadDocumentData(string connectionString, List<int> adds, List<int> updates, List<int> deletes, IDictionary<int, IEnumerable<string>> feeds, IDictionary<int, int> checksums, TextWriter log = null)
