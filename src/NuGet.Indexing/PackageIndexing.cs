@@ -290,11 +290,8 @@ namespace NuGet.Indexing
             Add(doc, "Tags", package.Tags, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS, 1.5f);
             Add(doc, "Description", package.Description, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "Authors", package.FlattenedAuthors, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
+            Add(doc, "Owners", PackageJson.ToJson_Owners(package.PackageRegistration.Owners).ToString(), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
 
-            foreach (User owner in package.PackageRegistration.Owners)
-            {
-                Add(doc, "Owners", owner.Username, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
-            }
 
             Add(doc, "Summary", package.Summary, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);
             Add(doc, "IconUrl", package.IconUrl, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS);

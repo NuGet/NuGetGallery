@@ -75,7 +75,7 @@ namespace NuGet.Indexing
             return obj;
         }
 
-        private static JArray ToJson_Owners(ICollection<User> owners)
+        internal static JArray ToJson_Owners(ICollection<User> owners)
         {
             JArray array = new JArray();
             foreach (User owner in owners)
