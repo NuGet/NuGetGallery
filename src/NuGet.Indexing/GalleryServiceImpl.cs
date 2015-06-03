@@ -162,8 +162,7 @@ namespace NuGet.Indexing
             if (!searcher.IndexReader.CommitUserData.TryGetValue("commitTimeStamp", out timestamp))
             {
                 timestamp = DateTime.MinValue.ToString();
-            }
-            
+            }            
             obj.Add("IndexTimestampUtc",timestamp);
           
             JArray array = new JArray();
