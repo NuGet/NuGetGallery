@@ -63,6 +63,11 @@ namespace NuGet.Indexing
                     log.WriteLine("get packages from gallery where the Package.Key > {0}", highestPackageKey);
                     List<Package> packages = GalleryExport.GetPublishedPackagesSince(sqlConnectionString, highestPackageKey, log, verbose: false);
 
+                    if (packages.Count == 0)
+                    {
+                        break;
+                    }
+
                     log.WriteLine("associate the feeds and checksum data with each packages");
                     List<IndexDocumentData> indexDocumentData = MakeIndexDocumentData(packages, feeds, checksums);
                     highestPackageKey = indexDocumentData.Max(d => d.Package.Key);
