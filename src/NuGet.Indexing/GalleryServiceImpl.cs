@@ -155,6 +155,17 @@ namespace NuGet.Indexing
 
         private static JToken MakeResults(NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take, Query boostedQuery, IDictionary<string, int> rankings, NuGetSearcherManager manager)
         {
+            JObject obj = new JObject();
+            obj.Add("TotalHits", topDocs.TotalHits);
+
+            string timestamp;
+            if (!searcher.IndexReader.CommitUserData.TryGetValue("commitTimeStamp", out timestamp))
+            {
+                timestamp = DateTime.MinValue.ToString();
+            }
+            
+            obj.Add("IndexTimestampUtc",timestamp);
+          
             JArray array = new JArray();
 
             Tuple<OpenBitSet, OpenBitSet> latestBitSets = manager.GetBitSets(searcher, null);
@@ -172,7 +183,8 @@ namespace NuGet.Indexing
                 JObject registrationObj = new JObject();
 
                 registrationObj.Add("Id", document.Get("Id"));
-                registrationObj.Add("DownloadCount", downloadCounts.Item1);
+                registrationObj.Add("DownloadCount", downloadCounts.Item1);                
+                registrationObj.Add("Owners", JArray.Parse(document.Get("Owners")));
 
                 packageObj.Add("PackageRegistration", registrationObj);
 
@@ -181,7 +193,7 @@ namespace NuGet.Indexing
                 packageObj.Add("Title", document.Get("Title"));
                 packageObj.Add("Description", document.Get("Description"));
                 packageObj.Add("Summary", document.Get("Summary"));
-                packageObj.Add("Authors", document.Get("Authors"));
+                packageObj.Add("Authors", document.Get("Authors"));             
                 packageObj.Add("Copyright", document.Get("Copyright"));
                 packageObj.Add("Language", document.Get("Language"));
                 packageObj.Add("Tags", document.Get("Tags"));
@@ -211,8 +223,8 @@ namespace NuGet.Indexing
 
                 array.Add(packageObj);
             }
-
-            return array;
+            obj.Add("Data", array);
+            return obj;
         }
     }
 }
