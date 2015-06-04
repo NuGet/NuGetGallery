@@ -151,10 +151,13 @@
     <Compile Include="Facets.cs" />
     <Compile Include="GalleryServiceImpl.cs" />
     <Compile Include="IdentifierAutocompleteAnalyzer.cs" />
+    <Compile Include="ISearchIndexInfo.cs" />
     <Compile Include="LatestVersionFilter.cs" />
     <Compile Include="LocalFrameworksList.cs" />
     <Compile Include="MetadataImpl.cs" />
+    <Compile Include="NuGetIndexSearcher.cs" />
     <Compile Include="PackageTenantId.cs" />
+    <Compile Include="SearcherManagerT.cs" />
     <Compile Include="SecureSearcherManager.cs" />
     <Compile Include="PackageVersions.cs" />
     <Compile Include="SecureQueryImpl.cs" />
@@ -212,6 +215,7 @@
     <Compile Include="TagsAnalyzer.cs" />
     <Compile Include="TokenizingHelper.cs" />
     <Compile Include="VersionAnalyzer.cs" />
+    <Compile Include="VersionDownloads.cs" />
     <Compile Include="WarehousePackageRanking.cs" />
   </ItemGroup>
   <ItemGroup>
