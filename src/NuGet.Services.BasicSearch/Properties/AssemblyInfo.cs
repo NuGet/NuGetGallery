@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("NuGet.Services.BasicSearch")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("NuGet.Services.BasicSearch")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("NuGet.Services.BasicSearch")]
