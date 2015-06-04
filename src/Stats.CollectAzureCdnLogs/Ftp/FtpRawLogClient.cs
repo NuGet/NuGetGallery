@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Stats.CollectAzureCdnLogs.Ftp
@@ -82,9 +83,9 @@ namespace Stats.CollectAzureCdnLogs.Ftp
             var webResponse = (FtpWebResponse)await request.GetResponseAsync();
 
             string directoryList;
-            using (var responseStream = webResponse.GetResponseStream())
+            using (var streamReader = new StreamReader(webResponse.GetResponseStream(), Encoding.ASCII))
             {
-                directoryList = await responseStream.GetStringAsync();
+                directoryList = await streamReader.ReadToEndAsync();
             }
 
             _jobEventSource.FinishingDirectoryListing(uriString);
