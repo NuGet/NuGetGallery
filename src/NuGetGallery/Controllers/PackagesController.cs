@@ -258,7 +258,7 @@ namespace NuGetGallery
             return RedirectToRoute(RouteName.VerifyPackage);
         }
 
-        public virtual ActionResult DisplayPackage(string id, string version)
+        public virtual async Task<ActionResult> DisplayPackage(string id, string version)
         {
             string normalized = SemanticVersionExtensions.Normalize(version);
             if (!String.Equals(version, normalized))
@@ -289,6 +289,8 @@ namespace NuGetGallery
                     model.SetPendingMetadata(pendingMetadata);
                 }
             }
+
+            model.IndexLastWriteTime = await _indexingService.GetLastWriteTime();
 
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
