@@ -5,6 +5,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
@@ -77,7 +78,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         //  save
 
-        protected override async Task OnSave(Uri resourceUri, StorageContent content)
+        protected override async Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
             string name = GetName(resourceUri);
 
@@ -87,13 +88,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             using (Stream stream = content.GetContentStream())
             {
-                await blob.UploadFromStreamAsync(stream);
+                await blob.UploadFromStreamAsync(stream, cancellationToken);
             }
         }
 
         //  load
 
-        protected override async Task<StorageContent> OnLoad(Uri resourceUri)
+        protected override async Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken)
         {
             string name = GetName(resourceUri);
 
@@ -101,7 +102,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (blob.Exists())
             {
-                string content = await blob.DownloadTextAsync();
+                string content = await blob.DownloadTextAsync(cancellationToken);
                 return new StringStorageContent(content);
             }
 
@@ -110,13 +111,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         //  delete
 
-        protected override async Task OnDelete(Uri resourceUri)
+        protected override async Task OnDelete(Uri resourceUri, CancellationToken cancellationToken)
         {
             string name = GetName(resourceUri);
 
             CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
 
-            await blob.DeleteAsync();
+            await blob.DeleteAsync(cancellationToken);
         }
     }
 }

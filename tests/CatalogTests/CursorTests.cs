@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CatalogTests
@@ -147,7 +148,7 @@ namespace CatalogTests
             DateTime front = new DateTime(2014, 1, 2);
             DateTime back = new DateTime(2014, 1, 6);
 
-            await collector.Run(front, back);
+            await collector.Run(front, back, CancellationToken.None);
         }
 
         public static void Test0()
@@ -179,7 +180,7 @@ namespace CatalogTests
             //DurableCursor back = new DurableCursor(new Uri("http://localhost:8000/cursor/back.json"), storage);
             MemoryCursor back = MemoryCursor.Max;
 
-            bool didWork = await collector.Run(front, back);
+            bool didWork = await collector.Run(front, back, CancellationToken.None);
 
             if (!didWork)
             {
@@ -225,8 +226,8 @@ namespace CatalogTests
             do
             {
                 run = false;
-                run |= await collectorA.Run(cursorA, MemoryCursor.Max);
-                run |= await collectorB.Run(cursorB, cursorA);
+                run |= await collectorA.Run(cursorA, MemoryCursor.Max, CancellationToken.None);
+                run |= await collectorB.Run(cursorB, cursorA, CancellationToken.None);
             }
             while (run);
 
@@ -237,8 +238,8 @@ namespace CatalogTests
             do
             {
                 run = false;
-                run |= await collectorA.Run(cursorA, MemoryCursor.Max);
-                run |= await collectorB.Run(cursorB, cursorA);
+                run |= await collectorA.Run(cursorA, MemoryCursor.Max, CancellationToken.None);
+                run |= await collectorB.Run(cursorB, cursorA, CancellationToken.None);
             }
             while (run);
 
@@ -257,8 +258,8 @@ namespace CatalogTests
             Storage storage = storageFactory.Create();
 
             DurableCursor cursor = new DurableCursor(storage.ResolveUri("cursor.json"), storage, GetDefaultValue(arguments));
-            cursor.Load().Wait();
-            cursor.Save().Wait();
+            cursor.Load(CancellationToken.None).Wait();
+            cursor.Save(CancellationToken.None).Wait();
         }
 
         static async Task MakeTestCatalog()
@@ -278,25 +279,25 @@ namespace CatalogTests
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 550);
 
             writer.Add(new TestCatalogItem(1));
-            await writer.Commit(new DateTime(2014, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            await writer.Commit(new DateTime(2014, 1, 1, 0, 0, 0, DateTimeKind.Utc), null, CancellationToken.None);
 
             writer.Add(new TestCatalogItem(2));
-            await writer.Commit(new DateTime(2014, 1, 3, 0, 0, 0, DateTimeKind.Utc));
+            await writer.Commit(new DateTime(2014, 1, 3, 0, 0, 0, DateTimeKind.Utc),null, CancellationToken.None);
 
             writer.Add(new TestCatalogItem(3));
-            await writer.Commit(new DateTime(2014, 1, 4, 0, 0, 0, DateTimeKind.Utc));
+            await writer.Commit(new DateTime(2014, 1, 4, 0, 0, 0, DateTimeKind.Utc),null, CancellationToken.None);
 
             writer.Add(new TestCatalogItem(4));
-            await writer.Commit(new DateTime(2014, 1, 5, 0, 0, 0, DateTimeKind.Utc));
+            await writer.Commit(new DateTime(2014, 1, 5, 0, 0, 0, DateTimeKind.Utc),null, CancellationToken.None); 
 
             writer.Add(new TestCatalogItem(5));
-            await writer.Commit(new DateTime(2014, 1, 7, 0, 0, 0, DateTimeKind.Utc));
+            await writer.Commit(new DateTime(2014, 1, 7, 0, 0, 0, DateTimeKind.Utc), null, CancellationToken.None);
 
             writer.Add(new TestCatalogItem(6));
-            await writer.Commit(new DateTime(2014, 1, 8, 0, 0, 0, DateTimeKind.Utc));
+            await writer.Commit(new DateTime(2014, 1, 8, 0, 0, 0, DateTimeKind.Utc), null, CancellationToken.None); ;
 
             writer.Add(new TestCatalogItem(7));
-            await writer.Commit(new DateTime(2014, 1, 10, 0, 0, 0, DateTimeKind.Utc));
+            await writer.Commit(new DateTime(2014, 1, 10, 0, 0, 0, DateTimeKind.Utc), null, CancellationToken.None);
 
             Console.WriteLine("test catalog created");
         }
@@ -311,25 +312,25 @@ namespace CatalogTests
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 550);
 
             writer.Add(new TestCatalogItem(8));
-            await writer.Commit(new DateTime(2014, 1, 11, 0, 0, 0, DateTimeKind.Utc));
+            await writer.Commit(new DateTime(2014, 1, 11, 0, 0, 0, DateTimeKind.Utc), null, CancellationToken.None);
 
             writer.Add(new TestCatalogItem(9));
-            await writer.Commit(new DateTime(2014, 1, 13, 0, 0, 0, DateTimeKind.Utc));
+            await writer.Commit(new DateTime(2014, 1, 13, 0, 0, 0, DateTimeKind.Utc), null, CancellationToken.None);
 
             writer.Add(new TestCatalogItem(10));
-            await writer.Commit(new DateTime(2014, 1, 14, 0, 0, 0, DateTimeKind.Utc));
+            await writer.Commit(new DateTime(2014, 1, 14, 0, 0, 0, DateTimeKind.Utc), null, CancellationToken.None);
 
             writer.Add(new TestCatalogItem(11));
-            await writer.Commit(new DateTime(2014, 1, 15, 0, 0, 0, DateTimeKind.Utc));
+            await writer.Commit(new DateTime(2014, 1, 15, 0, 0, 0, DateTimeKind.Utc), null, CancellationToken.None);
 
             writer.Add(new TestCatalogItem(12));
-            await writer.Commit(new DateTime(2014, 1, 17, 0, 0, 0, DateTimeKind.Utc));
+            await writer.Commit(new DateTime(2014, 1, 17, 0, 0, 0, DateTimeKind.Utc), null, CancellationToken.None);
 
             writer.Add(new TestCatalogItem(13));
-            await writer.Commit(new DateTime(2014, 1, 18, 0, 0, 0, DateTimeKind.Utc));
+            await writer.Commit(new DateTime(2014, 1, 18, 0, 0, 0, DateTimeKind.Utc), null, CancellationToken.None);
 
             writer.Add(new TestCatalogItem(14));
-            await writer.Commit(new DateTime(2014, 1, 20, 0, 0, 0, DateTimeKind.Utc));
+            await writer.Commit(new DateTime(2014, 1, 20, 0, 0, 0, DateTimeKind.Utc), null, CancellationToken.None);
 
             Console.WriteLine("test catalog created");
         }

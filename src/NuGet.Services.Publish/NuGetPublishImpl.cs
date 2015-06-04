@@ -10,6 +10,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -24,7 +25,7 @@ namespace NuGet.Services.Publish
             _configurationService = new ConfigurationService();
         }
 
-        public static async Task Upload(IOwinContext context)
+        public static async Task Upload(IOwinContext context, CancellationToken cancellationToken)
         {
             string name = await ValidateRequest(context);
 
@@ -33,7 +34,7 @@ namespace NuGet.Services.Publish
                 Stream nupkgStream = context.Request.Body;
 
                 Uri nupkgAddress = await SaveNupkg(nupkgStream, name);
-                Uri catalogAddress = await AddToCatalog(nupkgStream);
+                Uri catalogAddress = await AddToCatalog(nupkgStream, cancellationToken);
 
                 JToken response = new JObject
                 { 
@@ -101,7 +102,7 @@ namespace NuGet.Services.Publish
             return string.Format("{0}.{1}.nupkg", id, version).ToLowerInvariant();
         }
 
-        static async Task<Uri> AddToCatalog(Stream nupkgStream)
+        static async Task<Uri> AddToCatalog(Stream nupkgStream, CancellationToken cancellationToken)
         {
             string storagePrimary = _configurationService.Get("Storage.Primary");
             CloudStorageAccount account = CloudStorageAccount.Parse(storagePrimary);
@@ -110,7 +111,7 @@ namespace NuGet.Services.Publish
 
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage);
             writer.Add(Utils.CreateCatalogItem(nupkgStream, null, null, ""));
-            await writer.Commit();
+            await writer.Commit(null, cancellationToken);
 
             return writer.RootUri;
         }

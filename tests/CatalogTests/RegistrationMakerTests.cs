@@ -6,6 +6,7 @@ using NuGet.Services.Metadata.Catalog.Registration;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -70,7 +71,7 @@ namespace CatalogTests
             catalog.Add(CreateTestCatalogEntry("mypackage", "4.0.0"));
             catalog.Add(CreateTestCatalogEntry("mypackage", "5.0.0"));
             FileStorageFactory factory = new FileStorageFactory(new Uri("http://tempuri.org"), path);
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), catalog, factory, new Uri("http://content/"), 2, 3);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), catalog, factory, new Uri("http://content/"), 2, 3, false, CancellationToken.None);
         }
 
         public static async Task Test1Async()
@@ -86,12 +87,12 @@ namespace CatalogTests
 
             FileStorageFactory factory = new FileStorageFactory(new Uri("http://tempuri.org"), path);
 
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "1.0.0"), factory, new Uri("http://content/"), 2, 3);
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "2.0.0"), factory, new Uri("http://content/"), 2, 3);
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "3.0.0"), factory, new Uri("http://content/"), 2, 3);
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "4.0.0"), factory, new Uri("http://content/"), 2, 3);
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "5.0.0"), factory, new Uri("http://content/"), 2, 3);
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "6.0.0"), factory, new Uri("http://content/"), 2, 3);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "1.0.0"), factory, new Uri("http://content/"), 2, 3, false, CancellationToken.None);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "2.0.0"), factory, new Uri("http://content/"), 2, 3, false, CancellationToken.None);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "3.0.0"), factory, new Uri("http://content/"), 2, 3, false, CancellationToken.None);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "4.0.0"), factory, new Uri("http://content/"), 2, 3, false, CancellationToken.None);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "5.0.0"), factory, new Uri("http://content/"), 2, 3, false, CancellationToken.None);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "6.0.0"), factory, new Uri("http://content/"), 2, 3, false, CancellationToken.None);
         }
 
         public static async Task Test2Async()
@@ -107,12 +108,12 @@ namespace CatalogTests
 
             FileStorageFactory factory = new FileStorageFactory(new Uri("http://tempuri.org"), path);
 
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "1.0.0"), factory, new Uri("http://content/"), 10, 10);
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "2.0.0"), factory, new Uri("http://content/"), 10, 10);
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "3.0.0"), factory, new Uri("http://content/"), 10, 10);
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "4.0.0"), factory, new Uri("http://content/"), 10, 10);
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "5.0.0"), factory, new Uri("http://content/"), 10, 10);
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "6.0.0"), factory, new Uri("http://content/"), 10, 10);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "1.0.0"), factory, new Uri("http://content/"), 10, 10, false, CancellationToken.None);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "2.0.0"), factory, new Uri("http://content/"), 10, 10, false, CancellationToken.None);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "3.0.0"), factory, new Uri("http://content/"), 10, 10, false, CancellationToken.None);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "4.0.0"), factory, new Uri("http://content/"), 10, 10, false, CancellationToken.None);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "5.0.0"), factory, new Uri("http://content/"), 10, 10, false, CancellationToken.None);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "6.0.0"), factory, new Uri("http://content/"), 10, 10, false, CancellationToken.None);
         }
 
         public static async Task Test3Async()
@@ -132,14 +133,14 @@ namespace CatalogTests
             catalog.Add(CreateTestCatalogEntry("mypackage", "1.0.0"));
             catalog.Add(CreateTestCatalogEntry("mypackage", "2.0.0"));
             catalog.Add(CreateTestCatalogEntry("mypackage", "3.0.0"));
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), catalog, factory, new Uri("http://content/"), 2, 3);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), catalog, factory, new Uri("http://content/"), 2, 3, false, CancellationToken.None);
 
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "3.0.0"), factory, new Uri("http://content/"), 10, 10);
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "4.0.0"), factory, new Uri("http://content/"), 10, 10);
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "5.0.0"), factory, new Uri("http://content/"), 10, 10);
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "6.0.0"), factory, new Uri("http://content/"), 10, 10);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "3.0.0"), factory, new Uri("http://content/"), 10, 10, false, CancellationToken.None);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "4.0.0"), factory, new Uri("http://content/"), 10, 10, false, CancellationToken.None);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "5.0.0"), factory, new Uri("http://content/"), 10, 10, false, CancellationToken.None);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryBatch("mypackage", "6.0.0"), factory, new Uri("http://content/"), 10, 10, false, CancellationToken.None);
 
-            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryDeleteBatch("mypackage", "4.0.0"), factory, new Uri("http://content/"), 10, 10);
+            await RegistrationMaker.Process(new RegistrationKey("mypackage"), CreateTestSingleEntryDeleteBatch("mypackage", "4.0.0"), factory, new Uri("http://content/"), 10, 10, false, CancellationToken.None);
         }
 
         public static async Task Test4Async()
@@ -165,7 +166,7 @@ namespace CatalogTests
                 Concurrent = false
             };
 
-            await collector.Run();
+            await collector.Run(CancellationToken.None);
         }
     }
 }

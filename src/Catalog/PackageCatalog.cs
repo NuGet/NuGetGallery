@@ -6,6 +6,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Globalization;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -29,12 +30,12 @@ namespace NuGet.Services.Metadata.Catalog
             return graph;
         }
 
-        public static async Task<Tuple<DateTime?, DateTime?>> ReadCommitMetadata(CatalogWriterBase writer)
+        public static async Task<Tuple<DateTime?, DateTime?>> ReadCommitMetadata(CatalogWriterBase writer, CancellationToken cancellationToken)
         {
             DateTime? lastCreated = null;
             DateTime? lastEdited = null;
 
-            string json = await writer.Storage.LoadString(writer.RootUri);
+            string json = await writer.Storage.LoadString(writer.RootUri, cancellationToken);
 
             if (json != null)
             {

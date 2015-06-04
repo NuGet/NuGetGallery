@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -20,13 +21,13 @@ namespace NuGet.Services.Metadata.Catalog
             _handlerFunc = handlerFunc;
         }
 
-        public override async Task Load()
+        public override async Task Load(CancellationToken cancellationToken)
         {
             HttpMessageHandler handler = (_handlerFunc != null) ? _handlerFunc() : new WebRequestHandler { AllowPipelining = true };
 
             using (HttpClient client = new HttpClient(handler))
             {
-                HttpResponseMessage response = await client.GetAsync(_address);
+                HttpResponseMessage response = await client.GetAsync(_address, cancellationToken);
 
                 Trace.TraceInformation("HttpReadCursor.Load {0}", response.StatusCode);
 

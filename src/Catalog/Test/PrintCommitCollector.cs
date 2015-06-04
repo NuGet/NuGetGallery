@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Test
@@ -15,7 +16,7 @@ namespace NuGet.Services.Metadata.Catalog.Test
         {
         }
 
-        protected override Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp)
+        protected override Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, CancellationToken cancellationToken)
         {
             Console.WriteLine("------------------------------------------------");
             Console.WriteLine("COMMIT: {0}", commitTimeStamp.ToString("O"));

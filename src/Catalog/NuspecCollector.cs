@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using VDS.RDF;
@@ -27,7 +28,7 @@ namespace NuGet.Services.Metadata.Catalog
             _storage = storage;
         }
 
-        protected override async Task ProcessStore(TripleStore store)
+        protected override async Task ProcessStore(TripleStore store, CancellationToken cancellationToken)
         {
             try
             {
@@ -74,7 +75,7 @@ namespace NuGet.Services.Metadata.Catalog
                     nuspecs.Add(nuspec);
                 }
 
-                await SaveAllNuspecs(nuspecs);
+                await SaveAllNuspecs(nuspecs, cancellationToken);
             }
             catch (Exception e)
             {
@@ -312,19 +313,19 @@ namespace NuGet.Services.Metadata.Catalog
             return null;
         }
 
-        async Task SaveAllNuspecs(IList<XDocument> nuspecs)
+        async Task SaveAllNuspecs(IList<XDocument> nuspecs, CancellationToken cancellationToken)
         {
             IList<Task> tasks = new List<Task>();
 
             foreach (XDocument nuspec in nuspecs)
             {
-                tasks.Add(SaveNuspec(nuspec));
+                tasks.Add(SaveNuspec(nuspec, cancellationToken));
             }
 
             await Task.WhenAll(tasks.ToArray());
         }
 
-        Task SaveNuspec(XDocument nuspec)
+        Task SaveNuspec(XDocument nuspec, CancellationToken cancellationToken)
         {
             string relativeAddress = Utils.GetNuspecRelativeAddress(nuspec);
 
@@ -335,7 +336,7 @@ namespace NuGet.Services.Metadata.Catalog
                 contentType: "text/xml",
                 cacheControl: "public, max-age=300, s-maxage=300");
 
-            return _storage.Save(resourceUri, content);
+            return _storage.Save(resourceUri, content, cancellationToken);
         }
     }
 }

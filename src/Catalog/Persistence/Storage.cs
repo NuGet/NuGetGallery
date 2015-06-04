@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
@@ -20,11 +21,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return BaseAddress.ToString();
         }
 
-        protected abstract Task OnSave(Uri resourceUri, StorageContent content);
-        protected abstract Task<StorageContent> OnLoad(Uri resourceUri);
-        protected abstract Task OnDelete(Uri resourceUri);
+        protected abstract Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken);
+        protected abstract Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken);
+        protected abstract Task OnDelete(Uri resourceUri, CancellationToken cancellationToken);
 
-        public async Task Save(Uri resourceUri, StorageContent content)
+        public async Task Save(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
             SaveCount++;
 
@@ -32,7 +33,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             try
             {
-                await OnSave(resourceUri, content);
+                await OnSave(resourceUri, content, cancellationToken);
             }
             catch (Exception e)
             {
@@ -42,7 +43,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
         }
 
-        public async Task<StorageContent> Load(Uri resourceUri)
+        public async Task<StorageContent> Load(Uri resourceUri, CancellationToken cancellationToken)
         {
             LoadCount++;
 
@@ -50,7 +51,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             try
             {
-                return await OnLoad(resourceUri);
+                return await OnLoad(resourceUri, cancellationToken);
             }
             catch (Exception e)
             {
@@ -60,7 +61,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
         }
 
-        public async Task Delete(Uri resourceUri)
+        public async Task Delete(Uri resourceUri, CancellationToken cancellationToken)
         {
             DeleteCount++;
 
@@ -68,7 +69,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             try
             {
-                await OnDelete(resourceUri);
+                await OnDelete(resourceUri, cancellationToken);
             }
             catch (Exception e)
             {
@@ -78,9 +79,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
         }
 
-        public async Task<string> LoadString(Uri resourceUri)
+        public async Task<string> LoadString(Uri resourceUri, CancellationToken cancellationToken)
         {
-            StorageContent content = await Load(resourceUri);
+            StorageContent content = await Load(resourceUri, cancellationToken);
             if (content == null)
             {
                 return null;

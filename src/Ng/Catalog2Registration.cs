@@ -13,7 +13,7 @@ namespace Ng
 {
     public static class Catalog2Registration
     {
-        static async Task Loop(string source, StorageFactory storageFactory, string contentBaseAddress, bool unlistShouldDelete, bool verbose, int interval)
+        static async Task Loop(string source, StorageFactory storageFactory, string contentBaseAddress, bool unlistShouldDelete, bool verbose, int interval, CancellationToken cancellationToken)
         {
             CommitCollector collector = new RegistrationCollector(new Uri(source), storageFactory, CommandHelpers.GetHttpMessageHandlerFactory(verbose))
             {
@@ -30,7 +30,7 @@ namespace Ng
                 bool run = false;
                 do
                 {
-                    run = await collector.Run(front, back);
+                    run = await collector.Run(front, back, cancellationToken);
                 }
                 while (run);
 
@@ -43,7 +43,7 @@ namespace Ng
             Console.WriteLine("Usage: ng catalog2registration -source <catalog> -contentBaseAddress <content-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] [-interval <seconds>]");
         }
 
-        public static void Run(string[] args)
+        public static void Run(string[] args, CancellationToken cancellationToken)
         {
             IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
             if (arguments == null || arguments.Count == 0)
@@ -82,7 +82,7 @@ namespace Ng
 
             Trace.TraceInformation("CONFIG source: \"{0}\" storage: \"{1}\" interval: {2} seconds", source, storageFactory, interval);
 
-            Loop(source, storageFactory, contentBaseAddress, unlistShouldDelete, verbose, interval).Wait();
+            Loop(source, storageFactory, contentBaseAddress, unlistShouldDelete, verbose, interval, cancellationToken).Wait();
         }
     }
 }

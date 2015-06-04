@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGetFeed
@@ -23,7 +24,7 @@ namespace NuGetFeed
             _batchSize = batchSize;
         }
 
-        protected override void RunCore()
+        protected override void RunCore(CancellationToken cancellationToken)
         {
             Config.Catalog.LocalFolder.Create();
 
@@ -76,7 +77,7 @@ namespace NuGetFeed
                     }
 
                     // commit
-                    commitTask = Task.Run(async () => await writer.Commit(DateTime.UtcNow));
+                    commitTask = Task.Run(async () => await writer.Commit(DateTime.UtcNow, null, cancellationToken));
 
                     ProgressUpdate(total - _nupkgs.Count, total);
                 }

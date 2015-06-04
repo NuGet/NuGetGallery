@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CatalogTests
@@ -22,7 +23,7 @@ namespace CatalogTests
             Storage storage = factory.Create();
 
             StorageContent content = new StringStorageContent("TEST");
-            await storage.Save(new Uri(storage.BaseAddress, "doc1.txt"), content);
+            await storage.Save(new Uri(storage.BaseAddress, "doc1.txt"), content, CancellationToken.None);
         }
 
         public static void Test0()
@@ -41,7 +42,7 @@ namespace CatalogTests
             Storage storage = factory.Create();
 
             StorageContent content = new StringStorageContent("TEST");
-            await storage.Save(new Uri(storage.BaseAddress, "doc1.txt"), content);
+            await storage.Save(new Uri(storage.BaseAddress, "doc1.txt"), content, CancellationToken.None);
         }
 
         public static void Test1()

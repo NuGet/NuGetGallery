@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -30,7 +31,7 @@ namespace NuGet.Canton
             if (content != null)
             {
                 var resourceUri = item.GetItemAddress();
-                Storage.Save(resourceUri, content).Wait();
+                Storage.Save(resourceUri, content, CancellationToken.None).Wait();
                 return resourceUri;
             }
 

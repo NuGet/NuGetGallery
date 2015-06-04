@@ -12,6 +12,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Ng
@@ -28,7 +29,7 @@ namespace Ng
 
         public Uri ContentBaseAddress { get; set; }
 
-        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp)
+        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, CancellationToken cancellationToken)
         {
             foreach (JToken item in items)
             {
@@ -36,13 +37,13 @@ namespace Ng
                 string version = item["nuget:version"].ToString().ToLowerInvariant();
 
                 Storage storage = _storageFactory.Create(id);
-                string nuspec = await LoadNuspec(id, version);
+                string nuspec = await LoadNuspec(id, version, cancellationToken);
 
                 if (nuspec != null)
                 {
-                    await SaveNuspec(storage, id, version, nuspec);
-                    await CopyNupkg(storage, id, version);
-                    await UpdateMetadata(storage, version);
+                    await SaveNuspec(storage, id, version, nuspec, cancellationToken);
+                    await CopyNupkg(storage, id, version, cancellationToken);
+                    await UpdateMetadata(storage, version, cancellationToken);
 
                     Trace.TraceInformation("commit: {0}/{1}", id, version);
                 }
@@ -55,22 +56,22 @@ namespace Ng
             return true;
         }
 
-        async Task UpdateMetadata(Storage storage, string version)
+        async Task UpdateMetadata(Storage storage, string version, CancellationToken cancellationToken)
         {
             Uri resourceUri = new Uri(storage.BaseAddress, "index.json");
-            HashSet<NuGetVersion> versions = GetVersions(await storage.LoadString(resourceUri));
+            HashSet<NuGetVersion> versions = GetVersions(await storage.LoadString(resourceUri, cancellationToken));
             versions.Add(NuGetVersion.Parse(version));
             List<NuGetVersion> result = new List<NuGetVersion>(versions);
             result.Sort();
-            await storage.Save(resourceUri, CreateContent(result.Select((v) => v.ToString())));
+            await storage.Save(resourceUri, CreateContent(result.Select((v) => v.ToString())), cancellationToken);
         }
 
-        async Task<string> LoadNuspec(string id, string version)
+        async Task<string> LoadNuspec(string id, string version, CancellationToken cancellationToken)
         {
             using (HttpClient client = new HttpClient())
             {
                 Uri requestUri = new Uri(ContentBaseAddress, string.Format("{0}.{1}.nupkg", id, version));
-                HttpResponseMessage httpResponseMessage = await client.GetAsync(requestUri);
+                HttpResponseMessage httpResponseMessage = await client.GetAsync(requestUri, cancellationToken);
                 if (httpResponseMessage.IsSuccessStatusCode)
                 {
                     using (Stream stream = await httpResponseMessage.Content.ReadAsStreamAsync())
@@ -91,11 +92,11 @@ namespace Ng
             }
         }
 
-        async Task SaveNuspec(Storage storage, string id, string version, string nuspec)
+        async Task SaveNuspec(Storage storage, string id, string version, string nuspec, CancellationToken cancellationToken)
         {
             string relativeAddress = string.Format("{1}/{0}.nuspec", id, version);
             Uri nuspecUri = new Uri(storage.BaseAddress, relativeAddress);
-            await storage.Save(nuspecUri, new StringStorageContent(nuspec, "text/xml"));
+            await storage.Save(nuspecUri, new StringStorageContent(nuspec, "text/xml"), cancellationToken);
         }
 
         static HashSet<NuGetVersion> GetVersions(string json)
@@ -137,7 +138,7 @@ namespace Ng
             return null;
         }
 
-        async Task CopyNupkg(Storage storage, string id, string version)
+        async Task CopyNupkg(Storage storage, string id, string version, CancellationToken cancellationToken)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -146,7 +147,7 @@ namespace Ng
                 {
                     string relativeAddress = string.Format("{1}/{0}.{1}.nupkg", id, version);
                     Uri nupkgUri = new Uri(storage.BaseAddress, string.Format("{1}/{0}.{1}.nupkg", id, version));
-                    await storage.Save(nupkgUri, new StreamStorageContent(stream, "application/octet-stream"));
+                    await storage.Save(nupkgUri, new StreamStorageContent(stream, "application/octet-stream"), cancellationToken);
                 }
             }
         }

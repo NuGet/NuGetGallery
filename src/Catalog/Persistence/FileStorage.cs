@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
@@ -39,7 +40,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         //  save
 
-        protected override async Task OnSave(Uri resourceUri, StorageContent content)
+        protected override async Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
             SaveCount++;
 
@@ -74,13 +75,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             using (FileStream stream = File.Create(path + name))
             {
-                await content.GetContentStream().CopyToAsync(stream);
+                await content.GetContentStream().CopyToAsync(stream,4096, cancellationToken);
             }
         }
 
         //  load
 
-        protected override async Task<StorageContent> OnLoad(Uri resourceUri)
+        protected override async Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken)
         {
             string name = GetName(resourceUri);
 
@@ -105,7 +106,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             FileInfo fileInfo = new FileInfo(filename);
             if (fileInfo.Exists)
             {
-                return await Task.Run<StorageContent>(() => { return new StreamStorageContent(fileInfo.OpenRead()); });
+                return await Task.Run<StorageContent>(() => { return new StreamStorageContent(fileInfo.OpenRead()); }, cancellationToken);
             }
 
             return null;
@@ -113,7 +114,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         //  delete
 
-        protected override async Task OnDelete(Uri resourceUri)
+        protected override async Task OnDelete(Uri resourceUri, CancellationToken cancellationToken)
         {
             string name = GetName(resourceUri);
 
@@ -138,7 +139,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             FileInfo fileInfo = new FileInfo(filename);
             if (fileInfo.Exists)
             {
-                await Task.Run(() => { fileInfo.Delete(); });
+                await Task.Run(() => { fileInfo.Delete(); },cancellationToken);
             }
         }
     }

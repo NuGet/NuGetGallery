@@ -168,7 +168,7 @@ namespace Ng
             return result;
         }
 
-        static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, bool? createdPackages = null)
+        static async Task<DateTime> DownloadMetadata2Catalog(HttpClient client, SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>> packages, Storage storage, DateTime lastCreated, DateTime lastEdited, bool? createdPackages, CancellationToken cancellationToken)
         {
             AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage, 550);
 
@@ -186,7 +186,7 @@ namespace Ng
                     Uri uri = packageItem.Item1;
                     FeedDetails details = packageItem.Item2;
 
-                    HttpResponseMessage response = await client.GetAsync(uri);
+                    HttpResponseMessage response = await client.GetAsync(uri,cancellationToken);
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -233,16 +233,16 @@ namespace Ng
 
             IGraph commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, lastEdited);
             
-            await writer.Commit(commitMetadata);
+            await writer.Commit(commitMetadata, cancellationToken);
 
             Trace.TraceInformation("COMMIT");
 
             return lastDate;
         }
 
-        static async Task<DateTime?> GetCatalogProperty(Storage storage, string propertyName)
+        static async Task<DateTime?> GetCatalogProperty(Storage storage, string propertyName, CancellationToken cancellationToken)
         {
-            string json = await storage.LoadString(storage.ResolveUri("index.json"));
+            string json = await storage.LoadString(storage.ResolveUri("index.json"), cancellationToken);
 
             if (json != null)
             {
@@ -258,7 +258,7 @@ namespace Ng
             return null;
         }
 
-        static async Task Loop(string gallery, StorageFactory storageFactory, bool verbose, int interval, DateTime? startDate)
+        static async Task Loop(string gallery, StorageFactory storageFactory, bool verbose, int interval, DateTime? startDate, CancellationToken cancellationToken)
         {
             Storage storage = storageFactory.Create();
 
@@ -279,8 +279,8 @@ namespace Ng
                     client.Timeout = TimeSpan.FromSeconds(timeout);
 
                     //  fetch and add all newly CREATED packages - in order
-                    DateTime lastCreated = await GetCatalogProperty(storage, LastCreated) ?? (startDate ?? DateTime.MinValue.ToUniversalTime());
-                    DateTime lastEdited = await GetCatalogProperty(storage, LastEdited) ?? lastCreated;
+                    DateTime lastCreated = await GetCatalogProperty(storage, LastCreated, cancellationToken) ?? (startDate ?? DateTime.MinValue.ToUniversalTime());
+                    DateTime lastEdited = await GetCatalogProperty(storage, LastEdited, cancellationToken) ?? lastCreated;
 
                     SortedList<DateTime, IList<Tuple<Uri, FeedDetails>>> createdPackages;
                     DateTime previousLastCreated = DateTime.MinValue;
@@ -291,7 +291,7 @@ namespace Ng
                         createdPackages = await GetCreatedPackages(client, gallery, lastCreated, top);
                         Trace.TraceInformation("FEED CreatedPackages: {0}", createdPackages.Count);
 
-                        lastCreated = await DownloadMetadata2Catalog(client, createdPackages, storage, lastCreated, lastEdited, createdPackages: true);
+                        lastCreated = await DownloadMetadata2Catalog(client, createdPackages, storage, lastCreated, lastEdited, true, cancellationToken);
                         if (previousLastCreated == lastCreated)
                         {
                             break;
@@ -312,7 +312,7 @@ namespace Ng
 
                         Trace.TraceInformation("FEED EditedPackages: {0}", editedPackages.Count);
 
-                        lastEdited = await DownloadMetadata2Catalog(client, editedPackages, storage, lastCreated, lastEdited, createdPackages: false);
+                        lastEdited = await DownloadMetadata2Catalog(client, editedPackages, storage, lastCreated, lastEdited, false, cancellationToken);
                         if (previousLastEdited == lastEdited)
                         {
                             break;
@@ -331,7 +331,7 @@ namespace Ng
             Console.WriteLine("Usage: ng feed2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] [-interval <seconds>] [-startDate <DateTime>]");
         }
 
-        public static void Run(string[] args)
+        public static void Run(string[] args, CancellationToken cancellationToken)
         {
             IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
             if (arguments == null || arguments.Count == 0)
@@ -372,7 +372,7 @@ namespace Ng
             {
                 nullableStartDate = startDate;
             }
-            Loop(gallery, storageFactory, verbose, interval, nullableStartDate).Wait();
+            Loop(gallery, storageFactory, verbose, interval, nullableStartDate, cancellationToken).Wait();
         }
 
         static void PackagePrintUsage()
@@ -380,7 +380,7 @@ namespace Ng
             Console.WriteLine("Usage: ng package2catalog -gallery <v2-feed-address> -storageBaseAddress <storage-base-address> -storageType file|azure [-storagePath <path>]|[-storageAccountName <azure-acc> -storageKeyValue <azure-key> -storageContainer <azure-container> -storagePath <path>] [-verbose true|false] -id <id> [-versione <version>]");
         }
 
-        public static void Package(string[] args)
+        public static void Package(string[] args, CancellationToken cancellationToken)
         {
             IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
             if (arguments == null || arguments.Count == 0)
@@ -420,10 +420,10 @@ namespace Ng
                 Trace.AutoFlush = true;
             }
 
-            ProcessPackages(gallery, storageFactory, id, version, verbose).Wait();
+            ProcessPackages(gallery, storageFactory, id, version, verbose, cancellationToken).Wait();
         }
 
-        static async Task ProcessPackages(string gallery, StorageFactory storageFactory, string id, string version, bool verbose)
+        static async Task ProcessPackages(string gallery, StorageFactory storageFactory, string id, string version, bool verbose, CancellationToken cancellationToken)
         {
             int timeout = 300;
 
@@ -450,10 +450,10 @@ namespace Ng
                 const string LastCreated = "nuget:lastCreated";
                 const string LastEdited = "nuget:lastEdited";
 
-                DateTime lastCreated = await GetCatalogProperty(storage, LastCreated) ?? DateTime.MinValue.ToUniversalTime();
-                DateTime lastEdited = await GetCatalogProperty(storage, LastEdited) ?? DateTime.MinValue.ToUniversalTime();
+                DateTime lastCreated = await GetCatalogProperty(storage, LastCreated, cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
+                DateTime lastEdited = await GetCatalogProperty(storage, LastEdited, cancellationToken) ?? DateTime.MinValue.ToUniversalTime();
 
-                DateTime d = await DownloadMetadata2Catalog(client, packages, storage, lastCreated, lastEdited);
+                DateTime d = await DownloadMetadata2Catalog(client, packages, storage, lastCreated, lastEdited, null, cancellationToken);
             }
         }
     }

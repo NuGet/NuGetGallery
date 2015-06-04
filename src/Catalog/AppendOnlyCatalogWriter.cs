@@ -3,6 +3,7 @@
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -30,7 +31,7 @@ namespace NuGet.Services.Metadata.Catalog
             return new Uri[] { Schema.DataTypes.AppendOnlyCatalog, Schema.DataTypes.Permalink };
         }
 
-        protected override async Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries)
+        protected override async Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries, CancellationToken cancellationToken)
         {
             IDictionary<string, CatalogItemSummary> pageEntries;
             if (_first && !_append)
@@ -40,7 +41,7 @@ namespace NuGet.Services.Metadata.Catalog
             }
             else
             {
-                pageEntries = await LoadIndexResource(RootUri);
+                pageEntries = await LoadIndexResource(RootUri, cancellationToken);
             }
 
             bool isExistingPage;
@@ -48,14 +49,14 @@ namespace NuGet.Services.Metadata.Catalog
 
             if (isExistingPage)
             {
-                IDictionary<string, CatalogItemSummary> existingItemEntries = await LoadIndexResource(pageUri);
+                IDictionary<string, CatalogItemSummary> existingItemEntries = await LoadIndexResource(pageUri, cancellationToken);
                 foreach (var entry in existingItemEntries)
                 {
                     itemEntries.Add(entry);
                 }
             }
 
-            await SaveIndexResource(pageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, itemEntries, RootUri);
+            await SaveIndexResource(pageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, itemEntries, RootUri, null, null, cancellationToken);
 
             pageEntries[pageUri.AbsoluteUri] = new CatalogItemSummary(Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, itemEntries.Count);
 

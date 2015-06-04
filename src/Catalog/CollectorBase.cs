@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -24,19 +25,19 @@ namespace NuGet.Services.Metadata.Catalog
 
         public int RequestCount { get; private set; }
 
-        public async Task<bool> Run()
+        public async Task<bool> Run(CancellationToken cancellationToken)
         {
-            return await Run(MemoryCursor.Min, MemoryCursor.Max);
+            return await Run(MemoryCursor.Min, MemoryCursor.Max, cancellationToken);
         }
 
-        public async Task<bool> Run(DateTime front, DateTime back)
+        public async Task<bool> Run(DateTime front, DateTime back, CancellationToken cancellationToken)
         {
-            return await Run(new MemoryCursor(front), new MemoryCursor(back));
+            return await Run(new MemoryCursor(front), new MemoryCursor(back), cancellationToken);
         }
 
-        public async Task<bool> Run(ReadWriteCursor front, ReadCursor back)
+        public async Task<bool> Run(ReadWriteCursor front, ReadCursor back, CancellationToken cancellationToken)
         {
-            await Task.WhenAll(front.Load(), back.Load());
+            await Task.WhenAll(front.Load(cancellationToken), back.Load(cancellationToken));
 
             Trace.TraceInformation("Run ( {0} , {1} )", front, back);
 
@@ -51,13 +52,13 @@ namespace NuGet.Services.Metadata.Catalog
 
             using (CollectorHttpClient client = new CollectorHttpClient(handler))
             {
-                result = await Fetch(client, front, back);
+                result = await Fetch(client, front, back, cancellationToken);
                 RequestCount = client.RequestCount;
             }
             
             return result;
         }
 
-        protected abstract Task<bool> Fetch(CollectorHttpClient client, ReadWriteCursor front, ReadCursor back);
+        protected abstract Task<bool> Fetch(CollectorHttpClient client, ReadWriteCursor front, ReadCursor back, CancellationToken cancellationToken);
     }
 }

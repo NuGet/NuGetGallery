@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Ng
@@ -22,14 +23,14 @@ namespace Ng
             _defaultValue = defaultValue;
         }
 
-        public override Task Save()
+        public override Task Save(CancellationToken cancellationToken)
         {
             //  no-op because we will do the Save in the Lucene.Commit
 
             return Task.FromResult(true);
         }
 
-        public override Task Load()
+        public override Task Load(CancellationToken cancellationToken)
         {
             if (IndexReader.IndexExists(_directory))
             {

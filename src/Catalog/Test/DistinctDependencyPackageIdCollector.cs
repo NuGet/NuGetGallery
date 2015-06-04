@@ -4,6 +4,7 @@ using NuGet.Services.Metadata.Catalog.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 using VDS.RDF.Query;
@@ -23,7 +24,7 @@ namespace NuGet.Services.Metadata.Catalog.Test
             get; private set;
         }
 
-        protected override async Task ProcessStore(TripleStore store)
+        protected override async Task ProcessStore(TripleStore store, CancellationToken cancellationToken)
         {
             string sparql = Utils.GetResource("sparql.SelectDistinctDependency.rq");
 
@@ -32,7 +33,7 @@ namespace NuGet.Services.Metadata.Catalog.Test
                 Result.Add(row["id"].ToString());
             }
 
-            await Task.Run(() => { });
+            await Task.Run(() => { }, cancellationToken);
         }
     }
 }

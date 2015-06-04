@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Canton
@@ -25,7 +26,7 @@ namespace NuGet.Canton
             _client = client;
         }
 
-        public override async Task RunCore()
+        public override async Task RunCore(CancellationToken cancellationToken)
         {
             int nextMasterRegId = 0;
 
@@ -106,7 +107,7 @@ namespace NuGet.Canton
 
                             var uriGroup = batches[id].ToArray();
 
-                            regCollector.ProcessGraphs(_client, id, uriGroup, context).Wait();
+                            regCollector.ProcessGraphs(_client, id, uriGroup, context, cancellationToken).Wait();
 
                             int rem = batches.Count;
 

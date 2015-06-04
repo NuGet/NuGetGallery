@@ -4,6 +4,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -28,7 +29,7 @@ namespace NuGet.Services.Metadata.Catalog
         public int PartitionSize { get; set; }
         public int PackageCountThreshold { get; set; }
 
-        protected override Task ProcessGraphs(KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs)
+        protected override Task ProcessGraphs(KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs, CancellationToken cancellationToken)
         {
             return RegistrationCatalogCreator.ProcessGraphs(
                 sortedGraphs.Key,
@@ -36,7 +37,7 @@ namespace NuGet.Services.Metadata.Catalog
                 _storageFactory,
                 ContentBaseAddress,
                 PartitionSize,
-                PackageCountThreshold);
+                PackageCountThreshold, cancellationToken);
         }
     }
 }

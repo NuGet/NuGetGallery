@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CatalogTests
@@ -135,7 +136,7 @@ namespace CatalogTests
 
             PackageCollector collector = new PackageCollector(new Uri(catalog), null, 20);
 
-            collector.Run().Wait();
+            collector.Run(CancellationToken.None).Wait();
 
             IDictionary<string, HashSet<string>> packagesFromCatalog = collector.Result;
 
@@ -160,7 +161,7 @@ namespace CatalogTests
 
             DistinctPackageIdCollector collector = new DistinctPackageIdCollector(new Uri(catalog), handlerFunc, 20);
 
-            collector.Run().Wait();
+            collector.Run(CancellationToken.None).Wait();
 
             HashSet<string> packagesFromCatalog = collector.Result;
 
@@ -180,7 +181,7 @@ namespace CatalogTests
 
             FindCollector collector = new FindCollector(new Uri(catalog), handlerFunc, 20);
 
-            collector.Run().Wait();
+            collector.Run(CancellationToken.None).Wait();
 
             Console.WriteLine(collector.Result.Count);
 
@@ -203,7 +204,7 @@ namespace CatalogTests
 
             PrintCommitCollector collector = new PrintCommitCollector(new Uri(catalog), handlerFunc);
 
-            collector.Run().Wait();
+            collector.Run(CancellationToken.None).Wait();
         }
     }
 }

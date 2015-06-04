@@ -4,6 +4,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -29,7 +30,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         public int PackageCountThreshold { get; set; }
         public bool UnlistShouldDelete { get; set; }
 
-        protected override Task ProcessGraphs(KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs)
+        protected override Task ProcessGraphs(KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs, CancellationToken cancellationToken)
         {
             return RegistrationMaker.Process(
                 new RegistrationKey(sortedGraphs.Key),
@@ -38,7 +39,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 ContentBaseAddress,
                 PartitionSize,
                 PackageCountThreshold,
-                UnlistShouldDelete);
+                UnlistShouldDelete, cancellationToken);
         }
     }
 }

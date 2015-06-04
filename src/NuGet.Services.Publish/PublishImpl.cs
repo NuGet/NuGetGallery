@@ -11,6 +11,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Publish
@@ -51,7 +52,7 @@ namespace NuGet.Services.Publish
             return Task.FromResult<IDictionary<string, PackageArtifact>>(new Dictionary<string, PackageArtifact>());
         }
 
-        public async Task Upload(IOwinContext context)
+        public async Task Upload(IOwinContext context, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("PublishImpl.Upload");
 
@@ -144,7 +145,7 @@ namespace NuGet.Services.Publish
 
             if (isCommit)
             {
-                catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails, isListed);
+                catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails, isListed, cancellationToken);
 
                 Trace.TraceInformation("AddToCatalog");
             }
@@ -176,7 +177,7 @@ namespace NuGet.Services.Publish
             }
         }
 
-        public async Task Edit(IOwinContext context)
+        public async Task Edit(IOwinContext context, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("PublishImpl.Edit");
 
@@ -203,7 +204,7 @@ namespace NuGet.Services.Publish
 
             //  validation
 
-            EditValidationResult validationResult = await ValidateEdit(metadataStream);
+            EditValidationResult validationResult = await ValidateEdit(metadataStream, cancellationToken);
 
             if (validationResult.HasErrors)
             {
@@ -255,7 +256,7 @@ namespace NuGet.Services.Publish
 
             //  (5) add the new item to the catalog
 
-            Uri catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails, validationResult.Listed);
+            Uri catalogAddress = await AddToCatalog(metadata["nuspec"], GetItemType(), publicationDetails, validationResult.Listed, cancellationToken);
 
             Trace.TraceInformation("AddToCatalog");
 
@@ -276,7 +277,7 @@ namespace NuGet.Services.Publish
             await ServiceHelpers.WriteResponse(context, response, HttpStatusCode.OK);
         }
 
-        async Task<EditValidationResult> ValidateEdit(Stream metadataStream)
+        async Task<EditValidationResult> ValidateEdit(Stream metadataStream, CancellationToken cancellationToken)
         {
             EditValidationResult result = new EditValidationResult();
 
@@ -298,7 +299,7 @@ namespace NuGet.Services.Publish
                 JToken catalogEntryAddress;
                 if (metadata.TryGetValue("catalogEntry", out catalogEntryAddress))
                 {
-                    JObject catalogEntry = await CatalogHelpers.LoadFromCatalog(catalogEntryAddress.ToString(), Configuration.StoragePrimary, Configuration.StorageContainerCatalog, Configuration.CatalogBaseAddress);
+                    JObject catalogEntry = await CatalogHelpers.LoadFromCatalog(catalogEntryAddress.ToString(), Configuration.StoragePrimary, Configuration.StorageContainerCatalog, Configuration.CatalogBaseAddress, cancellationToken);
 
                     if (catalogEntry != null)
                     {
@@ -436,10 +437,10 @@ namespace NuGet.Services.Publish
             }
         }
 
-        static Task<Uri> AddToCatalog(JObject nuspec, Uri itemType, PublicationDetails publicationDetails, bool isListed)
+        static Task<Uri> AddToCatalog(JObject nuspec, Uri itemType, PublicationDetails publicationDetails, bool isListed, CancellationToken cancellationToken)
         {
             CatalogItem catalogItem = new GraphCatalogItem(nuspec, itemType, publicationDetails, isListed);
-            return CatalogHelpers.AddToCatalog(catalogItem, Configuration.StoragePrimary, Configuration.StorageContainerCatalog, Configuration.CatalogBaseAddress);
+            return CatalogHelpers.AddToCatalog(catalogItem, Configuration.StoragePrimary, Configuration.StorageContainerCatalog, Configuration.CatalogBaseAddress, cancellationToken);
         }
 
         async Task UpdateRegistrationOwnership(PackageIdentity packageIdentity)

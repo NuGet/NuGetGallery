@@ -5,6 +5,7 @@ using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 using VDS.RDF.Query;
@@ -21,7 +22,8 @@ namespace NuGet.Services.Metadata.Catalog
             StorageFactory storageFactory,
             Uri contentBaseAddress,
             int partitionSize,
-            int packageCountThreshold)
+            int packageCountThreshold,
+             CancellationToken cancellationToken)
         {
             int versionAlreadyExistsCount = 0;
             existingVersionsWithID = new List<string>();
@@ -31,7 +33,7 @@ namespace NuGet.Services.Metadata.Catalog
                 Storage storage = storageFactory.Create(id.ToLowerInvariant());
 
                 Uri resourceUri = storage.ResolveUri("index.json");
-                string json = await storage.LoadString(resourceUri);
+                string json = await storage.LoadString(resourceUri, cancellationToken);
 
                 int count = Utils.CountItems(json);
 
@@ -39,7 +41,7 @@ namespace NuGet.Services.Metadata.Catalog
                 CollectorHttpClient httpClient = new CollectorHttpClient();
                 foreach (var graph in sortedGraphs)
                 {
-                    JObject jsonContent = await httpClient.GetJObjectAsync(new Uri(graph.Key));
+                    JObject jsonContent = await httpClient.GetJObjectAsync(new Uri(graph.Key), cancellationToken);
                     string existingId = jsonContent["@id"].ToString();
                     string existingVersionWithId = existingId.Substring(existingId.LastIndexOf("/") + 1);
 
@@ -60,11 +62,11 @@ namespace NuGet.Services.Metadata.Catalog
 
                 if (total < packageCountThreshold)
                 {
-                    await SaveSmallRegistration(storage, storageFactory.BaseAddress, sortedGraphs, contentBaseAddress, partitionSize);
+                    await SaveSmallRegistration(storage, storageFactory.BaseAddress, sortedGraphs, contentBaseAddress, partitionSize, cancellationToken);
                 }
                 else
                 {
-                    await SaveLargeRegistration(storage, storageFactory.BaseAddress, sortedGraphs, json, contentBaseAddress, partitionSize);
+                    await SaveLargeRegistration(storage, storageFactory.BaseAddress, sortedGraphs, json, contentBaseAddress, partitionSize, cancellationToken);
                 }
             }
             catch (Exception e)
@@ -73,22 +75,22 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
-        static async Task SaveSmallRegistration(Storage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, Uri contentBaseAddress, int partitionSize)
+        static async Task SaveSmallRegistration(Storage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, Uri contentBaseAddress, int partitionSize, CancellationToken cancellationToken)
         {
             SingleGraphPersistence graphPersistence = new SingleGraphPersistence(storage);
 
-            await graphPersistence.Initialize();
+            await graphPersistence.Initialize(cancellationToken);
 
-            await SaveRegistration(storage, registrationBaseAddress, items, null, graphPersistence, contentBaseAddress, partitionSize);
+            await SaveRegistration(storage, registrationBaseAddress, items, null, graphPersistence, contentBaseAddress, partitionSize, cancellationToken);
 
             // now the commit has happened the graphPersistence.Graph should contain all the data
 
             JObject frame = (new CatalogContext()).GetJsonLdContext("context.Registration.json", graphPersistence.TypeUri);
             StorageContent content = new StringStorageContent(Utils.CreateJson(graphPersistence.Graph, frame), "application/json", "no-store");
-            await storage.Save(graphPersistence.ResourceUri, content);
+            await storage.Save(graphPersistence.ResourceUri, content,cancellationToken);
         }
 
-        static async Task SaveLargeRegistration(Storage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, string existingRoot, Uri contentBaseAddress, int partitionSize)
+        static async Task SaveLargeRegistration(Storage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, string existingRoot, Uri contentBaseAddress, int partitionSize, CancellationToken cancellationToken)
         {
             if (existingRoot != null)
             {
@@ -98,7 +100,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             IList<Uri> cleanUpList = new List<Uri>();
 
-            await SaveRegistration(storage, registrationBaseAddress, items, cleanUpList, null, contentBaseAddress, partitionSize);
+            await SaveRegistration(storage, registrationBaseAddress, items, cleanUpList, null, contentBaseAddress, partitionSize, cancellationToken);
 
             // because there were multiple files some might now be irrelevant
 
@@ -107,12 +109,12 @@ namespace NuGet.Services.Metadata.Catalog
                 if (uri != storage.ResolveUri("index.json"))
                 {
                     Console.WriteLine("DELETE: {0}", uri);
-                    await storage.Delete(uri);
+                    await storage.Delete(uri, cancellationToken);
                 }
             }
         }
 
-        static async Task SaveRegistration(Storage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, IList<Uri> cleanUpList, SingleGraphPersistence graphPersistence, Uri contentBaseAddress, int partitionSize)
+        static async Task SaveRegistration(Storage storage, Uri registrationBaseAddress, IDictionary<string, IGraph> items, IList<Uri> cleanUpList, SingleGraphPersistence graphPersistence, Uri contentBaseAddress, int partitionSize, CancellationToken cancellationToken)
         {
             using (RegistrationCatalogWriter writer = new RegistrationCatalogWriter(storage, partitionSize, cleanUpList, graphPersistence))
             {
@@ -120,7 +122,7 @@ namespace NuGet.Services.Metadata.Catalog
                 {
                     writer.Add(new RegistrationCatalogItem(new Uri(item.Key), item.Value, contentBaseAddress, registrationBaseAddress));
                 }
-                await writer.Commit(DateTime.UtcNow);
+                await writer.Commit(DateTime.UtcNow, null, cancellationToken);
             }
         }
 

@@ -10,6 +10,7 @@ using System;
 using System.Diagnostics;
 using System.IdentityModel.Tokens;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 [assembly: OwinStartup(typeof(NuGet.Services.Publish.Startup))]
@@ -117,7 +118,40 @@ namespace NuGet.Services.Publish
                         await InvokeGET(context);
                         break;
                     case "POST":
-                        await InvokePOST(context);
+                        await InvokePOST(context, CancellationToken.None);
+                        break;
+                    default:
+                        await context.Response.WriteAsync("NotFound");
+                        context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError("Invoke Exception: {0} {1}", e.GetType().Name, e.Message);
+
+                error = e.Message;
+            }
+
+            if (error != null)
+            {
+                await ServiceHelpers.WriteErrorResponse(context, error, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        async Task Invoke(IOwinContext context, CancellationToken cancellationToken)
+        {
+            string error = null;
+
+            try
+            {
+                switch (context.Request.Method)
+                {
+                    case "GET":
+                        await InvokeGET(context);
+                        break;
+                    case "POST":
+                        await InvokePOST(context, cancellationToken);
                         break;
                     default:
                         await context.Response.WriteAsync("NotFound");
@@ -177,7 +211,7 @@ namespace NuGet.Services.Publish
             }
         }
 
-        async Task InvokePOST(IOwinContext context)
+        async Task InvokePOST(IOwinContext context, CancellationToken cancellationToken)
         {
             IRegistrationOwnership registrationOwnership = CreateRegistrationOwnership();
             ICategorizationPermission categorizationPermission = CategorizationPermission();
@@ -193,19 +227,19 @@ namespace NuGet.Services.Publish
                 case "/apiapp/upload":
                     {
                         PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership, categorizationPermission, _imagesUri);
-                        await uploader.Upload(context);
+                        await uploader.Upload(context, cancellationToken);
                         break;
                     }
                 case "/apiapp/edit":
                     {
                         PublishImpl uploader = new ApiAppsPublishImpl(registrationOwnership, categorizationPermission, _imagesUri);
-                        await uploader.Edit(context);
+                        await uploader.Edit(context, cancellationToken);
                         break;
                     }
                 case "/delete":
                     {
                         DeleteImpl deleteImpl = new DeleteImpl(registrationOwnership);
-                        await deleteImpl.Delete(context);
+                        await deleteImpl.Delete(context, cancellationToken);
                         break;
                     }
                 case "/tenant/enable":
@@ -229,7 +263,7 @@ namespace NuGet.Services.Publish
                 case "/catalog/powershell":
                     {
                         PublishImpl uploader = new PowerShellPublishImpl(registrationOwnership);
-                        await uploader.Upload(context);
+                        await uploader.Upload(context, cancellationToken);
                         break;
                     }
                 default:

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Canton
@@ -24,7 +25,7 @@ namespace NuGet.Canton
 
         }
 
-        public override async Task RunCore()
+        public override async Task RunCore(CancellationToken cancellationToken)
         {
             if (!_complete)
             {
@@ -32,9 +33,9 @@ namespace NuGet.Canton
 
                 var queueClient = Account.CreateCloudQueueClient();
 
-                await CreateQueue(queueClient, CantonConstants.GalleryPagesQueue);
-                await CreateQueue(queueClient, CantonConstants.CatalogCommitQueue);
-                await CreateQueue(queueClient, CantonConstants.CatalogPageQueue);
+                await CreateQueue(queueClient, CantonConstants.GalleryPagesQueue, cancellationToken);
+                await CreateQueue(queueClient, CantonConstants.CatalogCommitQueue, cancellationToken);
+                await CreateQueue(queueClient, CantonConstants.CatalogPageQueue, cancellationToken);
 
                 var blobClient = Account.CreateCloudBlobClient();
                 await CreateContainer(blobClient, Config.GetProperty("CatalogContainer"));
@@ -62,10 +63,10 @@ namespace NuGet.Canton
             container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
         }
 
-        private async Task CreateQueue(CloudQueueClient client, string queueName)
+        private async Task CreateQueue(CloudQueueClient client, string queueName, CancellationToken cancellationToken)
         {
             var queue = client.GetQueueReference(queueName);
-            await queue.CreateIfNotExistsAsync();
+            await queue.CreateIfNotExistsAsync(cancellationToken);
         }
     }
 }

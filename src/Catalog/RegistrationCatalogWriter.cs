@@ -6,6 +6,7 @@ using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -29,17 +30,17 @@ namespace NuGet.Services.Metadata.Catalog
             return new Uri[] { Schema.DataTypes.PackageRegistration, Schema.DataTypes.Permalink };
         }
 
-        protected override async Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries)
+        protected override async Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries, CancellationToken cancellationToken)
         {
             SortedDictionary<NuGetVersion, KeyValuePair<string, CatalogItemSummary>> versions = new SortedDictionary<NuGetVersion, KeyValuePair<string, CatalogItemSummary>>();
 
             //  load items from existing pages
 
-            IDictionary<string, CatalogItemSummary> pageEntries = await LoadIndexResource(RootUri);
+            IDictionary<string, CatalogItemSummary> pageEntries = await LoadIndexResource(RootUri, cancellationToken);
 
             foreach (KeyValuePair<string, CatalogItemSummary> pageEntry in pageEntries)
             {
-                IDictionary<string, CatalogItemSummary> pageItemEntries = await LoadIndexResource(new Uri(pageEntry.Key));
+                IDictionary<string, CatalogItemSummary> pageItemEntries = await LoadIndexResource(new Uri(pageEntry.Key), cancellationToken);
 
                 foreach (KeyValuePair<string, CatalogItemSummary> pageItemEntry in pageItemEntries)
                 {
@@ -58,7 +59,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             //  (re)create pages
 
-            IDictionary<string, CatalogItemSummary> newPageEntries = await PartitionAndSavePages(commitId, commitTimeStamp, versions);
+            IDictionary<string, CatalogItemSummary> newPageEntries = await PartitionAndSavePages(commitId, commitTimeStamp, versions, cancellationToken);
 
             //  add to list of pages to clean up
 
@@ -76,7 +77,7 @@ namespace NuGet.Services.Metadata.Catalog
             return newPageEntries;
         }
 
-        async Task<IDictionary<string, CatalogItemSummary>> PartitionAndSavePages(Guid commitId, DateTime commitTimeStamp, SortedDictionary<NuGetVersion, KeyValuePair<string, CatalogItemSummary>> versions)
+        async Task<IDictionary<string, CatalogItemSummary>> PartitionAndSavePages(Guid commitId, DateTime commitTimeStamp, SortedDictionary<NuGetVersion, KeyValuePair<string, CatalogItemSummary>> versions, CancellationToken cancellationToken)
         {
             IDictionary<string, CatalogItemSummary> newPageEntries = new Dictionary<string, CatalogItemSummary>();
 
@@ -95,7 +96,7 @@ namespace NuGet.Services.Metadata.Catalog
 
                 IGraph extra = CreateExtraGraph(newPageUri, lower, upper);
 
-                await SaveIndexResource(newPageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, newPageItemEntries, RootUri, extra);
+                await SaveIndexResource(newPageUri, Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, newPageItemEntries, RootUri, extra, null, cancellationToken);
 
                 newPageEntries[newPageUri.AbsoluteUri] = new CatalogItemSummary(Schema.DataTypes.CatalogPage, commitId, commitTimeStamp, newPageItemEntries.Count, CreatePageSummary(newPageUri, lower, upper));
             }

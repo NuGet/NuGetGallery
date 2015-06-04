@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -22,7 +23,7 @@ namespace NuGet.Canton
 
         }
 
-        public async Task ProcessGraphs(CollectorHttpClient client, string packageId, IEnumerable<Uri> catalogPageUris, JObject context)
+        public async Task ProcessGraphs(CollectorHttpClient client, string packageId, IEnumerable<Uri> catalogPageUris, JObject context, CancellationToken cancellationToken)
         {
             ConcurrentDictionary<string, IGraph> graphs = new ConcurrentDictionary<string, IGraph>();
 
@@ -42,7 +43,7 @@ namespace NuGet.Canton
                 }
             });
 
-            await ProcessGraphs(new KeyValuePair<string, IDictionary<string, IGraph>>(packageId, graphs));
+            await ProcessGraphs(new KeyValuePair<string, IDictionary<string, IGraph>>(packageId, graphs), cancellationToken);
         }
     }
 }

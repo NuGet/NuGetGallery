@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Test
@@ -22,13 +23,13 @@ namespace NuGet.Services.Metadata.Catalog.Test
             private set;
         }
 
-        protected override async Task<bool> Fetch(CollectorHttpClient client, ReadWriteCursor front, ReadCursor back)
+        protected override async Task<bool> Fetch(CollectorHttpClient client, ReadWriteCursor front, ReadCursor back, CancellationToken cancellationToken)
         {
-            await front.Load();
+            await front.Load(cancellationToken);
 
             DateTime frontDateTime = front.Value;
 
-            JObject root = await client.GetJObjectAsync(Index);
+            JObject root = await client.GetJObjectAsync(Index, cancellationToken);
 
             List<Task<JObject>> tasks = new List<Task<JObject>>();
 
@@ -43,7 +44,7 @@ namespace NuGet.Services.Metadata.Catalog.Test
                     Total += count;
 
                     front.Value = pageTimeStamp;
-                    await front.Save();
+                    await front.Save(cancellationToken);
                 }
             }
 

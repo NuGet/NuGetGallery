@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -92,13 +93,13 @@ namespace CatalogTests
 
                 if (++i % BatchSize == 0)
                 {
-                    await writer.Commit(DateTime.UtcNow);
+                    await writer.Commit(DateTime.UtcNow, null, CancellationToken.None);
 
                     Console.WriteLine("commit number {0}", commitCount++);
                 }
             }
 
-            await writer.Commit(DateTime.UtcNow);
+            await writer.Commit(DateTime.UtcNow, null, CancellationToken.None);
 
             Console.WriteLine("commit number {0}", commitCount++);
         }
@@ -110,10 +111,10 @@ namespace CatalogTests
             Console.WriteLine(root);
 
             DistinctPackageIdCollector distinctPackageIdCollector = new DistinctPackageIdCollector(root);
-            await distinctPackageIdCollector.Run();
+            await distinctPackageIdCollector.Run(CancellationToken.None);
 
             DistinctDependencyPackageIdCollector distinctDependencyPackageIdCollector = new DistinctDependencyPackageIdCollector(root);
-            await distinctDependencyPackageIdCollector.Run();
+            await distinctDependencyPackageIdCollector.Run(CancellationToken.None);
 
             HashSet<string> missing = new HashSet<string>();
 
@@ -162,7 +163,7 @@ namespace CatalogTests
             AddDependenciesAsync(path, storage).Wait();
 
             DistinctPackageIdCollector distinctPackageIdCollector = new DistinctPackageIdCollector(storage.ResolveUri("index.json"));
-            distinctPackageIdCollector.Run().Wait();
+            distinctPackageIdCollector.Run(CancellationToken.None).Wait();
 
             Console.WriteLine(distinctPackageIdCollector.Result.Count);
         }

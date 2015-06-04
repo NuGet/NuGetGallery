@@ -14,6 +14,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -46,13 +47,13 @@ namespace CatalogTests
 
                 if (++i % BatchSize == 0)
                 {
-                    await writer.Commit(DateTime.UtcNow);
+                    await writer.Commit(DateTime.UtcNow, null, CancellationToken.None);
 
                     Console.WriteLine("commit number {0}", commitCount++);
                 }
             }
 
-            await writer.Commit(DateTime.UtcNow);
+            await writer.Commit(DateTime.UtcNow, null, CancellationToken.None);
 
             Console.WriteLine("commit number {0}", commitCount++);
         }
@@ -101,7 +102,7 @@ namespace CatalogTests
 
                 if (++i == commitSize[commitCount])
                 {
-                    await writer.Commit(DateTime.UtcNow);
+                    await writer.Commit(DateTime.UtcNow, null, CancellationToken.None);
 
                     Console.WriteLine("commit number {0}", commitCount);
 
@@ -112,7 +113,7 @@ namespace CatalogTests
 
             if (i > 0)
             {
-                await writer.Commit(DateTime.UtcNow);
+                await writer.Commit(DateTime.UtcNow, null, CancellationToken.None); 
             }
 
             Console.WriteLine("total: {0}", total);
@@ -231,7 +232,7 @@ namespace CatalogTests
 
             IDictionary<string, DateTime> packageCreated = LoadPackageCreatedLookup();
 
-            DateTime lastCreated = (await PackageCatalog.ReadCommitMetadata(writer)).Item1 ?? DateTime.MinValue;
+            DateTime lastCreated = (await PackageCatalog.ReadCommitMetadata(writer, CancellationToken.None)).Item1 ?? DateTime.MinValue;
 
             ParallelOptions options = new ParallelOptions();
             options.MaxDegreeOfParallelism = 8;
@@ -290,7 +291,7 @@ namespace CatalogTests
                     writer.Add(item);
                 }
 
-                commitTask = Task.Run(async () => await writer.Commit(commitTime, PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, null)));
+                commitTask = Task.Run(async () => await writer.Commit(commitTime, PackageCatalog.CreateCommitMetadata(writer.RootUri, lastCreated, null), CancellationToken.None));
 
                 // stats
                 double perPackage = runtime.Elapsed.TotalSeconds / (double)completed;

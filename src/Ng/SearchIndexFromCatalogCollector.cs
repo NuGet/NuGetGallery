@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Ng
@@ -38,10 +39,10 @@ namespace Ng
             _baseAddress = baseAddress;
         }
 
-        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp)
+        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, CancellationToken cancellationToken)
         {
-            JObject catalogIndex = (_baseAddress != null) ? await client.GetJObjectAsync(Index) : null;
-            IEnumerable<JObject> catalogItems = await FetchCatalogItems(client, items);
+            JObject catalogIndex = (_baseAddress != null) ? await client.GetJObjectAsync(Index, cancellationToken) : null;
+            IEnumerable<JObject> catalogItems = await FetchCatalogItems(client, items, cancellationToken);
 
             using (IndexWriter indexWriter = CreateIndexWriter(_directory))
             {
@@ -60,7 +61,7 @@ namespace Ng
             return true;
         }
 
-        static async Task<IEnumerable<JObject>> FetchCatalogItems(CollectorHttpClient client, IEnumerable<JToken> items)
+        static async Task<IEnumerable<JObject>> FetchCatalogItems(CollectorHttpClient client, IEnumerable<JToken> items, CancellationToken cancellationToken)
         {
             IList<Task<JObject>> tasks = new List<Task<JObject>>();
 
@@ -68,7 +69,7 @@ namespace Ng
             {
                 Uri catalogItemUri = item["@id"].ToObject<Uri>();
 
-                tasks.Add(client.GetJObjectAsync(catalogItemUri));
+                tasks.Add(client.GetJObjectAsync(catalogItemUri, cancellationToken));
             }
 
             await Task.WhenAll(tasks);

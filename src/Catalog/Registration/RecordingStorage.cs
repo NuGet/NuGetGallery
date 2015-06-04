@@ -3,6 +3,7 @@
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Registration
@@ -22,28 +23,28 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         public HashSet<Uri> Loaded { get; private set; }
         public HashSet<Uri> Saved { get; private set; }
 
-        public Task Save(Uri resourceUri, StorageContent content)
+        public Task Save(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
-            Task result = _innerStorage.Save(resourceUri, content);
+            Task result = _innerStorage.Save(resourceUri, content, cancellationToken);
             Saved.Add(resourceUri);
             return result;
         }
 
-        public Task<StorageContent> Load(Uri resourceUri)
+        public Task<StorageContent> Load(Uri resourceUri, CancellationToken cancellationToken)
         {
-            Task<StorageContent> result = _innerStorage.Load(resourceUri);
+            Task<StorageContent> result = _innerStorage.Load(resourceUri, cancellationToken);
             Loaded.Add(resourceUri);
             return result;
         }
 
-        public Task Delete(Uri resourceUri)
+        public Task Delete(Uri resourceUri, CancellationToken cancellationToken)
         {
-            return _innerStorage.Delete(resourceUri);
+            return _innerStorage.Delete(resourceUri, cancellationToken);
         }
 
-        public Task<string> LoadString(Uri resourceUri)
+        public Task<string> LoadString(Uri resourceUri, CancellationToken cancellationToken)
         {
-            Task<string> result = _innerStorage.LoadString(resourceUri);
+            Task<string> result = _innerStorage.LoadString(resourceUri, cancellationToken);
             Loaded.Add(resourceUri);
             return result;
         }

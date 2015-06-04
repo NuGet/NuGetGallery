@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -17,11 +18,11 @@ namespace NuGet.Services.Metadata.Catalog
         {
         }
 
-        protected override async Task<bool> Fetch(CollectorHttpClient client, ReadWriteCursor front, ReadCursor back)
+        protected override async Task<bool> Fetch(CollectorHttpClient client, ReadWriteCursor front, ReadCursor back, CancellationToken cancellationToken)
         {
             IList<JObject> items = new List<JObject>();
 
-            JObject root = await client.GetJObjectAsync(Index);
+            JObject root = await client.GetJObjectAsync(Index, cancellationToken);
 
             IEnumerable<CatalogItem> rootItems = root["items"]
                 .Select(item => new CatalogItem(item))
@@ -32,7 +33,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             foreach (CatalogItem rootItem in rootItems)
             {
-                JObject page = await client.GetJObjectAsync(rootItem.Uri);
+                JObject page = await client.GetJObjectAsync(rootItem.Uri, cancellationToken);
 
                 JToken context = null;
                 page.TryGetValue("@context", out context);
@@ -45,10 +46,10 @@ namespace NuGet.Services.Metadata.Catalog
 
                 foreach (var batch in batches)
                 {
-                    acceptNextBatch = await OnProcessBatch(client, batch.Select(item => item.Value), context, batch.Key);
+                    acceptNextBatch = await OnProcessBatch(client, batch.Select(item => item.Value), context, batch.Key, cancellationToken);
 
                     front.Value = batch.Key;
-                    await front.Save();
+                    await front.Save(cancellationToken);
 
                     Trace.TraceInformation("CommitCatalog.Fetch front.Save has value: {0}", front);
 
@@ -67,7 +68,7 @@ namespace NuGet.Services.Metadata.Catalog
             return acceptNextBatch;
         }
 
-        protected abstract Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp);
+        protected abstract Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, CancellationToken cancellationToken);
 
         class CatalogItem : IComparable
         {

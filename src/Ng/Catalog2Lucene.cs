@@ -12,7 +12,7 @@ namespace Ng
 {
     public static class Catalog2Lucene
     {
-        static async Task Loop(string source, string registration, Lucene.Net.Store.Directory directory, string catalogBaseAddress, string storageBaseAddress, bool verbose, int interval)
+        static async Task Loop(string source, string registration, Lucene.Net.Store.Directory directory, string catalogBaseAddress, string storageBaseAddress, bool verbose, int interval, CancellationToken cancellationToken)
         {
             Func<HttpMessageHandler> handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(verbose, catalogBaseAddress, storageBaseAddress);
 
@@ -27,7 +27,7 @@ namespace Ng
                 bool run = false;
                 do
                 {
-                    run = await collector.Run(front, back);
+                    run = await collector.Run(front, back, cancellationToken);
                 }
                 while (run);
 
@@ -40,7 +40,7 @@ namespace Ng
             Console.WriteLine("Usage: ng catalog2lucene -source <catalog> [-registration <registration-root>] -luceneDirectoryType file|azure [-lucenePath <file-path>] | [-luceneStorageAccountName <azure-acc> -luceneStorageKeyValue <azure-key> -luceneStorageContainer <azure-container>] [-verbose true|false] [-interval <seconds>]");
         }
 
-        public static void Run(string[] args)
+        public static void Run(string[] args, CancellationToken cancellationToken)
         {
             IDictionary<string, string> arguments = CommandHelpers.GetArguments(args, 1);
             if (arguments == null || arguments.Count == 0)
@@ -91,7 +91,7 @@ namespace Ng
 
             Trace.TraceInformation("CONFIG source: \"{0}\" registration: \"{1}\" catalogBaseAddress: \"{2}\" storageBaseAddress: \"{3}\" interval: {4} seconds", source, registration ?? "(null)", catalogBaseAddress ?? "(null)", storageBaseAddress ?? "(null)", interval);
 
-            Loop(source, registration, directory, catalogBaseAddress, storageBaseAddress, verbose, interval).Wait();
+            Loop(source, registration, directory, catalogBaseAddress, storageBaseAddress, verbose, interval, cancellationToken).Wait();
         }
     }
 }

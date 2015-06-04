@@ -4,6 +4,7 @@ using NuGet.Services.Metadata.Catalog;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 
 namespace Ng
 {
@@ -22,6 +23,8 @@ namespace Ng
                 Debugger.Launch();
             }
 
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
             try
             {
                 if (args.Length == 0)
@@ -33,19 +36,19 @@ namespace Ng
                 switch (args[0])
                 {
                     case "package2catalog":
-                        Feed2Catalog.Package(args);
+                        Feed2Catalog.Package(args, cancellationTokenSource.Token);
                         break;
                     case "feed2catalog" :
-                        Feed2Catalog.Run(args);
+                        Feed2Catalog.Run(args, cancellationTokenSource.Token);
                         break;
                     case "catalog2registration" :
-                        Catalog2Registration.Run(args);
+                        Catalog2Registration.Run(args, cancellationTokenSource.Token);
                         break;
                     case "catalog2lucene" :
-                        Catalog2Lucene.Run(args);
+                        Catalog2Lucene.Run(args, cancellationTokenSource.Token);
                         break;
                     case "catalog2dnx":
-                        Catalog2Dnx.Run(args);
+                        Catalog2Dnx.Run(args, cancellationTokenSource.Token);
                         break;
                     case "frameworkcompatibility":
                         FrameworkCompatibility.Run(args);

@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGetFeed
@@ -31,7 +32,7 @@ namespace NuGetFeed
             Stopwatch timer = new Stopwatch();
             timer.Start();
 
-            RunCore();
+            RunCore(CancellationToken.None);
 
             timer.Stop();
 
@@ -73,7 +74,7 @@ namespace NuGetFeed
             }
         }
 
-        protected abstract void RunCore();
+        protected abstract void RunCore(CancellationToken cancellationToken);
 
         public virtual void Dispose()
         {

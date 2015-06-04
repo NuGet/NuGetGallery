@@ -5,6 +5,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Metadata.Catalog.Test;
 using System;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CatalogTests
@@ -16,7 +17,7 @@ namespace CatalogTests
             //  simply totals up the counts available in the pages
 
             CountCollector collector = new CountCollector(new Uri("http://nugetjohtaylo.blob.core.windows.net/ver38/catalog/index.json"));
-            await collector.Run();
+            await collector.Run(CancellationToken.None);
             Console.WriteLine("total: {0}", collector.Total);
             Console.WriteLine("http requests: {0}", collector.RequestCount);
         }
@@ -33,7 +34,7 @@ namespace CatalogTests
             //  attempts to make the http call to the actual item
 
             CollectorBase collector = new CheckLinksCollector(new Uri("http://localhost:8000/full/index.json"));
-            await collector.Run();
+            await collector.Run(CancellationToken.None);
 
             Console.WriteLine("all done");
         }
@@ -53,7 +54,7 @@ namespace CatalogTests
             };
 
             DistinctPackageIdCollector collector = new DistinctPackageIdCollector(new Uri("https://az320820.vo.msecnd.net/catalog-0/index.json"), handlerFunc);
-            await collector.Run();
+            await collector.Run(CancellationToken.None);
 
             foreach (string s in collector.Result)
             {
@@ -88,7 +89,7 @@ namespace CatalogTests
 
             CommitCollector collector = new NuspecCollector(new Uri("http://localhost:8000/full/index.json"), storage, handlerFunc);
 
-            await collector.Run();
+            await collector.Run(CancellationToken.None);
             
             Console.WriteLine("http requests: {0}", collector.RequestCount);
         }
@@ -131,7 +132,7 @@ namespace CatalogTests
             //collector.PackageCountThreshold = 50;
             //CollectorCursor cursor = new CollectorCursor(new DateTime(2014, 10, 01, 03, 27, 35, 360, DateTimeKind.Utc));
 
-            await collector.Run();
+            await collector.Run(CancellationToken.None);
 
             Console.WriteLine("http requests: {0} batch count: {1}", collector.RequestCount);
         }
@@ -155,7 +156,7 @@ namespace CatalogTests
             FindFirstCollector collector = new FindFirstCollector(index, "HtmlTags", "1.2.0.145", handlerFunc);
             //FindFirstCollector collector = new FindFirstCollector("abot", "1.2.1-alpha");
 
-            await collector.Run();
+            await collector.Run(CancellationToken.None);
 
             if (collector.PackageDetails != null)
             {
@@ -195,7 +196,7 @@ namespace CatalogTests
 
             PrintCollector collector = new PrintCollector("Test6", new Uri("http://localhost:8000/ordered/index.json"), handlerFunc);
 
-            await collector.Run();
+            await collector.Run(CancellationToken.None);
 
             Console.WriteLine("http requests: {0}", collector.RequestCount);
         }
@@ -226,7 +227,7 @@ namespace CatalogTests
 
             CollectorBase collector = new PrintCommitCollector(new Uri("http://localhost:8000/dotnetrdf/index.json"), handlerFunc);
 
-            await collector.Run();
+            await collector.Run(CancellationToken.None);
 
             Console.WriteLine("http requests: {0}", collector.RequestCount);
         }

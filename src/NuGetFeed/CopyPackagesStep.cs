@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGetFeed
@@ -19,7 +20,7 @@ namespace NuGetFeed
             _nupkgs = new Queue<string>(nupkgs);
         }
 
-        protected override void RunCore()
+        protected override void RunCore(CancellationToken cancellationToken)
         {
             DirectoryInfo dir = new DirectoryInfo(Path.Combine(Config.Packages.LocalFolder.FullName, "packages"));
 

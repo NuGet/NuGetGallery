@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Publish
@@ -21,7 +22,7 @@ namespace NuGet.Services.Publish
             _registrationOwnership = registrationOwnership;
         }
 
-        public async Task Delete(IOwinContext context)
+        public async Task Delete(IOwinContext context, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("DeleteImpl.Upload");
 
@@ -78,7 +79,7 @@ namespace NuGet.Services.Publish
 
             //  (2) add the new item to the catalog
 
-            Uri catalogAddress = await AddToCatalog(validationResult.PackageIdentity, publicationDetails);
+            Uri catalogAddress = await AddToCatalog(validationResult.PackageIdentity, publicationDetails, cancellationToken);
 
             Trace.TraceInformation("AddToCatalog");
 
@@ -119,10 +120,10 @@ namespace NuGet.Services.Publish
             return result;
         }
 
-        static Task<Uri> AddToCatalog(PackageIdentity packageIdentity, PublicationDetails publicationDetails)
+        static Task<Uri> AddToCatalog(PackageIdentity packageIdentity, PublicationDetails publicationDetails, CancellationToken cancellationToken)
         {
             CatalogItem catalogItem = new DeleteCatalogItem(packageIdentity, publicationDetails);
-            return CatalogHelpers.AddToCatalog(catalogItem, Configuration.StoragePrimary, Configuration.StorageContainerCatalog, Configuration.CatalogBaseAddress);
+            return CatalogHelpers.AddToCatalog(catalogItem, Configuration.StoragePrimary, Configuration.StorageContainerCatalog, Configuration.CatalogBaseAddress, cancellationToken);
         }
 
         Task UpdateRegistrationOwnership(PackageIdentity packageIdentity)

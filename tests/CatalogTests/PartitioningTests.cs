@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CatalogTests
@@ -53,7 +54,7 @@ namespace CatalogTests
         {
             Uri indexUri = new Uri("http://nugetprod0.blob.core.windows.net/ng-catalogs/0/index.json");
 
-            IDictionary<string, IList<JObject>> packages = IndexingHelpers.GetPackages(indexUri, true).Result;
+            IDictionary<string, IList<JObject>> packages = IndexingHelpers.GetPackages(indexUri, true, CancellationToken.None).Result;
 
             PrintMetrics(packages);
 
@@ -94,7 +95,7 @@ namespace CatalogTests
                 string name = string.Format("partition{0}", partitionNumber++);
                 Storage storage = new FileStorage("http://localhost:8000/partition/" + name, @"c:\data\site\partition\" + name);
                 //Storage storage = new AzureStorage(account, name);
-                createTasks.Add(IndexingHelpers.CreateNewCatalog(storage, partition));
+                createTasks.Add(IndexingHelpers.CreateNewCatalog(storage, partition, CancellationToken.None));
             }
 
             Task.WaitAll(createTasks.ToArray());
@@ -110,7 +111,7 @@ namespace CatalogTests
             {
                 Uri indexUri = new Uri(string.Format(template, i));
 
-                tasks.Add(IndexingHelpers.GetPackages(indexUri, true));
+                tasks.Add(IndexingHelpers.GetPackages(indexUri, true, CancellationToken.None));
             }
 
             Task.WaitAll(tasks.ToArray());

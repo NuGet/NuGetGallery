@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CatalogTests
@@ -29,7 +30,7 @@ namespace CatalogTests
 
             CommitCollector collector = new ReindexCatalogCollector(new Uri("http://localhost:8000/full/index.json"), storageFactory, handlerFunc);
 
-            await collector.Run();
+            await collector.Run(CancellationToken.None);
 
             Console.WriteLine("http requests: {0}", collector.RequestCount);
         }

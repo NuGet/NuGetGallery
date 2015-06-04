@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -20,7 +21,7 @@ namespace NuGet.Services.Metadata.Catalog
             _types = types;
         }
 
-        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp)
+        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, CancellationToken cancellationToken)
         {
             List<Task<IGraph>> tasks = new List<Task<IGraph>>();
 
@@ -44,12 +45,12 @@ namespace NuGet.Services.Metadata.Catalog
                     store.Add(task.Result, true);
                 }
 
-                await ProcessStore(store);
+                await ProcessStore(store, cancellationToken);
             }
 
             return true;
         }
 
-        protected abstract Task ProcessStore(TripleStore store);
+        protected abstract Task ProcessStore(TripleStore store, CancellationToken cancellationToken);
     }
 }

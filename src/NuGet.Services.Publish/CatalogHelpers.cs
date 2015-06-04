@@ -5,13 +5,14 @@ using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Publish
 {
     public static class CatalogHelpers
     {
-        public static async Task<Uri> AddToCatalog(CatalogItem catalogItem, string connectionString, string container, string catalogBaseAddress)
+        public static async Task<Uri> AddToCatalog(CatalogItem catalogItem, string connectionString, string container, string catalogBaseAddress, CancellationToken cancellationToken)
         {
             StorageWriteLock writeLock = new StorageWriteLock(connectionString, container);
 
@@ -26,7 +27,7 @@ namespace NuGet.Services.Publish
 
                 AppendOnlyCatalogWriter writer = new AppendOnlyCatalogWriter(storage);
                 writer.Add(catalogItem);
-                await writer.Commit();
+                await writer.Commit(null, cancellationToken);
 
                 rootUri = writer.RootUri;
             }
@@ -45,10 +46,10 @@ namespace NuGet.Services.Publish
             return rootUri;
         }
 
-        public static async Task<JObject> LoadFromCatalog(string catalogEntryAddress, string connectionString, string container, string catalogBaseAddress)
+        public static async Task<JObject> LoadFromCatalog(string catalogEntryAddress, string connectionString, string container, string catalogBaseAddress, CancellationToken cancellationToken)
         {
             Storage storage = CreateStorage(connectionString, container, catalogBaseAddress);
-            string json = await storage.LoadString(new Uri(catalogEntryAddress));
+            string json = await storage.LoadString(new Uri(catalogEntryAddress), cancellationToken);
             return JObject.Parse(json);
         }
 

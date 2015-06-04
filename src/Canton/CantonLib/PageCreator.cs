@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 using VDS.RDF.Writing;
@@ -32,7 +33,7 @@ namespace NuGet.Canton
             _addons = addons;
         }
 
-        public override async Task Commit(DateTime commitTimeStamp, IGraph commitMetadata = null)
+        public override async Task Commit(DateTime commitTimeStamp, IGraph commitMetadata, CancellationToken cancellationToken)
         {
             if (!_open)
             {
@@ -48,12 +49,12 @@ namespace NuGet.Canton
             Guid commitId = Guid.NewGuid();
 
             //  save items
-            IDictionary<string, CatalogItemSummary> newItemEntries = await SaveItems(commitId, commitTimeStamp);
+            IDictionary<string, CatalogItemSummary> newItemEntries = await SaveItems(commitId, commitTimeStamp, cancellationToken);
 
             _batch.Clear();
         }
 
-        async Task<IDictionary<string, CatalogItemSummary>> SaveItems(Guid commitId, DateTime commitTimeStamp)
+        async Task<IDictionary<string, CatalogItemSummary>> SaveItems(Guid commitId, DateTime commitTimeStamp, CancellationToken cancellationToken)
         {
             ConcurrentDictionary<string, CatalogItemSummary> pageItems = new ConcurrentDictionary<string, CatalogItemSummary>();
 
@@ -131,7 +132,7 @@ namespace NuGet.Canton
                     }
                 }
 
-                SaveGraph(graph, tmpUri).Wait();
+                SaveGraph(graph, tmpUri, CancellationToken.None).Wait();
             }
 
             return tmpUri;
@@ -151,7 +152,7 @@ namespace NuGet.Canton
         //    return tmpUri;
         //}
 
-        private async Task SaveGraph(IGraph graph, Uri uri)
+        private async Task SaveGraph(IGraph graph, Uri uri, CancellationToken cancellationToken)
         {
             StringBuilder sb = new StringBuilder();
             using (var stringWriter = new System.IO.StringWriter(sb))
@@ -162,7 +163,7 @@ namespace NuGet.Canton
 
             StorageContent content = new StringStorageContent(sb.ToString(), "application/json", "no-store");
 
-            await Storage.Save(uri, content);
+            await Storage.Save(uri, content, cancellationToken);
         }
 
         protected Uri GetTempUri(string folder, string extension)
@@ -186,9 +187,9 @@ namespace NuGet.Canton
         //        pageContent.CreateLiteralNode(commitTimeStamp.ToString("O"), Schema.DataTypes.DateTime));
         //}
 
-        async Task SaveRoot(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> pageEntries, IGraph commitMetadata)
+        async Task SaveRoot(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> pageEntries, IGraph commitMetadata, CancellationToken cancellationToken)
         {
-            await SaveIndexResource(RootUri, Schema.DataTypes.CatalogRoot, commitId, commitTimeStamp, pageEntries, null, commitMetadata, GetAdditionalRootType());
+            await SaveIndexResource(RootUri, Schema.DataTypes.CatalogRoot, commitId, commitTimeStamp, pageEntries, null, commitMetadata, GetAdditionalRootType(), cancellationToken);
         }
     }
 }

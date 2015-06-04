@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
@@ -101,7 +102,7 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
             }
         }
 
-        public static async Task CreateStatisticsCatalogAsync(Storage storage, string connectionString)
+        public static async Task CreateStatisticsCatalogAsync(Storage storage, string connectionString, CancellationToken cancellationToken)
         {
             const int BatchSize = 100;
             int i = 0;
@@ -118,7 +119,7 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
                     DateTime minDownloadTimeStamp;
                     DateTime maxDownloadTimeStamp;
 
-                    JArray batch = GetNextBatch(connectionString, ref lastKey, out minDownloadTimeStamp, out maxDownloadTimeStamp);
+                    JArray batch = GetNextBatch(connectionString, ref lastKey, out minDownloadTimeStamp, out maxDownloadTimeStamp );
 
                     if (batch == null)
                     {
@@ -129,11 +130,11 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
 
                     if (++i % BatchSize == 0)
                     {
-                        await writer.Commit();
+                        await writer.Commit(null, cancellationToken);
                     }
                 }
 
-                await writer.Commit();
+                await writer.Commit(null, cancellationToken);
             }
         }
     }

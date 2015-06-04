@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CatalogTests
@@ -26,7 +27,7 @@ namespace CatalogTests
 
             string connectionString = connStrBldr.ToString();
 
-            WarehouseHelper.CreateStatisticsCatalogAsync(storage, connectionString).Wait();
+            WarehouseHelper.CreateStatisticsCatalogAsync(storage, connectionString, CancellationToken.None).Wait();
         }
 
         public static void Test1()
@@ -47,7 +48,7 @@ namespace CatalogTests
             StatsCountCollector collector = new StatsGreaterThanCountCollector(new Uri("http://localhost:8000/stats/index.json"), minDownloadTimeStamp, handlerFunc);
             //StatsCountCollector collector = new StatsLessThanCountCollector(new Uri("http://localhost:8000/stats/index.json"), minDownloadTimeStamp, handlerFunc);
 
-            collector.Run().Wait();
+            collector.Run(CancellationToken.None).Wait();
 
             Console.WriteLine("count = {0}", collector.Count);
         }

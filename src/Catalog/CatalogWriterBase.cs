@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -55,12 +56,12 @@ namespace NuGet.Services.Metadata.Catalog
 
             _batch.Add(item);
         }
-        public Task Commit(IGraph commitMetadata = null)
+        public Task Commit( IGraph commitMetadata, CancellationToken cancellationToken)
         {
-            return Commit(DateTime.UtcNow, commitMetadata);
+            return Commit(DateTime.UtcNow, commitMetadata , cancellationToken);
         }
 
-        public virtual async Task Commit(DateTime commitTimeStamp, IGraph commitMetadata = null)
+        public virtual async Task Commit(DateTime commitTimeStamp,  IGraph commitMetadata, CancellationToken cancellationToken)
         {
             if (!_open)
             {
@@ -78,20 +79,20 @@ namespace NuGet.Services.Metadata.Catalog
 
             //  save items
 
-            IDictionary<string, CatalogItemSummary> newItemEntries = await SaveItems(commitId, commitTimeStamp);
+            IDictionary<string, CatalogItemSummary> newItemEntries = await SaveItems(commitId, commitTimeStamp, cancellationToken);
 
             //  save index pages - this is abstract as the derived class determines the index pagination
 
-            IDictionary<string, CatalogItemSummary> pageEntries = await SavePages(commitId, commitTimeStamp, newItemEntries);
+            IDictionary<string, CatalogItemSummary> pageEntries = await SavePages(commitId, commitTimeStamp, newItemEntries, cancellationToken);
 
             //  save index root
 
-            await SaveRoot(commitId, commitTimeStamp, pageEntries, commitMetadata);
+            await SaveRoot(commitId, commitTimeStamp, pageEntries, commitMetadata, cancellationToken);
 
             _batch.Clear();
         }
 
-        async Task<IDictionary<string, CatalogItemSummary>> SaveItems(Guid commitId, DateTime commitTimeStamp)
+        async Task<IDictionary<string, CatalogItemSummary>> SaveItems(Guid commitId, DateTime commitTimeStamp, CancellationToken cancellationToken)
         {
             ConcurrentDictionary<string, CatalogItemSummary> pageItems = new ConcurrentDictionary<string, CatalogItemSummary>();
 
@@ -115,7 +116,7 @@ namespace NuGet.Services.Metadata.Catalog
 
                     if (content != null)
                     {
-                        saveTasks[batchIndex] = Storage.Save(resourceUri, content);
+                        saveTasks[batchIndex] = Storage.Save(resourceUri, content, cancellationToken);
                     }
 
                     IGraph pageContent = item.CreatePageContent(Context);
@@ -139,9 +140,9 @@ namespace NuGet.Services.Metadata.Catalog
             return pageItems;
         }
 
-        async Task SaveRoot(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> pageEntries, IGraph commitMetadata)
+        async Task SaveRoot(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> pageEntries, IGraph commitMetadata, CancellationToken cancellationToken)
         {
-            await SaveIndexResource(RootUri, Schema.DataTypes.CatalogRoot, commitId, commitTimeStamp, pageEntries, null, commitMetadata, GetAdditionalRootType());
+            await SaveIndexResource(RootUri, Schema.DataTypes.CatalogRoot, commitId, commitTimeStamp, pageEntries, null, commitMetadata, GetAdditionalRootType(), cancellationToken);
         }
 
         protected virtual Uri[] GetAdditionalRootType()
@@ -149,7 +150,7 @@ namespace NuGet.Services.Metadata.Catalog
             return null;
         }
 
-        protected abstract Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries);
+        protected abstract Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries, CancellationToken cancellationToken);
 
         protected virtual StorageContent CreateIndexContent(IGraph graph, Uri type)
         {
@@ -157,7 +158,7 @@ namespace NuGet.Services.Metadata.Catalog
             return new StringStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
         }
 
-        protected async Task SaveIndexResource(Uri resourceUri, Uri typeUri, Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> entries, Uri parent, IGraph extra = null, Uri[] additionalResourceTypes = null)
+        protected async Task SaveIndexResource(Uri resourceUri, Uri typeUri, Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> entries, Uri parent, IGraph extra, Uri[] additionalResourceTypes , CancellationToken cancellationToken)
         {
             IGraph graph = new Graph();
 
@@ -211,14 +212,14 @@ namespace NuGet.Services.Metadata.Catalog
                 }
             }
 
-            await SaveGraph(resourceUri, graph, typeUri);
+            await SaveGraph(resourceUri, graph, typeUri, cancellationToken);
         }
 
-        protected async Task<IDictionary<string, CatalogItemSummary>> LoadIndexResource(Uri resourceUri)
+        protected async Task<IDictionary<string, CatalogItemSummary>> LoadIndexResource(Uri resourceUri, CancellationToken cancellationToken)
         {
             IDictionary<string, CatalogItemSummary> entries = new Dictionary<string, CatalogItemSummary>();
 
-            IGraph graph = await LoadGraph(resourceUri);
+            IGraph graph = await LoadGraph(resourceUri, cancellationToken);
 
             if (graph == null)
             {
@@ -297,27 +298,27 @@ namespace NuGet.Services.Metadata.Catalog
             return entries;
         }
 
-        async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri)
+        async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri, CancellationToken cancellationToken)
         {
             if (GraphPersistence != null)
             {
-                await GraphPersistence.SaveGraph(resourceUri, graph, typeUri);
+                await GraphPersistence.SaveGraph(resourceUri, graph, typeUri, cancellationToken);
             }
             else
             {
-                await Storage.Save(resourceUri, CreateIndexContent(graph, typeUri));
+                await Storage.Save(resourceUri, CreateIndexContent(graph, typeUri), cancellationToken);
             }
         }
 
-        async Task<IGraph> LoadGraph(Uri resourceUri)
+        async Task<IGraph> LoadGraph(Uri resourceUri, CancellationToken cancellationToken)
         {
             if (GraphPersistence != null)
             {
-                return await GraphPersistence.LoadGraph(resourceUri);
+                return await GraphPersistence.LoadGraph(resourceUri, cancellationToken);
             }
             else
             {
-                return Utils.CreateGraph(await Storage.LoadString(resourceUri));
+                return Utils.CreateGraph(await Storage.LoadString(resourceUri, cancellationToken));
             }
         }
 

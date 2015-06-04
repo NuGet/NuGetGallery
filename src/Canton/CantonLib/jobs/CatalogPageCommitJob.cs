@@ -86,7 +86,7 @@ namespace NuGet.Canton
             return all;
         }
 
-        public override async Task RunCore()
+        public override async Task RunCore(CancellationToken cancellationToken)
         {
             TimeSpan hold = TimeSpan.FromMinutes(90);
             int cantonCommitId = 0;
@@ -332,7 +332,7 @@ namespace NuGet.Canton
                 IGraph commitData = PackageCatalog.CreateCommitMetadata(writer.RootUri, latestPublished, latestPublished);
 
                 // commit
-                await writer.Commit(DateTime.UtcNow, commitData);
+                await writer.Commit(DateTime.UtcNow, commitData, CancellationToken.None);
 
                 timer.Stop();
                 Console.WriteLine("Commit duration: " + timer.Elapsed);

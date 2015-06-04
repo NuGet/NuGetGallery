@@ -9,13 +9,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Helpers
 {
     public class IndexingHelpers
     {
-        public static async Task<IDictionary<string, IList<JObject>>> GetPackages(Uri indexUri, bool verbose = false)
+        public static async Task<IDictionary<string, IList<JObject>>> GetPackages(Uri indexUri, bool verbose, CancellationToken cancellationToken)
         {
             IDictionary<string, IList<JObject>> packages = new Dictionary<string, IList<JObject>>();
 
@@ -26,7 +27,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 Trace.WriteLine(indexUri);
             }
 
-            HttpResponseMessage indexResponse = await client.GetAsync(indexUri);
+            HttpResponseMessage indexResponse = await client.GetAsync(indexUri, cancellationToken);
             string indexJson = await indexResponse.Content.ReadAsStringAsync();
             JObject index = JObject.Parse(indexJson);
 
@@ -72,7 +73,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             return packages;
         }
 
-        public static async Task CreateNewCatalog(Storage storage, IDictionary<string, IList<JObject>> packages)
+        public static async Task CreateNewCatalog(Storage storage, IDictionary<string, IList<JObject>> packages, CancellationToken cancellationToken)
         {
             IList<KeyValuePair<string, IList<JObject>>> batch = new List<KeyValuePair<string, IList<JObject>>>();
 
@@ -102,19 +103,19 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
             JObject catalogIndex = MakeCatalogIndex(storage, catalogPages);
 
-            await Save(storage, catalogIndex, catalogPages);
+            await Save(storage, catalogIndex, catalogPages, cancellationToken);
         }
 
-        static async Task Save(Storage storage, JObject catalogIndex, IEnumerable<JObject> catalogPages)
+        static async Task Save(Storage storage, JObject catalogIndex, IEnumerable<JObject> catalogPages, CancellationToken cancellationToken)
         {
             foreach (JObject catalogPage in catalogPages)
             {
                 Uri pageUri = new Uri(catalogPage["url"].ToString());
-                await storage.Save(pageUri, new StringStorageContent(catalogPage.ToString(), "application/json"));
+                await storage.Save(pageUri, new StringStorageContent(catalogPage.ToString(), "application/json"), cancellationToken);
             }
 
             Uri indexUri = new Uri(catalogIndex["url"].ToString());
-            await storage.Save(indexUri, new StringStorageContent(catalogIndex.ToString(), "application/json"));
+            await storage.Save(indexUri, new StringStorageContent(catalogIndex.ToString(), "application/json"), cancellationToken);
         }
 
         static JObject MakeCatalogIndex(Storage storage, IList<JObject> pages)

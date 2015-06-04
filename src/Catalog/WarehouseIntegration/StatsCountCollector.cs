@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
@@ -22,7 +23,7 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
 
         protected abstract bool SelectRow(DateTime rowDownloadTimestamp);
 
-        protected async override Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        protected async override Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context, CancellationToken cancellationToken)
         {
             List<Task<string>> tasks = new List<Task<string>>();
 
@@ -34,7 +35,7 @@ namespace NuGet.Services.Metadata.Catalog.WarehouseIntegration
                 if (SelectItem(itemMinDownloadTimestamp, itemMaxDownloadTimestamp))
                 {
                     Uri itemUri = item["url"].ToObject<Uri>();
-                    tasks.Add(client.GetStringAsync(itemUri));
+                    tasks.Add(client.GetStringAsync(itemUri, cancellationToken));
                 }
             }
 

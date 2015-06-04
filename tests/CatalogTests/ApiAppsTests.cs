@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CatalogTests
@@ -22,7 +23,7 @@ namespace CatalogTests
             //  simply totals up the counts available in the pages
 
             CountCollector collector = new CountCollector(new Uri(source));
-            await collector.Run();
+            await collector.Run(CancellationToken.None);
             Console.WriteLine("total: {0}", collector.Total);
             Console.WriteLine("http requests: {0}", collector.RequestCount);
         }
@@ -40,7 +41,7 @@ namespace CatalogTests
             {
                 ContentBaseAddress = new Uri(contentBaseAddress)
             };
-            await collector.Run();
+            await collector.Run(CancellationToken.None);
 
             Console.WriteLine("http requests: {0}", collector.RequestCount);
         }

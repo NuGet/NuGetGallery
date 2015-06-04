@@ -13,6 +13,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 using VDS.RDF.Parsing;
@@ -40,7 +41,7 @@ namespace NuGet.Canton
             }
         }
 
-        public override async Task RunCore()
+        public override async Task RunCore(CancellationToken cancellationToken)
         {
             TimeSpan hold = TimeSpan.FromMinutes(90);
 
@@ -93,7 +94,7 @@ namespace NuGet.Canton
                             {
                                 CatalogItem catalogItem = Utils.CreateCatalogItem(stream, published, null, nupkg.FullName);
                                 writer.Add(catalogItem);
-                                await writer.Commit(DateTime.UtcNow);
+                                await writer.Commit(DateTime.UtcNow, null, cancellationToken);
                             }
                         }
 

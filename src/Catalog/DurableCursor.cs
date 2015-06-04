@@ -3,6 +3,7 @@
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -20,16 +21,16 @@ namespace NuGet.Services.Metadata.Catalog
             _defaultValue = defaultValue;
         }
 
-        public override async Task Save()
+        public override async Task Save(CancellationToken cancellationToken)
         {
             JObject obj = new JObject { { "value", Value.ToString("O") } };
             StorageContent content = new StringStorageContent(obj.ToString(), "application/json", "no-store");
-            await _storage.Save(_address, content);
+            await _storage.Save(_address, content, cancellationToken);
         }
 
-        public override async Task Load()
+        public override async Task Load(CancellationToken cancellationToken)
         {
-            string json = await _storage.LoadString(_address);
+            string json = await _storage.LoadString(_address, cancellationToken);
 
             if (json == null)
             {

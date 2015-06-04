@@ -3,6 +3,7 @@
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -30,11 +31,11 @@ namespace NuGet.Services.Metadata.Catalog
         public Uri ResourceUri { get; private set; }
         public Uri TypeUri { get; private set; }
 
-        public async Task Initialize()
+        public async Task Initialize(CancellationToken cancellationToken)
         {
             Uri rootUri = _storage.ResolveUri("index.json");
 
-            string json = await _storage.LoadString(rootUri);
+            string json = await _storage.LoadString(rootUri, cancellationToken);
 
             if (json != null)
             {
@@ -46,7 +47,7 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
-        public async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri)
+        public async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri, CancellationToken cancellationToken)
         {
             await Task.Run(() =>
             {
@@ -56,10 +57,10 @@ namespace NuGet.Services.Metadata.Catalog
 
                 ResourceUri = resourceUri;
                 TypeUri = typeUri;
-            });
+            }, cancellationToken);
         }
 
-        public Task<IGraph> LoadGraph(Uri resourceUri)
+        public Task<IGraph> LoadGraph(Uri resourceUri, CancellationToken cancellationToken)
         {
             return Task.FromResult(_initialGraph);
         }

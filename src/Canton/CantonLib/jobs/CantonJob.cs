@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Canton
@@ -43,7 +44,7 @@ namespace NuGet.Canton
             _run = true;
             _runTime.Start();
 
-            Task.Run(async () => await RunCore()).Wait();
+            Task.Run(async () => await RunCore(CancellationToken.None)).Wait();
 
             _runTime.Stop();
             _run = false;
@@ -54,7 +55,7 @@ namespace NuGet.Canton
             _run = false;
         }
 
-        public virtual async Task RunCore()
+        public virtual async Task RunCore(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

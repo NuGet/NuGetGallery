@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -25,13 +26,13 @@ namespace NuGet.Services.Metadata.Catalog
 
         public int PreviousRunBatchCount { get; private set; }
 
-        protected override async Task<bool> Fetch(CollectorHttpClient client, ReadWriteCursor front, ReadCursor back)
+        protected override async Task<bool> Fetch(CollectorHttpClient client, ReadWriteCursor front, ReadCursor back, CancellationToken cancellationToken)
         {
             int beforeBatchCount = BatchCount;
 
             IList<JObject> items = new List<JObject>();
 
-            JObject root = await client.GetJObjectAsync(Index);
+            JObject root = await client.GetJObjectAsync(Index, cancellationToken);
 
             JToken context = null;
             root.TryGetValue("@context", out context);
@@ -80,7 +81,7 @@ namespace NuGet.Services.Metadata.Catalog
 
                     if (items.Count == _batchSize)
                     {
-                        acceptNextBatch = await ProcessBatch(client, items, context, front, resumeDateTime);
+                        acceptNextBatch = await ProcessBatch(client, items, context, front, resumeDateTime, cancellationToken);
 
                         if (!acceptNextBatch)
                         {
@@ -92,7 +93,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             if (acceptNextBatch && items.Count > 0)
             {
-                await ProcessBatch(client, items, context, front, resumeDateTime);
+                await ProcessBatch(client, items, context, front, resumeDateTime, cancellationToken);
             }
 
             int afterBatchCount = BatchCount;
@@ -102,23 +103,23 @@ namespace NuGet.Services.Metadata.Catalog
             return (PreviousRunBatchCount > 0);
         }
 
-        async Task<bool> ProcessBatch(CollectorHttpClient client, IList<JObject> items, JToken context, ReadWriteCursor front, DateTime resumeDateTime)
+        async Task<bool> ProcessBatch(CollectorHttpClient client, IList<JObject> items, JToken context, ReadWriteCursor front, DateTime resumeDateTime, CancellationToken cancellationToken)
         {
-            bool acceptNextBatch = await OnProcessBatch(client, items, (JObject)context, resumeDateTime);
+            bool acceptNextBatch = await OnProcessBatch(client, items, (JObject)context, resumeDateTime, cancellationToken);
             BatchCount++;
             items.Clear();
 
             front.Value = resumeDateTime;
-            await front.Save();
+            await front.Save(cancellationToken);
 
             return acceptNextBatch;
         }
 
-        protected virtual Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context, DateTime resumeDateTime)
+        protected virtual Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context, DateTime resumeDateTime, CancellationToken cancellationToken)
         {
-            return OnProcessBatch(client, items, context);
+            return OnProcessBatch(client, items, context, cancellationToken);
         }
 
-        protected abstract Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context);
+        protected abstract Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context, CancellationToken cancellationToken);
     }
 }

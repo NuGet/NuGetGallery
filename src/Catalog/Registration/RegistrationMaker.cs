@@ -4,6 +4,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using VDS.RDF;
 
@@ -11,13 +12,13 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public static class RegistrationMaker
     {
-        public static async Task Process(RegistrationKey registrationKey, IDictionary<string, IGraph> newItems, StorageFactory storageFactory, Uri contentBaseAddress, int partitionSize, int packageCountThreshold, bool unlistShouldDelete = false)
+        public static async Task Process(RegistrationKey registrationKey, IDictionary<string, IGraph> newItems, StorageFactory storageFactory, Uri contentBaseAddress, int partitionSize, int packageCountThreshold, bool unlistShouldDelete, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationMaker.Process: registrationKey = {0} newItems: {1}", registrationKey, newItems.Count);
 
             IRegistrationPersistence registration = new RegistrationPersistence(storageFactory, registrationKey, partitionSize, packageCountThreshold, contentBaseAddress);
 
-            IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> existing = await registration.Load();
+            IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> existing = await registration.Load(cancellationToken);
 
             Trace.TraceInformation("RegistrationMaker.Process: existing = {0}", existing.Count);
 
@@ -29,7 +30,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             Trace.TraceInformation("RegistrationMaker.Process: resulting = {0}", resulting.Count);
             
-            await registration.Save(resulting);
+            await registration.Save(resulting, cancellationToken);
         }
 
         static IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> PromoteRegistrationKey(IDictionary<string, IGraph> newItems, bool unlistShouldDelete)

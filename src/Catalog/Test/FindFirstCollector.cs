@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Test
@@ -25,7 +26,7 @@ namespace NuGet.Services.Metadata.Catalog.Test
 
         public JObject PackageDetails { get; private set; }
 
-        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
+        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context, CancellationToken cancellationToken)
         {
             foreach (JObject item in items)
             {
@@ -38,7 +39,7 @@ namespace NuGet.Services.Metadata.Catalog.Test
                 {
                     if (id.Equals(_id, StringComparison.InvariantCultureIgnoreCase) && version.Equals(_version, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        PackageDetails = await client.GetJObjectAsync(new Uri(item["@id"].ToString()));
+                        PackageDetails = await client.GetJObjectAsync(new Uri(item["@id"].ToString()), cancellationToken);
                         return false;
                     }
                 }
@@ -46,7 +47,7 @@ namespace NuGet.Services.Metadata.Catalog.Test
                 {
                     if (id.Equals(_id, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        PackageDetails = await client.GetJObjectAsync(new Uri(item["@id"].ToString()));
+                        PackageDetails = await client.GetJObjectAsync(new Uri(item["@id"].ToString()), cancellationToken);
                         return false;
                     }
                 }
