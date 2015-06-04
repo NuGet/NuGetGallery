@@ -13,23 +13,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
+using Lucene.Net.Documents;
 
 namespace NuGet.Indexing
 {
-    public class NuGetSearcherManager : SearcherManager
+    public class NuGetSearcherManager : SearcherManager<NuGetIndexSearcher>, ISearchIndexInfo
     {
-        Tuple<IDictionary<string, Filter>, IDictionary<string, Filter>> _filters;
-        IDictionary<string, Tuple<OpenBitSet, OpenBitSet>> _latestBitSets;
-        IDictionary<string, JArray[]> _versionsByDoc;
-        JArray[] _versionListsByDoc;
-
         public static readonly TimeSpan RankingRefreshRate = TimeSpan.FromHours(24);
         public static readonly TimeSpan DownloadCountRefreshRate = TimeSpan.FromHours(1);
         public static readonly TimeSpan FrameworkCompatibilityRefreshRate = TimeSpan.FromHours(24);
 
-        IndexData<IDictionary<string, IDictionary<string, int>>> _currentRankings;
-        IndexData<IDictionary<string, IDictionary<string, int>>> _currentDownloadCounts;
-        IndexData<IDictionary<string, ISet<string>>> _currentFrameworkCompatibility;
+        readonly IndexData<IDictionary<string, IDictionary<string, int>>> _currentRankings;
+        readonly IndexData<IDictionary<string, IDictionary<string, int>>> _currentDownloadCounts;
+        readonly IndexData<IDictionary<string, ISet<string>>> _currentFrameworkCompatibility;
 
         public Rankings Rankings { get; private set; }
         public DownloadLookup DownloadCounts { get; private set; }
@@ -39,6 +35,9 @@ namespace NuGet.Indexing
         public IDictionary<string, Uri> RegistrationBaseAddress { get; private set; }
 
         public DateTime LastReopen { get; private set; }
+
+        public int NumDocs { get; private set; }
+        public IDictionary<string, string> CommitUserData { get; private set; }
 
         public NuGetSearcherManager(string indexName, Lucene.Net.Store.Directory directory, Rankings rankings, DownloadLookup downloadCounts, FrameworkCompatibility frameworkCompatibility)
             : base(directory)
@@ -50,22 +49,21 @@ namespace NuGet.Indexing
 
             RegistrationBaseAddress = new Dictionary<string, Uri>();
 
-            _currentDownloadCounts = new IndexData<IDictionary<string, IDictionary<string, int>>>(
-                "DownloadCounts",
-                DownloadCounts.Path,
-                DownloadCounts.Load,
-                DownloadCountRefreshRate);
             _currentRankings = new IndexData<IDictionary<string, IDictionary<string, int>>>(
                 "Rankings",
                 Rankings.Path,
                 Rankings.Load,
                 RankingRefreshRate);
+            _currentDownloadCounts = new IndexData<IDictionary<string, IDictionary<string, int>>>(
+                "DownloadCounts",
+                DownloadCounts.Path,
+                DownloadCounts.Load,
+                DownloadCountRefreshRate);
             _currentFrameworkCompatibility = new IndexData<IDictionary<string,ISet<string>>>(
                 "FrameworkCompatibility",
                 FrameworkCompatibility.Path,
                 FrameworkCompatibility.Load,
-                FrameworkCompatibilityRefreshRate
-                );
+                FrameworkCompatibilityRefreshRate);
         }
 
         // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,34 +121,37 @@ namespace NuGet.Indexing
 
         // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 
-        protected override void Warm(IndexSearcher searcher)
+        protected override NuGetIndexSearcher CreateSearcher(IndexReader reader)
         {
-            lock (this)
-            {
-                searcher.Search(new MatchAllDocsQuery(), 1);
+            // Reload download counts and rankings if expired
+            _currentRankings.ReloadIfExpired();
+            _currentDownloadCounts.ReloadIfExpired();
+            _currentFrameworkCompatibility.ReloadIfExpired();
 
-                // Reload download counts and rankings synchronously
-                _currentDownloadCounts.Reload();
-                _currentRankings.Reload();
-                _currentFrameworkCompatibility.Reload();
+            // Recalculate all the framework compatibility filters
+            var filters = Compatibility.Warm(reader, _currentFrameworkCompatibility.Value);
 
-                // Recalculate all the framework compatibility filters
-                _filters = Compatibility.Warm(searcher.IndexReader, _currentFrameworkCompatibility.Value);
+            // Recalculate all the latest / latestPrerelease bitSets 
+            var latestBitSets = CreateLatestBitSets(reader, filters);
 
-                // Recalculate all the latest / latestPrerelease bitSets 
-                _latestBitSets = CreateLatestBitSets(searcher.IndexReader, _filters);
+            // Recalculate precalculated Versions arrays 
+            var packageVersions = new PackageVersions(reader);
+            var versionListsByDoc = packageVersions.CreateVersionListsLookUp();
+            var versionsByDoc = packageVersions.CreateVersionsLookUp(_currentDownloadCounts.Value);
 
-                // Recalculate precalculated Versions arrays 
-                PackageVersions packageVersions = new PackageVersions(searcher.IndexReader);
+            // Create a NuGetSearcher
+            return new NuGetIndexSearcher(reader, filters, latestBitSets, versionListsByDoc, versionsByDoc);
+        }
 
-                _versionsByDoc = new Dictionary<string, JArray[]>();
-                _versionsByDoc["http"] = packageVersions.CreateVersionsLookUp(_currentDownloadCounts.Value, RegistrationBaseAddress["http"]);
-                _versionsByDoc["https"] = packageVersions.CreateVersionsLookUp(_currentDownloadCounts.Value, RegistrationBaseAddress["https"]);
+        protected override void Warm(NuGetIndexSearcher searcher)
+        {
+            // Warmup search
+            searcher.Search(new MatchAllDocsQuery(), 1);
 
-                _versionListsByDoc = packageVersions.CreateVersionListsLookUp();
-
-                LastReopen = DateTime.UtcNow;
-            }
+            // Set metadata
+            LastReopen = DateTime.UtcNow;
+            NumDocs = searcher.IndexReader.NumDocs();
+            CommitUserData = searcher.IndexReader.CommitUserData;
         }
 
         public IDictionary<string, int> GetRankings(string name = null)
@@ -163,9 +164,9 @@ namespace NuGet.Indexing
             return _currentRankings.Value[name];
         }
 
-        public Filter GetFilter(bool includePrerelease, string supportedFramework)
+        public Filter GetFilter(NuGetIndexSearcher searcher, bool includePrerelease, string supportedFramework)
         {
-            IDictionary<string, Filter> lookUp = includePrerelease ? _filters.Item2 : _filters.Item1;
+            IDictionary<string, Filter> lookUp = includePrerelease ? searcher.Filters.Item2 : searcher.Filters.Item1;
 
             string frameworkFullName;
 
@@ -200,7 +201,7 @@ namespace NuGet.Indexing
             return lookUp["any"];
         }
 
-        public Tuple<OpenBitSet, OpenBitSet> GetBitSets(string supportedFramework)
+        public Tuple<OpenBitSet, OpenBitSet> GetBitSets(NuGetIndexSearcher searcher, string supportedFramework)
         {
             string frameworkFullName;
 
@@ -227,22 +228,29 @@ namespace NuGet.Indexing
             }
 
             Tuple<OpenBitSet, OpenBitSet> result;
-            if (_latestBitSets.TryGetValue(frameworkFullName, out result))
+            if (searcher.LatestBitSets.TryGetValue(frameworkFullName, out result))
             {
                 return result;
             }
 
-            return _latestBitSets["any"];
+            return searcher.LatestBitSets["any"];
         }
 
-        public JArray GetVersions(string scheme, int doc)
+        public JArray GetVersions(NuGetIndexSearcher searcher, string scheme, int doc)
         {
-            return _versionsByDoc[scheme][doc];
+            var baseUrl = RegistrationBaseAddress[scheme];
+            var versions = searcher.VersionsByDoc[doc].DeepClone() as JArray;
+            // ReSharper disable once PossibleNullReferenceException
+            foreach (var version in versions)
+            {
+                version["@id"] = new Uri(baseUrl, version["@id"].ToString()).AbsoluteUri;
+            }
+            return versions;
         }
 
-        public JArray GetVersionLists(int doc)
+        public JArray GetVersionLists(NuGetIndexSearcher searcher, int doc)
         {
-            return _versionListsByDoc[doc];
+            return searcher.VersionListsByDoc[doc];
         }
 
         public Tuple<int, int> GetDownloadCounts(string id, string version)
@@ -279,6 +287,57 @@ namespace NuGet.Indexing
             }
 
             return result;
+        }
+
+        public HashSet<string> GetTargetFrameworks()
+        {
+            var searcher = Get();
+            try
+            {
+                var reader = searcher.IndexReader;
+
+                HashSet<string> targetFrameworks = new HashSet<string>();
+
+                for (int i = 0; i < reader.MaxDoc; i++)
+                {
+                    Document document = reader[i];
+
+                    Field[] frameworks = document.GetFields("TargetFramework");
+                    foreach (Field framework in frameworks)
+                    {
+                        targetFrameworks.Add(framework.StringValue);
+                    }
+                }
+
+                return targetFrameworks;
+            }
+            finally
+            {
+                Release(searcher);
+            }
+        }
+
+        public Dictionary<string, int> GetSegments()
+        {
+            var searcher = Get();
+            try
+            {
+                var reader = searcher.IndexReader;
+
+                Dictionary<string, int> segments = new Dictionary<string, int>();
+
+                foreach (var indexReader in reader.GetSequentialSubReaders())
+                {
+                    var segmentReader = (ReadOnlySegmentReader)indexReader;
+                    segments.Add(segmentReader.SegmentName, segmentReader.NumDocs());
+                }
+
+                return segments;
+            }
+            finally
+            {
+                Release(searcher);
+            }
         }
     }
 }

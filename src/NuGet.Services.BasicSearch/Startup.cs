@@ -139,10 +139,10 @@ namespace NuGet.Services.BasicSearch
                     await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, GalleryServiceImpl.Query(context, _searcherManager));
                     break;
                 case "/targetframeworks":
-                    await ServiceInfoImpl.TargetFrameworks(context, _searcherManager);
+                    await ServiceInfoImpl.TargetFrameworks(context, _searcherManager.GetTargetFrameworks());
                     break;
                 case "/segments":
-                    await ServiceInfoImpl.Segments(context, _searcherManager);
+                    await ServiceInfoImpl.Segments(context, _searcherManager.GetSegments());
                     break;
                 case "/stats":
                     await ServiceInfoImpl.Stats(context, _searcherManager);

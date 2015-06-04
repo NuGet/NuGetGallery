@@ -2,14 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace NuGet.Indexing
 {
     public class IndexData<T> where T : class
     {
-        private Func<T> _loader;
-        private object _lock = new object();
+        private readonly Func<T> _loader;
+        private readonly object _lock = new object();
         private T _value;
 
         public string Name { get; private set; }
@@ -30,16 +29,22 @@ namespace NuGet.Indexing
             Updating = false;
         }
 
-        public void MaybeReload()
+        public void ReloadIfExpired()
         {
+            bool shouldReload = false;
             lock (_lock)
             {
                 if ((Value == null || ((DateTime.UtcNow - LastUpdatedUtc) > UpdateInterval)) && !Updating)
                 {
                     // Start updating
                     Updating = true;
-                    Task.Factory.StartNew(Reload);
+                    shouldReload = true;
                 }
+            }
+
+            if (shouldReload)
+            {
+                Reload();
             }
         }
 

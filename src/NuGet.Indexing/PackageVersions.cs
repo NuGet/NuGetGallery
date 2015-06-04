@@ -1,19 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Newtonsoft.Json.Linq;
 using NuGet.Versioning;
-using System;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace NuGet.Indexing
 {
     public class PackageVersions
     {
-        IndexReader _reader;
-        IDictionary<string, List<NuGetVersion>> _registrations;
+        readonly IndexReader _reader;
+        readonly IDictionary<string, List<NuGetVersion>> _registrations;
 
         public PackageVersions(IndexReader reader)
         {
@@ -71,7 +70,7 @@ namespace NuGet.Indexing
             return (id == null) ?  null : id.ToLowerInvariant();
         }
 
-        public JArray[] CreateVersionsLookUp(IDictionary<string, IDictionary<string, int>> downloadLookup, Uri registrationBaseAddress)
+        public JArray[] CreateVersionsLookUp(IDictionary<string, IDictionary<string, int>> downloadLookup)
         {
             IDictionary<string, JArray> versionsById = new Dictionary<string, JArray>();
 
@@ -99,8 +98,7 @@ namespace NuGet.Indexing
                     }
                     versionObj.Add("downloads", downloads);
 
-                    Uri versionUri = new Uri(registrationBaseAddress, string.Format("{0}/{1}.json", registration.Key, version).ToLowerInvariant());
-                    versionObj.Add("@id", versionUri.AbsoluteUri);
+                    versionObj.Add("@id", string.Format("{0}/{1}.json", registration.Key, version).ToLowerInvariant()); // relative URL here
 
                     versions.Add(versionObj);
                 }

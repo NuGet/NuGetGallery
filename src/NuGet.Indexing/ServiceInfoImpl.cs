@@ -1,136 +1,55 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Lucene.Net.Documents;
-using Lucene.Net.Index;
-using Lucene.Net.Search;
-using Microsoft.Owin;
-using Newtonsoft.Json.Linq;
+
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Owin;
+using Newtonsoft.Json.Linq;
 
 namespace NuGet.Indexing
 {
     public static class ServiceInfoImpl
     {
-        public static async Task TargetFrameworks(IOwinContext context, NuGetSearcherManager searcherManager)
+        public static async Task TargetFrameworks(IOwinContext context, HashSet<string> targetFrameworks)
         {
-            IndexSearcher searcher = searcherManager.Get();
-
-            try
+            JArray result = new JArray();
+            foreach (string targetFramework in targetFrameworks)
             {
-                HashSet<string> targetFrameworks = new HashSet<string>();
-
-                IndexReader reader = searcher.IndexReader;
-
-                for (int i = 0; i < reader.MaxDoc; i++)
-                {
-                    Document document = reader[i];
-
-                    Field[] frameworks = document.GetFields("TargetFramework");
-
-                    foreach (Field framework in frameworks)
-                    {
-                        targetFrameworks.Add(framework.StringValue);
-                    }
-                }
-
-                JArray result = new JArray();
-                foreach (string targetFramework in targetFrameworks)
-                {
-                    result.Add(targetFramework);
-                }
-
-                await ServiceHelpers.WriteResponse(context, System.Net.HttpStatusCode.OK, result);
+                result.Add(targetFramework);
             }
-            finally
-            {
-                searcherManager.Release(searcher);
-            }
+
+            await ServiceHelpers.WriteResponse(context, System.Net.HttpStatusCode.OK, result);
         }
 
-        public static async Task Segments(IOwinContext context, SearcherManager searcherManager)
+        public static async Task Segments(IOwinContext context, Dictionary<string, int> segments)
         {
-            searcherManager.MaybeReopen();
-
-            IndexSearcher searcher = searcherManager.Get();
-
-            try
+            JArray result = new JArray();
+            foreach (var segment in segments)
             {
-                IndexReader indexReader = searcher.IndexReader;
-
-                JArray segments = new JArray();
-                foreach (ReadOnlySegmentReader segmentReader in indexReader.GetSequentialSubReaders())
-                {
-                    JObject segmentInfo = new JObject();
-                    segmentInfo.Add("segment", segmentReader.SegmentName);
-                    segmentInfo.Add("documents", segmentReader.NumDocs());
-                    segments.Add(segmentInfo);
-                }
-
-                await ServiceHelpers.WriteResponse(context, System.Net.HttpStatusCode.OK, segments);
+                JObject segmentInfo = new JObject();
+                segmentInfo.Add("segment", segment.Key);
+                segmentInfo.Add("documents", segment.Value);
+                result.Add(segmentInfo);
             }
-            finally
-            {
-                searcherManager.Release(searcher);
-            }
+
+            await ServiceHelpers.WriteResponse(context, System.Net.HttpStatusCode.OK, result);
         }
 
-        public static async Task Stats(IOwinContext context, SearcherManager searcherManager)
+        public static async Task Stats(IOwinContext context, ISearchIndexInfo temp)
         {
-            searcherManager.MaybeReopen();
+            JObject result = new JObject();
+            result.Add("numDocs", temp.NumDocs);
+            result.Add("indexName", temp.IndexName);
+            result.Add("lastReopen", temp.LastReopen);
+            result.Add("commitUserData", GetCommitUserData(temp));
 
-            IndexSearcher searcher = searcherManager.Get();
-
-            try
-            {
-                IndexReader indexReader = searcher.IndexReader;
-
-                JObject result = new JObject();
-                result.Add("numDocs", indexReader.NumDocs());
-                result.Add("indexName", GetIndexName(searcherManager));
-                result.Add("lastReopen", GetLastReopen(searcherManager));
-                result.Add("commitUserData", GetCommitUserData(indexReader));
-
-                await ServiceHelpers.WriteResponse(context, System.Net.HttpStatusCode.OK, result);
-            }
-            finally
-            {
-                searcherManager.Release(searcher);
-            }
+            await ServiceHelpers.WriteResponse(context, System.Net.HttpStatusCode.OK, result);
         }
 
-        static string GetIndexName(SearcherManager searcherManager)
-        {
-            //TODO: consolidate when we combine the SearcherManager types
-            if (searcherManager is NuGetSearcherManager)
-            {
-                return ((NuGetSearcherManager)searcherManager).IndexName;
-            }
-            if (searcherManager is SecureSearcherManager)
-            {
-                return ((SecureSearcherManager)searcherManager).IndexName;
-            }
-            return string.Empty;
-        }
-
-        static string GetLastReopen(SearcherManager searcherManager)
-        {
-            //TODO: consolidate when we combine the SearcherManager types
-            if (searcherManager is NuGetSearcherManager)
-            {
-                return ((NuGetSearcherManager)searcherManager).LastReopen.ToString("o");
-            }
-            if (searcherManager is SecureSearcherManager)
-            {
-                return ((SecureSearcherManager)searcherManager).LastReopen.ToString("o");
-            }
-            return string.Empty;
-        }
-
-        static JObject GetCommitUserData(IndexReader indexReader)
+        static JObject GetCommitUserData(ISearchIndexInfo temp)
         {
             JObject obj = new JObject();
-            IDictionary<string, string> commitUserData = indexReader.CommitUserData;
+            IDictionary<string, string> commitUserData = temp.CommitUserData;
             if (commitUserData != null)
             {
                 foreach (var item in commitUserData)

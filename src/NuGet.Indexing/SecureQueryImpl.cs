@@ -1,13 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Net;
+using System.Threading.Tasks;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Microsoft.Owin;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace NuGet.Indexing
 {
@@ -39,7 +40,7 @@ namespace NuGet.Indexing
                 includePrerelease = false;
             }
 
-            bool includeExplanation = false;
+            bool includeExplanation;
             if (!bool.TryParse(context.Request.Query["explanation"], out includeExplanation))
             {
                 includeExplanation = false;
@@ -59,7 +60,7 @@ namespace NuGet.Indexing
             IndexSearcher searcher = searcherManager.Get();
             try
             {
-                Filter filter = searcherManager.GetFilter(tenantId, new string [] { "http://schema.nuget.org/schema#ApiAppPackage" }, includePrerelease, false);
+                Filter filter = searcherManager.GetFilter(tenantId, new[] { "http://schema.nuget.org/schema#ApiAppPackage" }, includePrerelease, false);
 
                 Query query = MakeQuery(q);
 
@@ -188,7 +189,7 @@ namespace NuGet.Indexing
                 includePrerelease = false;
             }
 
-            bool includeExplanation = false;
+            bool includeExplanation;
             if (!bool.TryParse(context.Request.Query["explanation"], out includeExplanation))
             {
                 includeExplanation = false;
@@ -206,7 +207,7 @@ namespace NuGet.Indexing
             IndexSearcher searcher = searcherManager.Get();
             try
             {
-                Filter filter = searcherManager.GetFilter(tenantId, new string[] { "http://schema.nuget.org/schema#ApiAppPackage" }, includePrerelease, true);
+                Filter filter = searcherManager.GetFilter(tenantId, new[] { "http://schema.nuget.org/schema#ApiAppPackage" }, includePrerelease, true);
 
                 Query query = new TermQuery(new Term("Owner", currentOwner));
 
