@@ -12,7 +12,7 @@ using System.IdentityModel.Tokens;
 using System.Net;
 using System.Threading.Tasks;
 
-[assembly: OwinStartup(typeof(NuGet.Services.Publish.Startup))]
+//[assembly: OwinStartup(typeof(NuGet.Services.Publish.Startup))]
 
 namespace NuGet.Services.Publish
 {
