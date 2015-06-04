@@ -1,14 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Linq;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using Microsoft.Owin;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace NuGet.Indexing
 {
@@ -65,7 +65,7 @@ namespace NuGet.Indexing
 
         public static JToken QuerySearch(NuGetSearcherManager searcherManager, string scheme, string q, bool countOnly, string projectType, string supportedFramework, bool includePrerelease, int skip, int take, bool includeExplanation, bool applyFilter)
         {
-            IndexSearcher searcher = searcherManager.Get();
+            var searcher = searcherManager.Get();
             try
             {
                 Query query = MakeQuery(q, searcherManager);
@@ -73,7 +73,7 @@ namespace NuGet.Indexing
 
                 if (applyFilter)
                 {
-                    Filter filter = searcherManager.GetFilter(includePrerelease, supportedFramework);
+                    Filter filter = searcherManager.GetFilter(searcher, includePrerelease, supportedFramework);
 
                     //TODO: uncomment these lines when we have an index that contains the appropriate @type field in every document
                     //Filter typeFilter = new CachingWrapperFilter(new TypeFilter("http://schema.nuget.org/schema#NuGetClassicPackage"));
@@ -101,7 +101,7 @@ namespace NuGet.Indexing
             return boostedQuery;
         }
 
-        public static JToken MakeResultData(IndexSearcher searcher, string scheme, TopDocs topDocs, int skip, int take, NuGetSearcherManager searcherManager, bool includeExplanation, Query query)
+        public static JToken MakeResultData(NuGetIndexSearcher searcher, string scheme, TopDocs topDocs, int skip, int take, NuGetSearcherManager searcherManager, bool includeExplanation, Query query)
         {
             Uri registrationBaseAddress = searcherManager.RegistrationBaseAddress[scheme];
 
@@ -134,8 +134,8 @@ namespace NuGet.Indexing
                 AddFieldAsArray(obj, document, "authors", "Authors");
 
                 obj["version"] = version;
-                obj["versions"] = searcherManager.GetVersions(scheme, scoreDoc.Doc);
-
+                obj["versions"] = searcherManager.GetVersions(searcher, scheme, scoreDoc.Doc);
+                
                 if (includeExplanation)
                 {
                     Explanation explanation = searcher.Explain(query, scoreDoc.Doc);
@@ -162,11 +162,12 @@ namespace NuGet.Indexing
             string value = document.Get(from);
             if (value != null)
             {
+                // ReSharper disable once CoVariantArrayConversion
                 obj[to] = new JArray(value.Split(' '));
             }
         }
 
-        static JToken MakeResult(IndexSearcher searcher, string scheme, TopDocs topDocs, int skip, int take, NuGetSearcherManager searcherManager, bool includeExplanation, Query query)
+        static JToken MakeResult(NuGetIndexSearcher searcher, string scheme, TopDocs topDocs, int skip, int take, NuGetSearcherManager searcherManager, bool includeExplanation, Query query)
         {
             JToken data = MakeResultData(searcher, scheme, topDocs, skip, take, searcherManager, includeExplanation, query);
 
@@ -183,7 +184,7 @@ namespace NuGet.Indexing
 
         public static JToken AutoComplete(IOwinContext context, NuGetSearcherManager searcherManager)
         {
-            IndexSearcher searcher = searcherManager.Get();
+            var searcher = searcherManager.Get();
             try
             {
                 int skip;
@@ -204,7 +205,7 @@ namespace NuGet.Indexing
                     includePrerelease = false;
                 }
 
-                bool includeExplanation = false;
+                bool includeExplanation;
                 if (!bool.TryParse(context.Request.Query["explanation"], out includeExplanation))
                 {
                     includeExplanation = false;
@@ -230,10 +231,10 @@ namespace NuGet.Indexing
 
         static JToken AutoCompleteSearch(NuGetSearcherManager searcherManager, string q, string id, string supportedFramework, bool includePrerelease, int skip, int take, bool includeExplanation)
         {
-            IndexSearcher searcher = searcherManager.Get();
+            var searcher = searcherManager.Get();
             try
             {
-                Filter filter = searcherManager.GetFilter(includePrerelease, supportedFramework);
+                Filter filter = searcherManager.GetFilter(searcher, includePrerelease, supportedFramework);
 
                 if (q != null)
                 {
@@ -256,24 +257,32 @@ namespace NuGet.Indexing
 
         static JObject AutoCompleteMakeVersionResult(NuGetSearcherManager searcherManager, bool includePrerelease, TopDocs topDocs)
         {
-            JObject result = new JObject();
-
-            result.Add("@context", new JObject { { "@vocab", "http://schema.nuget.org/schema#" } });
-            result.Add("indexName", searcherManager.IndexName);
-
-            if (topDocs.TotalHits > 0)
+            var searcher = searcherManager.Get();
+            try
             {
-                ScoreDoc scoreDoc = topDocs.ScoreDocs[0];
-                JArray versions = searcherManager.GetVersionLists(scoreDoc.Doc);
-                result.Add("totalHits", versions.Count());
-                result["data"] = versions;
+                JObject result = new JObject();
+
+                result.Add("@context", new JObject { { "@vocab", "http://schema.nuget.org/schema#" } });
+                result.Add("indexName", searcherManager.IndexName);
+
+                if (topDocs.TotalHits > 0)
+                {
+                    ScoreDoc scoreDoc = topDocs.ScoreDocs[0];
+                    JArray versions = searcherManager.GetVersionLists(searcher, scoreDoc.Doc);
+                    result.Add("totalHits", versions.Count());
+                    result["data"] = versions;
+                }
+                else
+                {
+                    result.Add("totalHits", 0);
+                    result["data"] = new JArray();
+                }
+                return result;
             }
-            else
+            finally
             {
-                result.Add("totalHits", 0);
-                result["data"] = new JArray();
+                searcherManager.Release(searcher);
             }
-            return result;
         }
 
         static Query AutoCompleteMakeQuery(string q, NuGetSearcherManager searcherManager)
@@ -348,7 +357,7 @@ namespace NuGet.Indexing
                 return null;
             }
 
-            IndexSearcher searcher = searcherManager.Get();
+            var searcher = searcherManager.Get();
             try
             {
                 string analyzedId = id.ToLowerInvariant();

@@ -76,10 +76,10 @@ namespace NuGet.Indexing
 
         public static JToken QuerySearch(NuGetSearcherManager searcherManager, string q, bool countOnly, string projectType, string supportedFramework, bool includePrerelease, string sortBy, int skip, int take, bool ignoreFilter)
         {
-            IndexSearcher searcher = searcherManager.Get();
+            var searcher = searcherManager.Get();
             try
             {
-                Filter filter = ignoreFilter ? null : searcherManager.GetFilter(includePrerelease, null);
+                Filter filter = ignoreFilter ? null : searcherManager.GetFilter(searcher, includePrerelease, null);
 
                 Query query = LuceneQueryCreator.Parse(q, false);
 
@@ -113,7 +113,7 @@ namespace NuGet.Indexing
             return MakeCountResult(topDocs.TotalHits);
         }
 
-        private static JToken ListDocumentsImpl(IndexSearcher searcher, Query query, IDictionary<string, int> rankings, Filter filter, string sortBy, int skip, int take, NuGetSearcherManager manager)
+        private static JToken ListDocumentsImpl(NuGetIndexSearcher searcher, Query query, IDictionary<string, int> rankings, Filter filter, string sortBy, int skip, int take, NuGetSearcherManager manager)
         {
             Query boostedQuery = new RankingScoreQuery(query, rankings);
 
@@ -153,11 +153,11 @@ namespace NuGet.Indexing
             return new JObject { { "totalHits", totalHits } };
         }
 
-        private static JToken MakeResults(IndexSearcher searcher, TopDocs topDocs, int skip, int take, Query boostedQuery, IDictionary<string, int> rankings, NuGetSearcherManager manager)
+        private static JToken MakeResults(NuGetIndexSearcher searcher, TopDocs topDocs, int skip, int take, Query boostedQuery, IDictionary<string, int> rankings, NuGetSearcherManager manager)
         {
             JArray array = new JArray();
 
-            Tuple<OpenBitSet, OpenBitSet> latestBitSets = manager.GetBitSets(null);
+            Tuple<OpenBitSet, OpenBitSet> latestBitSets = manager.GetBitSets(searcher, null);
 
             for (int i = skip; i < Math.Min(skip + take, topDocs.ScoreDocs.Length); i++)
             {

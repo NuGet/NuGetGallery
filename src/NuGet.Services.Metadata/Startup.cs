@@ -229,10 +229,11 @@ namespace NuGet.Services.Metadata
                         break;
 
                     case "/segments":
-                        await ServiceInfoImpl.Segments(context, _searcherManager);
+                        await ServiceInfoImpl.Segments(context, _searcherManager.GetSegments());
                         break;
 
                     case "/stats":
+                        _searcherManager.MaybeReopen();
                         await ServiceInfoImpl.Stats(context, _searcherManager);
                         break;
 

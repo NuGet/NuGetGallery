@@ -9,15 +9,16 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Lucene.Net.Index;
 
 namespace NuGet.Indexing
 {
-    public class SecureSearcherManager : SearcherManager
+    public class SecureSearcherManager : SearcherManager, ISearchIndexInfo
     {
         IDictionary<string, Filter> _filters;
         Filter _publicFilter;
 
-        IDictionary<string, JArray[]> _versionsByDoc;
+        JArray[] _versionsByDoc;
         JArray[] _versionListsByDoc;
 
         Filter _latestVersion;
@@ -29,6 +30,9 @@ namespace NuGet.Indexing
         public IDictionary<string, Uri> RegistrationBaseAddress { get; private set; }
 
         public DateTime LastReopen { get; private set; }
+
+        public int NumDocs { get; private set; }
+        public IDictionary<string, string> CommitUserData { get; private set; }
 
         public SecureSearcherManager(string indexName, Lucene.Net.Store.Directory directory)
             : base(directory)
@@ -71,14 +75,13 @@ namespace NuGet.Indexing
 
             // Recalculate precalculated Versions arrays 
             PackageVersions packageVersions = new PackageVersions(searcher.IndexReader);
-            
-            _versionsByDoc = new Dictionary<string, JArray[]>();
-            _versionsByDoc["http"] = packageVersions.CreateVersionsLookUp(null, RegistrationBaseAddress["http"]);
-            _versionsByDoc["https"] = packageVersions.CreateVersionsLookUp(null, RegistrationBaseAddress["https"]);
-
+            _versionsByDoc = packageVersions.CreateVersionsLookUp(null);
             _versionListsByDoc = packageVersions.CreateVersionListsLookUp();
 
+            // Set metadata
             LastReopen = DateTime.UtcNow;
+            NumDocs = searcher.IndexReader.NumDocs();
+            CommitUserData = searcher.IndexReader.CommitUserData;
         }
 
         public Filter GetFilter(string tenantId, string[] types, bool includePrerelease, bool includeUnlisted)
@@ -87,7 +90,7 @@ namespace NuGet.Indexing
             Filter typeFilter = new CachingWrapperFilter(new TypeFilter(types));
             Filter versionFilter = GetVersionFilter(includePrerelease, includeUnlisted);
             
-            return new ChainedFilter(new Filter[] { visibilityFilter, versionFilter, typeFilter }, ChainedFilter.Logic.AND);
+            return new ChainedFilter(new[] { visibilityFilter, versionFilter, typeFilter }, ChainedFilter.Logic.AND);
         }
 
         public Filter GetFilter(string tenantId, string[] types)
@@ -95,7 +98,7 @@ namespace NuGet.Indexing
             Filter visibilityFilter = GetVisibilityFilter(tenantId);
             Filter typeFilter = new CachingWrapperFilter(new TypeFilter(types));
 
-            return new ChainedFilter(new Filter[] { visibilityFilter, typeFilter }, ChainedFilter.Logic.AND);
+            return new ChainedFilter(new[] { visibilityFilter, typeFilter }, ChainedFilter.Logic.AND);
         }
 
         Filter GetVersionFilter(bool includePrerelease, bool includeUnlisted)
@@ -112,7 +115,7 @@ namespace NuGet.Indexing
             Filter tenantFilter;
             if (tenantId != null && _filters.TryGetValue(tenantId, out tenantFilter))
             {
-                Filter chainedFilter = new ChainedFilter(new Filter[] { _publicFilter, tenantFilter }, ChainedFilter.Logic.OR);
+                Filter chainedFilter = new ChainedFilter(new[] { _publicFilter, tenantFilter }, ChainedFilter.Logic.OR);
                 return chainedFilter;
             }
             else
@@ -123,12 +126,41 @@ namespace NuGet.Indexing
 
         public JArray GetVersions(string scheme, int doc)
         {
-            return _versionsByDoc[scheme][doc];
+            var baseUrl = RegistrationBaseAddress[scheme];
+            var versions = _versionsByDoc[doc].DeepClone() as JArray;
+            foreach (var version in versions)
+            {
+                version["@id"] = new Uri(baseUrl, version["@id"].ToString()).AbsoluteUri;
+            }
+            return versions;
         }
 
         public JArray GetVersionLists(int doc)
         {
             return _versionListsByDoc[doc];
+        }
+        
+        public Dictionary<string, int> GetSegments()
+        {
+            var searcher = Get();
+            try
+            {
+                var reader = searcher.IndexReader;
+
+                Dictionary<string, int> segments = new Dictionary<string, int>();
+
+                foreach (var indexReader in reader.GetSequentialSubReaders())
+                {
+                    var segmentReader = (ReadOnlySegmentReader)indexReader;
+                    segments.Add(segmentReader.SegmentName, segmentReader.NumDocs());
+                }
+
+                return segments;
+            }
+            finally
+            {
+                Release(searcher);
+            }
         }
     }
 }
