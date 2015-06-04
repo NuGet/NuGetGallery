@@ -11,7 +11,7 @@ using Microsoft.Owin.StaticFiles.Infrastructure;
 using NuGet.Indexing;
 using Owin;
 
-[assembly: OwinStartup(typeof(NuGet.Services.BasicSearch.Startup))]
+[assembly: OwinStartup("BasicSearch",typeof(NuGet.Services.BasicSearch.Startup))]
 
 namespace NuGet.Services.BasicSearch
 {
