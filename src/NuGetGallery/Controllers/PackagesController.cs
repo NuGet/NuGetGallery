@@ -317,7 +317,7 @@ namespace NuGetGallery
                     results = await _searchService.Search(searchFilter);
 
                     // note: this is a per instance cache
-                    HttpContext.Cache.Add("DefaultSearchResults", searchFilter, null, DateTime.UtcNow.AddMinutes(10), Cache.NoSlidingExpiration, CacheItemPriority.Default, null);
+                    HttpContext.Cache.Add("DefaultSearchResults", results, null, DateTime.UtcNow.AddMinutes(10), Cache.NoSlidingExpiration, CacheItemPriority.Default, null);
                 }
                 else
                 {
