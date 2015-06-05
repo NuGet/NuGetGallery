@@ -37,7 +37,7 @@ namespace NuGet.Services.Search.Client
                 key =>
                 {
                     var health = HealthIndicatorRange[1];
-                    _healthIndicatorLogger.LogDecreaseHealth(endpoint, health, exception);
+                    _healthIndicatorLogger.LogDecreaseHealth(new Uri(queryLessUri), health, exception);
                     return health;
                 }, 
 
@@ -59,7 +59,7 @@ namespace NuGet.Services.Search.Client
 
                     if (currentValue != health)
                     {
-                        _healthIndicatorLogger.LogDecreaseHealth(endpoint, health, exception);
+                        _healthIndicatorLogger.LogDecreaseHealth(new Uri(queryLessUri), health, exception);
                     }
                     return health;
                 });
@@ -87,7 +87,7 @@ namespace NuGet.Services.Search.Client
 
                 if (currentValue != health)
                 {
-                    _healthIndicatorLogger.LogIncreaseHealth(endpoint, health);
+                    _healthIndicatorLogger.LogIncreaseHealth(new Uri(queryLessUri), health);
                 }
                 return health;
             });
