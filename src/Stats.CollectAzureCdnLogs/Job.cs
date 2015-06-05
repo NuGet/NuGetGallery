@@ -125,37 +125,52 @@ namespace Stats.CollectAzureCdnLogs
                 var ftpClient = new FtpRawLogClient(JobEventSource.Log, _ftpUsername, _ftpPassword);
                 var azureClient = new CloudBlobRawLogClient(JobEventSource.Log, _cloudStorageAccount);
 
-                // collect directory listing
+                // Collect directory listing.
                 IEnumerable<RawLogFileInfo> rawLogFiles = await ftpClient.GetRawLogFiles(_ftpServerUri);
 
-                // prepare cloud storage blob container
+                // Prepare cloud storage blob container.
                 var cloudBlobContainer = await azureClient.CreateContainerIfNotExistsAsync(_cloudStorageContainerName);
 
                 foreach (var rawLogFile in rawLogFiles)
                 {
                     try
                     {
-                        // only process the raw log files matching the target CDN platform and account number
+                        // Only process the raw log files matching the target CDN platform and account number.
                         if (_azureCdnPlatform == rawLogFile.AzureCdnPlatform && _azureCdnAccountNumber.Equals(rawLogFile.AzureCdnAccountNumber, StringComparison.InvariantCultureIgnoreCase))
                         {
-                            // 1. Rename the file on the origin to ensure we're not locking a file that still can be written to.
-                            Uri rawLogUri = await ftpClient.RenameAsync(rawLogFile, rawLogFile.FileName + FileExtensions.Download);
+                            bool alreadyUploaded = false;
+                            bool uploadSucceeded = false;
+                            Uri rawLogUri = rawLogFile.Uri;
 
-                            if (rawLogUri == null)
+                            // Check if this is an already renamed file.
+                            if (rawLogFile.IsPendingDownload)
                             {
-                                // Failed to rename the file. Leave it and try again later.
-                                continue;
+                                // Check if the file has already been uploaded to blob storage.
+                                alreadyUploaded = await azureClient.CheckIfBlobExistsAsync(cloudBlobContainer, rawLogFile);
+                            }
+                            else
+                            {
+                                // Rename the file on the origin to ensure we're not locking a file that still can be written to.
+                                rawLogUri = await ftpClient.RenameAsync(rawLogFile, rawLogFile.FileName + FileExtensions.Download);
+
+                                if (rawLogUri == null)
+                                {
+                                    // Failed to rename the file. Leave it and try again later.
+                                    continue;
+                                }
                             }
 
-                            // 2. Stream the renamed file to blob storage.
-                            bool uploadSucceeded;
-                            using (var rawLogStream = await ftpClient.OpenReadAsync(rawLogUri))
+                            if (!alreadyUploaded)
                             {
-                                uploadSucceeded = await azureClient.UploadBlobAsync(cloudBlobContainer, rawLogFile, rawLogStream);
+                                // Stream the renamed file to blob storage.
+                                using (var rawLogStream = await ftpClient.OpenReadAsync(rawLogUri))
+                                {
+                                    uploadSucceeded = await azureClient.UploadBlobAsync(cloudBlobContainer, rawLogFile, rawLogStream);
+                                }
                             }
 
-                            // 4. Delete the renamed file from the origin.
-                            if (uploadSucceeded)
+                            // Delete the renamed file from the origin.
+                            if (alreadyUploaded || uploadSucceeded)
                             {
                                 await ftpClient.DeleteAsync(rawLogUri);
                             }

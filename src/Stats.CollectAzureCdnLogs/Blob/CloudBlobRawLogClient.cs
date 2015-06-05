@@ -57,5 +57,27 @@ namespace Stats.CollectAzureCdnLogs.Blob
             }
             return false;
         }
+
+        public async Task<bool> CheckIfBlobExistsAsync(CloudBlobContainer targetContainer, RawLogFileInfo logFile)
+        {
+            try
+            {
+                Trace.TraceInformation("Checking if file '{0}' exists.", logFile.FileName);
+
+                var blob = targetContainer.GetBlockBlobReference(logFile.FileName);
+                blob.Properties.ContentType = logFile.ContentType;
+
+                // 3. Upload the file using the original file name.
+                bool exists = await blob.ExistsAsync();
+
+                Trace.TraceInformation("Finished checking if file '{0}' exists (exists = {1}.", logFile.FileName, exists);
+                return exists;
+            }
+            catch (Exception exception)
+            {
+                Trace.TraceError(exception.ToString());
+            }
+            return false;
+        }
     }
 }
