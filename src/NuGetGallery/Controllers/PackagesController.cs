@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -8,12 +9,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
-using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Caching;
 using System.Web.Mvc;
 using NuGet;
-using NuGet.Services.Search.Models;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
@@ -303,14 +303,38 @@ namespace NuGetGallery
                 page = 1;
             }
 
-            q = (q ?? "").Trim();
+            q = (q ?? string.Empty).Trim();
 
-            var searchFilter = SearchAdaptor.GetSearchFilter(q, page, sortOrder: null, context: SearchFilter.UISearchContext);
-            var results = await _searchService.Search(searchFilter);
+            SearchResults results;
+
+            // fetch most common query from cache to relieve load on the search service
+            if (string.IsNullOrEmpty(q) && page == 1)
+            {
+                var cachedResults = HttpContext.Cache.Get("DefaultSearchResults");
+                if (cachedResults == null)
+                {
+                    var searchFilter = SearchAdaptor.GetSearchFilter(q, page, sortOrder: null, context: SearchFilter.UISearchContext);
+                    results = await _searchService.Search(searchFilter);
+
+                    // note: this is a per instance cache
+                    HttpContext.Cache.Add("DefaultSearchResults", searchFilter, null, DateTime.UtcNow.AddMinutes(10), Cache.NoSlidingExpiration, CacheItemPriority.Default, null);
+                }
+                else
+                {
+                    // default for /packages view
+                    results = (SearchResults)cachedResults;
+                }
+            }
+            else
+            {
+                var searchFilter = SearchAdaptor.GetSearchFilter(q, page, sortOrder: null, context: SearchFilter.UISearchContext);
+                results = await _searchService.Search(searchFilter);
+            }
+
             int totalHits = results.Hits;
             if (page == 1 && !results.Data.Any())
             {
-                // In the event the index wasn't updated, we may get an incorrect count. 
+                // In the event the index wasn't updated, we may get an incorrect count.
                 totalHits = 0;
             }
 
