@@ -5,7 +5,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>2.4</ProductVersion>
+    <ProductVersion>2.6</ProductVersion>
     <ProjectGuid>0041aca0-30ec-4554-8c7c-0af810f3086f</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -63,14 +63,14 @@
     <Content Include="NuGetGalleryContent\bin\Startup.ps1">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="NuGetGalleryContent\diagnostics.wadcfg">
-      <SubType>Content</SubType>
-    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <DiagnosticsConfiguration Include="NuGetGalleryContent\diagnostics.wadcfgx" />
   </ItemGroup>
   <!-- Import the target files for this project template -->
   <PropertyGroup>
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
-    <CloudExtensionsDir Condition=" '$(CloudExtensionsDir)' == '' ">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Windows Azure Tools\2.4\</CloudExtensionsDir>
+    <CloudExtensionsDir Condition=" '$(CloudExtensionsDir)' == '' ">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Windows Azure Tools\2.6\</CloudExtensionsDir>
   </PropertyGroup>
   <Import Project="$(CloudExtensionsDir)Microsoft.WindowsAzure.targets" />
   <Import Project="$(MSBuildProjectDirectory)\..\..\NuGet.Cloud.targets" />

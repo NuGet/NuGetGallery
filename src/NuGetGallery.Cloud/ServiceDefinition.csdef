@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ServiceDefinition name="NuGetGallery.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2014-06.2.4">
+<ServiceDefinition name="NuGetGallery.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2015-04.2.6">
   <LoadBalancerProbes>
     <LoadBalancerProbe name="HTTP" path="/api/status" protocol="http" port="80" />
   </LoadBalancerProbes>
@@ -32,6 +32,7 @@
       <Setting name="Auth.MicrosoftAccount.ClientId" />
       <Setting name="Auth.MicrosoftAccount.ClientSecret" />
       <Setting name="Startup.BlockedIPs" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
     </ConfigurationSettings>
     <Sites>
       <Site name="Web">
@@ -59,7 +60,6 @@
       </InstanceInputEndpoint>
     </Endpoints>
     <Imports>
-      <Import moduleName="Diagnostics" />
       <Import moduleName="RemoteAccess" />
       <Import moduleName="RemoteForwarder" />
     </Imports>

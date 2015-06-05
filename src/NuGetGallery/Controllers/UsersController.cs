@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Linq;
-using System.Net;
 using System.Net.Mail;
-using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
@@ -123,7 +122,7 @@ namespace NuGetGallery
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
+
             return View();
         }
 
@@ -134,7 +133,7 @@ namespace NuGetGallery
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
+
             if (ModelState.IsValid)
             {
                 var user = await AuthService.GeneratePasswordResetToken(model.Email, Constants.DefaultPasswordResetTokenExpirationHours * 60);
@@ -154,7 +153,7 @@ namespace NuGetGallery
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
+
             ViewBag.Email = TempData["Email"];
             ViewBag.Expiration = Constants.DefaultPasswordResetTokenExpirationHours;
             return View();
@@ -165,7 +164,7 @@ namespace NuGetGallery
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
+
             ViewBag.ResetTokenValid = true;
             ViewBag.ForgotPassword = forgot;
             return View();
@@ -178,7 +177,7 @@ namespace NuGetGallery
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
+
             var cred = await AuthService.ResetPasswordWithToken(username, token, model.NewPassword);
             ViewBag.ResetTokenValid = cred != null;
             ViewBag.ForgotPassword = forgot;
@@ -217,7 +216,7 @@ namespace NuGetGallery
             }
 
             var user = GetCurrentUser();
-            
+
             string existingEmail = user.EmailAddress;
             var model = new ConfirmationViewModel
             {
@@ -344,7 +343,7 @@ namespace NuGetGallery
             {
                 return RedirectToAction(actionName: "Account", controllerName: "Users");
             }
-            
+
             await UserService.CancelChangeEmailAddress(user);
 
             TempData["Message"] = Strings.CancelEmailAddress;
@@ -408,7 +407,7 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             var cred = user.Credentials.SingleOrDefault(
                 c => String.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase));
-            
+
             return RemoveCredential(user, cred, Strings.CredentialRemoved);
         }
 
@@ -444,10 +443,10 @@ namespace NuGetGallery
             else if (cred != null)
             {
                 await AuthService.RemoveCredential(user, cred);
-                
+
                 // Notify the user of the change
                 MessageService.SendCredentialRemovedNotice(user, cred);
-                
+
                 TempData["Message"] = message;
             }
             return RedirectToAction("Account");
@@ -477,8 +476,8 @@ namespace NuGetGallery
             var resetPasswordUrl = Url.ConfirmationUrl(
                 "ResetPassword",
                 "Users",
-                user.Username, 
-                user.PasswordResetToken, 
+                user.Username,
+                user.PasswordResetToken,
                 new { forgot = forgotPassword });
             MessageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
 
