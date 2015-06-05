@@ -26,6 +26,7 @@ namespace NuGetGallery
                                   select new DisplayPackageViewModel(p, isVersionHistory: true);
             }
             DownloadCount = package.DownloadCount;
+            LastEdited = package.LastEdited;
         }
 
         public void SetPendingMetadata(PackageEdit pendingMetadata)
@@ -56,6 +57,7 @@ namespace NuGetGallery
 
         public bool HasPendingMetadata { get; private set; }
         public bool IsLastEditFailed { get; private set; }
+        public DateTime? LastEdited { get; set; }
 
         public bool HasNewerPrerelease
         {
@@ -64,5 +66,14 @@ namespace NuGetGallery
                 return PackageVersions.Any(pv => pv.LatestVersion && !pv.LatestStableVersion);
             }
         }
+
+        public bool IsProbablyIndexed(DateTime? indexLastWriteTime)
+        {
+            return (indexLastWriteTime.HasValue 
+                && LastUpdated <= indexLastWriteTime 
+                && (!LastEdited.HasValue || LastEdited <= indexLastWriteTime));
+        }
+
+        public DateTime? IndexLastWriteTime { get; set; }
     }
 }

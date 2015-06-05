@@ -1,13 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Linq;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.IO;
-using System.Globalization;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace NuGetGallery.Diagnostics
 {
@@ -22,7 +20,7 @@ namespace NuGetGallery.Diagnostics
         {
             Name = name;
             _source = new TraceSource(name, SourceLevels.All);
-            
+
             // Make the source's listeners list look like the global list.
             _source.Listeners.Clear();
             _source.Listeners.AddRange(Trace.Listeners);
@@ -38,7 +36,7 @@ namespace NuGetGallery.Diagnostics
             {
                 throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, "message"), "message");
             }
-            
+
             _source.TraceEvent(type, id, FormatMessage(message, member, file, line));
         }
 

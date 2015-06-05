@@ -6,42 +6,42 @@
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
 }
 @section SocialMeta {
-    @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
-        <meta property="fb:app_id" content="@ViewBag.FacebookAppID" /> 
+    @if (!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID))
+    {
+        <meta property="fb:app_id" content="@ViewBag.FacebookAppID" />
     }
-    
+
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:site" content="@("@nuget")"> 
+    <meta name="twitter:site" content="@("@nuget")">
 
-    <meta property="og:title"       content="@Model.Title" />
-    <meta property="og:type"        content="nugetgallery:package" /> 
-    <meta property="og:url"         content="@absolutePackageUrl" /> 
-    <meta property="og:description" content="@Model.Description" /> 
-    <meta property="og:determiner"  content="a" />
-    <meta property="og:image"       content="@(Model.IconUrl ?? Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" />
-    
-
+    <meta property="og:title" content="@Model.Title" />
+    <meta property="og:type" content="nugetgallery:package" />
+    <meta property="og:url" content="@absolutePackageUrl" />
+    <meta property="og:description" content="@Model.Description" />
+    <meta property="og:determiner" content="a" />
+    <meta property="og:image" content="@(Model.IconUrl ?? Url.Absolute("~/Content/Images/packageDefaultIcon.png"))" />
 }
 @section Meta {
     @if (!Model.Listed)
     {
-    <meta name="robots" content="noindex">
+        <meta name="robots" content="noindex">
     }
 }
 @section BottomScripts {
     @* Facebook SDK *@
     <div id="fb-root"></div>
-    <script>(function (d, s, id) {
-        var js, fjs = d.getElementsByTagName(s)[0];
-        if (d.getElementById(id)) return;
-        js = d.createElement(s); js.id = id;
-    @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
+    <script>
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
         @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=@ViewBag.FacebookAppID";
-    } else {
+                    } else {
         @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-    }
-        fjs.parentNode.insertBefore(js, fjs);
-    }(document, 'script', 'facebook-jssdk'));</script>
+                    }
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));</script>
 
     @* Twitter SDK *@
     <script>!function (d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (!d.getElementById(id)) { js = d.createElement(s); js.id = id; js.src = "//platform.twitter.com/widgets.js"; fjs.parentNode.insertBefore(js, fjs); } }(document, "script", "twitter-wjs");</script>
@@ -66,8 +66,11 @@
         <ul>
             @if (!String.IsNullOrEmpty(Model.ProjectUrl))
             {
-                <li><a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package">
-                        Project Site</a></li>
+                <li>
+                    <a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package">
+                        Project Site
+                    </a>
+                </li>
             }
             @if (!String.IsNullOrEmpty(Model.LicenseUrl))
             {
@@ -76,13 +79,19 @@
             <li><a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.Id })" title="Ask the package owners a question">Contact Owners</a></li>
             @if (Model.IsOwner(User))
             {
-                <li><a href="@Url.Action(actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Contact the NuGet team for help with your package">
-                        Contact Support</a></li>
+                <li>
+                    <a href="@Url.Action(actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Contact the NuGet team for help with your package">
+                        Contact Support
+                    </a>
+                </li>
             }
             else
             {
-                <li><a href="@Url.Action(actionName: "ReportAbuse", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Report the package as abusive">
-                        Report Abuse</a></li>
+                <li>
+                    <a href="@Url.Action(actionName: "ReportAbuse", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Report the package as abusive">
+                        Report Abuse
+                    </a>
+                </li>
             }
 
             <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file.">Download</a> <a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">(how-to)</a></li>
@@ -102,7 +111,8 @@
     </nav>
 
     @* ** FEATURE: License Reports ** *@
-    @if(Config.Features.FriendlyLicenses || User.IsAdministrator()) {
+    @if (Config.Features.FriendlyLicenses || User.IsAdministrator())
+    {
         @* Package with license report enabled and at least one license field  OR  Owned by user *@
         if ((!Model.HideLicenseReport && (Model.LicenseNames.AnySafe() || !String.IsNullOrEmpty(Model.LicenseReportUrl))) || Model.IsOwner(User))
         {
@@ -142,7 +152,7 @@
                         using (Html.BeginForm(actionName: "SetLicenseReportVisibility", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version, visible = Model.HideLicenseReport }, method: FormMethod.Post, htmlAttributes: new { @class = "form" }))
                         {
                             @Html.AntiForgeryToken()
-                            <input id="enableDisableLicenseReportButton" type="submit" title="@(Model.HideLicenseReport ? "Display" : "Hide") license information provided by Sonatype CLM" value="@(Model.HideLicenseReport ? "Enable" : "Disable")"/>
+                            <input id="enableDisableLicenseReportButton" type="submit" title="@(Model.HideLicenseReport ? "Display" : "Hide") license information provided by Sonatype CLM" value="@(Model.HideLicenseReport ? "Enable" : "Disable")" />
                         }
                     }
                 }
@@ -160,7 +170,7 @@
             <fieldset class="form">
                 <p class="pending-edit-message">
                     An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
-                    These changes will be applied to the package file and become visible to everybody soon unless you 
+                    These changes will be applied to the package file and become visible to everybody soon unless you
                     <input type="submit" value="undo pending edits" title="undo pending edits" style="display: inline; width: 200px; font-size: 1em;" />
                     first.
                 </p>
@@ -170,11 +180,11 @@
     @if (Model.IsLastEditFailed)
     {
         <p class="failed-edit-message">
-            Your last edit to this package was not successfully applied. 
-            You can <a href="@Url.EditPackage(Model.Id, Model.Version)">edit</a> 
+            Your last edit to this package was not successfully applied.
+            You can <a href="@Url.EditPackage(Model.Id, Model.Version)">edit</a>
             the package and submit the edit again to retry the edit.
         </p>
-    } 
+    }
     @if (Model.Prerelease)
     {
         <p class="prerelease-message">
@@ -187,6 +197,15 @@
             There is a newer prerelease version of this package available. See the version list below for details.
         </p>
     }
+
+    @if (Model.Listed && !Model.IsProbablyIndexed(Model.IndexLastWriteTime))
+    {
+        <p class="message warning">
+            <strong>This package has not been indexed yet.</strong> It will appear in search results and will be available for install/restore after indexing is completed.<br /><br />
+            Search index last updated <time class="timeago" datetime="@Model.IndexLastWriteTime.Value.ToJavaScriptUTC()">@Model.IndexLastWriteTime.Value.ToNuGetShortDateTimeString() UTC</time>.
+        </p>
+    }
+
     <div class="package-page-heading">
         <h1 title="@Model.Title">@Model.Title.Abbreviate(40)</h1>
         <h2>@Model.Version</h2>
@@ -198,29 +217,31 @@
 
     @if (!Model.Listed)
     {
-        if(Model.IsOwner(User))
-        { 
-            <p  class="message warning">
+        if (Model.IsOwner(User))
+        {
+            <p class="message warning">
                 This package is unlisted and hidden from package listings.
-                You can see the package because you are one of its owners. To list the package again, 
+                You can see the package because you are one of its owners. To list the package again,
                 <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
             </p>
         }
         else
         {
-            <p  class="message warning">
-                The owner has unlisted this package. 
+            <p class="message warning">
+                The owner has unlisted this package.
                 This could mean that the package is deprecated or shouldn't be used anymore.
             </p>
         }
     }
     <p>
         To install @Model.Title, run the following command in the <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">
-                                                                      Package Manager Console</a>
+            Package Manager Console
+        </a>
     </p>
     <div class="nuget-badge">
         <p>
-            <code>PM&gt; Install-Package @Model.Id
+            <code>
+                PM&gt; Install-Package @Model.Id
                 @if (!Model.LatestVersion || !Model.Listed)
                 {
                     <text> -Version @Model.Version</text>
@@ -228,21 +249,25 @@
                 @if (Model.Prerelease)
                 {
                     <text> -Pre </text>
-                }</code></p>
+                }
+            </code>
+        </p>
     </div>
     @if (!String.IsNullOrEmpty(Model.MinClientVersion))
-    { 
+    {
         <p>Requires NuGet @Model.MinClientVersion or higher.</p>
     }
     <div id="socialbuttons" style="height: 60px; display: block;">
-        <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>
+        <div>
+            <a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a>
+        </div>
         <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
     </div>
 
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
     {
         <h3>Release Notes</h3>
-        
+
         // Not actually using <pre/> because its better to have wrapping text
         <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
     }
@@ -276,11 +301,13 @@
         {
             <h3>Dependencies</h3>
             <p>
-                An error occurred processing dependencies. 
+                An error occurred processing dependencies.
                 Your package can still be downloaded and installed, but dependencies cannot be shown.
-                Please @Html.ActionLink("Contact Support", actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version }, htmlAttributes: null) if you have questions.</p>
+                Please @Html.ActionLink("Contact Support", actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version }, htmlAttributes: null) if you have questions.
+            </p>
             <p>
-                <strong>Note: This message is only visible to you and any other package owners.</strong></p>
+                <strong>Note: This message is only visible to you and any other package owners.</strong>
+            </p>
         }
     }
     else
@@ -303,9 +330,7 @@
                 </th>
                 @if (Model.IsOwner(User))
                 {
-                    <th class="last">
-                        Listed
-                    </th>
+                    <th class="last">Listed</th>
                 }
             </tr>
         </thead>
@@ -332,17 +357,25 @@
                             else
                             {
                                 <a href="@Url.Package(packageVersion)" title="@packageVersion.Title @packageVersion.Version (this version)">
-                                @packageVersion.Title.Abbreviate(20) @packageVersion.Version (this version)
+                                    @packageVersion.Title.Abbreviate(20) @packageVersion.Version (this version)
                                 </a>
                             }
+
+                            @if (!packageVersion.IsProbablyIndexed(Model.IndexLastWriteTime))
+                            {
+                                <span title="This package has not been indexed yet. It will appear in search results and will be available for install/restore after indexing is completed.">pending</span>
+                            }
                         </td>
-                        <td>@packageVersion.DownloadCount
+                        <td>
+                            @packageVersion.DownloadCount
                         </td>
-                        <td>@packageVersion.LastUpdated.ToNuGetLongDateString()
+                        <td>
+                            @packageVersion.LastUpdated.ToNuGetLongDateString()
                         </td>
                         @if (Model.IsOwner(User))
                         {
-                            <td><a href="@Url.DeletePackage(packageVersion)" class="delete">@(packageVersion.Listed ? "yes" : "no")</a>
+                            <td>
+                                <a href="@Url.DeletePackage(packageVersion)" class="delete">@(packageVersion.Listed ? "yes" : "no")</a>
                             </td>
                         }
                     </tr>
