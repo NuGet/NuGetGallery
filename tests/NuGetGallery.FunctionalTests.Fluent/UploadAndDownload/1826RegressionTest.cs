@@ -25,11 +25,11 @@ namespace NuGetGallery.FunctionalTests.Fluent
                     <dependency id=""jQuery"" version=""2.1.0"" />
                 </group>
             ");
-            
+
             // Log on using the test account.
             I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
 
-            // Navigate to the upload page and upload the package. 
+            // Navigate to the upload page and upload the package.
             I.UploadPackageUsingUI(newPackageLocation);
             I.Click("#verifyUploadSubmit");
 

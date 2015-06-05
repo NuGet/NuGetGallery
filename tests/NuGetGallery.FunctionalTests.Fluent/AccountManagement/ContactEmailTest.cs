@@ -30,11 +30,11 @@ namespace NuGetGallery.FunctionalTests.Fluent
             // Validate in-site message to owner
             I.Expect.Url(x => x.AbsoluteUri.EndsWith("/packages/" + packageName + "/" + version));
             I.Expect.Count(1).Of(@"p:contains('Your abuse report has been sent to the gallery operators')");
-            
+
             // Validate owner receives a copy of the message
             // Wait for up to 5 mins. to make sure that the mail is delivered properly.
             for (int i = 0; ((i < 10) && !received); i++)
-            { 
+            {
                 System.Threading.Thread.Sleep(30000);
                 subject = string.Empty;
                 received = MailHelper.IsMailSentForAbuseReport(packageName, version, "Other", out subject);
@@ -66,7 +66,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             // Wait for 30 secs. to make sure that the mail is delivered properly.
             received = false;
             for (int i = 0; ((i < 10) && !received); i++)
-            { 
+            {
                 System.Threading.Thread.Sleep(30000);
                 subject = string.Empty;
                 received = MailHelper.IsMailSentForContactOwner(packageName, out subject);
@@ -100,7 +100,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             // Wait for 30 secs. to make sure that the mail is delivered properly.
             received = false;
             for (int i = 0; ((i < 10) && !received); i++)
-            { 
+            {
                 System.Threading.Thread.Sleep(30000);
                 subject = string.Empty;
                 received = MailHelper.IsMailSentForContactSupport(packageName, version, "Other", out subject);
@@ -120,6 +120,6 @@ namespace NuGetGallery.FunctionalTests.Fluent
             sb.AppendLine("TEST TEST TEST TEST TEST TEST TEST TEST");
             return sb.ToString();
         }
-        
+
     }
 }

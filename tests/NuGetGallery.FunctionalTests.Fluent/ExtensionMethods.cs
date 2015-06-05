@@ -1,12 +1,12 @@
-﻿using FluentAutomation.Interfaces;
+﻿using System;
+using FluentAutomation.Interfaces;
 using NuGetGallery.FunctionTests.Helpers;
-using System;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
-    public static class ExtensionMethods  
+    public static class ExtensionMethods
     {
-        public static void LogOn(this INativeActionSyntaxProvider I, string userName, string password)
+        public static void LogOn(this IActionSyntaxProvider I, string userName, string password)
         {
             I.Open(UrlHelper.BaseUrl + "users/account/LogOn");
             I.Expect.Url(x => x.LocalPath.Contains("LogOn"));
@@ -16,7 +16,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             I.Wait(1);
         }
 
-        public static void UploadPackageUsingUI(this INativeActionSyntaxProvider I, string fullPackagePath)
+        public static void UploadPackageUsingUI(this IActionSyntaxProvider I, string fullPackagePath)
         {
             // Navigate to the Upload Package page.  This will fail if the user never uploaded the previous package, hence the error handling.
             I.Open(String.Format(UrlHelper.UploadPageUrl));

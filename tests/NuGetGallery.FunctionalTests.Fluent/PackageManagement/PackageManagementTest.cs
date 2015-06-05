@@ -12,7 +12,6 @@ namespace NuGetGallery.FunctionalTests.Fluent
         public void PackageManagement()
         {
             string packageName = "NuGetGallery.FunctionalTests.Fluent.PackageManagementTest";
-            FluentAutomation.Element listedCheckbox = null;
 
             if (CheckForPackageExistence)
             {
@@ -25,8 +24,8 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
             // List 1.0.0
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName + "/1.0.0/Delete");
-            listedCheckbox = I.Find("#Listed").Invoke() as FluentAutomation.Element;
-            if (!(listedCheckbox.Attributes.Get("checked") == "true"))
+            var listedCheckbox = I.Find("#Listed").Element;
+            if (listedCheckbox.Attributes.Get("checked") != "true")
             {
                 I.Click("#Listed");
                 I.Wait(1);
@@ -36,7 +35,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
             // Unlist 2.0.0
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName + "/2.0.0/Delete");
-            listedCheckbox = I.Find("#Listed").Invoke() as FluentAutomation.Element;
+            listedCheckbox = I.Find("#Listed").Element;
             if (listedCheckbox.Attributes.Get("checked") == "true")
             {
                 I.Click("#Listed");
@@ -47,7 +46,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
             // Unlist 3.0.0-rc
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName + "/3.0.0-rc/Delete");
-            listedCheckbox = I.Find("#Listed").Invoke() as FluentAutomation.Element;
+            listedCheckbox = I.Find("#Listed").Element;
             if (listedCheckbox.Attributes.Get("checked") == "true")
             {
                 I.Click("#Listed");
@@ -62,7 +61,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
             // Unlist 1.0.0
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName + "/1.0.0/Delete");
-            listedCheckbox = I.Find("#Listed").Invoke() as FluentAutomation.Element;
+            listedCheckbox = I.Find("#Listed").Element;
             if (listedCheckbox.Attributes.Get("checked") == "true")
             {
                 I.Click("#Listed");
@@ -73,8 +72,8 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
             // List 3.0.0-rc.
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName + "/3.0.0-rc/Delete");
-            listedCheckbox = I.Find("#Listed").Invoke() as FluentAutomation.Element;
-            if (!(listedCheckbox.Attributes.Get("checked") == "true"))
+            listedCheckbox = I.Find("#Listed").Element;
+            if (listedCheckbox.Attributes.Get("checked") != "true")
             {
                 I.Click("#Listed");
                 I.Wait(1);
@@ -88,8 +87,8 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
             // List 1.0.0
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName + "/1.0.0/Delete");
-            listedCheckbox = I.Find("#Listed").Invoke() as FluentAutomation.Element;
-            if (!(listedCheckbox.Attributes.Get("checked") == "true"))
+            listedCheckbox = I.Find("#Listed").Element;
+            if (listedCheckbox.Attributes.Get("checked") != "true")
             {
                 I.Click("#Listed");
                 I.Wait(1);

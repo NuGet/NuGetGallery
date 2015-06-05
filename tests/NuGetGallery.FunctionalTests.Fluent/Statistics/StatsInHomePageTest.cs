@@ -1,7 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
-using System.IO;
+﻿using System.IO;
 using System.Net;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NuGetGallery.FunctionTests.Helpers;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
@@ -11,14 +12,17 @@ namespace NuGetGallery.FunctionalTests.Fluent
         [TestMethod]
         [Description("Cross-check the contents of the Statistics on the homepage against the stats/total API endpoint.")]
         [Priority(1)]
-        public void StatsInHomePage()
+        public async Task StatsInHomePage()
         {
             // Request the last 6 weeks endpoint.
-            WebRequest request = WebRequest.Create(UrlHelper.BaseUrl + @"/stats/totals");
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
+            var request = WebRequest.Create(UrlHelper.BaseUrl + @"/stats/totals");
+            var response = await request.GetResponseAsync();
+
+            string responseText;
+            using (var sr = new StreamReader(response.GetResponseStream()))
+            {
+                responseText = await sr.ReadToEndAsync();
+            }
 
             // Extract the substrings we'll search for on the front page.
             string downloads = responseText.Substring(responseText.IndexOf(@"Downloads"":""") + 12);
