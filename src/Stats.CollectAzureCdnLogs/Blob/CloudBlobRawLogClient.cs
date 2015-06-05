@@ -35,9 +35,22 @@ namespace Stats.CollectAzureCdnLogs.Blob
 
         public async Task<bool> UploadBlobAsync(CloudBlobContainer targetContainer, RawLogFileInfo logFile, Stream rawLogStream)
         {
+            if (targetContainer == null)
+            {
+                throw new ArgumentNullException("targetContainer");
+            }
+            if (logFile == null)
+            {
+                throw new ArgumentNullException("logFile");
+            }
+            if (rawLogStream == null)
+            {
+                throw new ArgumentNullException("rawLogStream");
+            }
+
+            var blobName = logFile.Uri.ToString();
             try
             {
-                var blobName = logFile.Uri.ToString();
                 _jobEventSource.BeginningBlobUpload(blobName);
                 Trace.TraceInformation("Uploading file '{0}'.", logFile.FileName);
 
@@ -54,6 +67,7 @@ namespace Stats.CollectAzureCdnLogs.Blob
             catch (Exception exception)
             {
                 Trace.TraceError(exception.ToString());
+                _jobEventSource.FailedToUploadFile(blobName, exception.ToString());
             }
             return false;
         }

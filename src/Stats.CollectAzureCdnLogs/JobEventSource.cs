@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics.Tracing;
 
 namespace Stats.CollectAzureCdnLogs
@@ -70,12 +69,43 @@ namespace Stats.CollectAzureCdnLogs
             WriteEvent(9, uri);
         }
 
+        [Event(eventId: 10, Level = EventLevel.Error, Message = "Failed to rename file {0} to {1}", Task = Tasks.Renaming, Opcode = EventOpcode.Suspend)]
+        public void FailedToRenameFile(string uri, string newFileName)
+        {
+            WriteEvent(10, uri, newFileName);
+        }
+
+        [Event(eventId: 11, Level = EventLevel.Error, Message = "Failed to delete file {0}", Task = Tasks.Deleting, Opcode = EventOpcode.Suspend)]
+        public void FailedToDeleteFile(string uri)
+        {
+            WriteEvent(11, uri);
+        }
+
+        [Event(eventId: 12, Level = EventLevel.Error, Message = "Failed to download file {0}: {1}", Task = Tasks.Downloading, Opcode = EventOpcode.Suspend)]
+        public void FailedToDownloadFile(string uri, string exception)
+        {
+            WriteEvent(12, uri, exception);
+        }
+
+        [Event(eventId: 13, Level = EventLevel.Error, Message = "Failed to download file {0}: {1}", Task = Tasks.ListingDirectory, Opcode = EventOpcode.Suspend)]
+        public void FailedToGetRawLogFiles(string uri, string exception)
+        {
+            WriteEvent(13, uri, exception);
+        }
+
+        [Event(eventId: 14, Level = EventLevel.Error, Message = "Failed to upload file {0}: {1}", Task = Tasks.Uploading, Opcode = EventOpcode.Suspend)]
+        public void FailedToUploadFile(string uri, string exception)
+        {
+            WriteEvent(14, uri, exception);
+        }
+
         public static class Tasks
         {
             public const EventTask Downloading = (EventTask)0x1;
             public const EventTask Uploading = (EventTask)0x2;
             public const EventTask Deleting = (EventTask)0x3;
             public const EventTask ListingDirectory = (EventTask)0x4;
+            public const EventTask Renaming = (EventTask)0x5;
         }
     }
 }

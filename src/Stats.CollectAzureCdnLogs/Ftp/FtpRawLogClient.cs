@@ -46,13 +46,20 @@ namespace Stats.CollectAzureCdnLogs.Ftp
             var result = await TryGetResponseAsync(request, FtpStatusCode.FileActionOK);
             if (!result)
             {
-                Trace.TraceWarning("Failed to rename file '{0}'.", uri);
+                // Failed (multiple times) to rename the file on the origin. No point in continuing with this file.
+                Trace.TraceError("Failed to rename file '{0}'. Processing aborted.", uri);
+                _jobEventSource.FailedToRenameFile(uri.ToString(), newFileName);
             }
             return result;
         }
 
         public async Task DeleteAsync(Uri uri)
         {
+            if (uri == null)
+            {
+                throw new ArgumentNullException("uri");
+            }
+
             var uriString = uri.ToString();
             _jobEventSource.BeginningDelete(uriString);
             Trace.TraceInformation("Deleting file '{0}'.", uri);
@@ -64,7 +71,8 @@ namespace Stats.CollectAzureCdnLogs.Ftp
             if (!result)
             {
                 // A warning is OK here as the job should retry downloading and processing the file
-                Trace.TraceWarning("Failed to delete file '{0}'.", uri);
+                _jobEventSource.FailedToDeleteFile(uriString);
+                Trace.TraceWarning("Failed to delete file '{0}'.", uriString);
             }
             else
             {
@@ -74,26 +82,40 @@ namespace Stats.CollectAzureCdnLogs.Ftp
 
         public async Task<IEnumerable<RawLogFileInfo>> GetRawLogFiles(Uri uri)
         {
-            var uriString = uri.ToString();
-            _jobEventSource.BeginningDirectoryListing(uriString);
-            Trace.TraceInformation("Listing directory '{0}'.", uri);
-
-            var request = CreateRequest(uri);
-            request.Method = WebRequestMethods.Ftp.ListDirectory;
-            var webResponse = (FtpWebResponse)await request.GetResponseAsync();
-
-            string directoryList;
-            using (var streamReader = new StreamReader(webResponse.GetResponseStream(), Encoding.ASCII))
+            if (uri == null)
             {
-                directoryList = await streamReader.ReadToEndAsync();
+                throw new ArgumentNullException("uri");
             }
 
-            _jobEventSource.FinishingDirectoryListing(uriString);
+            var uriString = uri.ToString();
+            try
+            {
+                _jobEventSource.BeginningDirectoryListing(uriString);
+                Trace.TraceInformation("Listing directory '{0}'.", uri);
 
-            var fileNames = directoryList.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-            var rawLogFiles = fileNames.Select(fn => new RawLogFileInfo(new Uri(uri.EnsureTrailingSlash(), fn)));
+                var request = CreateRequest(uri);
+                request.Method = WebRequestMethods.Ftp.ListDirectory;
+                var webResponse = (FtpWebResponse)await request.GetResponseAsync();
 
-            return rawLogFiles;
+                string directoryList;
+                using (var streamReader = new StreamReader(webResponse.GetResponseStream(), Encoding.ASCII))
+                {
+                    directoryList = await streamReader.ReadToEndAsync();
+                }
+
+                _jobEventSource.FinishingDirectoryListing(uriString);
+
+                var fileNames = directoryList.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                var rawLogFiles = fileNames.Select(fn => new RawLogFileInfo(new Uri(uri.EnsureTrailingSlash(), fn)));
+
+                return rawLogFiles;
+            }
+            catch (Exception e)
+            {
+                _jobEventSource.FailedToGetRawLogFiles(uriString, e.ToString());
+                Trace.TraceError("Failed to get raw log files: {0}", e);
+                return Enumerable.Empty<RawLogFileInfo>();
+            }
         }
 
         private static async Task<bool> TryGetResponseAsync(FtpWebRequest request, FtpStatusCode expectedResult)
@@ -143,6 +165,15 @@ namespace Stats.CollectAzureCdnLogs.Ftp
 
         public async Task<Uri> RenameAsync(RawLogFileInfo rawLogFile, string newFileName)
         {
+            if (rawLogFile == null)
+            {
+                throw new ArgumentNullException("rawLogFile");
+            }
+            if (string.IsNullOrWhiteSpace(newFileName))
+            {
+                throw new ArgumentNullException("newFileName");
+            }
+
             Uri rawLogUri;
             if (!rawLogFile.IsPendingDownload)
             {
@@ -152,8 +183,6 @@ namespace Stats.CollectAzureCdnLogs.Ftp
                 }
                 else
                 {
-                    // Failed (multiple times) to rename the file on the origin. No point in continuing with this file.
-                    Trace.TraceError("Failed to rename file '{0}'. Processing aborted.", rawLogFile.Uri);
                     rawLogUri = null;
                 }
             }

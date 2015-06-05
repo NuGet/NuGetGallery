@@ -30,11 +30,12 @@ namespace Stats.CollectAzureCdnLogs.Ftp
             int attempts = 0;
             while (attempts++ < 5)
             {
+                var uriString = _uri.ToString();
                 if (_stream == null)
                 {
                     _stream = await _client.StartOrResumeFtpDownload(_uri, _totalDone);
 
-                    _client.EventSource.FinishedDownload(_uri.ToString());
+                    _client.EventSource.FinishedDownload(uriString);
                 }
                 try
                 {
@@ -48,6 +49,8 @@ namespace Stats.CollectAzureCdnLogs.Ftp
                 catch (Exception ex)
                 {
                     CaughtException = ex;
+
+                    _client.EventSource.FailedToDownloadFile(uriString, ex.ToString());
 
                     // Close ftp resources if possible. Set instances to null to force restart.
                     Close();
