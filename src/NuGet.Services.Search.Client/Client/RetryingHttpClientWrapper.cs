@@ -78,6 +78,11 @@ namespace NuGet.Services.Search.Client
 
             if (completedTask == null || completedTask.IsFaulted || completedTask.IsCanceled)
             {
+                var exceptionsToThrow = exceptions.Where(e => !(e is TaskCanceledException)).ToList();
+                if (exceptionsToThrow.Count == 1)
+                {
+                    throw exceptionsToThrow.First();
+                }
                 throw new AggregateException(exceptions);
             }
             return await completedTask;
