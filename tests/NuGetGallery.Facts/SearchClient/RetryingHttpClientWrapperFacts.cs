@@ -10,7 +10,7 @@ using Xunit;
 
 namespace NuGetGallery.SearchClient
 {
-    public class RequestInspectingHandler 
+    public class RequestInspectingHandler
         : DelegatingHandler
     {
         public List<HttpRequestMessage> Requests { get; private set; }
@@ -20,7 +20,7 @@ namespace NuGetGallery.SearchClient
             Requests = new List<HttpRequestMessage>();
             InnerHandler = new HttpClientHandler();
         }
-    
+
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Requests.Add(request);
@@ -49,50 +49,50 @@ namespace NuGetGallery.SearchClient
         }
 
         [Fact]
-        public void ReturnsStringForValidUri()
+        public async Task ReturnsStringForValidUri()
         {
             var client = CreateWrapperClient();
 
-            var result = client.GetStringAsync(new[] { ValidUri1 }).Result;
+            var result = await client.GetStringAsync(new[] { ValidUri1 });
 
             Assert.NotNull(result);
         }
 
         [Fact]
-        public void ReturnsSuccessResponseForValidUri()
+        public async Task ReturnsSuccessResponseForValidUri()
         {
             var client = CreateWrapperClient();
 
-            var result = client.GetAsync(new[] { ValidUri1 }).Result;
+            var result = await client.GetAsync(new[] { ValidUri1 });
 
             Assert.True(result.IsSuccessStatusCode);
         }
 
         [Fact]
-        public void ReturnsStringForCollectionContainingValidUri()
+        public async Task ReturnsStringForCollectionContainingValidUri()
         {
             var inspectingHandler = new RequestInspectingHandler();
             var client = CreateWrapperClient(inspectingHandler);
 
-            var result = client.GetStringAsync(new[] { InvalidUri1, InvalidUri2, ValidUri1, InvalidUri3 }).Result;
+            var result = await client.GetStringAsync(new[] { InvalidUri1, InvalidUri2, ValidUri1, InvalidUri3 });
 
             Assert.NotNull(result);
         }
 
         [Fact]
-        public void ReturnsSuccessResponseForCollectionContainingValidUri()
+        public async Task ReturnsSuccessResponseForCollectionContainingValidUri()
         {
             var inspectingHandler = new RequestInspectingHandler();
             var client = CreateWrapperClient(inspectingHandler);
 
-            var result = client.GetAsync(new[] { InvalidUri1, InvalidUri2, ValidUri1, InvalidUri3 }).Result;
+            var result = await client.GetAsync(new[] { InvalidUri1, InvalidUri2, ValidUri1, InvalidUri3 });
 
             Assert.True(result.IsSuccessStatusCode);
             Assert.Equal(ValidUri1, result.RequestMessage.RequestUri);
         }
 
         [Fact]
-        public void LoadBalancesBetweenValidUrisForGetStringAsync()
+        public async Task LoadBalancesBetweenValidUrisForGetStringAsync()
         {
             var inspectingHandler = new RequestInspectingHandler();
             var client = CreateWrapperClient(inspectingHandler);
@@ -104,7 +104,7 @@ namespace NuGetGallery.SearchClient
             while (!hasHitUri1 || !hasHitUri2 || numRequests < 25)
             {
                 numRequests++;
-                var result = client.GetStringAsync(new[] { ValidUri1, ValidUri2 }).Result;
+                var result = await client.GetStringAsync(new[] { ValidUri1, ValidUri2 });
 
                 Assert.NotNull(result);
                 if (!hasHitUri1) hasHitUri1 = inspectingHandler.Requests.Any(r => r.RequestUri == ValidUri1);
@@ -116,7 +116,7 @@ namespace NuGetGallery.SearchClient
         }
 
         [Fact]
-        public void LoadBalancesBetweenValidUrisForGetAsync()
+        public async Task LoadBalancesBetweenValidUrisForGetAsync()
         {
             var inspectingHandler = new RequestInspectingHandler();
             var client = CreateWrapperClient(inspectingHandler);
@@ -128,7 +128,7 @@ namespace NuGetGallery.SearchClient
             while (!hasHitUri1 || !hasHitUri2 || numRequests < 25)
             {
                 numRequests++;
-                var result = client.GetAsync(new[] { ValidUri1, ValidUri2 }).Result;
+                var result = await client.GetAsync(new[] { ValidUri1, ValidUri2 });
 
                 Assert.NotNull(result);
                 if (!hasHitUri1) hasHitUri1 = inspectingHandler.Requests.Any(r => r.RequestUri == ValidUri1);
@@ -140,27 +140,27 @@ namespace NuGetGallery.SearchClient
         }
 
         [Fact]
-        public void FailsWhenNoValidUriGiven1()
+        public async Task FailsWhenNoValidUriGiven1()
         {
             var client = CreateWrapperClient();
 
-            Assert.Throws<AggregateException>(() => client.GetStringAsync(new[] { InvalidUri1, InvalidUri2 }).Result);
+            await Assert.ThrowsAsync<AggregateException>(() => client.GetStringAsync(new[] { InvalidUri1, InvalidUri2 }));
         }
 
         [Fact]
-        public void FailsWhenNoValidUriGiven2()
+        public async Task FailsWhenNoValidUriGiven2()
         {
             var client = CreateWrapperClient();
 
-            Assert.Throws<AggregateException>(() => client.GetAsync(new[] { InvalidUri1, InvalidUri2 }).Result);
+            await Assert.ThrowsAsync<AggregateException>(() => client.GetAsync(new[] { InvalidUri1, InvalidUri2 }));
         }
 
         [Fact]
-        public void Returns404When404IsExpected()
+        public async Task Returns404When404IsExpected()
         {
             var client = CreateWrapperClient();
 
-            var result = client.GetAsync(new[] { InvalidUriWith404, InvalidUri3 }).Result;
+            var result = await client.GetAsync(new[] { InvalidUriWith404, InvalidUri3 });
 
             Assert.False(result.IsSuccessStatusCode);
             Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
