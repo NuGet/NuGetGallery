@@ -72,60 +72,59 @@ namespace NuGetGallery
                 }
             }
 
+            var packages = PackageRepository.GetAll()
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .Where(p => p.Listed);
+            var query = SearchAdaptor.SearchCore(
+                SearchService, 
+                HttpContext.Request, 
+                packages, 
+                searchTerm, 
+                targetFramework, 
+                includePrerelease, 
+                curatedFeed: null)
+                // TODO: Async this when I can figure out OData async stuff...
+                .Result
+                .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
+
             // cache the most common search query
             // Search()/?$filter=IsLatestVersion&searchTerm=%27%27&targetFramework=%27net45%27&includePrerelease=false
             if (searchTerm == string.Empty && targetFramework == "net45" && !includePrerelease)
             {
-                List<V2FeedPackage> searchResults;
+                query = CacheMostCommonQuery(query);
+            }
 
-                var cachedResults = HttpContext.Cache.Get("MostCommonQueryResults");
-                var currentDateTime = DateTime.UtcNow;
-                if (cachedResults == null)
-                {
-                    var packages = PackageRepository.GetAll()
-                        .Include(p => p.PackageRegistration)
-                        .Include(p => p.PackageRegistration.Owners)
-                        .Where(p => p.Listed);
+            return query;
+        }
 
-                    var query = SearchAdaptor.SearchCore(SearchService, HttpContext.Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: null)
-                        // TODO: Async this when I can figure out OData async stuff...
-                        .Result
-                        .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
+        private IQueryable<V2FeedPackage> CacheMostCommonQuery(IQueryable<V2FeedPackage> query)
+        {
+            List<V2FeedPackage> searchResults;
 
-                    searchResults = query.ToList();
+            var cachedResults = HttpContext.Cache.Get("MostCommonQueryResults");
+            var currentDateTime = DateTime.UtcNow;
+            if (cachedResults == null)
+            {
+                searchResults = query.ToList();
 
-                    // note: this is per instance cache
-                    HttpContext.Cache.Add("MostCommonQueryResults", searchResults, null, currentDateTime.AddSeconds(30),
-                        Cache.NoSlidingExpiration, CacheItemPriority.Default, null);
-                }
-                else
-                {
-                    searchResults = (List<V2FeedPackage>)cachedResults;
-                }
-
-                // Clients should cache twice as long.
-                // This way, they won't notice differences in the short-lived per instance cache.
-                HttpContext.Response.Cache.SetCacheability(HttpCacheability.Private);
-                HttpContext.Response.Cache.SetMaxAge(TimeSpan.FromSeconds(60));
-                HttpContext.Response.Cache.SetExpires(currentDateTime.AddSeconds(60));
-                HttpContext.Response.Cache.SetValidUntilExpires(true);
-
-                return searchResults.AsQueryable();
+                // note: this is per instance cache
+                HttpContext.Cache.Add("MostCommonQueryResults", searchResults, null, currentDateTime.AddSeconds(30),
+                    Cache.NoSlidingExpiration, CacheItemPriority.Default, null);
             }
             else
             {
-                var packages = PackageRepository.GetAll()
-                        .Include(p => p.PackageRegistration)
-                        .Include(p => p.PackageRegistration.Owners)
-                        .Where(p => p.Listed);
-
-                var query = SearchAdaptor.SearchCore(SearchService, HttpContext.Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: null)
-                    // TODO: Async this when I can figure out OData async stuff...
-                    .Result
-                    .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
-
-                return query;
+                searchResults = (List<V2FeedPackage>)cachedResults;
             }
+
+            // Clients should cache twice as long.
+            // This way, they won't notice differences in the short-lived per instance cache.
+            HttpContext.Response.Cache.SetCacheability(HttpCacheability.Private);
+            HttpContext.Response.Cache.SetMaxAge(TimeSpan.FromSeconds(60));
+            HttpContext.Response.Cache.SetExpires(currentDateTime.AddSeconds(60));
+            HttpContext.Response.Cache.SetValidUntilExpires(true);
+
+            return searchResults.AsQueryable();
         }
 
         [WebGet]
