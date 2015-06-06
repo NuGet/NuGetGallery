@@ -56,7 +56,7 @@ namespace NuGetGallery
         public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {
             // Handle OData-style |-separated list of frameworks.
-            string[] targetFrameworkList = (targetFramework ?? "").Split(new[] {'\'', '|'}, StringSplitOptions.RemoveEmptyEntries);
+            string[] targetFrameworkList = (targetFramework ?? "").Split(new[] { '\'', '|' }, StringSplitOptions.RemoveEmptyEntries);
 
             // For now, we'll just filter on the first one.
             if (targetFrameworkList.Length > 0)
@@ -77,6 +77,7 @@ namespace NuGetGallery
             if (searchTerm == string.Empty && targetFramework == "net45" && !includePrerelease)
             {
                 List<V2FeedPackage> searchResults;
+                DateTime lastModified;
 
                 var cachedResults = HttpContext.Cache.Get("MostCommonQueryResults");
                 var currentDateTime = DateTime.UtcNow;
@@ -93,14 +94,18 @@ namespace NuGetGallery
                         .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
 
                     searchResults = query.ToList();
+                    lastModified = currentDateTime;
 
                     // note: this is per instance cache
                     HttpContext.Cache.Add("MostCommonQueryResults", searchResults, null, currentDateTime.AddSeconds(30),
+                        Cache.NoSlidingExpiration, CacheItemPriority.Default, null);
+                    HttpContext.Cache.Add("MostCommonQueryResultsLastModified", lastModified, null, currentDateTime.AddSeconds(30),
                         Cache.NoSlidingExpiration, CacheItemPriority.Default, null);
                 }
                 else
                 {
                     searchResults = (List<V2FeedPackage>)cachedResults;
+                    lastModified = (DateTime)HttpContext.Cache.Get("MostCommonQueryResultsLastModified");
                 }
 
                 // Clients should cache twice as long.
@@ -108,6 +113,7 @@ namespace NuGetGallery
                 HttpContext.Response.Cache.SetCacheability(HttpCacheability.Private);
                 HttpContext.Response.Cache.SetMaxAge(TimeSpan.FromSeconds(60));
                 HttpContext.Response.Cache.SetExpires(currentDateTime.AddSeconds(60));
+                HttpContext.Response.Cache.SetLastModified(lastModified);
                 HttpContext.Response.Cache.SetValidUntilExpires(true);
 
                 return searchResults.AsQueryable();
@@ -138,10 +144,10 @@ namespace NuGetGallery
 
         [WebGet]
         public IQueryable<V2FeedPackage> GetUpdates(
-            string packageIds, 
-            string versions, 
-            bool includePrerelease, 
-            bool includeAllVersions, 
+            string packageIds,
+            string versions,
+            bool includePrerelease,
+            bool includeAllVersions,
             string targetFrameworks,
             string versionConstraints)
         {
