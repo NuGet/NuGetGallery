@@ -33,7 +33,11 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// <returns></returns>
         public static async Task<ProcessResult> UploadPackageAsync(string packageFullPath, string sourceName)
         {
+            Console.WriteLine("##teamcity[message text='Uploading package " + packageFullPath + " to " + sourceName + "']");
+
             var arguments = string.Join(string.Empty, PushCommandString, @"""" + packageFullPath + @"""", SourceSwitchString, sourceName);
+            Console.WriteLine("##teamcity[message text='nuget.exe " + arguments + "']");
+
             return await InvokeNugetProcess(arguments);
         }
 
