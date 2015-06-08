@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -25,7 +26,6 @@ namespace NuGetGallery
     {
         private const int FeedVersion = 2;
         private const int ServerCacheExpirationInSeconds = 30;
-        private const string CacheKeyMostCommonSearchResults = "MostCommonSearchResults";
 
         public V2Feed()
         {
@@ -187,7 +187,7 @@ namespace NuGetGallery
 
             var versionLookup = idValues.Select((id, i) =>
                 {
-                    SemanticVersion currentVersion = null;
+                    SemanticVersion currentVersion;
                     if (SemanticVersion.TryParse(versionValues[i], out currentVersion))
                     {
                         IVersionSpec versionConstraint = null;
@@ -271,7 +271,7 @@ namespace NuGetGallery
         /// <param name="includePrerelease"><code>True</code>, to include prereleases; otherwise <code>false</code>.</param>
         /// <param name="cacheKey">The cache-key for the specified search criteria, if there is one.</param>
         /// <returns><code>True</code> if the search criteria are considered to be common and has a cache-key; otherwise <code>false</code>.</returns>
-        private bool TryGetCacheKeyForSearchQuery(string searchTerm, string targetFramework, bool includePrerelease, out string cacheKey)
+        private static bool TryGetCacheKeyForSearchQuery(string searchTerm, string targetFramework, bool includePrerelease, out string cacheKey)
         {
             if (string.IsNullOrEmpty(searchTerm) && targetFramework == "net45" && !includePrerelease)
             {
