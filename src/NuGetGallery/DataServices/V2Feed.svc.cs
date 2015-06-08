@@ -74,7 +74,7 @@ namespace NuGetGallery
 
             // cache the most common search query
             // Search()/?$filter=IsLatestVersion&searchTerm=%27%27&targetFramework=%27net45%27&includePrerelease=false
-            if (searchTerm == string.Empty && targetFramework == "net45" && !includePrerelease)
+            if (string.IsNullOrEmpty(searchTerm) && targetFramework == "net45" && !includePrerelease))
             {
                 List<V2FeedPackage> searchResults;
                 DateTime lastModified;
