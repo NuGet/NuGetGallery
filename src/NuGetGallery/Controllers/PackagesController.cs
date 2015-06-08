@@ -40,6 +40,7 @@ namespace NuGetGallery
         private readonly IIndexingService _indexingService;
         private readonly ICacheService _cacheService;
         private readonly EditPackageService _editPackageService;
+        private static DateTime? _lastIndexTimestampUtc;
 
         public PackagesController(
             IPackageService packageService,
@@ -258,7 +259,7 @@ namespace NuGetGallery
             return RedirectToRoute(RouteName.VerifyPackage);
         }
 
-        public virtual async Task<ActionResult> DisplayPackage(string id, string version)
+        public virtual ActionResult DisplayPackage(string id, string version)
         {
             string normalized = SemanticVersionExtensions.Normalize(version);
             if (!String.Equals(version, normalized))
@@ -290,7 +291,7 @@ namespace NuGetGallery
                 }
             }
 
-            model.IndexLastWriteTime = await _indexingService.GetLastWriteTime();
+            model.IndexLastWriteTime = _lastIndexTimestampUtc;
 
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
@@ -330,6 +331,8 @@ namespace NuGetGallery
                 var searchFilter = SearchAdaptor.GetSearchFilter(q, page, sortOrder: null, context: SearchFilter.UISearchContext);
                 results = await _searchService.Search(searchFilter);
             }
+
+            _lastIndexTimestampUtc = results.IndexTimestampUtc;
 
             int totalHits = results.Hits;
             if (page == 1 && !results.Data.Any())
