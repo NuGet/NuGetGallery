@@ -32,5 +32,10 @@ namespace NuGetGallery
         {
             return new CloudBlobWrapper(_blobContainer.GetBlockBlobReference(blobAddressUri));
         }
+
+        public Task<bool> ExistsAsync()
+        {
+            return _blobContainer.ExistsAsync();
+        }
     }
 }

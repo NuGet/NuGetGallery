@@ -4,7 +4,6 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using NuGetGallery;
 
 namespace NuGetGallery
 {
@@ -28,5 +27,7 @@ namespace NuGetGallery
         Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName, string ifNoneMatch = null);
 
         Task SaveFileAsync(string folderName, string fileName, Stream packageFile);
+
+        Task<bool> IsAvailableAsync();
     }
 }

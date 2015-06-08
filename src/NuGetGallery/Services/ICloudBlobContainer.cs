@@ -10,5 +10,6 @@ namespace NuGetGallery
         Task CreateIfNotExistAsync();
         Task SetPermissionsAsync(BlobContainerPermissions permissions);
         ISimpleCloudBlob GetBlobReference(string blobAddressUri);
+        Task<bool> ExistsAsync();
     }
 }
