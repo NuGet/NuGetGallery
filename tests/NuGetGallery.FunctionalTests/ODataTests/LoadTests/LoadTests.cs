@@ -123,7 +123,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
                 handler.AllowAutoRedirect = false;
                 using (HttpClient client = new HttpClient(handler))
                 {
-                    string requestUri = "https://api-search-0.nuget.org/search/query?q='app insights'&luceneQuery=false";
+                    string requestUri = "http://nuget-prod-0-v2searchwebsite.azurewebsites.net/search/query?q='app insights'&luceneQuery=false";
                     var response = await client.GetAsync(requestUri);
                     //print the header
                     Console.WriteLine("HTTP status code : {0}", response.StatusCode);
