@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Web.Mvc;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
@@ -13,6 +14,7 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using Owin;
 
 [assembly: OwinStartup(typeof(NuGetGallery.OwinStartup))]
@@ -30,6 +32,9 @@ namespace NuGetGallery
 
             // Configure logging
             app.SetLoggerFactory(new DiagnosticsLoggerFactory());
+
+            // Setup telemetry
+            TelemetryConfiguration.Active.ContextInitializers.Add(new TelemetryContextInitializer(config));
 
             // Remove X-AspNetMvc-Version header
             MvcHandler.DisableMvcResponseHeader = true;

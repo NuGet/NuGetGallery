@@ -4,6 +4,7 @@
 using System;
 using System.Web;
 using Elmah;
+using Microsoft.ApplicationInsights;
 
 namespace NuGetGallery
 {
@@ -21,6 +22,10 @@ namespace NuGetGallery
                 {
                     ErrorLog.GetDefault(null).Log(new Error(e));
                 }
+
+                // send exception to AppInsights
+                var telemetryClient = new TelemetryClient();
+                telemetryClient.TrackException(e);
             }
             catch
             {

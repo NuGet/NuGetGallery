@@ -18,7 +18,6 @@ namespace NuGetGallery.Configuration
     {
         private const string SettingPrefix = "Gallery.";
         private const string FeaturePrefix = "Feature.";
-        private const string AuthPrefix = "Auth.";
 
         private IAppConfiguration _current;
 
