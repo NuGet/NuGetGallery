@@ -77,37 +77,44 @@ namespace NuGetGallery
 
             // check if the search criteria match the most common queries
             string cacheKey;
-            if (TryGetCacheKeyForSearchQuery(searchTerm, targetFramework, includePrerelease, out cacheKey))
+            bool requestingPackages = !HttpContext.Request.RawUrl.Contains("$count");
+            if (requestingPackages && TryGetCacheKeyForSearchQuery(searchTerm, targetFramework, includePrerelease, out cacheKey))
             {
-                List<V2FeedPackage> searchResults;
+                IQueryable<V2FeedPackage> searchResults;
                 DateTime lastModified;
 
                 var cachedObject = HttpContext.Cache.Get(cacheKey);
                 var currentDateTime = DateTime.UtcNow;
                 if (cachedObject == null)
                 {
-                    var query = SearchV2FeedCore(searchTerm, targetFramework, includePrerelease);
+                    searchResults = SearchV2FeedCore(searchTerm, targetFramework, includePrerelease);
 
-                    searchResults = query.ToList();
                     lastModified = currentDateTime;
 
                     // cache the most common search query
                     // note: this is per instance cache
-                    var cachedSearchResult = new CachedSearchResult();
-                    cachedSearchResult.IncludePrerelease = includePrerelease;
-                    cachedSearchResult.SearchTerm = searchTerm;
-                    cachedSearchResult.TargetFramework = targetFramework;
+                    var cachedPackages = searchResults.ToList();
 
-                    cachedSearchResult.LastModified = currentDateTime;
-                    cachedSearchResult.Packages = searchResults;
+                    // don't cache empty resulsets in case we missed any potential ODATA expressions
+                    if (!cachedPackages.Any())
+                    {
+                        var cachedSearchResult = new CachedSearchResult();
+                        cachedSearchResult.IncludePrerelease = includePrerelease;
+                        cachedSearchResult.SearchTerm = searchTerm;
+                        cachedSearchResult.TargetFramework = targetFramework;
 
-                    HttpContext.Cache.Add(cacheKey, cachedSearchResult, null, currentDateTime.AddSeconds(ServerCacheExpirationInSeconds),
-                        Cache.NoSlidingExpiration, CacheItemPriority.Default, null);
+                        cachedSearchResult.LastModified = currentDateTime;
+                        cachedSearchResult.Packages = cachedPackages;
+
+                        HttpContext.Cache.Add(cacheKey, cachedSearchResult, null,
+                            currentDateTime.AddSeconds(ServerCacheExpirationInSeconds),
+                            Cache.NoSlidingExpiration, CacheItemPriority.Default, null);
+                    }
                 }
                 else
                 {
                     var cachedSearchResult = (CachedSearchResult) cachedObject;
-                    searchResults = cachedSearchResult.Packages;
+                    searchResults = cachedSearchResult.Packages.AsQueryable();
                     lastModified = cachedSearchResult.LastModified;
                 }
 
@@ -119,7 +126,7 @@ namespace NuGetGallery
                 HttpContext.Response.Cache.SetLastModified(lastModified);
                 HttpContext.Response.Cache.SetValidUntilExpires(true);
 
-                return searchResults.AsQueryable();
+                return searchResults;
             }
 
             return SearchV2FeedCore(searchTerm, targetFramework, includePrerelease);
