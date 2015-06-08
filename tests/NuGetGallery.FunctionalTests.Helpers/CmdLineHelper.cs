@@ -1,12 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
 using System.Diagnostics;
-using System.CodeDom.Compiler;
-using Microsoft.CSharp;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.FunctionTests.Helpers
 {
@@ -15,20 +10,20 @@ namespace NuGetGallery.FunctionTests.Helpers
     /// </summary>
     public class CmdLineHelper
     {
-        #region PublicMethods
-     
-        /// <summary>
-        /// Uploads the given package to the specified source and returns the exit code.
-        /// </summary>
-        /// <param name="packageFullPath"></param>
-        /// <param name="sourceName"></param>
-        /// <returns></returns>
-        public static int UploadPackage(string packageFullPath, string sourceName)
-        {
-            string standardOutput = string.Empty;
-            string standardError = string.Empty;
-            return InvokeNugetProcess(string.Join(string.Empty, new string[] { PushCommandString, @"""" + packageFullPath + @"""", SourceSwitchString, sourceName }), out standardError, out standardOutput);
-        }
+        internal static string AnalyzeCommandString = " analyze ";
+        internal static string SpecCommandString = " spec -f ";
+        internal static string PackCommandString = " pack ";
+        internal static string UpdateCommandString = " update ";
+        internal static string InstallCommandString = " install ";
+        internal static string PushCommandString = " push ";
+        internal static string OutputDirectorySwitchString = " -OutputDirectory ";
+        internal static string PreReleaseSwitchString = " -Prerelease ";
+        internal static string SourceSwitchString = " -Source ";
+        internal static string ApiKeySwitchString = " -ApiKey ";
+        internal static string ExcludeVersionSwitchString = " -ExcludeVersion ";
+        internal static string NugetExePath = @"NuGet.exe";
+        internal static string SampleDependency = "SampleDependency";
+        internal static string SampleDependencyVersion = "1.0";
 
         /// <summary>
         /// Uploads the given package to the specified source and returns the exit code.
@@ -36,9 +31,10 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// <param name="packageFullPath"></param>
         /// <param name="sourceName"></param>
         /// <returns></returns>
-        public static int UploadPackage(string packageFullPath, string sourceName, out string standardOutput, out string standardError)
+        public static async Task<ProcessResult> UploadPackageAsync(string packageFullPath, string sourceName)
         {
-            return InvokeNugetProcess(string.Join(string.Empty, new string[] { PushCommandString, @"""" + packageFullPath + @"""", SourceSwitchString, sourceName }), out standardError, out standardOutput);         
+            var arguments = string.Join(string.Empty, PushCommandString, @"""" + packageFullPath + @"""", SourceSwitchString, sourceName);
+            return await InvokeNugetProcess(arguments);
         }
 
         /// <summary>
@@ -47,11 +43,10 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// <param name="packageId">package to be installed</param>
         /// <param name="sourceName">source url</param>
         /// <returns></returns>
-        public static int InstallPackage(string packageId, string sourceName)
+        public static async Task<ProcessResult> InstallPackageAsync(string packageId, string sourceName)
         {
-            string standardOutput = string.Empty;
-            string standardError = string.Empty;
-            return InvokeNugetProcess(string.Join(string.Empty, new string[] { InstallCommandString, packageId, SourceSwitchString, sourceName}), out standardError, out standardOutput);
+            var arguments = string.Join(string.Empty, InstallCommandString, packageId, SourceSwitchString, sourceName);
+            return await InvokeNugetProcess(arguments);
         }
 
         /// <summary>
@@ -61,41 +56,36 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// <param name="sourceName">source url</param>
         /// <param name="outputDirectory">outputDirectory</param>
         /// <returns></returns>
-        public static int InstallPackage(string packageId, string sourceName, string outputDirectory)
+        public static async Task<ProcessResult> InstallPackageAsync(string packageId, string sourceName, string outputDirectory)
         {
-            string standardOutput = string.Empty;
-            string standardError = string.Empty;
-            return InvokeNugetProcess(string.Join(string.Empty, new string[] { InstallCommandString, packageId, SourceSwitchString, sourceName, OutputDirectorySwitchString, outputDirectory }), out standardError, out standardOutput);
+            var arguments = string.Join(string.Empty, InstallCommandString, packageId, SourceSwitchString, sourceName, OutputDirectorySwitchString, outputDirectory);
+            return await InvokeNugetProcess(arguments);
         }
 
         /// <summary>
         /// Self update on nuget.exe
         /// </summary>
         /// <returns></returns>
-        public static int UpdateNugetExe()
+        public static async Task<ProcessResult> UpdateNugetExeAsync()
         {
-            string standardOutput = string.Empty;
-            string standardError = string.Empty;
-            return InvokeNugetProcess(string.Join(string.Empty, new string[] {UpdateCommandString }), out standardError, out standardOutput);
-           
-        }
-        #endregion PublicMethods
+            var arguments = string.Join(string.Empty, UpdateCommandString);
+            return await InvokeNugetProcess(arguments);
 
-        #region PrivateMethods      
+        }
 
         /// <summary>
         /// Invokes nuget.exe with the appropriate parameters.
         /// </summary>
         /// <param name="arguments">cmd line args to NuGet.exe</param>
-        /// <param name="standardError">stderror from the nuget process</param>
-        /// <param name="standardOutput">stdoutput from the nuget process</param>
-        /// <param name="WorkingDir">working dir if any to be used</param>
+        /// <param name="workingDir">working dir if any to be used</param>
+        /// <param name="timeout">Timeout in seconds (default = 5min).</param>
         /// <returns></returns>
-        public static int InvokeNugetProcess(string arguments, out string standardError, out string standardOutput, string WorkingDir = null)
+        public static async Task<ProcessResult> InvokeNugetProcess(string arguments, string workingDir = null, int timeout = 300)
         {
-            Process nugetProcess = new Process();
-            string pathToNugetExe = Path.Combine(Environment.CurrentDirectory, NugetExePath);
-            Console.WriteLine("The NuGet.exe command to be executed is: " + pathToNugetExe + " " + arguments);
+            var nugetProcess = new Process();
+            var pathToNugetExe = Path.Combine(Environment.CurrentDirectory, NugetExePath);
+
+            Console.WriteLine("##teamcity[message text='The NuGet.exe command to be executed is: " + pathToNugetExe + " " + arguments + "']");
 
             // During the actual test run, a script will copy the latest NuGet.exe and overwrite the existing one
             ProcessStartInfo nugetProcessStartInfo = new ProcessStartInfo(pathToNugetExe);
@@ -107,33 +97,36 @@ namespace NuGetGallery.FunctionTests.Helpers
             nugetProcessStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             nugetProcessStartInfo.CreateNoWindow = true;
             nugetProcess.StartInfo = nugetProcessStartInfo;
-            nugetProcess.StartInfo.WorkingDirectory = WorkingDir;
+
+            if (workingDir != null)
+            {
+                nugetProcess.StartInfo.WorkingDirectory = workingDir;
+            }
+
             nugetProcess.Start();
-            standardError = nugetProcess.StandardError.ReadToEnd();
-            standardOutput = nugetProcess.StandardOutput.ReadToEnd();
-            Console.WriteLine(standardError);
-            Console.WriteLine(standardOutput);
+
+            var standardError = await nugetProcess.StandardError.ReadToEndAsync();
+            var standardOutput = await nugetProcess.StandardOutput.ReadToEndAsync();
+
+            Console.WriteLine("##teamcity[testStdErr out='" + standardError + "']");
+            Console.WriteLine("##teamcity[testStdOut out='" + standardOutput + "']");
+
             nugetProcess.WaitForExit();
-            return nugetProcess.ExitCode;
+
+            var processResult = new ProcessResult(nugetProcess.ExitCode, standardError);
+            return processResult;
         }
 
-        #endregion PrivateMethods
+        public sealed class ProcessResult
+        {
+            public ProcessResult(int exitCode, string standardError)
+            {
+                ExitCode = exitCode;
+                StandardError = standardError;
+            }
 
-        #region PrivateMemebers
-        internal static string AnalyzeCommandString = " analyze ";
-        internal static string SpecCommandString = " spec -f ";
-        internal static string PackCommandString = " pack ";
-        internal static string UpdateCommandString = " update ";
-        internal static string InstallCommandString = " install ";
-        internal static string PushCommandString = " push ";        
-        internal static string OutputDirectorySwitchString = " -OutputDirectory ";
-        internal static string PreReleaseSwitchString = " -Prerelease ";
-        internal static string SourceSwitchString = " -Source ";
-        internal static string APIKeySwitchString = " -ApiKey ";
-        internal static string ExcludeVersionSwitchString = " -ExcludeVersion ";
-        internal static string NugetExePath = @"NuGet.exe";
-        internal static string SampleDependency = "SampleDependency";
-        internal static string SampleDependencyVersion = "1.0";
-        #endregion PrivateMemebers
+            public int ExitCode { get; private set; }
+            public string StandardError { get; private set; }
+        }
     }
 }

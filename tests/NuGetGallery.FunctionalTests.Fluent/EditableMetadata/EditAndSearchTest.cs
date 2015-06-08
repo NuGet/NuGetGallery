@@ -1,6 +1,7 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionTests.Helpers;
-using System;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
@@ -10,18 +11,18 @@ namespace NuGetGallery.FunctionalTests.Fluent
         [TestMethod]
         [Description("Provide sanity verification of search index rebuilding on the live site.")]
         [Priority(2)]
-        public void EditAndSearch()
+        public async Task EditAndSearch()
         {
             // Use the same package name, but force the version to be unique.
             string packageName = "NuGetGallery.FunctionalTests.Fluent.EditAndSearch";
             string ticks = DateTime.Now.Ticks.ToString();
-            string version = new System.Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
-            string newPackageLocation = PackageCreationHelper.CreatePackage(packageName, version);
+            string version = new Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
+            string newPackageLocation = await PackageCreationHelper.CreatePackage(packageName, version);
 
             // Log on using the test account.
             I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
 
-            // Navigate to the upload page. 
+            // Navigate to the upload page.
             I.UploadPackageUsingUI(newPackageLocation);
 
             // Edit the package.
@@ -49,6 +50,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
                     // We expect an exception after 30 seconds if the edit hasn't been applied yet.
                 }
             }
+
             Assert.IsTrue(applied, "The edit doesn't appear to have been applied after ten minutes.");
         }
 

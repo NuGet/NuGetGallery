@@ -1,27 +1,28 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionTests.Helpers;
-using System;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
-    [TestClass] 
+    [TestClass]
     public class EditPackageAsPartOfUploadTest : NuGetFluentTest
     {
         [TestMethod]
         [Description("Edit every possible metadata field of the package as part of upload.")]
         [Priority(2)]
-        public void EditPackageAsPartOfUpload()
+        public async Task EditPackageAsPartOfUpload()
         {
             // Use the same package name, but force the version to be unique.
             string packageName = "NuGetGallery.FunctionalTests.Fluent.EditPackageAsPartOfUploadTest";
             string ticks = DateTime.Now.Ticks.ToString();
-            string version = new System.Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
-            string newPackageLocation = PackageCreationHelper.CreatePackage(packageName, version);
+            string version = new Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
+            string newPackageLocation = await PackageCreationHelper.CreatePackage(packageName, version);
 
             // Log on using the test account.
             I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
 
-            // Navigate to the upload page. 
+            // Navigate to the upload page.
             I.UploadPackageUsingUI(newPackageLocation);
 
             // Edit the package.
@@ -78,7 +79,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             I.Expect.Count(1).Of(expectedDescription);
             I.Expect.Count(0).Of(unexpectedSummary); // Summary is not present on the package page.
             I.Expect.Count(0).Of(unexpectedIconUrl);
-            I.Expect.Count(1).Of(expectedIconUrl);  
+            I.Expect.Count(1).Of(expectedIconUrl);
             I.Expect.Count(1).Of(expectedHomePageUrl);
             I.Expect.Text(newAuthors).In("p[class=authors]");
             I.Expect.Count(0).Of(unexpectedCopyright); // Copyright is not present on the package page.

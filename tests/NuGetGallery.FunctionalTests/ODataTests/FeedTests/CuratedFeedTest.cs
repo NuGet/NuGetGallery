@@ -35,16 +35,16 @@ namespace NuGetGallery.FunctionalTests.Features
         [TestMethod]
         [Description("Performs a querystring-based search of the Windows 8 curated feed. Confirms expected packages are returned.")]
         [Priority(0)]
-        public void SearchWindows8CuratedFeed()
+        public async Task SearchWindows8CuratedFeed()
         {
             // Temporary workaround for the SSL issue, which keeps the upload test from working with cloudapp.net sites
             if (UrlHelper.BaseUrl.Contains("nugettest.org") || UrlHelper.BaseUrl.Contains("nuget.org"))
             {
                 string packageName = "NuGetGallery.FunctionalTests.SearchWindows8CuratedFeed";
                 string ticks = DateTime.Now.Ticks.ToString();
-                string version = new System.Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
+                string version = new Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
 
-                int exitCode = UploadPackageToCuratedFeed(packageName, version, FeedType.Windows8CuratedFeed);
+                int exitCode = await UploadPackageToCuratedFeed(packageName, version, FeedType.Windows8CuratedFeed);
                 Assert.IsTrue((exitCode == 0), Constants.UploadFailureMessage);
 
                 bool applied = CheckPackageExistInCuratedFeed(packageName, FeedType.Windows8CuratedFeed);
@@ -57,15 +57,15 @@ namespace NuGetGallery.FunctionalTests.Features
         [TestMethod]
         [Description("Performs a querystring-based search of the WebMatrix curated feed.  Confirms expected packages are returned.")]
         [Priority(0)]
-        public void SearchWebMatrixCuratedFeed()
+        public async Task SearchWebMatrixCuratedFeed()
         {
             if (UrlHelper.BaseUrl.Contains("nugettest.org") || UrlHelper.BaseUrl.Contains("nuget.org"))
             {
                 string packageName = "NuGetGallery.FunctionalTests.SearchWebMatrixCuratedFeed";
                 string ticks = DateTime.Now.Ticks.ToString();
-                string version = new System.Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
+                string version = new Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
 
-                int exitCode = UploadPackageToCuratedFeed(packageName, version, FeedType.WebMatrixCuratedFeed);
+                int exitCode = await UploadPackageToCuratedFeed(packageName, version, FeedType.WebMatrixCuratedFeed);
                 Assert.IsTrue((exitCode == 0), Constants.UploadFailureMessage);
 
                 bool applied = CheckPackageExistInCuratedFeed(packageName, FeedType.WebMatrixCuratedFeed);
@@ -118,7 +118,7 @@ namespace NuGetGallery.FunctionalTests.Features
 
             // Get the link to the next page.
             string link = responseText.Split(new[] { @"<link rel=""next"" href=""" }, StringSplitOptions.RemoveEmptyEntries)[1];
-            link = link.Substring(0, link.IndexOf(@""""));
+            link = link.Substring(0, link.IndexOf(@"""", StringComparison.Ordinal));
 
             request = WebRequest.Create(link);
 
@@ -136,21 +136,20 @@ namespace NuGetGallery.FunctionalTests.Features
             }
         }
 
-        #region Helper Methods
-        public int UploadPackageToCuratedFeed(string packageName, string version, FeedType feedType)
+        public async Task<int> UploadPackageToCuratedFeed(string packageName, string version, FeedType feedType)
         {
             string packageFullPath = string.Empty;
             switch (feedType)
             {
                 case FeedType.Windows8CuratedFeed:
-                    packageFullPath = PackageCreationHelper.CreateWindows8CuratedPackage(packageName, version);
+                    packageFullPath = await PackageCreationHelper.CreateWindows8CuratedPackage(packageName, version);
                     break;
                 case FeedType.WebMatrixCuratedFeed:
-                    packageFullPath = PackageCreationHelper.CreateWindows8CuratedPackage(packageName, version);
+                    packageFullPath = await PackageCreationHelper.CreateWindows8CuratedPackage(packageName, version);
                     break;
             }
-            int exitCode = CmdLineHelper.UploadPackage(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
-            return exitCode;
+            CmdLineHelper.ProcessResult processResult = await CmdLineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
+            return processResult.ExitCode;
         }
 
         public string GetCuratedFeedUrl(FeedType type)
@@ -201,14 +200,14 @@ namespace NuGetGallery.FunctionalTests.Features
                 responseText = await sr.ReadToEndAsync();
             }
 
-            responseText = responseText.Substring(responseText.IndexOf("<entry>"));
+            responseText = responseText.Substring(responseText.IndexOf("<entry>", StringComparison.Ordinal));
             CheckPageForDuplicates(packages, responseText);
 
             while (responseText.Contains(@"<link rel=""next"" href="""))
             {
                 // Get the link to the next page.
                 string link = responseText.Split(new[] { @"<link rel=""next"" href=""" }, StringSplitOptions.RemoveEmptyEntries)[1];
-                link = link.Substring(0, link.IndexOf(@""""));
+                link = link.Substring(0, link.IndexOf(@"""", StringComparison.Ordinal));
 
                 request = WebRequest.Create(link);
                 request.Timeout = 2000;
@@ -222,7 +221,7 @@ namespace NuGetGallery.FunctionalTests.Features
                         responseText = await sr.ReadToEndAsync();
                     }
 
-                    responseText = responseText.Substring(responseText.IndexOf("<entry>"));
+                    responseText = responseText.Substring(responseText.IndexOf("<entry>", StringComparison.Ordinal));
                     CheckPageForDuplicates(packages, responseText);
                 }
                 catch (WebException e)
@@ -241,8 +240,8 @@ namespace NuGetGallery.FunctionalTests.Features
 
             while (unreadPortion.Contains("<id>"))
             {
-                unreadPortion = unreadPortion.Substring(unreadPortion.IndexOf("<id>") + 4);
-                string packageIdString = unreadPortion.Substring(0, unreadPortion.IndexOf("</id>"));
+                unreadPortion = unreadPortion.Substring(unreadPortion.IndexOf("<id>", StringComparison.Ordinal) + 4);
+                string packageIdString = unreadPortion.Substring(0, unreadPortion.IndexOf("</id>", StringComparison.Ordinal));
                 if (packages.Contains(packageIdString))
                 {
                     Assert.Fail("A package appeared twice in the WebMatrix feed: " + packageIdString);
@@ -255,6 +254,5 @@ namespace NuGetGallery.FunctionalTests.Features
             }
             return unreadPortion;
         }
-        #endregion
     }
 }
