@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Services;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.Versioning;
 using System.ServiceModel.Web;
@@ -23,6 +24,8 @@ namespace NuGetGallery
     public class V2Feed : FeedServiceBase<V2FeedContext, V2FeedPackage>
     {
         private const int FeedVersion = 2;
+        private const int ServerCacheExpirationInSeconds = 30;
+        private const string CacheKeyMostCommonSearchResults = "MostCommonSearchResults";
 
         public V2Feed()
         {
@@ -72,66 +75,69 @@ namespace NuGetGallery
                 }
             }
 
-            // cache the most common search query
-            // Search()/?$filter=IsLatestVersion&searchTerm=%27%27&targetFramework=%27net45%27&includePrerelease=false
-            if (string.IsNullOrEmpty(searchTerm) && targetFramework == "net45" && !includePrerelease))
+            // check if the search criteria match the most common queries
+            string cacheKey;
+            if (TryGetCacheKeyForSearchQuery(searchTerm, targetFramework, includePrerelease, out cacheKey))
             {
                 List<V2FeedPackage> searchResults;
                 DateTime lastModified;
 
-                var cachedResults = HttpContext.Cache.Get("MostCommonQueryResults");
+                var cachedObject = HttpContext.Cache.Get(cacheKey);
                 var currentDateTime = DateTime.UtcNow;
-                if (cachedResults == null)
+                if (cachedObject == null)
                 {
-                    var packages = PackageRepository.GetAll()
-                        .Include(p => p.PackageRegistration)
-                        .Include(p => p.PackageRegistration.Owners)
-                        .Where(p => p.Listed);
-
-                    var query = SearchAdaptor.SearchCore(SearchService, HttpContext.Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: null)
-                        // TODO: Async this when I can figure out OData async stuff...
-                        .Result
-                        .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
+                    var query = SearchV2FeedCore(searchTerm, targetFramework, includePrerelease);
 
                     searchResults = query.ToList();
                     lastModified = currentDateTime;
 
+                    // cache the most common search query
                     // note: this is per instance cache
-                    HttpContext.Cache.Add("MostCommonQueryResults", searchResults, null, currentDateTime.AddSeconds(30),
-                        Cache.NoSlidingExpiration, CacheItemPriority.Default, null);
-                    HttpContext.Cache.Add("MostCommonQueryResultsLastModified", lastModified, null, currentDateTime.AddSeconds(30),
+                    var cachedSearchResult = new CachedSearchResult();
+                    cachedSearchResult.IncludePrerelease = includePrerelease;
+                    cachedSearchResult.SearchTerm = searchTerm;
+                    cachedSearchResult.TargetFramework = targetFramework;
+
+                    cachedSearchResult.LastModified = currentDateTime;
+                    cachedSearchResult.Packages = searchResults;
+
+                    HttpContext.Cache.Add(cacheKey, cachedSearchResult, null, currentDateTime.AddSeconds(ServerCacheExpirationInSeconds),
                         Cache.NoSlidingExpiration, CacheItemPriority.Default, null);
                 }
                 else
                 {
-                    searchResults = (List<V2FeedPackage>)cachedResults;
-                    lastModified = (DateTime)HttpContext.Cache.Get("MostCommonQueryResultsLastModified");
+                    var cachedSearchResult = (CachedSearchResult) cachedObject;
+                    searchResults = cachedSearchResult.Packages;
+                    lastModified = cachedSearchResult.LastModified;
                 }
 
                 // Clients should cache twice as long.
                 // This way, they won't notice differences in the short-lived per instance cache.
                 HttpContext.Response.Cache.SetCacheability(HttpCacheability.Private);
                 HttpContext.Response.Cache.SetMaxAge(TimeSpan.FromSeconds(60));
-                HttpContext.Response.Cache.SetExpires(currentDateTime.AddSeconds(60));
+                HttpContext.Response.Cache.SetExpires(currentDateTime.AddSeconds(ServerCacheExpirationInSeconds * 2));
                 HttpContext.Response.Cache.SetLastModified(lastModified);
                 HttpContext.Response.Cache.SetValidUntilExpires(true);
 
                 return searchResults.AsQueryable();
             }
-            else
-            {
-                var packages = PackageRepository.GetAll()
-                        .Include(p => p.PackageRegistration)
-                        .Include(p => p.PackageRegistration.Owners)
-                        .Where(p => p.Listed);
 
-                var query = SearchAdaptor.SearchCore(SearchService, HttpContext.Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: null)
-                    // TODO: Async this when I can figure out OData async stuff...
-                    .Result
-                    .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
+            return SearchV2FeedCore(searchTerm, targetFramework, includePrerelease);
+        }
 
-                return query;
-            }
+        private IQueryable<V2FeedPackage> SearchV2FeedCore(string searchTerm, string targetFramework, bool includePrerelease)
+        {
+            var packages = PackageRepository.GetAll()
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .Where(p => p.Listed);
+
+            var query = SearchAdaptor.SearchCore(SearchService, HttpContext.Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: null)
+                // TODO: Async this when I can figure out OData async stuff...
+                .Result
+                .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
+
+            return query;
         }
 
         [WebGet]
@@ -242,9 +248,7 @@ namespace NuGetGallery
             return updates;
         }
 
-        public override Uri GetReadStreamUri(
-            object entity,
-            DataServiceOperationContext operationContext)
+        public override Uri GetReadStreamUri(object entity, DataServiceOperationContext operationContext)
         {
             var package = (V2FeedPackage)entity;
             var urlHelper = new UrlHelper(new RequestContext(HttpContext, new RouteData()));
@@ -257,6 +261,41 @@ namespace NuGetGallery
         private string GetSiteRoot()
         {
             return Configuration.GetSiteRoot(UseHttps());
+        }
+
+        /// <summary>
+        /// The most common search queries should be cached and yield a cache-key.
+        /// </summary>
+        /// <param name="searchTerm">The search term.</param>
+        /// <param name="targetFramework">The target framework.</param>
+        /// <param name="includePrerelease"><code>True</code>, to include prereleases; otherwise <code>false</code>.</param>
+        /// <param name="cacheKey">The cache-key for the specified search criteria, if there is one.</param>
+        /// <returns><code>True</code> if the search criteria are considered to be common and has a cache-key; otherwise <code>false</code>.</returns>
+        private bool TryGetCacheKeyForSearchQuery(string searchTerm, string targetFramework, bool includePrerelease, out string cacheKey)
+        {
+            if (string.IsNullOrEmpty(searchTerm) && targetFramework == "net45" && !includePrerelease)
+            {
+                // Search()/?$filter=IsLatestVersion&searchTerm=%27%27&targetFramework=%27net45%27&includePrerelease=false
+                cacheKey = string.Format(CultureInfo.InvariantCulture, "commonquery_v2_net45_excl");
+                return true;
+            }
+            if (string.IsNullOrEmpty(searchTerm) && targetFramework == "net45" && includePrerelease)
+            {
+                // Search()/?$filter=IsLatestVersion&searchTerm=%27%27&targetFramework=%27net45%27&includePrerelease=true
+                cacheKey = string.Format(CultureInfo.InvariantCulture, "commonquery_v2_net45_incl");
+                return true;
+            }
+            cacheKey = null;
+            return false;
+        }
+
+        public class CachedSearchResult
+        {
+            public string SearchTerm { get; set; }
+            public string TargetFramework { get; set; }
+            public bool IncludePrerelease { get; set; }
+            public DateTime LastModified { get; set; }
+            public List<V2FeedPackage> Packages { get; set; }
         }
     }
 }
