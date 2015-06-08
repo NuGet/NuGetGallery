@@ -95,7 +95,7 @@ namespace NuGetGallery
             try
             {
                 // Check Storage Availability
-                storageAvailable = await _fileStorageService.FileExistsAsync(Constants.DownloadsFolderName, "nuget.exe");
+                storageAvailable = await _fileStorageService.IsAvailableAsync();
             }
             catch (Exception ex)
             {
