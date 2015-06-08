@@ -115,7 +115,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
 
             Console.WriteLine("HTTP status code : {0}", response.StatusCode);
 
-            Assert.Equals(HttpStatusCode.OK, response.StatusCode);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         }
 
         [TestMethod]
