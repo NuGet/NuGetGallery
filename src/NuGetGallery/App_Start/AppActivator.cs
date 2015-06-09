@@ -68,9 +68,6 @@ namespace NuGetGallery
             // Get configuration from the kernel
             var config = Container.Kernel.Get<IAppConfiguration>();
 
-            // Setup telemetry
-            TelemetryConfiguration.Active.InstrumentationKey = config.AppInsightsInstrumentationKey;
-
             BackgroundJobsPostStart(config);
             AppPostStart(config);
             BundlingPostStart();
