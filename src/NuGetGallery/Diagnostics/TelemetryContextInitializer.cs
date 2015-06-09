@@ -11,9 +11,9 @@ namespace NuGetGallery.Diagnostics
     public class TelemetryContextInitializer
         : IContextInitializer
     {
-        private readonly ConfigurationService _configurationService;
+        private readonly IAppConfiguration _configurationService;
 
-        public TelemetryContextInitializer(ConfigurationService configurationService)
+        public TelemetryContextInitializer(IAppConfiguration configurationService)
         {
             _configurationService = configurationService;
         }
@@ -23,7 +23,7 @@ namespace NuGetGallery.Diagnostics
             if (HttpContext.Current == null)
                 return;
 
-            var iKey = _configurationService.Current.AppInsightsInstrumentationKey;
+            var iKey = _configurationService.AppInsightsInstrumentationKey;
             if (!string.IsNullOrEmpty(iKey))
             {
                 context.InstrumentationKey = iKey;

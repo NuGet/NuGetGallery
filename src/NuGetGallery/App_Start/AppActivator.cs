@@ -13,6 +13,7 @@ using System.Web.Routing;
 using System.Web.UI;
 using Elmah;
 using Elmah.Contrib.Mvc;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
@@ -83,7 +84,7 @@ namespace NuGetGallery
         {
             var ret = new RazorViewEngine();
 
-            ret.AreaMasterLocationFormats = 
+            ret.AreaMasterLocationFormats =
                 ret.AreaViewLocationFormats =
                 ret.AreaPartialViewLocationFormats =
                 new string[]
@@ -93,7 +94,7 @@ namespace NuGetGallery
                 "~/Areas/{2}/Views/Shared/{0}.cshtml",
             };
 
-            ret.MasterLocationFormats = 
+            ret.MasterLocationFormats =
                 ret.ViewLocationFormats  =
                 ret.PartialViewLocationFormats =
                 new string[]
@@ -176,7 +177,10 @@ namespace NuGetGallery
             Routes.RegisterServiceRoutes(RouteTable.Routes);
             AreaRegistration.RegisterAllAreas();
 
-            GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute() { View = "~/Views/Errors/InternalError.cshtml" });
+            // Setup telemetry
+            TelemetryConfiguration.Active.ContextInitializers.Add(new TelemetryContextInitializer(configuration));
+
+            GlobalFilters.Filters.Add(new SendErrorsToTelemetryAttribute { View = "~/Views/Errors/InternalError.cshtml" });
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new AntiForgeryErrorFilter());
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
@@ -193,8 +197,8 @@ namespace NuGetGallery
             if (!configuration.HasWorker)
             {
                 jobs.Add(
-                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5), 
-                        () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false), 
+                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5),
+                        () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false),
                         timeout: TimeSpan.FromMinutes(5)));
             }
             if (configuration.CollectPerfLogs)

@@ -34,7 +34,7 @@ namespace NuGetGallery
             app.SetLoggerFactory(new DiagnosticsLoggerFactory());
 
             // Setup telemetry
-            TelemetryConfiguration.Active.ContextInitializers.Add(new TelemetryContextInitializer(config));
+            TelemetryConfiguration.Active.ContextInitializers.Add(new TelemetryContextInitializer(config.Current));
 
             // Remove X-AspNetMvc-Version header
             MvcHandler.DisableMvcResponseHeader = true;
