@@ -1,10 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
-using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -13,12 +14,11 @@ using Moq;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
-using NuGetGallery.Packaging;
+using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
+using NuGetGallery.Packaging;
 using Xunit;
 using Xunit.Extensions;
-using System.Collections.Generic;
-using NuGetGallery.Framework;
 
 namespace NuGetGallery
 {
@@ -84,7 +84,7 @@ namespace NuGetGallery
 
             httpContext = httpContext ?? new Mock<HttpContextBase>();
             TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller.Object);
-            
+
             if (readPackageException != null)
             {
                 controller.Setup(x => x.CreatePackage(It.IsAny<Stream>())).Throws(readPackageException);
@@ -153,7 +153,7 @@ namespace NuGetGallery
                 var controller = CreateController();
 
                 // Act
-                var result = controller.DisplayPackage("Foo", "01.01.01").Result;
+                var result = controller.DisplayPackage("Foo", "01.01.01");
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new
@@ -175,7 +175,7 @@ namespace NuGetGallery
                               .ReturnsNull();
 
                 // Act
-                var result = controller.DisplayPackage("Foo", "1.1.1").Result;
+                var result = controller.DisplayPackage("Foo", "1.1.1");
 
                 // Assert
                 ResultAssert.IsNotFound(result);
@@ -207,7 +207,7 @@ namespace NuGetGallery
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
-                var result = controller.DisplayPackage("Foo", "1.1.1").Result;
+                var result = controller.DisplayPackage("Foo", "1.1.1");
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -251,7 +251,7 @@ namespace NuGetGallery
                 packageService
                     .Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", true))
                     .Returns(package);
-                
+
                 // Act
                 controller.DisplayPackage("Foo", "1.1.1");
 
@@ -298,7 +298,7 @@ namespace NuGetGallery
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
-                var result = controller.DisplayPackage("Foo", "1.1.1").Result;
+                var result = controller.DisplayPackage("Foo", "1.1.1");
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -348,7 +348,7 @@ namespace NuGetGallery
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
-                var result = controller.DisplayPackage("Foo", "1.1.1").Result;
+                var result = controller.DisplayPackage("Foo", "1.1.1");
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -367,7 +367,7 @@ namespace NuGetGallery
                 packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(new PackageRegistration());
                 var controller = CreateController(packageService: packageService);
                 controller.SetCurrentUser(new User { Username = "username" });
-                
+
                 var result = controller.ConfirmOwner("foo", "username", "");
 
                 Assert.IsType<HttpNotFoundResult>(result);
@@ -379,10 +379,10 @@ namespace NuGetGallery
                 // Arrange
                 var controller = CreateController();
                 controller.SetCurrentUser(new User { Username = "username" });
-                
+
                 // Act
                 var result = controller.ConfirmOwner("foo", "username", "token");
-                
+
                 // Assert
                 Assert.IsType<HttpNotFoundResult>(result);
             }
@@ -393,7 +393,7 @@ namespace NuGetGallery
                 var controller = CreateController();
                 controller.SetCurrentUser("userA");
                 var result = controller.ConfirmOwner("foo", "userB", "token");
-                
+
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result);
                 Assert.Equal(ConfirmOwnershipResult.NotYourRequest, model.Result);
                 Assert.Equal("userB", model.Username);
@@ -412,7 +412,7 @@ namespace NuGetGallery
                 packageService.Setup(p => p.ConfirmPackageOwner(package, user, "token")).Returns(confirmationResult);
                 var controller = CreateController(packageService: packageService);
                 controller.SetCurrentUser(user);
-                
+
                 var result = controller.ConfirmOwner("foo", "username", "token");
 
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result);
@@ -776,7 +776,7 @@ namespace NuGetGallery
                 };
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageByIdAndVersion("mordor", "2.0.1", true)).Returns(package);
-                
+
                 ReportPackageRequest reportRequest = null;
                 var messageService = new Mock<IMessageService>();
                 messageService
