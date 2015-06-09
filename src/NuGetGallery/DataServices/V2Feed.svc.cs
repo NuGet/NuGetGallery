@@ -75,10 +75,10 @@ namespace NuGetGallery
                 }
             }
 
-            // check if the search criteria match the most common queries
+            // check if the search criteria match the most common empty queries
             string cacheKey;
             bool requestingPackages = !HttpContext.Request.RawUrl.Contains("$count");
-            if (requestingPackages && TryGetCacheKeyForSearchQuery(searchTerm, targetFramework, includePrerelease, out cacheKey))
+            if (requestingPackages && string.IsNullOrEmpty(searchTerm) && TryGetCacheKeyForEmptySearchQuery(targetFramework, includePrerelease, out cacheKey))
             {
                 IQueryable<V2FeedPackage> searchResults;
                 DateTime lastModified;
@@ -273,20 +273,19 @@ namespace NuGetGallery
         /// <summary>
         /// The most common search queries should be cached and yield a cache-key.
         /// </summary>
-        /// <param name="searchTerm">The search term.</param>
         /// <param name="targetFramework">The target framework.</param>
         /// <param name="includePrerelease"><code>True</code>, to include prereleases; otherwise <code>false</code>.</param>
         /// <param name="cacheKey">The cache-key for the specified search criteria, if there is one.</param>
         /// <returns><code>True</code> if the search criteria are considered to be common and has a cache-key; otherwise <code>false</code>.</returns>
-        private static bool TryGetCacheKeyForSearchQuery(string searchTerm, string targetFramework, bool includePrerelease, out string cacheKey)
+        private static bool TryGetCacheKeyForEmptySearchQuery(string targetFramework, bool includePrerelease, out string cacheKey)
         {
-            if (string.IsNullOrEmpty(searchTerm) && targetFramework == "net45" && !includePrerelease)
+            if (targetFramework == "net45" && !includePrerelease)
             {
                 // Search()/?$filter=IsLatestVersion&searchTerm=%27%27&targetFramework=%27net45%27&includePrerelease=false
                 cacheKey = string.Format(CultureInfo.InvariantCulture, "commonquery_v2_net45_excl");
                 return true;
             }
-            if (string.IsNullOrEmpty(searchTerm) && targetFramework == "net45" && includePrerelease)
+            if (targetFramework == "net45" && includePrerelease)
             {
                 // Search()/?$filter=IsLatestVersion&searchTerm=%27%27&targetFramework=%27net45%27&includePrerelease=true
                 cacheKey = string.Format(CultureInfo.InvariantCulture, "commonquery_v2_net45_incl");
