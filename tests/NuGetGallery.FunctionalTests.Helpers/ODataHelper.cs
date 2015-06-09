@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -18,10 +17,9 @@ namespace NuGetGallery.FunctionTests.Helpers
     {
         public static Task<string> DownloadPackageFromFeed(string packageId, string version, string operation = "Install")
         {
-            HttpClient client = new HttpClient();
+            var client = new HttpClient();
             string requestUri = UrlHelper.V2FeedRootUrl + @"Package/" + packageId + @"/" + version;
 
-            CancellationTokenSource cts = new CancellationTokenSource();
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
             request.Headers.Add("user-agent", "TestAgent");
             request.Headers.Add("NuGet-Operation", operation);
