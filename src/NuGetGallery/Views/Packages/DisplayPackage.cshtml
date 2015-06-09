@@ -278,6 +278,13 @@
             }
         </ul>
     }
+    
+    @if (Model.IsDevelopmentDependency)
+    {
+        <h3>Is Development-Only Dependency</h3>
+        <p>This package is only required during development time and will not be included as dependency in other packages. <a href="https://docs.nuget.org/release-notes/nuget-2.7#development-only-dependencies">Read our Docs for more information</a>.</p>
+    }
+    
     @if (Model.Dependencies.DependencySets == null)
     {
         if (Model.IsOwner(User))

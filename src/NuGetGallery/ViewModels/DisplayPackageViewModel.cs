@@ -24,6 +24,7 @@ namespace NuGetGallery
                                   select new DisplayPackageViewModel(p, isVersionHistory: true);
             }
             DownloadCount = package.DownloadCount;
+            IsDevelopmentDependency = package.DevelopmentDependency;
         }
 
         public void SetPendingMetadata(PackageEdit pendingMetadata)
@@ -40,6 +41,7 @@ namespace NuGetGallery
                 ReleaseNotes = pendingMetadata.ReleaseNotes;
                 Tags = pendingMetadata.Tags.ToStringSafe().Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
                 Title = pendingMetadata.Title;
+                IsDevelopmentDependency = pendingMetadata.DevelopmentDependency;
             }
             else
             {
@@ -62,5 +64,7 @@ namespace NuGetGallery
                 return PackageVersions.Any(pv => pv.LatestVersion && !pv.LatestStableVersion);
             }
         }
+
+        public bool IsDevelopmentDependency { get; set; }
     }
 }
