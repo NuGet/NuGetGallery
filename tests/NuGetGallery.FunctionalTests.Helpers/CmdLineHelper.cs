@@ -33,10 +33,10 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// <returns></returns>
         public static async Task<ProcessResult> UploadPackageAsync(string packageFullPath, string sourceName)
         {
-            Console.WriteLine("##teamcity[message text='Uploading package " + packageFullPath + " to " + sourceName + "']");
+            Console.WriteLine("Uploading package " + packageFullPath + " to " + sourceName);
 
             var arguments = string.Join(string.Empty, PushCommandString, @"""" + packageFullPath + @"""", SourceSwitchString, sourceName);
-            Console.WriteLine("##teamcity[message text='nuget.exe " + arguments + "']");
+            Console.WriteLine("nuget.exe " + arguments);
 
             return await InvokeNugetProcess(arguments);
         }
@@ -89,7 +89,7 @@ namespace NuGetGallery.FunctionTests.Helpers
             var nugetProcess = new Process();
             var pathToNugetExe = Path.Combine(Environment.CurrentDirectory, NugetExePath);
 
-            Console.WriteLine("##teamcity[message text='The NuGet.exe command to be executed is: " + pathToNugetExe + " " + arguments + "']");
+            Console.WriteLine("The NuGet.exe command to be executed is: " + pathToNugetExe + " " + arguments);
 
             // During the actual test run, a script will copy the latest NuGet.exe and overwrite the existing one
             ProcessStartInfo nugetProcessStartInfo = new ProcessStartInfo(pathToNugetExe);
@@ -112,8 +112,8 @@ namespace NuGetGallery.FunctionTests.Helpers
             var standardError = await nugetProcess.StandardError.ReadToEndAsync();
             var standardOutput = await nugetProcess.StandardOutput.ReadToEndAsync();
 
-            Console.WriteLine("##teamcity[testStdErr out='" + standardError + "']");
-            Console.WriteLine("##teamcity[testStdOut out='" + standardOutput + "']");
+            Console.WriteLine(standardError);
+            Console.WriteLine(standardOutput);
 
             nugetProcess.WaitForExit();
 
