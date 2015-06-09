@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Claims;
@@ -12,7 +11,6 @@ using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.UI;
 using Elmah;
-using Elmah.Contrib.Mvc;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Microsoft.WindowsAzure.Diagnostics;
@@ -69,6 +67,10 @@ namespace NuGetGallery
         {
             // Get configuration from the kernel
             var config = Container.Kernel.Get<IAppConfiguration>();
+
+            // Setup telemetry
+            TelemetryConfiguration.Active.InstrumentationKey = config.AppInsightsInstrumentationKey;
+
             BackgroundJobsPostStart(config);
             AppPostStart(config);
             BundlingPostStart();
@@ -176,9 +178,6 @@ namespace NuGetGallery
             Routes.RegisterRoutes(RouteTable.Routes, configuration.FeedOnlyMode);
             Routes.RegisterServiceRoutes(RouteTable.Routes);
             AreaRegistration.RegisterAllAreas();
-
-            // Setup telemetry
-            TelemetryConfiguration.Active.ContextInitializers.Add(new TelemetryContextInitializer(configuration));
 
             GlobalFilters.Filters.Add(new SendErrorsToTelemetryAttribute { View = "~/Views/Errors/InternalError.cshtml" });
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
