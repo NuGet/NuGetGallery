@@ -295,7 +295,7 @@ namespace NuGetGallery
             return false;
         }
 
-        public class CachedSearchResult
+        private class CachedSearchResult
         {
             public string SearchTerm { get; set; }
             public string TargetFramework { get; set; }
