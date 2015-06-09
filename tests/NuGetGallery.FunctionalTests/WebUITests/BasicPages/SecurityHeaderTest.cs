@@ -26,7 +26,7 @@ namespace NuGetGallery.FunctionalTests
  @"X-Frame-Options: deny
 X-XSS-Protection: 1; mode=block
 X-Content-Type-Options: nosniff
-Strict-Transport-Security: max-age=31536000; includeSubDomains");               
+Strict-Transport-Security: max-age=31536000");               
              homePageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(homePageTextValidationRule.Validate);         
              yield return homePageRequest;
              homePageRequest = null;
@@ -38,7 +38,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains");
  @"X-Frame-Options: deny
 X-XSS-Protection: 1; mode=block
 X-Content-Type-Options: nosniff
-Strict-Transport-Security: max-age=31536000; includeSubDomains");    
+Strict-Transport-Security: max-age=31536000");    
             packagesPageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(packagesPageTextValidationRule.Validate);
             yield return packagesPageRequest;
             packagesPageRequest = null;
