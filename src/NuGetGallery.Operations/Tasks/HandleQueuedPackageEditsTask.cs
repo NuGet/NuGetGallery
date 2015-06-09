@@ -84,6 +84,7 @@ namespace NuGetGallery.Operations.Tasks
                 (m) => { m.ProjectUrl = edit.ProjectUrl; },
                 (m) => { m.ReleaseNotes = edit.ReleaseNotes; },
                 (m) => { m.RequireLicenseAcceptance = edit.RequiresLicenseAcceptance; },
+                (m) => { m.DevelopmentDependency = edit.DevelopmentDependency; },
                 (m) => { m.Summary = edit.Summary; },
                 (m) => { m.Title = edit.Title; },
                 (m) => { m.Tags = edit.Tags; },

@@ -14,6 +14,7 @@ namespace NuGetGallery
         public const string TagsStr = "Tags (space separated - e.g. 'ASP.NET Templates MVC')";
         public const string ReleaseNotesStr = "Release Notes (for this version)";
         public const string RequiresLicenseAcceptanceStr = "Requires license acceptance";
+        public const string DevelopmentDependencyStr = "Development Dependency";
 
         public EditPackageVersionRequest()
         {
@@ -31,6 +32,7 @@ namespace NuGetGallery
                 ProjectUrl = package.ProjectUrl,
                 ReleaseNotes = package.ReleaseNotes,
                 RequiresLicenseAcceptance = package.RequiresLicenseAcceptance,
+                DevelopmentDependency = package.DevelopmentDependency,
                 Summary = package.Summary,
                 Tags = package.Tags,
                 Title = package.Title,
@@ -43,6 +45,7 @@ namespace NuGetGallery
             ProjectUrl = metadata.ProjectUrl;
             ReleaseNotes = metadata.ReleaseNotes;
             RequiresLicenseAcceptance = metadata.RequiresLicenseAcceptance;
+            DevelopmentDependency = metadata.DevelopmentDependency;
             Summary = metadata.Summary;
             Tags = metadata.Tags;
             VersionTitle = metadata.Title;
@@ -102,6 +105,7 @@ namespace NuGetGallery
         [Display(Name = RequiresLicenseAcceptanceStr)]
         public bool RequiresLicenseAcceptance { get; set; }
 
+        [Display(Name = DevelopmentDependencyStr)]
         public bool DevelopmentDependency { get; set; }
     }
 }

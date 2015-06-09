@@ -952,6 +952,10 @@
     <Compile Include="Migrations\201506092038110_DevelopmentDependencyEditable.Designer.cs">
       <DependentUpon>201506092038110_DevelopmentDependencyEditable.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201506092105160_DevelopmentDependencyEditableInCore.cs" />
+    <Compile Include="Migrations\201506092105160_DevelopmentDependencyEditableInCore.Designer.cs">
+      <DependentUpon>201506092105160_DevelopmentDependencyEditableInCore.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -1385,6 +1389,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201506092038110_DevelopmentDependencyEditable.resx">
       <DependentUpon>201506092038110_DevelopmentDependencyEditable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201506092105160_DevelopmentDependencyEditableInCore.resx">
+      <DependentUpon>201506092105160_DevelopmentDependencyEditableInCore.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

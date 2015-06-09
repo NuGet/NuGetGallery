@@ -9,78 +9,81 @@
 @section BottomScripts {
     @Scripts.Render("~/Scripts/jquery-ui-1.10.3.js")
     <script>
-        $(function () {
-            function RunValidationForEvent(event) {
-                var target = $(event.target);
-                var validator = $.data(event.target.form, "validator"),
-                    eventType = "on" + event.type.replace(/^validate/, "");
-                validator.settings[eventType] && validator.settings[eventType].call(validator, event.target);
+    $(function () {
+        function RunValidationForEvent(event) {
+            var target = $(event.target);
+            var validator = $.data(event.target.form, "validator"),
+                eventType = "on" + event.type.replace(/^validate/, "");
+            validator.settings[eventType] && validator.settings[eventType].call(validator, event.target);
+        }
+
+        function UpdateIconAndRunValidation(event) {
+            var target = event.target;
+            var newValue = event.target.value;
+            $('#IconUrl_Preview').remove();
+            if (newValue.trim().length) {
+                $(target).after($('<img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="' + encodeURI(newValue) + '" />'));
             }
 
-            function UpdateIconAndRunValidation(event) {
-                var target = event.target;
-                var newValue = event.target.value;
-                $('#IconUrl_Preview').remove();
-                if (newValue.trim().length) {
-                    $(target).after($('<img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="' + encodeURI(newValue) + '" />'));
-                }
+            RunValidationForEvent(event);
+        }
 
-                RunValidationForEvent(event);
-            }
-
-            function SetupInput(name) {
-                SetDataEditedFlag = function (event) {
-                    $(event.target).attr("data-edited", event.target.value != event.target.defaultValue);
-                    if (event.target.value != event.target.defaultValue) {
-                        $("#Undo" + name).show();
-                    } else {
-                        $("#Undo" + name).hide();
-                    }
-                };
-
-                PreventSubmitOnEnter = function (event) {
-                    var keycode = event.keyCode || event.which;
-                    if (keycode == 13) {
-                        event.preventDefault();
-                        return false;
-                    }
-                };
-
-                $("input[id=" + name + "]").keypress(PreventSubmitOnEnter);
-                $("input[id=" + name + "]").keyup(SetDataEditedFlag);
-                $("textarea[id=" + name + "]").keyup(SetDataEditedFlag);
-                $("select[id=" + name + "]").change(SetDataEditedFlag);
-
-                $("#Undo" + name + "").click(function (event) {
-                    event.preventDefault();
-                    $(this.form.elements["" + name + ""]).each(function () {
-                        this.value = this.defaultValue;
-                        $(this).attr("data-edited", "false");
-                    });
+        function SetupInput(name) {
+            SetDataEditedFlag = function (event) {
+                $(event.target).attr("data-edited", event.target.value != event.target.defaultValue);
+                if (event.target.value != event.target.defaultValue) {
+                    $("#Undo" + name).show();
+                } else {
                     $("#Undo" + name).hide();
+                }
+            };
+
+            PreventSubmitOnEnter = function (event) {
+                var keycode = event.keyCode || event.which;
+                if (keycode == 13) {
+                    event.preventDefault();
+                    return false;
+                }
+            };
+
+            $("input[id=" + name + "]").keypress(PreventSubmitOnEnter);
+            $("input[id=" + name + "]").keyup(SetDataEditedFlag);
+            $("textarea[id=" + name + "]").keyup(SetDataEditedFlag);
+            $("select[id=" + name + "]").change(SetDataEditedFlag);
+
+            $("#Undo" + name + "").click(function (event) {
+                event.preventDefault();
+                $(this.form.elements["" + name + ""]).each(function () {
+                    this.value = this.defaultValue;
+                    $(this).attr("data-edited", "false");
                 });
-            }
+                $("#Undo" + name).hide();
+            });
+        }
 
-            SetupInput('Edit_VersionTitle');
-            SetupInput('Edit_Description');
-            SetupInput('Edit_Summary');
-            SetupInput('Edit_IconUrl');
-            SetupInput('Edit_ProjectUrl');
-            SetupInput('Edit_Authors');
-            SetupInput('Edit_Copyright');
-            SetupInput('Edit_Tags');
-            SetupInput('Edit_ReleaseNotes');
+        SetupInput('Edit_VersionTitle');
+        SetupInput('Edit_Description');
+        SetupInput('Edit_Summary');
+        SetupInput('Edit_IconUrl');
+        SetupInput('Edit_ProjectUrl');
+        SetupInput('Edit_Authors');
+        SetupInput('Edit_Copyright');
+        SetupInput('Edit_Tags');
+        SetupInput('Edit_ReleaseNotes');
 
-            @if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
+        @if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
             {
                 <text>
-                SetupInput('Edit_RequiresLicenseAcceptance');
+        SetupInput('Edit_RequiresLicenseAcceptance');
 
-                // Fix our SetupInput function to work with RequiresLicenseAcceptance
-                // Set up the defaultValue property on the <select> element - which doesn't have a defaultValue defined by default for some reason
-                $("#Edit_RequiresLicenseAcceptance")[0].defaultValue = "@(Model.Edit.RequiresLicenseAcceptance ? "true" : "false")";
+        // Fix our SetupInput function to work with RequiresLicenseAcceptance
+        // Set up the defaultValue property on the <select> element - which doesn't have a defaultValue defined by default for some reason
+        $("#Edit_RequiresLicenseAcceptance")[0].defaultValue = "@(Model.Edit.RequiresLicenseAcceptance ? "true" : "false")";
                 </text>
             }
+
+            SetupInput('Edit_DevelopmentDependency');
+            $("#Edit_DevelopmentDependency")[0].defaultValue = "@(Model.Edit.DevelopmentDependency ? "true" : "false")";
 
             $("#Edit_ProjectUrl").bind("focusin focusout", RunValidationForEvent);
             $("#Edit_IconUrl").bind("focusin focusout", UpdateIconAndRunValidation);
@@ -275,6 +278,26 @@
                         </div>
                     </li>
                 }
+
+                <li>
+                    <h4>
+                        @EditPackageVersionRequest.DevelopmentDependencyStr
+                        <button type="button" class="undo-button" id="UndoEdit_DevelopmentDependency" style="display: none"><span class="icon-undo"></span></button>
+                    </h4>
+                    <div style="position: relative">
+                        <div id="Edit_DevelopmentDependencyField" style="width: 100%">
+                            <div class="form-field" style="display: inline">
+                                @Html.DropDownList("Edit.DevelopmentDependency",
+                                    new List<SelectListItem>
+                                    {
+                                        new SelectListItem { Text = "Yes", Value = "true" },
+                                        new SelectListItem { Text = "No", Value = "false" },
+                                    })
+                                @Html.ValidationMessageFor(model => model.Edit.DevelopmentDependency)
+                            </div>
+                        </div>
+                    </div>
+                </li>
             }
         </ul>
         <input type="submit" value="Save" title="Save Changes" />
