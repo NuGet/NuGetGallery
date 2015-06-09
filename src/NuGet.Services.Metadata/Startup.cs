@@ -16,7 +16,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
-[assembly: OwinStartup(typeof(NuGet.Services.Metadata.Startup))]
+[assembly: OwinStartup("NuGet.Services.Metadata",typeof(NuGet.Services.Metadata.Startup))]
 
 namespace NuGet.Services.Metadata
 {

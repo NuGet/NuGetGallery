@@ -11,7 +11,7 @@ using Microsoft.Owin.StaticFiles.Infrastructure;
 using NuGet.Indexing;
 using Owin;
 
-[assembly: OwinStartup(typeof(NuGet.Services.BasicSearch.Startup))]
+[assembly: OwinStartup("NuGet.Services.BasicSearch", typeof(NuGet.Services.BasicSearch.Startup))]
 
 namespace NuGet.Services.BasicSearch
 {
@@ -50,13 +50,19 @@ namespace NuGet.Services.BasicSearch
             }));
 
             //  start the service running - the Lucene index needs to be reopened regularly on a background thread
+            string searchIndexRefresh = System.Configuration.ConfigurationManager.AppSettings.Get("Search.IndexRefresh") ?? "15";
+            int seconds;
+            if (!int.TryParse(searchIndexRefresh, out seconds))
+            {
+                seconds = 15;
+            }
 
             _searcherManager = CreateSearcherManager();
 
             _searcherManager.Open();
 
             _gate = 0;
-            _timer = new Timer(new TimerCallback(ReopenCallback), 0, 0, 180 * 1000);
+            _timer = new Timer(new TimerCallback(ReopenCallback), 0, 0, seconds * 1000);
 
             app.Run(Invoke);
         }
@@ -145,6 +151,8 @@ namespace NuGet.Services.BasicSearch
                     await ServiceInfoImpl.Segments(context, _searcherManager.GetSegments());
                     break;
                 case "/stats":
+                case "/search/diag":
+                    _searcherManager.MaybeReopen();
                     await ServiceInfoImpl.Stats(context, _searcherManager);
                     break;
                 default:

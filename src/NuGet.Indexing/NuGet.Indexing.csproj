@@ -147,8 +147,6 @@
     <Compile Include="ChainedFilter.cs" />
     <Compile Include="Compatibility.cs" />
     <Compile Include="DownloadLookup.cs" />
-    <Compile Include="FacetedDocument.cs" />
-    <Compile Include="Facets.cs" />
     <Compile Include="GalleryServiceImpl.cs" />
     <Compile Include="IdentifierAutocompleteAnalyzer.cs" />
     <Compile Include="ISearchIndexInfo.cs" />
@@ -170,11 +168,9 @@
     <Compile Include="IndexData.cs" />
     <Compile Include="FrameworksList.cs" />
     <Compile Include="GalleryExport.cs" />
-    <Compile Include="FullBuildTask.cs" />
     <Compile Include="IndexConsistencyReport.cs" />
     <Compile Include="IndexDocumentData.cs" />
     <Compile Include="IndexingEventSource.cs" />
-    <Compile Include="IndexTask.cs" />
     <Compile Include="LocalDownloadLookup.cs" />
     <Compile Include="NuGetSearcherManager.cs" />
     <Compile Include="OpenBitSetLookupFilter.cs" />
@@ -185,7 +181,6 @@
     <Compile Include="StorageFrameworksList.cs" />
     <Compile Include="TenantFilter.cs" />
     <Compile Include="TypeFilter.cs" />
-    <Compile Include="UpdateIndexTask.cs" />
     <Compile Include="PackageJson.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="AzureDirectoryManagement.cs" />
