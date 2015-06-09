@@ -146,6 +146,7 @@ namespace NuGet.Services.BasicSearch
                     break;
                 case "/stats":
                 case "/search/diag":
+                    _searcherManager.MaybeReopen();
                     await ServiceInfoImpl.Stats(context, _searcherManager);
                     break;
                 default:
