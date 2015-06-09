@@ -102,10 +102,6 @@ namespace NuGetGallery
                     if (!cachedPackages.Any())
                     {
                         var cachedSearchResult = new CachedSearchResult();
-                        cachedSearchResult.IncludePrerelease = includePrerelease;
-                        cachedSearchResult.SearchTerm = searchTerm;
-                        cachedSearchResult.TargetFramework = targetFramework;
-
                         cachedSearchResult.LastModified = currentDateTime;
                         cachedSearchResult.Packages = cachedPackages;
 
@@ -300,9 +296,6 @@ namespace NuGetGallery
 
         private class CachedSearchResult
         {
-            public string SearchTerm { get; set; }
-            public string TargetFramework { get; set; }
-            public bool IncludePrerelease { get; set; }
             public DateTime LastModified { get; set; }
             public List<V2FeedPackage> Packages { get; set; }
         }
