@@ -75,11 +75,14 @@ namespace NuGetGallery
                 }
             }
 
-            // check if the search criteria match the most common empty queries
-            string cacheKey;
+            // Check if the caller is requesting packages or calling an aggregate operation.
             bool requestingPackages = !HttpContext.Request.RawUrl.Contains("$count");
-            if (requestingPackages && string.IsNullOrEmpty(searchTerm) && TryGetCacheKeyForEmptySearchQuery(targetFramework, includePrerelease, out cacheKey))
+
+            if (requestingPackages && string.IsNullOrEmpty(searchTerm))
             {
+                // Fetch the cache key for the empty search query.
+                string cacheKey = GetCacheKeyForEmptySearchQuery(targetFramework, includePrerelease);
+
                 IQueryable<V2FeedPackage> searchResults;
                 DateTime lastModified;
 
@@ -275,24 +278,24 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="targetFramework">The target framework.</param>
         /// <param name="includePrerelease"><code>True</code>, to include prereleases; otherwise <code>false</code>.</param>
-        /// <param name="cacheKey">The cache-key for the specified search criteria, if there is one.</param>
-        /// <returns><code>True</code> if the search criteria are considered to be common and has a cache-key; otherwise <code>false</code>.</returns>
-        private static bool TryGetCacheKeyForEmptySearchQuery(string targetFramework, bool includePrerelease, out string cacheKey)
+        /// <returns>The cache key for the specified search criteria.</returns>
+        private static string GetCacheKeyForEmptySearchQuery(string targetFramework, bool includePrerelease)
         {
-            if (targetFramework == "net45" && !includePrerelease)
+            string cacheKeyFormat = "commonquery_v2_{0}_{1}";
+
+            string targetFrameworkKey = targetFramework.ToLowerInvariant();
+            if (string.IsNullOrEmpty(targetFramework))
             {
-                // Search()/?$filter=IsLatestVersion&searchTerm=%27%27&targetFramework=%27net45%27&includePrerelease=false
-                cacheKey = string.Format(CultureInfo.InvariantCulture, "commonquery_v2_net45_excl");
-                return true;
+                targetFrameworkKey = "noframework";
             }
-            if (targetFramework == "net45" && includePrerelease)
+
+            string prereleaseKey = "excl";
+            if (includePrerelease)
             {
-                // Search()/?$filter=IsLatestVersion&searchTerm=%27%27&targetFramework=%27net45%27&includePrerelease=true
-                cacheKey = string.Format(CultureInfo.InvariantCulture, "commonquery_v2_net45_incl");
-                return true;
+                prereleaseKey = "incl";
             }
-            cacheKey = null;
-            return false;
+
+            return string.Format(CultureInfo.InvariantCulture, cacheKeyFormat, targetFrameworkKey, prereleaseKey);
         }
 
         private class CachedSearchResult
