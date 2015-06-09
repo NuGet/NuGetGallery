@@ -99,7 +99,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(403, "Forbidden");
             }
 
-            // To do as much successful cancellation as possible, Will not batch, but will instead try to cancel 
+            // To do as much successful cancellation as possible, Will not batch, but will instead try to cancel
             // pending edits 1 at a time, starting with oldest first.
             var pendingEdits = _entitiesContext.Set<PackageEdit>()
                 .Where(pe => pe.PackageKey == package.Key)
@@ -227,7 +227,7 @@ namespace NuGetGallery
                 if (nuGetPackage.Metadata.MinClientVersion > typeof(Manifest).Assembly.GetName().Version)
                 {
                     ModelState.AddModelError(
-                        String.Empty, 
+                        String.Empty,
                         String.Format(
                             CultureInfo.CurrentCulture,
                             Strings.UploadPackage_MinClientVersionOutOfRange,
@@ -278,7 +278,8 @@ namespace NuGetGallery
 
             if (package.IsOwner(User))
             {
-                // Tell logged-in package owners not to cache the package page, so they won't be confused about the state of pending edits.
+                // Tell logged-in package owners not to cache the package page,
+                // so they won't be confused about the state of pending edits.
                 Response.Cache.SetCacheability(HttpCacheability.NoCache);
                 Response.Cache.SetNoStore();
                 Response.Cache.SetMaxAge(TimeSpan.Zero);
@@ -314,11 +315,17 @@ namespace NuGetGallery
                 var cachedResults = HttpContext.Cache.Get("DefaultSearchResults");
                 if (cachedResults == null)
                 {
-                    var searchFilter = SearchAdaptor.GetSearchFilter(q, page, sortOrder: null, context: SearchFilter.UISearchContext);
+                    var searchFilter = SearchAdaptor.GetSearchFilter(q, page, null, SearchFilter.UISearchContext);
                     results = await _searchService.Search(searchFilter);
 
                     // note: this is a per instance cache
-                    HttpContext.Cache.Add("DefaultSearchResults", results, null, DateTime.UtcNow.AddMinutes(10), Cache.NoSlidingExpiration, CacheItemPriority.Default, null);
+                    HttpContext.Cache.Add(
+                        "DefaultSearchResults",
+                        results,
+                        null,
+                        DateTime.UtcNow.AddMinutes(10),
+                        Cache.NoSlidingExpiration,
+                        CacheItemPriority.Default, null);
                 }
                 else
                 {
@@ -328,7 +335,7 @@ namespace NuGetGallery
             }
             else
             {
-                var searchFilter = SearchAdaptor.GetSearchFilter(q, page, sortOrder: null, context: SearchFilter.UISearchContext);
+                var searchFilter = SearchAdaptor.GetSearchFilter(q, page, null, SearchFilter.UISearchContext);
                 results = await _searchService.Search(searchFilter);
             }
 
@@ -360,7 +367,7 @@ namespace NuGetGallery
             ReportPackageReason.IsFraudulent,
             ReportPackageReason.ViolatesALicenseIOwn,
             ReportPackageReason.ContainsMaliciousCode,
-            ReportPackageReason.HasABugOrFailedToInstall,          
+            ReportPackageReason.HasABugOrFailedToInstall,
             ReportPackageReason.Other
         };
 
@@ -573,21 +580,21 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);
             _messageService.SendContactOwnersMessage(
-                fromAddress, 
-                package, 
-                contactForm.Message, 
+                fromAddress,
+                package,
+                contactForm.Message,
                 Url.Action(
-                    actionName: "Account", 
-                    controllerName: "Users", 
-                    routeValues: null, 
-                    protocol: Request.Url.Scheme), 
+                    actionName: "Account",
+                    controllerName: "Users",
+                    routeValues: null,
+                    protocol: Request.Url.Scheme),
                 contactForm.CopySender);
 
             string message = String.Format(CultureInfo.CurrentCulture, "Your message has been sent to the owners of {0}.", id);
             TempData["Message"] = message;
             return RedirectToAction(
-                actionName: "DisplayPackage", 
-                controllerName: "Packages", 
+                actionName: "DisplayPackage",
+                controllerName: "Packages",
                 routeValues: new
                 {
                     id,
@@ -691,7 +698,7 @@ namespace NuGetGallery
                 formData.PackageId = package.PackageRegistration.Id;
                 formData.PackageTitle = package.Title;
                 formData.Version = package.Version;
-                
+
                 var packageRegistration = _packageService.FindPackageRegistrationById(id);
                 formData.PackageVersions = packageRegistration.Packages
                         .OrderByDescending(p => new SemanticVersion(p.Version), Comparer<SemanticVersion>.Create((a, b) => a.CompareTo(b)))
@@ -771,7 +778,7 @@ namespace NuGetGallery
             }
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture,
-                "The package has been {0}. It may take several hours for this change to propagate through our system.", 
+                "The package has been {0}. It may take several hours for this change to propagate through our system.",
                 action);
 
             // Update the index
@@ -869,7 +876,7 @@ namespace NuGetGallery
                 }
                 Debug.Assert(nugetPackage != null);
 
-                // Rule out problem scenario with multiple tabs - verification request (possibly with edits) was submitted by user 
+                // Rule out problem scenario with multiple tabs - verification request (possibly with edits) was submitted by user
                 // viewing a different package to what was actually most recently uploaded
                 if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.Version)))
                 {
