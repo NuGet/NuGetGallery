@@ -56,19 +56,19 @@ namespace Search.GenerateCuratedFeedReport
             //group based on Package Id.
             var grouped = curatedPackages.GroupBy(item => item.Id);
 
-            JArray registrations = new JArray();
+            JArray curatedFeeds = new JArray();
             foreach (var group in grouped)
             {
                 JArray details = new JArray();
                 details.Add(group.Key);
                 foreach (var gv in group)
                 {
-                    JArray version = new JArray(gv.Name);
-                    details.Add(version);
+                    JArray feedName = new JArray(gv.Name);
+                    details.Add(feedName);
                 }
-                registrations.Add(details);
+                curatedFeeds.Add(details);
             }
-            await WriteReport(registrations.ToString(Formatting.None), ReportName, Formatting.None);
+            await WriteReport(curatedFeeds.ToString(Formatting.None), ReportName, Formatting.None);
             return true;
         }
 
