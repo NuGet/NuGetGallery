@@ -1005,6 +1005,9 @@
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
     <Content Include="App_Data\Files\Content\ReadOnly.md" />
     <Content Include="ApplicationInsights.config" />
+    <Content Include="NuGetGallery.dll.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Content\Logos\dnf.png" />
     <Content Include="Scripts\jquery-1.11.0.js" />
@@ -1321,9 +1324,7 @@
     <Content Include="Scripts\knockout-2.2.1.debug.js" />
     <Content Include="Scripts\knockout-2.2.1.js" />
     <Content Include="Scripts\stats.js" />
-    <Content Include="Web.config">
-      <SubType>Designer</SubType>
-    </Content>
+    <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
