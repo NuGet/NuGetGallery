@@ -86,7 +86,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DapperExtensions.cs" />
     <Compile Include="Stats.GenerateDownloadCount.Job.cs" />
     <Compile Include="Stats.GenerateDownloadCount.Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

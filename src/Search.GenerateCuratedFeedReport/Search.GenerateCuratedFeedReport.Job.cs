@@ -21,7 +21,7 @@ namespace Search.GenerateCuratedFeedReport
     internal class Job : JobBase
     {
         private const string GetCuratedPackagesScript = @"-- Work Service / Search.GenerateCuratedFeedReport 
-         SELECT pr.[Id], cf.[Name] FROM [dbo].[PackageRegistrations] pr Inner join CuratedPackages cp on cp.PackageRegistrationKey = pr.[Key] join CuratedFeeds cf on cp.[CuratedFeedKey] = cf.[Key] group by  cf.[Name], pr.[Id]";
+         SELECT pr.[Id], cf.[Name] FROM [dbo].[PackageRegistrations] pr Inner join CuratedPackages cp on cp.PackageRegistrationKey = pr.[Key] join CuratedFeeds cf on cp.[CuratedFeedKey] = cf.[Key]";
 
         public static readonly string DefaultContainerName = "ng-search-data";
         public static readonly string ReportName = "curatedfeeds.json";
@@ -46,24 +46,40 @@ namespace Search.GenerateCuratedFeedReport
             Trace.TraceInformation(String.Format("Generating Curated feed report from {0}/{1} to {2}.", Source.DataSource, Source.InitialCatalog, destination));
 
 
-            IList<CuratedFeedData> curatedPackages;
-            using (var connection = await Source.ConnectTo())
+            IDictionary<string, IList<string>> curatedPackages = new Dictionary<string, IList<string>>();
+
+            using (SqlConnection connection = new SqlConnection(Source.ConnectionString))
             {
-                curatedPackages = (await connection.QueryWithRetryAsync<CuratedFeedData>(GetCuratedPackagesScript)).ToList();
+                connection.Open();
+
+                SqlCommand command = new SqlCommand(GetCuratedPackagesScript, connection);
+                command.CommandType = CommandType.Text;
+
+                SqlDataReader reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    string packageRegistrationId = (string)reader.GetValue(0);
+                    string feedName = (string)reader.GetValue(1);
+                    if (!curatedPackages.ContainsKey(packageRegistrationId))
+                    {
+                        curatedPackages.Add(packageRegistrationId, new List<string>());
+                    }
+                    curatedPackages[packageRegistrationId].Add(feedName);
+                }
             }
+
             Trace.TraceInformation(String.Format("Gathered {0} rows of data.", curatedPackages.Count));
 
-            //group based on Package Id.
-            var grouped = curatedPackages.GroupBy(item => item.Id);
-
+            //Create JArray out of the dictionary.
             JArray curatedFeeds = new JArray();
-            foreach (var group in grouped)
+            foreach (var package in curatedPackages)
             {
                 JArray details = new JArray();
-                details.Add(group.Key);
-                foreach (var gv in group)
+                details.Add(package.Key);
+                foreach (var feed in package.Value)
                 {
-                    JArray feedName = new JArray(gv.Name);
+                    JArray feedName = new JArray(feed);
                     details.Add(feedName);
                 }
                 curatedFeeds.Add(details);
@@ -149,12 +165,6 @@ namespace Search.GenerateCuratedFeedReport
         }
 
         #endregion PrivateMembers
-
-        public class CuratedFeedData
-        {
-            public string Id { get; set; }
-            public string Name { get; set; }
-        }
     }
 
 }
