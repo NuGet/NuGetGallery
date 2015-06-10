@@ -78,7 +78,8 @@ namespace NuGetGallery
             // Check if the caller is requesting packages or calling the count operation.
             bool requestingCount = HttpContext.Request.RawUrl.Contains("$count");
 
-            if (requestingCount || string.IsNullOrEmpty(searchTerm))
+            var isEmptySearchTerm = string.IsNullOrEmpty(searchTerm);
+            if ((requestingCount && isEmptySearchTerm) || isEmptySearchTerm)
             {
                 // Fetch the cache key for the empty search query.
                 string cacheKey = GetCacheKeyForEmptySearchQuery(targetFramework, includePrerelease);
