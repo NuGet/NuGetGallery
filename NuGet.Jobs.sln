@@ -57,6 +57,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HandlePackageEdits", "src\H
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UpdateLicenseReports", "src\UpdateLicenseReports\UpdateLicenseReports.csproj", "{4646F0C5-EC7A-45F5-8E45-D51C715C1DC9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search.GenerateCuratedFeedReport", "src\Search.GenerateCuratedFeedReport\Search.GenerateCuratedFeedReport.csproj", "{DBAB9802-BA6A-4CF1-ABE3-3C7BC4D83559}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -135,6 +137,10 @@ Global
 		{4646F0C5-EC7A-45F5-8E45-D51C715C1DC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4646F0C5-EC7A-45F5-8E45-D51C715C1DC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4646F0C5-EC7A-45F5-8E45-D51C715C1DC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBAB9802-BA6A-4CF1-ABE3-3C7BC4D83559}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBAB9802-BA6A-4CF1-ABE3-3C7BC4D83559}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBAB9802-BA6A-4CF1-ABE3-3C7BC4D83559}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBAB9802-BA6A-4CF1-ABE3-3C7BC4D83559}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -157,5 +163,6 @@ Global
 		{43B8F81F-3B9C-4737-99A9-BBCFFDACF200} = {57F34E9A-3A98-4E48-BF76-D49CB9CB3323}
 		{C959B545-51C8-4D83-B9A0-243BBC199E49} = {FA5644B5-4F08-43F6-86B3-039374312A47}
 		{4646F0C5-EC7A-45F5-8E45-D51C715C1DC9} = {FA5644B5-4F08-43F6-86B3-039374312A47}
+		{DBAB9802-BA6A-4CF1-ABE3-3C7BC4D83559} = {57F34E9A-3A98-4E48-BF76-D49CB9CB3323}
 	EndGlobalSection
 EndGlobal
