@@ -30,10 +30,10 @@ namespace NuGetGallery
             var auth = Container.Kernel.Get<AuthenticationService>();
 
             // Setup telemetry
-            var iKey = config.Current.AppInsightsInstrumentationKey;
-            if (!string.IsNullOrEmpty(iKey))
+            var instrumentationKey = config.Current.AppInsightsInstrumentationKey;
+            if (!string.IsNullOrEmpty(instrumentationKey))
             {
-                TelemetryConfiguration.Active.InstrumentationKey = iKey;
+                TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
             }
 
             // Configure logging
