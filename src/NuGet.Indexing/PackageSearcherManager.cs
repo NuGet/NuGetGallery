@@ -1,18 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
+using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.Store.Azure;
 using Microsoft.WindowsAzure.Storage;
-
 
 namespace NuGet.Indexing
 {
@@ -35,6 +35,8 @@ namespace NuGet.Indexing
         public FrameworksList Frameworks { get; private set; }
         public Guid Id { get; private set; }
         public string IndexName { get; private set; }
+
+        public event EventHandler<SegmentInfoEventArgs> IndexReopened;
 
         protected PackageSearcherManager(string indexName, Lucene.Net.Store.Directory directory, Rankings rankings, DownloadLookup downloadCounts, FrameworksList frameworks)
             : base(directory)
@@ -71,6 +73,22 @@ namespace NuGet.Indexing
             _currentDownloadCounts.Reload();
             _currentRankings.Reload();
             _currentFrameworkList.Reload();
+
+            // If someone's interested in our segment info, let them have it
+            if (IndexReopened != null)
+            {
+                var segments = new List<SegmentInfoEventArgs.SegmentInfo>();
+                foreach (ReadOnlySegmentReader readOnlySegmentReader in searcher.IndexReader.GetSequentialSubReaders())
+                {
+                    segments.Add(new SegmentInfoEventArgs.SegmentInfo
+                    {
+                        Name = readOnlySegmentReader.SegmentName,
+                        NumDocs = readOnlySegmentReader.NumDocs()
+                    });
+                }
+
+                IndexReopened(this, new SegmentInfoEventArgs(segments.AsReadOnly()));
+            }
         }
 
         public IDictionary<string, int> GetRankings(string context)

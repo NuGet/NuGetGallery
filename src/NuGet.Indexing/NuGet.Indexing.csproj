@@ -160,6 +160,7 @@
     <Compile Include="PackageVersions.cs" />
     <Compile Include="SecureQueryImpl.cs" />
     <Compile Include="SecureFindImpl.cs" />
+    <Compile Include="SegmentInfoEventArgs.cs" />
     <Compile Include="ServiceHelpers.cs" />
     <Compile Include="ServiceInfoImpl.cs" />
     <Compile Include="StorageFrameworkCompatibility.cs" />
