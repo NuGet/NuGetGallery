@@ -75,10 +75,11 @@ namespace NuGetGallery
                 }
             }
 
-            // Check if the caller is requesting packages or calling an aggregate operation.
-            bool requestingPackages = !HttpContext.Request.RawUrl.Contains("$count");
+            // Check if the caller is requesting packages or calling the count operation.
+            bool requestingCount = HttpContext.Request.RawUrl.Contains("$count");
 
-            if (requestingPackages && string.IsNullOrEmpty(searchTerm))
+            var isEmptySearchTerm = string.IsNullOrEmpty(searchTerm);
+            if ((requestingCount && isEmptySearchTerm) || isEmptySearchTerm)
             {
                 // Fetch the cache key for the empty search query.
                 string cacheKey = GetCacheKeyForEmptySearchQuery(targetFramework, includePrerelease);
@@ -119,7 +120,7 @@ namespace NuGetGallery
 
                 // Clients should cache twice as long.
                 // This way, they won't notice differences in the short-lived per instance cache.
-                HttpContext.Response.Cache.SetCacheability(HttpCacheability.Private);
+                HttpContext.Response.Cache.SetCacheability(HttpCacheability.Public);
                 HttpContext.Response.Cache.SetMaxAge(TimeSpan.FromSeconds(60));
                 HttpContext.Response.Cache.SetExpires(currentDateTime.AddSeconds(ServerCacheExpirationInSeconds * 2));
                 HttpContext.Response.Cache.SetLastModified(lastModified);
