@@ -410,7 +410,7 @@ namespace NuGetGallery
             var alert = await ContentService.GetContentItemAsync(Constants.ContentNames.Alert, TimeSpan.Zero);
             if (alert != null)
             {
-                alertString = alert.ToString();
+                alertString = string.Format("{0} - Check our <a href=\"http://status.nuget.org\">status page</a> for updates.", alert);
             }
             
             if (String.IsNullOrEmpty(alertString) && _config.ReadOnlyMode)
