@@ -453,7 +453,7 @@
     <Compile Include="Diagnostics\PerfEvent.cs" />
     <Compile Include="Diagnostics\SendErrorsToTelemetryAttribute.cs" />
     <Compile Include="Helpers\HostMachine.cs" />
-    <Compile Include="Helpers\QuietLogHealthIndicatorLogger.cs" />
+    <Compile Include="Helpers\AppInsightsHealthIndicatorLogger.cs" />
     <Compile Include="Infrastructure\MessageQueue.cs" />
     <Compile Include="Diagnostics\NullDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
