@@ -89,7 +89,7 @@ namespace NuGetGallery
 
                 var cachedObject = HttpContext.Cache.Get(cacheKey);
                 var currentDateTime = DateTime.UtcNow;
-                if (cachedObject == null)
+                if (cachedObject == null && !requestingCount)
                 {
                     searchResults = SearchV2FeedCore(searchTerm, targetFramework, includePrerelease);
 
@@ -110,6 +110,12 @@ namespace NuGetGallery
                             currentDateTime.AddSeconds(ServerCacheExpirationInSeconds),
                             Cache.NoSlidingExpiration, CacheItemPriority.Default, null);
                     }
+                }
+                else if (cachedObject == null)
+                {
+                    // first hit on $count and nothing in cache yet;
+                    // we can't cache due to the $count hijack in SearchV2FeedCore...
+                    return SearchV2FeedCore(searchTerm, targetFramework, includePrerelease);
                 }
                 else
                 {
