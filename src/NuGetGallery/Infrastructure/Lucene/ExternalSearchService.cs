@@ -69,7 +69,7 @@ namespace NuGetGallery.Infrastructure.Lucene
 
             if (_healthIndicatorStore == null)
             {
-                _healthIndicatorStore = new BaseUrlHealthIndicatorStore(new QuietLogHealthIndicatorLogger());
+                _healthIndicatorStore = new BaseUrlHealthIndicatorStore(new AppInsightsHealthIndicatorLogger());
             }
 
             _client = new SearchClient(ServiceUri, config.SearchServiceResourceType, credentials, _healthIndicatorStore, new TracingHttpHandler(Trace));

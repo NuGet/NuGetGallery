@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -8,12 +9,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
-using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Caching;
 using System.Web.Mvc;
 using NuGet;
-using NuGet.Services.Search.Models;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
@@ -40,6 +40,7 @@ namespace NuGetGallery
         private readonly IIndexingService _indexingService;
         private readonly ICacheService _cacheService;
         private readonly EditPackageService _editPackageService;
+        private static DateTime? _lastIndexTimestampUtc;
 
         public PackagesController(
             IPackageService packageService,
@@ -98,7 +99,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(403, "Forbidden");
             }
 
-            // To do as much successful cancellation as possible, Will not batch, but will instead try to cancel 
+            // To do as much successful cancellation as possible, Will not batch, but will instead try to cancel
             // pending edits 1 at a time, starting with oldest first.
             var pendingEdits = _entitiesContext.Set<PackageEdit>()
                 .Where(pe => pe.PackageKey == package.Key)
@@ -226,7 +227,7 @@ namespace NuGetGallery
                 if (nuGetPackage.Metadata.MinClientVersion > typeof(Manifest).Assembly.GetName().Version)
                 {
                     ModelState.AddModelError(
-                        String.Empty, 
+                        String.Empty,
                         String.Format(
                             CultureInfo.CurrentCulture,
                             Strings.UploadPackage_MinClientVersionOutOfRange,
@@ -258,7 +259,7 @@ namespace NuGetGallery
             return RedirectToRoute(RouteName.VerifyPackage);
         }
 
-        public virtual async Task<ActionResult> DisplayPackage(string id, string version)
+        public virtual ActionResult DisplayPackage(string id, string version)
         {
             string normalized = SemanticVersionExtensions.Normalize(version);
             if (!String.Equals(version, normalized))
@@ -277,7 +278,8 @@ namespace NuGetGallery
 
             if (package.IsOwner(User))
             {
-                // Tell logged-in package owners not to cache the package page, so they won't be confused about the state of pending edits.
+                // Tell logged-in package owners not to cache the package page,
+                // so they won't be confused about the state of pending edits.
                 Response.Cache.SetCacheability(HttpCacheability.NoCache);
                 Response.Cache.SetNoStore();
                 Response.Cache.SetMaxAge(TimeSpan.Zero);
@@ -290,7 +292,7 @@ namespace NuGetGallery
                 }
             }
 
-            model.IndexLastWriteTime = await _indexingService.GetLastWriteTime();
+            model.IndexLastWriteTime = _lastIndexTimestampUtc;
 
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
@@ -303,14 +305,46 @@ namespace NuGetGallery
                 page = 1;
             }
 
-            q = (q ?? "").Trim();
+            q = (q ?? string.Empty).Trim();
 
-            var searchFilter = SearchAdaptor.GetSearchFilter(q, page, sortOrder: null, context: SearchFilter.UISearchContext);
-            var results = await _searchService.Search(searchFilter);
+            SearchResults results;
+
+            // fetch most common query from cache to relieve load on the search service
+            if (string.IsNullOrEmpty(q) && page == 1)
+            {
+                var cachedResults = HttpContext.Cache.Get("DefaultSearchResults");
+                if (cachedResults == null)
+                {
+                    var searchFilter = SearchAdaptor.GetSearchFilter(q, page, null, SearchFilter.UISearchContext);
+                    results = await _searchService.Search(searchFilter);
+
+                    // note: this is a per instance cache
+                    HttpContext.Cache.Add(
+                        "DefaultSearchResults",
+                        results,
+                        null,
+                        DateTime.UtcNow.AddMinutes(10),
+                        Cache.NoSlidingExpiration,
+                        CacheItemPriority.Default, null);
+                }
+                else
+                {
+                    // default for /packages view
+                    results = (SearchResults)cachedResults;
+                }
+            }
+            else
+            {
+                var searchFilter = SearchAdaptor.GetSearchFilter(q, page, null, SearchFilter.UISearchContext);
+                results = await _searchService.Search(searchFilter);
+            }
+
+            _lastIndexTimestampUtc = results.IndexTimestampUtc;
+
             int totalHits = results.Hits;
             if (page == 1 && !results.Data.Any())
             {
-                // In the event the index wasn't updated, we may get an incorrect count. 
+                // In the event the index wasn't updated, we may get an incorrect count.
                 totalHits = 0;
             }
 
@@ -333,7 +367,7 @@ namespace NuGetGallery
             ReportPackageReason.IsFraudulent,
             ReportPackageReason.ViolatesALicenseIOwn,
             ReportPackageReason.ContainsMaliciousCode,
-            ReportPackageReason.HasABugOrFailedToInstall,          
+            ReportPackageReason.HasABugOrFailedToInstall,
             ReportPackageReason.Other
         };
 
@@ -546,21 +580,21 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);
             _messageService.SendContactOwnersMessage(
-                fromAddress, 
-                package, 
-                contactForm.Message, 
+                fromAddress,
+                package,
+                contactForm.Message,
                 Url.Action(
-                    actionName: "Account", 
-                    controllerName: "Users", 
-                    routeValues: null, 
-                    protocol: Request.Url.Scheme), 
+                    actionName: "Account",
+                    controllerName: "Users",
+                    routeValues: null,
+                    protocol: Request.Url.Scheme),
                 contactForm.CopySender);
 
             string message = String.Format(CultureInfo.CurrentCulture, "Your message has been sent to the owners of {0}.", id);
             TempData["Message"] = message;
             return RedirectToAction(
-                actionName: "DisplayPackage", 
-                controllerName: "Packages", 
+                actionName: "DisplayPackage",
+                controllerName: "Packages",
                 routeValues: new
                 {
                     id,
@@ -664,7 +698,7 @@ namespace NuGetGallery
                 formData.PackageId = package.PackageRegistration.Id;
                 formData.PackageTitle = package.Title;
                 formData.Version = package.Version;
-                
+
                 var packageRegistration = _packageService.FindPackageRegistrationById(id);
                 formData.PackageVersions = packageRegistration.Packages
                         .OrderByDescending(p => new SemanticVersion(p.Version), Comparer<SemanticVersion>.Create((a, b) => a.CompareTo(b)))
@@ -744,7 +778,7 @@ namespace NuGetGallery
             }
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture,
-                "The package has been {0}. It may take several hours for this change to propagate through our system.", 
+                "The package has been {0}. It may take several hours for this change to propagate through our system.",
                 action);
 
             // Update the index
@@ -842,7 +876,7 @@ namespace NuGetGallery
                 }
                 Debug.Assert(nugetPackage != null);
 
-                // Rule out problem scenario with multiple tabs - verification request (possibly with edits) was submitted by user 
+                // Rule out problem scenario with multiple tabs - verification request (possibly with edits) was submitted by user
                 // viewing a different package to what was actually most recently uploaded
                 if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.Version)))
                 {

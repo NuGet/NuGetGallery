@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Web.Mvc;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
@@ -27,6 +28,13 @@ namespace NuGetGallery
             // Get config
             var config = Container.Kernel.Get<ConfigurationService>();
             var auth = Container.Kernel.Get<AuthenticationService>();
+
+            // Setup telemetry
+            var instrumentationKey = config.Current.AppInsightsInstrumentationKey;
+            if (!string.IsNullOrEmpty(instrumentationKey))
+            {
+                TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
+            }
 
             // Configure logging
             app.SetLoggerFactory(new DiagnosticsLoggerFactory());
