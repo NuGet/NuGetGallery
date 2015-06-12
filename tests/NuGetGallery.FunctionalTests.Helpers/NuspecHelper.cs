@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
-using System.Diagnostics;
-using System.CodeDom.Compiler;
-using Microsoft.CSharp;
 
 namespace NuGetGallery.FunctionTests.Helpers
 {
@@ -15,20 +10,34 @@ namespace NuGetGallery.FunctionTests.Helpers
     /// </summary>
     public class NuspecHelper
     {
+        internal static string SampleDependency = "SampleDependency";
+        internal static string SampleDependencyVersion = "1.0";
+
         /// <summary>
         /// Creates a Nuspec file given the Package Name.
         /// </summary>
         /// <param name="packageName"></param>
+        /// <param name="version"></param>
+        /// <param name="minClientVersion"></param>
+        /// <param name="title"></param>
+        /// <param name="tags"></param>
+        /// <param name="description"></param>
+        /// <param name="licenseUrl"></param>
+        /// <param name="dependencies"></param>
         /// <returns></returns>
-        public static string CreateDefaultNuspecFile(string packageName, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null)
+        public static async Task<string> CreateDefaultNuspecFile(string packageName, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null)
         {
-            string standardOutput = string.Empty;
-            string standardError = string.Empty;
             string packageDir = Path.Combine(Environment.CurrentDirectory, packageName);
             if (Directory.Exists(packageDir))
+            {
                 Directory.Delete(packageDir, true);
+            }
+
             Directory.CreateDirectory(packageDir);
-            CmdLineHelper.InvokeNugetProcess(string.Join(string.Empty, new string[] { CmdLineHelper.SpecCommandString, packageName }), out standardError, out standardOutput, packageDir);
+
+            var arguments = string.Join(string.Empty, CmdLineHelper.SpecCommandString, packageName);
+            await CmdLineHelper.InvokeNugetProcess(arguments, packageDir);
+
             string filePath = Path.Combine(packageDir, packageName + ".nuspec");
             RemoveSampleNuspecValues(filePath);
             UpdateNuspecFile(filePath, "1.0.0", version);
@@ -61,71 +70,63 @@ namespace NuGetGallery.FunctionTests.Helpers
             return filePath;
         }
 
-
-        #region PrivateMethods
         /// <summary>
         /// Given a nupsec file path, add the windows 8 tag to it.
         /// </summary>
-        /// <param name="NuspecFilePath"></param>
-        internal static void AddWindows8Tag(string NuspecFilePath)
+        /// <param name="nuspecFilePath"></param>
+        internal static void AddWindows8Tag(string nuspecFilePath)
         {
-            UpdateNuspecFile(NuspecFilePath, "<tags>Tag1 Tag2</tags>", "<tags>Windows8</tags>");
+            UpdateNuspecFile(nuspecFilePath, "<tags>Tag1 Tag2</tags>", "<tags>Windows8</tags>");
         }
 
         /// <summary>
         /// Given a nupsec file path, add the Webmatrix tag to it.
         /// </summary>
-        /// <param name="NuspecFilePath"></param>
-        internal static void AddWebMatrixTag(string NuspecFilePath)
+        /// <param name="nuspecFilePath"></param>
+        internal static void AddWebMatrixTag(string nuspecFilePath)
         {
-            UpdateNuspecFile(NuspecFilePath, "<tags>Tag1 Tag2</tags>", "<tags>Asp.Net</tags>");
+            UpdateNuspecFile(nuspecFilePath, "<tags>Tag1 Tag2</tags>", "<tags>Asp.Net</tags>");
         }
 
         /// <summary>
         /// Given a nupsec file path, adds min client version tag to it.
         /// </summary>
-        /// <param name="NuspecFilePath"></param>
-        internal static void AddMinClientVersionAttribute(string NuspecFilePath, string minclientVersion)
+        /// <param name="nuspecFilePath"></param>
+        /// <param name="minclientVersion"></param>
+        internal static void AddMinClientVersionAttribute(string nuspecFilePath, string minclientVersion)
         {
-            UpdateNuspecFile(NuspecFilePath, @"<metadata>", @"<metadata minClientVersion=""" + minclientVersion + @"""" + @">");
-        }       
+            UpdateNuspecFile(nuspecFilePath, @"<metadata>", @"<metadata minClientVersion=""" + minclientVersion + @"""" + @">");
+        }
 
         /// <summary>
         /// Given a nuspec file, this removes the default sample nuspec values.
         /// </summary>
-        /// <param name="NuspecFilePath"></param>
-        internal static void RemoveSampleNuspecValues(string NuspecFilePath)
+        /// <param name="nuspecFilePath"></param>
+        internal static void RemoveSampleNuspecValues(string nuspecFilePath)
         {
-            UpdateNuspecFile(NuspecFilePath, "<licenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</licenseUrl>", null);
-            UpdateNuspecFile(NuspecFilePath, "<projectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</projectUrl>", string.Empty);
-            UpdateNuspecFile(NuspecFilePath, "<projectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</projectUrl>", string.Empty);
-            UpdateNuspecFile(NuspecFilePath, "<iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>", string.Empty);
-            StringBuilder searchString = new StringBuilder(@"<dependency id=" + @"""" + SampleDependency + @"""" + " version=" + @"""" + SampleDependencyVersion + @"""" + @" />");
-            UpdateNuspecFile(NuspecFilePath, searchString.ToString(), string.Empty);
+            UpdateNuspecFile(nuspecFilePath, "<licenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</licenseUrl>", null);
+            UpdateNuspecFile(nuspecFilePath, "<projectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</projectUrl>", string.Empty);
+            UpdateNuspecFile(nuspecFilePath, "<projectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</projectUrl>", string.Empty);
+            UpdateNuspecFile(nuspecFilePath, "<iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>", string.Empty);
+            var searchString = new StringBuilder(@"<dependency id=" + @"""" + SampleDependency + @"""" + " version=" + @"""" + SampleDependencyVersion + @"""" + @" />");
+            UpdateNuspecFile(nuspecFilePath, searchString.ToString(), string.Empty);
         }
 
         /// <summary>
         /// Given a nuspec file, this method will replace the search string with the replacement string.
         /// </summary>
-        /// <param name="NuspecFilepath"></param>
+        /// <param name="nuspecFilepath"></param>
         /// <param name="searchString"></param>
         /// <param name="replacementString"></param>
-        internal static void UpdateNuspecFile(string NuspecFilepath, string searchString, string replacementString)
+        internal static void UpdateNuspecFile(string nuspecFilepath, string searchString, string replacementString)
         {
             //Update contents Nuspec file.
-            if (File.Exists(NuspecFilepath))
+            if (File.Exists(nuspecFilepath))
             {
-                string specText = File.ReadAllText(NuspecFilepath);
+                string specText = File.ReadAllText(nuspecFilepath);
                 specText = specText.Replace(searchString, replacementString);
-                File.WriteAllLines(NuspecFilepath, new string[] { specText });
+                File.WriteAllLines(nuspecFilepath, new[] { specText });
             }
         }
-
-        #endregion PrivateMethods
-
-        #region PrivateMemebers
-        internal static string SampleDependency = "SampleDependency";
-        internal static string SampleDependencyVersion = "1.0";
-        #endregion PrivateMemebers
     }
 }

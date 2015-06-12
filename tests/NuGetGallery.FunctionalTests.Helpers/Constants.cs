@@ -1,9 +1,8 @@
-﻿
-namespace NuGetGallery.FunctionTests.Helpers
+﻿namespace NuGetGallery.FunctionTests.Helpers
 {
     public static class Constants
     {
-        #region FormFields
+        // Form Fields
         public const string ConfirmPasswordFormField = "ConfirmPassword";
         public const string EmailAddressFormField = "Register.EmailAddress";
         public const string RegisterPasswordFormField = "Register.Password";
@@ -12,9 +11,8 @@ namespace NuGetGallery.FunctionTests.Helpers
         public const string UserNameFormField = "Register.Username";
         public const string UserNameOrEmailFormField = "SignIn.UserNameOrEmail";
         public const string AcceptTermsField = "AcceptTerms";
-        #endregion FormFields
 
-        #region PredefinedText
+        // Predefined Texts
         public const string HomePageText = "What is NuGet?";
         public const string InvalidUserText = "A unique user with that username or email address and password does not exist";
         public const string RegisterNewUserConfirmationText = "Your account is now registered!";
@@ -33,10 +31,5 @@ namespace NuGetGallery.FunctionTests.Helpers
         public const string PackageDownloadFailureMessage = "Package download from V2 feed didnt work";
         public const string UnableToZipError = "Unable to unzip the package downloaded via V2 feed. Check log for details";
         public const string NuGetOrgUrl = "https://www.nuget.org";
-        #endregion PredefinedText
-
     }
-
-
 }
-

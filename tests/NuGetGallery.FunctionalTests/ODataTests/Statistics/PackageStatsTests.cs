@@ -1,9 +1,10 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json.Linq;
-using NuGetGallery.FunctionTests.Helpers;
-using System;
+﻿using System;
 using System.IO;
 using System.Net;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json.Linq;
+using NuGetGallery.FunctionTests.Helpers;
 
 namespace NuGetGallery.FunctionalTests.ODataTests.Statistics
 {
@@ -16,13 +17,16 @@ namespace NuGetGallery.FunctionalTests.ODataTests.Statistics
         [TestMethod]
         [Description("Verify the webresponse for stats/downloads/last6weeks/ returns all 6 fields")]
         [Priority(1)]
-        public void PackageFeedStatsSanityTest()
+        public async Task PackageFeedStatsSanityTest()
         {
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
+            var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");
+            var response = await request.GetResponseAsync();
+
+            string responseText;
+            using (var sr = new StreamReader(response.GetResponseStream()))
+            {
+                responseText = await sr.ReadToEndAsync();
+            }
 
             string firstPackage = responseText.Substring(responseText.IndexOf("{"), responseText.IndexOf("}") - responseText.IndexOf("{"));
 
@@ -40,14 +44,18 @@ namespace NuGetGallery.FunctionalTests.ODataTests.Statistics
         [TestMethod]
         [Description("Verify the webresponse for stats/downloads/last6weeks/ contains the right amount of packages")]
         [Priority(2)]
-        public void PackageFeedCountParameterTest()
+        public async Task PackageFeedCountParameterTest()
         {
-            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
-            string[] separators = new string[1] { "}," };
+            var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");
+            var response = await request.GetResponseAsync();
+
+            string responseText;
+            using (var sr = new StreamReader(response.GetResponseStream()))
+            {
+                responseText = await sr.ReadToEndAsync();
+            }
+
+            string[] separators = { "}," };
             int packageCount = responseText.Split(separators, StringSplitOptions.RemoveEmptyEntries).Length;
             // Only verify the stats feed contains 500 packages for production
             if (UrlHelper.BaseUrl.ToLowerInvariant() == Constants.NuGetOrgUrl)
@@ -56,10 +64,12 @@ namespace NuGetGallery.FunctionalTests.ODataTests.Statistics
             }
 
             request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks?count=5");
-            // Get the response.          
-            response = request.GetResponse();
-            sr = new StreamReader(response.GetResponseStream());
-            responseText = sr.ReadToEnd();
+            // Get the response.
+            response = await request.GetResponseAsync();
+            using (var sr = new StreamReader(response.GetResponseStream()))
+            {
+                responseText = await sr.ReadToEndAsync();
+            }
 
             packageCount = responseText.Split(separators, StringSplitOptions.RemoveEmptyEntries).Length;
             Assert.IsTrue(packageCount == 5, "Expected feed to contain 5 packages. Actual count: " + packageCount);
@@ -71,13 +81,13 @@ namespace NuGetGallery.FunctionalTests.ODataTests.Statistics
         [TestMethod]
         [Description("Verify the result is Accepted after sending a bogus request to Metrices Service endpoint")]
         [Priority(1)]
-       public void SendBogusToMetricsEndPoint()
-       {
-           string basics = "\"title\": \"Sample Konfabulator Widget\"," + "\"name\": \"main_window\"," + "\"width\": 500," + "\"height\": 500,";
-           string jstring = "{" + basics + basics + basics + basics + "\"id\": \"dotnetrdf\"," + "\"version\": \"1.0.3\"" + "}";
-           JObject bogus = JObject.Parse(jstring);
-           bool Value = MetricsServiceHelper.TryHitMetricsEndPoint(bogus).Result;
-           Assert.IsTrue(Value);
-       }
+        public async Task SendBogusToMetricsEndPoint()
+        {
+            string basics = "\"title\": \"Sample Konfabulator Widget\"," + "\"name\": \"main_window\"," + "\"width\": 500," + "\"height\": 500,";
+            string jstring = "{" + basics + basics + basics + basics + "\"id\": \"dotnetrdf\"," + "\"version\": \"1.0.3\"" + "}";
+            JObject bogus = JObject.Parse(jstring);
+            bool Value = await MetricsServiceHelper.TryHitMetricsEndPoint(bogus);
+            Assert.IsTrue(Value);
+        }
     }
 }

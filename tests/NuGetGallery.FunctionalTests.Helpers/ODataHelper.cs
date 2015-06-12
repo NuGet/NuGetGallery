@@ -1,12 +1,11 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 
 namespace NuGetGallery.FunctionTests.Helpers
@@ -17,18 +16,17 @@ namespace NuGetGallery.FunctionTests.Helpers
     public class ODataHelper
     {
         public static Task<string> DownloadPackageFromFeed(string packageId, string version, string operation = "Install")
-        {           
-            HttpClient client = new HttpClient();
+        {
+            var client = new HttpClient();
             string requestUri = UrlHelper.V2FeedRootUrl + @"Package/" + packageId + @"/" + version;
 
-            CancellationTokenSource cts = new CancellationTokenSource();
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
             request.Headers.Add("user-agent", "TestAgent");
             request.Headers.Add("NuGet-Operation", operation);
             Task<HttpResponseMessage> responseTask = client.SendAsync(request);
 
             TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
-            responseTask.ContinueWith((rt) =>
+            responseTask.ContinueWith(rt =>
             {
                 HttpResponseMessage responseMessage = rt.Result;
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
@@ -74,7 +72,7 @@ namespace NuGetGallery.FunctionTests.Helpers
 
             return tcs.Task;
         }
-                
+
         public static async Task<string> TryDownloadPackageFromFeed(string packageId, string version)
         {
             try
@@ -85,9 +83,9 @@ namespace NuGetGallery.FunctionTests.Helpers
                 {
                     string requestUri = UrlHelper.V2FeedRootUrl + @"Package/" + packageId + @"/" + version;
                     var response = await client.GetAsync(requestUri);
-                    //print the header 
+                    //print the header
                     Console.WriteLine("HTTP status code : {0}", response.StatusCode);
-                    Console.WriteLine("HTTP header : {0}",response.Headers.ToString());
+                    Console.WriteLine("HTTP header : {0}", response.Headers);
                     if (response.StatusCode == HttpStatusCode.Found)
                     {
                         return response.Headers.GetValues("Location").FirstOrDefault();
@@ -95,7 +93,7 @@ namespace NuGetGallery.FunctionTests.Helpers
                     else
                     {
                         return null;
-                    }                    
+                    }
                 }
             }
             catch (HttpRequestException hre)
@@ -105,13 +103,16 @@ namespace NuGetGallery.FunctionTests.Helpers
             }
         }
 
-        public static bool ContainsResponseText(string url, params string[] expectedTexts)
+        public static async Task<bool> ContainsResponseText(string url, params string[] expectedTexts)
         {
-            WebRequest request = WebRequest.Create(url);
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd();
+            var request = WebRequest.Create(url);
+            var response = await request.GetResponseAsync();
+
+            string responseText;
+            using (var sr = new StreamReader(response.GetResponseStream()))
+            {
+                responseText = await sr.ReadToEndAsync();
+            }
 
             foreach (string s in expectedTexts)
             {
@@ -124,13 +125,16 @@ namespace NuGetGallery.FunctionTests.Helpers
             return true;
         }
 
-        public static bool ContainsResponseTextIgnoreCase(string url, params string[] expectedTexts)
+        public static async Task<bool> ContainsResponseTextIgnoreCase(string url, params string[] expectedTexts)
         {
-            WebRequest request = WebRequest.Create(url);
-            // Get the response.          
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream());
-            string responseText = sr.ReadToEnd().ToLowerInvariant();
+            var request = WebRequest.Create(url);
+            var response = await request.GetResponseAsync();
+
+            string responseText;
+            using (var sr = new StreamReader(response.GetResponseStream()))
+            {
+                responseText = (await sr.ReadToEndAsync()).ToLowerInvariant();
+            }
 
             foreach (string s in expectedTexts)
             {
@@ -143,12 +147,12 @@ namespace NuGetGallery.FunctionTests.Helpers
             return true;
         }
 
-        public static void DownloadPackageFromV2FeedWithOperation(string packageId, string version, string operation)
+        public static async Task DownloadPackageFromV2FeedWithOperation(string packageId, string version, string operation)
         {
             try
             {
-                Task<string> downloadTask = ODataHelper.DownloadPackageFromFeed(packageId, version, operation);
-                string filename = downloadTask.Result;
+                string filename = await DownloadPackageFromFeed(packageId, version, operation);
+
                 //check if the file exists.
                 Assert.IsTrue(File.Exists(filename), Constants.PackageDownloadFailureMessage);
                 string downloadedPackageId = ClientSDKHelper.GetPackageIdFromNupkgFile(filename);

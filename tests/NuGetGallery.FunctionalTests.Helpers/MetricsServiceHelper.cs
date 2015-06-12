@@ -1,29 +1,32 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace NuGetGallery.FunctionTests.Helpers
 {
     public class MetricsServiceHelper
     {
-        public static bool TryHitMetricsEndPoint(string id, string version, string ipAddress, string userAgent, string operation, string dependentPackage, string projectGuids)
+        public static async Task<bool> TryHitMetricsEndPoint(string id, string version, string ipAddress, string userAgent, string operation, string dependentPackage, string projectGuids)
         {
             var jObject = GetJObject(id, version, ipAddress, userAgent, operation, dependentPackage, projectGuids);
-            Task<bool> task = TryHitMetricsEndPoint(jObject);
-            return task.Result;
+            var result = await TryHitMetricsEndPoint(jObject);
+            return result;
         }
 
         public static async Task<bool> TryHitMetricsEndPoint(JObject jObject)
         {
             try
             {
-                using (var httpClient = new System.Net.Http.HttpClient())
+                using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.PostAsync(new Uri(MetricsServiceUri + MetricsDownloadEventMethod), new StringContent(jObject.ToString(), Encoding.UTF8, ContentTypeJson));
-                    //print the header 
+                    var requestUri = new Uri(MetricsServiceUri + MetricsDownloadEventMethod);
+                    var content = new StringContent(jObject.ToString(), Encoding.UTF8, ContentTypeJson);
+                    var response = await httpClient.PostAsync(requestUri, content);
+
+                    //print the header
                     Console.WriteLine("HTTP status code : {0}", response.StatusCode);
                     if (response.StatusCode == HttpStatusCode.Accepted)
                     {

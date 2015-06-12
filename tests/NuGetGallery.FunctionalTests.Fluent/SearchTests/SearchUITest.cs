@@ -20,14 +20,14 @@ namespace NuGetGallery.FunctionalTests.Fluent
             // Click in the box
             I.Click("#searchBoxInput", 3, 3);
             I.Wait(1);
-            I.Expect.True(() => (I.Find("#searchBoxInput")().Width > 600));
+            I.Expect.True(() => (I.Find("#searchBoxInput").Element.Width > 600));
             I.Type("fred");
             I.Wait(1);
-            I.Expect.True(() => (I.Find("#searchBoxInput")().Width > 600));
+            I.Expect.True(() => (I.Find("#searchBoxInput").Element.Width > 600));
 
             // Click out of the box
             I.Click("img[alt='Manage NuGet Packages Dialog Window']", 3, 3);
-            I.Expect.True(() => (I.Find("#searchBoxInput")().Width > 600));
+            I.Expect.True(() => (I.Find("#searchBoxInput").Element.Width > 600));
             I.Wait(1);
         }
     }
