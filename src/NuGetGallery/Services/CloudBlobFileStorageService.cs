@@ -110,6 +110,12 @@ namespace NuGetGallery
             await blob.SetPropertiesAsync();
         }
 
+        public async Task<bool> IsAvailableAsync()
+        {
+            var container = await GetContainer(Constants.PackagesFolderName);
+            return await container.ExistsAsync();
+        }
+
         private async Task<ICloudBlobContainer> GetContainer(string folderName)
         {
             ICloudBlobContainer container;
