@@ -18,6 +18,7 @@ namespace NuGet.Jobs.Common
         public const string StoragePrimary = "NUGETJOBS_STORAGE_PRIMARY";
         public const string StorageBackup = "NUGETJOBS_STORAGE_BACKUP";
         public const string WarehouseStorage = "NUGETJOBS_STORAGE_WAREHOUSE";
+        public const string StorageDashboard = "NUGETJOBS_STORAGE_DASHBOARD";
     }
 
     /// <summary>
@@ -101,6 +102,12 @@ namespace NuGet.Jobs.Common
         public const string AzureCdnPlatform = "AzureCdnPlatform";
         public const string AzureCdnCloudStorageAccount = "AzureCdnCloudStorageAccount";
         public const string AzureCdnCloudStorageContainerName = "AzureCdnCloudStorageContainerName";
+
+        //Arguments specific to Heartbeat
+        public const string HeartbeatConfig = "HeartbeatConfig";
+        public const string DashboardStorageAccount = "DashboardStorageAccount";
+        public const string DashboardStorageContainer = "DashboardStorageContainer";
+        public const string LogFileSuffix = "LogFileSuffix";
     }
     /// <summary>
     /// This class is used to retrieve and expose the known azure configuration settings
