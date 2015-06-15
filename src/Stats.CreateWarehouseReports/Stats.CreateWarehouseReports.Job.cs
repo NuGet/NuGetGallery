@@ -2,19 +2,17 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Diagnostics.Tracing;
-using System.Threading.Tasks;
+using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Dapper;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
-using System.Data;
-using System.Diagnostics;
-using System.IO;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGet.Jobs.Common;
 using Stats.CreateWarehouseReports.Helpers;
 
@@ -135,7 +133,7 @@ namespace Stats.CreateWarehouseReports
 
             Parallel.ForEach(packages, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, package =>
             {
-               
+
 
                 CreateReport(
                     PackageReportDetailBaseName + package.PackageId.ToLowerInvariant(),
@@ -342,7 +340,7 @@ namespace Stats.CreateWarehouseReports
         }
 
         // We don't use Dapper because we need a general purpose method to load any resultset
-        // This method loads a tuple where the first item is a 
+        // This method loads a tuple where the first item is a
         private async Task<DataTable> ExecuteSql(string scriptName, params Tuple<string, int, string>[] parameters)
         {
             string sql = await ResourceHelpers.ReadResourceFile(scriptName);
@@ -514,4 +512,4 @@ namespace Stats.CreateWarehouseReports
 
     }
 }
-    
+

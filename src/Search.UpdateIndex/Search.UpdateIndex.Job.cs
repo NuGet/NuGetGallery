@@ -2,14 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using NuGet.Jobs.Common;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Indexing;
-using System.Diagnostics;
-using Lucene.Net.Store;
-using System.IO;
+using NuGet.Jobs.Common;
 
 namespace Search.UpdateIndex
 {
@@ -71,7 +68,7 @@ namespace Search.UpdateIndex
 
         public override Task<bool> Run()
         {
-                      
+
             // Run the task
             UpdateIndexTask task = new UpdateIndexTask()
             {
