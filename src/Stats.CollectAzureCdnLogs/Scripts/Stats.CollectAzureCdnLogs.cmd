@@ -5,7 +5,7 @@ cd bin
 :Top
 	echo "Starting job - #{Jobs.stats.collectazurecdnlogs.Title}"
 	
-	set NUGETJOBS_STORAGE_PRIMARY="#{Jobs.stats.collectazurecdnlogs.Storage.Primary}"
+	set NUGETJOBS_STORAGE_PRIMARY=#{Jobs.stats.collectazurecdnlogs.Storage.Primary}
 
 	title #{Jobs.stats.collectazurecdnlogs.Title}
 
