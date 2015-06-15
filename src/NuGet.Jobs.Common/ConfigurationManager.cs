@@ -92,9 +92,18 @@ namespace NuGet.Jobs.Common
         public const string LicenseReportService = "LicenseReportService";
         public const string LicenseReportUser = "LicenseReportUser";
         public const string LicenseReportPassword = "LicenseReportPassword";
+
+        //Arguments specific to CollectAzureCdnLogs
+        public const string FtpSourceUri = "FtpSourceUri";
+        public const string FtpSourceUsername = "FtpSourceUsername";
+        public const string FtpSourcePassword = "FtpSourcePassword";
+        public const string AzureCdnAccountNumber = "AzureCdnAccountNumber";
+        public const string AzureCdnPlatform = "AzureCdnPlatform";
+        public const string AzureCdnCloudStorageAccount = "AzureCdnCloudStorageAccount";
+        public const string AzureCdnCloudStorageContainerName = "AzureCdnCloudStorageContainerName";
     }
     /// <summary>
-    /// This class is used to retrieve and expose the known azure configuration settings 
+    /// This class is used to retrieve and expose the known azure configuration settings
     /// from Environment Variables
     /// </summary>
     public static class JobConfigManager
@@ -130,21 +139,21 @@ namespace NuGet.Jobs.Common
             // Or, in singles as a switch '-<switch>'
 
             IDictionary<string, string> argsDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            for(int i = 0; i < allArgsList.Count; i++)
+            for (int i = 0; i < allArgsList.Count; i++)
             {
-                if(!allArgsList[i].StartsWith("-"))
+                if (!allArgsList[i].StartsWith("-"))
                 {
                     throw new ArgumentException("Argument Name does not start with a hyphen ('-')");
                 }
 
                 var argName = allArgsList[i].Substring(1);
-                if(String.IsNullOrEmpty(argName))
+                if (String.IsNullOrEmpty(argName))
                 {
                     throw new ArgumentException("Argument Name is null or empty");
                 }
 
                 var nextString = allArgsList.Count > i + 1 ? allArgsList[i + 1] : null;
-                if(String.IsNullOrEmpty(nextString) || nextString.StartsWith("-"))
+                if (String.IsNullOrEmpty(nextString) || nextString.StartsWith("-"))
                 {
                     // If the key already exists, don't add. This means that first added value is preferred
                     // Since command line args are added before args from environment variable, this is the desired behavior
@@ -187,7 +196,7 @@ namespace NuGet.Jobs.Common
         public static string GetArgument(IDictionary<string, string> jobArgsDictionary, string argName, string fallbackEnvVariable = null)
         {
             string argValue;
-            if(!jobArgsDictionary.TryGetValue(argName, out argValue) && !String.IsNullOrEmpty(fallbackEnvVariable))
+            if (!jobArgsDictionary.TryGetValue(argName, out argValue) && !String.IsNullOrEmpty(fallbackEnvVariable))
             {
                 argValue = Environment.GetEnvironmentVariable(fallbackEnvVariable);
             }
@@ -237,7 +246,7 @@ namespace NuGet.Jobs.Common
         {
             int intArgument;
             string argumentString = TryGetArgument(jobArgsDictionary, argName, fallbackEnvVariable);
-            if(!String.IsNullOrEmpty(argumentString) && Int32.TryParse(argumentString, out intArgument))
+            if (!String.IsNullOrEmpty(argumentString) && Int32.TryParse(argumentString, out intArgument))
             {
                 return intArgument;
             }
