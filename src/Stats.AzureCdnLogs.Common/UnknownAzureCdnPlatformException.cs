@@ -4,10 +4,10 @@
 using System;
 using System.Globalization;
 
-namespace Stats.CollectAzureCdnLogs
+namespace Stats.AzureCdnLogs.Common
 {
     [Serializable]
-    internal sealed class UnknownAzureCdnPlatformException
+    public sealed class UnknownAzureCdnPlatformException
         : Exception
     {
         public UnknownAzureCdnPlatformException(string prefix)

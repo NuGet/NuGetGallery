@@ -69,9 +69,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AzureCdnPlatform.cs" />
     <Compile Include="Blob\CloudBlobRawLogClient.cs" />
-    <Compile Include="Extensions\AzureCdnPlatformExtensions.cs" />
     <Compile Include="FileExtensions.cs" />
     <Compile Include="Ftp\FtpDownloadStream.cs" />
     <Compile Include="Ftp\FtpRawLogClient.cs" />
@@ -82,7 +80,6 @@
     <Compile Include="Job.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Exceptions\UnknownAzureCdnPlatformException.cs" />
     <Compile Include="Extensions\UriExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -93,6 +90,10 @@
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
       <Project>{4b4b1efb-8f33-42e6-b79f-54e7f3293d31}</Project>
       <Name>NuGet.Jobs.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Stats.AzureCdnLogs.Common\Stats.AzureCdnLogs.Common.csproj">
+      <Project>{f72c31a7-424d-48c6-924c-ebfd4be0918b}</Project>
+      <Name>Stats.AzureCdnLogs.Common</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

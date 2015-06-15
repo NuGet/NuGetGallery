@@ -3,9 +3,9 @@
 
 using System;
 
-namespace Stats.CollectAzureCdnLogs
+namespace Stats.AzureCdnLogs.Common
 {
-    internal static class AzureCdnPlatformExtensions
+    public static class AzureCdnPlatformExtensions
     {
         private const string _largeHttpObjectPrefix = "wpc";
         private const string _smallHttpObjectPrefix = "wac";

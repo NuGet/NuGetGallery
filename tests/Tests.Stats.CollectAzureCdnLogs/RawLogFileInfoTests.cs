@@ -3,6 +3,7 @@
 
 using System;
 using System.Globalization;
+using Stats.AzureCdnLogs.Common;
 using Stats.CollectAzureCdnLogs;
 using Xunit;
 

@@ -99,8 +99,13 @@ namespace NuGet.Jobs.Common
         public const string FtpSourcePassword = "FtpSourcePassword";
         public const string AzureCdnAccountNumber = "AzureCdnAccountNumber";
         public const string AzureCdnPlatform = "AzureCdnPlatform";
+
+        //Arguments shared by CollectAzureCdnLogs and ParseAzureCdnLogs
         public const string AzureCdnCloudStorageAccount = "AzureCdnCloudStorageAccount";
         public const string AzureCdnCloudStorageContainerName = "AzureCdnCloudStorageContainerName";
+
+        //Arguments specific to ParseAzureCdnLogs
+        public const string AzureCdnCloudStorageTableName = "AzureCdnCloudStorageTableName";
     }
     /// <summary>
     /// This class is used to retrieve and expose the known azure configuration settings

@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs.Common;
+using Stats.AzureCdnLogs.Common;
 using Stats.CollectAzureCdnLogs.Blob;
 using Stats.CollectAzureCdnLogs.Ftp;
 

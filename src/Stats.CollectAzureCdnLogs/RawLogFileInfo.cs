@@ -5,6 +5,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Stats.AzureCdnLogs.Common;
 
 namespace Stats.CollectAzureCdnLogs
 {
