@@ -146,6 +146,7 @@
     <Compile Include="BitSetCollector.cs" />
     <Compile Include="ChainedFilter.cs" />
     <Compile Include="Compatibility.cs" />
+    <Compile Include="CuratedFeedFilter.cs" />
     <Compile Include="DownloadLookup.cs" />
     <Compile Include="Facets.cs" />
     <Compile Include="GalleryServiceImpl.cs" />
