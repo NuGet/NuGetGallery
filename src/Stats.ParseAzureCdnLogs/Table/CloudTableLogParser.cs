@@ -20,13 +20,15 @@ namespace Stats.ParseAzureCdnLogs
         private readonly TimeSpan _leaseExpirationThreshold = TimeSpan.FromSeconds(40);
         private readonly CloudBlobContainer _targetContainer;
         private readonly CdnLogEntryTable _targetTable;
+        private readonly CloudBlobContainer _deadLetterContainer;
         private readonly JobEventSource _jobEventSource;
 
-        public CloudTableLogParser(JobEventSource jobEventSource, CloudBlobContainer targetContainer, CdnLogEntryTable targetTable)
+        public CloudTableLogParser(JobEventSource jobEventSource, CloudBlobContainer targetContainer, CdnLogEntryTable targetTable, CloudBlobContainer deadLetterContainer)
         {
             _jobEventSource = jobEventSource;
             _targetContainer = targetContainer;
             _targetTable = targetTable;
+            _deadLetterContainer = deadLetterContainer;
         }
 
         public async Task ParseLogFileAsync(CloudBlockBlob blob)
@@ -38,7 +40,7 @@ namespace Stats.ParseAzureCdnLogs
             }
 
             // try to acquire a lease on the blob
-            string leaseId = await TryAcquireLease(blob);
+            string leaseId = await TryAcquireLeaseAsync(blob);
             if (string.IsNullOrEmpty(leaseId))
             {
                 // the blob is already leased, ignore it and move on
@@ -46,6 +48,63 @@ namespace Stats.ParseAzureCdnLogs
             }
 
             // hold on to the lease for the duration of this method-action by auto-renewing in the background
+            var autoRenewLeaseThread = StartNewAutoRenewLeaseThread(blob, leaseId);
+
+            try
+            {
+                var blobUri = blob.Uri.ToString();
+                var log = await DecompressBlobAsync(blob, blobUri, leaseId);
+
+                await BatchInsertParsedLogEntriesAsync(blobUri, log);
+
+                await ArchiveDecompressedBlobAsync(blob, blobUri, log);
+
+                // delete the blob from the 'to-be-processed' container
+                await DeleteSourceBlobAsync(blob, blobUri, leaseId);
+
+                autoRenewLeaseThread.Abort();
+            }
+            catch
+            {
+                // avoid continuous rethrow and dead-letter the blob...
+                autoRenewLeaseThread.Abort();
+                // ... by taking an infinite lease (as long as the lease is there, no other job instance will be able to acquire a lease on it and attempt processing it)
+                blob.AcquireLease(null, leaseId);
+
+                // copy the blob to a dead-letter container
+                var deadLetterBlob = _deadLetterContainer.GetBlockBlobReference(blob.Name);
+                deadLetterBlob.StartCopyFromBlob(blob, AccessCondition.GenerateLeaseCondition(leaseId));
+
+                // delete the blob from the 'to-be-processed' container
+                blob.DeleteIfExists(DeleteSnapshotsOption.IncludeSnapshots, AccessCondition.GenerateLeaseCondition(leaseId));
+            }
+        }
+
+        private async Task ArchiveDecompressedBlobAsync(ICloudBlob blob, string blobUri, string log)
+        {
+            try
+            {
+                // stream the decompressed file to an archive container
+                var decompressedBlobName = blob.Name.Replace(".gz", string.Empty);
+                var targetBlob = _targetContainer.GetBlockBlobReference(decompressedBlobName);
+
+                if (!await targetBlob.ExistsAsync())
+                {
+                    targetBlob.Properties.ContentType = "text/plain";
+                    _jobEventSource.BeginningArchiveUpload(blobUri);
+                    await targetBlob.UploadTextAsync(log);
+                    _jobEventSource.FinishingArchiveUpload(blobUri);
+                }
+            }
+            catch
+            {
+                _jobEventSource.FailedArchiveUpload(blobUri);
+                throw;
+            }
+        }
+
+        private Thread StartNewAutoRenewLeaseThread(ICloudBlob blob, string leaseId)
+        {
             var autoRenewLeaseThread = new Thread(
                 async () =>
                 {
@@ -57,10 +116,65 @@ namespace Stats.ParseAzureCdnLogs
                     }
                 });
             autoRenewLeaseThread.Start();
+            return autoRenewLeaseThread;
+        }
+
+        private async Task BatchInsertParsedLogEntriesAsync(string blobUri, string log)
+        {
+            IEnumerable<CdnLogEntry> logEntries;
+            try
+            {
+                // parse the text from memory into table entities
+                _jobEventSource.BeginningParseLog(blobUri);
+                logEntries = ParseLogEntriesFromW3CLog(log);
+                _jobEventSource.FinishingParseLog(blobUri);
+            }
+            catch
+            {
+                _jobEventSource.FailedParseLog(blobUri);
+                throw;
+            }
+
 
             try
             {
-                string log;
+                // batch insert the parsed log entries into table storage
+                _jobEventSource.BeginningBatchInsert(blobUri);
+                await _targetTable.InsertBatchAsync(logEntries);
+                _jobEventSource.FinishingBatchInsert(blobUri);
+            }
+            catch
+            {
+                _jobEventSource.FailedBatchInsert(blobUri);
+                throw;
+            }
+        }
+
+        private async Task DeleteSourceBlobAsync(ICloudBlob blob, string blobUri, string leaseId)
+        {
+            if (await blob.ExistsAsync())
+            {
+                try
+                {
+                    _jobEventSource.BeginningDelete(blobUri);
+                    var accessCondition = AccessCondition.GenerateLeaseCondition(leaseId);
+                    await blob.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots, accessCondition, null, null);
+                    _jobEventSource.FinishedDelete(blobUri);
+                }
+                catch
+                {
+                    _jobEventSource.FailedDelete(blobUri);
+                    throw;
+                }
+            }
+        }
+
+        private async Task<string> DecompressBlobAsync(ICloudBlob blob, string blobUri, string leaseId)
+        {
+            string log;
+            try
+            {
+                _jobEventSource.BeginningDecompressBlob(blobUri);
                 using (var decompressedStream = new MemoryStream())
                 {
                     // decompress into memory (these are rolling log files and relatively small)
@@ -76,33 +190,28 @@ namespace Stats.ParseAzureCdnLogs
                     {
                         log = await streamReader.ReadToEndAsync();
                     }
+
+                    _jobEventSource.FinishedDecompressBlob(blobUri);
                 }
-
-                // parse the text from memory into table storage
-                IEnumerable<CdnLogEntry> logEntries = ParseLogEntriesFromW3CLog(log);
-                await _targetTable.InsertBatchAsync(logEntries);
-
-                // stream the decompressed file to an archive container
-                var decompressedBlobName = blob.Name.Replace(".gz", string.Empty);
-                var targetBlob = _targetContainer.GetBlockBlobReference(decompressedBlobName);
-                targetBlob.Properties.ContentType = "text/plain";
-                await targetBlob.UploadTextAsync(log);
-
-                // delete the gzipped file from the 'to-be-processed' container
-                await blob.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots, AccessCondition.GenerateLeaseCondition(leaseId), null, null);
             }
-            finally
+            catch
             {
-                autoRenewLeaseThread.Abort();
+                _jobEventSource.FailedDecompressBlob(blobUri);
+                throw;
             }
+
+            return log;
         }
 
-        private async Task<string> TryAcquireLease(ICloudBlob blob)
+        private async Task<string> TryAcquireLeaseAsync(ICloudBlob blob)
         {
             string leaseId;
+            var blobUriString = blob.Uri.ToString();
             try
             {
+                _jobEventSource.BeginningAcquireLease(blobUriString);
                 leaseId = await blob.AcquireLeaseAsync(_defaultLeaseTime, null);
+                _jobEventSource.FinishedAcquireLease(blobUriString);
             }
             catch (StorageException storageException)
             {
@@ -120,6 +229,7 @@ namespace Stats.ParseAzureCdnLogs
                         }
                     }
                 }
+                _jobEventSource.FailedAcquireLease(blobUriString);
                 throw;
             }
             return leaseId;

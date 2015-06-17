@@ -66,9 +66,16 @@ namespace Stats.ParseAzureCdnLogs
 
                 // Get the target table (for parsed raw data entries), a target blob container (for archiving decompressed log files) and create a parser
                 var targetBlobContainer = cloudBlobClient.GetContainerReference(_cloudStorageContainerName + "-archive");
+                await targetBlobContainer.CreateIfNotExistsAsync();
+
                 var targetTable = new CdnLogEntryTable(_cloudStorageAccount, _cloudStorageTableName);
                 await targetTable.CreateIfNotExists();
-                var parser = new CloudTableLogParser(JobEventSource.Log, targetBlobContainer, targetTable);
+
+                // Get the dead-letter table (corrupted or failed blobs will end up there)
+                var deadLetterBlobContainer = cloudBlobClient.GetContainerReference(_cloudStorageContainerName + "-deadletter");
+                await deadLetterBlobContainer.CreateIfNotExistsAsync();
+
+                var parser = new CloudTableLogParser(JobEventSource.Log, targetBlobContainer, targetTable, deadLetterBlobContainer);
 
                 // Get the next to-be-processed raw log file using the cdn raw log file name prefix
                 var prefix = string.Format(CultureInfo.InvariantCulture, "{0}_{1}_", _azureCdnPlatform.GetRawLogFilePrefix(), _azureCdnAccountNumber);
