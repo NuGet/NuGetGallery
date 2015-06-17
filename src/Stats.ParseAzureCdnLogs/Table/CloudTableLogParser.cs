@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.GZip;
@@ -30,12 +31,22 @@ namespace Stats.ParseAzureCdnLogs
 
         public async Task ParseLogFileAsync(CloudBlockBlob blob)
         {
-            // acquire and hold on to the lease for the duration of this method-action
-            var leaseId = await blob.AcquireLeaseAsync(_defaultLeaseTime, null);
-            Thread autoRenewLeaseThread = null;
-            if (!string.IsNullOrEmpty(leaseId))
+            var sourceBlobExists = await blob.ExistsAsync();
+            if (!sourceBlobExists)
             {
-                autoRenewLeaseThread = new Thread(
+                return;
+            }
+
+            // try to acquire a lease on the blob
+            string leaseId = await TryAcquireLease(blob);
+            if (string.IsNullOrEmpty(leaseId))
+            {
+                // the blob is already leased, ignore it and move on
+                return;
+            }
+
+            // hold on to the lease for the duration of this method-action by auto-renewing in the background
+            var autoRenewLeaseThread = new Thread(
                 async () =>
                 {
                     while (await blob.ExistsAsync())
@@ -45,8 +56,7 @@ namespace Stats.ParseAzureCdnLogs
                         await blob.RenewLeaseAsync(AccessCondition.GenerateLeaseCondition(leaseId));
                     }
                 });
-                autoRenewLeaseThread.Start();
-            }
+            autoRenewLeaseThread.Start();
 
             try
             {
@@ -73,7 +83,8 @@ namespace Stats.ParseAzureCdnLogs
                 await _targetTable.InsertBatchAsync(logEntries);
 
                 // stream the decompressed file to an archive container
-                var targetBlob = _targetContainer.GetBlockBlobReference(blob.Name.Replace(".gz", string.Empty));
+                var decompressedBlobName = blob.Name.Replace(".gz", string.Empty);
+                var targetBlob = _targetContainer.GetBlockBlobReference(decompressedBlobName);
                 targetBlob.Properties.ContentType = "text/plain";
                 await targetBlob.UploadTextAsync(log);
 
@@ -87,6 +98,34 @@ namespace Stats.ParseAzureCdnLogs
                     autoRenewLeaseThread.Abort();
                 }
             }
+        }
+
+        private async Task<string> TryAcquireLease(ICloudBlob blob)
+        {
+            string leaseId;
+            try
+            {
+                leaseId = await blob.AcquireLeaseAsync(_defaultLeaseTime, null);
+            }
+            catch (StorageException storageException)
+            {
+                // check if this is a 409 Conflict with a StatusDescription stating that "There is already a lease present."
+                var webException = storageException.InnerException as WebException;
+                if (webException != null)
+                {
+                    var httpWebResponse = webException.Response as HttpWebResponse;
+                    if (httpWebResponse != null)
+                    {
+                        if (httpWebResponse.StatusCode == HttpStatusCode.Conflict
+                            && httpWebResponse.StatusDescription == "There is already a lease present.")
+                        {
+                            return null;
+                        }
+                    }
+                }
+                throw;
+            }
+            return leaseId;
         }
 
         private static IEnumerable<CdnLogEntry> ParseLogEntriesFromW3CLog(string log)
