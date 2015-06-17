@@ -64,7 +64,7 @@ namespace Stats.ParseAzureCdnLogs
 
                 autoRenewLeaseThread.Abort();
             }
-            catch
+            catch(Exception e)
             {
                 // avoid continuous rethrow and dead-letter the blob...
                 autoRenewLeaseThread.Abort();
@@ -74,6 +74,11 @@ namespace Stats.ParseAzureCdnLogs
                 // copy the blob to a dead-letter container
                 var deadLetterBlob = _deadLetterContainer.GetBlockBlobReference(blob.Name);
                 deadLetterBlob.StartCopyFromBlob(blob, AccessCondition.GenerateLeaseCondition(leaseId));
+
+                // add the job error to the blob's metadata
+                deadLetterBlob.FetchAttributes();
+                deadLetterBlob.Metadata.Add("JobError", e.ToString());
+                deadLetterBlob.SetMetadata();
 
                 // delete the blob from the 'to-be-processed' container
                 blob.DeleteIfExists(DeleteSnapshotsOption.IncludeSnapshots, AccessCondition.GenerateLeaseCondition(leaseId));
