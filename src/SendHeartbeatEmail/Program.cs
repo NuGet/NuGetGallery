@@ -51,8 +51,8 @@ namespace SendHeartbeatMail
             AlertFileToMonitor = GenerateLogFileName("ProcessRecyle_Alert_");
             ConciseFileToMonitor = GenerateLogFileName("ProcessRecyle_Concise_");
 
-            CloudStorageAccount csa = CloudStorageAccount.Parse(DashboardStorageAccount);
-            CloudBlobContainer cbc = csa.CreateCloudBlobClient().GetContainerReference("int0");
+            var csa = CloudStorageAccount.Parse(DashboardStorageAccount);
+            var cbc = csa.CreateCloudBlobClient().GetContainerReference("int0");
             var alertBlob = cbc.GetBlockBlobReference(AlertFileToMonitor);
 
             while (true)
@@ -146,15 +146,15 @@ namespace SendHeartbeatMail
 
         private static void SendEmail(string subject, string mailContent, string attachment)
         {
-            SmtpClient sc = new SmtpClient("smtphost");
-            NetworkCredential nc = new NetworkCredential(ConfigurationManager.AppSettings["SmtpUserName"], ConfigurationManager.AppSettings["SmtpPassword"]);
+            var sc = new SmtpClient("smtphost");
+            var nc = new NetworkCredential(ConfigurationManager.AppSettings["SmtpUserName"], ConfigurationManager.AppSettings["SmtpPassword"]);
             sc.UseDefaultCredentials = true;
             sc.Credentials = nc;
             sc.Host = "outlook.office365.com";
             sc.EnableSsl = true;
             sc.Port = 587;
 
-            System.Net.Mail.MailMessage message = new System.Net.Mail.MailMessage();
+            var message = new System.Net.Mail.MailMessage();
             message.From = new MailAddress(ConfigurationManager.AppSettings["SmtpUserName"], "Heartbeat Monitor");
             message.To.Add(new MailAddress(ConfigurationManager.AppSettings["MailRecepientAddress"], ConfigurationManager.AppSettings["MailRecepientAddress"]));
             message.Subject = string.Format(subject);
