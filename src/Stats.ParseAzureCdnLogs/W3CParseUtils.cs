@@ -11,44 +11,33 @@ namespace Stats.ParseAzureCdnLogs
         {
             var records = new List<string>();
 
-            int startIndex = 0;
-            bool openedQuotes = false;
+            var startIndex = 0;
+            var betweenQuotes = false;
             var characterCount = line.Length;
 
-            for (int i = 0; i < characterCount; i++)
+            for (var i = 0; i < characterCount; i++)
             {
                 char character = line[i];
-                if (character == ' ')
-                {
-                    if (!openedQuotes)
-                    {
-                        string record = line.Substring(startIndex, i - startIndex);
-                        records.Add(record);
-                        startIndex = i + 1;
 
-                        if (i + 1 < characterCount && line[i + 1] == '"')
-                        {
-                            // the next space character encountered could be between quotes
-                            openedQuotes = true;
-                        }
-                    }
-                    else
-                    {
-                        // quotes are open, verify if they were closed
-                        if (line[i - 1] == '"')
-                        {
-                            string record = line.Substring(startIndex, i - startIndex);
-                            records.Add(record);
-                            startIndex = i + 1;
-                            openedQuotes = false;
-                        }
-                    }
-                }
-                else if (i + 1 == characterCount)
+                if (i + 1 == characterCount)
                 {
                     // reached end of the line
-                    string record = line.Substring(startIndex, characterCount - startIndex);
+                    var record = line.Substring(startIndex, characterCount - startIndex);
                     records.Add(record);
+                }
+                else if (character == '"')
+                {
+                    betweenQuotes = !betweenQuotes;
+                    if (betweenQuotes)
+                    {
+                        startIndex = i;
+                    }
+                }
+                else if (character == ' ' && !betweenQuotes)
+                {
+                    var record = line.Substring(startIndex, i - startIndex);
+                    records.Add(record);
+                    startIndex = i + 1;
                 }
             }
 

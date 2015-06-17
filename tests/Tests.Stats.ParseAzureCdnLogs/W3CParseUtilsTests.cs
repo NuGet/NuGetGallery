@@ -43,7 +43,7 @@ namespace Tests.Stats.ParseAzureCdnLogs
             public void CanHandleLinesWithQuotesInRecords()
             {
                 // #Fields: timestamp time-taken c-ip filesize s-ip s-port sc-status sc-bytes cs-method cs-uri-stem - rs-duration rs-bytes c-referrer c-user-agent customer-id x-ec_custom-1
-                var line = "1433257489 27 127.0.0.1 1482348 127.0.0.1 443 TCP_HIT/200 1482769 GET \"http://localhost/packages/packageId/packageVersion.nupkg\" - 0 844 https://localhost/api/v2/package/packageId/packageVersion \"Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0; AppInsights)\" 61800 \"NuGet-Operation: -\"";
+                var line = "1433257489 27 127.0.0.1 1482348 127.0.0.1 443 TCP_HIT/200 1482769 GET \"http://localhost/packages/packageId/packageVersion.nupkg\" - 0 844 \"https://localhost/api/v2/package/packageId/packageVersion\" \"Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0; AppInsights)\" 61800 \"NuGet-Operation: -\"";
 
                 var records = W3CParseUtils.GetLogLineRecords(line);
 
@@ -61,7 +61,7 @@ namespace Tests.Stats.ParseAzureCdnLogs
                 Assert.Equal("-", records[10]);
                 Assert.Equal("0", records[11]);
                 Assert.Equal("844", records[12]);
-                Assert.Equal("https://localhost/api/v2/package/packageId/packageVersion", records[13]);
+                Assert.Equal("\"https://localhost/api/v2/package/packageId/packageVersion\"", records[13]);
                 Assert.Equal("\"Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0; AppInsights)\"", records[14]);
                 Assert.Equal("61800", records[15]);
                 Assert.Equal("\"NuGet-Operation: -\"", records[16]);
