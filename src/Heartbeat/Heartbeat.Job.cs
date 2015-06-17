@@ -394,6 +394,7 @@ namespace Heartbeat
         private bool KillProcess(uint processId, string serviceName)
         {
             Process process = null;
+            bool childProcess = false;
 
             try
             {
@@ -401,6 +402,7 @@ namespace Heartbeat
                 if (String.IsNullOrEmpty(serviceName))
                 {
                     serviceName = process.ProcessName;
+                    childProcess = true;
                 }
             }
             catch (ArgumentException)
@@ -421,7 +423,10 @@ namespace Heartbeat
 
                     Trace.TraceInformation(String.Format("Successfully killed process {0} with process Id {1} ", serviceName, processId));
 
-                    RecordInStorage(String.Format("Successfully killed process {0} with process Id {1} at {2}", serviceName, processId, DateTime.UtcNow), ConciseLogFileName);
+                    if (!childProcess)
+                    {
+                        RecordInStorage(String.Format("Successfully killed process {0} with process Id {1} at {2}", serviceName, processId, DateTime.UtcNow), ConciseLogFileName);
+                    }
                     RecordInStorage(String.Format("Successfully killed process {0} with process Id {1} at {2}", serviceName, processId, DateTime.UtcNow), VerboseLogFileName);
                 }
             }
@@ -435,7 +440,10 @@ namespace Heartbeat
                 Trace.TraceInformation(String.Format(message, serviceName));
 
                 RecordInStorage(String.Format(message, serviceName), VerboseLogFileName);
-                RecordInStorage(String.Format(message, serviceName), AlertLogFileName);
+                if (!childProcess)
+                {
+                    RecordInStorage(String.Format(message, serviceName), AlertLogFileName);
+                }
 
                 return false;
             }
@@ -447,7 +455,10 @@ namespace Heartbeat
                 Trace.TraceInformation(String.Format(message, serviceName));
 
                 RecordInStorage(String.Format(message, serviceName), VerboseLogFileName);
-                RecordInStorage(String.Format(message, serviceName), AlertLogFileName);
+                if (!childProcess)
+                {
+                    RecordInStorage(String.Format(message, serviceName), AlertLogFileName);
+                }
 
                 return false;
             }

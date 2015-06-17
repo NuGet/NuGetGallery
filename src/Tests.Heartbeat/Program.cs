@@ -2,10 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 //*******************************************************************************************************************************
 // IMPORTANT: To run the tests please do the following steps
+//0. Copy all the files from TestFiles folder to bin\debug folder
 //1. Run a windows powershell console as adminstrator
 //2. Do Import-Module Functions.ps1
 //3. Run the following command
-//-- Install-NuGetService -serviceName "myCustom" -serviceTitle "myCustom" -scriptToRun FULL_PATH_myCustom.cmd in this folder
+//-- Install-NuGetService -serviceName "myCustom" -serviceTitle "myCustom" -scriptToRun FULL_PATH_FOR_myCustom.cmd in bin\debug folder
 //4. Run the test exe with -DashboardStorageAccount info (this is the nugetdashboard storage account string)
 //*******************************************************************************************************************************
 
