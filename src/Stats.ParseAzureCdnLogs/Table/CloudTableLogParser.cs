@@ -93,10 +93,7 @@ namespace Stats.ParseAzureCdnLogs
             }
             finally
             {
-                if (autoRenewLeaseThread != null)
-                {
-                    autoRenewLeaseThread.Abort();
-                }
+                autoRenewLeaseThread.Abort();
             }
         }
 
@@ -152,7 +149,7 @@ namespace Stats.ParseAzureCdnLogs
                 return null;
 
             // columns are space-separated
-            var columns = line.Split(new[] { " " }, StringSplitOptions.None);
+            var columns = W3CParseUtils.GetLogLineRecords(line);
 
             var entry = new CdnLogEntry();
 
@@ -211,7 +208,7 @@ namespace Stats.ParseAzureCdnLogs
 
         private static void TrySetLongProperty(Action<long?> propertySetter, string record)
         {
-            if (W3CLogRecordContainsData(record))
+            if (W3CParseUtils.RecordContainsData(record))
             {
                 propertySetter(long.Parse(record));
             }
@@ -219,7 +216,7 @@ namespace Stats.ParseAzureCdnLogs
 
         private static void TrySetIntProperty(Action<int?> propertySetter, string record)
         {
-            if (W3CLogRecordContainsData(record))
+            if (W3CParseUtils.RecordContainsData(record))
             {
                 propertySetter(int.Parse(record));
             }
@@ -227,15 +224,10 @@ namespace Stats.ParseAzureCdnLogs
 
         private static void TrySetStringProperty(Action<string> propertySetter, string record)
         {
-            if (W3CLogRecordContainsData(record))
+            if (W3CParseUtils.RecordContainsData(record))
             {
                 propertySetter(record);
             }
-        }
-
-        private static bool W3CLogRecordContainsData(string record)
-        {
-            return !string.IsNullOrWhiteSpace(record) && record != "-" && record != "\"-\"";
         }
 
         private static DateTime FromUnixTimestamp(string unixTimestamp)
