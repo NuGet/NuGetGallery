@@ -78,7 +78,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DapperExtensions.cs" />
     <Compile Include="ResourceHelpers.cs" />
     <Compile Include="Search.GenerateRankings.Job.cs" />
     <Compile Include="Search.GenerateRankings.Program.cs" />
