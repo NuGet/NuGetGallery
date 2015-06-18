@@ -20,6 +20,11 @@ namespace NuGetGallery.Helpers
 
         public static string Abbreviate(this string text, int length)
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                return text;
+            }
+
             if (text.Length <= length)
             {
                 return text;
