@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
@@ -35,26 +35,10 @@ namespace Stats.ParseAzureCdnLogs
 
         public async Task InsertBatchAsync(IEnumerable<CdnLogEntry> entities)
         {
-            var tableBatchOperation = new TableBatchOperation();
-            foreach (var entity in entities)
+            foreach (var batchOperation in TableOperationBuilder.GetOptimalInsertBatchOperations(entities))
             {
-                var tableOperation = CreateInsertOperation(entity);
-                tableBatchOperation.Add(tableOperation);
+                await _table.ExecuteBatchAsync(batchOperation);
             }
-
-            await _table.ExecuteBatchAsync(tableBatchOperation);
-        }
-
-        private static TableOperation CreateInsertOperation(CdnLogEntry entity)
-        {
-            // reverse chronological order of log entries
-            entity.RowKey = RowKeyBuilder.CreateReverseChronological(entity.EdgeServerTimeDelivered);
-
-            // parition by date
-            entity.PartitionKey = entity.EdgeServerTimeDelivered.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
-
-            var tableOperation = TableOperation.Insert(entity);
-            return tableOperation;
         }
     }
 }
