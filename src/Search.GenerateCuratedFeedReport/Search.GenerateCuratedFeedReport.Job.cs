@@ -3,25 +3,29 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Dapper;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Jobs.Common;
+using NuGet.Versioning;
 
 namespace Search.GenerateCuratedFeedReport
 {
     internal class Job : JobBase
     {
         private const string GetCuratedPackagesScript = @"-- Work Service / Search.GenerateCuratedFeedReport 
-         SELECT pr.[Id], cf.[Name] FROM [dbo].[PackageRegistrations] pr 
-         Inner join CuratedPackages cp on cp.PackageRegistrationKey = pr.[Key]
-         join CuratedFeeds cf on cp.[CuratedFeedKey] = cf.[Key]";
+         SELECT pr.[Id], cf.[Name] FROM [dbo].[PackageRegistrations] pr Inner join CuratedPackages cp on cp.PackageRegistrationKey = pr.[Key] join CuratedFeeds cf on cp.[CuratedFeedKey] = cf.[Key]";
 
         public static readonly string DefaultContainerName = "ng-search-data";
         public static readonly string ReportName = "curatedfeeds.json";
+
 
         public SqlConnectionStringBuilder Source { get; set; }
         public CloudStorageAccount Destination { get; set; }
@@ -31,24 +35,24 @@ namespace Search.GenerateCuratedFeedReport
 
         public override async Task<bool> Run()
         {
-            string destination = string.IsNullOrEmpty(OutputDirectory) ?
+            string destination = String.IsNullOrEmpty(OutputDirectory) ?
                 (Destination.Credentials.AccountName + "/" + DestinationContainerName) :
                 OutputDirectory;
-
-            if (string.IsNullOrEmpty(destination))
+            if (String.IsNullOrEmpty(destination))
             {
-                throw new ArgumentException(Strings.WarehouseJob_NoDestinationAvailable);
+                throw new Exception(Strings.WarehouseJob_NoDestinationAvailable);
             }
 
-            Trace.TraceInformation(string.Format("Generating Curated feed report from {0}/{1} to {2}.", Source.DataSource, Source.InitialCatalog, destination));
+            Trace.TraceInformation(String.Format("Generating Curated feed report from {0}/{1} to {2}.", Source.DataSource, Source.InitialCatalog, destination));
 
-            var curatedPackages = new CuratedPackages();
 
-            using (var connection = new SqlConnection(Source.ConnectionString))
+            IDictionary<string, IList<string>> curatedPackages = new Dictionary<string, IList<string>>();
+
+            using (SqlConnection connection = new SqlConnection(Source.ConnectionString))
             {
                 connection.Open();
 
-                var command = new SqlCommand(GetCuratedPackagesScript, connection);
+                SqlCommand command = new SqlCommand(GetCuratedPackagesScript, connection);
                 command.CommandType = CommandType.Text;
 
                 SqlDataReader reader = command.ExecuteReader();
@@ -57,38 +61,36 @@ namespace Search.GenerateCuratedFeedReport
                 {
                     string packageRegistrationId = (string)reader.GetValue(0);
                     string feedName = (string)reader.GetValue(1);
-
+                    if (!curatedPackages.ContainsKey(packageRegistrationId))
+                    {
+                        curatedPackages.Add(packageRegistrationId, new List<string>());
+                    }
                     curatedPackages[packageRegistrationId].Add(feedName);
                 }
             }
 
             Trace.TraceInformation(String.Format("Gathered {0} rows of data.", curatedPackages.Count));
 
-            // Create JArray out of the dictionary.
-            var curatedFeeds = new JArray();
-
-            foreach (var packageId in curatedPackages.Keys)
+            //Create JArray out of the dictionary.
+            JArray curatedFeeds = new JArray();
+            foreach (var package in curatedPackages)
             {
-                var details = new JArray();
-                details.Add(packageId);
-
-                foreach (var feed in curatedPackages[packageId])
+                JArray details = new JArray();
+                details.Add(package.Key);
+                foreach (var feed in package.Value)
                 {
-                    var feedName = new JArray(feed);
+                    JArray feedName = new JArray(feed);
                     details.Add(feedName);
                 }
-
                 curatedFeeds.Add(details);
             }
-
             await WriteReport(curatedFeeds.ToString(Formatting.None), ReportName, Formatting.None);
-
             return true;
         }
 
         protected async Task WriteReport(string report, string name, Formatting formatting)
         {
-            if (!string.IsNullOrEmpty(OutputDirectory))
+            if (!String.IsNullOrEmpty(OutputDirectory))
             {
                 await WriteToFile(report, name);
             }
@@ -101,6 +103,7 @@ namespace Search.GenerateCuratedFeedReport
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
+
             Source =
                 new SqlConnectionStringBuilder(
                     JobConfigManager.GetArgument(jobArgsDictionary,
@@ -118,11 +121,15 @@ namespace Search.GenerateCuratedFeedReport
 
                 DestinationContainerName = JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DestinationContainerName) ?? DefaultContainerName;
 
+
                 DestinationContainer = Destination.CreateCloudBlobClient().GetContainerReference(DestinationContainerName);
             }
 
             return true;
+
         }
+
+        #region PrivateMembers
 
         private async Task WriteToFile(string report, string name)
         {
@@ -134,12 +141,10 @@ namespace Search.GenerateCuratedFeedReport
             {
                 Directory.CreateDirectory(parentDir);
             }
-
             if (File.Exists(fullPath))
             {
                 File.Delete(fullPath);
             }
-
             using (var writer = new StreamWriter(File.OpenWrite(fullPath)))
             {
                 await writer.WriteAsync(report);
@@ -153,12 +158,15 @@ namespace Search.GenerateCuratedFeedReport
             var blob = DestinationContainer.GetBlockBlobReference(name);
             Trace.TraceInformation(String.Format("Writing report to {0}", blob.Uri.AbsoluteUri));
 
-            blob.Properties.ContentType = "application/json";
+            blob.Properties.ContentType = "json";
             await blob.UploadTextAsync(report);
 
             Trace.TraceInformation(String.Format("Wrote report to {0}", blob.Uri.AbsoluteUri));
         }
+
+        #endregion PrivateMembers
     }
+
 }
 
 
