@@ -11,20 +11,35 @@ namespace NuGet.Indexing
     {
         public static IDictionary<string, Filter> CreateFilters(IndexReader reader, IDictionary<string, HashSet<string>> feeds)
         {
+            var bitSetLookup = new Dictionary<string, IDictionary<string, OpenBitSet>>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var key in feeds.Keys)
+            {
+                bitSetLookup[key] = new Dictionary<string, OpenBitSet>();
+
+                foreach (SegmentReader segmentReader in reader.GetSequentialSubReaders())
+                {
+                    bitSetLookup[key][segmentReader.SegmentName] = new OpenBitSet();
+                }
+            }
+
+            foreach (SegmentReader segmentReader in reader.GetSequentialSubReaders())
+            {
+                CreateOpenBitSets(segmentReader, feeds, bitSetLookup);
+            }
+
             var filters = new Dictionary<string, Filter>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var feed in feeds)
+            foreach (var key in feeds.Keys)
             {
-                filters.Add(feed.Key, CreateFilter(reader, feed.Value));
+                filters[key] = new OpenBitSetLookupFilter(bitSetLookup[key]);
             }
 
             return filters;
         }
 
-        static OpenBitSet CreateOpenBitSet(IndexReader reader, HashSet<string> feedIds)
+        static void CreateOpenBitSets(SegmentReader reader, IDictionary<string, HashSet<string>> feeds, IDictionary<string, IDictionary<string, OpenBitSet>> bitSetLookup)
         {
-            var openBitSet = new OpenBitSet();
-
             for (int n = 0; n < reader.MaxDoc; n++)
             {
                 if (reader.IsDeleted(n))
@@ -41,25 +56,14 @@ namespace NuGet.Indexing
                     continue;
                 }
 
-                if (feedIds.Contains(id))
+                foreach (var feed in feeds)
                 {
-                    openBitSet.Set(n);
+                    if (feed.Value.Contains(id))
+                    {
+                        bitSetLookup[feed.Key][reader.SegmentName].Set(n);
+                    }
                 }
             }
-
-            return openBitSet;
-        }
-
-        static Filter CreateFilter(IndexReader reader, HashSet<string> feedIds)
-        {
-            var bitSetLookup = new Dictionary<string, OpenBitSet>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (SegmentReader segmentReader in reader.GetSequentialSubReaders())
-            {
-                bitSetLookup.Add(segmentReader.SegmentName, CreateOpenBitSet(segmentReader, feedIds));
-            }
-
-            return new OpenBitSetLookupFilter(bitSetLookup);
         }
     }
 }
