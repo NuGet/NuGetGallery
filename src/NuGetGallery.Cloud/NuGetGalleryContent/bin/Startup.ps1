@@ -23,6 +23,19 @@ if(!(Test-Path $appcmd)) {
 &$appcmd set config -section:system.applicationHost/sites /siteDefaults.logFile.period:"Hourly" /commit:apphost
 &$appcmd set config -section:system.applicationHost/sites /siteDefaults.logFile.logExtFileFlags:"Date,Time,TimeTaken,BytesRecv,BytesSent,ComputerName,HttpStatus,HttpSubStatus,Win32Status,ProtocolVersion,ServerIP,ServerPort,Method,Host,UriStem,UriQuery,UserAgent"
 
+
+# Increase the number of available IIS threads for high performance applications
+# Uses the recommended values from http://msdn.microsoft.com/en-us/library/ms998549.aspx#scalenetchapt06_topic8
+# Assumes running on two cores (medium instance on Azure)
+&$appcmd set config /commit:MACHINE -section:processModel -maxWorkerThreads:100
+&$appcmd set config /commit:MACHINE -section:processModel -minWorkerThreads:50
+&$appcmd set config /commit:MACHINE -section:processModel -minIoThreads:50
+&$appcmd set config /commit:MACHINE -section:processModel -maxIoThreads:100
+ 
+# Adjust the maximum number of connections per core for all IP addresses
+&$appcmd set config /commit:MACHINE -section:connectionManagement /+["address='*',maxconnection='240'"]
+
+
 # Configure IP Restrictions
 
 #  Install the feature
