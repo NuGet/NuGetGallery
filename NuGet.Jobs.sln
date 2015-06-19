@@ -1,5 +1,4 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -73,6 +72,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Heartbeat", "src\Tests.Heartbeat\Tests.Heartbeat.csproj", "{2D978000-59AE-41FC-8EF9-F4DD20106300}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SendHeartbeatEmail", "src\SendHeartbeatEmail\SendHeartbeatEmail.csproj", "{85E631FF-0704-4EC0-9D67-EAD95C9A73CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search.GenerateCuratedFeedReport", "src\Search.GenerateCuratedFeedReport\Search.GenerateCuratedFeedReport.csproj", "{DBAB9802-BA6A-4CF1-ABE3-3C7BC4D83559}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -176,6 +177,10 @@ Global
 		{85E631FF-0704-4EC0-9D67-EAD95C9A73CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{85E631FF-0704-4EC0-9D67-EAD95C9A73CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{85E631FF-0704-4EC0-9D67-EAD95C9A73CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBAB9802-BA6A-4CF1-ABE3-3C7BC4D83559}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBAB9802-BA6A-4CF1-ABE3-3C7BC4D83559}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBAB9802-BA6A-4CF1-ABE3-3C7BC4D83559}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBAB9802-BA6A-4CF1-ABE3-3C7BC4D83559}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -205,5 +210,6 @@ Global
 		{C1FF41D6-D0A4-4BAB-923D-95570CAB3B7E} = {FA5644B5-4F08-43F6-86B3-039374312A47}
 		{2D978000-59AE-41FC-8EF9-F4DD20106300} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{85E631FF-0704-4EC0-9D67-EAD95C9A73CF} = {FA5644B5-4F08-43F6-86B3-039374312A47}
+		{DBAB9802-BA6A-4CF1-ABE3-3C7BC4D83559} = {57F34E9A-3A98-4E48-BF76-D49CB9CB3323}
 	EndGlobalSection
 EndGlobal
