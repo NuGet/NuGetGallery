@@ -88,22 +88,20 @@ namespace Stats.CollectAzureCdnLogs
 
         private static Uri ValidateFtpUri(string serverUrl)
         {
-            string trimmedServerUrl = (serverUrl ?? string.Empty).Trim();
-
+            var trimmedServerUrl = (serverUrl ?? string.Empty).Trim();
             if (string.IsNullOrEmpty(trimmedServerUrl))
             {
                 throw new ArgumentException("FTP Server Uri is null or empty.", "serverUrl");
             }
 
             // if no protocol was specified assume ftp
-            Regex schemeRegex = new Regex(@"^[a-zA-Z]+://");
+            var schemeRegex = new Regex(@"^[a-zA-Z]+://");
             if (!schemeRegex.IsMatch(trimmedServerUrl))
             {
                 trimmedServerUrl = string.Concat(@"ftp://", trimmedServerUrl);
             }
 
-            Uri uri = new Uri(trimmedServerUrl);
-
+            var uri = new Uri(trimmedServerUrl);
             if (!uri.IsAbsoluteUri)
             {
                 throw new UriFormatException(string.Format(CultureInfo.CurrentCulture, "FTP Server Uri must be an absolute URI. Value: '{0}'.", trimmedServerUrl));
