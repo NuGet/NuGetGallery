@@ -97,7 +97,6 @@ namespace Stats.ParseAzureCdnLogs
             return false;
         }
 
-
         private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount)
         {
             if (string.IsNullOrEmpty(cloudStorageAccount))
