@@ -38,6 +38,13 @@ namespace SendHeartbeatMail
         private static string VerboseMailText = string.Empty;
         private static string DashboardStorageAccount = string.Empty;
 
+        private static int AlertEmailCount = 0;
+
+
+        private static string SmtpUserName;
+        private static string SmtpPassword;
+        private static string MailRecipientAddress;
+
         static void Main(string[] args)
         {
             if (args.Count() < 2)
@@ -54,10 +61,15 @@ namespace SendHeartbeatMail
             var csa = CloudStorageAccount.Parse(DashboardStorageAccount);
             var cbc = csa.CreateCloudBlobClient().GetContainerReference("int0");
             var alertBlob = cbc.GetBlockBlobReference(AlertFileToMonitor);
+            
+            //AppSettings
+            SmtpUserName = ConfigurationManager.AppSettings["SmtpUserName"];
+            SmtpPassword = ConfigurationManager.AppSettings["SmtpPassword"];
+            MailRecipientAddress = ConfigurationManager.AppSettings["MailRecipientAddress"];
 
             while (true)
             {
-                try
+                if (alertBlob.Exists())
                 {
                     alertBlob.FetchAttributes();
                     if (!alertBlob.Properties.LastModified.Equals(LastUpdatedTime))
@@ -72,23 +84,24 @@ namespace SendHeartbeatMail
 
                         if (!String.IsNullOrEmpty(newText))
                         {
-                            AlertMailText = GetMailContent(MakeTableRows(AlertFileToMonitor), "red");
-                            SendEmail(AlertSubject, AlertMailText, string.Empty);
+                            if (AlertEmailCount % 5 == 0)
+                            {
+                                AlertMailText = GetMailContent(MakeTableRows(AlertFileToMonitor), "red");
+                                SendEmail(AlertSubject, AlertMailText, string.Empty);
+                                PreviousText = currentText;
+                            }
+                            AlertEmailCount = (AlertEmailCount == 500) ? 0 : AlertEmailCount + 1;
                         }
                     }
                 }
-                catch (Exception e)
-                {
-
-                }
-
+                
                 //Send Concise  summary mail for the day
                 //Update Log File names
                 if (CurrentDay != DateTime.UtcNow.Day)
                 {
                     //Send mail using concise file
                     var conciseBlob = cbc.GetBlockBlobReference(ConciseFileToMonitor);
-                    try
+                    if (conciseBlob.Exists())
                     {
                         string path = ConciseFileToMonitor;
                         conciseBlob.DownloadToFile(path, FileMode.CreateNew);
@@ -96,7 +109,7 @@ namespace SendHeartbeatMail
                         ConciseMailText = GetMailContent(MakeTableRows(path), "blue");
                         SendEmail(ConciseSubject, ConciseMailText, string.Empty);
                     }
-                    catch (Microsoft.WindowsAzure.Storage.StorageException)
+                    else
                     {
                         VerboseFileToMonitor = GenerateLogFileName("ProcessRecyle_Verbose_");
                         var verboseBlob = cbc.GetBlockBlobReference(VerboseFileToMonitor);
@@ -113,7 +126,7 @@ namespace SendHeartbeatMail
                     AlertFileToMonitor = GenerateLogFileName("ProcessRecyle_Alert_");
                 }
 
-                //Check every minute to see if there are entried in Alert Log
+                //Check every minute to see if there are entries in Alert Log
                 Thread.Sleep(60000);
 
             }
@@ -147,7 +160,7 @@ namespace SendHeartbeatMail
         private static void SendEmail(string subject, string mailContent, string attachment)
         {
             var sc = new SmtpClient("smtphost");
-            var nc = new NetworkCredential(ConfigurationManager.AppSettings["SmtpUserName"], ConfigurationManager.AppSettings["SmtpPassword"]);
+            var nc = new NetworkCredential(SmtpUserName, SmtpPassword);
             sc.UseDefaultCredentials = true;
             sc.Credentials = nc;
             sc.Host = "outlook.office365.com";
@@ -155,8 +168,8 @@ namespace SendHeartbeatMail
             sc.Port = 587;
 
             var message = new System.Net.Mail.MailMessage();
-            message.From = new MailAddress(ConfigurationManager.AppSettings["SmtpUserName"], "Heartbeat Monitor");
-            message.To.Add(new MailAddress(ConfigurationManager.AppSettings["MailRecepientAddress"], ConfigurationManager.AppSettings["MailRecepientAddress"]));
+            message.From = new MailAddress(SmtpUserName, "Heartbeat Monitor");
+            message.To.Add(new MailAddress(MailRecipientAddress, MailRecipientAddress));
             message.Subject = string.Format(subject);
             message.IsBodyHtml = true;
             if (!String.IsNullOrEmpty(attachment))
