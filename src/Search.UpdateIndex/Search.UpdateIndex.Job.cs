@@ -6,7 +6,7 @@ using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Indexing;
-using NuGet.Jobs.Common;
+using NuGet.Jobs;
 
 namespace Search.UpdateIndex
 {
@@ -39,27 +39,27 @@ namespace Search.UpdateIndex
         {
             PackageDatabase =
             new SqlConnectionStringBuilder(
-                JobConfigManager.GetArgument(jobArgsDictionary,
+                JobConfigurationManager.GetArgument(jobArgsDictionary,
                     JobArgumentNames.PackageDatabase,
                     EnvironmentVariableKeys.SqlGallery));
 
             DataStorageAccount =
                 CloudStorageAccount.Parse(
-                    JobConfigManager.GetArgument(jobArgsDictionary,
+                    JobConfigurationManager.GetArgument(jobArgsDictionary,
                         JobArgumentNames.DataStorageAccount,
                         EnvironmentVariableKeys.StoragePrimary));
 
             DataContainerName =
-                JobConfigManager.TryGetArgument(jobArgsDictionary,
+                JobConfigurationManager.TryGetArgument(jobArgsDictionary,
                     JobArgumentNames.DataContainerName);
 
-            if (String.IsNullOrEmpty(DataContainerName))
+            if (string.IsNullOrEmpty(DataContainerName))
             {
                 DataContainerName = DefaultDataContainerName;
             }
 
             ContainerName =
-               JobConfigManager.TryGetArgument(jobArgsDictionary,
+               JobConfigurationManager.TryGetArgument(jobArgsDictionary,
                    JobArgumentNames.ContainerName);
 
             // Initialized successfully, return true

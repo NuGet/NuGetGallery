@@ -3,7 +3,7 @@
     var urlregexp = /^http:|^https:/;
 
     var is_array = function (value) {
-        return Object.prototype.toString.apply(value) === '[object Array]';
+        return Object.prototype.tostring.apply(value) === '[object Array]';
     }
 
     var displayValue = function (value) {

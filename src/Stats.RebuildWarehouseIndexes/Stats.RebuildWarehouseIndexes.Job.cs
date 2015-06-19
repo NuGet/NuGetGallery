@@ -8,7 +8,7 @@ using System.Data.SqlClient;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
-using NuGet.Jobs.Common;
+using NuGet.Jobs;
 
 namespace Stats.RebuildWarehouseIndexes
 {
@@ -24,7 +24,7 @@ namespace Stats.RebuildWarehouseIndexes
         {
             using (var connection = await WarehouseConnection.ConnectTo())
             {
-                Trace.TraceInformation(String.Format("Rebuilding Indexes in {0}/{1}", WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog));
+                Trace.TraceInformation(string.Format("Rebuilding Indexes in {0}/{1}", WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog));
                 
                     SqlCommand rebuild = connection.CreateCommand();
                     rebuild.CommandText = "RebuildIndexes";
@@ -34,7 +34,7 @@ namespace Stats.RebuildWarehouseIndexes
                         8;   // hours
 
                     await rebuild.ExecuteNonQueryAsync();
-                    Trace.TraceInformation(String.Format("Rebuilt Indexes in {0}/{1}", WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog));
+                    Trace.TraceInformation(string.Format("Rebuilt Indexes in {0}/{1}", WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog));
             }
 
             return true;
@@ -45,13 +45,13 @@ namespace Stats.RebuildWarehouseIndexes
 
             WarehouseConnection =
                     new SqlConnectionStringBuilder(
-                        JobConfigManager.GetArgument(jobArgsDictionary,
+                        JobConfigurationManager.GetArgument(jobArgsDictionary,
                             JobArgumentNames.DestinationDatabase,
                             EnvironmentVariableKeys.SqlWarehouse));
 
-            string commandTimeOutString = JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.CommandTimeOut);
+            string commandTimeOutString = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.CommandTimeOut);
 
-            if (String.IsNullOrEmpty(commandTimeOutString))
+            if (string.IsNullOrEmpty(commandTimeOutString))
             {
                 CommandTimeOut = 0;
             }

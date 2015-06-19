@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
-using NuGet.Jobs.Common;
+using NuGet.Jobs;
 using Stats.AzureCdnLogs.Common;
 
 namespace Stats.ParseAzureCdnLogs
@@ -33,12 +33,12 @@ namespace Stats.ParseAzureCdnLogs
         {
             try
             {
-                var azureCdnPlatform = JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnPlatform);
-                var cloudStorageAccount = JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
+                var azureCdnPlatform = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnPlatform);
+                var cloudStorageAccount = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
 
-                _azureCdnAccountNumber = JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnAccountNumber);
-                _cloudStorageContainerName = ValidateAzureContainerName(JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName));
-                _cloudStorageTableName = ValidateAzureTableName(JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageTableName));
+                _azureCdnAccountNumber = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnAccountNumber);
+                _cloudStorageContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName));
+                _cloudStorageTableName = ValidateAzureTableName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageTableName));
                 _cloudStorageAccount = ValidateAzureCloudStorageAccount(cloudStorageAccount);
                 _azureCdnPlatform = ValidateAzureCdnPlatform(azureCdnPlatform);
 

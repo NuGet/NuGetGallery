@@ -1,10 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Microsoft.WindowsAzure.Storage;
-using NuGet.Jobs.Common;
-using NuGet.Services.Metadata.Catalog.Collecting;
-using NuGet.Services.Metadata.Catalog.Maintenance;
-using NuGet.Services.Metadata.Catalog.Persistence;
+
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -12,6 +8,11 @@ using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
+using NuGet.Jobs;
+using NuGet.Services.Metadata.Catalog.Collecting;
+using NuGet.Services.Metadata.Catalog.Maintenance;
+using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace Catalog.Updater
 {
@@ -19,7 +20,7 @@ namespace Catalog.Updater
     {
         private static readonly int DefaultChecksumCollectorBatchSize = 2000;
         private static readonly int DefaultCatalogPageSize = 1000;
-        private JobEventSource JobEventSourceLog = JobEventSource.Log;
+        private readonly JobEventSource JobEventSourceLog = JobEventSource.Log;
 
         private SqlConnectionStringBuilder SourceDatabase { get; set; }
         private CloudStorageAccount CatalogStorage { get; set; }
@@ -35,20 +36,20 @@ namespace Catalog.Updater
             {
                 // Init member variables
                 CatalogPath =
-                    JobConfigManager.GetArgument(jobArgsDictionary,
+                    JobConfigurationManager.GetArgument(jobArgsDictionary,
                         JobArgumentNames.CatalogPath);
                 SourceDatabase =
                     new SqlConnectionStringBuilder(
-                        JobConfigManager.GetArgument(jobArgsDictionary,
+                        JobConfigurationManager.GetArgument(jobArgsDictionary,
                             JobArgumentNames.SourceDatabase,
                             EnvironmentVariableKeys.SqlGallery));
                 CatalogStorage =
                     CloudStorageAccount.Parse(
-                        JobConfigManager.GetArgument(jobArgsDictionary,
+                        JobConfigurationManager.GetArgument(jobArgsDictionary,
                             JobArgumentNames.CatalogStorage,
                             EnvironmentVariableKeys.StoragePrimary));
                 ChecksumCollectorBatchSize =
-                    JobConfigManager.TryGetIntArgument(jobArgsDictionary,
+                    JobConfigurationManager.TryGetIntArgument(jobArgsDictionary,
                     JobArgumentNames.ChecksumCollectorBatchSize);
 
                  // Initialized successfully, return true
@@ -84,7 +85,7 @@ namespace Catalog.Updater
 
             try
             {
-                // Disposing of CatalogUpdater will dispose the HTTP client, 
+                // Disposing of CatalogUpdater will dispose the HTTP client,
                 // so don't move this 'using' further in or we might dispose the HTTP client before we actually finish with it!
                 using (var updater = new CatalogUpdater(new CatalogWriter(storage, new CatalogContext(), catalogPageSize), checksums, http))
                 {
@@ -188,7 +189,7 @@ namespace Catalog.Updater
             {
                 Trace.TraceError("CatalogStorage is invalid or not provided");
             }
-            else if(String.IsNullOrEmpty(CatalogPath))
+            else if(string.IsNullOrEmpty(CatalogPath))
             {
                 Trace.TraceError("CatalogPath is invalid or not provided");
             }

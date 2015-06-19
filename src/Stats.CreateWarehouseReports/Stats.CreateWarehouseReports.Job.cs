@@ -13,8 +13,9 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NuGet.Jobs.Common;
+using NuGet.Jobs;
 using Stats.CreateWarehouseReports.Helpers;
+
 
 namespace Stats.CreateWarehouseReports
 {
@@ -50,20 +51,20 @@ namespace Stats.CreateWarehouseReports
         {
             try
             {
-                if (!String.IsNullOrEmpty(OutputDirectory))
+                if (!string.IsNullOrEmpty(OutputDirectory))
                 {
-                    Trace.TraceInformation(String.Format("Generating reports from {0}/{1} and saving to {2}/{3}", Source.DataSource, Source.InitialCatalog, "local file system", OutputDirectory));
+                    Trace.TraceInformation(string.Format("Generating reports from {0}/{1} and saving to {2}/{3}", Source.DataSource, Source.InitialCatalog, "local file system", OutputDirectory));
                 }
                 else if (Destination != null)
                 {
-                    Trace.TraceInformation(String.Format("Generating reports from {0}/{1} and saving to {2}/{3}", Source.DataSource, Source.InitialCatalog, Destination.Credentials.AccountName, DestinationContainer.Name));
+                    Trace.TraceInformation(string.Format("Generating reports from {0}/{1} and saving to {2}/{3}", Source.DataSource, Source.InitialCatalog, Destination.Credentials.AccountName, DestinationContainer.Name));
                 }
                 else
                 {
                     throw new InvalidOperationException(Strings.WarehouseJob_NoDestinationAvailable);
                 }
 
-                if (String.IsNullOrEmpty(ReportName))
+                if (string.IsNullOrEmpty(ReportName))
                 {
                     // Generate all reports
                     foreach (var reportBuilder in _globalReportBuilders.Values)
@@ -91,17 +92,17 @@ namespace Stats.CreateWarehouseReports
                     }
                     else
                     {
-                        throw new InvalidOperationException(String.Format(Strings.CreateWarehouseReportsJob_UnknownReport, ReportName));
+                        throw new InvalidOperationException(string.Format(Strings.CreateWarehouseReportsJob_UnknownReport, ReportName));
                     }
                 }
 
-                if (!String.IsNullOrEmpty(OutputDirectory))
+                if (!string.IsNullOrEmpty(OutputDirectory))
                 {
-                    Trace.TraceInformation(String.Format("Generated reports from {0}/{1} and saving to {2}/{3}", Source.DataSource, Source.InitialCatalog, "local file system", OutputDirectory));
+                    Trace.TraceInformation(string.Format("Generated reports from {0}/{1} and saving to {2}/{3}", Source.DataSource, Source.InitialCatalog, "local file system", OutputDirectory));
                 }
                 else
                 {
-                    Trace.TraceInformation(String.Format("Generated reports from {0}/{1} and saving to {2}/{3}", Source.DataSource, Source.InitialCatalog, Destination.Credentials.AccountName, DestinationContainer.Name));
+                    Trace.TraceInformation(string.Format("Generated reports from {0}/{1} and saving to {2}/{3}", Source.DataSource, Source.InitialCatalog, Destination.Credentials.AccountName, DestinationContainer.Name));
                 }
             }
             catch (Exception ex)
@@ -121,14 +122,14 @@ namespace Stats.CreateWarehouseReports
                 if (all)
                 {
                     Trace.TraceInformation("Getting list of all packages.");
-                    packages = (await connection.QueryAsync<WarehousePackageReference>("SELECT DISTINCT packageId AS PackageId, NULL as DirtyCount FROM Dimension_Package")).ToList();
+                    packages = (await connection.QueryWithRetryAsync<WarehousePackageReference>("SELECT DISTINCT packageId AS PackageId, NULL as DirtyCount FROM Dimension_Package")).ToList();
                 }
                 else
                 {
                     Trace.TraceInformation("Getting list of packages in need of update.");
-                    packages = (await connection.QueryAsync<WarehousePackageReference>("GetPackagesForExport", commandType: CommandType.StoredProcedure)).ToList();
+                    packages = (await connection.QueryWithRetryAsync<WarehousePackageReference>("GetPackagesForExport", commandType: CommandType.StoredProcedure)).ToList();
                 }
-                Trace.TraceInformation(String.Format("Found {0} packages to update.", packages.Count));
+                Trace.TraceInformation(string.Format("Found {0} packages to update.", packages.Count));
             }
 
             Parallel.ForEach(packages, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, package =>
@@ -155,17 +156,17 @@ namespace Stats.CreateWarehouseReports
 
         private async Task ConfirmPackageExport(WarehousePackageReference package)
         {
-            Trace.TraceInformation(String.Format("{0}: Marked Package Exported", package.PackageId));
+            Trace.TraceInformation(string.Format("{0}: Marked Package Exported", package.PackageId));
 
             using (var connection = await WarehouseConnection.ConnectTo())
             {
-                await connection.QueryAsync<int>(
+                await connection.QueryWithRetryAsync<int>(
                     "ConfirmPackageExported",
                     param: new { PackageId = package.PackageId, DirtyCount = package.DirtyCount },
                     commandType: CommandType.StoredProcedure);
 
             }
-            Trace.TraceInformation(String.Format("{0}: Marking Package Exported", package.PackageId));
+            Trace.TraceInformation(string.Format("{0}: Marking Package Exported", package.PackageId));
         }
 
         private async Task CleanInactivePackageReports()
@@ -175,14 +176,14 @@ namespace Stats.CreateWarehouseReports
             using (var connection = await WarehouseConnection.ConnectTo())
             {
                 string sql = await ResourceHelpers.ReadResourceFile("Scripts.DownloadReport_ListInactive.sql");
-                packageIds = (await connection.QueryAsync<string>(sql)).ToList();
+                packageIds = (await connection.QueryWithRetryAsync<string>(sql)).ToList();
             }
-            Trace.TraceInformation(String.Format("Found {0} inactive packages.", packageIds.Count));
+            Trace.TraceInformation(string.Format("Found {0} inactive packages.", packageIds.Count));
 
             // Collect the list of reports
             Trace.TraceInformation("Collecting list of package detail reports");
             IEnumerable<string> reports;
-            if (!String.IsNullOrEmpty(OutputDirectory))
+            if (!string.IsNullOrEmpty(OutputDirectory))
             {
                 reports = Directory.EnumerateFiles(OutputDirectory, PackageReportDetailBaseName + "*.json").Select(Path.GetFileNameWithoutExtension);
             }
@@ -193,22 +194,22 @@ namespace Stats.CreateWarehouseReports
                     .Select(b => b.Name);
             }
             var reportSet = new HashSet<string>(reports);
-            Trace.TraceInformation(String.Format("Collected {0} package detail reports", reportSet.Count));
+            Trace.TraceInformation(string.Format("Collected {0} package detail reports", reportSet.Count));
 
             Parallel.ForEach(packageIds, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, id =>
             {
                 string reportName = PackageReportDetailBaseName + id;
-                if (!String.IsNullOrEmpty(OutputDirectory))
+                if (!string.IsNullOrEmpty(OutputDirectory))
                 {
                     if (reportSet.Contains(reportName))
                     {
                         string fullPath = Path.Combine(OutputDirectory, reportName + ".json");
-                        Trace.TraceInformation(String.Format("{0}: Delet empty report from {1}", reportName, fullPath));
+                        Trace.TraceInformation(string.Format("{0}: Delet empty report from {1}", reportName, fullPath));
                         if (File.Exists(fullPath))
                         {
                             File.Delete(fullPath);
                         }
-                        Trace.TraceInformation(String.Format("{0}: Deleting empty report from {1}", reportName, fullPath));
+                        Trace.TraceInformation(string.Format("{0}: Deleting empty report from {1}", reportName, fullPath));
                     }
                 }
                 else
@@ -217,11 +218,11 @@ namespace Stats.CreateWarehouseReports
                     if (reportSet.Contains(blobName))
                     {
                         var blob = DestinationContainer.GetBlockBlobReference(blobName);
-                        Trace.TraceInformation(String.Format("{0}: Deleting empty report from {1}", reportName, blob.Uri.AbsoluteUri));
+                        Trace.TraceInformation(string.Format("{0}: Deleting empty report from {1}", reportName, blob.Uri.AbsoluteUri));
 
                         blob.DeleteIfExists();
 
-                        Trace.TraceInformation(String.Format("{0}: Deleted empty report from {1}", reportName, blob.Uri.AbsoluteUri));
+                        Trace.TraceInformation(string.Format("{0}: Deleted empty report from {1}", reportName, blob.Uri.AbsoluteUri));
                     }
                 }
             });
@@ -234,22 +235,22 @@ namespace Stats.CreateWarehouseReports
 
         private async Task CreateReport(string reportName, string scriptName, Func<DataTable, string> jsonSerializer, params Tuple<string, int, string>[] parameters)
         {
-            Trace.TraceInformation(String.Format("{0}: Collected {1} rows", reportName, scriptName));
+            Trace.TraceInformation(string.Format("{0}: Collected {1} rows", reportName, scriptName));
 
             DataTable table = await CollectReportData(reportName, scriptName, parameters);
 
             // Transform the data table to JSON and process it with any provided transforms
-            Trace.TraceInformation(String.Format("{0}: Processing report", reportName));
+            Trace.TraceInformation(string.Format("{0}: Processing report", reportName));
             string json = jsonSerializer(table);
-            Trace.TraceInformation(String.Format("{0}: Proceesed report", reportName));
+            Trace.TraceInformation(string.Format("{0}: Proceesed report", reportName));
 
             await WriteReport(reportName, json);
-            Trace.TraceInformation(String.Format("{0}: Generated report from SQL Script {1}", reportName, scriptName));
+            Trace.TraceInformation(string.Format("{0}: Generated report from SQL Script {1}", reportName, scriptName));
         }
 
         private async Task<DataTable> CollectReportData(string reportName, string scriptName, params Tuple<string, int, string>[] parameters)
         {
-            Trace.TraceInformation(String.Format("{0}: Collecting data", reportName));
+            Trace.TraceInformation(string.Format("{0}: Collecting data", reportName));
             DataTable table = null;
             using (var connection = await WarehouseConnection.ConnectTo())
             {
@@ -260,13 +261,13 @@ namespace Stats.CreateWarehouseReports
                 });
             }
             Debug.Assert(table != null);
-            Trace.TraceInformation(String.Format("{0}: Collected {1} rows", reportName, table.Rows.Count));
+            Trace.TraceInformation(string.Format("{0}: Collected {1} rows", reportName, table.Rows.Count));
             return table;
         }
 
         private async Task WriteReport(string reportName, string json)
         {
-            if (!String.IsNullOrEmpty(OutputDirectory))
+            if (!string.IsNullOrEmpty(OutputDirectory))
             {
                 await WriteToFile(reportName, json);
             }
@@ -279,17 +280,17 @@ namespace Stats.CreateWarehouseReports
         private async Task WriteToBlob(string reportName, string json)
         {
             var blob = DestinationContainer.GetBlockBlobReference("popularity/" + reportName + ".json");
-            Trace.TraceInformation(String.Format("{0}: Writing report to {1}", reportName, blob.Uri.AbsoluteUri));
+            Trace.TraceInformation(string.Format("{0}: Writing report to {1}", reportName, blob.Uri.AbsoluteUri));
             //blob.Properties.ContentType = MimeTypes.Json;
             await blob.UploadTextAsync(json);
 
-            Trace.TraceInformation(String.Format("{0}: Wrote report to {1}", reportName, blob.Uri.AbsoluteUri));
+            Trace.TraceInformation(string.Format("{0}: Wrote report to {1}", reportName, blob.Uri.AbsoluteUri));
         }
 
         private async Task WriteToFile(string reportName, string json)
         {
             string fullPath = Path.Combine(OutputDirectory, reportName + ".json");
-            Trace.TraceInformation(String.Format("{0}: Writing report to {1}", reportName, fullPath));
+            Trace.TraceInformation(string.Format("{0}: Writing report to {1}", reportName, fullPath));
 
             if (!Directory.Exists(OutputDirectory))
             {
@@ -304,7 +305,7 @@ namespace Stats.CreateWarehouseReports
                 await writer.WriteAsync(json);
             }
 
-            Trace.TraceInformation(String.Format("{0}: Wrote report to {1}", reportName, fullPath));
+            Trace.TraceInformation(string.Format("{0}: Wrote report to {1}", reportName, fullPath));
         }
 
         private async Task WithRetry(Func<Task> action)
@@ -333,7 +334,7 @@ namespace Stats.CreateWarehouseReports
                 if (caught != null)
                 {
                     SqlConnection.ClearAllPools();
-                    Trace.TraceInformation(String.Format("SQL Invocation failed, retrying. {0} attempts remaining. Exception: {1}", attempts, caught.ToString()));
+                    Trace.TraceInformation(string.Format("SQL Invocation failed, retrying. {0} attempts remaining. Exception: {1}", attempts, caught.ToString()));
                     await Task.Delay(20 * 1000);
                 }
             }
@@ -482,21 +483,21 @@ namespace Stats.CreateWarehouseReports
 
             Source =
                 new SqlConnectionStringBuilder(
-                    JobConfigManager.GetArgument(jobArgsDictionary,
+                    JobConfigurationManager.GetArgument(jobArgsDictionary,
                         JobArgumentNames.SourceDatabase,
                         EnvironmentVariableKeys.SqlGallery));
 
             WarehouseConnection =
                     new SqlConnectionStringBuilder(
-                        JobConfigManager.GetArgument(jobArgsDictionary,
+                        JobConfigurationManager.GetArgument(jobArgsDictionary,
                             JobArgumentNames.DestinationDatabase,
                             EnvironmentVariableKeys.SqlWarehouse));
 
             Destination = CloudStorageAccount.Parse(
-                                        JobConfigManager.GetArgument(jobArgsDictionary,
+                                        JobConfigurationManager.GetArgument(jobArgsDictionary,
                                             JobArgumentNames.WarehouseStorageAccount, EnvironmentVariableKeys.WarehouseStorage));
 
-            DestinationContainerName = JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.WarehouseContainerName) ?? DefaultPackageStatsContainerName;
+            DestinationContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.WarehouseContainerName) ?? DefaultPackageStatsContainerName;
 
             DestinationContainer = Destination.CreateCloudBlobClient().GetContainerReference(DestinationContainerName);
             _globalReportBuilders = new Dictionary<string, Func<Task>>(StringComparer.OrdinalIgnoreCase) {

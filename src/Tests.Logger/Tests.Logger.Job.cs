@@ -1,11 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using NuGet.Jobs.Common;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Jobs;
 
 namespace Tests.AzureJobTraceListener
 {
@@ -29,13 +30,13 @@ namespace Tests.AzureJobTraceListener
         private int? LogCount { get; set; }
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
-            JobScenario = JobConfigManager.TryGetIntArgument(jobArgsDictionary, ScenarioArgumentName);
+            JobScenario = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, ScenarioArgumentName);
             if(JobScenario == null)
             {
                 throw new ArgumentException("Argument '"+ ScenarioArgumentName +"' is mandatory." + HelpMessage);
             }
 
-            LogCount = JobConfigManager.TryGetIntArgument(jobArgsDictionary, LogCountArgumentName);
+            LogCount = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, LogCountArgumentName);
 
             return true;
         }
@@ -47,7 +48,7 @@ namespace Tests.AzureJobTraceListener
             {
                 case 1:
                     return true;
-                    
+
                 case 2:
                     return false;
 

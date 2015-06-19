@@ -12,9 +12,9 @@ using System.Diagnostics;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using NuGet.Jobs.Common;
 using Search.GenerateRankings.Helpers;
 using Dapper;
+using NuGet.Jobs;
 
 namespace Search.GenerateRankings
 {
@@ -42,40 +42,40 @@ namespace Search.GenerateRankings
 
             RankingCount = RankingCount ?? DefaultRankingCount;
 
-            string destination = String.IsNullOrEmpty(OutputDirectory) ?
+            string destination = string.IsNullOrEmpty(OutputDirectory) ?
                 (Destination.Credentials.AccountName + "/" + DestinationContainer.Name) :
                 OutputDirectory;
-            if (String.IsNullOrEmpty(destination))
+            if (string.IsNullOrEmpty(destination))
             {
                 throw new Exception(Strings.WarehouseJob_NoDestinationAvailable);
             }
 
-            Trace.TraceInformation(String.Format("Generating Search Ranking Report from {0}/{1} to {2}.", WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog, destination));
+            Trace.TraceInformation(string.Format("Generating Search Ranking Report from {0}/{1} to {2}.", WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog, destination));
 
             // Gather overall rankings
             JObject report = new JObject();
-            Trace.TraceInformation(String.Format("Gathering Overall Rankings from {0}/{1}...", WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog));
+            Trace.TraceInformation(string.Format("Gathering Overall Rankings from {0}/{1}...", WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog));
             var overallData = await GatherOverallRankings();
             report.Add("Rank", overallData);
-            Trace.TraceInformation(String.Format("Gathered {0} rows of data.", overallData.Count));
+            Trace.TraceInformation(string.Format("Gathered {0} rows of data.", overallData.Count));
 
             // Get project types
-            Trace.TraceInformation(String.Format("Getting Project Types from {0}/{1}...", WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog));
+            Trace.TraceInformation(string.Format("Getting Project Types from {0}/{1}...", WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog));
             var projectTypes = await GetProjectTypes();
-            Trace.TraceInformation(String.Format("Got {0} project types", projectTypes.Count));
+            Trace.TraceInformation(string.Format("Got {0} project types", projectTypes.Count));
 
             // Gather data by project type
             int count = 0;
-            Trace.TraceInformation(String.Format("Gathering Project Type Rankings from {0}/{1}...", WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog));
+            Trace.TraceInformation(string.Format("Gathering Project Type Rankings from {0}/{1}...", WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog));
             foreach (var projectType in projectTypes)
             {
-                Trace.TraceInformation(String.Format("Gathering Project Type Rankings for '{2}' from {0}/{1}...", WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog, projectType));
+                Trace.TraceInformation(string.Format("Gathering Project Type Rankings for '{2}' from {0}/{1}...", WarehouseConnection.DataSource, WarehouseConnection.InitialCatalog, projectType));
                 var data = await GatherProjectTypeRanking(projectType);
                 report.Add(projectType, data);
-                Trace.TraceInformation(String.Format("Gathered {0} rows of data for project type '{1}'.", data.Count, projectType));
+                Trace.TraceInformation(string.Format("Gathered {0} rows of data for project type '{1}'.", data.Count, projectType));
                 count += data.Count;
             }
-            Trace.TraceInformation(String.Format("Gathered {0} rows of data for all project types.", count));
+            Trace.TraceInformation(string.Format("Gathered {0} rows of data for all project types.", count));
 
             // Write the JSON blob
             await WriteReport(report, ReportName, Formatting.Indented);
@@ -121,7 +121,7 @@ namespace Search.GenerateRankings
 
         protected async Task WriteReport(JObject report, string name, Formatting formatting)
         {
-            if (!String.IsNullOrEmpty(OutputDirectory))
+            if (!string.IsNullOrEmpty(OutputDirectory))
             {
                 await WriteToFile(report, name, formatting);
             }
@@ -136,7 +136,7 @@ namespace Search.GenerateRankings
         {
             string fullPath = Path.Combine(OutputDirectory, name);
             string parentDir = Path.GetDirectoryName(fullPath);
-            Trace.TraceInformation(String.Format("Writing report to {0}", fullPath));
+            Trace.TraceInformation(string.Format("Writing report to {0}", fullPath));
 
             if (!Directory.Exists(parentDir))
             {
@@ -151,18 +151,18 @@ namespace Search.GenerateRankings
                 await writer.WriteAsync(report.ToString(formatting));
             }
 
-            Trace.TraceInformation(String.Format("Wrote report to {0}", fullPath));
+            Trace.TraceInformation(string.Format("Wrote report to {0}", fullPath));
         }
 
         private async Task WriteToBlob(JObject report, string name, Formatting formatting)
         {
             var blob = DestinationContainer.GetBlockBlobReference(name);
-            Trace.TraceInformation(String.Format("Writing report to {0}", blob.Uri.AbsoluteUri));
+            Trace.TraceInformation(string.Format("Writing report to {0}", blob.Uri.AbsoluteUri));
 
             blob.Properties.ContentType = "json";
             await blob.UploadTextAsync(report.ToString(formatting));
 
-            Trace.TraceInformation(String.Format("Wrote report to {0}", blob.Uri.AbsoluteUri));
+            Trace.TraceInformation(string.Format("Wrote report to {0}", blob.Uri.AbsoluteUri));
         }
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
@@ -170,21 +170,21 @@ namespace Search.GenerateRankings
 
             WarehouseConnection =
                     new SqlConnectionStringBuilder(
-                        JobConfigManager.GetArgument(jobArgsDictionary,
+                        JobConfigurationManager.GetArgument(jobArgsDictionary,
                             JobArgumentNames.DestinationDatabase,
                             EnvironmentVariableKeys.SqlWarehouse));
             Destination = CloudStorageAccount.Parse(
-                                       JobConfigManager.GetArgument(jobArgsDictionary,
+                                       JobConfigurationManager.GetArgument(jobArgsDictionary,
                                            JobArgumentNames.PrimaryDestination, EnvironmentVariableKeys.StoragePrimary));
 
-            DestinationContainerName = JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DestinationContainerName) ?? DefaultContainerName;
+            DestinationContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DestinationContainerName) ?? DefaultContainerName;
 
 
             DestinationContainer = Destination.CreateCloudBlobClient().GetContainerReference(DestinationContainerName);
 
-            string rankingCountString = JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.RankingCount);
+            string rankingCountString = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.RankingCount);
 
-            if (String.IsNullOrEmpty(rankingCountString))
+            if (string.IsNullOrEmpty(rankingCountString))
             {
                 RankingCount = DefaultRankingCount;
             }

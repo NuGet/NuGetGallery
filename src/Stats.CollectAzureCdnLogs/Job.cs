@@ -8,7 +8,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
-using NuGet.Jobs.Common;
+using NuGet.Jobs;
 using Stats.AzureCdnLogs.Common;
 using Stats.CollectAzureCdnLogs.Blob;
 using Stats.CollectAzureCdnLogs.Ftp;
@@ -35,13 +35,13 @@ namespace Stats.CollectAzureCdnLogs
         {
             try
             {
-                var ftpLogFolder = JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourceUri);
-                var azureCdnPlatform = JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnPlatform);
-                var cloudStorageAccount = JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
-                _cloudStorageContainerName = JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName);
-                _azureCdnAccountNumber = JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnAccountNumber);
-                _ftpUsername = JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourceUsername);
-                _ftpPassword = JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourcePassword);
+                var ftpLogFolder = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourceUri);
+                var azureCdnPlatform = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnPlatform);
+                var cloudStorageAccount = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
+                _cloudStorageContainerName = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName);
+                _azureCdnAccountNumber = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnAccountNumber);
+                _ftpUsername = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourceUsername);
+                _ftpPassword = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourcePassword);
 
                 _ftpServerUri = ValidateFtpUri(ftpLogFolder);
                 _azureCdnPlatform = ValidateAzureCdnPlatform(azureCdnPlatform);
@@ -100,20 +100,20 @@ namespace Stats.CollectAzureCdnLogs
             Regex schemeRegex = new Regex(@"^[a-zA-Z]+://");
             if (!schemeRegex.IsMatch(trimmedServerUrl))
             {
-                trimmedServerUrl = String.Concat(@"ftp://", trimmedServerUrl);
+                trimmedServerUrl = string.Concat(@"ftp://", trimmedServerUrl);
             }
 
             Uri uri = new Uri(trimmedServerUrl);
 
             if (!uri.IsAbsoluteUri)
             {
-                throw new UriFormatException(String.Format(CultureInfo.CurrentCulture, "FTP Server Uri must be an absolute URI. Value: '{0}'.", trimmedServerUrl));
+                throw new UriFormatException(string.Format(CultureInfo.CurrentCulture, "FTP Server Uri must be an absolute URI. Value: '{0}'.", trimmedServerUrl));
             }
 
             // only ftp is supported but we could support others
             if (!uri.Scheme.Equals("ftp", StringComparison.OrdinalIgnoreCase))
             {
-                throw new UriFormatException(String.Format(CultureInfo.CurrentCulture, "FTP Server Uri must use the 'ftp://' scheme. Value: '{0}'.", trimmedServerUrl));
+                throw new UriFormatException(string.Format(CultureInfo.CurrentCulture, "FTP Server Uri must use the 'ftp://' scheme. Value: '{0}'.", trimmedServerUrl));
             }
 
             return uri;

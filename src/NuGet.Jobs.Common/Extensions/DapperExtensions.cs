@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace Dapper
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Dapper;
+
+// ReSharper disable once CheckNamespace
+namespace System.Data.SqlClient
 {
     public static class DapperExtensions
     {
@@ -40,11 +40,11 @@ namespace Dapper
                     {
                         case -2:   // Client Timeout
                         case 701:  // Out of Memory
-                        case 1204: // Lock Issue 
+                        case 1204: // Lock Issue
                         case 1205: // >>> Deadlock Victim
                         case 1222: // Lock Request Timeout
-                        case 8645: // Timeout waiting for memory resource 
-                        case 8651: // Low memory condition 
+                        case 8645: // Timeout waiting for memory resource
+                        case 8651: // Low memory condition
                             // Ignore
                             if (attempt < (maxRetries - 1))
                             {

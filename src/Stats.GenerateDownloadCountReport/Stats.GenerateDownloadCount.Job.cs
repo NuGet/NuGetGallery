@@ -13,7 +13,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NuGet.Jobs.Common;
+using NuGet.Jobs;
 using NuGet.Versioning;
 
 namespace Stats.GenerateDownloadCount
@@ -37,24 +37,24 @@ namespace Stats.GenerateDownloadCount
 
         public override async Task<bool> Run()
         {
-            string destination = String.IsNullOrEmpty(OutputDirectory) ?
+            string destination = string.IsNullOrEmpty(OutputDirectory) ?
                 (Destination.Credentials.AccountName + "/" + DestinationContainerName) :
                 OutputDirectory;
-            if (String.IsNullOrEmpty(destination))
+            if (string.IsNullOrEmpty(destination))
             {
                 throw new Exception(Strings.WarehouseJob_NoDestinationAvailable);
             }
             
-            Trace.TraceInformation(String.Format("Generating Download Count Report from {0}/{1} to {2}.", Source.DataSource, Source.InitialCatalog, destination));
+            Trace.TraceInformation(string.Format("Generating Download Count Report from {0}/{1} to {2}.", Source.DataSource, Source.InitialCatalog, destination));
 
             // Gather download count data from packages database
             IList<DownloadCountData> downloadData;
-            Trace.TraceInformation(String.Format("Gathering Download Counts from {0}/{1}...", Source.DataSource, Source.InitialCatalog));
+            Trace.TraceInformation(string.Format("Gathering Download Counts from {0}/{1}...", Source.DataSource, Source.InitialCatalog));
             using (var connection = await Source.ConnectTo())
             {
                 downloadData = (await connection.QueryWithRetryAsync<DownloadCountData>(GetDownloadsScript)).ToList();
             }
-            Trace.TraceInformation(String.Format("Gathered {0} rows of data.", downloadData.Count));
+            Trace.TraceInformation(string.Format("Gathered {0} rows of data.", downloadData.Count));
 
             //group based on Package Id.
             var grouped = downloadData.GroupBy(p => p.Id);
@@ -77,7 +77,7 @@ namespace Stats.GenerateDownloadCount
 
         protected async Task WriteReport(string report, string name, Formatting formatting)
         {
-            if (!String.IsNullOrEmpty(OutputDirectory))
+            if (!string.IsNullOrEmpty(OutputDirectory))
             {
                 await WriteToFile(report, name);
             }
@@ -92,7 +92,7 @@ namespace Stats.GenerateDownloadCount
         {
             string fullPath = Path.Combine(OutputDirectory, name);
             string parentDir = Path.GetDirectoryName(fullPath);
-            Trace.TraceInformation(String.Format("Writing report to {0}", fullPath));
+            Trace.TraceInformation(string.Format("Writing report to {0}", fullPath));
             
                 if (!Directory.Exists(parentDir))
                 {
@@ -107,18 +107,18 @@ namespace Stats.GenerateDownloadCount
                     await writer.WriteAsync(report);
                 }
 
-                Trace.TraceInformation(String.Format("Wrote report to {0}", fullPath));
+                Trace.TraceInformation(string.Format("Wrote report to {0}", fullPath));
         }
 
         private async Task WriteToBlob(string report, string name)
         {
             var blob = DestinationContainer.GetBlockBlobReference(name);
-            Trace.TraceInformation(String.Format("Writing report to {0}", blob.Uri.AbsoluteUri));
+            Trace.TraceInformation(string.Format("Writing report to {0}", blob.Uri.AbsoluteUri));
 
             blob.Properties.ContentType = "json";
                 await blob.UploadTextAsync(report);
 
-                Trace.TraceInformation(String.Format("Wrote report to {0}", blob.Uri.AbsoluteUri));
+                Trace.TraceInformation(string.Format("Wrote report to {0}", blob.Uri.AbsoluteUri));
         }
               
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
@@ -126,20 +126,20 @@ namespace Stats.GenerateDownloadCount
 
             Source =
                 new SqlConnectionStringBuilder(
-                    JobConfigManager.GetArgument(jobArgsDictionary,
+                    JobConfigurationManager.GetArgument(jobArgsDictionary,
                         JobArgumentNames.SourceDatabase,
                         EnvironmentVariableKeys.SqlGallery));
 
-            OutputDirectory =  JobConfigManager.GetArgument(jobArgsDictionary,
+            OutputDirectory =  JobConfigurationManager.GetArgument(jobArgsDictionary,
                        JobArgumentNames.OutputDirectory);
 
             if (string.IsNullOrEmpty(OutputDirectory))
             {
                 Destination = CloudStorageAccount.Parse(
-                                           JobConfigManager.GetArgument(jobArgsDictionary,
+                                           JobConfigurationManager.GetArgument(jobArgsDictionary,
                                                JobArgumentNames.PrimaryDestination, EnvironmentVariableKeys.StoragePrimary));
 
-                DestinationContainerName = JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DestinationContainerName) ?? DefaultContainerName;
+                DestinationContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DestinationContainerName) ?? DefaultContainerName;
 
 
                 DestinationContainer = Destination.CreateCloudBlobClient().GetContainerReference(DestinationContainerName);
