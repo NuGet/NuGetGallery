@@ -10,10 +10,10 @@ using System.Linq;
 using System.Management;
 using System.Text;
 using System.Threading.Tasks;
-using NuGet.Jobs.Common;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System.Threading;
+using NuGet.Jobs;
 
 namespace Heartbeat
 {
@@ -61,23 +61,23 @@ namespace Heartbeat
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
-            string heartbeatconfig = JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.HeartbeatConfig);
+            string heartbeatconfig = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.HeartbeatConfig);
 
-            if (String.IsNullOrEmpty(heartbeatconfig))
+            if (string.IsNullOrEmpty(heartbeatconfig))
             {
                 heartbeatconfig = DefaultConfig;
             }
 
             DashboardStorage = CloudStorageAccount.Parse(
-                                        JobConfigManager.GetArgument(jobArgsDictionary,
+                                        JobConfigurationManager.GetArgument(jobArgsDictionary,
                                             JobArgumentNames.DashboardStorageAccount, EnvironmentVariableKeys.StorageDashboard));
 
-            DashboardStorageContainerName = JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DashboardStorageContainer) ?? DefaultDashboardContainerName;
+            DashboardStorageContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DashboardStorageContainer) ?? DefaultDashboardContainerName;
 
 
             DashboardStorageContainer = DashboardStorage.CreateCloudBlobClient().GetContainerReference(DashboardStorageContainerName);
 
-            LogFileSuffix = JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.LogFileSuffix);
+            LogFileSuffix = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.LogFileSuffix);
 
             if (LogFileSuffix == null)
             {
@@ -186,7 +186,7 @@ namespace Heartbeat
                 // Fail if you cannot record in storage
                 // This is okay because the monitoring will alert if the expected alerts aren't getting created
                 // Also the secondary level monitoring and alerting will also let us know if there are issues with the processes
-                Trace.TraceInformation(String.Format("FAILURE: RecordInStorage failed when trying to log message {0} to {1}", message, fileName));
+                Trace.TraceInformation(string.Format("FAILURE: RecordInStorage failed when trying to log message {0} to {1}", message, fileName));
             }
         }
 
@@ -194,7 +194,7 @@ namespace Heartbeat
         {
             if (!File.Exists(file))
             {
-                throw new FileNotFoundException(String.Format("Specified config file {0} doesn't exist", file));
+                throw new FileNotFoundException(string.Format("Specified config file {0} doesn't exist", file));
             }
 
             try
@@ -212,19 +212,19 @@ namespace Heartbeat
                             var value = values[0].Trim();
 
                             JobsToMonitor.Add(value, Convert.ToInt32(values[1]));
-                            Trace.TraceInformation(String.Format("Added {0} with threshhold {1} for monitoring.", value, values[1]));
+                            Trace.TraceInformation(string.Format("Added {0} with threshhold {1} for monitoring.", value, values[1]));
                         }
                         catch (ArgumentException e)
                         {
                             // If there are duplicate entries or other issues, record in log and move on
-                            RecordInStorage(String.Format("Duplicate exception {0} is thrown while adding Jobs to the dictionary.", e.Message), VerboseLogFileName);
+                            RecordInStorage(string.Format("Duplicate exception {0} is thrown while adding Jobs to the dictionary.", e.Message), VerboseLogFileName);
                         }
                     }
                 }
             }
             catch (Exception e)
             {
-                throw new ArgumentException(String.Format
+                throw new ArgumentException(string.Format
                     ("Encounterd exception: {0}. USAGE: Config file should have comma separated job name and threshhold on separate lines for each of the jobs to be monitored.", e.Message));
             }
         }
@@ -239,7 +239,7 @@ namespace Heartbeat
                 DateTime threshholdWindowTime = lastCheckedTime.AddMinutes(threshhold);
                 if (currentTime < threshholdWindowTime)
                 {
-                    string message = String.Format("Job {0} was last checked at {1}. Current Time {2} is still less than {3}. So quitting without checking!",
+                    string message = string.Format("Job {0} was last checked at {1}. Current Time {2} is still less than {3}. So quitting without checking!",
                                         jobName, lastCheckedTime, currentTime, threshholdWindowTime);
                     Trace.TraceInformation(message);
                     RecordInStorage(message, VerboseLogFileName);
@@ -268,7 +268,7 @@ namespace Heartbeat
 
                 JobSucceeded[jobName] = false;
 
-                string message = String.Format("Unable to retrieve tracing info for {0} at {1}", jobName, DateTime.UtcNow);
+                string message = string.Format("Unable to retrieve tracing info for {0} at {1}", jobName, DateTime.UtcNow);
 
                 RecordInStorage(message, VerboseLogFileName);
                 Trace.TraceInformation(message);
@@ -279,7 +279,7 @@ namespace Heartbeat
                 {
                     LastCheckedForJob[jobName] = null;
 
-                    string retryMessage = String.Format("Killing process as we are unable to retrieve trace info {0} at {1}",
+                    string retryMessage = string.Format("Killing process as we are unable to retrieve trace info {0} at {1}",
                         jobName,
                         DateTime.UtcNow);
 
@@ -297,7 +297,7 @@ namespace Heartbeat
             LastCheckedForJob[jobName] = DateTime.UtcNow;
 
             // All seems well since we had an entry for the job within the threshhold
-            Trace.TraceInformation(String.Format("Job {0} is running successfully. Most recent timestamp is {1}", jobName, lastEntry.TimeWritten));
+            Trace.TraceInformation(string.Format("Job {0} is running successfully. Most recent timestamp is {1}", jobName, lastEntry.TimeWritten));
 
             return true;
         }
@@ -317,24 +317,24 @@ namespace Heartbeat
                     {
                         string message = "Process {0} with Id {1} is STOPPED";
 
-                        Trace.TraceInformation(String.Format(message, jobName, processId));
+                        Trace.TraceInformation(string.Format(message, jobName, processId));
 
-                        RecordInStorage(String.Format(message, action, jobName, processId), AlertLogFileName);
-                        RecordInStorage(String.Format(message, action, jobName, processId), VerboseLogFileName);
+                        RecordInStorage(string.Format(message, action, jobName, processId), AlertLogFileName);
+                        RecordInStorage(string.Format(message, action, jobName, processId), VerboseLogFileName);
                     }
                     else
                     {
                         string mesaage = "{0}: Process {1} with Id {2}";
 
-                        Trace.TraceInformation(String.Format(mesaage, action, jobName, processId));
+                        Trace.TraceInformation(string.Format(mesaage, action, jobName, processId));
 
-                        RecordInStorage(String.Format(mesaage, action, jobName, processId), VerboseLogFileName);
+                        RecordInStorage(string.Format(mesaage, action, jobName, processId), VerboseLogFileName);
                     }
                 }
                 else
                 {
-                    RecordInStorage(String.Format("{0}: Process {1} with Id {2} is NULL ", action, jobName, processId), AlertLogFileName);
-                    RecordInStorage(String.Format("{0}: Process {1} with Id {2} is NULL ", action, jobName, processId), VerboseLogFileName);
+                    RecordInStorage(string.Format("{0}: Process {1} with Id {2} is NULL ", action, jobName, processId), AlertLogFileName);
+                    RecordInStorage(string.Format("{0}: Process {1} with Id {2} is NULL ", action, jobName, processId), VerboseLogFileName);
                 }
             }
             catch (Exception e)
@@ -343,10 +343,10 @@ namespace Heartbeat
 
                 string message = "{0}: Process {1} is not running. Failed with Exception {2}";
 
-                Trace.TraceInformation(String.Format(message, action, jobName, e.Message));
+                Trace.TraceInformation(string.Format(message, action, jobName, e.Message));
 
-                RecordInStorage(String.Format(message, action, jobName, e.Message), VerboseLogFileName);
-                RecordInStorage(String.Format(message, action, jobName, e.Message), AlertLogFileName);
+                RecordInStorage(string.Format(message, action, jobName, e.Message), VerboseLogFileName);
+                RecordInStorage(string.Format(message, action, jobName, e.Message), AlertLogFileName);
 
             }
         }
@@ -370,7 +370,7 @@ namespace Heartbeat
 
         private bool KillService(string serviceName)
         {
-            Trace.TraceInformation(String.Format("Trying to Kill Service {0} ", serviceName));
+            Trace.TraceInformation(string.Format("Trying to Kill Service {0} ", serviceName));
             uint processId = GetProcessIdFromServiceName(serviceName);
 
             //Find all child processes
@@ -399,7 +399,7 @@ namespace Heartbeat
             try
             {
                 process = Process.GetProcessById((int)processId);
-                if (String.IsNullOrEmpty(serviceName))
+                if (string.IsNullOrEmpty(serviceName))
                 {
                     serviceName = process.ProcessName;
                     childProcess = true;
@@ -408,8 +408,8 @@ namespace Heartbeat
             catch (ArgumentException)
             {
                 // Thrown if the process specified by processId is no longer running.
-                Trace.TraceInformation(String.Format("Process {0} is no longer running", serviceName));
-                RecordInStorage(String.Format("Process {0} is no longer running", serviceName), VerboseLogFileName);
+                Trace.TraceInformation(string.Format("Process {0} is no longer running", serviceName));
+                RecordInStorage(string.Format("Process {0} is no longer running", serviceName), VerboseLogFileName);
                 return true;
             }
 
@@ -417,17 +417,17 @@ namespace Heartbeat
             {
                 if (process != null)
                 {
-                    Trace.TraceInformation(String.Format("Trying to Kill process {0} with process Id {1} ", serviceName, processId));
+                    Trace.TraceInformation(string.Format("Trying to Kill process {0} with process Id {1} ", serviceName, processId));
                     process.Kill();
                     process.Dispose();
 
-                    Trace.TraceInformation(String.Format("Successfully killed process {0} with process Id {1} ", serviceName, processId));
+                    Trace.TraceInformation(string.Format("Successfully killed process {0} with process Id {1} ", serviceName, processId));
 
                     if (!childProcess)
                     {
-                        RecordInStorage(String.Format("Successfully killed process {0} with process Id {1} at {2}", serviceName, processId, DateTime.UtcNow), ConciseLogFileName);
+                        RecordInStorage(string.Format("Successfully killed process {0} with process Id {1} at {2}", serviceName, processId, DateTime.UtcNow), ConciseLogFileName);
                     }
-                    RecordInStorage(String.Format("Successfully killed process {0} with process Id {1} at {2}", serviceName, processId, DateTime.UtcNow), VerboseLogFileName);
+                    RecordInStorage(string.Format("Successfully killed process {0} with process Id {1} at {2}", serviceName, processId, DateTime.UtcNow), VerboseLogFileName);
                 }
             }
             catch (Win32Exception)
@@ -437,12 +437,12 @@ namespace Heartbeat
                 // could not be terminated.
                 string message = "Process {0} is already terminating";
 
-                Trace.TraceInformation(String.Format(message, serviceName));
+                Trace.TraceInformation(string.Format(message, serviceName));
 
-                RecordInStorage(String.Format(message, serviceName), VerboseLogFileName);
+                RecordInStorage(string.Format(message, serviceName), VerboseLogFileName);
                 if (!childProcess)
                 {
-                    RecordInStorage(String.Format(message, serviceName), AlertLogFileName);
+                    RecordInStorage(string.Format(message, serviceName), AlertLogFileName);
                 }
 
                 return false;
@@ -452,12 +452,12 @@ namespace Heartbeat
                 // Thrown if the process has already terminated.
                 string message = "Process {0} is has already terminated";
 
-                Trace.TraceInformation(String.Format(message, serviceName));
+                Trace.TraceInformation(string.Format(message, serviceName));
 
-                RecordInStorage(String.Format(message, serviceName), VerboseLogFileName);
+                RecordInStorage(string.Format(message, serviceName), VerboseLogFileName);
                 if (!childProcess)
                 {
-                    RecordInStorage(String.Format(message, serviceName), AlertLogFileName);
+                    RecordInStorage(string.Format(message, serviceName), AlertLogFileName);
                 }
 
                 return false;

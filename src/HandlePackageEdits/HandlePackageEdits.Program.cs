@@ -1,4 +1,4 @@
-﻿using NuGet.Jobs.Common;
+﻿using NuGet.Jobs;
 
 namespace HandlePackageEdits
 {

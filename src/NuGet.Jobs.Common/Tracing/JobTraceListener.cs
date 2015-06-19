@@ -1,30 +1,29 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.Tracing;
-using System.Linq;
+using System.Globalization;
 
-namespace NuGet.Jobs.Common
+namespace NuGet.Jobs
 {
     /// <summary>
-    /// All the jobs MUST use this trace listener. Since logs from  all the jobs get written to the same file
+    /// All the jobs MUST use this trace listener. Since logs from all the jobs get written to the same file
     /// We want to ensure that the logs are prefixed with jobName, startTime and more as needed
     /// </summary>
-    public class JobTraceListener : TraceListener
+    public class JobTraceListener
+        : TraceListener
     {
-        protected const int LogTraceEventTypeHeaderLength = 12;
-        protected readonly string LogPrefix;
         /// <summary>
-        /// {0} would be the log prefix. Currently, the prefix is '/<jobName>-<startTime>/'
+        /// {0} would be the log prefix. Currently, the prefix is '/&lt;jobName&gt;-&lt;startTime&gt;/'
         /// {1} would be the actual log message
-        /// Formatted message would be of the form '/<jobName>-<startTime>//<message>'
+        /// Formatted message would be of the form '/&lt;jobName&gt;-&lt;startTime&gt;//&lt;message&gt;'
         /// </summary>
-        protected const string LogFormat = "[{0}]: {1}";
-
-        private static readonly string MessageWithTraceEventTypeFormat = "{0, -" + LogTraceEventTypeHeaderLength + "}{1}";
-        private static readonly Dictionary<TraceEventType, string> TraceEventTypeStrings = new Dictionary<TraceEventType, string>()
+        private const string _logFormat = "[{0}]: {1}";
+        private const int _logTraceEventTypeHeaderLength = 12;
+        private static readonly string MessageWithTraceEventTypeFormat = "{0, -" + _logTraceEventTypeHeaderLength + "}{1}";
+        private static readonly Dictionary<TraceEventType, string> TraceEventTypeStrings = new Dictionary<TraceEventType, string>
         {
           { TraceEventType.Critical, "[Err]:" },
           { TraceEventType.Error, "[Err]:" },
@@ -33,24 +32,18 @@ namespace NuGet.Jobs.Common
           { TraceEventType.Warning, "[Warn]:" },
         };
 
-        public JobTraceListener(string jobName)
+        public JobTraceListener()
         {
-            this.TraceOutputOptions = TraceOptions.DateTime;
-            LogPrefix = String.Format("/{0}-{1}/", jobName, DateTime.UtcNow.ToString("O"));
+            TraceOutputOptions = TraceOptions.DateTime;
         }
 
         public string GetFormattedMessage(string message, bool excludeTimestamp = false)
         {
-            if(excludeTimestamp)
+            if (excludeTimestamp)
             {
                 return message;
             }
-            return String.Format(LogFormat, DateTime.UtcNow.ToString("O"), message);
-        }
-
-        public string GetFormattedMessage(string format, params object[] args)
-        {
-            return GetFormattedMessage(String.Format(format, args));
+            return string.Format(CultureInfo.InvariantCulture, _logFormat, DateTime.UtcNow.ToString("O"), message);
         }
 
         protected string MessageWithTraceEventType(TraceEventType traceEventType, string message)
@@ -60,7 +53,7 @@ namespace NuGet.Jobs.Common
             {
                 traceEventTypeString = traceEventType.ToString();
             }
-            return String.Format(MessageWithTraceEventTypeFormat, traceEventTypeString, message);
+            return string.Format(CultureInfo.InvariantCulture, MessageWithTraceEventTypeFormat, traceEventTypeString, message);
         }
 
         protected void LogConsoleOnly(TraceEventType traceEventType, string message)
@@ -103,11 +96,11 @@ namespace NuGet.Jobs.Common
 
             // Set Console foregroundcolor to the color determined for the header
             Console.ForegroundColor = traceEventTypeHeaderColor;
-            Console.Write(fullMessage.Substring(0, LogTraceEventTypeHeaderLength));
+            Console.Write(fullMessage.Substring(0, _logTraceEventTypeHeaderLength));
 
             // Set Console foregroundcolor to the color determined for the message
             Console.ForegroundColor = logMessageColor;
-            Console.WriteLine(fullMessage.Substring(LogTraceEventTypeHeaderLength));
+            Console.WriteLine(fullMessage.Substring(_logTraceEventTypeHeaderLength));
 
             // Set Console foregroundcolor back to the original color as used by the console
             Console.ForegroundColor = currentConsoleForegroundColor;
@@ -125,7 +118,7 @@ namespace NuGet.Jobs.Common
         }
 
         [Conditional("TRACE")]
-        public virtual void Flush(bool skipCurrentBatch)
+        protected virtual void Flush(bool skipCurrentBatch)
         {
             // Check AzureBlobJobTraceListener
         }
@@ -137,7 +130,7 @@ namespace NuGet.Jobs.Common
 
         protected virtual void Log(TraceEventType traceEventType, string format, params object[] args)
         {
-            var message = String.Format(format, args);
+            var message = string.Format(CultureInfo.InvariantCulture, format, args);
             LogConsoleOnly(traceEventType, message);
         }
 
@@ -158,7 +151,7 @@ namespace NuGet.Jobs.Common
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
         {
-            TraceEvent(eventCache, source, eventType, id, String.Format(format, args));
+            TraceEvent(eventCache, source, eventType, id, string.Format(CultureInfo.InvariantCulture, format, args));
         }
 
         public override void Fail(string message)
@@ -169,52 +162,6 @@ namespace NuGet.Jobs.Common
         public override void Fail(string message, string detailMessage)
         {
             Fail(message + ". Detailed: " + detailMessage);
-        }
-    }
-
-    /// <summary>
-    /// This event listener may be used by jobs to channel event logs into standard tracing
-    /// </summary>
-    public class JobTraceEventListener : EventListener
-    {
-        private readonly JobTraceListener JobTraceListener;
-        /// <summary>
-        /// {0} would be eventId. {1} would be the formatted event message
-        /// Formatted event would be '[<eventId>]: <message>'
-        /// </summary>
-        private const string EventLogFormat = "[{0}]: {1}";
-        public JobTraceEventListener(JobTraceListener jobTraceListener)
-        {
-            JobTraceListener = jobTraceListener;
-        }
-
-        private string GetFormattedEventLog(EventWrittenEventArgs eventData)
-        {
-            return String.Format(EventLogFormat, eventData.EventId, String.Format(eventData.Message, eventData.Payload.ToArray()));
-        }
-
-        protected override void OnEventWritten(EventWrittenEventArgs eventData)
-        {
-            switch (eventData.Level)
-            {
-                case EventLevel.Critical:
-                case EventLevel.Error:
-                    Trace.TraceError(JobTraceListener.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
-                    break;
-                case EventLevel.Warning:
-                    Trace.TraceWarning(JobTraceListener.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
-                    break;
-                case EventLevel.LogAlways:
-                case EventLevel.Informational:
-                    Trace.TraceInformation(JobTraceListener.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
-                    break;
-                case EventLevel.Verbose:
-                    Trace.WriteLine(JobTraceListener.GetFormattedMessage(GetFormattedEventLog(eventData), excludeTimestamp: true));
-                    break;
-                default:
-                    // DO Nothing
-                    break;
-            }
         }
     }
 }

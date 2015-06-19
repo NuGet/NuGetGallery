@@ -6,7 +6,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using NuGet.Jobs.Common;
+using NuGet.Jobs;
 
 namespace Stats.AggregateInGallery
 {
@@ -32,7 +32,7 @@ namespace Stats.AggregateInGallery
                
                 PackageDatabase =
                     new SqlConnectionStringBuilder(
-                        JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase, EnvironmentVariableKeys.SqlGallery));
+                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase, EnvironmentVariableKeys.SqlGallery));
                 return true;
             }
             catch (Exception ex)
@@ -275,8 +275,8 @@ COMMIT TRANSACTION
             else
             {
                 IEnumerable<KeyValuePair<double, int>> bestBatches = BatchTimes.OrderByDescending(batch => batch.Key).Take(BatchTimes.Count / 4);
-                string bestSizes = String.Join(", ", bestBatches.Select(batch => batch.Value));
-                string bestPaces = String.Join(", ", bestBatches.Select(batch => (int)batch.Key));
+                string bestSizes = string.Join(", ", bestBatches.Select(batch => batch.Value));
+                string bestPaces = string.Join(", ", bestBatches.Select(batch => (int)batch.Key));
 
                 nextBatchSize = (int)bestBatches.Select(batch => batch.Value).Average();
 

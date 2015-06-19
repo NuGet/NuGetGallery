@@ -3,7 +3,6 @@
 using Dapper;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
-using NuGet.Jobs.Common;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -12,6 +11,7 @@ using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NuGet.Jobs;
 
 namespace Stats.CalculateTotals
 {
@@ -38,12 +38,12 @@ namespace Stats.CalculateTotals
             {
                 PackageDatabase =
                     new SqlConnectionStringBuilder(
-                        JobConfigManager.GetArgument(jobArgsDictionary,
+                        JobConfigurationManager.GetArgument(jobArgsDictionary,
                             JobArgumentNames.PackageDatabase,
                             EnvironmentVariableKeys.SqlGallery));
 
                 var storageGalleryCstr = Environment.GetEnvironmentVariable(EnvironmentVariableKeys.StorageGallery);
-                if (String.IsNullOrEmpty(storageGalleryCstr))
+                if (string.IsNullOrEmpty(storageGalleryCstr))
                 {
                     throw new ArgumentException("Environment variable for storage gallery is not defined");
                 }

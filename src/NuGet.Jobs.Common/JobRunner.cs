@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,26 +8,27 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NuGet.Jobs.Common
+namespace NuGet.Jobs
 {
     public static class JobRunner
     {
-        private const string JobSucceeded = "Job Succeeded";
-        private const string JobFailed = "Job Failed";
-        private const string JobCrashed = "Job Crashed";
+        private const string _jobSucceeded = "Job Succeeded";
+        private const string _jobFailed = "Job Failed";
+
         private static string PrettyPrintTime(double milliSeconds)
         {
-            const string PrecisionSpecifier = "F3";
-            return String.Format("'{0}' ms (or '{1}' seconds or '{2}' mins)",
-                milliSeconds.ToString(PrecisionSpecifier),  // Time in milliSeconds
-                (milliSeconds / 1000.0).ToString(PrecisionSpecifier),  // Time in seconds
-                (milliSeconds / 60000.0).ToString(PrecisionSpecifier));  // Time in minutes
+            const string precisionSpecifier = "F3";
+            return string.Format("'{0}' ms (or '{1}' seconds or '{2}' mins)",
+                milliSeconds.ToString(precisionSpecifier),  // Time in milliSeconds
+                (milliSeconds / 1000.0).ToString(precisionSpecifier),  // Time in seconds
+                (milliSeconds / 60000.0).ToString(precisionSpecifier));  // Time in minutes
         }
+
         private static void SetJobTraceListener(JobBase job, bool consoleLogOnly)
         {
             if(consoleLogOnly)
             {
-                job.SetJobTraceListener(new JobTraceListener(job.JobName));
+                job.SetJobTraceListener(new JobTraceListener());
                 Trace.TraceWarning("You have chosen not to log messages to Azure blob storage. Note that this is NOT recommended");
             }
             else
@@ -47,14 +49,14 @@ namespace NuGet.Jobs.Common
         public static async Task Run(JobBase job, string[] commandLineArgs)
         {
             string jobEndMessage = null;
-            if (commandLineArgs.Length > 0 && String.Equals(commandLineArgs[0], "-dbg", StringComparison.OrdinalIgnoreCase))
+            if (commandLineArgs.Length > 0 && string.Equals(commandLineArgs[0], "-dbg", StringComparison.OrdinalIgnoreCase))
             {
                 commandLineArgs = commandLineArgs.Skip(1).ToArray();
                 Debugger.Launch();
             }
 
             bool consoleLogOnly = false;
-            if (commandLineArgs.Length > 0 && String.Equals(commandLineArgs[0], "-ConsoleLogOnly", StringComparison.OrdinalIgnoreCase))
+            if (commandLineArgs.Length > 0 && string.Equals(commandLineArgs[0], "-ConsoleLogOnly", StringComparison.OrdinalIgnoreCase))
             {
                 commandLineArgs = commandLineArgs.Skip(1).ToArray();
                 consoleLogOnly = true;
@@ -67,10 +69,10 @@ namespace NuGet.Jobs.Common
                 Trace.TraceInformation("Started...");
 
                 // Get the args passed in or provided as an env variable based on jobName as a dictionary of <string argName, string argValue>
-                var jobArgsDictionary = JobConfigManager.GetJobArgsDictionary(job.JobTraceListener, commandLineArgs, job.JobName);
+                var jobArgsDictionary = JobConfigurationManager.GetJobArgsDictionary(job.JobTraceListener, commandLineArgs, job.JobName);
 
-                bool runContinuously = !JobConfigManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.Once);
-                int? sleepDuration = JobConfigManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Sleep);
+                bool runContinuously = !JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.Once);
+                int? sleepDuration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Sleep);
 
                 // Setup the job for running
                 JobSetup(job, jobArgsDictionary, ref sleepDuration);
@@ -83,16 +85,16 @@ namespace NuGet.Jobs.Common
                 var innerEx = ex.InnerExceptions.Count > 0 ? ex.InnerExceptions[0] : null;
                 if (innerEx != null)
                 {
-                    Trace.TraceError("[FAILED]: " + innerEx.ToString());
+                    Trace.TraceError("[FAILED]: " + innerEx);
                 }
                 else
                 {
-                    Trace.TraceError("[FAILED]: " + ex.ToString());
+                    Trace.TraceError("[FAILED]: " + ex);
                 }
             }
             catch (Exception ex)
             {
-                Trace.TraceError("[FAILED]: " + ex.ToString());
+                Trace.TraceError("[FAILED]: " + ex);
             }
 
             // Call FlushAll here. This is VERY IMPORTANT
@@ -103,12 +105,12 @@ namespace NuGet.Jobs.Common
 
         private static void JobSetup(JobBase job, IDictionary<string, string> jobArgsDictionary, ref int? sleepDuration)
         {
-            if (JobConfigManager.TryGetBoolArgument(jobArgsDictionary, "dbg"))
+            if (JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, "dbg"))
             {
                 throw new ArgumentException("-dbg is a special argument and should be the first argument...");
             }
 
-            if (JobConfigManager.TryGetBoolArgument(jobArgsDictionary, "ConsoleLogOnly"))
+            if (JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, "ConsoleLogOnly"))
             {
                 throw new ArgumentException("-ConsoleLogOnly is a special argument and should be the first argument (can be the second if '-dbg' is used)...");
             }
@@ -124,7 +126,6 @@ namespace NuGet.Jobs.Common
             {
                 // If the job could not be initialized successfully, STOP!
                 Trace.TraceError("Exiting. The job could not be initialized successfully with the arguments passed");
-                return;
             }
         }
 
@@ -150,11 +151,11 @@ namespace NuGet.Jobs.Common
                 Trace.TraceInformation("Job run took {0}", PrettyPrintTime(stopWatch.ElapsedMilliseconds));
                 if(success)
                 {
-                    Trace.TraceInformation(JobSucceeded);
+                    Trace.TraceInformation(_jobSucceeded);
                 }
                 else
                 {
-                    Trace.TraceWarning(JobFailed);
+                    Trace.TraceWarning(_jobFailed);
                 }
 
                 // At this point, FlushAll is not called, So, what happens when the job is run only once?
@@ -162,7 +163,7 @@ namespace NuGet.Jobs.Common
                 if (!runContinuously) break;
 
                 // Wait for <sleepDuration> milliSeconds and run the job again
-                Trace.WriteLine(String.Format("Will sleep for {0} before the next Job run", PrettyPrintTime(sleepDuration)));
+                Trace.WriteLine(string.Format("Will sleep for {0} before the next Job run", PrettyPrintTime(sleepDuration)));
 
                 // Flush All the logs for this run
                 job.JobTraceListener.Close();
@@ -174,7 +175,7 @@ namespace NuGet.Jobs.Common
                 SetJobTraceListener(job, consoleLogOnly);
             } while (true);
 
-            return success ? JobSucceeded : JobFailed;
+            return success ? _jobSucceeded : _jobFailed;
         }
     }
 }

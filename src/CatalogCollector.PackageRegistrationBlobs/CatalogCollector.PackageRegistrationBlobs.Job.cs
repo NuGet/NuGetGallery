@@ -1,23 +1,27 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Microsoft.WindowsAzure.Storage;
-using Newtonsoft.Json.Linq;
-using NuGet.Jobs.Common;
-using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Collecting;
-using NuGet.Services.Metadata.Catalog.Persistence;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
+using Newtonsoft.Json.Linq;
+using NuGet.Jobs;
+using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Collecting;
+using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace CatalogCollector.PackageRegistrationBlobs
 {
     public class Job : JobBase
     {
-        private JobEventSource JobEventSourceLog = JobEventSource.Log;
+        private readonly JobEventSource JobEventSourceLog = JobEventSource.Log;
+
+        public Job() : base(JobEventSource.Log) { }
+
         public CloudStorageAccount TargetStorageAccount { get; set; }
         public string TargetStoragePath { get; set; }
         public string TargetBaseAddress { get; set; }
@@ -28,8 +32,6 @@ namespace CatalogCollector.PackageRegistrationBlobs
         public string GalleryBaseAddress { get; set; }
         public bool DontStoreCursor { get; set; }
 
-        public Job() : base(JobEventSource.Log) { }
-
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
         {
             try
@@ -37,34 +39,34 @@ namespace CatalogCollector.PackageRegistrationBlobs
                 // Init member variables
                 // This is mandatory. Don't try to get it. Let it throw if not found
                 TargetBaseAddress =
-                    JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.TargetBaseAddress);
+                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.TargetBaseAddress);
 
                 // This is mandatory. Don't try to get it. Let it throw if not found
                 CdnBaseAddress =
-                    JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.CdnBaseAddress);
+                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.CdnBaseAddress);
 
                 // This is mandatory. Don't try to get it. Let it throw if not found
                 GalleryBaseAddress =
-                    JobConfigManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryBaseAddress);
+                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryBaseAddress);
 
-                string targetStorageConnectionString = JobConfigManager.TryGetArgument(
+                string targetStorageConnectionString = JobConfigurationManager.TryGetArgument(
                             jobArgsDictionary, JobArgumentNames.TargetStorageAccount, EnvironmentVariableKeys.StoragePrimary);
-                TargetStorageAccount = String.IsNullOrEmpty(targetStorageConnectionString) ? null : CloudStorageAccount.Parse(targetStorageConnectionString);
+                TargetStorageAccount = string.IsNullOrEmpty(targetStorageConnectionString) ? null : CloudStorageAccount.Parse(targetStorageConnectionString);
 
                 CatalogIndexUrl =
-                    JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.CatalogIndexUrl);
+                    JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.CatalogIndexUrl);
 
                 TargetStoragePath =
-                    JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.TargetStoragePath);
+                    JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.TargetStoragePath);
 
                 CatalogIndexPath =
-                    JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.CatalogIndexPath);
+                    JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.CatalogIndexPath);
 
                 TargetLocalDirectory =
-                    JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.TargetLocalDirectory);
+                    JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.TargetLocalDirectory);
 
                 DontStoreCursor =
-                    JobConfigManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.DontStoreCursor);
+                    JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.DontStoreCursor);
 
                 // Initialized successfully, return true
                 return true;
@@ -105,7 +107,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
                 NuGet.Services.Metadata.Catalog.Persistence.Storage storage;
                 string storageDesc;
                 HttpMessageHandler httpMessageHandler = null;
-                if (String.IsNullOrEmpty(TargetLocalDirectory))
+                if (string.IsNullOrEmpty(TargetLocalDirectory))
                 {
                     ArgCheck.Require(TargetStorageAccount, "ResolverStorage");
                     ArgCheck.Require(TargetStoragePath, "ResolverPath");
@@ -120,7 +122,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
                     storageDesc = TargetLocalDirectory;
                 }
 
-                if (String.IsNullOrEmpty(CatalogIndexPath))
+                if (string.IsNullOrEmpty(CatalogIndexPath))
                 {
                     ArgCheck.Require(CatalogIndexUrl, "CatalogIndexUrl");
                 }
@@ -135,7 +137,7 @@ namespace CatalogCollector.PackageRegistrationBlobs
                         InnerHandler = new HttpClientHandler()
                     };
 
-                    CatalogIndexUrl = String.Join(String.Empty, localHostUri.ToString(), CatalogIndexPath);
+                    CatalogIndexUrl = string.Join(string.Empty, localHostUri.ToString(), CatalogIndexPath);
                 }
                 storage.Verbose = true;
 
@@ -233,10 +235,10 @@ namespace CatalogCollector.PackageRegistrationBlobs
             if (!Equals(value, CollectorCursor.None))
             {
                 JobEventSourceLog.StoringCursor(value.Value);
-                var cursorContent = new JObject { 
-                { "http://schema.nuget.org/collectors/resolver#cursor", new JObject { 
-                    { "@value", value.Value }, 
-                    { "@type", "http://www.w3.org/2001/XMLSchema#dateTime" } } }, 
+                var cursorContent = new JObject {
+                { "http://schema.nuget.org/collectors/resolver#cursor", new JObject {
+                    { "@value", value.Value },
+                    { "@type", "http://www.w3.org/2001/XMLSchema#dateTime" } } },
                 { "http://schema.nuget.org/collectors/resolver#source", CatalogIndexUrl } }.ToString();
                 await storage.Save(cursorUri, new StringStorageContent(
                     cursorContent,

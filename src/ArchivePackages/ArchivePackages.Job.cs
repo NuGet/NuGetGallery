@@ -4,7 +4,6 @@ using Dapper;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
-using NuGet.Jobs.Common;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -13,6 +12,7 @@ using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NuGet.Jobs;
 
 namespace ArchivePackages
 {
@@ -68,32 +68,32 @@ namespace ArchivePackages
             try
             {
                 PackageDatabase = new SqlConnectionStringBuilder(
-                            JobConfigManager.GetArgument(jobArgsDictionary,
+                            JobConfigurationManager.GetArgument(jobArgsDictionary,
                                 JobArgumentNames.PackageDatabase, EnvironmentVariableKeys.SqlGallery));
 
                 Source = CloudStorageAccount.Parse(
-                            JobConfigManager.GetArgument(jobArgsDictionary,
+                            JobConfigurationManager.GetArgument(jobArgsDictionary,
                                 JobArgumentNames.Source, EnvironmentVariableKeys.StorageGallery));
 
                 PrimaryDestination = CloudStorageAccount.Parse(
-                                        JobConfigManager.GetArgument(jobArgsDictionary,
+                                        JobConfigurationManager.GetArgument(jobArgsDictionary,
                                             JobArgumentNames.PrimaryDestination, EnvironmentVariableKeys.StorageGallery));
 
-                var secondaryDestinationCstr = JobConfigManager.TryGetArgument(jobArgsDictionary,
+                var secondaryDestinationCstr = JobConfigurationManager.TryGetArgument(jobArgsDictionary,
                                                 JobArgumentNames.SecondaryDestination,
                                                     EnvironmentVariableKeys.StorageBackup);
-                SecondaryDestination = String.IsNullOrEmpty(secondaryDestinationCstr) ? null : CloudStorageAccount.Parse(secondaryDestinationCstr);
+                SecondaryDestination = string.IsNullOrEmpty(secondaryDestinationCstr) ? null : CloudStorageAccount.Parse(secondaryDestinationCstr);
 
-                SourceContainerName = JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.SourceContainerName) ?? DefaultPackagesContainerName;
+                SourceContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.SourceContainerName) ?? DefaultPackagesContainerName;
 
-                DestinationContainerName = JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DestinationContainerName) ?? DefaultPackagesArchiveContainerName;
+                DestinationContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DestinationContainerName) ?? DefaultPackagesArchiveContainerName;
 
                 SourceContainer = Source.CreateCloudBlobClient().GetContainerReference(SourceContainerName);
                 PrimaryDestinationContainer = PrimaryDestination.CreateCloudBlobClient().GetContainerReference(DestinationContainerName);
                 SecondaryDestinationContainer = SecondaryDestination == null ? null :
                     SecondaryDestination.CreateCloudBlobClient().GetContainerReference(DestinationContainerName);
 
-                CursorBlobName = JobConfigManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.CursorBlob) ?? DefaultCursorBlobName;
+                CursorBlobName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.CursorBlob) ?? DefaultCursorBlobName;
 
                 // Initialized successfully
                 return true;

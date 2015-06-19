@@ -5436,7 +5436,7 @@ function _isKeyword(v) {
  * @return true if the value is an Object, false if not.
  */
 function _isObject(v) {
-  return (Object.prototype.toString.call(v) === '[object Object]');
+  return (Object.prototype.tostring.call(v) === '[object Object]');
 }
 
 /**
@@ -5494,7 +5494,7 @@ function _validateTypeValue(v) {
 }
 
 /**
- * Returns true if the given value is a String.
+ * Returns true if the given value is a string.
  *
  * @param v the value to check.
  *
@@ -5502,7 +5502,7 @@ function _validateTypeValue(v) {
  */
 function _isString(v) {
   return (typeof v === 'string' ||
-    Object.prototype.toString.call(v) === '[object String]');
+    Object.prototype.tostring.call(v) === '[object String]');
 }
 
 /**
@@ -5514,7 +5514,7 @@ function _isString(v) {
  */
 function _isNumber(v) {
   return (typeof v === 'number' ||
-    Object.prototype.toString.call(v) === '[object Number]');
+    Object.prototype.tostring.call(v) === '[object Number]');
 }
 
 /**
@@ -5548,7 +5548,7 @@ function _isNumeric(v) {
  */
 function _isBoolean(v) {
   return (typeof v === 'boolean' ||
-    Object.prototype.toString.call(v) === '[object Boolean]');
+    Object.prototype.tostring.call(v) === '[object Boolean]');
 }
 
 /**
@@ -6483,10 +6483,10 @@ sha1.Buffer = function() {
  */
 sha1.Buffer.prototype.putInt32 = function(i) {
   this.data += (
-    String.fromCharCode(i >> 24 & 0xFF) +
-    String.fromCharCode(i >> 16 & 0xFF) +
-    String.fromCharCode(i >> 8 & 0xFF) +
-    String.fromCharCode(i & 0xFF));
+    string.fromCharCode(i >> 24 & 0xFF) +
+    string.fromCharCode(i >> 16 & 0xFF) +
+    string.fromCharCode(i >> 8 & 0xFF) +
+    string.fromCharCode(i & 0xFF));
 };
 
 /**
@@ -6657,8 +6657,8 @@ var _sha1 = {
  */
 _sha1.init = function() {
   // create padding
-  _sha1.padding = String.fromCharCode(128);
-  var c = String.fromCharCode(0x00);
+  _sha1.padding = string.fromCharCode(128);
+  var c = string.fromCharCode(0x00);
   var n = 64;
   while(n > 0) {
     if(n & 1) {

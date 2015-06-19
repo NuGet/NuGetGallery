@@ -1,6 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using NuGet.Jobs.Common;
+
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using NuGet.Jobs;
 
 namespace Stats.Replicator
 {
@@ -72,18 +73,18 @@ namespace Stats.Replicator
                 // Init member variables
                 Source =
                     new SqlConnectionStringBuilder(
-                        JobConfigManager.GetArgument(jobArgsDictionary,
+                        JobConfigurationManager.GetArgument(jobArgsDictionary,
                             JobArgumentNames.SourceDatabase,
                             EnvironmentVariableKeys.SqlGallery));
                 Destination =
                     new SqlConnectionStringBuilder(
-                        JobConfigManager.GetArgument(jobArgsDictionary,
+                        JobConfigurationManager.GetArgument(jobArgsDictionary,
                             JobArgumentNames.DestinationDatabase,
                             EnvironmentVariableKeys.SqlWarehouse));
 
-                MinTimestamp = JobConfigManager.TryGetDateTimeArgument(jobArgsDictionary, "MinTimestamp");
-                MaxTimestamp = JobConfigManager.TryGetDateTimeArgument(jobArgsDictionary, "MaxTimestamp");
-                ClearExistingRecords = JobConfigManager.TryGetBoolArgument(jobArgsDictionary, "Clear");
+                MinTimestamp = JobConfigurationManager.TryGetDateTimeArgument(jobArgsDictionary, "MinTimestamp");
+                MaxTimestamp = JobConfigurationManager.TryGetDateTimeArgument(jobArgsDictionary, "MaxTimestamp");
+                ClearExistingRecords = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, "Clear");
 
                 return true;
             }
@@ -321,7 +322,7 @@ namespace Stats.Replicator
 
                 if (cursor != targetMarker.Cursor)
                 {
-                    throw new InvalidOperationException(String.Format("Expected cursor for {0} to {1} to have the value of {2} but it had the value for {3}. Aborting.", targetMarker.MinTimestamp, targetMarker.MaxTimestamp, targetMarker.Cursor.HasValue ? targetMarker.Cursor.ToString() : "<null>", cursor.HasValue ? cursor.ToString() : "<null>"));
+                    throw new InvalidOperationException(string.Format("Expected cursor for {0} to {1} to have the value of {2} but it had the value for {3}. Aborting.", targetMarker.MinTimestamp, targetMarker.MaxTimestamp, targetMarker.Cursor.HasValue ? targetMarker.Cursor.ToString() : "<null>", cursor.HasValue ? cursor.ToString() : "<null>"));
                 }
 
                 JobEventSourceLog.VerifiedCursor();
@@ -384,7 +385,7 @@ namespace Stats.Replicator
                 {
                     // We didn't get an exception, but our committed cursor doesn't match expectations
                     // Let's abort because we don't know what just happened
-                    throw new InvalidOperationException(String.Format("Expected cursor for {0} to {1} to have the value of {2} but it had the value for {3}. Aborting.", newCursor.MinTimestamp, newCursor.MaxTimestamp, newCursor.Cursor.HasValue ? newCursor.Cursor.ToString() : "<null>", committedCursor.HasValue ? committedCursor.Value.ToString() : "<null>"));
+                    throw new InvalidOperationException(string.Format("Expected cursor for {0} to {1} to have the value of {2} but it had the value for {3}. Aborting.", newCursor.MinTimestamp, newCursor.MaxTimestamp, newCursor.Cursor.HasValue ? newCursor.Cursor.ToString() : "<null>", committedCursor.HasValue ? committedCursor.Value.ToString() : "<null>"));
                 }
 
                 JobEventSourceLog.SavedDownloadFacts(newCursor.LastBatchCount);
@@ -435,8 +436,8 @@ namespace Stats.Replicator
             else
             {
                 IEnumerable<KeyValuePair<double, int>> bestBatches = BatchTimes.OrderByDescending(batch => batch.Key).Take(BatchTimes.Count / 4);
-                string bestSizes = String.Join(", ", bestBatches.Select(batch => batch.Value));
-                string bestPaces = String.Join(", ", bestBatches.Select(batch => (int)batch.Key));
+                string bestSizes = string.Join(", ", bestBatches.Select(batch => batch.Value));
+                string bestPaces = string.Join(", ", bestBatches.Select(batch => (int)batch.Key));
 
                 nextBatchSize = (int)bestBatches.Select(batch => batch.Value).Average();
 

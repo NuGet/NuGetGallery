@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Threading.Tasks;
-using NuGet.Jobs.Common;
+using NuGet.Jobs;
 
 namespace Stats.PurgeReplicated
 {
@@ -46,17 +46,17 @@ namespace Stats.PurgeReplicated
                 // Init member variables
                 Source =
                     new SqlConnectionStringBuilder(
-                        JobConfigManager.GetArgument(jobArgsDictionary,
+                        JobConfigurationManager.GetArgument(jobArgsDictionary,
                             JobArgumentNames.SourceDatabase,
                             EnvironmentVariableKeys.SqlGallery));
                 Destination =
                     new SqlConnectionStringBuilder(
-                        JobConfigManager.GetArgument(jobArgsDictionary,
+                        JobConfigurationManager.GetArgument(jobArgsDictionary,
                             JobArgumentNames.DestinationDatabase,
                             EnvironmentVariableKeys.SqlWarehouse));
                 
                 // By default, keep 7 days of statistics
-                DaysToKeep = JobConfigManager.TryGetIntArgument(jobArgsDictionary, "DaysToKeep") ?? 7;
+                DaysToKeep = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, "DaysToKeep") ?? 7;
 
                 return true;
             }
@@ -317,8 +317,8 @@ namespace Stats.PurgeReplicated
             else
             {
                 IEnumerable<KeyValuePair<double, int>> bestBatches = BatchTimes.OrderByDescending(batch => batch.Key).Take(BatchTimes.Count / 4);
-                string bestSizes = String.Join(", ", bestBatches.Select(batch => batch.Value));
-                string bestPaces = String.Join(", ", bestBatches.Select(batch => (int)batch.Key));
+                string bestSizes = string.Join(", ", bestBatches.Select(batch => batch.Value));
+                string bestPaces = string.Join(", ", bestBatches.Select(batch => (int)batch.Key));
 
                 nextBatchSize = (int)bestBatches.Select(batch => batch.Value).Average();
 

@@ -29,7 +29,7 @@ var MutationObserver = browserGlobal.MutationObserver ||
 var Promise;
 
 if (typeof process !== 'undefined' &&
-  {}.toString.call(process) === '[object process]') {
+  {}.tostring.call(process) === '[object process]') {
   async = function(callback, binding) {
     process.nextTick(function() {
       callback.call(binding);

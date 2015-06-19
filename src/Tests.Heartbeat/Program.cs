@@ -12,14 +12,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Diagnostics;
-using Heartbeat;
-using NuGet.Jobs.Common;
 using System.IO;
+using System.Linq;
+using System.Threading;
+using Heartbeat;
+using NuGet.Jobs;
 using Xunit;
 
 namespace Tests.Heartbeat
@@ -46,13 +44,13 @@ namespace Tests.Heartbeat
                 //Create event log entry and Start notepad
                 CreateEventLogEntry();
                 uint processId = heartbeatjob.GetProcessIdFromServiceName(customServiceName);
-                Assert.True(processId != 0, String.Format("Service {0} is launched successfully", customServiceName));
+                Assert.True(processId != 0, string.Format("Service {0} is launched successfully", customServiceName));
 
                 heartbeatjob.Init(jobArgsDictionary);
 
-                //First test: We should find the entry in event log and leave the process alone. 
+                //First test: We should find the entry in event log and leave the process alone.
                 heartbeatjob.Run();
-                Assert.True(VerifyTestCustomProcessIsRunning(processId), String.Format("Process with processId {0} and service name {1} is running as expected", processId, customServiceName));
+                Assert.True(VerifyTestCustomProcessIsRunning(processId), string.Format("Process with processId {0} and service name {1} is running as expected", processId, customServiceName));
 
                 //Sleep for the threshhold specified in config file
                 Thread.Sleep(1000 * 60);
@@ -60,13 +58,13 @@ namespace Tests.Heartbeat
                 //The job tolerates for sometime if it is unable to retrieve tracing
                 heartbeatjob.Init(jobArgsDictionary);
                 heartbeatjob.Run();
-                Assert.True(VerifyTestCustomProcessIsRunning(processId), String.Format("Process with processId {0} and service name {1} is running as expected", processId, customServiceName));
+                Assert.True(VerifyTestCustomProcessIsRunning(processId), string.Format("Process with processId {0} and service name {1} is running as expected", processId, customServiceName));
 
                 //Sleep for longer then threshhold for retry logic to finish and the process to get killed
                 Thread.Sleep(2000 * 60);
                 heartbeatjob.Run();
                 Thread.Sleep(5000);
-                Assert.True(!VerifyTestCustomProcessIsRunning(processId), String.Format("Process with processId {0} and service name {1} is killed as expected", processId, customServiceName));
+                Assert.True(!VerifyTestCustomProcessIsRunning(processId), string.Format("Process with processId {0} and service name {1} is killed as expected", processId, customServiceName));
 
             }
             catch (System.NullReferenceException)
@@ -84,7 +82,7 @@ namespace Tests.Heartbeat
         {
             //Create the config file to be used
             var configFile = new StreamWriter("heartbeat.config");
-            configFile.WriteLine(String.Format("{0}, {1}", customServiceName, "1"));
+            configFile.WriteLine(string.Format("{0}, {1}", customServiceName, "1"));
             configFile.Close();
 
         }
