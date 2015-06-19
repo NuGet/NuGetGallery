@@ -31,6 +31,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Dapper, Version=1.41.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Dapper.1.41-beta4\lib\net45\Dapper.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.Data.Edm, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Data.Edm.5.6.4\lib\net40\Microsoft.Data.Edm.dll</HintPath>
@@ -56,6 +60,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
@@ -70,6 +75,7 @@
     <Compile Include="Extensions\SqlConnectionStringBuilderExtensions.cs" />
     <Compile Include="Tracing\AzureBlobJobTraceListener.cs" />
     <Compile Include="Configuration\JobConfigurationManager.cs" />
+    <Compile Include="Extensions\DapperExtensions.cs" />
     <Compile Include="JobBase.cs" />
     <Compile Include="JobRunner.cs" />
     <Compile Include="Tracing\JobTraceEventListener.cs" />

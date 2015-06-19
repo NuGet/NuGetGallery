@@ -16,6 +16,7 @@ using Newtonsoft.Json.Linq;
 using NuGet.Jobs;
 using Stats.CreateWarehouseReports.Helpers;
 
+
 namespace Stats.CreateWarehouseReports
 {
     internal class Job : JobBase
@@ -121,12 +122,12 @@ namespace Stats.CreateWarehouseReports
                 if (all)
                 {
                     Trace.TraceInformation("Getting list of all packages.");
-                    packages = (await connection.QueryAsync<WarehousePackageReference>("SELECT DISTINCT packageId AS PackageId, NULL as DirtyCount FROM Dimension_Package")).ToList();
+                    packages = (await connection.QueryWithRetryAsync<WarehousePackageReference>("SELECT DISTINCT packageId AS PackageId, NULL as DirtyCount FROM Dimension_Package")).ToList();
                 }
                 else
                 {
                     Trace.TraceInformation("Getting list of packages in need of update.");
-                    packages = (await connection.QueryAsync<WarehousePackageReference>("GetPackagesForExport", commandType: CommandType.StoredProcedure)).ToList();
+                    packages = (await connection.QueryWithRetryAsync<WarehousePackageReference>("GetPackagesForExport", commandType: CommandType.StoredProcedure)).ToList();
                 }
                 Trace.TraceInformation(string.Format("Found {0} packages to update.", packages.Count));
             }
@@ -159,7 +160,7 @@ namespace Stats.CreateWarehouseReports
 
             using (var connection = await WarehouseConnection.ConnectTo())
             {
-                await connection.QueryAsync<int>(
+                await connection.QueryWithRetryAsync<int>(
                     "ConfirmPackageExported",
                     param: new { PackageId = package.PackageId, DirtyCount = package.DirtyCount },
                     commandType: CommandType.StoredProcedure);
@@ -175,7 +176,7 @@ namespace Stats.CreateWarehouseReports
             using (var connection = await WarehouseConnection.ConnectTo())
             {
                 string sql = await ResourceHelpers.ReadResourceFile("Scripts.DownloadReport_ListInactive.sql");
-                packageIds = (await connection.QueryAsync<string>(sql)).ToList();
+                packageIds = (await connection.QueryWithRetryAsync<string>(sql)).ToList();
             }
             Trace.TraceInformation(string.Format("Found {0} inactive packages.", packageIds.Count));
 
