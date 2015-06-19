@@ -15,28 +15,6 @@ namespace NuGet.Jobs
         private const string _jobSucceeded = "Job Succeeded";
         private const string _jobFailed = "Job Failed";
 
-        private static string PrettyPrintTime(double milliSeconds)
-        {
-            const string precisionSpecifier = "F3";
-            return string.Format("'{0}' ms (or '{1}' seconds or '{2}' mins)",
-                milliSeconds.ToString(precisionSpecifier),  // Time in milliSeconds
-                (milliSeconds / 1000.0).ToString(precisionSpecifier),  // Time in seconds
-                (milliSeconds / 60000.0).ToString(precisionSpecifier));  // Time in minutes
-        }
-
-        private static void SetJobTraceListener(JobBase job, bool consoleLogOnly)
-        {
-            if(consoleLogOnly)
-            {
-                job.SetJobTraceListener(new JobTraceListener());
-                Trace.TraceWarning("You have chosen not to log messages to Azure blob storage. Note that this is NOT recommended");
-            }
-            else
-            {
-                job.SetJobTraceListener(new AzureBlobJobTraceListener(job.JobName));
-            }
-        }
-
         /// <summary>
         /// This is a static method to run a job whose args are passed in
         /// By default,
@@ -48,7 +26,6 @@ namespace NuGet.Jobs
         /// <returns></returns>
         public static async Task Run(JobBase job, string[] commandLineArgs)
         {
-            string jobEndMessage = null;
             if (commandLineArgs.Length > 0 && string.Equals(commandLineArgs[0], "-dbg", StringComparison.OrdinalIgnoreCase))
             {
                 commandLineArgs = commandLineArgs.Skip(1).ToArray();
@@ -78,7 +55,7 @@ namespace NuGet.Jobs
                 JobSetup(job, jobArgsDictionary, ref sleepDuration);
 
                 // Run the job loop
-                jobEndMessage = await JobLoop(job, runContinuously, sleepDuration.Value, consoleLogOnly);
+                await JobLoop(job, runContinuously, sleepDuration.Value, consoleLogOnly);
             }
             catch (AggregateException ex)
             {
@@ -103,6 +80,28 @@ namespace NuGet.Jobs
             job.JobTraceListener.Close();
         }
 
+        private static string PrettyPrintTime(double milliSeconds)
+        {
+            const string precisionSpecifier = "F3";
+            return string.Format("'{0}' ms (or '{1}' seconds or '{2}' mins)",
+                milliSeconds.ToString(precisionSpecifier),  // Time in milliSeconds
+                (milliSeconds / 1000.0).ToString(precisionSpecifier),  // Time in seconds
+                (milliSeconds / 60000.0).ToString(precisionSpecifier));  // Time in minutes
+        }
+
+        private static void SetJobTraceListener(JobBase job, bool consoleLogOnly)
+        {
+            if(consoleLogOnly)
+            {
+                job.SetJobTraceListener(new JobTraceListener());
+                Trace.TraceWarning("You have chosen not to log messages to Azure blob storage. Note that this is NOT recommended");
+            }
+            else
+            {
+                job.SetJobTraceListener(new AzureBlobJobTraceListener(job.JobName));
+            }
+        }
+
         private static void JobSetup(JobBase job, IDictionary<string, string> jobArgsDictionary, ref int? sleepDuration)
         {
             if (JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, "dbg"))
@@ -121,7 +120,8 @@ namespace NuGet.Jobs
                 sleepDuration = 5000;
             }
 
-            // Initialize the job once with everything needed. JobTraceListener(s) are already initialized
+            // Initialize the job once with everything needed.
+            // JobTraceListener(s) are already initialized
             if (!job.Init(jobArgsDictionary))
             {
                 // If the job could not be initialized successfully, STOP!
@@ -132,9 +132,10 @@ namespace NuGet.Jobs
         private static async Task<string> JobLoop(JobBase job, bool runContinuously, int sleepDuration, bool consoleLogOnly)
         {
             // Run the job now
-            Stopwatch stopWatch = new Stopwatch();
+            var stopWatch = new Stopwatch();
             bool success;
-            do
+
+            while (true)
             {
                 Trace.WriteLine("Running " + (runContinuously ? " continuously..." : " once..."));
                 Trace.WriteLine("SleepDuration is " + PrettyPrintTime(sleepDuration));
@@ -160,7 +161,10 @@ namespace NuGet.Jobs
 
                 // At this point, FlushAll is not called, So, what happens when the job is run only once?
                 // Since, FlushAll is called right at the end of the program, this is no issue
-                if (!runContinuously) break;
+                if (!runContinuously)
+                {
+                    break;
+                }
 
                 // Wait for <sleepDuration> milliSeconds and run the job again
                 Trace.WriteLine(string.Format("Will sleep for {0} before the next Job run", PrettyPrintTime(sleepDuration)));
@@ -173,7 +177,7 @@ namespace NuGet.Jobs
                 Thread.Sleep(sleepDuration);
 
                 SetJobTraceListener(job, consoleLogOnly);
-            } while (true);
+            }
 
             return success ? _jobSucceeded : _jobFailed;
         }

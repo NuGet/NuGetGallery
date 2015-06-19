@@ -10,35 +10,38 @@ namespace NuGet.Jobs
 {
     public abstract class JobBase
     {
-        private EventSource JobEventSource { get; set; }
-        protected JobBase() : this(null) { }
+        private readonly EventSource _jobEventSource;
+        private JobTraceEventListener _jobTraceEventListener;
+
+        protected JobBase()
+            : this(null)
+        {
+        }
 
         protected JobBase(EventSource jobEventSource)
         {
             JobName = GetType().ToString();
-            JobEventSource = jobEventSource;
+            _jobEventSource = jobEventSource;
         }
 
-        public string JobName { get; protected set; }
+        public string JobName { get; private set; }
 
-        public JobTraceListener JobTraceListener { get; protected set; }
-
-        private JobTraceEventListener JobTraceEventListener { get; set; }
+        public JobTraceListener JobTraceListener { get; private set; }
 
         public void SetJobTraceListener(JobTraceListener jobTraceListener)
         {
             JobTraceListener = jobTraceListener;
             Trace.Listeners.Add(jobTraceListener);
 
-            if(JobTraceEventListener != null)
+            if (_jobTraceEventListener != null)
             {
-                JobTraceEventListener.Dispose();
+                _jobTraceEventListener.Dispose();
             }
 
-            if(JobEventSource != null)
+            if (_jobEventSource != null)
             {
-                JobTraceEventListener = new JobTraceEventListener(JobTraceListener);
-                JobTraceEventListener.EnableEvents(JobEventSource, EventLevel.LogAlways);
+                _jobTraceEventListener = new JobTraceEventListener(JobTraceListener);
+                _jobTraceEventListener.EnableEvents(_jobEventSource, EventLevel.LogAlways);
             }
         }
 
