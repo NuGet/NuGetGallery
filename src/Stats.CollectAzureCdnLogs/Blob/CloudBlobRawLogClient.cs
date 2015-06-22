@@ -52,15 +52,22 @@ namespace Stats.CollectAzureCdnLogs.Blob
             try
             {
                 _jobEventSource.BeginningBlobUpload(blobName);
-                Trace.TraceInformation("Uploading file '{0}'.", logFile.FileName);
 
-                var blob = targetContainer.GetBlockBlobReference(logFile.FileName);
+                // ensure we upload from the start of the stream
+                rawLogStream.Position = 0;
+
+                // ensure the .download suffix is trimmed away
+                var fileName = logFile.FileName.Replace(".download", string.Empty);
+
+                Trace.TraceInformation("Uploading file '{0}'.", fileName);
+
+                var blob = targetContainer.GetBlockBlobReference(fileName);
                 blob.Properties.ContentType = logFile.ContentType;
 
                 // 3. Upload the file using the original file name.
                 await blob.UploadFromStreamAsync(rawLogStream);
 
-                Trace.TraceInformation("Finished uploading file '{0}' to '{1}'.", logFile.FileName, blob.Uri.AbsoluteUri);
+                Trace.TraceInformation("Finished uploading file '{0}' to '{1}'.", fileName, blob.Uri.AbsoluteUri);
                 _jobEventSource.FinishingBlobUpload(blobName);
                 return true;
             }
