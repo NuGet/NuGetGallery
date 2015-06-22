@@ -196,6 +196,7 @@ namespace Stats.CollectAzureCdnLogs
                                         // must synchronously compress in memory because GZipOutputStream has does not support BeginWrite
                                         gzipStream.IsStreamOwner = false;
                                         gzipStream.Write(byteArray, 0, byteArray.Length);
+                                        gzipStream.Flush();
                                     }
 
                                     uploadSucceeded = await azureClient.UploadBlobAsync(cloudBlobContainer, rawLogFile, outputStream);

@@ -15,13 +15,13 @@ namespace Stats.CollectAzureCdnLogs
         {
         }
 
-        [Event(eventId: 1, Level = EventLevel.Informational, Message = "Beginning directory listing from {0}", Task = Tasks.ListingDirectory, Opcode = EventOpcode.Start)]
+        [Event(eventId: 1, Level = EventLevel.Informational, Message = "Beginning directory listing from {0}", Task = Tasks.Downloading, Opcode = EventOpcode.Start)]
         public void BeginningDirectoryListing(string uri)
         {
             WriteEvent(1, uri);
         }
 
-        [Event(eventId: 2, Level = EventLevel.Informational, Message = "Finishing directory listing from {0}", Task = Tasks.ListingDirectory, Opcode = EventOpcode.Stop)]
+        [Event(eventId: 2, Level = EventLevel.Informational, Message = "Finishing directory listing from {0}", Task = Tasks.Downloading, Opcode = EventOpcode.Stop)]
         public void FinishingDirectoryListing(string uri)
         {
             WriteEvent(2, uri);
