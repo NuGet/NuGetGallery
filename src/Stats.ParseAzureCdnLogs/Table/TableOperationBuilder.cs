@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.WindowsAzure.Storage.Table;
+using Stats.AzureCdnLogs.Common;
 
 namespace Stats.ParseAzureCdnLogs
 {

@@ -48,9 +48,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\WindowsAzure.Storage.4.3.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Newtonsoft.Json.5.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -76,12 +76,17 @@
     <Compile Include="W3CParseUtilsFacts.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Stats.AzureCdnLogs.Common\Stats.AzureCdnLogs.Common.csproj">
+      <Project>{f72c31a7-424d-48c6-924c-ebfd4be0918b}</Project>
+      <Name>Stats.AzureCdnLogs.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Stats.ParseAzureCdnLogs\Stats.ParseAzureCdnLogs.csproj">
       <Project>{e4d21592-63d0-4793-b236-6d86b71265fc}</Project>
       <Name>Stats.ParseAzureCdnLogs</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

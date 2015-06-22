@@ -3,9 +3,9 @@
 
 using System.Collections.Generic;
 
-namespace Stats.ParseAzureCdnLogs
+namespace Stats.AzureCdnLogs.Common
 {
-    internal static class W3CParseUtils
+    public static class W3CParseUtils
     {
         public static string[] GetLogLineRecords(string line)
         {

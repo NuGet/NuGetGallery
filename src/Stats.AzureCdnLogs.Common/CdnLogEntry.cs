@@ -4,7 +4,7 @@
 using System;
 using Microsoft.WindowsAzure.Storage.Table;
 
-namespace Stats.ParseAzureCdnLogs
+namespace Stats.AzureCdnLogs.Common
 {
     public class CdnLogEntry
         : TableEntity

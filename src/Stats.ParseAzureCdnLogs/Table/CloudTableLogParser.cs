@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.GZip;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Stats.AzureCdnLogs.Common;
 
 namespace Stats.ParseAzureCdnLogs
 {
