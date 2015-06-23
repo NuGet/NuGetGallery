@@ -25,7 +25,7 @@
                 </span>
             </p>
             <p>
-                @Model.Description.TruncateAtWordBoundary(350, "<text>... </text>", string.Format(System.Globalization.CultureInfo.CurrentCulture, "<a href=\"{0}\">More information</a>", @Url.Package(Model)))
+                @Html.Raw(Model.Description.TruncateAtWordBoundary(350, "<text>... </text>", string.Format(System.Globalization.CultureInfo.CurrentCulture, "<a href=\"{0}\">More information</a>", @Url.Package(Model))))
             </p>
 
             @if (!String.IsNullOrEmpty(Model.MinClientVersion))
