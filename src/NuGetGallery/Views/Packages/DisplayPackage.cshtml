@@ -37,9 +37,9 @@
             js = d.createElement(s); js.id = id;
             @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
         @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=@ViewBag.FacebookAppID";
-                    } else {
+                                } else {
         @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-                    }
+                                }
             fjs.parentNode.insertBefore(js, fjs);
         }(document, 'script', 'facebook-jssdk'));</script>
 
@@ -201,8 +201,12 @@
     @if (Model.Listed && !Model.IsProbablyIndexed(Model.IndexLastWriteTime))
     {
         <p class="message warning">
-            <strong>This package has not been indexed yet.</strong> It will appear in search results and will be available for install/restore after indexing is completed.<br /><br />
-            Search index last updated <time class="timeago" datetime="@Model.IndexLastWriteTime.Value.ToJavaScriptUTC()">@Model.IndexLastWriteTime.Value.ToNuGetShortDateTimeString() UTC</time>.
+            <strong>This package has not been indexed yet.</strong> It will appear in search results and will be available for install/restore after indexing is completed.<br />
+            @if (Model.IndexLastWriteTime.HasValue)
+            {
+                <br />
+                <text>Search index last updated <time class="timeago" datetime="@Model.IndexLastWriteTime.Value.ToJavaScriptUTC()">@Model.IndexLastWriteTime.Value.ToNuGetShortDateTimeString() UTC </time>.</text>
+            }
         </p>
     }
 
