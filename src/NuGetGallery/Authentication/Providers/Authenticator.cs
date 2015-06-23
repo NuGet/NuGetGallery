@@ -1,12 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Web;
 using System.Web.Mvc;
-using Microsoft.Owin;
 using NuGetGallery.Configuration;
 using Owin;
 
@@ -14,9 +13,9 @@ namespace NuGetGallery.Authentication.Providers
 {
     public abstract class Authenticator
     {
-        private static readonly Regex nameShortener = new Regex(@"^(?<shortname>[A-Za-z0-9_]*)Authenticator$");
+        private static readonly Regex _nameShortener = new Regex(@"^(?<shortname>[A-Za-z0-9_]*)Authenticator$");
         private static readonly string AuthPrefix = "Auth.";
-    
+
         public AuthenticatorConfiguration BaseConfig { get; private set; }
 
         public virtual string Name
@@ -50,12 +49,12 @@ namespace NuGetGallery.Authentication.Providers
         public static string GetName(Type authenticator)
         {
             var name = authenticator.Name;
-            var match = nameShortener.Match(name);
+            var match = _nameShortener.Match(name);
             if (match.Success)
             {
                 name = match.Groups["shortname"].Value;
             }
-            return name; 
+            return name;
         }
 
         internal static IEnumerable<Authenticator> GetAllAvailable()
@@ -69,7 +68,7 @@ namespace NuGetGallery.Authentication.Providers
         internal static IEnumerable<Authenticator> GetAllAvailable(IEnumerable<Type> typesToSearch)
         {
             // Find all available auth providers
-            var configTypes = 
+            var configTypes =
                 typesToSearch
                 .Where(t => !t.IsAbstract && typeof(Authenticator).IsAssignableFrom(t))
                 .ToList();
@@ -95,7 +94,7 @@ namespace NuGetGallery.Authentication.Providers
         }
     }
 
-    public abstract class Authenticator<TConfig> : Authenticator 
+    public abstract class Authenticator<TConfig> : Authenticator
         where TConfig : AuthenticatorConfiguration, new()
     {
         public TConfig Config { get; private set; }

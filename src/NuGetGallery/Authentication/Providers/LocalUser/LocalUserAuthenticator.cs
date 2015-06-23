@@ -1,9 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
@@ -16,11 +13,11 @@ namespace NuGetGallery.Authentication.Providers.Cookie
     {
         protected override void AttachToOwinApp(ConfigurationService config, IAppBuilder app)
         {
-            var cookieSecurity = config.Current.RequireSSL ? 
-                CookieSecureOption.Always : 
+            var cookieSecurity = config.Current.RequireSSL ?
+                CookieSecureOption.Always :
                 CookieSecureOption.Never;
 
-            var options = new CookieAuthenticationOptions()
+            var options = new CookieAuthenticationOptions
             {
                 AuthenticationType = AuthenticationTypes.LocalUser,
                 AuthenticationMode = AuthenticationMode.Active,
@@ -28,7 +25,7 @@ namespace NuGetGallery.Authentication.Providers.Cookie
                 CookieSecure = cookieSecurity,
                 LoginPath = new PathString("/users/account/LogOn")
             };
-            
+
             BaseConfig.ApplyToOwinSecurityOptions(options);
             app.UseCookieAuthentication(options);
             app.SetDefaultSignInAsAuthenticationType(AuthenticationTypes.LocalUser);

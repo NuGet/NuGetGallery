@@ -59,7 +59,7 @@ namespace NuGetGallery
 
             // Attach external sign-in cookie middleware
             app.SetDefaultSignInAsAuthenticationType(AuthenticationTypes.External);
-            app.UseCookieAuthentication(new CookieAuthenticationOptions()
+            app.UseCookieAuthentication(new CookieAuthenticationOptions
             {
                 AuthenticationType = AuthenticationTypes.External,
                 AuthenticationMode = AuthenticationMode.Passive,
