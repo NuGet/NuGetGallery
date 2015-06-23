@@ -73,6 +73,7 @@
     <Compile Include="ConfigurationManager.cs" />
     <Compile Include="JobBase.cs" />
     <Compile Include="JobRunner.cs" />
+    <Compile Include="JsonHelper.cs" />
     <Compile Include="Loggers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Helpers.cs" />
