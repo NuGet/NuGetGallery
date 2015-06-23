@@ -1,11 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.WindowsAzure.Storage;
@@ -21,43 +19,28 @@ namespace NuGetGallery.Auditing
     {
         public static readonly string DefaultContainerName = "auditing";
 
-        private CloudBlobContainer _auditContainer;
-        private string _instanceId;
-        private string _localIP;
-        private Func<Task<AuditActor>> _onBehalfOfThunk;
+        private readonly CloudBlobContainer _auditContainer;
+        private readonly Func<AuditActor> _onBehalfOfThunk;
 
-        public CloudAuditingService(string instanceId, string localIP, string storageConnectionString, Func<Task<AuditActor>> onBehalfOfThunk)
-            : this(instanceId, localIP, GetContainer(storageConnectionString), onBehalfOfThunk)
+        public CloudAuditingService(string storageConnectionString, Func<AuditActor> onBehalfOfThunk)
+            : this(GetContainer(storageConnectionString), onBehalfOfThunk)
         {
 
         }
 
-        public CloudAuditingService(string instanceId, string localIP, CloudBlobContainer auditContainer, Func<Task<AuditActor>> onBehalfOfThunk)
+        public CloudAuditingService(CloudBlobContainer auditContainer, Func<AuditActor> onBehalfOfThunk)
         {
-            _instanceId = instanceId;
-            _localIP = localIP;
             _auditContainer = auditContainer;
             _onBehalfOfThunk = onBehalfOfThunk;
         }
 
-        public static Task<AuditActor> AspNetActorThunk()
+        public static AuditActor AspNetActorThunk()
         {
             // Use HttpContext to build an actor representing the user performing the action
             var context = HttpContext.Current;
             if (context == null)
             {
                 return null;
-            }
-
-            // Try to identify the client IP using various server variables
-            string clientIP = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
-            if (String.IsNullOrEmpty(clientIP)) // Try REMOTE_ADDR server variable
-            {
-                clientIP = context.Request.ServerVariables["REMOTE_ADDR"];
-            }
-            if (String.IsNullOrEmpty(clientIP)) // Try UserHostAddress property
-            {
-                clientIP = context.Request.UserHostAddress;
             }
 
             string user = null;
@@ -68,28 +51,24 @@ namespace NuGetGallery.Auditing
                 authType = context.User.Identity.AuthenticationType;
             }
 
-            return Task.FromResult(new AuditActor(
-                null,
-                clientIP,
-                user,
-                authType,
-                DateTime.UtcNow));
+            return new AuditActor(user, authType);
         }
 
-        protected override async Task<AuditActor> GetActor()
+        protected override AuditActor GetActor()
         {
             // Construct an actor representing the user the service is acting on behalf of
             AuditActor onBehalfOf = null;
-            if(_onBehalfOfThunk != null) {
-                onBehalfOf = await _onBehalfOfThunk();
+            if (_onBehalfOfThunk != null)
+            {
+                onBehalfOf = _onBehalfOfThunk();
             }
-            return await AuditActor.GetCurrentMachineActor(onBehalfOf);
+            return AuditActor.GetCurrentMachineActor(onBehalfOf);
         }
 
         protected override async Task<Uri> SaveAuditRecord(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
         {
             string fullPath = String.Concat(
-                resourceType, "/", 
+                resourceType, "/",
                 filePath.Replace(Path.DirectorySeparatorChar, '/'), "/",
                 timestamp.ToString("s"), "-", // Sortable DateTime format
                 action.ToLowerInvariant(), ".audit.v1.json");
@@ -102,7 +81,7 @@ namespace NuGetGallery.Auditing
             }
             catch (StorageException ex)
             {
-                if(ex.RequestInformation != null && 
+                if (ex.RequestInformation != null &&
                     ex.RequestInformation.ExtendedErrorInformation != null &&
                     ex.RequestInformation.ExtendedErrorInformation.ErrorCode == BlobErrorCodeStrings.ContainerNotFound)
                 {
@@ -160,7 +139,7 @@ namespace NuGetGallery.Auditing
                     throw new InvalidOperationException(String.Format(
                         CultureInfo.CurrentCulture,
                         Strings.CloudAuditingService_DuplicateAuditRecord,
-                        fullPath));
+                        fullPath), ex);
                 }
                 throw;
             }

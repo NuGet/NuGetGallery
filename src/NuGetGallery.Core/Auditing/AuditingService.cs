@@ -1,10 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -37,7 +34,7 @@ namespace NuGetGallery.Auditing
         public virtual async Task<Uri> SaveAuditRecord(AuditRecord record)
         {
             // Build an audit entry
-            var entry = new AuditEntry(record, await GetActor());
+            var entry = new AuditEntry(record, GetActor());
 
             // Serialize to json
             string rendered = RenderAuditEntry(entry);
@@ -62,7 +59,7 @@ namespace NuGetGallery.Auditing
         /// <returns>The URI identifying the audit record resource</returns>
         protected abstract Task<Uri> SaveAuditRecord(string auditData, string resourceType, string filePath, string action, DateTime timestamp);
 
-        protected virtual Task<AuditActor> GetActor()
+        protected virtual AuditActor GetActor()
         {
             return AuditActor.GetCurrentMachineActor();
         }

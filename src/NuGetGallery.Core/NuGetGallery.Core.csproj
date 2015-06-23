@@ -90,7 +90,10 @@
     <Compile Include="Auditing\AuditingService.cs" />
     <Compile Include="Auditing\AuditRecord.cs" />
     <Compile Include="Auditing\CloudAuditingService.cs" />
+    <Compile Include="Auditing\CredentialAuditRecord.cs" />
+    <Compile Include="Auditing\PackageAuditAction.cs" />
     <Compile Include="Auditing\PackageAuditRecord.cs" />
+    <Compile Include="Auditing\UserAuditAction.cs" />
     <Compile Include="Auditing\UserAuditRecord.cs" />
     <Compile Include="CredentialTypes.cs" />
     <Compile Include="Completion.cs" />
@@ -144,6 +147,7 @@
     <EmbeddedResource Include="Strings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

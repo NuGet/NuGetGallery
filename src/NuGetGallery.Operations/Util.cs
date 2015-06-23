@@ -36,7 +36,7 @@ namespace NuGetGallery.Operations
             NullValueHandling = NullValueHandling.Include,
             TypeNameHandling = TypeNameHandling.None
         };
-        
+
         public static bool BackupIsInProgress(SqlExecutor dbExecutor, string backupPrefix)
         {
             return dbExecutor.Query<Db>(
@@ -377,20 +377,9 @@ namespace NuGetGallery.Operations
             } while (token != null);
         }
 
-        internal static string GetPackageAuditBlobName(string id, string version, PackageAuditAction action)
-        {
-            // Audit Blob Name:
-            //  /auditing/package/[id]/[version]/[action]-at-[datetime]
-            return String.Format("package/{0}/{1}/{3}-{2}.json",
-                id, version, action.ToString(), DateTime.UtcNow.ToString("O"));
-        }
-
         internal static async Task<Uri> SaveAuditRecord(CloudStorageAccount storage, AuditRecord auditRecord)
         {
-            string localIP = await AuditActor.GetLocalIP();
             CloudAuditingService audit = new CloudAuditingService(
-                Environment.MachineName,
-                localIP,
                 storage.CreateCloudBlobClient().GetContainerReference("auditing"),
                 onBehalfOfThunk: null);
             return await audit.SaveAuditRecord(auditRecord);
