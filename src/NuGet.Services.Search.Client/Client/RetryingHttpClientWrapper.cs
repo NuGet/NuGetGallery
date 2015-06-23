@@ -49,8 +49,16 @@ namespace NuGet.Services.Search.Client
         
         private async Task<TResponseType> GetWithRetry<TResponseType>(IEnumerable<Uri> endpoints, Func<HttpClient, Uri, CancellationToken, Task<TResponseType>> run)
         {
-            // Build endpoints, ordered by health (with a chance of less health)
-            var healthyEndpoints = endpoints.OrderByDescending(e => _endpointHealthIndicatorStore.GetHealth(e), HealthComparer).ToList();
+            // Build endpoints, ordered by health and their order of appearance.
+            // Most traffic should go to the first endpoint if all is healthy.
+            var endpointsAsList = endpoints.ToList();
+            var healthyEndpoints = endpointsAsList.OrderByDescending(e =>
+            {
+                var health = _endpointHealthIndicatorStore.GetHealth(e);
+                var order = endpointsAsList.IndexOf(e);
+
+                return (health * health) / ((order + 1) * 80);
+            }, HealthComparer).ToList();
 
             // Make all requests cancellable using this CancellationTokenSource
             var cancellationTokenSource = new CancellationTokenSource();
