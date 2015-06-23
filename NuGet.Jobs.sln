@@ -67,6 +67,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SendHeartbeatEmail", "src\S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search.GenerateCuratedFeed", "src\Search.GenerateCuratedFeed\Search.GenerateCuratedFeed.csproj", "{CAA62EBC-9AE1-4FF5-B162-BA2FD979868D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search.GenerateOwners", "src\Search.GenerateOwners\Search.GenerateOwners.csproj", "{E66BC452-C3FB-4541-A5F7-4FFA864CA920}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -165,6 +167,10 @@ Global
 		{CAA62EBC-9AE1-4FF5-B162-BA2FD979868D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CAA62EBC-9AE1-4FF5-B162-BA2FD979868D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CAA62EBC-9AE1-4FF5-B162-BA2FD979868D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E66BC452-C3FB-4541-A5F7-4FFA864CA920}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E66BC452-C3FB-4541-A5F7-4FFA864CA920}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E66BC452-C3FB-4541-A5F7-4FFA864CA920}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E66BC452-C3FB-4541-A5F7-4FFA864CA920}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -193,5 +199,6 @@ Global
 		{2D978000-59AE-41FC-8EF9-F4DD20106300} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{85E631FF-0704-4EC0-9D67-EAD95C9A73CF} = {FA5644B5-4F08-43F6-86B3-039374312A47}
 		{CAA62EBC-9AE1-4FF5-B162-BA2FD979868D} = {57F34E9A-3A98-4E48-BF76-D49CB9CB3323}
+		{E66BC452-C3FB-4541-A5F7-4FFA864CA920} = {57F34E9A-3A98-4E48-BF76-D49CB9CB3323}
 	EndGlobalSection
 EndGlobal
