@@ -79,6 +79,7 @@
     <Compile Include="JobRunner.cs" />
     <Compile Include="Tracing\JobTraceEventListener.cs" />
     <Compile Include="Tracing\JobTraceListener.cs" />
+    <Compile Include="JsonHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StorageHelpers.cs" />
     <Compile Include="Strings.Designer.cs" />
