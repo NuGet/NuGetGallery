@@ -9,6 +9,7 @@ using System.Text;
 namespace NuGetGallery
 {
     public class PackageLicenseReport
+        : IEntity
     {
         public int Key { get; set; }
 

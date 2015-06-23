@@ -5,6 +5,7 @@ using System.Collections.Generic;
 namespace NuGetGallery
 {
     public class Role
+        : IEntity
     {
         public int Key { get; set; }
         public string Name { get; set; }
