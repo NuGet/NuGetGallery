@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -7,7 +8,8 @@ using System.ComponentModel.DataAnnotations;
 namespace NuGetGallery
 {
     [DisplayColumn("Title")]
-    public class Package : IEntity
+    public class Package
+        : IEntity
     {
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it

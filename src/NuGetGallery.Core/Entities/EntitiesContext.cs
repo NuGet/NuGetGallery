@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
-using System.Diagnostics;
-using System.Web.Configuration;
 
 namespace NuGetGallery
 {
-    public class EntitiesContext : DbContext, IEntitiesContext
+    public class EntitiesContext
+        : DbContext, IEntitiesContext
     {
         static EntitiesContext()
         {
@@ -26,7 +26,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// This constructor is provided mainly for purposes of running migrations from Package Manager console,
-        /// or any other scenario where a connection string will be set after the EntitiesContext is created 
+        /// or any other scenario where a connection string will be set after the EntitiesContext is created
         /// (and read only mode is don't care).
         /// </summary>
         public EntitiesContext()

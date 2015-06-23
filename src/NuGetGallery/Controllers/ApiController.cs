@@ -1,29 +1,28 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using System.Web.UI;
 using Newtonsoft.Json.Linq;
 using NuGet;
-using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
-using NuGetGallery.Configuration;
-using System.Text;
-using System.Net.Http;
 
 namespace NuGetGallery
 {
-    public partial class ApiController : AppController
+    public class ApiController
+        : AppController
     {
         private readonly IAppConfiguration _config;
         public IEntitiesContext EntitiesContext { get; set; }
@@ -37,7 +36,7 @@ namespace NuGetGallery
         public IIndexingService IndexingService { get; set; }
         public IAutomaticallyCuratePackageCommand AutoCuratePackage { get; set; }
         public IStatusService StatusService { get; set; }
-        
+
         protected ApiController() { }
 
         public ApiController(
@@ -109,7 +108,7 @@ namespace NuGetGallery
             // Normalize the version
             version = SemanticVersionExtensions.Normalize(version);
 
-            // if the version is null, the user is asking for the latest version. Presumably they don't want includePrerelease release versions. 
+            // if the version is null, the user is asking for the latest version. Presumably they don't want includePrerelease release versions.
             // The allow prerelease flag is ignored if both partialId and version are specified.
             // In general we want to try to add download statistics for any package regardless of whether a version was specified.
 
@@ -173,7 +172,7 @@ namespace NuGetGallery
             {
                 QuietLog.LogHandledException(e);
             }
-            
+
             // Fall back to constructing the URL based on the package version and ID.
             if (String.IsNullOrEmpty(version) && package == null)
             {
@@ -181,8 +180,8 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
             }
             return await PackageFileService.CreateDownloadPackageActionResultAsync(
-                HttpContext.Request.Url, 
-                id, 
+                HttpContext.Request.Url,
+                id,
                 String.IsNullOrEmpty(version) ? package.NormalizedVersion : version);
         }
 
@@ -412,7 +411,7 @@ namespace NuGetGallery
             {
                 alertString = alert.ToString().Replace("</div>", " - Check our <a href=\"http://status.nuget.org\">status page</a> for updates.</div>");
             }
-            
+
             if (String.IsNullOrEmpty(alertString) && _config.ReadOnlyMode)
             {
                 var readOnly = await ContentService.GetContentItemAsync(Constants.ContentNames.ReadOnly, TimeSpan.Zero);

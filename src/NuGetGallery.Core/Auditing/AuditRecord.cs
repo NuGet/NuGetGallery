@@ -1,9 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace NuGetGallery.Auditing
 {
@@ -12,13 +10,12 @@ namespace NuGetGallery.Auditing
         private string _resourceType;
 
         public abstract string GetPath();
-        
+        public abstract string GetAction();
+
         public virtual string GetResourceType()
         {
             return _resourceType ?? (_resourceType = InferResourceType());
         }
-
-        public abstract string GetAction();
 
         private string InferResourceType()
         {
@@ -31,15 +28,16 @@ namespace NuGetGallery.Auditing
         }
     }
 
-    public abstract class AuditRecord<T> : AuditRecord
+    public abstract class AuditRecord<T>
+        : AuditRecord
         where T : struct
     {
-        public T Action { get; set; }
-
         protected AuditRecord(T action)
         {
             Action = action;
         }
+
+        public T Action { get; set; }
 
         public override string GetAction()
         {

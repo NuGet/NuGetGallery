@@ -1,17 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 namespace NuGetGallery
 {
-    public class EmailMessage : IEntity
+    public class EmailMessage
+        : IEntity
     {
         public EmailMessage()
             : this(null, null)
         {
         }
 
-        public EmailMessage(
-            string subject,
-            string body)
+        public EmailMessage(string subject, string body)
         {
             Body = body;
             Subject = subject;
