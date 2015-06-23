@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Services.Providers;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -63,6 +64,33 @@ namespace NuGetGallery
             // It also tries to filter to latest versions, but the search service already did that!
             // We avoid it by yanking these expressions out of out the tree.
             return result.Data.InterceptWith(new DisregardODataInterceptor());
+        }
+
+        public static async Task<IQueryable<Package>> FindByIdCore(
+                   ISearchService searchService,
+                   HttpRequestBase request,
+                   IQueryable<Package> packages,
+                   string id,
+                   CuratedFeed curatedFeed)
+        {
+            SearchFilter searchFilter;
+            // We can only use Lucene if:
+            //  a) We are looking for the latest version of a package OR the Index contains all versions of each package
+            //  b) The sort order is something Lucene can handle
+            if (TryReadSearchFilter(searchService.ContainsAllVersions, request.RawUrl, out searchFilter))
+            {
+                searchFilter.SearchTerm = string.Format(CultureInfo.CurrentCulture, "Id:\"{0}\"", id);
+                searchFilter.IncludePrerelease = true;
+                searchFilter.CuratedFeed = curatedFeed;
+                searchFilter.SupportedFramework = null;
+                searchFilter.IncludeAllVersions = true;
+
+                var results = await GetResultsFromSearchService(searchService, searchFilter);
+
+                return results;
+            }
+
+            return packages;
         }
 
         public static async Task<IQueryable<Package>> SearchCore(

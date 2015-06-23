@@ -164,7 +164,11 @@ namespace NuGetGallery
                                 Version = "1.0.0",
                                 IsPrerelease = false,
                                 Listed = false,
-                                DownloadStatistics = new List<PackageStatistics>()
+                                DownloadStatistics = new List<PackageStatistics>(),
+                                FlattenedAuthors = string.Empty,
+                                Description = string.Empty,
+                                Summary = string.Empty,
+                                Tags = string.Empty
                             },
                         new Package
                             {
@@ -172,13 +176,21 @@ namespace NuGetGallery
                                 Version = "1.0.1-a",
                                 IsPrerelease = true,
                                 Listed = true,
-                                DownloadStatistics = new List<PackageStatistics>()
+                                DownloadStatistics = new List<PackageStatistics>(),
+                                FlattenedAuthors = string.Empty,
+                                Description = string.Empty,
+                                Summary = string.Empty,
+                                Tags = string.Empty
                             },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
-                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
+                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(false);
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
 
                     // Act
                     var result = v2Service.FindPackagesById("Foo");

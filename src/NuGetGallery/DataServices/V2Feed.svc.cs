@@ -156,9 +156,15 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V2FeedPackage> FindPackagesById(string id)
         {
-            return PackageRepository.GetAll().Include(p => p.PackageRegistration)
-                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
+            var packages = PackageRepository.GetAll()
+                .Include(p => p.PackageRegistration)
+                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+
+            var query = SearchAdaptor.FindByIdCore(SearchService, HttpContext.Request, packages, id, curatedFeed: null)
+                .Result
                 .ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
+
+            return query;
         }
 
         [WebGet]
