@@ -169,3 +169,4 @@ build/artifacts/
 # Exclude Azure Publish Profiles
 *.pubxml
 tests/Scripts/TestResults[*].trx
+src/NuGetGallery.Cloud/ecf/
