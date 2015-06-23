@@ -50,7 +50,7 @@ namespace NuGetGallery
 
         public static UrlHelper MockUrlHelper()
         {
-            var mockHttpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
+            var mockHttpContext = new Mock<HttpContextBase>(MockBehavior.Loose);
             var mockHttpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);
             var mockHttpResponse = new Mock<HttpResponseBase>(MockBehavior.Strict);
             mockHttpContext.Setup(httpContext => httpContext.Request).Returns(mockHttpRequest.Object);
