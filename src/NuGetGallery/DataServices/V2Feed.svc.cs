@@ -160,15 +160,18 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration)
                 .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
 
-            try
+            if (Configuration.Features.PackageRestoreViaSearch)
             {
-                packages = SearchAdaptor.FindByIdCore(SearchService, HttpContext.Request, packages, id, curatedFeed: null).Result;
-            }
-            catch (Exception ex)
-            {
-                // Swallowing Exception intentionally. If *anything* goes wrong in search, just fall back to the database.
-                // We don't want to break package restores. We do want to know if this happens, so here goes:
-                QuietLog.LogHandledException(ex);
+                try
+                {
+                    packages = SearchAdaptor.FindByIdCore(SearchService, HttpContext.Request, packages, id, curatedFeed: null).Result;
+                }
+                catch (Exception ex)
+                {
+                    // Swallowing Exception intentionally. If *anything* goes wrong in search, just fall back to the database.
+                    // We don't want to break package restores. We do want to know if this happens, so here goes:
+                    QuietLog.LogHandledException(ex);
+                }
             }
 
             var query = packages.ToV2FeedPackageQuery(GetSiteRoot(), Configuration.Features.FriendlyLicenses);
