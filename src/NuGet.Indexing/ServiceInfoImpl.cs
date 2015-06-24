@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using Newtonsoft.Json.Linq;
+using System.IO;
+using Newtonsoft.Json;
 
 namespace NuGet.Indexing
 {
@@ -58,6 +60,48 @@ namespace NuGet.Indexing
                 }
             }
             return obj;
+        }
+
+        public static string Rankings(IOwinContext context, NuGetSearcherManager searcherManager)
+        {
+            var searcher = searcherManager.Get();
+            try
+            {
+                return FormatRankings(searcher.Rankings);
+            }
+            finally
+            {
+                searcherManager.Release(searcher);
+            }
+        }
+
+        static string FormatRankings(IDictionary<string, int> rankings)
+        {
+            using (StringWriter stringWriter = new StringWriter())
+            {
+                using (JsonTextWriter jsonWriter = new JsonTextWriter(stringWriter))
+                {
+                    jsonWriter.WriteStartObject();
+                    jsonWriter.WritePropertyName("rankings");
+                    jsonWriter.WriteStartArray();
+                    foreach (var ranking in rankings)
+                    {
+                        jsonWriter.WriteStartObject();
+                        jsonWriter.WritePropertyName("id");
+                        jsonWriter.WriteValue(ranking.Key);
+                        jsonWriter.WritePropertyName("Rank");
+                        jsonWriter.WriteValue(ranking.Value);
+                        jsonWriter.WriteEndObject();
+                    }
+                    jsonWriter.WriteEndArray();
+                    jsonWriter.WriteEndObject();
+
+                    jsonWriter.Flush();
+                    stringWriter.Flush();
+
+                    return stringWriter.ToString();
+                }
+            }
         }
     }
 }
