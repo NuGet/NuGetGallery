@@ -420,6 +420,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
+    <Compile Include="Controllers\NuGetContext.cs" />
+    <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="Diagnostics\PerfCounters.cs" />
     <Compile Include="Diagnostics\ProcessPerfEvents.cs" />
     <Compile Include="App_Start\OwinStartup.cs" />
@@ -1068,6 +1070,7 @@
     <Compile Include="Services\EditPackageService.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />
     <Compile Include="ViewModels\LogOnViewModel.cs" />
+    <Compile Include="ViewModels\ReportPackageReason.cs" />
     <Compile Include="ViewModels\StatisticsMonthlyUsageItem.cs" />
     <Compile Include="ViewModels\StatisticsNuGetUsageItem.cs" />
     <Compile Include="ViewModels\StatisticsFact.cs" />

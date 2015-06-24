@@ -1,21 +1,19 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Web;
-using NuGetGallery.Diagnostics;
 using System.Data.Entity;
 using System.Globalization;
-using Microsoft.Owin;
+using System.Linq;
 using System.Security.Claims;
-using NuGetGallery.Configuration;
-using Microsoft.Owin.Security;
-using NuGetGallery.Authentication.Providers;
-using System.Web.Mvc;
 using System.Threading.Tasks;
+using System.Web.Mvc;
+using Microsoft.Owin;
 using NuGetGallery.Auditing;
+using NuGetGallery.Authentication.Providers;
+using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Authentication
 {
@@ -367,7 +365,7 @@ namespace NuGetGallery.Authentication
                 Trace.Error("External Authentication is missing required claim: " + ClaimTypes.NameIdentifier);
                 return new AuthenticateExternalLoginResult();
             }
-            
+
             var nameClaim = result.Identity.FindFirst(ClaimTypes.Name);
             if (nameClaim == null)
             {
@@ -595,7 +593,7 @@ namespace NuGetGallery.Authentication
                 Entities.DeleteOnCommit(cred);
             }
             await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.RemovedCredential, toRemove));
-                
+
             // Now add one if there are no credentials left
             if (creds.Count == 0)
             {

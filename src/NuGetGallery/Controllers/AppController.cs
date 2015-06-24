@@ -1,20 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
+
 using System.Security.Claims;
-using System.Security.Principal;
-using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Microsoft.Owin;
-using Ninject;
-using NuGetGallery.Authentication;
-using System.Net;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
-    public abstract partial class AppController : Controller
+    public abstract partial class AppController
+        : Controller
     {
         private IOwinContext _overrideContext;
 
@@ -49,22 +44,6 @@ namespace NuGetGallery
         protected internal virtual ActionResult SafeRedirect(string returnUrl)
         {
             return new SafeRedirectResult(returnUrl, Url.Home());
-        }
-    }
-
-    public class NuGetContext
-    {
-        private Lazy<User> _currentUser;
-        
-        public ConfigurationService Config { get; internal set; }
-        public User CurrentUser { get { return _currentUser.Value; } }
-
-        public NuGetContext(AppController ctrl)
-        {
-            Config = Container.Kernel.TryGet<ConfigurationService>();
-
-            _currentUser = new Lazy<User>(() =>
-                ctrl.OwinContext.GetCurrentUser());
         }
     }
 }

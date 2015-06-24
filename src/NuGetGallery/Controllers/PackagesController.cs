@@ -23,7 +23,8 @@ using PoliteCaptcha;
 
 namespace NuGetGallery
 {
-    public partial class PackagesController : AppController
+    public partial class PackagesController
+        : AppController
     {
         // TODO: add support for URL-based package submission
         // TODO: add support for uploading logos and screenshots
@@ -395,7 +396,7 @@ namespace NuGetGallery
                 // If user logged on in as owner a different tab, then clicked the link, we can redirect them to ReportMyPackage
                 if (package.IsOwner(user))
                 {
-                    return RedirectToAction("ReportMyPackage", new {id, version});
+                    return RedirectToAction("ReportMyPackage", new { id, version });
                 }
 
                 if (user.Confirmed)
@@ -404,11 +405,11 @@ namespace NuGetGallery
                 }
             }
 
-            ViewData[Constants.ReturnUrlViewDataKey] = Url.Action("ReportMyPackage", new {id, version});
+            ViewData[Constants.ReturnUrlViewDataKey] = Url.Action("ReportMyPackage", new { id, version });
             return View(model);
         }
 
-        private static readonly ReportPackageReason[] ReportMyPackageReasons = new[] {
+        private static readonly ReportPackageReason[] ReportMyPackageReasons = {
             ReportPackageReason.ContainsPrivateAndConfidentialData,
             ReportPackageReason.PublishedWithWrongVersion,
             ReportPackageReason.ReleasedInPublicByAccident,
@@ -956,7 +957,7 @@ namespace NuGetGallery
             {
                 caught = ipex.AsUserSafeException();
             }
-                catch(InvalidDataException idex)
+            catch (InvalidDataException idex)
             {
                 caught = idex.AsUserSafeException();
             }

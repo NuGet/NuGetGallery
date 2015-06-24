@@ -21,7 +21,7 @@ using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
-    public class ApiController
+    public partial class ApiController
         : AppController
     {
         private readonly IAppConfiguration _config;
