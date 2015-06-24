@@ -3,7 +3,7 @@
 
 using NuGet.Jobs;
 
-namespace Search.GenerateCuratedFeed
+namespace Search.GenerateOwners
 {
     class Program
     {

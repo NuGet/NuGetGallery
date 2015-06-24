@@ -125,7 +125,7 @@ namespace Heartbeat
                 + ".txt";
         }
 
-        public override async Task<bool> Run()
+        public override Task<bool> Run()
         {
             //Update Log File names
             if (CurrentDay != DateTime.UtcNow.Day)
@@ -165,7 +165,7 @@ namespace Heartbeat
                 }
             }
 
-            return true;
+            return Task.FromResult(true);
         }
 
         private void RecordInStorage(string message, string fileName)
