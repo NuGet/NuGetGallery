@@ -24,7 +24,17 @@ namespace NuGetGallery
     public partial class ApiController
         : AppController
     {
+        private const string _idKey = "id";
+        private const string _versionKey = "version";
+        private const string _ipAddressKey = "ipAddress";
+        private const string _userAgentKey = "userAgent";
+        private const string _operationKey = "operation";
+        private const string _dependentPackageKey = "dependentPackage";
+        private const string _projectGuidsKey = "projectGuids";
+        private const string _metricsDownloadEventMethod = "/DownloadEvent";
+        private const string _contentTypeJson = "application/json";
         private readonly IAppConfiguration _config;
+
         public IEntitiesContext EntitiesContext { get; set; }
         public INuGetExeDownloaderService NugetExeDownloaderService { get; set; }
         public IPackageFileService PackageFileService { get; set; }
@@ -37,7 +47,9 @@ namespace NuGetGallery
         public IAutomaticallyCuratePackageCommand AutoCuratePackage { get; set; }
         public IStatusService StatusService { get; set; }
 
-        protected ApiController() { }
+        protected ApiController()
+        {
+        }
 
         public ApiController(
             IEntitiesContext entitiesContext,
@@ -174,7 +186,7 @@ namespace NuGetGallery
             }
 
             // Fall back to constructing the URL based on the package version and ID.
-            if (String.IsNullOrEmpty(version) && package == null)
+            if (string.IsNullOrEmpty(version) && package == null)
             {
                 // Database was unavailable and we don't have a version, return a 503
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
@@ -185,27 +197,16 @@ namespace NuGetGallery
                 String.IsNullOrEmpty(version) ? package.NormalizedVersion : version);
         }
 
-        private const string IdKey = "id";
-        private const string VersionKey = "version";
-        private const string IPAddressKey = "ipAddress";
-        private const string UserAgentKey = "userAgent";
-        private const string OperationKey = "operation";
-        private const string DependentPackageKey = "dependentPackage";
-        private const string ProjectGuidsKey = "projectGuids";
-        private const string HTTPPost = "POST";
-        private const string MetricsDownloadEventMethod = "/DownloadEvent";
-        private const string ContentTypeJson = "application/json";
-
         private static JObject GetJObject(string id, string version, string ipAddress, string userAgent, string operation, string dependentPackage, string projectGuids)
         {
             var jObject = new JObject();
-            jObject.Add(IdKey, id);
-            jObject.Add(VersionKey, version);
-            if (!String.IsNullOrEmpty(ipAddress)) jObject.Add(IPAddressKey, ipAddress);
-            if (!String.IsNullOrEmpty(userAgent)) jObject.Add(UserAgentKey, userAgent);
-            if (!String.IsNullOrEmpty(operation)) jObject.Add(OperationKey, operation);
-            if (!String.IsNullOrEmpty(dependentPackage)) jObject.Add(DependentPackageKey, dependentPackage);
-            if (!String.IsNullOrEmpty(projectGuids)) jObject.Add(ProjectGuidsKey, projectGuids);
+            jObject.Add(_idKey, id);
+            jObject.Add(_versionKey, version);
+            if (!String.IsNullOrEmpty(ipAddress)) jObject.Add(_ipAddressKey, ipAddress);
+            if (!String.IsNullOrEmpty(userAgent)) jObject.Add(_userAgentKey, userAgent);
+            if (!String.IsNullOrEmpty(operation)) jObject.Add(_operationKey, operation);
+            if (!String.IsNullOrEmpty(dependentPackage)) jObject.Add(_dependentPackageKey, dependentPackage);
+            if (!String.IsNullOrEmpty(projectGuids)) jObject.Add(_projectGuidsKey, projectGuids);
 
             return jObject;
         }
@@ -221,7 +222,7 @@ namespace NuGetGallery
 
                 using (var httpClient = new System.Net.Http.HttpClient())
                 {
-                    await httpClient.PostAsync(new Uri(_config.MetricsServiceUri, MetricsDownloadEventMethod), new StringContent(jObject.ToString(), Encoding.UTF8, ContentTypeJson));
+                    await httpClient.PostAsync(new Uri(_config.MetricsServiceUri, _metricsDownloadEventMethod), new StringContent(jObject.ToString(), Encoding.UTF8, _contentTypeJson));
                 }
             }
             catch (WebException ex)

@@ -228,8 +228,8 @@ namespace NuGetGallery
                 if (nuGetPackage.Metadata.MinClientVersion > typeof(Manifest).Assembly.GetName().Version)
                 {
                     ModelState.AddModelError(
-                        String.Empty,
-                        String.Format(
+                        string.Empty,
+                        string.Format(
                             CultureInfo.CurrentCulture,
                             Strings.UploadPackage_MinClientVersionOutOfRange,
                             nuGetPackage.Metadata.MinClientVersion));
@@ -240,7 +240,7 @@ namespace NuGetGallery
                 if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
                 {
                     ModelState.AddModelError(
-                        String.Empty, String.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
+                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
                     return View();
                 }
 
@@ -248,8 +248,8 @@ namespace NuGetGallery
                 if (package != null)
                 {
                     ModelState.AddModelError(
-                        String.Empty,
-                        String.Format(
+                        string.Empty,
+                        string.Format(
                             CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified, package.PackageRegistration.Id, package.Version));
                     return View();
                 }
@@ -263,7 +263,7 @@ namespace NuGetGallery
         public virtual ActionResult DisplayPackage(string id, string version)
         {
             string normalized = SemanticVersionExtensions.Normalize(version);
-            if (!String.Equals(version, normalized))
+            if (!string.Equals(version, normalized))
             {
                 // Permanent redirect to the normalized one (to avoid multiple URLs for the same content)
                 return RedirectToActionPermanent("DisplayPackage", new { id = id, version = normalized });

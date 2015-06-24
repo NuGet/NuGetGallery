@@ -212,7 +212,7 @@ namespace NuGetGallery
 
                 // Check for a user with this email address
                 User existingUser = null;
-                if (!String.IsNullOrEmpty(email))
+                if (!string.IsNullOrEmpty(email))
                 {
                     existingUser = UserService.FindByEmailAddress(email);
                 }
@@ -224,14 +224,14 @@ namespace NuGetGallery
                     FoundExistingUser = existingUser != null
                 };
 
-                var model = new LogOnViewModel()
+                var model = new LogOnViewModel
                 {
                     External = external,
-                    SignIn = new SignInViewModel()
+                    SignIn = new SignInViewModel
                     {
                         UserNameOrEmail = email
                     },
-                    Register = new RegisterViewModel()
+                    Register = new RegisterViewModel
                     {
                         EmailAddress = email
                     }
@@ -287,11 +287,7 @@ namespace NuGetGallery
 
         private ActionResult LogOnView()
         {
-            return LogOnView(new LogOnViewModel()
-            {
-                SignIn = new SignInViewModel(),
-                Register = new RegisterViewModel()
-            });
+            return LogOnView(new LogOnViewModel());
         }
 
         private ActionResult ExternalLinkExpired()

@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Net;
 using System.Net.Mail;
@@ -11,12 +12,11 @@ using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Ninject;
-using Ninject.Web.Common;
 using Ninject.Modules;
+using Ninject.Web.Common;
+using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
-using System.Diagnostics;
-using NuGetGallery.Auditing;
 using NuGetGallery.Infrastructure.Lucene;
 
 namespace NuGetGallery
@@ -286,7 +286,7 @@ namespace NuGetGallery
             {
                 instanceId = RoleEnvironment.CurrentRoleInstance.Id;
             }
-            catch (Exception)
+            catch
             {
                 instanceId = Environment.MachineName;
             }
