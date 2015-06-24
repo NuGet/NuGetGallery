@@ -21,7 +21,7 @@ namespace Search.GenerateOwners
         public override Task<bool> Run()
         {
             string sql = JobHelper.LoadResource(Assembly.GetExecutingAssembly(), "Scripts.Owners.sql");
-            return JobHelper.RunSqlExport(_args, sql, "UserName", "Id");
+            return JobHelper.RunSqlExport(_args, sql, "Id", "UserName");
         }
     }
 }
