@@ -1,6 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
@@ -18,7 +17,6 @@ namespace NuGet.Indexing
         public StorageLoader(CloudStorageAccount storageAccount, string containerName)
         {
             Trace.TraceInformation("StorageLoader container: {0}", containerName);
-
             _storageAccount = storageAccount;
             _containerName = containerName;
         }

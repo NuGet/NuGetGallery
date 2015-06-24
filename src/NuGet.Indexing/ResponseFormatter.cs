@@ -72,7 +72,11 @@ namespace NuGet.Indexing
             {
                 ScoreDoc scoreDoc = topDocs.ScoreDocs[i];
 
+<<<<<<< HEAD
                 Document document = searcher.Doc(scoreDoc.Doc);               
+=======
+                Document document = searcher.Doc(scoreDoc.Doc);
+>>>>>>> add owners index and filters for curated feeds and prerealease
 
                 jsonWriter.WriteStartObject();
 
@@ -324,7 +328,6 @@ namespace NuGet.Indexing
             WriteDocumentValue(jsonWriter, "Id", document, "Id");
             WriteProperty(jsonWriter, "DownloadCount", downloadCount);
 
-            // TODO: missing owner in lucene
             jsonWriter.WritePropertyName("Owners");
             jsonWriter.WriteStartArray();
             foreach (string owner in document.GetValues("Owner"))

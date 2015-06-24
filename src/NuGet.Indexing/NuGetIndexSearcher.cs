@@ -1,6 +1,5 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
 using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
@@ -21,6 +20,8 @@ namespace NuGet.Indexing
             IndexReader reader,
             IndexReader originalReader,
             IDictionary<string, string> commitUserData, 
+            NuGetSearcherManager manager, 
+            IndexReader reader, IDictionary<string, string> commitUserData, 
             IDictionary<string, Filter> curatedFeeds, 
             Filter[][] latest,
             VersionsHandler.VersionResult[] versions,
