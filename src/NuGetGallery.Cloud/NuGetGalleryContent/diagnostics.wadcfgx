@@ -5,7 +5,7 @@
       <DiagnosticMonitorConfiguration overallQuotaInMB="4096">
         <DiagnosticInfrastructureLogs scheduledTransferPeriod="PT1M" scheduledTransferLogLevelFilter="Error" />
         <Directories scheduledTransferPeriod="PT1M">
-          <IISLogs containerName="wad-iis-requestlogs" />
+          <IISLogs containerName="was-iis-logfiles" />
           <FailedRequestLogs containerName="wad-failedrequestlogs" />
           <DataSources>
             <DirectoryConfiguration containerName="ng-v2gallery-logs">
@@ -31,7 +31,7 @@
         <WindowsEventLog scheduledTransferPeriod="PT1M">
           <DataSource name="System!*" />
         </WindowsEventLog>
-        <CrashDumps directoryQuotaPercentage="6" containerName="wad-crash-dumps">
+        <CrashDumps directoryQuotaPercentage="6" containerName="wad-crashdumps">
           <CrashDumpConfiguration processName="WaIISHost.exe" />
           <CrashDumpConfiguration processName="WaWorkerHost.exe" />
           <CrashDumpConfiguration processName="w3wp.exe" />
