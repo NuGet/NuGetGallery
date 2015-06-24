@@ -68,10 +68,10 @@ namespace NuGet.Indexing
             }
             _publicFilter = new CachingWrapperFilter(new PublicFilter());
 
-            _latestVersion = new CachingWrapperFilter(LatestVersionFilter.Create(searcher.IndexReader, false, false));
-            _latestVersionIncludeUnlisted = new CachingWrapperFilter(LatestVersionFilter.Create(searcher.IndexReader, false, true));
-            _latestVersionIncludePrerelease = new CachingWrapperFilter(LatestVersionFilter.Create(searcher.IndexReader, true, false));
-            _latestVersionIncludePrereleaseIncludeUnlisted = new CachingWrapperFilter(LatestVersionFilter.Create(searcher.IndexReader, true, true));
+            _latestVersion = new CachingWrapperFilter(LatestVersionFilterFactory.Create(searcher.IndexReader, false, false));
+            _latestVersionIncludeUnlisted = new CachingWrapperFilter(LatestVersionFilterFactory.Create(searcher.IndexReader, false, true));
+            _latestVersionIncludePrerelease = new CachingWrapperFilter(LatestVersionFilterFactory.Create(searcher.IndexReader, true, false));
+            _latestVersionIncludePrereleaseIncludeUnlisted = new CachingWrapperFilter(LatestVersionFilterFactory.Create(searcher.IndexReader, true, true));
 
             // Recalculate precalculated Versions arrays 
             PackageVersions packageVersions = new PackageVersions(searcher.IndexReader);

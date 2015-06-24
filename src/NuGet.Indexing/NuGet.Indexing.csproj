@@ -146,20 +146,32 @@
     <Compile Include="BitSetCollector.cs" />
     <Compile Include="ChainedFilter.cs" />
     <Compile Include="Compatibility.cs" />
-    <Compile Include="CuratedFeedFilter.cs" />
+    <Compile Include="CuratedFeedHandler.cs" />
+    <Compile Include="DownloadRankings.cs" />
+    <Compile Include="Downloads.cs" />
     <Compile Include="DownloadLookup.cs" />
     <Compile Include="Facets.cs" />
+    <Compile Include="FileLoader.cs" />
     <Compile Include="GalleryServiceImpl.cs" />
     <Compile Include="IdentifierAutocompleteAnalyzer.cs" />
+    <Compile Include="ILoader.cs" />
+    <Compile Include="IndexReaderProcessor.cs" />
+    <Compile Include="IndexReaderProcessorHandler.cs" />
+    <Compile Include="LatestListedHandler.cs" />
+    <Compile Include="OwnersHandler.cs" />
+    <Compile Include="PackageVersions.cs" />
+    <Compile Include="ResponseFormatter.cs" />
+    <Compile Include="StorageLoader.cs" />
+    <Compile Include="UriFormatter.cs" />
+    <Compile Include="Utils.cs" />
     <Compile Include="ISearchIndexInfo.cs" />
-    <Compile Include="LatestVersionFilter.cs" />
+    <Compile Include="LatestVersionFilterFactory.cs" />
     <Compile Include="LocalFrameworksList.cs" />
     <Compile Include="MetadataImpl.cs" />
     <Compile Include="NuGetIndexSearcher.cs" />
     <Compile Include="PackageTenantId.cs" />
     <Compile Include="SearcherManagerT.cs" />
     <Compile Include="SecureSearcherManager.cs" />
-    <Compile Include="PackageVersions.cs" />
     <Compile Include="SecureQueryImpl.cs" />
     <Compile Include="SecureFindImpl.cs" />
     <Compile Include="SegmentInfoEventArgs.cs" />
@@ -214,6 +226,7 @@
     <Compile Include="TokenizingHelper.cs" />
     <Compile Include="VersionAnalyzer.cs" />
     <Compile Include="VersionDownloads.cs" />
+    <Compile Include="VersionsHandler.cs" />
     <Compile Include="WarehousePackageRanking.cs" />
   </ItemGroup>
   <ItemGroup>

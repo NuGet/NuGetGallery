@@ -1,10 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Util;
+using System.Collections.Generic;
 
 namespace NuGet.Indexing
 {
@@ -17,12 +17,14 @@ namespace NuGet.Indexing
             _bitSetLookup = bitSetLookup;
         }
 
-        public override DocIdSet GetDocIdSet(IndexReader segmentReader)
+        public override DocIdSet GetDocIdSet(IndexReader reader)
         {
-            string segmentName = ((SegmentReader)segmentReader).SegmentName;
+            SegmentReader segmentReader = reader as SegmentReader;
+
+            string readerName = (segmentReader != null) ? segmentReader.SegmentName : string.Empty;
 
             OpenBitSet docIdSet;
-            if (_bitSetLookup.TryGetValue(segmentName, out docIdSet))
+            if (_bitSetLookup.TryGetValue(readerName, out docIdSet))
             {
                 return docIdSet;
             }

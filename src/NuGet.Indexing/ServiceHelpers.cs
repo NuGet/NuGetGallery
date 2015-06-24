@@ -14,13 +14,18 @@ namespace NuGet.Indexing
     {
         public static Task WriteResponse(IOwinContext context, HttpStatusCode statusCode, JToken content)
         {
+            return WriteResponse(context, statusCode, content.ToString());
+        }
+
+        public static Task WriteResponse(IOwinContext context, HttpStatusCode statusCode, string content)
+        {
             string callback = context.Request.Query["callback"];
 
             string contentType;
             string responseString;
             if (string.IsNullOrEmpty(callback))
             {
-                responseString = content.ToString();
+                responseString = content;
                 contentType = "application/json";
             }
             else

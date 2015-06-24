@@ -54,7 +54,7 @@ namespace NuGet.Services.BasicSearch
             int seconds;
             if (!int.TryParse(searchIndexRefresh, out seconds))
             {
-                seconds = 15;
+                seconds = 120;
             }
 
             _searcherManager = CreateSearcherManager();
@@ -129,7 +129,7 @@ namespace NuGet.Services.BasicSearch
             switch (context.Request.Path.Value)
             {
                 case "/":
-                    await context.Response.WriteAsync("OK");
+                    await context.Response.WriteAsync("READY");
                     context.Response.StatusCode = (int)HttpStatusCode.OK;
                     break;
                 case "/find":
@@ -144,17 +144,15 @@ namespace NuGet.Services.BasicSearch
                 case "/search/query":
                     await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, GalleryServiceImpl.Query(context, _searcherManager));
                     break;
-                case "/targetframeworks":
-                    await ServiceInfoImpl.TargetFrameworks(context, _searcherManager.GetTargetFrameworks());
+                case "/rankings":
+                    await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceInfoImpl.Rankings(context, _searcherManager));
                     break;
-                case "/segments":
-                    await ServiceInfoImpl.Segments(context, _searcherManager.GetSegments());
-                    break;
-                case "/stats":
-                case "/search/diag":
-                    _searcherManager.MaybeReopen();
-                    await ServiceInfoImpl.Stats(context, _searcherManager);
-                    break;
+
+                //case "/stats":
+                //case "/search/diag":
+                //    _searcherManager.MaybeReopen();
+                //    await ServiceInfoImpl.Stats(context, _searcherManager);
+                //    break;
                 default:
                     await context.Response.WriteAsync("unrecognized");
                     context.Response.StatusCode = (int)HttpStatusCode.NotFound;
