@@ -144,18 +144,11 @@ function WaitForComplete()
 
 function ConfigureDiagnostics()
 {
-	# Parse out the environment name
-    if($OctopusAzureServiceName -notmatch "nuget-(?<env>[A-Za-z]+)-\d+-[A-Z0-9a-z]+")
-    {
-        throw "Azure Service Name is invalid: $OctopusAzureServiceName"
-    }
-    $environment = $matches["env"]
-
 	# Locate the diagnostics config file
-    $config = Join-Path (Split-Path $OctopusAzureConfigurationFile) "Deployment\Config\$environment\Extensions\PaasDiagnostics.NuGetGallery.PubConfig.xml"
+    $config = Join-Path (Split-Path $OctopusAzureConfigurationFile) "Extensions\PaasDiagnostics.NuGetGallery.PubConfig.xml"
     if(!(Test-Path $config))
     {
-        throw "Missing Diagnostics Config File! Expected it at: $config. Check the NuDeployCodeRoot environment variable on your Tentacle!"
+        throw "Missing Diagnostics Config File! Expected it at: $config. Is it missing from the OctopusDeploy NuGet package?"
     }
 
 	Set-AzureServiceDiagnosticsExtension -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -DiagnosticsConfigurationPath $config -Verbose
