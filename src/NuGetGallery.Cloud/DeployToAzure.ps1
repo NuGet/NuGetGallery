@@ -152,7 +152,7 @@ function ConfigureDiagnostics()
     $environment = $matches["env"]
 
 	# Locate the diagnostics config file
-    $config = Join-Path $env:NuDeployCode "Deployment\Config\$environment\Extensions\PaasDiagnostics.NuGetGallery.PubConfig.xml"
+    $config = Join-Path (Split-Path $OctopusAzureConfigurationFile) "Deployment\Config\$environment\Extensions\PaasDiagnostics.NuGetGallery.PubConfig.xml"
     if(!(Test-Path $config))
     {
         throw "Missing Diagnostics Config File! Expected it at: $config. Check the NuDeployCodeRoot environment variable on your Tentacle!"
