@@ -1,10 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace NuGetGallery
+namespace NuGetGallery.OData.QueryInterceptors
 {
     public class CountInterceptor : ExpressionVisitor
     {
@@ -18,6 +19,7 @@ namespace NuGetGallery
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             var method = node.Method;
+
             if ((method.DeclaringType == typeof(Queryable)) && method.Name.Equals("LongCount", StringComparison.Ordinal))
             {
                 return Expression.Constant(_count);

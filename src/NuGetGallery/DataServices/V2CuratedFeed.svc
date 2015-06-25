@@ -1,1 +1,0 @@
-﻿<%@ ServiceHost Language="C#" Debug="true" Service="NuGetGallery.V2Feed" CodeBehind="V2CuratedFeed.svc.cs" %>

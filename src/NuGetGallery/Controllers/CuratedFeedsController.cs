@@ -4,6 +4,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGet;
+using NuGetGallery;
+using NuGetGallery.OData;
 
 namespace NuGetGallery
 {

@@ -7,6 +7,7 @@ using System.Web;
 using Ninject;
 using Ninject.Modules;
 using Ninject.Web.Common;
+using Ninject.Web.WebApi;
 using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
 

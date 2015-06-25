@@ -1,14 +1,20 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Http.OData;
+using System.Web.Http.OData.Query;
+using Microsoft.Data.Edm;
 using Moq;
 using NuGetGallery.Configuration;
+using NuGetGallery.Controllers;
+using NuGetGallery.OData;
 using Xunit;
-using Xunit.Extensions;
 
 namespace NuGetGallery
 {
@@ -24,11 +30,11 @@ namespace NuGetGallery
                 // Arrange
                 var config = new Mock<ConfigurationService>();
                 config.Setup(s => s.GetSiteRoot(false)).Returns(siteRoot);
-                var feed = new V2Feed(entities: null, repo: null, configuration: config.Object, searchService: null);
-                feed.HttpContext = GetContext();
+                var feed = new TestableV1Feed(null, config.Object, null);
+                feed.Request = new HttpRequestMessage(HttpMethod.Get, siteRoot);
 
                 // Act
-                var actual = feed.SiteRoot;
+                var actual = feed.GetSiteRootForTest();
 
                 // Assert
                 Assert.Equal(expected, actual);
@@ -40,11 +46,11 @@ namespace NuGetGallery
                 // Arrange
                 var config = new Mock<ConfigurationService>();
                 config.Setup(s => s.GetSiteRoot(true)).Returns("https://nuget.org").Verifiable();
-                var feed = new V2Feed(entities: null, repo: null, configuration: config.Object, searchService: null);
-                feed.HttpContext = GetContext(isSecure: true);
+                var feed = new TestableV2Feed(null, config.Object, null);
+                feed.Request = new HttpRequestMessage(HttpMethod.Get, "https://nuget.org");
 
                 // Act
-                var actual = feed.SiteRoot;
+                var actual = feed.GetSiteRootForTest();
 
                 // Assert
                 Assert.Equal("https://nuget.org/", actual);
@@ -57,7 +63,7 @@ namespace NuGetGallery
             public class TheSearchMethod
             {
                 [Fact]
-                public void V1FeedSearchDoesNotReturnPrereleasePackages()
+                public async Task V1FeedSearchDoesNotReturnPrereleasePackages()
                 {
                     // Arrange
                     var packageRegistration = new PackageRegistration { Id = "Foo" };
@@ -89,9 +95,10 @@ namespace NuGetGallery
                         <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
                     var v1Service = new TestableV1Feed(repo.Object, configuration.Object, searchService.Object);
+                    v1Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
-                    var result = v1Service.Search(null, null);
+                    var result = await v1Service.Search(new ODataQueryOptions<V1FeedPackage>(new ODataQueryContext(NuGetODataV1FeedConfig.GetEdmModel(), typeof(V1FeedPackage)), v1Service.Request), null, null);
 
                     // Assert
                     Assert.Equal(1, result.Count());
@@ -104,7 +111,7 @@ namespace NuGetGallery
             public class TheFindPackagesByIdMethod
             {
                 [Fact]
-                public void V1FeedFindPackagesByIdReturnsUnlistedPackagesButNotPrereleasePackages()
+                public async Task V1FeedFindPackagesByIdReturnsUnlistedPackagesButNotPrereleasePackages()
                 {
                     // Arrange
                     var packageRegistration = new PackageRegistration { Id = "Foo" };
@@ -131,10 +138,13 @@ namespace NuGetGallery
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features.PackageRestoreViaSearch).Returns(false);
+
                     var v1Service = new TestableV1Feed(repo.Object, configuration.Object, null);
+                    v1Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
-                    var result = v1Service.FindPackagesById("Foo");
+                    var result = (await v1Service.FindPackagesById("Foo")).AsContent<IQueryable<V1FeedPackage>>();
 
                     // Assert
                     Assert.Equal(1, result.Count());
@@ -150,7 +160,7 @@ namespace NuGetGallery
             public class TheFindPackagesByIdMethod
             {
                 [Fact]
-                public void V2FeedFindPackagesByIdReturnsUnlistedAndPrereleasePackages()
+                public async Task V2FeedFindPackagesByIdReturnsUnlistedAndPrereleasePackages()
                 {
                     // Arrange
                     var packageRegistration = new PackageRegistration { Id = "Foo" };
@@ -191,9 +201,10 @@ namespace NuGetGallery
                         <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
-                    var result = v2Service.FindPackagesById("Foo");
+                    var result = (await v2Service.FindPackagesById("Foo")).AsContent<IQueryable<V2FeedPackage>>();
 
                     // Assert
                     Assert.Equal(2, result.Count());
@@ -249,9 +260,10 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
                     var result = v2Service.GetUpdates("Foo|Qux", "1.0.0|abcd", includePrerelease: false, includeAllVersions: false, targetFrameworks: null, versionConstraints: null)
@@ -279,9 +291,10 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
                     var result = v2Service.GetUpdates("Foo|Qux", "1.0.0|0.9", includePrerelease: false, includeAllVersions: true, targetFrameworks: null, versionConstraints: null)
@@ -353,9 +366,10 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
                     var result = v2Service.GetUpdates(
@@ -391,9 +405,10 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
                     var result = v2Service.GetUpdates(
@@ -430,9 +445,10 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
                     var result = v2Service.GetUpdates(
@@ -468,9 +484,10 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
                     var result = v2Service.GetUpdates(
@@ -501,9 +518,10 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
                     var result = v2Service.GetUpdates(
@@ -539,9 +557,10 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
                     var result = v2Service.GetUpdates(
@@ -576,9 +595,10 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
                     var result = v2Service.GetUpdates(
@@ -614,9 +634,10 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
                     var result =
@@ -680,10 +701,11 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
                     var result = v2Service.GetUpdates("Foo|Qux", "1.0|1.5", includePrerelease: false, includeAllVersions: true, targetFrameworks: "net40", versionConstraints: null)
@@ -748,9 +770,10 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
-                    configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
                     var result = v2Service.GetUpdates("Foo|Qux", "1.0|1.5", includePrerelease: true, includeAllVersions: false, targetFrameworks: "net40", versionConstraints: null)
@@ -780,35 +803,45 @@ namespace NuGetGallery
             Assert.Equal(expected.Version, package.Version);
         }
 
-        public class TestableV1Feed : V1Feed
+        public class TestableV1Feed : ODataV1FeedController
         {
             public TestableV1Feed(
                 IEntityRepository<Package> repo,
                 ConfigurationService configuration,
                 ISearchService searchService)
-                : base(new Mock<IEntitiesContext>().Object, repo, configuration, searchService)
+                : base(repo, configuration, searchService)
             {
             }
 
-            protected internal override HttpContextBase HttpContext
+            protected override HttpContextBase GetTraditionalHttpContext()
             {
-                get { return GetContext(); }
+                return GetContext();
+            }
+
+            public string GetSiteRootForTest()
+            {
+                return GetSiteRoot();
             }
         }
 
-        public class TestableV2Feed : V2Feed
+        public class TestableV2Feed : ODataV2FeedController
         {
             public TestableV2Feed(
                 IEntityRepository<Package> repo,
                 ConfigurationService configuration,
                 ISearchService searchService)
-                : base(new Mock<IEntitiesContext>().Object, repo, configuration, searchService)
+                : base(repo, configuration, searchService)
             {
             }
 
-            protected internal override HttpContextBase HttpContext
+            protected override HttpContextBase GetTraditionalHttpContext()
             {
-                get { return GetContext(); }
+                return GetContext();
+            }
+
+            public string GetSiteRootForTest()
+            {
+                return GetSiteRoot();
             }
         }
     }

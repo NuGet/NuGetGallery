@@ -4,9 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using NuGetGallery.OData.QueryInterceptors;
 using Xunit;
 
-namespace NuGetGallery.DataServices
+namespace NuGetGallery.OData.Interceptors
 {
     public class NormalizeVersionInterceptorFacts
     {
