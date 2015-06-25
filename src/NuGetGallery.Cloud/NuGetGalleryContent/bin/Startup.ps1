@@ -16,6 +16,9 @@ if(!(Test-Path $appcmd)) {
 &$appcmd set config -section:system.webServer/httpCompression /+"dynamicTypes.[mimeType='application/xml',enabled='True']" /commit:apphost
 &$appcmd set config -section:system.webServer/httpCompression /+"dynamicTypes.[mimeType='application/atom%u002bxml; charset=utf-8',enabled='True']" /commit:apphost
 &$appcmd set config -section:system.webServer/httpCompression /+"dynamicTypes.[mimeType='application/atom%u002bxml',enabled='True']" /commit:apphost
+&$appcmd set config -section:system.webServer/httpCompression /+"dynamicTypes.[mimeType='application/atom%u002bxml; type=feed; charset=utf-8',enabled='True']" /commit:apphost
+&$appcmd set config -section:system.webServer/httpCompression /+"dynamicTypes.[mimeType='application/atom%u002bxml; type=feed',enabled='True']" /commit:apphost
+
 
 # Customize Logging
 &$appcmd set config -section:system.applicationHost/sites /siteDefaults.logFile.enabled:"True" /commit:apphost

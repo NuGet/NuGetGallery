@@ -61,18 +61,6 @@ namespace NuGetGallery
             return output;
         }
 
-        public static void MapServiceRoute(
-            this RouteCollection routes,
-            string routeName,
-            string routeUrl,
-            Type serviceType)
-        {
-            var serviceRoute = new ServiceRoute(routeUrl, new DataServiceHostFactory(), serviceType);
-            serviceRoute.Defaults = new RouteValueDictionary { { "serviceType", "odata" } };
-            serviceRoute.Constraints = new RouteValueDictionary { { "serviceType", "odata" } };
-            routes.Add(routeName, serviceRoute);
-        }
-
         public static string ToStringOrNull(this object obj)
         {
             if (obj == null)

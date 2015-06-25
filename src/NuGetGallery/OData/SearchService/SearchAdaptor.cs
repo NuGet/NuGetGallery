@@ -1,17 +1,22 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Services.Providers;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Http.OData.Query;
+using System.Web.Routing;
 using NuGet.Services.Search.Models;
+using NuGetGallery.OData.QueryInterceptors;
 using QueryInterceptor;
 
-namespace NuGetGallery
+namespace NuGetGallery.OData
 {
     public static class SearchAdaptor
     {
@@ -52,15 +57,14 @@ namespace NuGetGallery
         {
             var result = await searchService.Search(searchFilter);
 
-            // For count queries, we can ask the SearchService to not filter the source results. This would avoid hitting the database and consequently make
-            // it very fast.
+            // For count queries, we can ask the SearchService to not filter the source results. This would avoid hitting the database and consequently make it very fast.
             if (searchFilter.CountOnly)
             {
                 // At this point, we already know what the total count is. We can have it return this value very quickly without doing any SQL.
                 return result.Data.InterceptWith(new CountInterceptor(result.Hits));
             }
 
-            // For relevance search, Lucene returns us a paged\sorted list. OData tries to apply default ordering and Take \ Skip on top of this.
+            // For relevance search, Lucene returns us a paged/sorted list. OData tries to apply default ordering and Take / Skip on top of this.
             // It also tries to filter to latest versions, but the search service already did that!
             // We avoid it by yanking these expressions out of out the tree.
             return result.Data.InterceptWith(new DisregardODataInterceptor());
@@ -134,20 +138,13 @@ namespace NuGetGallery
                 return false;
             }
 
+            string path = string.Empty;
+            string query = string.Empty;
             int indexOfQuestionMark = url.IndexOf('?');
-            if (indexOfQuestionMark == -1)
+            if (indexOfQuestionMark > -1)
             {
-                searchFilter = null;
-                return false;
-            }
-
-            string path = url.Substring(0, indexOfQuestionMark);
-            string query = url.Substring(indexOfQuestionMark + 1);
-
-            if (string.IsNullOrEmpty(query))
-            {
-                searchFilter = null;
-                return false;
+                path = url.Substring(0, indexOfQuestionMark);
+                query = url.Substring(indexOfQuestionMark + 1);
             }
 
             searchFilter = new SearchFilter(SearchFilter.ODataSearchContext)
@@ -173,9 +170,7 @@ namespace NuGetGallery
                 }
             }
 
-            // We'll only use the index if we the query searches for latest \ latest-stable packages
-
-            
+            // We'll only use the index if we the query searches for latest / latest-stable packages
             string filter;
             if (queryTerms.TryGetValue("$filter", out filter))
             {
@@ -281,6 +276,85 @@ namespace NuGetGallery
                 return new SearchAdaptorDataServicePagingProvider<TPackage>(searchFilter.Skip);
             }
             return null;
+        }
+
+        public static Uri GetNextLink<TPackage>(Uri currentRequestUri, IQueryable<TPackage> query, object queryParameters, ODataQueryOptions options, ODataQuerySettings settings, bool generateSkipToken)
+        {
+            var materializedQuery = query.ToList();
+            if (materializedQuery.Count != MaxPageSize)
+            {
+                return null; // no need for a next link if there are no additional results
+            }
+
+            var lastElement = materializedQuery.LastOrDefault();
+            var packageType = typeof(TPackage);
+            var packageId = packageType.GetProperty("Id").GetValue(lastElement).ToString();
+            var packageVersion = packageType.GetProperty("Version").GetValue(lastElement).ToString();
+
+            var skipCount = (options.Skip != null ? options.Skip.Value : 0) + Math.Min(materializedQuery.Count, (settings.PageSize != null ? settings.PageSize.Value : SearchAdaptor.MaxPageSize));
+
+            var queryBuilder = new StringBuilder();
+            
+            var queryParametersCollection = new RouteValueDictionary(queryParameters);
+            foreach (var queryParameter in queryParametersCollection)
+            {
+                queryBuilder.Append(Uri.EscapeDataString(queryParameter.Key));
+                queryBuilder.Append("=");
+                if (queryParameter.Value != null)
+                {
+                    if (queryParameter.Value is string)
+                    {
+                        queryBuilder.Append(Uri.EscapeDataString("'" + queryParameter.Value + "'"));
+                    }
+                    else if (queryParameter.Value is bool)
+                    {
+                        queryBuilder.Append(queryParameter.Value.ToString().ToLowerInvariant());
+                    }
+                    else
+                    {
+                        queryBuilder.Append(queryParameter.Value.ToString().ToLowerInvariant());
+                    }
+                }
+                queryBuilder.Append("&");
+            }
+
+            if (options.Filter != null)
+            {
+                queryBuilder.Append("$filter=");
+                queryBuilder.Append(options.Filter.RawValue);
+                queryBuilder.Append("&");
+            }
+
+            if (options.OrderBy != null)
+            {
+                queryBuilder.Append("$orderby=");
+                queryBuilder.Append(options.OrderBy.RawValue);
+                queryBuilder.Append("&");
+            }
+
+            if (skipCount > 0)
+            {
+                queryBuilder.Append("$skip=");
+                queryBuilder.Append(skipCount);
+                queryBuilder.Append("&");
+            }
+
+            if (options.Top != null)
+            {
+                queryBuilder.Append("$top=");
+                queryBuilder.Append(options.Top.RawValue);
+                queryBuilder.Append("&");
+            }
+
+            var queryString = queryBuilder.ToString().TrimEnd('&');
+            if (generateSkipToken)
+            {
+                queryString += string.Format(CultureInfo.CurrentCulture, "&$skiptoken='{0}','{1}',{2}", packageId, packageVersion, skipCount);
+            }
+
+            var builder = new UriBuilder(currentRequestUri);
+            builder.Query = queryString;
+            return builder.Uri;
         }
 
         public class SearchAdaptorDataServicePagingProvider<TPackage> : IDataServicePagingProvider

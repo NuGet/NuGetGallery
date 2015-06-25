@@ -7,12 +7,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Claims;
 using System.Web.Helpers;
+using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.UI;
 using Elmah;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
@@ -174,13 +174,15 @@ namespace NuGetGallery
         private static void AppPostStart(IAppConfiguration configuration)
         {
             Routes.RegisterRoutes(RouteTable.Routes, configuration.FeedOnlyMode);
-            Routes.RegisterServiceRoutes(RouteTable.Routes);
             AreaRegistration.RegisterAllAreas();
 
             GlobalFilters.Filters.Add(new SendErrorsToTelemetryAttribute { View = "~/Views/Errors/InternalError.cshtml" });
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new AntiForgeryErrorFilter());
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
+
+            WebApiConfig.Register(GlobalConfiguration.Configuration);
+            NuGetODataConfig.Register(GlobalConfiguration.Configuration);
         }
 
         private static void BackgroundJobsPostStart(IAppConfiguration configuration)

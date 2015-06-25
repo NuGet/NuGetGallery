@@ -18,6 +18,7 @@ using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
+using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using PoliteCaptcha;
 
