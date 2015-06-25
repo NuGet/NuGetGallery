@@ -62,6 +62,7 @@
     <Imports>
       <Import moduleName="RemoteAccess" />
       <Import moduleName="RemoteForwarder" />
+      <Import moduleName="Diagnostics" />
     </Imports>
     <Certificates>
       <Certificate name="SSLCertificate" storeLocation="LocalMachine" storeName="My" />

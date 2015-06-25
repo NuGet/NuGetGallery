@@ -142,5 +142,26 @@ function WaitForComplete()
     Write-Host "Deployment complete; Deployment ID: $completeDeploymentID"
 }
 
+function ConfigureDiagnostics([string]$roleName)
+{
+	# Locate the diagnostics config file
+    $config = Join-Path (Split-Path $OctopusAzureConfigurationFile) "Extensions\PaasDiagnostics.$roleName.PubConfig.xml"
+    if(!(Test-Path $config))
+    {
+        throw "Missing Diagnostics Config File! Expected it at: $config. Is it missing from the OctopusDeploy NuGet package?"
+    }
+
+	$xml = [xml](cat $OctopusAzureConfigurationFile)
+	$roleXml = $xml.ServiceConfiguration.Role | where {$_.name -eq $roleName} | select -First 1
+	$diagnosticsConfigurationSetting = $roleXml.ConfigurationSettings.Setting | where {$_.name -eq "Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString"} | select -First 1
+
+	$storageContext = New-AzureStorageContext -ConnectionString $diagnosticsConfigurationSetting.value
+
+	Write-Host "Configuring diagnostics for '$OctopusAzureServiceName' (role: $roleName, slot: $OctopusAzureSlot)..."
+	Set-AzureServiceDiagnosticsExtension -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -DiagnosticsConfigurationPath $config -StorageContext $storageContext -Verbose
+	Write-Host "Configured diagnostics for role $roleName."
+}
+
 CreateOrUpdate
 WaitForComplete
+ConfigureDiagnostics -RoleName "NuGetGallery"

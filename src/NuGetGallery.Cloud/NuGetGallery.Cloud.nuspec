@@ -17,5 +17,6 @@
     <file src="DeployToAzure.ps1" />
     <file src="bin\$configuration$\app.publish\NuGetGallery.Cloud.cspkg" />
     <file src="bin\$configuration$\app.publish\ServiceConfiguration.Cloud.cscfg" />
+    <file src="bin\$configuration$\app.publish\Extensions\PaaSDiagnostics.NuGetGallery.PubConfig.xml" target="Extensions"/>
   </files>
 </package>
