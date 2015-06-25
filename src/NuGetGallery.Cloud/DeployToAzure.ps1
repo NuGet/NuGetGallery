@@ -142,7 +142,7 @@ function WaitForComplete()
     Write-Host "Deployment complete; Deployment ID: $completeDeploymentID"
 }
 
-function ConfigureDiagnosticsForNuGetGallery([string]$roleName)
+function ConfigureDiagnostics([string]$roleName)
 {
 	# Locate the diagnostics config file
     $config = Join-Path (Split-Path $OctopusAzureConfigurationFile) "Extensions\PaasDiagnostics.$roleName.PubConfig.xml"
