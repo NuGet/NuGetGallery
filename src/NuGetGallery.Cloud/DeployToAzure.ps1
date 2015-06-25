@@ -154,6 +154,26 @@ function ConfigureDiagnostics()
 	Set-AzureServiceDiagnosticsExtension -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -DiagnosticsConfigurationPath $config -Verbose
 }
 
+function PatchAzureCmdletVersion()
+{
+    Write-Host "Remove previous Windows Azure modules from $OctopusAzureModulePath"
+    Remove-Module azure
+
+    $OctopusAzureModulePath = "C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ServiceManagement\Azure\Azure.psd1"
+
+    Write-Host "Import Windows Azure modules from $OctopusAzureModulePath"
+
+    Import-Module $OctopusAzureModulePath
+
+    Add-Type -AssemblyName "System"
+    $certificate = new-object System.Security.Cryptography.X509Certificates.X509Certificate2 -ArgumentList @($OctopusAzureCertificateFileName, $OctopusAzureCertificatePassword)
+
+    Write-Host "Resetting up the Azure subscription"
+    Set-AzureSubscription -CurrentStorageAccount $OctopusAzureStorageAccountName -SubscriptionName $OctopusAzureSubscriptionName -SubscriptionId $OctopusAzureSubscriptionId -Certificate $certificate
+    Select-AzureSubscription -SubscriptionName $OctopusAzureSubscriptionName
+}
+
+PatchAzureCmdletVersion
 CreateOrUpdate
 WaitForComplete
 ConfigureDiagnostics
