@@ -142,5 +142,18 @@ function WaitForComplete()
     Write-Host "Deployment complete; Deployment ID: $completeDeploymentID"
 }
 
+function ConfigureDiagnostics()
+{
+	 # Locate the diagnostics config file
+    $config = Join-Path $env:NuDeployCode "Deployment\Config\$environment\Extensions\PaasDiagnostics.$OctopusAzureServiceName.PubConfig.xml"
+    if(!(Test-Path $config))
+    {
+        throw "Missing Diagnostics Config File! Expected it at: $config. Check the NuDeployCodeRoot environment variable on your Tentacle!"
+    }
+
+	Set-AzureServiceDiagnosticsExtension -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -DiagnosticsConfigurationPath $config -Verbose
+}
+
 CreateOrUpdate
 WaitForComplete
+ConfigureDiagnostics
