@@ -144,7 +144,14 @@ function WaitForComplete()
 
 function ConfigureDiagnostics()
 {
-	 # Locate the diagnostics config file
+	# Parse out the environment name
+    if($OctopusAzureServiceName -notmatch "nuget-(?<env>[A-Za-z]+)-\d+-[A-Z0-9a-z]+")
+    {
+        throw "Azure Service Name is invalid: $OctopusAzureServiceName"
+    }
+    $environment = $matches["env"]
+
+	# Locate the diagnostics config file
     $config = Join-Path $env:NuDeployCode "Deployment\Config\$environment\Extensions\PaasDiagnostics.NuGetGallery.PubConfig.xml"
     if(!(Test-Path $config))
     {
