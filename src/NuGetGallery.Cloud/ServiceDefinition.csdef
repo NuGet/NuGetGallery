@@ -10,6 +10,7 @@
       <Setting name="Gallery.Environment" />
       <Setting name="Gallery.RequireSSL" />
       <Setting name="Gallery.AzureStorageConnectionString" />
+      <Setting name="Gallery.AzureStorageReadAccessGeoRedundant" />
       <Setting name="Gallery.SqlServer" />
       <Setting name="Gallery.ConfirmEmailAddress" />
       <Setting name="Gallery.ReadOnlyMode" />
