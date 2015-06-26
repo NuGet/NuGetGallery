@@ -39,6 +39,11 @@ namespace NuGetGallery.Configuration
         string AzureStorageConnectionString { get; set; }
 
         /// <summary>
+        /// Gets a setting if Read Access Geo Redundant is enabled in azure storage
+        /// </summary>
+        bool AzureStorageReadAccessGeoRedundant { get; set; }
+
+        /// <summary>
         /// Gets the URI to the search service
         /// </summary>
         Uri ServiceDiscoveryUri { get; set; }

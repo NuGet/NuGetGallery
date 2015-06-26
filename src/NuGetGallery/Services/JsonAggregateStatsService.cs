@@ -4,6 +4,7 @@
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Newtonsoft.Json;
 
 namespace NuGetGallery
@@ -11,16 +12,24 @@ namespace NuGetGallery
     public class JsonAggregateStatsService : IAggregateStatsService
     {
         private readonly string _connectionString;
+        private readonly bool _readAccessGeoRedundant;
 
-        public JsonAggregateStatsService(string connectionString)
+        public JsonAggregateStatsService(string connectionString, bool readAccessGeoRedundant)
         {
             _connectionString = connectionString;
+            _readAccessGeoRedundant = readAccessGeoRedundant;
         }
 
         public async Task<AggregateStats> GetAggregateStats()
         {
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(_connectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+            if (_readAccessGeoRedundant)
+            {
+                blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
+            }
+
             CloudBlobContainer container = blobClient.GetContainerReference("v3-stats0");
             CloudBlockBlob blob = container.GetBlockBlobReference("totals.json");
 

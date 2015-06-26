@@ -261,7 +261,7 @@ namespace NuGetGallery
         private void ConfigureForAzureStorage(ConfigurationService configuration)
         {
             Bind<ICloudBlobClient>()
-                .ToMethod(_ => new CloudBlobClientWrapper(configuration.Current.AzureStorageConnectionString))
+                .ToMethod(_ => new CloudBlobClientWrapper(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .InSingletonScope();
             Bind<IFileStorageService>()
                 .To<CloudBlobFileStorageService>()
@@ -269,12 +269,12 @@ namespace NuGetGallery
 
             // when running on Windows Azure, we use a back-end job to calculate stats totals and store in the blobs
             Bind<IAggregateStatsService>()
-                .ToMethod(_ => new JsonAggregateStatsService(configuration.Current.AzureStorageConnectionString))
+                .ToMethod(_ => new JsonAggregateStatsService(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .InSingletonScope();
 
             // when running on Windows Azure, pull the statistics from the warehouse via storage
             Bind<IReportService>()
-                .ToMethod(_ => new CloudReportService(configuration.Current.AzureStorageConnectionString))
+                .ToMethod(_ => new CloudReportService(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .InSingletonScope();
 
             Bind<IStatisticsService>()
