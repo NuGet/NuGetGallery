@@ -158,7 +158,7 @@ function ConfigureDiagnostics([string]$roleName)
 	$storageContext = New-AzureStorageContext -ConnectionString $diagnosticsConfigurationSetting.value
 
 	Write-Host "Configuring diagnostics for '$OctopusAzureServiceName' (role: $roleName, slot: $OctopusAzureSlot)..."
-	Set-AzureServiceDiagnosticsExtension -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -DiagnosticsConfigurationPath $config -StorageContext $storageContext -Verbose
+	Set-AzureServiceDiagnosticsExtension -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -DiagnosticsConfigurationPath $config -StorageContext $storageContext -Role $roleName -Verbose
 	Write-Host "Configured diagnostics for role $roleName."
 }
 

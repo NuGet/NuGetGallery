@@ -92,6 +92,7 @@ namespace NuGetGallery
             return RedirectToAction("Account");
         }
 
+        [Authorize]
         public virtual ActionResult Thanks()
         {
             // No need to redirect here after someone logs in...
