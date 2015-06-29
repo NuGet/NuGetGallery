@@ -1,18 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Web;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
-using System.Threading.Tasks;
-using System.Security.Claims;
-using System.Text.RegularExpressions;
-using System.Diagnostics;
-using NuGetGallery.Infrastructure;
-using System.Net.Mail;
 
 namespace NuGetGallery
 {
@@ -288,11 +285,7 @@ namespace NuGetGallery
 
         private ActionResult LogOnView()
         {
-            return LogOnView(new LogOnViewModel()
-            {
-                SignIn = new SignInViewModel(),
-                Register = new RegisterViewModel()
-            });
+            return LogOnView(new LogOnViewModel());
         }
 
         private ActionResult ExternalLinkExpired()

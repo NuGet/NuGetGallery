@@ -1,17 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
+
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Security.Claims;
 using System.Text.RegularExpressions;
-using System.Web;
 using NuGetGallery.Authentication.Providers;
 
 namespace NuGetGallery
 {
-    // I moved these in to one file because they are so interconnected it didn't 
+    // I moved these in to one file because they are so interconnected it didn't
     // make sense to look at them separately
     //  - anurse
 
@@ -22,11 +19,15 @@ namespace NuGetGallery
         public RegisterViewModel Register { get; set; }
         public IList<AuthenticationProviderViewModel> Providers { get; set; }
 
-        public LogOnViewModel() { }
+        public LogOnViewModel()
+            : this(new SignInViewModel())
+        {
+        }
 
         public LogOnViewModel(SignInViewModel signIn)
         {
             SignIn = signIn;
+            Register = new RegisterViewModel();
         }
     }
 
@@ -60,7 +61,7 @@ namespace NuGetGallery
     public class RegisterViewModel
     {
         // Note: regexes must be tested to work in javascript
-        // We do NOT follow strictly the RFCs at this time, and we choose not to support many obscure email address variants. 
+        // We do NOT follow strictly the RFCs at this time, and we choose not to support many obscure email address variants.
         // Specifically the following are not supported by-design:
         //  * Addresses containing () or []
         //  * Second parts with no dots (i.e. foo@localhost or foo@com)
