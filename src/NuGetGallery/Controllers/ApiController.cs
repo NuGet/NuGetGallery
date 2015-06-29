@@ -306,7 +306,7 @@ namespace NuGetGallery
 
             using (var packageToPush = ReadPackageFromRequest())
             {
-                if (packageToPush.Metadata.MinClientVersion > typeof(Manifest).Assembly.GetName().Version)
+                if (packageToPush.Metadata.MinClientVersion > new Version("3.0.0.0"))
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, String.Format(
                         CultureInfo.CurrentCulture,
