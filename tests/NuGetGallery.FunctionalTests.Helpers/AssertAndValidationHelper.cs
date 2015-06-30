@@ -168,7 +168,8 @@ namespace NuGetGallery.FunctionalTests.Helpers
             {
                 packageId = DateTime.Now.Ticks.ToString();
             }
-            string packageFullPath = await PackageCreationHelper.CreatePackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
+
+            var packageFullPath = await PackageCreationHelper.CreatePackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
             CmdLineHelper.ProcessResult processResult = await CmdLineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
 
             Assert.IsTrue(processResult.ExitCode == 0, "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " + processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
