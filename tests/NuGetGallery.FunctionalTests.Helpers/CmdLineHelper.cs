@@ -112,10 +112,15 @@ namespace NuGetGallery.FunctionTests.Helpers
             var standardError = await nugetProcess.StandardError.ReadToEndAsync();
             var standardOutput = await nugetProcess.StandardOutput.ReadToEndAsync();
 
-            Console.WriteLine(standardError);
+
             Console.WriteLine(standardOutput);
 
-            nugetProcess.WaitForExit();
+            if (!string.IsNullOrEmpty(standardError))
+            {
+                Console.WriteLine(standardError);
+            }
+
+            nugetProcess.WaitForExit(timeout * 1000);
 
             var processResult = new ProcessResult(nugetProcess.ExitCode, standardError);
             return processResult;
