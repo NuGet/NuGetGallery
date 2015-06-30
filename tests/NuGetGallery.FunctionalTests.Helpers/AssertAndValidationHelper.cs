@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -169,13 +172,15 @@ namespace NuGetGallery.FunctionalTests.Helpers
                 packageId = DateTime.Now.Ticks.ToString();
             }
 
+            Console.WriteLine("Uploading new package '{0}', version '{1}'", packageId, version);
+
             var packageFullPath = await PackageCreationHelper.CreatePackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
-            CmdLineHelper.ProcessResult processResult = await CmdLineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
+            var processResult = await CmdLineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
 
             Assert.IsTrue(processResult.ExitCode == 0, "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " + processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
             Assert.IsTrue(ClientSDKHelper.CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl), "Package {0} with version {1} is not found in the site {2} after uploading.", packageId, version, UrlHelper.V2FeedRootUrl);
 
-            //Delete package from local disk so once it gets uploaded
+            // Delete package from local disk so once it gets uploaded
             if (File.Exists(packageFullPath))
             {
                 File.Delete(packageFullPath);
