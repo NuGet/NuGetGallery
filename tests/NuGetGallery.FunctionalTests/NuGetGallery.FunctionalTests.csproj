@@ -46,9 +46,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Elmah">
-      <HintPath>..\..\src\NuGetGallery\bin\Elmah.dll</HintPath>
-    </Reference>
     <Reference Include="FluentLinkChecker">
       <HintPath>..\..\packages\FluentLinkChecker.1.0.0.10\lib\net40\FluentLinkChecker.dll</HintPath>
     </Reference>
