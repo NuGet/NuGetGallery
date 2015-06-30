@@ -1,23 +1,33 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace NuGetGallery.FunctionalTests.Fluent
+using System.ComponentModel;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace NuGetGallery.FunctionalTests.Fluent.PackageManagement
 {
-    [TestClass]
+
     public class PackageManagementTest : NuGetFluentTest
     {
-        [TestMethod]
+        public PackageManagementTest(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        {
+        }
+
+        [Fact]
         [Description("Verify basic package management scenarios.")]
         [Priority(2)]
-        public void PackageManagement()
+        public async Task PackageManagement()
         {
             string packageName = "NuGetGallery.FunctionalTests.Fluent.PackageManagementTest";
 
             if (CheckForPackageExistence)
             {
-                UploadPackageIfNecessary(packageName, "1.0.0");
-                UploadPackageIfNecessary(packageName, "2.0.0");
-                UploadPackageIfNecessary(packageName, "3.0.0-rc");
+                await UploadPackageIfNecessary(packageName, "1.0.0");
+                await UploadPackageIfNecessary(packageName, "2.0.0");
+                await UploadPackageIfNecessary(packageName, "3.0.0-rc");
             }
 
             I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);

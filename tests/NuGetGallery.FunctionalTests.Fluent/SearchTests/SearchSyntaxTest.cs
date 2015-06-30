@@ -1,17 +1,26 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace NuGetGallery.FunctionalTests.Fluent
+using System.ComponentModel;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace NuGetGallery.FunctionalTests.Fluent.SearchTests
 {
-    [TestClass]
     public class SearchSyntaxTest : NuGetFluentTest
     {
-        [TestMethod]
+        public SearchSyntaxTest(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        {
+        }
+
+        [Fact]
         [Description("Provide sanity testing of Nuget site search syntax.")]
         [Priority(2)]
-        public void SearchSyntax()
+        public async Task SearchSyntax()
         {
-            // These words are obscure and unlikely to be used by another package.  
+            // These words are obscure and unlikely to be used by another package.
             // Change them if this is no longer the case.
             string word1 = "versichern";
             string word2 = "vraisemblance";
@@ -32,8 +41,8 @@ namespace NuGetGallery.FunctionalTests.Fluent
             string tags2 = word3;
             string description2 = word4 + " " + word7 + " " + word2;
 
-            UploadPackageIfNecessary(packageName1, "1.0.0", null, title1, tags1, description1);
-            UploadPackageIfNecessary(packageName2, "1.0.0", null, title2, tags2, description2);
+            await UploadPackageIfNecessary(packageName1, "1.0.0", null, title1, tags1, description1);
+            await UploadPackageIfNecessary(packageName2, "1.0.0", null, title2, tags2, description2);
 
             // Go to the front page.
             I.Open(UrlHelper.BaseUrl);

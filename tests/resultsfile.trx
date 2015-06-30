@@ -1,0 +1,252 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<TestRun id="68006bca-1891-4be9-9832-433106042c1f" name="TestResults" runUser="CODEMINION\Xavier" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+    <Description>These are default test settings for a local test run.</Description>
+    <Deployment userDeploymentRoot="C:\src\NuGetGallery\tests" useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults">
+      <DeploymentItem filename="NuGet.exe" />
+    </Deployment>
+    <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+    <Execution>
+      <Timeouts runTimeout="1800000" testTimeout="900000" />
+      <TestTypeSpecific>
+        <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+          <AssemblyResolution>
+            <TestDirectory useLoadContext="true" />
+          </AssemblyResolution>
+        </UnitTestRunConfig>
+        <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+          <Browser name="Internet Explorer 9.0" MaxConnections="6">
+            <Headers>
+              <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+              <Header name="Accept" value="*/*" />
+              <Header name="Accept-Language" value="{{$IEAcceptLanguage}}" />
+              <Header name="Accept-Encoding" value="GZIP" />
+            </Headers>
+          </Browser>
+        </WebTestRunConfiguration>
+      </TestTypeSpecific>
+      <AgentRule name="LocalMachineDefaultRole">
+      </AgentRule>
+    </Execution>
+    <Properties />
+  </TestSettings>
+  <Times creation="2015-07-01T13:17:09.1765760+02:00" queuing="2015-07-01T13:17:09.4667932+02:00" start="2015-07-01T13:17:09.5538550+02:00" finish="2015-07-01T13:17:23.7431366+02:00" />
+  <ResultSummary outcome="Completed">
+    <Counters total="5" executed="5" passed="5" error="0" failed="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+  </ResultSummary>
+  <TestDefinitions>
+    <CodedWebTest name="AccountManagementInReadOnlyModeTest" storage="nugetgallery.webuitests.readonlymode\bin\release\nugetgallery.webuitests.readonlymode.dll" id="ab7c2964-cb27-cf0d-fff7-a7dbe52a0fd1">
+      <Execution id="47b984a8-42d0-499c-9cab-17fe61c11fd9" />
+      <WebTestClass assembly="NuGetGallery.WebUITests.ReadOnlyMode, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests.WebUITests.ReadOnlyMode" class="AccountManagementInReadOnlyModeTest" />
+    </CodedWebTest>
+    <CodedWebTest name="UploadPackageFromUIInReadOnlyMode" storage="nugetgallery.webuitests.readonlymode\bin\release\nugetgallery.webuitests.readonlymode.dll" id="5aa0bc29-1c37-f64e-6f5d-b8a1493b446e">
+      <Execution id="8fd64e37-bed6-4af6-9c7f-5bf99c18b552" />
+      <WebTestClass assembly="NuGetGallery.WebUITests.ReadOnlyMode, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests.WebUITests.ReadOnlyMode" class="UploadPackageFromUIInReadOnlyMode" />
+    </CodedWebTest>
+    <CodedWebTest name="RegisterNewUserInReadOnlyModeTest" storage="nugetgallery.webuitests.readonlymode\bin\release\nugetgallery.webuitests.readonlymode.dll" id="05cc3b1e-1a48-ff3e-15b9-23f500418789">
+      <Execution id="d409ed6f-920b-41cf-94a4-91f3bb78618f" />
+      <WebTestClass assembly="NuGetGallery.WebUITests.ReadOnlyMode, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests.WebUITests.ReadOnlyMode" class="RegisterNewUserInReadOnlyModeTest" />
+    </CodedWebTest>
+    <CodedWebTest name="HomePageValidationTest" storage="nugetgallery.webuitests.readonlymode\bin\release\nugetgallery.webuitests.readonlymode.dll" id="7abc3716-2f68-ca7a-5ab1-ce5ab0be9d31">
+      <Execution id="dca7fc07-78d9-4712-b66d-479ed47eab82" />
+      <WebTestClass assembly="NuGetGallery.WebUITests.ReadOnlyMode, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests.WebUITests.BasicPages" class="HomePageValidationTest" />
+    </CodedWebTest>
+    <CodedWebTest name="LogonTest" storage="nugetgallery.webuitests.readonlymode\bin\release\nugetgallery.webuitests.readonlymode.dll" id="c8fd8220-27b7-3dca-0d4d-e1e167a9d71e">
+      <Execution id="4c6c28ee-485e-4556-b86f-9ae273fe334c" />
+      <WebTestClass assembly="NuGetGallery.WebUITests.ReadOnlyMode, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests.WebUITests.AccountManagement" class="LogonTest" />
+    </CodedWebTest>
+  </TestDefinitions>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <TestEntries>
+    <TestEntry isTransparent="false" testId="c8fd8220-27b7-3dca-0d4d-e1e167a9d71e" executionId="4c6c28ee-485e-4556-b86f-9ae273fe334c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="7abc3716-2f68-ca7a-5ab1-ce5ab0be9d31" executionId="dca7fc07-78d9-4712-b66d-479ed47eab82" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="ab7c2964-cb27-cf0d-fff7-a7dbe52a0fd1" executionId="47b984a8-42d0-499c-9cab-17fe61c11fd9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="05cc3b1e-1a48-ff3e-15b9-23f500418789" executionId="d409ed6f-920b-41cf-94a4-91f3bb78618f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="5aa0bc29-1c37-f64e-6f5d-b8a1493b446e" executionId="8fd64e37-bed6-4af6-9c7f-5bf99c18b552" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <Results>
+    <WebTestResult executionId="4c6c28ee-485e-4556-b86f-9ae273fe334c" testId="c8fd8220-27b7-3dca-0d4d-e1e167a9d71e" testName="LogonTest" computerName="CODEMINION" duration="00:00:02.2041344" startTime="2015-07-01T13:17:09.5898795+02:00" endTime="2015-07-01T13:17:22.4471914+02:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4c6c28ee-485e-4556-b86f-9ae273fe334c">
+      <ResultFiles>
+        <ResultFile path="LogonTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="C:\src\NuGetGallery\tests" useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults">
+          <DeploymentItem filename="NuGet.exe" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <Timeouts runTimeout="1800000" testTimeout="900000" />
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="{{$IEAcceptLanguage}}" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+        <Properties />
+      </TestSettings>
+      <WebTestResultFilePath>TestResults\In\4c6c28ee-485e-4556-b86f-9ae273fe334c\LogonTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="dca7fc07-78d9-4712-b66d-479ed47eab82" testId="7abc3716-2f68-ca7a-5ab1-ce5ab0be9d31" testName="HomePageValidationTest" computerName="CODEMINION" duration="00:00:01.2318178" startTime="2015-07-01T13:17:22.4511795+02:00" endTime="2015-07-01T13:17:23.6860947+02:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="dca7fc07-78d9-4712-b66d-479ed47eab82">
+      <ResultFiles>
+        <ResultFile path="HomePageValidationTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="C:\src\NuGetGallery\tests" useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults">
+          <DeploymentItem filename="NuGet.exe" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <Timeouts runTimeout="1800000" testTimeout="900000" />
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.5" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+        <Properties />
+      </TestSettings>
+      <WebTestResultFilePath>TestResults\In\dca7fc07-78d9-4712-b66d-479ed47eab82\HomePageValidationTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="47b984a8-42d0-499c-9cab-17fe61c11fd9" testId="ab7c2964-cb27-cf0d-fff7-a7dbe52a0fd1" testName="AccountManagementInReadOnlyModeTest" computerName="CODEMINION" duration="00:00:00.0023593" startTime="2015-07-01T13:17:23.6900975+02:00" endTime="2015-07-01T13:17:23.6940995+02:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="47b984a8-42d0-499c-9cab-17fe61c11fd9">
+      <ResultFiles>
+        <ResultFile path="AccountManagementInReadOnlyModeTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="C:\src\NuGetGallery\tests" useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults">
+          <DeploymentItem filename="NuGet.exe" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <Timeouts runTimeout="1800000" testTimeout="900000" />
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.5" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+        <Properties />
+      </TestSettings>
+      <WebTestResultFilePath>TestResults\In\47b984a8-42d0-499c-9cab-17fe61c11fd9\AccountManagementInReadOnlyModeTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="d409ed6f-920b-41cf-94a4-91f3bb78618f" testId="05cc3b1e-1a48-ff3e-15b9-23f500418789" testName="RegisterNewUserInReadOnlyModeTest" computerName="CODEMINION" duration="00:00:00.0013909" startTime="2015-07-01T13:17:23.6971018+02:00" endTime="2015-07-01T13:17:23.7001180+02:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d409ed6f-920b-41cf-94a4-91f3bb78618f">
+      <ResultFiles>
+        <ResultFile path="RegisterNewUserInReadOnlyModeTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="C:\src\NuGetGallery\tests" useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults">
+          <DeploymentItem filename="NuGet.exe" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <Timeouts runTimeout="1800000" testTimeout="900000" />
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.5" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+        <Properties />
+      </TestSettings>
+      <WebTestResultFilePath>TestResults\In\d409ed6f-920b-41cf-94a4-91f3bb78618f\RegisterNewUserInReadOnlyModeTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="8fd64e37-bed6-4af6-9c7f-5bf99c18b552" testId="5aa0bc29-1c37-f64e-6f5d-b8a1493b446e" testName="UploadPackageFromUIInReadOnlyMode" computerName="CODEMINION" duration="00:00:00.0145346" startTime="2015-07-01T13:17:23.7041074+02:00" endTime="2015-07-01T13:17:23.7201187+02:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8fd64e37-bed6-4af6-9c7f-5bf99c18b552">
+      <ResultFiles>
+        <ResultFile path="UploadPackageFromUIInReadOnlyMode.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="C:\src\NuGetGallery\tests" useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults">
+          <DeploymentItem filename="NuGet.exe" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <Timeouts runTimeout="1800000" testTimeout="900000" />
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.5" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+        <Properties />
+      </TestSettings>
+      <WebTestResultFilePath>TestResults\In\8fd64e37-bed6-4af6-9c7f-5bf99c18b552\UploadPackageFromUIInReadOnlyMode.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+  </Results>
+</TestRun>

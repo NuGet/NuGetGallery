@@ -1,12 +1,21 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace NuGetGallery.FunctionalTests.Fluent
+using System.ComponentModel;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace NuGetGallery.FunctionalTests.Fluent.AccountManagement
 {
-    [TestClass]
+
     public class ResendConfirmationTest : NuGetFluentTest
     {
-        [TestMethod]
+        public ResendConfirmationTest(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        {
+        }
+
+        [Fact]
         [Description("Covers scenarios around the Resend Confirmation link.")]
         [Priority(2)]
         public void ResendConfirmation()
@@ -18,7 +27,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             // Click the (change) link
             I.Open(UrlHelper.BaseUrl + "account");
             I.Expect.Count(0).Of("h1:contains('404')");
-            
+
             // Go back to account confirmation page and click the Send Confirmation Email link
             I.Open(UrlHelper.BaseUrl + "account/confirmationrequired");
             I.Click("input[value='Send Confirmation Email']");

@@ -1,12 +1,20 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace NuGetGallery.FunctionalTests.Fluent
+using System.ComponentModel;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace NuGetGallery.FunctionalTests.Fluent.BasicPages
 {
-    [TestClass]
     public class ErrorPageTest : NuGetFluentTest
     {
-        [TestMethod]
+        public ErrorPageTest(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        {
+        }
+
+        [Fact]
         [Description("Validate the 404 error page.")]
         [Priority(2)]
         public void ErrorPage()

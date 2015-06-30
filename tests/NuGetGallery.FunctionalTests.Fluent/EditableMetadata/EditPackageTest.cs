@@ -1,55 +1,64 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
-using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace NuGetGallery.FunctionalTests.Fluent
+using System;
+using System.ComponentModel;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace NuGetGallery.FunctionalTests.Fluent.EditableMetadata
 {
-    [TestClass] 
     public class EditPackageTest : NuGetFluentTest
     {
-        [TestMethod]
+        public EditPackageTest(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        {
+        }
+
+        [Fact]
         [Description("Edit every possible metadata field of an uploaded package.")]
         [Priority(2)]
-        public void EditPackage()
+        public async Task EditPackage()
         {
             string packageName = "NuGetGallery.FunctionalTests.Fluent.EditPackageTest";
             string version = "1.0.0";
 
-            UploadPackageIfNecessary(packageName, version);
+            await UploadPackageIfNecessary(packageName, version);
 
             // Log on using the test account.
             I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
 
-            // Navigate to the package's edit page. 
-            I.Open(String.Format(UrlHelper.EditPageUrl, packageName, version));
+            // Navigate to the package's edit page.
+            I.Open(string.Format(UrlHelper.EditPageUrl, packageName, version));
             I.Expect.Url(x => x.AbsoluteUri.Contains("nuget"));
 
             // Edit the package.
-            string newTitle = String.Format("This title is accurate as of {0}.", DateTime.Now.ToString("F"));
+            string newTitle = string.Format("This title is accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newTitle).In("#Edit_VersionTitle");
 
-            string newDescription = String.Format("This description is accurate as of {0}.", DateTime.Now.ToString("F"));
+            string newDescription = string.Format("This description is accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newDescription).In("#Edit_Description");
 
-            string newSummary = String.Format("This summary is accurate as of {0}.", DateTime.Now.ToString("F"));
+            string newSummary = string.Format("This summary is accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newSummary).In("#Edit_Summary");
 
-            string newIconUrl = String.Format("http://microsoft.com/IconUrl/{0}", DateTime.Now.ToString("FFFFFFF"));
+            string newIconUrl = string.Format("http://microsoft.com/IconUrl/{0}", DateTime.Now.ToString("FFFFFFF"));
             I.Enter(newIconUrl).In("#Edit_IconUrl");
 
-            string newHomePageUrl = String.Format("http://microsoft.com/HomePageUrl/{0}", DateTime.Now.ToString("FFFFFFF"));
+            string newHomePageUrl = string.Format("http://microsoft.com/HomePageUrl/{0}", DateTime.Now.ToString("FFFFFFF"));
             I.Enter(newHomePageUrl).In("#Edit_ProjectUrl");
 
-            string newAuthors = String.Format("These authors are accurate as of {0}.", DateTime.Now.ToString("F"));
+            string newAuthors = string.Format("These authors are accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newAuthors).In("#Edit_Authors");
 
-            string newCopyright = String.Format("Copyright {0}.", DateTime.Now.ToString("F"));
+            string newCopyright = string.Format("Copyright {0}.", DateTime.Now.ToString("F"));
             I.Enter(newCopyright).In("#Edit_Copyright");
 
-            string newTags = String.Format("These tags are accurate as of {0}.", DateTime.Now.ToString("F"));
+            string newTags = string.Format("These tags are accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newTags).In("#Edit_Tags");
 
-            string newReleaseNotes = String.Format("These release notes are accurate as of {0}.", DateTime.Now.ToString("F"));
+            string newReleaseNotes = string.Format("These release notes are accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newReleaseNotes).In("#Edit_ReleaseNotes");
 
             I.Click("input[value=Save]");
@@ -69,7 +78,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             I.Expect.Count(1).Of(expectedDescription);
             I.Expect.Count(0).Of(unexpectedSummary); // Summary is not present on the package page.
             I.Expect.Count(0).Of(unexpectedIconUrl);
-            I.Expect.Count(1).Of(expectedIconUrl);  
+            I.Expect.Count(1).Of(expectedIconUrl);
             I.Expect.Count(1).Of(expectedHomePageUrl);
             I.Expect.Text(newAuthors).In("p[class=authors]");
             I.Expect.Count(0).Of(unexpectedCopyright); // Copyright is not present on the package page.
@@ -100,8 +109,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
                     // We expect an exception if the edit hasn't been applied yet.
                 }
             }
-            Assert.IsTrue(applied, "The edit doesn't appear to have been applied after five minutes.");
+            Assert.True(applied, "The edit doesn't appear to have been applied after five minutes.");
         }
-
     }
 }

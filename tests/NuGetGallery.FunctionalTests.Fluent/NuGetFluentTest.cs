@@ -1,93 +1,100 @@
-﻿using FluentAutomation;
-using NuGetGallery.FunctionalTests.Helpers;
-using NuGetGallery.FunctionTests.Helpers;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Net;
+using System.Threading.Tasks;
+using FluentAutomation;
+using Xunit.Abstractions;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
-    public class NuGetFluentTest : FluentTest 
+    public class NuGetFluentTest : FluentTest
     {
-        private static bool _checkForPackageExistence = false;
-        public NuGetFluentTest()
+        private static bool _checkForPackageExistence;
+        private readonly ITestOutputHelper _testOutputHelper;
+        private readonly ClientSdkHelper _clientSdkHelper;
+
+        public NuGetFluentTest(ITestOutputHelper testOutputHelper)
         {
-            FluentAutomation.SeleniumWebDriver.Bootstrap();
+            _testOutputHelper = testOutputHelper;
+            _clientSdkHelper = new ClientSdkHelper(testOutputHelper);
+
+            SeleniumWebDriver.Bootstrap();
         }
 
-        public void UploadPackageIfNecessary(string packageName, string version)
+        public async Task UploadPackageIfNecessary(string packageName, string version)
         {
             if (!PackageExists(packageName, version))
             {
-                AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version);
+                await _clientSdkHelper.UploadNewPackageAndVerify(packageName, version);
             }
         }
 
-        public void UploadPackageIfNecessary(string packageName, string version, string minClientVersion, string title, string tags, string description)
+        public async Task UploadPackageIfNecessary(string packageName, string version, string minClientVersion, string title, string tags, string description)
         {
             if (!PackageExists(packageName, version, UrlHelper.V2FeedRootUrl))
             {
-                AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version, minClientVersion, title, tags, description);
+                await _clientSdkHelper.UploadNewPackageAndVerify(packageName, version, minClientVersion, title, tags, description);
             }
         }
 
-        public void UploadPackageIfNecessary(string packageName, string version, string minClientVersion, string title, string tags, string description, string licenseUrl)
+        public async Task UploadPackageIfNecessary(string packageName, string version, string minClientVersion, string title, string tags, string description, string licenseUrl)
         {
             if (!PackageExists(packageName, version, UrlHelper.V2FeedRootUrl))
             {
-                AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version, minClientVersion, title, tags, description, licenseUrl);
+                await _clientSdkHelper.UploadNewPackageAndVerify(packageName, version, minClientVersion, title, tags, description, licenseUrl);
             }
         }
 
-        public void UploadPackageIfNecessary(string packageName, string version, string minClientVersion, string title, string tags, string description, string licenseUrl, string dependencies)
+        private bool PackageExists(string packageName, string version)
         {
-            if (!PackageExists(packageName, version, UrlHelper.V2FeedRootUrl))
+            var found = false;
+            for (var i = 0; ((i < 6) && (!found)); i++)
             {
-                AssertAndValidationHelper.UploadNewPackageAndVerify(packageName, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
-            }
-        }
-
-        public bool PackageExists(string packageName, string version)
-        {
-            bool found = false;
-            for (int i = 0; ((i < 6) && (!found)); i++)
-            {
-                string requestURL = UrlHelper.V2FeedRootUrl + @"package/" + packageName + "/" + version + "?t=" + DateTime.Now.Ticks;
-                Console.WriteLine("The request URL for checking package existence was: " + requestURL);
-                HttpWebRequest packagePageRequest = (HttpWebRequest)HttpWebRequest.Create(requestURL);
+                var requestUrl = UrlHelper.V2FeedRootUrl + @"package/" + packageName + "/" + version + "?t=" + DateTime.Now.Ticks;
+                WriteLine("The request URL for checking package existence was: " + requestUrl);
+                var packagePageRequest = (HttpWebRequest)WebRequest.Create(requestUrl);
 
                 // Increase timeout to be consistent with the functional tests
                 packagePageRequest.Timeout = 2 * 5000;
-                HttpWebResponse packagePageResponse;
                 try
-                {               
-                    packagePageResponse = (HttpWebResponse)packagePageRequest.GetResponse();
-                    if (packagePageResponse != null && (((HttpWebResponse)packagePageResponse).StatusCode == HttpStatusCode.OK)) found = true;
+                {
+                    var packagePageResponse = (HttpWebResponse)packagePageRequest.GetResponse();
+                    if (packagePageResponse.StatusCode == HttpStatusCode.OK)
+                    {
+                        found = true;
+                    }
                 }
                 catch (WebException e)
                 {
-                    Console.WriteLine(e.Message);
+                    WriteLine(e.Message);
                 }
             }
             return found;
         }
 
-        public bool PackageExists(string packageName, string version, string url)
+        private bool PackageExists(string packageName, string version, string url)
         {
-            return ClientSDKHelper.CheckIfPackageVersionExistsInSource(packageName, version, url);
+            return _clientSdkHelper.CheckIfPackageVersionExistsInSource(packageName, version, url);
         }
 
         public static bool CheckForPackageExistence
         {
             get
             {
-                {
-                    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CheckforPackageExistence")))
-                        _checkForPackageExistence = false;
-                    else
-                        _checkForPackageExistence = Convert.ToBoolean(Environment.GetEnvironmentVariable("CheckforPackageExistence"));
-                }
+                var environmentVariable = Environment.GetEnvironmentVariable("CheckforPackageExistence");
+                _checkForPackageExistence = !string.IsNullOrEmpty(environmentVariable) && Convert.ToBoolean(environmentVariable);
                 return _checkForPackageExistence;
             }
+        }
+
+        protected void WriteLine(string message)
+        {
+            if (_testOutputHelper == null)
+                return;
+
+            _testOutputHelper.WriteLine(message);
         }
     }
 }

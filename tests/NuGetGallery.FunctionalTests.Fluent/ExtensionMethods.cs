@@ -1,6 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using FluentAutomation.Interfaces;
-using NuGetGallery.FunctionTests.Helpers;
 
 namespace NuGetGallery.FunctionalTests.Fluent
 {
@@ -19,7 +20,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
         public static void UploadPackageUsingUI(this IActionSyntaxProvider I, string fullPackagePath)
         {
             // Navigate to the Upload Package page.  This will fail if the user never uploaded the previous package, hence the error handling.
-            I.Open(String.Format(UrlHelper.UploadPageUrl));
+            I.Open(string.Format(UrlHelper.UploadPageUrl));
             try
             {
                 I.Expect.Url(x => x.AbsoluteUri.Contains("/packages/Upload"));

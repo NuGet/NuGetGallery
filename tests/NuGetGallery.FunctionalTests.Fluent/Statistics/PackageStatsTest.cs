@@ -1,17 +1,26 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace NuGetGallery.FunctionalTests.Fluent
+using System.ComponentModel;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace NuGetGallery.FunctionalTests.Fluent.Statistics
 {
-    [TestClass]
-    public class PackageStatsTest : NuGetFluentTest 
+
+    public class PackageStatsTest : NuGetFluentTest
     {
-        [TestMethod]
+        public PackageStatsTest(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        {
+        }
+
+        [Fact]
         [Description("Toggle checkboxes on a Package's Stats page, verify layout.")]
         [Priority(2)]
         public void PackageStats()
         {
-            // We'll use NuGet.Core as the basic test package. 
+            // We'll use NuGet.Core as the basic test package.
             I.Open(UrlHelper.BaseUrl + "/stats/packages/jQuery");
 
             // Verify basic elements of the default page layout, including checkboxes.
@@ -57,7 +66,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             I.Expect.Count(0).Of("td:contains('Restore')");
             I.Click("#checkbox-ClientName");  // uncheck the box
 
-            I.Click("#checkbox-ClientVersion");  
+            I.Click("#checkbox-ClientVersion");
             I.Expect.Url(x => x.AbsoluteUri.EndsWith("?groupby=ClientVersion"));
             I.Expect.Count(1).Of("th:contains('Version')");  // expect 1, because this search string also matches "client version"
             I.Expect.Count(0).Of("th:contains('Client Name')");

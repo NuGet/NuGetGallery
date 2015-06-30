@@ -1,14 +1,25 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace NuGetGallery.FunctionalTests.Fluent
+using System;
+using System.ComponentModel;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace NuGetGallery.FunctionalTests.Fluent.EditableMetadata
 {
-    [TestClass]
     public class EditPackageAsPartOfUploadTest : NuGetFluentTest
     {
-        [TestMethod]
+        private readonly PackageCreationHelper _packageCreationHelper;
+
+        public EditPackageAsPartOfUploadTest(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        {
+            _packageCreationHelper = new PackageCreationHelper(testOutputHelper);
+        }
+
+        [Fact]
         [Description("Edit every possible metadata field of the package as part of upload.")]
         [Priority(2)]
         public async Task EditPackageAsPartOfUpload()
@@ -17,7 +28,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             string packageName = "NuGetGallery.FunctionalTests.Fluent.EditPackageAsPartOfUploadTest";
             string ticks = DateTime.Now.Ticks.ToString();
             string version = new Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
-            string newPackageLocation = await PackageCreationHelper.CreatePackage(packageName, version);
+            string newPackageLocation = await _packageCreationHelper.CreatePackage(packageName, version);
 
             // Log on using the test account.
             I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
@@ -27,39 +38,39 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
             // Edit the package.
             I.Click("#Edit_VersionTitleButton");
-            string newTitle = String.Format("This title is accurate as of {0}.", DateTime.Now.ToString("F"));
+            string newTitle = string.Format("This title is accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newTitle).In("#Edit_VersionTitle");
 
             I.Click("#Edit_DescriptionButton");
-            string newDescription = String.Format("This description is accurate as of {0}.", DateTime.Now.ToString("F"));
+            string newDescription = string.Format("This description is accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newDescription).In("#Edit_Description");
 
             I.Click("#Edit_SummaryButton");
-            string newSummary = String.Format("This summary is accurate as of {0}.", DateTime.Now.ToString("F"));
+            string newSummary = string.Format("This summary is accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newSummary).In("#Edit_Summary");
 
             I.Click("#Edit_IconUrlButton");
-            string newIconUrl = String.Format("http://microsoft.com/IconUrl/{0}", DateTime.Now.ToString("FFFFFFF"));
+            string newIconUrl = string.Format("http://microsoft.com/IconUrl/{0}", DateTime.Now.ToString("FFFFFFF"));
             I.Enter(newIconUrl).In("#Edit_IconUrl");
 
             I.Click("#Edit_ProjectUrlButton");
-            string newHomePageUrl = String.Format("http://microsoft.com/HomePageUrl/{0}", DateTime.Now.ToString("FFFFFFF"));
+            string newHomePageUrl = string.Format("http://microsoft.com/HomePageUrl/{0}", DateTime.Now.ToString("FFFFFFF"));
             I.Enter(newHomePageUrl).In("#Edit_ProjectUrl");
 
             I.Click("#Edit_AuthorsButton");
-            string newAuthors = String.Format("These authors are accurate as of {0}.", DateTime.Now.ToString("F"));
+            string newAuthors = string.Format("These authors are accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newAuthors).In("#Edit_Authors");
 
             I.Click("#Edit_CopyrightButton");
-            string newCopyright = String.Format("Copyright {0}.", DateTime.Now.ToString("F"));
+            string newCopyright = string.Format("Copyright {0}.", DateTime.Now.ToString("F"));
             I.Enter(newCopyright).In("#Edit_Copyright");
 
             I.Click("#Edit_TagsButton");
-            string newTags = String.Format("These tags are accurate as of {0}.", DateTime.Now.ToString("F"));
+            string newTags = string.Format("These tags are accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newTags).In("#Edit_Tags");
 
             I.Click("#Edit_ReleaseNotesButton");
-            string newReleaseNotes = String.Format("These release notes are accurate as of {0}.", DateTime.Now.ToString("F"));
+            string newReleaseNotes = string.Format("These release notes are accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newReleaseNotes).In("#Edit_ReleaseNotes");
 
             I.Click("#verifyUploadSubmit");
@@ -110,8 +121,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
                     // We expect an exception if the edit hasn't been applied yet.
                 }
             }
-            Assert.IsTrue(applied, "The edit doesn't appear to have been applied after five minutes.");
+            Assert.True(applied, "The edit doesn't appear to have been applied after five minutes.");
         }
-
     }
 }

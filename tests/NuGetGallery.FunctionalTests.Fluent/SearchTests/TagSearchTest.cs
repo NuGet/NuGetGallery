@@ -1,16 +1,25 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
-using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace NuGetGallery.FunctionalTests.Fluent
+using System;
+using System.ComponentModel;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace NuGetGallery.FunctionalTests.Fluent.SearchTests
 {
-    [TestClass]
     public class TagSearchTest : NuGetFluentTest
     {
-        [TestMethod]
+        public TagSearchTest(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        {
+        }
+
+        [Fact]
         [Description("Verify parsing of functional tags from package metadata.")]
         [Priority(2)]
-        public void TagSearch()
+        public async Task TagSearch()
         {
             string packageName = "NuGetGallery.FunctionalTests.Fluent.TagSearchTest";
             string version = "1.0.0";
@@ -18,7 +27,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
             if (CheckForPackageExistence)
             {
-                UploadPackageIfNecessary(packageName, version, null, null, tagString, "This is a test package created by the NuGet team.");
+                await UploadPackageIfNecessary(packageName, version, null, null, tagString, "This is a test package created by the NuGet team.");
             }
 
             // Go to the package page.

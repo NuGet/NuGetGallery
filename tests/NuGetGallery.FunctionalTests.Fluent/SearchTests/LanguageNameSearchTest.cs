@@ -1,12 +1,20 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace NuGetGallery.FunctionalTests.Fluent
+using System.ComponentModel;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace NuGetGallery.FunctionalTests.Fluent.SearchTests
 {
-    [TestClass]
     public class LanguageNameSearchTest : NuGetFluentTest
     {
-        [TestMethod]
+        public LanguageNameSearchTest(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        {
+        }
+
+        [Fact]
         [Description("Validate that the language names C# and C++ return distinct and meaningful results.")]
         [Priority(2)]
         public void LanguageNameSearch()
