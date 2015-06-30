@@ -44,7 +44,7 @@ namespace NuGetGallery.FunctionTests.Helpers
                 return packages.Count;
             }
             else
-                return 0;                
+                return 0;
         }
         /// <summary>
         /// Returns the download count of the given package as a formatted string as it would appear in the gallery UI.
@@ -52,11 +52,11 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// <param name="packageId"></param>
         /// <returns></returns>
         public static string GetFormattedDownLoadStatistics(string packageId)
-        {           
+        {
             string formattedCount = GetDownLoadStatistics(packageId).ToString("N1", CultureInfo.InvariantCulture);
             if (formattedCount.EndsWith(".0"))
                 formattedCount = formattedCount.Remove(formattedCount.Length - 2);
-            return formattedCount;         
+            return formattedCount;
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace NuGetGallery.FunctionTests.Helpers
             List<IPackage> packages;
             IPackageRepository repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl) as IPackageRepository;
             IPackageRepository serviceRepo = repo as IPackageRepository;
-         
+
             if(serviceRepo != null)
             {
                 packages =    serviceRepo.Search(searchQuery,false).ToList();
@@ -121,7 +121,7 @@ namespace NuGetGallery.FunctionTests.Helpers
             {
                 Console.WriteLine(" Exception thrown while trying to create zippackage for :{0}. Message {1}", filePath, e.Message);
                 return null;
-            }            
+            }
         }
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace NuGetGallery.FunctionTests.Helpers
             if (package != null)
                 return !package.Listed;
             else
-                return false;  
+                return false;
         }
 
         /// <summary>
@@ -158,33 +158,45 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// <returns></returns>
         public static bool CheckIfPackageVersionExistsInSource(string packageId, string version, string sourceUrl)
         {
-            bool found = false;
-            // A new way to check if packages exist in source. The logic above often gives timeout errors randomly. 
-            IPackageRepository repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl) as IPackageRepository;
+            var found = false;
+            var repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl);
             SemanticVersion semVersion;
-            bool success = SemanticVersion.TryParse(version, out semVersion);
+            var success = SemanticVersion.TryParse(version, out semVersion);
+            const int interval = 60;
+
             if (success)
             {
                 try
                 {
-                    for (int i = 0; ((i < 5) && (!found)); i++)
+                    Console.WriteLine("Starting package verification checks (5 attempts, interval 60 seconds).");
+                    Console.WriteLine();
+                    for (var i = 0; ((i < 5) && (!found)); i++)
                     {
                         // Wait for the search service to kick in, so that the package can be found via FindPackage(packageId, SemanticVersion)
-                        Thread.Sleep(60 * 1000);
+                        Console.Write("[verification attempt {0}]: Waiting {1} seconds before next check...", i, interval);
+                        Thread.Sleep(interval * 1000);
+
+                        Console.Write("[verification attempt {0}]: Checking if package {1} with version {2} exists in source {3}... ", i, packageId, version, sourceUrl);
                         IPackage package = repo.FindPackage(packageId, semVersion);
                         found = (package != null);
+                        if (found)
+                        {
+                            Console.Write("Found!");
+                            Console.WriteLine();
+                        }
+                        else
+                        {
+                            Console.Write("NOT found!");
+                            Console.WriteLine();
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Exception thrown while checking the existence of package {0} with version (1}:\r\n {2}", packageId, version, ex.Message);
+                    Console.WriteLine("Exception thrown while checking the existence of package {0} with version {1}:\r\n {2}", packageId, version, ex.Message);
                 }
             }
 
-            if (found)
-            {
-                Console.WriteLine("Found package {0} with version {1} in sourceUrl of {2}", packageId, version, sourceUrl);
-            }
             return found;
         }
 

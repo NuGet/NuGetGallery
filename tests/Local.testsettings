@@ -2,9 +2,8 @@
 <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
   <Description>These are default test settings for a local test run.</Description>
   <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false">
-    <DeploymentItem filename=".nuget\NuGet.Config" />
     <DeploymentItem filename=".nuget\NuGet.exe" />
-    <DeploymentItem filename=".nuget\NuGet.targets" />
+    <DeploymentItem filename=".nuget\NuGet.Config" />
   </Deployment>
   <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
   <Execution>
@@ -28,4 +27,5 @@
     <AgentRule name="LocalMachineDefaultRole">
     </AgentRule>
   </Execution>
+  <Properties />
 </TestSettings>

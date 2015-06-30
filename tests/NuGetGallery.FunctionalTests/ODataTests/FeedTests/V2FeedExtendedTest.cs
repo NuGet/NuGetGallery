@@ -26,7 +26,10 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
             {
                 string packageId = "TestV2FeedFindPackagesById" + "." + DateTime.UtcNow.Ticks;
 
+                TestContext.WriteLine("Uploading package '{0}'", packageId);
                 await AssertAndValidationHelper.UploadNewPackageAndVerify(packageId).ConfigureAwait(false);
+                TestContext.WriteLine("Uploaded package '{0}'", packageId);
+
                 await AssertAndValidationHelper.UploadNewPackageAndVerify(packageId, "2.0.0").ConfigureAwait(false);
 
                 string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'";
