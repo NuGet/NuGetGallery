@@ -82,9 +82,9 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// </summary>
         /// <param name="arguments">cmd line args to NuGet.exe</param>
         /// <param name="workingDir">working dir if any to be used</param>
-        /// <param name="timeout">Timeout in seconds (default = 5min).</param>
+        /// <param name="timeout">Timeout in seconds (default = 6min).</param>
         /// <returns></returns>
-        public static async Task<ProcessResult> InvokeNugetProcess(string arguments, string workingDir = null, int timeout = 300)
+        public static async Task<ProcessResult> InvokeNugetProcess(string arguments, string workingDir = null, int timeout = 360)
         {
             var nugetProcess = new Process();
             var pathToNugetExe = Path.Combine(Environment.CurrentDirectory, NugetExePath);
