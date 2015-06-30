@@ -26,8 +26,8 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
             {
                 string packageId = "TestV2FeedFindPackagesById" + "." + DateTime.UtcNow.Ticks;
 
-                await AssertAndValidationHelper.UploadNewPackageAndVerify(packageId);
-                await AssertAndValidationHelper.UploadNewPackageAndVerify(packageId, "2.0.0");
+                await AssertAndValidationHelper.UploadNewPackageAndVerify(packageId).ConfigureAwait(false);
+                await AssertAndValidationHelper.UploadNewPackageAndVerify(packageId, "2.0.0").ConfigureAwait(false);
 
                 string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'";
                 string[] expectedTexts =
@@ -35,7 +35,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
                     @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='1.0.0')</id>",
                     @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='2.0.0')</id>"
                 };
-                var containsResponseText = await ODataHelper.ContainsResponseText(url, expectedTexts);
+                var containsResponseText = await ODataHelper.ContainsResponseText(url, expectedTexts).ConfigureAwait(false);
                 Assert.IsTrue(containsResponseText);
             }
         }
