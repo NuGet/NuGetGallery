@@ -65,24 +65,19 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LoadTests\LoadTests.cs" />
+    <Compile Include="LoadTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="LoadTests\E2E.loadtest" />
-    <None Include="LoadTests\Metrics.loadtest">
+    <None Include="E2E.loadtest" />
+    <None Include="Metrics.loadtest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="LoadTests\Search.loadtest" />
+    <None Include="Search.loadtest" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="NuGet.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.FunctionalTests.Core\NuGetGallery.FunctionalTests.Core.csproj">
