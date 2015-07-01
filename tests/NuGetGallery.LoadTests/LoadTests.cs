@@ -7,8 +7,9 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NuGetGallery.FunctionalTests;
 
-namespace NuGetGallery.FunctionalTests.LoadTests
+namespace NuGetGallery.LoadTests
 {
     /// <summary>
     /// This class has the various scenarios used in LoadTests.
@@ -19,7 +20,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
     {
         [TestMethod]
         [Description("Tries to download a packages from v2 feed and make sure the re-direction happens properly.")]
-        [Priority(0)]
+        [TestCategory("P0Tests")]
         public async Task DownloadPackageSimulationTest()
         {
             string packageId = "EntityFramework"; //try to down load a pre-defined package.
@@ -34,7 +35,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
 
         [TestMethod]
         [Description("Tries to simulate the launch of Manage package dialog UI")]
-        [Priority(0)]
+        [TestCategory("P0Tests")]
         public async Task ManagePackageUILaunchSimulationTest()
         {
             // api/v2/search()/$count query is made everytime Manage package UI is launched in VS.
@@ -54,7 +55,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
 
         [TestMethod]
         [Description("Verify the webresponse for FindPackagesById with predefined packageId")]
-        [Priority(0)]
+        [TestCategory("P0Tests")]
         public async Task FindPackagesByIdForPredefinedPackage()
         {
             string packageId = "PostSharp";
@@ -67,7 +68,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
 
         [TestMethod]
         [Description("Verify the webresponse for FindPackagesById with specific packageId and version")]
-        [Priority(0)]
+        [TestCategory("P0Tests")]
         public async Task FindPackagesBySpecificIdAndVersion()
         {
             string packageId = "Microsoft.Web.Infrastructure";
@@ -81,7 +82,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
 
         [TestMethod]
         [Description("Verify the webresponse for PackagesApi test with specific packageId ")]
-        [Priority(0)]
+        [TestCategory("P0Tests")]
         public async Task PackagesApiTest()
         {
             string packageId = "newtonsoft.json";
@@ -94,7 +95,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
 
         [TestMethod]
         [Description("Verify the webresponse for PackagesApi test with specific packageId ")]
-        [Priority(1)]
+        [TestCategory("P1Tests")]
         public async Task StatsTotalTest()
         {
             string url = UrlHelper.BaseUrl + @"/stats/totals";
@@ -105,7 +106,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
 
         [TestMethod]
         [Description("Hits the search endpoint directly")]
-        [Priority(0)]
+        [TestCategory("P0Tests")]
         public async Task HitSearchEndPointDirectly()
         {
             HttpClientHandler handler = new HttpClientHandler();
@@ -126,7 +127,6 @@ namespace NuGetGallery.FunctionalTests.LoadTests
 
         [TestMethod]
         [Description("Hits the metrics service endpoint directly")]
-        [Priority(0)]
         public async Task HitMetricsEndPointDirectly()
         {
             var metricsServiceHelper = new MetricsServiceHelper();
@@ -136,7 +136,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
 
         [TestMethod]
         [Description("Verify the webresponse from top30 packages feed contains jQuery")]
-        [Priority(0)]
+        [TestCategory("P0Tests")]
         public async Task Top30PackagesFeedTest()
         {
             string url = UrlHelper.V2FeedRootUrl + @"/Search()?$filter=IsAbsoluteLatestVersion&$orderby=DownloadCount%20desc,Id&$skip=0&$top=30&searchTerm=''&targetFramework='net45'&includePrerelease=true";
@@ -147,7 +147,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
 
         [TestMethod]
         [Description("Verify the webresponse from /Api/V2/$metadata contains the V2FeedPackage text")]
-        [Priority(0)]
+        [TestCategory("P0Tests")]
         public async Task ApiV2MetadataTest()
         {
             string expectedText = @"V2FeedPackage";
@@ -158,7 +158,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
 
         [TestMethod]
         [Description("Verify the webresponse from /Api/V2/ feed contains the Packages text")]
-        [Priority(0)]
+        [TestCategory("P0Tests")]
         public async Task ApiV2BaseUrlTest()
         {
             string expectedText = @"<atom:title>Packages</atom:title>";
@@ -169,7 +169,7 @@ namespace NuGetGallery.FunctionalTests.LoadTests
 
         [TestMethod]
         [Description("Performs a querystring-based search of the Microsoft curated feed. Confirms expected packages are returned.")]
-        [Priority(0)]
+        [TestCategory("P0Tests")]
         public async Task SearchMicrosoftDotNetCuratedFeed()
         {
             var packageId = "microsoft.aspnet.webpages";

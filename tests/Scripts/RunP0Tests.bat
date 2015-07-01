@@ -26,7 +26,7 @@ REM Restore packages
 if not exist nuget (
 	call PowerShell -NoProfile -ExecutionPolicy Bypass -File %cd%\Scripts\DownloadLatestNuGetExeRelease.ps1
 )
-call %nuget% restore "%solutionPath%" -NonInteractive -Verbosity detailed
+call %nuget% restore "%solutionPath%" -NonInteractive
 if not "%errorlevel%"=="0" goto failure
 
 REM Build the solution
@@ -38,9 +38,12 @@ set testDir="NuGetGallery.FunctionalTests\bin\%config%"
 copy %nuget% %testDir%
 call %xunit% "%testDir%\NuGetGallery.FunctionalTests.dll" -trait "Category=%testCategory%" -teamcity
 
-REM Run web UI and load tests
-copy %nuget% .
+REM Run web UI tests
 call %mstest% /TestContainer:"NuGetGallery.WebUITests.P0\bin\%config%\NuGetGallery.WebUITests.P0.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfile.trx
+if not "%errorlevel%"=="0" goto failure
+
+REM Run Load tests
+call %mstest% /TestContainer:"NuGetGallery.LoadTests\bin\%config%\NuGetGallery.LoadTests.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:loadtests-resultsfile.trx /category:%testCategory%
 if not "%errorlevel%"=="0" goto failure
 
 :success

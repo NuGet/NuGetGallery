@@ -38,9 +38,12 @@ set testDir="NuGetGallery.FunctionalTests\bin\%config%"
 copy %nuget% %testDir%
 call %xunit% "%testDir%\NuGetGallery.FunctionalTests.dll" -trait "Category=%testCategory%" -teamcity
 
-REM Run web UI and load tests
-copy %nuget% .
+REM Run web UI tests
 call %mstest% /TestContainer:"NuGetGallery.WebUITests.P1\bin\%config%\NuGetGallery.WebUITests.P1.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfile.trx
+if not "%errorlevel%"=="0" goto failure
+
+REM Run Load tests
+call %mstest% /TestContainer:"NuGetGallery.LoadTests\bin\%config%\NuGetGallery.LoadTests.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:loadtests-resultsfile.trx /category:%testCategory%
 if not "%errorlevel%"=="0" goto failure
 
 :success
