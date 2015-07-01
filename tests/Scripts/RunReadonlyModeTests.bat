@@ -24,7 +24,7 @@ if exist TestResults (
 
 REM Restore packages
 if not exist nuget (
-	PowerShell -NoProfile -ExecutionPolicy Bypass -File %cd%\Scripts\DownloadLatestNuGetExeRelease.ps1
+	call PowerShell -NoProfile -ExecutionPolicy Bypass -File %cd%\Scripts\DownloadLatestNuGetExeRelease.ps1
 )
 call %nuget% restore "%solutionPath%" -NonInteractive
 if not "%errorlevel%"=="0" goto failure
