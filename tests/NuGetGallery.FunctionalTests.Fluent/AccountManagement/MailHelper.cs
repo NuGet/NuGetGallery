@@ -21,7 +21,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.AccountManagement
         private const string _galleryTeamSignatureInMailBOdy = "Thanks, The NuGet Gallery Team";
 
         public MailHelper()
-            : this(new ConsoleTestOutputHelper())
+            : this(ConsoleTestOutputHelper.New)
         {
         }
 

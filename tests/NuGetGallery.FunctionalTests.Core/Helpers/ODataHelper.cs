@@ -20,7 +20,7 @@ namespace NuGetGallery.FunctionalTests
         : HelperBase
     {
         public ODataHelper()
-            : this(new ConsoleTestOutputHelper())
+            : this(ConsoleTestOutputHelper.New)
         {
         }
 

@@ -6,11 +6,19 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NuGetGallery.FunctionalTests.ODataFeeds
 {
     public class SearchTest
     {
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public SearchTest(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
+
         [Fact]
         [Description("Performs a querystring-based search of the v1 feed.  Confirms expected packages are returned.")]
         [Priority(0)]
@@ -29,10 +37,15 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             await SearchFeedAsync(UrlHelper.V2FeedRootUrl, "microsoft-web-helpers");
         }
 
-        private static async Task SearchFeedAsync(string feedRootUrl, string title)
+        private async Task SearchFeedAsync(string feedRootUrl, string title)
         {
-            var request = WebRequest.Create(feedRootUrl + @"Search()?$filter=IsLatestVersion&$skip=0&$top=10&searchTerm='asp.net%20web%20helpers'&targetFramework='net40'&includePrerelease=false");
-            var response = await request.GetResponseAsync();
+            var requestUrl = feedRootUrl + @"Search()?$filter=IsLatestVersion&$skip=0&$top=10&searchTerm='asp.net%20web%20helpers'&targetFramework='net40'&includePrerelease=false";
+            _testOutputHelper.WriteLine("Request: GET " + requestUrl);
+
+            var request = WebRequest.Create(requestUrl);
+            var response = (HttpWebResponse) await request.GetResponseAsync();
+
+            _testOutputHelper.WriteLine("Response: HTTP " + response.StatusCode);
 
             string responseText;
             using (var sr = new StreamReader(response.GetResponseStream()))

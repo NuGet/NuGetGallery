@@ -19,7 +19,7 @@ namespace NuGetGallery.FunctionalTests
         : HelperBase
     {
         public PackageCreationHelper()
-            : this(new ConsoleTestOutputHelper())
+            : this(ConsoleTestOutputHelper.New)
         {
         }
 

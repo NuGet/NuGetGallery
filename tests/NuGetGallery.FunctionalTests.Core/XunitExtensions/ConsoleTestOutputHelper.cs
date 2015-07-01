@@ -9,6 +9,15 @@ namespace NuGetGallery.FunctionalTests
     public class ConsoleTestOutputHelper
         : ITestOutputHelper
     {
+        private ConsoleTestOutputHelper()
+        {
+        }
+
+        public static ConsoleTestOutputHelper New
+        {
+            get { return new ConsoleTestOutputHelper(); }
+        }
+
         public void WriteLine(string message)
         {
             Console.WriteLine(message);

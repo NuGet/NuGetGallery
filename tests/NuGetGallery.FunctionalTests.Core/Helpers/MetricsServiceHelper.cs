@@ -27,7 +27,7 @@ namespace NuGetGallery.FunctionalTests
         public const string MetricsServiceUri = "http://api-metrics.int.nugettest.org";
 
         public MetricsServiceHelper()
-            : this(new ConsoleTestOutputHelper())
+            : this(ConsoleTestOutputHelper.New)
         {
         }
 

@@ -45,7 +45,7 @@ namespace NuGetGallery.FunctionalTests
             }
             else
             {
-                var commandlineHelper = new CommandlineHelper(new ConsoleTestOutputHelper());
+                var commandlineHelper = new CommandlineHelper(ConsoleTestOutputHelper.New);
                 await commandlineHelper.UpdateNugetExeAsync();
             }
         }
@@ -56,7 +56,7 @@ namespace NuGetGallery.FunctionalTests
             // This will be used by the download related tests.
             try
             {
-                var clientSdkHelper = new ClientSdkHelper(new ConsoleTestOutputHelper());
+                var clientSdkHelper = new ClientSdkHelper(ConsoleTestOutputHelper.New);
                 if (!clientSdkHelper.CheckIfPackageExistsInSource(Constants.TestPackageId, UrlHelper.V2FeedRootUrl))
                 {
                     await clientSdkHelper.UploadNewPackageAndVerify(Constants.TestPackageId);
