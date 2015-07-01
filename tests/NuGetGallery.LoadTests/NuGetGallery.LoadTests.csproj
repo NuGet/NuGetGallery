@@ -84,6 +84,18 @@
       <Project>{8496c7fe-8a93-4d2e-a9dc-5de44017187c}</Project>
       <Name>NuGetGallery.FunctionalTests.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.WebUITests.P0\NuGetGallery.WebUITests.P0.csproj">
+      <Project>{b3d313c5-a076-424c-b812-4ede2d9ee888}</Project>
+      <Name>NuGetGallery.WebUITests.P0</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.WebUITests.P1\NuGetGallery.WebUITests.P1.csproj">
+      <Project>{66aca75f-ee4d-4d23-aec5-e38c715cdc7e}</Project>
+      <Name>NuGetGallery.WebUITests.P1</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.WebUITests.P2\NuGetGallery.WebUITests.P2.csproj">
+      <Project>{30f7f8c9-46bc-4677-9d26-43395a2b6df5}</Project>
+      <Name>NuGetGallery.WebUITests.P2</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

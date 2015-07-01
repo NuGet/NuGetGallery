@@ -32,7 +32,6 @@ namespace NuGetGallery.FunctionalTests.LoadTests
             Assert.IsTrue(redirectUrl.Contains(expectedSubString), " The re-direct Url {0} doesnt contain the expect substring {1}", redirectUrl, expectedSubString);
         }
 
-
         [TestMethod]
         [Description("Tries to simulate the launch of Manage package dialog UI")]
         [Priority(0)]
@@ -133,6 +132,58 @@ namespace NuGetGallery.FunctionalTests.LoadTests
             var metricsServiceHelper = new MetricsServiceHelper();
             bool value = await metricsServiceHelper.TryHitMetricsEndPoint("RIAServices.Server", "4.2.0", "120.0.0.0", "NuGet Load Tests/Metrics Service", "Test", "None", null);
             Assert.IsTrue(value);
+        }
+
+        [TestMethod]
+        [Description("Verify the webresponse from top30 packages feed contains jQuery")]
+        [Priority(0)]
+        public async Task Top30PackagesFeedTest()
+        {
+            string url = UrlHelper.V2FeedRootUrl + @"/Search()?$filter=IsAbsoluteLatestVersion&$orderby=DownloadCount%20desc,Id&$skip=0&$top=30&searchTerm=''&targetFramework='net45'&includePrerelease=true";
+            var odataHelper = new ODataHelper();
+            bool containsResponseText = await odataHelper.ContainsResponseText(url, "jQuery");
+            Assert.IsTrue(containsResponseText);
+        }
+
+        [TestMethod]
+        [Description("Verify the webresponse from /Api/V2/$metadata contains the V2FeedPackage text")]
+        [Priority(0)]
+        public async Task ApiV2MetadataTest()
+        {
+            string expectedText = @"V2FeedPackage";
+            var odataHelper = new ODataHelper();
+            bool containsResponseText = await odataHelper.ContainsResponseText(UrlHelper.V2FeedRootUrl + @"$metadata", expectedText);
+            Assert.IsTrue(containsResponseText);
+        }
+
+        [TestMethod]
+        [Description("Verify the webresponse from /Api/V2/ feed contains the Packages text")]
+        [Priority(0)]
+        public async Task ApiV2BaseUrlTest()
+        {
+            string expectedText = @"<atom:title>Packages</atom:title>";
+            var odataHelper = new ODataHelper();
+            bool containsResponseText = await odataHelper.ContainsResponseText(UrlHelper.V2FeedRootUrl, expectedText);
+            Assert.IsTrue(containsResponseText);
+        }
+
+        [TestMethod]
+        [Description("Performs a querystring-based search of the Microsoft curated feed. Confirms expected packages are returned.")]
+        [Priority(0)]
+        public async Task SearchMicrosoftDotNetCuratedFeed()
+        {
+            var packageId = "microsoft.aspnet.webpages";
+            var request = WebRequest.Create(UrlHelper.DotnetCuratedFeedUrl + @"Packages()?$filter=tolower(Id)%20eq%20'" + packageId + "'&$orderby=Id&$skip=0&$top=30");
+            var response = await request.GetResponseAsync();
+
+            string responseText;
+            using (var sr = new StreamReader(response.GetResponseStream()))
+            {
+                responseText = await sr.ReadToEndAsync();
+            }
+
+            string packageUrl = @"<id>" + UrlHelper.DotnetCuratedFeedUrl + "Packages(Id='" + packageId;
+            Assert.IsTrue(responseText.ToLowerInvariant().Contains(packageUrl.ToLowerInvariant()));
         }
     }
 }
