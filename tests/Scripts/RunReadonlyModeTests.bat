@@ -11,7 +11,7 @@ set solutionPath="NuGetGallery.FunctionalTests.sln"
 REM Required Tools
 set msbuild="%WINDIR%\Microsoft.NET\Framework\v4.0.30319\msbuild"
 set xunit="..\packages\xunit.runner.console.2.0.0\tools\xunit.console.exe"
-set nuget="..\packages\NuGet.Commandline.2.8.5\tools\NuGet.exe"
+set nuget="nuget.exe"
 set mstest="C:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\IDE\mstest.exe"
 
 REM Clean previous test results
@@ -23,6 +23,9 @@ if exist TestResults (
 )
 
 REM Restore packages
+if not exist nuget (
+	PowerShell -NoProfile -ExecutionPolicy Bypass -File %cd%\Scripts\DownloadLatestNuGetExeRelease.ps1
+)
 call %nuget% restore "%solutionPath%" -NonInteractive
 if not "%errorlevel%"=="0" goto failure
 
