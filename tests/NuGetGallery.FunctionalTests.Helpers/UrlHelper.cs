@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Configuration;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 
 namespace NuGetGallery.FunctionTests.Helpers
 {
@@ -11,11 +10,33 @@ namespace NuGetGallery.FunctionTests.Helpers
     /// </summary>
     public class UrlHelper
     {
+        private const string _logonPageUrlSuffix = "/users/account/LogOn";
+        private const string _editUrlSuffix = "/packages/{0}/{1}/Edit";
+        private const string _cancelUrlSuffix = "packages/cancel-upload";
+        private const string _signInPageUrlSuffix = "/users/account/SignIn";
+        private const string _logOffPageUrlSuffix = "/users/account/LogOff?returnUrl=%2F";
+        private const string _logonPageUrlOnPackageUploadSuffix = "Users/Account/LogOn?ReturnUrl=%2fpackages%2fupload";
+        private const string _packagesPageUrlSuffix = "/packages";
+        private const string _registerPageUrlSuffix = "account/Register";
+        private const string _registrationPendingPageUrlSuffix = "account/Thanks";
+        private const string _statsPageUrlSuffix = "stats";
+        private const string _aggregateStatsPageUrlSuffix = "/stats/totals";
+        private const string _uploadPageUrlSuffix = "/packages/Upload";
+        private const string _verifyUploadPageUrlSuffix = "/packages/verify-upload";
+        private const string _windows8CuratedFeedUrlSuffix = "curated-feeds/windows8-packages/";
+        private const string _webMatrixCuratedFeedUrlSuffix = "curated-feeds/webmatrix/";
+        private const string _dotnetCuratedFeedUrlSuffix = "curated-feeds/microsoftdotnet/";
+        private const string _accountPageUrlSuffix = "/account";
+        private const string _accountUnscribeUrlSuffix = "account/unsubscribe";
+        private const string _accountApiKeyResetUrlSuffix = "/account/GenerateApiKey";
+        private const string _manageMyPackagesUrlSuffix = "/account/Packages";
+        private const string _aboutPageUrlSuffix = "policies/About";
+
         public static string BaseUrl
         {
             get
             {
-                return EnvironmentSettings.BaseUrl;
+                return EnsureTrailingSlash(EnvironmentSettings.BaseUrl);
             }
         }
 
@@ -46,152 +67,143 @@ namespace NuGetGallery.FunctionTests.Helpers
 
         public static string LogonPageUrl
         {
-            get { return UrlHelper.BaseUrl + LogonPageUrlSuffix; }
+            get { return BaseUrl + _logonPageUrlSuffix; }
         }
 
         public static string CancelUrl
         {
-            get { return UrlHelper.BaseUrl + CancelUrlSuffix; }
+            get { return BaseUrl + _cancelUrlSuffix; }
         }
 
         public static string EditPageUrl
         {
-            get { return UrlHelper.BaseUrl + EditUrlSuffix; }
+            get { return BaseUrl + _editUrlSuffix; }
         }
 
         public static string SignInPageUrl
         {
-            get { return UrlHelper.BaseUrl + SignInPageUrlSuffix; }
+            get { return BaseUrl + _signInPageUrlSuffix; }
         }
 
         public static string LogOffPageUrl
         {
-            get { return UrlHelper.BaseUrl + LogOffPageUrlSuffix; }
+            get { return BaseUrl + _logOffPageUrlSuffix; }
         }
 
         public static string PackagesPageUrl
         {
-            get { return UrlHelper.BaseUrl + PackagesPageUrlSuffix; }
+            get { return BaseUrl + _packagesPageUrlSuffix; }
         }
 
         public static string RegisterPageUrl
         {
-            get { return UrlHelper.BaseUrl + RegisterPageUrlSuffix; }
+            get { return BaseUrl + _registerPageUrlSuffix; }
         }
 
         public static string RegistrationPendingPageUrl
         {
-            get { return UrlHelper.BaseUrl + RegistrationPendingPageUrlSuffix; }
+            get { return BaseUrl + _registrationPendingPageUrlSuffix; }
         }
 
         public static string StatsPageUrl
         {
-            get { return UrlHelper.BaseUrl + StatsPageUrlSuffix; }
+            get { return BaseUrl + _statsPageUrlSuffix; }
         }
 
         public static string AggregateStatsPageUrl
         {
-            get { return UrlHelper.BaseUrl + AggregateStatsPageUrlSuffix; }
+            get { return BaseUrl + _aggregateStatsPageUrlSuffix; }
         }
 
         public static string UploadPageUrl
         {
-            get { return UrlHelper.BaseUrl + UploadPageUrlSuffix; }
+            get { return BaseUrl + _uploadPageUrlSuffix; }
         }
 
         public static string VerifyUploadPageUrl
         {
-            get { return UrlHelper.BaseUrl + VerifyUploadPageUrlSuffix; }
+            get { return BaseUrl + _verifyUploadPageUrlSuffix; }
         }
 
         public static string LogonPageUrlOnPackageUpload
         {
-            get { return UrlHelper.BaseUrl + LogonPageUrlOnPackageUploadSuffix; }
+            get { return BaseUrl + _logonPageUrlOnPackageUploadSuffix; }
         }
 
         public static string Windows8CuratedFeedUrl
         {
-            get { return UrlHelper.V2FeedRootUrl + Windows8CuratedFeedUrlSuffix; }
+            get { return V2FeedRootUrl + _windows8CuratedFeedUrlSuffix; }
         }
 
         public static string WebMatrixCuratedFeedUrl
         {
-            get { return UrlHelper.V2FeedRootUrl + WebMatrixCuratedFeedUrlSuffix; }
+            get { return V2FeedRootUrl + _webMatrixCuratedFeedUrlSuffix; }
         }
 
         public static string DotnetCuratedFeedUrl
         {
-            get { return UrlHelper.V2FeedRootUrl + DotnetCuratedFeedUrlSuffix; }
+            get { return V2FeedRootUrl + _dotnetCuratedFeedUrlSuffix; }
         }
 
         public static string AccountPageUrl
         {
-            get { return UrlHelper.BaseUrl + AccountPageUrlSuffix; }
+            get { return BaseUrl + _accountPageUrlSuffix; }
         }
 
         public static string AccountUnscribeUrl
         {
-            get { return UrlHelper.BaseUrl + AccountUnscribeUrlSuffix; }
+            get { return BaseUrl + _accountUnscribeUrlSuffix; }
         }
 
         public static string AccountApiKeyResetUrl
         {
-            get { return UrlHelper.BaseUrl + AccountApiKeyResetUrlSuffix; }
-        } 
+            get { return BaseUrl + _accountApiKeyResetUrlSuffix; }
+        }
 
         public static string ManageMyPackagesUrl
         {
-            get { return UrlHelper.BaseUrl + ManageMyPackagesUrlSuffix; }
+            get { return BaseUrl + _manageMyPackagesUrlSuffix; }
         }
 
         public static string AboutGalleryPageUrl
         {
-            get { return UrlHelper.BaseUrl + AboutPageUrlSuffix; }
+            get { return BaseUrl + _aboutPageUrlSuffix; }
         }
 
         public static string GetPackagePageUrl(string packageId)
         {
-            return UrlHelper.BaseUrl + @"Packages/" + packageId;
+            return BaseUrl + @"Packages/" + packageId;
         }
 
         public static string GetPackagePageUrl(string packageId, string version = "1.0.0")
         {
-            return UrlHelper.BaseUrl + @"Packages/" + packageId + "/" + version;
+            return BaseUrl + @"Packages/" + packageId + "/" + version;
         }
 
         public static string GetPackageDeletePageUrl(string packageId, string version = "1.0.0")
         {
-            return UrlHelper.BaseUrl + @"Packages/" + packageId + "/" + version + "/Delete";
+            return BaseUrl + @"Packages/" + packageId + "/" + version + "/Delete";
         }
 
         public static string GetContactOwnerPageUrl(string packageId)
         {
-            return UrlHelper.BaseUrl + @"Packages/" + packageId + "/ContactOwners";
+            return BaseUrl + @"Packages/" + packageId + "/ContactOwners";
         }
 
-        #region UrlSuffix
-        private const string LogonPageUrlSuffix = "/users/account/LogOn";
-        private const string EditUrlSuffix = "/packages/{0}/{1}/Edit";
-        private const string CancelUrlSuffix = "packages/cancel-upload";
-        private const string SignInPageUrlSuffix = "/users/account/SignIn";
-        private const string LogOffPageUrlSuffix = "/users/account/LogOff?returnUrl=%2F";
-        private const string LogonPageUrlOnPackageUploadSuffix = "Users/Account/LogOn?ReturnUrl=%2fpackages%2fupload";
-        private const string PackagesPageUrlSuffix = "/packages";
-        private const string RegisterPageUrlSuffix = "account/Register";
-        private const string RegistrationPendingPageUrlSuffix = "account/Thanks";
-        private const string StatsPageUrlSuffix = "stats";
-        private const string AggregateStatsPageUrlSuffix = "/stats/totals";
-        private const string UploadPageUrlSuffix = "/packages/Upload";
-        private const string VerifyUploadPageUrlSuffix = "/packages/verify-upload";
-        private const string Windows8CuratedFeedUrlSuffix = "curated-feeds/windows8-packages/";
-        private const string WebMatrixCuratedFeedUrlSuffix = "curated-feeds/webmatrix/";
-        private const string DotnetCuratedFeedUrlSuffix = "curated-feeds/microsoftdotnet/";
-        private const string AccountPageUrlSuffix = "/account";
-        private const string AccountUnscribeUrlSuffix = "account/unsubscribe";
-        private const string AccountApiKeyResetUrlSuffix = "/account/GenerateApiKey";
-        private const string ManageMyPackagesUrlSuffix = "/account/Packages";
-        private const string AboutPageUrlSuffix = "policies/About";
-        #endregion UrlSuffix
+        private static string EnsureTrailingSlash(string siteRoot)
+        {
+            if (siteRoot == null)
+            {
+                return "/";
+            }
+
+            if (!siteRoot.EndsWith("/", StringComparison.Ordinal))
+            {
+                siteRoot = siteRoot + '/';
+            }
+
+            return siteRoot;
+        }
     }
 }
 

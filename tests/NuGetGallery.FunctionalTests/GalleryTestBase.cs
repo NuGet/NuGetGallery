@@ -1,4 +1,7 @@
-﻿using System.Net;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionalTests.Helpers;
@@ -12,7 +15,7 @@ namespace NuGetGallery.FunctionalTests.TestBase
     [TestClass]
     public class GalleryTestBase
     {
-        #region InitializeMethods
+        public TestContext TestContext { get; set; }
 
         [AssemblyInitialize]
         public static void AssemblyInit(TestContext context)
@@ -51,7 +54,6 @@ namespace NuGetGallery.FunctionalTests.TestBase
             //Clear the machine cache during the start of every test to make sure that we always hit the gallery         .
             ClientSDKHelper.ClearMachineCache();
         }
-        #endregion InitializeMethods
 
 
         [AssemblyCleanup]

@@ -82,9 +82,9 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// </summary>
         /// <param name="arguments">cmd line args to NuGet.exe</param>
         /// <param name="workingDir">working dir if any to be used</param>
-        /// <param name="timeout">Timeout in seconds (default = 5min).</param>
+        /// <param name="timeout">Timeout in seconds (default = 6min).</param>
         /// <returns></returns>
-        public static async Task<ProcessResult> InvokeNugetProcess(string arguments, string workingDir = null, int timeout = 300)
+        public static async Task<ProcessResult> InvokeNugetProcess(string arguments, string workingDir = null, int timeout = 360)
         {
             var nugetProcess = new Process();
             var pathToNugetExe = Path.Combine(Environment.CurrentDirectory, NugetExePath);
@@ -112,10 +112,15 @@ namespace NuGetGallery.FunctionTests.Helpers
             var standardError = await nugetProcess.StandardError.ReadToEndAsync();
             var standardOutput = await nugetProcess.StandardOutput.ReadToEndAsync();
 
-            Console.WriteLine(standardError);
+
             Console.WriteLine(standardOutput);
 
-            nugetProcess.WaitForExit();
+            if (!string.IsNullOrEmpty(standardError))
+            {
+                Console.WriteLine(standardError);
+            }
+
+            nugetProcess.WaitForExit(timeout * 1000);
 
             var processResult = new ProcessResult(nugetProcess.ExitCode, standardError);
             return processResult;

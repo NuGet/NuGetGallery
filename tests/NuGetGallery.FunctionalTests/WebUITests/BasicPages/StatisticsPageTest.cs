@@ -22,15 +22,15 @@ namespace NuGetGallery.FunctionalTests
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
             WebTestRequest statsPageRequest = new WebTestRequest(UrlHelper.StatsPageUrl);
-          
-            //Checks for the prescene of a link to jqeury package. It is harded to Jquery for now as there is no API exposed for stats
+
+            //Checks for the presence of a link to jquery package. It is harded to Jquery for now as there is no API exposed for stats
             //and also Jquery is going to be one of the top 10 for now.
-            ValidateHtmlTagInnerText jQueryPackageValidationRule = AssertAndValidationHelper.GetValidationRuleForHtmlTagInnerText(HtmlTextWriterTag.A.ToString(), HtmlTextWriterAttribute.Href.ToString(), "/packages/EntityFramework/", "EntityFramework");               
+            ValidateHtmlTagInnerText jQueryPackageValidationRule = AssertAndValidationHelper.GetValidationRuleForHtmlTagInnerText(HtmlTextWriterTag.A.ToString(), HtmlTextWriterAttribute.Href.ToString(), "/packages/EntityFramework/", "EntityFramework");
             statsPageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(jQueryPackageValidationRule.Validate);
             //validation rule to check for the default text in stats page.
             ValidationRuleFindText StatsPageDefaultTextValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.StatsPageDefaultText);
             statsPageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(StatsPageDefaultTextValidationRule.Validate);
-          
+
             yield return statsPageRequest;
             statsPageRequest = null;
         }

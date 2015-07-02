@@ -5,7 +5,7 @@ set TestAccountName=testnuget@gmail.com
 set TestAccountPassword=NG@allery!
 set TestEmailServerHost=imap.gmail.com
 
-Echo Clear previulsly defined GalleryUrl and branch.
+Echo Clear previously defined GalleryUrl and branch.
 set galleryUrl=
 set branch=
 Echo.

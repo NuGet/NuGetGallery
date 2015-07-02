@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -23,7 +26,10 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
             {
                 string packageId = "TestV2FeedFindPackagesById" + "." + DateTime.UtcNow.Ticks;
 
+                TestContext.WriteLine("Uploading package '{0}'", packageId);
                 await AssertAndValidationHelper.UploadNewPackageAndVerify(packageId);
+                TestContext.WriteLine("Uploaded package '{0}'", packageId);
+
                 await AssertAndValidationHelper.UploadNewPackageAndVerify(packageId, "2.0.0");
 
                 string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'";
