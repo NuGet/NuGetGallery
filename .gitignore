@@ -170,3 +170,4 @@ build/artifacts/
 *.pubxml
 tests/Scripts/TestResults[*].trx
 src/NuGetGallery.Cloud/ecf/
+*.trx
