@@ -168,6 +168,24 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void WillCurateThePackageViaAPI()
+            {
+                var nuGetPackage = new Mock<INupkg>();
+                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
+                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController();
+                var apiKey = Guid.NewGuid();
+                controller.SetCurrentUser(user);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                controller.CreatePackagePost();
+
+                controller.MockAutoCuratePackage.Verify(x => x.Execute(It.IsAny<Package>(), nuGetPackage.Object, false));
+                controller.MockEntitiesContext.VerifyCommitted();
+            }
+
+            [Fact]
             public void WillCreateAPackageWithTheUserMatchingTheApiKey()
             {
                 var nuGetPackage = new Mock<INupkg>();
