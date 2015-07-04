@@ -6,11 +6,10 @@ using System.Linq;
 using System.Net.Mail;
 using System.Text;
 using System.Web;
-using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using NuGetGallery.Authentication;
-using Glimpse.AspNet.AlternateType;
 using NuGetGallery.Configuration;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
