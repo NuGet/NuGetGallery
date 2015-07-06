@@ -137,7 +137,7 @@ namespace Ng
         private static HashSet<NuGetVersion> GetVersions(string json)
         {
             HashSet<NuGetVersion> result = new HashSet<NuGetVersion>();
-            if (json != null)
+            if (indexObj != null)
             {
                 JObject obj = JObject.Parse(json);
 

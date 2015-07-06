@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace NuGet.Indexing
 {
-    public static class Utils
+    public static class IndexingUtils
     {
         public static IDictionary<string, HashSet<string>> Load(string name, ILoader loader)
         {
@@ -19,12 +19,12 @@ namespace NuGet.Indexing
             {
                 using (JsonReader jsonReader = loader.GetReader(name))
                 {
-                    return Utils.CreateDictionary(jsonReader);
+                    return IndexingUtils.CreateDictionary(jsonReader);
                 }
             }
             catch (Exception e)
             {
-                if (Utils.IsFatal(e))
+                if (IndexingUtils.IsFatal(e))
                 {
                     throw;
                 }
@@ -43,8 +43,8 @@ namespace NuGet.Indexing
                 {
                     JArray record = (JArray)JToken.ReadFrom(jsonReader);
                     string id = record[0].ToString();
-                    HashSet<string> owners = new HashSet<string>(record[1].Select(t => t.ToString()));
-                    result[id] = owners;
+                    HashSet<string> data = new HashSet<string>(record[1].Select(t => t.ToString()));
+                    result[id] = data;
                 }
             }
             return result;
