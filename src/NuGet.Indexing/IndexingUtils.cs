@@ -43,7 +43,7 @@ namespace NuGet.Indexing
                 {
                     JArray record = (JArray)JToken.ReadFrom(jsonReader);
                     string id = record[0].ToString();
-                    HashSet<string> data = new HashSet<string>(record[1].Select(t => t.ToString()), StringComparer.OrdinalIgnoreCase);
+                    HashSet<string> data = new HashSet<string>(record[1].Select(t => t.ToString()));
                     result[id] = data;
                 }
             }
