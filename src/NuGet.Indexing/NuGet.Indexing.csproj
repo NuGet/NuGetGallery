@@ -163,7 +163,7 @@
     <Compile Include="ResponseFormatter.cs" />
     <Compile Include="StorageLoader.cs" />
     <Compile Include="UriFormatter.cs" />
-    <Compile Include="Utils.cs" />
+    <Compile Include="IndexingUtils.cs" />
     <Compile Include="ISearchIndexInfo.cs" />
     <Compile Include="LatestVersionFilterFactory.cs" />
     <Compile Include="LocalFrameworksList.cs" />

@@ -21,7 +21,7 @@ namespace NuGet.Indexing
             }
             catch (Exception e)
             {
-                if (Utils.IsFatal(e))
+                if (IndexingUtils.IsFatal(e))
                 {
                     throw;
                 }

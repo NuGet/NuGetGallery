@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -35,15 +36,18 @@ namespace Ng
             {
                 string id = item["nuget:id"].ToString().ToLowerInvariant();
                 string version = item["nuget:version"].ToString().ToLowerInvariant();
+                Uri catalogEntryUri = new Uri(item["@id"].ToString());
 
                 Storage storage = _storageFactory.Create(id);
                 string nuspec = await LoadNuspec(id, version, cancellationToken);
+                JObject catalogEntry = await client.GetJObjectAsync(catalogEntryUri, cancellationToken);
+                bool isListed = IsListed(catalogEntry);
 
                 if (nuspec != null)
                 {
                     await SaveNuspec(storage, id, version, nuspec, cancellationToken);
                     await CopyNupkg(storage, id, version, cancellationToken);
-                    await UpdateMetadata(storage, version, cancellationToken);
+                    await UpdateMetadata(storage, version, isListed, cancellationToken);
 
                     Trace.TraceInformation("commit: {0}/{1}", id, version);
                 }
@@ -56,14 +60,29 @@ namespace Ng
             return true;
         }
 
-        async Task UpdateMetadata(Storage storage, string version, CancellationToken cancellationToken)
+        async Task UpdateMetadata(Storage storage, string version, bool isListed, CancellationToken cancellationToken)
         {
             Uri resourceUri = new Uri(storage.BaseAddress, "index.json");
-            HashSet<NuGetVersion> versions = GetVersions(await storage.LoadString(resourceUri, cancellationToken));
-            versions.Add(NuGetVersion.Parse(version));
-            List<NuGetVersion> result = new List<NuGetVersion>(versions);
-            result.Sort();
-            await storage.Save(resourceUri, CreateContent(result.Select((v) => v.ToString())), cancellationToken);
+            string json = await storage.LoadString(resourceUri, cancellationToken);
+            JObject indexObj = null;
+            if (json != null)
+            {
+                indexObj = JObject.Parse(json);
+            }
+
+            HashSet<NuGetVersion> versions = GetVersions(indexObj, "versions");
+            HashSet<NuGetVersion> unlistedVersions = GetVersions(indexObj, "unlistedVersions");
+
+            if (isListed)
+            {
+                versions.Add(NuGetVersion.Parse(version));
+            }
+            else
+            {
+                unlistedVersions.Add(NuGetVersion.Parse(version));
+            }
+     
+            await storage.Save(resourceUri, CreateContent(versions, unlistedVersions), cancellationToken);
         }
 
         async Task<string> LoadNuspec(string id, string version, CancellationToken cancellationToken)
@@ -99,23 +118,41 @@ namespace Ng
             await storage.Save(nuspecUri, new StringStorageContent(nuspec, "text/xml"), cancellationToken);
         }
 
-        static HashSet<NuGetVersion> GetVersions(string json)
+        static HashSet<NuGetVersion> GetVersions(JObject indexObj, string propertyName)
         {
             HashSet<NuGetVersion> result = new HashSet<NuGetVersion>();
-            if (json != null)
+            if (indexObj != null)
             {
-                JObject obj = JObject.Parse(json);
-                foreach (JToken version in obj["versions"])
+                JToken versions;
+                if (indexObj.TryGetValue(propertyName, out versions))
                 {
-                    result.Add(NuGetVersion.Parse(version.ToString()));
+                    foreach (JToken version in versions)
+                    {
+                        result.Add(NuGetVersion.Parse(version.ToString()));
+                    }
                 }
             }
             return result;
         }
 
-        StorageContent CreateContent(IEnumerable<string> versions)
+        StorageContent CreateContent(HashSet<NuGetVersion> versions, HashSet<NuGetVersion> unlistedVersions)
         {
-            JObject obj = new JObject { { "versions", new JArray(versions) } };
+            JObject obj = new JObject();
+
+            if (versions.Count > 0)
+            {
+                List<NuGetVersion> result = new List<NuGetVersion>(versions);
+                result.Sort();
+                obj["versions"] = new JArray(result.Select((v) => v.ToString()));
+            }
+
+            if (unlistedVersions.Count > 0)
+            {
+                List<NuGetVersion> result = new List<NuGetVersion>(unlistedVersions);
+                result.Sort();
+                obj["unlistedVersions"] = new JArray(result.Select((v) => v.ToString()));
+            }
+
             return new StringStorageContent(obj.ToString(), "application/json");
         }
 
@@ -150,6 +187,12 @@ namespace Ng
                     await storage.Save(nupkgUri, new StreamStorageContent(stream, "application/octet-stream"), cancellationToken);
                 }
             }
+        }
+
+        bool IsListed(JObject catalogEntry)
+        {
+            DateTime published = DateTime.Parse(catalogEntry["published"].ToString());
+            return published.Year != 1900;
         }
     }
 }

@@ -64,8 +64,8 @@ namespace NuGet.Indexing
 
         protected override NuGetIndexSearcher CreateSearcher(IndexReader reader)
         {
-            IDictionary<string, HashSet<string>> owners = Utils.Load("owners.json", _loader);
-            IDictionary<string, HashSet<string>> cruratedfeeds = Utils.Load("curatedfeeds.json", _loader);
+            IDictionary<string, HashSet<string>> owners = IndexingUtils.Load("owners.json", _loader);
+            IDictionary<string, HashSet<string>> cruratedfeeds = IndexingUtils.Load("curatedfeeds.json", _loader);
             IDictionary<string, IDictionary<string, int>> downloads = Downloads.Load("downloads.v1.json", _loader);
             IDictionary<string, int> rankings = DownloadRankings.Load("rankings.v1.json", _loader);
 
