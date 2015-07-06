@@ -1,34 +1,27 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Web;
-using NuGetGallery.Diagnostics;
 using System.Data.Entity;
 using System.Globalization;
-using Microsoft.Owin;
+using System.Linq;
 using System.Security.Claims;
-using NuGetGallery.Configuration;
-using Microsoft.Owin.Security;
-using NuGetGallery.Authentication.Providers;
-using System.Web.Mvc;
 using System.Threading.Tasks;
+using System.Web.Mvc;
+using Microsoft.Owin;
 using NuGetGallery.Auditing;
+using NuGetGallery.Authentication.Providers;
+using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Authentication
 {
     public class AuthenticationService
     {
-        public IEntitiesContext Entities { get; private set; }
-        public IAppConfiguration Config { get; private set; }
-        public IDictionary<string, Authenticator> Authenticators { get; private set; }
-        public AuditingService Auditing { get; private set; }
-
-        private IDiagnosticsSource Trace { get; set; }
-
         private readonly Dictionary<string, Func<string, string>> _credentialFormatters;
+        private readonly IDiagnosticsSource _trace;
+        private readonly IAppConfiguration _config;
 
         protected AuthenticationService()
             : this(null, null, null, AuditingService.None, Enumerable.Empty<Authenticator>())
@@ -44,22 +37,26 @@ namespace NuGetGallery.Authentication
             };
 
             Entities = entities;
-            Config = config;
+            _config = config;
             Auditing = auditing;
-            Trace = diagnostics.SafeGetSource("AuthenticationService");
+            _trace = diagnostics.SafeGetSource("AuthenticationService");
             Authenticators = providers.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
         }
 
+        public IEntitiesContext Entities { get; private set; }
+        public IDictionary<string, Authenticator> Authenticators { get; private set; }
+        public AuditingService Auditing { get; private set; }
+
         public virtual async Task<AuthenticatedUser> Authenticate(string userNameOrEmail, string password)
         {
-            using (Trace.Activity("Authenticate:" + userNameOrEmail))
+            using (_trace.Activity("Authenticate:" + userNameOrEmail))
             {
                 var user = FindByUserNameOrEmail(userNameOrEmail);
 
                 // Check if the user exists
                 if (user == null)
                 {
-                    Trace.Information("No such user: " + userNameOrEmail);
+                    _trace.Information("No such user: " + userNameOrEmail);
                     return null;
                 }
 
@@ -67,7 +64,7 @@ namespace NuGetGallery.Authentication
                 Credential matched;
                 if (!ValidatePasswordCredential(user.Credentials, password, out matched))
                 {
-                    Trace.Information("Password validation failed: " + userNameOrEmail);
+                    _trace.Information("Password validation failed: " + userNameOrEmail);
                     return null;
                 }
 
@@ -81,7 +78,7 @@ namespace NuGetGallery.Authentication
                 }
 
                 // Return the result
-                Trace.Verbose("Successfully authenticated '" + user.Username + "' with '" + matched.Type + "' credential");
+                _trace.Verbose("Successfully authenticated '" + user.Username + "' with '" + matched.Type + "' credential");
                 return new AuthenticatedUser(user, matched);
             }
         }
@@ -94,17 +91,17 @@ namespace NuGetGallery.Authentication
                 throw new ArgumentException(Strings.PasswordCredentialsCannotBeUsedHere, "credential");
             }
 
-            using (Trace.Activity("Authenticate Credential: " + credential.Type))
+            using (_trace.Activity("Authenticate Credential: " + credential.Type))
             {
                 var matched = FindMatchingCredential(credential);
 
                 if (matched == null)
                 {
-                    Trace.Information("No user matches credential of type: " + credential.Type);
+                    _trace.Information("No user matches credential of type: " + credential.Type);
                     return null;
                 }
 
-                Trace.Verbose("Successfully authenticated '" + matched.User.Username + "' with '" + matched.Type + "' credential");
+                _trace.Verbose("Successfully authenticated '" + matched.User.Username + "' with '" + matched.Type + "' credential");
                 return new AuthenticatedUser(matched.User, matched);
             }
         }
@@ -121,7 +118,7 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential)
         {
-            if (Config.FeedOnlyMode)
+            if (_config.FeedOnlyMode)
             {
                 throw new FeedOnlyModeException(FeedOnlyModeException.FeedOnlyModeError);
             }
@@ -153,7 +150,7 @@ namespace NuGetGallery.Authentication
             newUser.Credentials.Add(CredentialBuilder.CreateV1ApiKey(apiKey));
             newUser.Credentials.Add(credential);
 
-            if (!Config.ConfirmEmailAddresses)
+            if (!_config.ConfirmEmailAddresses)
             {
                 newUser.ConfirmEmailAddress();
             }
@@ -358,20 +355,20 @@ namespace NuGetGallery.Authentication
             var result = await context.Authentication.AuthenticateAsync(AuthenticationTypes.External);
             if (result == null)
             {
-                Trace.Information("No external login found.");
+                _trace.Information("No external login found.");
                 return new AuthenticateExternalLoginResult();
             }
             var idClaim = result.Identity.FindFirst(ClaimTypes.NameIdentifier);
             if (idClaim == null)
             {
-                Trace.Error("External Authentication is missing required claim: " + ClaimTypes.NameIdentifier);
+                _trace.Error("External Authentication is missing required claim: " + ClaimTypes.NameIdentifier);
                 return new AuthenticateExternalLoginResult();
             }
-            
+
             var nameClaim = result.Identity.FindFirst(ClaimTypes.Name);
             if (nameClaim == null)
             {
-                Trace.Error("External Authentication is missing required claim: " + ClaimTypes.Name);
+                _trace.Error("External Authentication is missing required claim: " + ClaimTypes.Name);
                 return new AuthenticateExternalLoginResult();
             }
 
@@ -524,7 +521,7 @@ namespace NuGetGallery.Authentication
                     Strings.MultipleMatchingCredentials,
                     credential.Type,
                     results.First().Key);
-                Trace.Error(message);
+                _trace.Error(message);
                 throw new InvalidOperationException(message);
             }
         }
@@ -551,7 +548,7 @@ namespace NuGetGallery.Authentication
                 else
                 {
                     // If multiple matches, leave it null to signal no unique email address
-                    Trace.Warning("Multiple user accounts with email address: " + userNameOrEmail + " found: " + String.Join(", ", allMatches.Select(u => u.Username)));
+                    _trace.Warning("Multiple user accounts with email address: " + userNameOrEmail + " found: " + String.Join(", ", allMatches.Select(u => u.Username)));
                 }
             }
             return user;
@@ -595,7 +592,7 @@ namespace NuGetGallery.Authentication
                 Entities.DeleteOnCommit(cred);
             }
             await Auditing.SaveAuditRecord(new UserAuditRecord(user, UserAuditAction.RemovedCredential, toRemove));
-                
+
             // Now add one if there are no credentials left
             if (creds.Count == 0)
             {
