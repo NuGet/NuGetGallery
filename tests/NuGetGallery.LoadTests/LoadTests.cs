@@ -18,6 +18,12 @@ namespace NuGetGallery.LoadTests
     [TestClass]
     public class LoadTests
     {
+        public LoadTests()
+        {
+            //supress SSL validation so that we can run tests against staging slot as well.
+            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+        }
+
         [TestMethod]
         [Description("Tries to download a packages from v2 feed and make sure the re-direction happens properly.")]
         [TestCategory("P0Tests")]
