@@ -170,35 +170,46 @@ namespace NuGet.Services.BasicSearch
         {
             try
             {
-                case "/":
-                    await context.Response.WriteAsync("READY");
-                    context.Response.StatusCode = (int)HttpStatusCode.OK;
-                    break;
-                case "/find":
-                    await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.Find(context, _searcherManager));
-                    break;
-                case "/query":
-                    await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.Query(context, _searcherManager));
-                    break;
-                case "/autocomplete":
-                    await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.AutoComplete(context, _searcherManager));
-                    break;
-                case "/search/query":
-                    await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, GalleryServiceImpl.Query(context, _searcherManager));
-                    break;
-                case "/rankings":
-                    await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceInfoImpl.Rankings(context, _searcherManager));
-                    break;
+                switch (context.Request.Path.Value)
+                {
+                    case "/":
+                        await context.Response.WriteAsync("READY");
+                        context.Response.StatusCode = (int)HttpStatusCode.OK;
+                        break;
+                    case "/find":
+                        await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.Find(context, _searcherManager));
+                        break;
+                    case "/query":
+                        await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.Query(context, _searcherManager));
+                        break;
+                    case "/autocomplete":
+                        await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.AutoComplete(context, _searcherManager));
+                        break;
+                    case "/search/query":
+                        await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, GalleryServiceImpl.Query(context, _searcherManager));
+                        break;
+                    case "/rankings":
+                        await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceInfoImpl.Rankings(context, _searcherManager));
+                        break;
 
-                //case "/stats":
-                //case "/search/diag":
-                //    _searcherManager.MaybeReopen();
-                //    await ServiceInfoImpl.Stats(context, _searcherManager);
-                //    break;
-                default:
-                    await context.Response.WriteAsync("unrecognized");
-                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    break;
+                    //case "/stats":
+                    //case "/search/diag":
+                    //    _searcherManager.MaybeReopen();
+                    //    await ServiceInfoImpl.Stats(context, _searcherManager);
+                    //    break;
+                    default:
+                        await context.Response.WriteAsync("unrecognized");
+                        context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                        break;
+                }
+            }
+            catch (ClientException e)
+            {
+                ServiceHelpers.WriteResponse(context, e);
+            }
+            catch (Exception e)
+            {
+                ServiceHelpers.WriteResponse(context, e);
             }
         }
     }
