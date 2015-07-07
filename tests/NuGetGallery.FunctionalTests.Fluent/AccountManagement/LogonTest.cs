@@ -1,12 +1,22 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace NuGetGallery.FunctionalTests.Fluent
+using System.ComponentModel;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace NuGetGallery.FunctionalTests.Fluent.AccountManagement
 {
-    [TestClass]
-    public class LogonTest : NuGetFluentTest 
+
+    public class LogonTest
+        : NuGetFluentTest
     {
-        [TestMethod]
+        public LogonTest(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        {
+        }
+
+        [Fact]
         [Description("Verify staying at the same starting pages after logged on and signed out, and the logon/signout links")]
         [Priority(1)]
         public void Logon()
@@ -26,9 +36,9 @@ namespace NuGetGallery.FunctionalTests.Fluent
             I.Open(UrlHelper.BaseUrl + page);
             I.Expect.Url(x => x.AbsoluteUri.Contains(page));
 
-            string registerSignIn = "a:contains('Register / Sign in')";
-            string signOut = "a:contains('Sign out')";
-            string expectedUserName = "a:contains('NugetTestAccount')";
+            var registerSignIn = "a:contains('Register / Sign in')";
+            var signOut = "a:contains('Sign out')";
+            var expectedUserName = "a:contains('NugetTestAccount')";
 
             I.Click(registerSignIn);
             I.Expect.Url(x => x.LocalPath.Contains("LogOn"));

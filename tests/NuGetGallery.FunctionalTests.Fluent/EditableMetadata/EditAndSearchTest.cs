@@ -1,14 +1,25 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace NuGetGallery.FunctionalTests.Fluent
+using System;
+using System.ComponentModel;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace NuGetGallery.FunctionalTests.Fluent.EditableMetadata
 {
-    [TestClass]
     public class EditAndSearchTest : NuGetFluentTest
     {
-        [TestMethod]
+        private readonly PackageCreationHelper _packageCreationHelper;
+
+        public EditAndSearchTest(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        {
+            _packageCreationHelper = new PackageCreationHelper(testOutputHelper);
+        }
+
+        [Fact]
         [Description("Provide sanity verification of search index rebuilding on the live site.")]
         [Priority(2)]
         public async Task EditAndSearch()
@@ -17,7 +28,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             string packageName = "NuGetGallery.FunctionalTests.Fluent.EditAndSearch";
             string ticks = DateTime.Now.Ticks.ToString();
             string version = new Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
-            string newPackageLocation = await PackageCreationHelper.CreatePackage(packageName, version);
+            string newPackageLocation = await _packageCreationHelper.CreatePackage(packageName, version);
 
             // Log on using the test account.
             I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
@@ -27,7 +38,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
             // Edit the package.
             I.Click("#Edit_VersionTitleButton");
-            string newTitle = String.Format("This title is accurate as of {0}.", DateTime.Now.ToString("F"));
+            string newTitle = string.Format("This title is accurate as of {0}.", DateTime.Now.ToString("F"));
             I.Enter(newTitle).In("#Edit_VersionTitle");
             I.Click("#verifyUploadSubmit");
 
@@ -51,8 +62,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
                 }
             }
 
-            Assert.IsTrue(applied, "The edit doesn't appear to have been applied after ten minutes.");
+            Assert.True(applied, "The edit doesn't appear to have been applied after ten minutes.");
         }
-
     }
 }

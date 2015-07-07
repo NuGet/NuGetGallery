@@ -1,15 +1,24 @@
-﻿using System.IO;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.ComponentModel;
+using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
+using Xunit;
+using Xunit.Abstractions;
 
-namespace NuGetGallery.FunctionalTests.Fluent
+namespace NuGetGallery.FunctionalTests.Fluent.Statistics
 {
-    [TestClass]
     public class StatsInHomePageTest : NuGetFluentTest
     {
-        [TestMethod]
+        public StatsInHomePageTest(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        {
+        }
+
+        [Fact]
         [Description("Cross-check the contents of the Statistics on the homepage against the stats/total API endpoint.")]
         [Priority(1)]
         public async Task StatsInHomePage()
@@ -25,12 +34,12 @@ namespace NuGetGallery.FunctionalTests.Fluent
             }
 
             // Extract the substrings we'll search for on the front page.
-            string downloads = responseText.Substring(responseText.IndexOf(@"Downloads"":""") + 12);
-            downloads = downloads.Substring(0, downloads.IndexOf(@""""));
-            string uniquePackages = responseText.Substring(responseText.IndexOf(@"UniquePackages"":""") + 17);
-            uniquePackages = uniquePackages.Substring(0, uniquePackages.IndexOf(@""""));
-            string totalPackages = responseText.Substring(responseText.IndexOf(@"TotalPackages"":""") + 16);
-            totalPackages = totalPackages.Substring(0, totalPackages.IndexOf(@""""));
+            string downloads = responseText.Substring(responseText.IndexOf(@"Downloads"":""", StringComparison.Ordinal) + 12);
+            downloads = downloads.Substring(0, downloads.IndexOf(@"""", StringComparison.Ordinal));
+            string uniquePackages = responseText.Substring(responseText.IndexOf(@"UniquePackages"":""", StringComparison.Ordinal) + 17);
+            uniquePackages = uniquePackages.Substring(0, uniquePackages.IndexOf(@"""", StringComparison.Ordinal));
+            string totalPackages = responseText.Substring(responseText.IndexOf(@"TotalPackages"":""", StringComparison.Ordinal) + 16);
+            totalPackages = totalPackages.Substring(0, totalPackages.IndexOf(@"""", StringComparison.Ordinal));
 
             I.Open(UrlHelper.BaseUrl);
             I.Wait(5);

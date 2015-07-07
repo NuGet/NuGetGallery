@@ -1,14 +1,25 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGallery.FunctionTests.Helpers;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace NuGetGallery.FunctionalTests.Fluent
+using System;
+using System.ComponentModel;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace NuGetGallery.FunctionalTests.Fluent.UploadAndDownload
 {
-    [TestClass]
     public class _1826RegressionTest : NuGetFluentTest
     {
-        [TestMethod]
+        private readonly PackageCreationHelper _packageCreationHelper;
+
+        public _1826RegressionTest(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        {
+            _packageCreationHelper = new PackageCreationHelper(testOutputHelper);
+        }
+
+        [Fact]
         [Description("Upload a package with a dependency that has no targetFramework, verify success.")]
         [Priority(1)]
         public async Task _1826Regression()
@@ -17,7 +28,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
             string ticks = DateTime.Now.Ticks.ToString();
             string version = new Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
 
-            string newPackageLocation = await PackageCreationHelper.CreatePackage(packageName, version, null, null, null, null, null, @"
+            string newPackageLocation = await _packageCreationHelper.CreatePackage(packageName, version, null, null, null, null, null, @"
                 <group>
                     <dependency id=""jQuery"" version=""2.1.0"" />
                 </group>
