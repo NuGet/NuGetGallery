@@ -5,7 +5,9 @@ using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using Microsoft.Owin;
+using System;
 using System.Collections.Generic;
+using System.Net;
 
 namespace NuGet.Indexing
 {
@@ -82,9 +84,16 @@ namespace NuGet.Indexing
 
         public static Query MakeQuery(string q, IDictionary<string, int> rankings)
         {
-            Query query = LuceneQueryCreator.Parse(q, false);
-            Query boostedQuery = new RankingScoreQuery(query, rankings);
-            return boostedQuery;
+            try
+            {
+                Query query = LuceneQueryCreator.Parse(q, false);
+                Query boostedQuery = new RankingScoreQuery(query, rankings);
+                return boostedQuery;
+            }
+            catch (ParseException)
+            {
+                throw new ClientException(HttpStatusCode.BadRequest, "Invalid query format");
+            }
         }
 
         public static string AutoComplete(IOwinContext context, NuGetSearcherManager searcherManager)
