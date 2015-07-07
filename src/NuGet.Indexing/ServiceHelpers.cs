@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Lucene.Net.Documents;
 using Microsoft.Owin;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Diagnostics;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -41,6 +43,39 @@ namespace NuGet.Indexing
             context.Response.ContentType = contentType;
 
             return context.Response.WriteAsync(responseString);
+        }
+
+        public static void WriteResponse(IOwinContext context, ClientException e)
+        {
+            WriteResponse(context, e.StatusCode, e.Content).Wait();
+        }
+
+
+        public static void WriteResponse(IOwinContext context, Exception e)
+        {
+            ServiceHelpers.TraceException(e);
+            WriteResponse(context, HttpStatusCode.InternalServerError, "{\"error\":\"Internal server error\"}").Wait();
+        }
+
+        public static void TraceException(Exception e)
+        {
+            if (e is AggregateException)
+            {
+                foreach (Exception ex in ((AggregateException)e).InnerExceptions)
+                {
+                    TraceException(ex);
+                }
+            }
+            else
+            {
+                Trace.TraceError("{0} {1}", e.GetType().Name, e.Message);
+                Trace.TraceError("{0}", e.StackTrace);
+
+                if (e.InnerException != null)
+                {
+                    TraceException(e.InnerException);
+                }
+            }
         }
 
         public static bool IsAuthorized()

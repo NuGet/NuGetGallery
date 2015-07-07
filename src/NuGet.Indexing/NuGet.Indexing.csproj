@@ -145,6 +145,7 @@
   <ItemGroup>
     <Compile Include="BitSetCollector.cs" />
     <Compile Include="ChainedFilter.cs" />
+    <Compile Include="ClientException.cs" />
     <Compile Include="Compatibility.cs" />
     <Compile Include="CuratedFeedHandler.cs" />
     <Compile Include="DownloadRankings.cs" />
