@@ -107,6 +107,9 @@ namespace NuGet.Indexing
 
             IndexReader ownersReader = ownersHandler.OpenReader();
 
+            Trace.TraceInformation("ownersReader {0} (deletes: {1})", ownersReader.MaxDoc, ownersReader.NumDeletedDocs);
+            Trace.TraceInformation("original {0} (deletes: {1})", reader.MaxDoc, reader.NumDeletedDocs);
+
             ParallelReader combined = new ParallelReader(false);
             combined.Add(reader);
             combined.Add(ownersReader);
