@@ -72,6 +72,7 @@
     <Compile Include="Configuration\EnvironmentVariableKeys.cs" />
     <Compile Include="Configuration\JobArgumentNames.cs" />
     <Compile Include="Extensions\SqlConnectionStringBuilderExtensions.cs" />
+    <Compile Include="SqlExportArguments.cs" />
     <Compile Include="Tracing\AzureBlobJobTraceListener.cs" />
     <Compile Include="Configuration\JobConfigurationManager.cs" />
     <Compile Include="Extensions\DapperExtensions.cs" />
@@ -79,6 +80,7 @@
     <Compile Include="JobRunner.cs" />
     <Compile Include="Tracing\JobTraceEventListener.cs" />
     <Compile Include="Tracing\JobTraceListener.cs" />
+    <Compile Include="JobHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StorageHelpers.cs" />
     <Compile Include="Strings.Designer.cs" />

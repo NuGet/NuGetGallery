@@ -3,14 +3,13 @@
 
 using NuGet.Jobs;
 
-namespace Catalog.Updater
+namespace Search.GenerateCuratedFeed
 {
     class Program
     {
         static void Main(string[] args)
         {
-            var job = new Job();
-            JobRunner.Run(job, args).Wait();
+            JobRunner.Run(new Job(), args).Wait();
         }
     }
 }

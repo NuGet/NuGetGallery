@@ -114,7 +114,7 @@ namespace Tests.Heartbeat
                 // Close the Event Log
                 eventLog.Close();
             }
-            catch (System.Security.SecurityException e)
+            catch (System.Security.SecurityException)
             {
                 Console.WriteLine("Run VS or exe as an administrator to be able to read/create an event log entry");
             }
