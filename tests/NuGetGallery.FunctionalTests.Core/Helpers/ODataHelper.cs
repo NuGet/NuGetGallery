@@ -29,62 +29,53 @@ namespace NuGetGallery.FunctionalTests
         {
         }
 
-        public Task<string> DownloadPackageFromFeed(string packageId, string version, string operation = "Install")
+        public async Task<string> DownloadPackageFromFeed(string packageId, string version, string operation = "Install")
         {
+            string filename = null;
             var client = new HttpClient();
-            string requestUri = UrlHelper.V2FeedRootUrl + @"Package/" + packageId + @"/" + version;
+            var requestUri = UrlHelper.V2FeedRootUrl + @"Package/" + packageId + @"/" + version;
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            TestOutputHelper.WriteLine("GET " + requestUri);
+
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
             request.Headers.Add("user-agent", "TestAgent");
             request.Headers.Add("NuGet-Operation", operation);
-            Task<HttpResponseMessage> responseTask = client.SendAsync(request);
+            var responseMessage = await client.SendAsync(request);
 
-            TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
-            responseTask.ContinueWith(rt =>
+            if (responseMessage.StatusCode == HttpStatusCode.OK)
             {
-                HttpResponseMessage responseMessage = rt.Result;
-                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                try
                 {
-                    try
+                    var contentDisposition = responseMessage.Content.Headers.ContentDisposition;
+                    if (contentDisposition != null)
                     {
-                        string filename;
-                        ContentDispositionHeaderValue contentDisposition = responseMessage.Content.Headers.ContentDisposition;
-                        if (contentDisposition != null)
-                        {
-                            filename = contentDisposition.FileName;
-                        }
-                        else
-                        {
-                            filename = packageId; // if file name not present set the package Id for the file name.
-                        }
-                        FileStream fileStream = File.Create(filename);
-                        Task contentTask = responseMessage.Content.CopyToAsync(fileStream);
-                        contentTask.ContinueWith((ct) =>
-                        {
-                            try
-                            {
-                                fileStream.Close();
-                                tcs.SetResult(filename);
-                            }
-                            catch (Exception e)
-                            {
-                                tcs.SetException(e);
-                            }
-                        });
+                        filename = contentDisposition.FileName;
                     }
-                    catch (Exception e)
+                    else
                     {
-                        tcs.SetException(e);
+                        // if file name not present set the package Id for the file name
+                        filename = packageId;
                     }
-                }
-                else
-                {
-                    string msg = string.Format("Http StatusCode: {0}", responseMessage.StatusCode);
-                    tcs.SetException(new ApplicationException(msg));
-                }
-            });
 
-            return tcs.Task;
+                    using (var fileStream = File.Create(filename))
+                    {
+                        await responseMessage.Content.CopyToAsync(fileStream);
+                    }
+                }
+                catch (Exception e)
+                {
+                    TestOutputHelper.WriteLine("EXCEPTION: " + e);
+                    throw;
+                }
+            }
+            else
+            {
+                var message = string.Format("Http StatusCode: {0}", responseMessage.StatusCode);
+                TestOutputHelper.WriteLine(message);
+                throw new ApplicationException(message);
+            }
+
+            return filename;
         }
 
         public async Task<string> TryDownloadPackageFromFeed(string packageId, string version)
