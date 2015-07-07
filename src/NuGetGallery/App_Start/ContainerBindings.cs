@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Net;
 using System.Net.Mail;
@@ -11,12 +12,11 @@ using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Ninject;
-using Ninject.Web.Common;
 using Ninject.Modules;
+using Ninject.Web.Common;
+using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
-using System.Diagnostics;
-using NuGetGallery.Auditing;
 using NuGetGallery.Infrastructure.Lucene;
 
 namespace NuGetGallery
@@ -261,7 +261,7 @@ namespace NuGetGallery
         private void ConfigureForAzureStorage(ConfigurationService configuration)
         {
             Bind<ICloudBlobClient>()
-                .ToMethod(_ => new CloudBlobClientWrapper(configuration.Current.AzureStorageConnectionString))
+                .ToMethod(_ => new CloudBlobClientWrapper(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .InSingletonScope();
             Bind<IFileStorageService>()
                 .To<CloudBlobFileStorageService>()
@@ -269,12 +269,12 @@ namespace NuGetGallery
 
             // when running on Windows Azure, we use a back-end job to calculate stats totals and store in the blobs
             Bind<IAggregateStatsService>()
-                .ToMethod(_ => new JsonAggregateStatsService(configuration.Current.AzureStorageConnectionString))
+                .ToMethod(_ => new JsonAggregateStatsService(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .InSingletonScope();
 
             // when running on Windows Azure, pull the statistics from the warehouse via storage
             Bind<IReportService>()
-                .ToMethod(_ => new CloudReportService(configuration.Current.AzureStorageConnectionString))
+                .ToMethod(_ => new CloudReportService(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .InSingletonScope();
 
             Bind<IStatisticsService>()
@@ -286,7 +286,7 @@ namespace NuGetGallery
             {
                 instanceId = RoleEnvironment.CurrentRoleInstance.Id;
             }
-            catch (Exception)
+            catch
             {
                 instanceId = Environment.MachineName;
             }

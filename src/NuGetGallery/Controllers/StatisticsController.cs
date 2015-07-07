@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -11,7 +11,8 @@ using System.Web.UI;
 
 namespace NuGetGallery
 {
-    public partial class StatisticsController : AppController
+    public partial class StatisticsController
+        : AppController
     {
         private readonly IStatisticsService _statisticsService = null;
         private readonly IAggregateStatsService _aggregateStatsService = null;
@@ -108,7 +109,7 @@ namespace NuGetGallery
             }
 
             var availablity = await Task.WhenAll(
-                _statisticsService.LoadDownloadPackages(), 
+                _statisticsService.LoadDownloadPackages(),
                 _statisticsService.LoadDownloadPackageVersions(),
                 _statisticsService.LoadNuGetClientVersion(),
                 _statisticsService.LoadLast6Months());
@@ -269,7 +270,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    // the pivot array is used as the Columns in the report so we resize because this was the final set of columns 
+                    // the pivot array is used as the Columns in the report so we resize because this was the final set of columns
 
                     Array.Resize(ref pivot, dim);
                 }

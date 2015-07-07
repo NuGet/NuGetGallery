@@ -5,16 +5,19 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.RetryPolicies;
 
 namespace NuGetGallery
 {
     public class CloudReportService : IReportService
     {
         private readonly string _connectionString;
+        private readonly bool _readAccessGeoRedundant;
 
-        public CloudReportService(string connectionString)
+        public CloudReportService(string connectionString, bool readAccessGeoRedundant)
         {
             _connectionString = connectionString;
+            _readAccessGeoRedundant = readAccessGeoRedundant;
         }
 
         public async Task<StatisticsReport> Load(string name)
@@ -26,6 +29,12 @@ namespace NuGetGallery
 
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+            if (_readAccessGeoRedundant)
+            {
+                blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
+            }
+
             CloudBlobContainer container = blobClient.GetContainerReference("stats");
             CloudBlockBlob blob = container.GetBlockBlobReference("popularity/" + name);
 

@@ -23,7 +23,8 @@ using PoliteCaptcha;
 
 namespace NuGetGallery
 {
-    public partial class PackagesController : AppController
+    public partial class PackagesController
+        : AppController
     {
         // TODO: add support for URL-based package submission
         // TODO: add support for uploading logos and screenshots
@@ -227,8 +228,8 @@ namespace NuGetGallery
                 if (nuGetPackage.Metadata.MinClientVersion > new Version("3.0.0.0"))
                 {
                     ModelState.AddModelError(
-                        String.Empty,
-                        String.Format(
+                        string.Empty,
+                        string.Format(
                             CultureInfo.CurrentCulture,
                             Strings.UploadPackage_MinClientVersionOutOfRange,
                             nuGetPackage.Metadata.MinClientVersion));
@@ -239,7 +240,7 @@ namespace NuGetGallery
                 if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
                 {
                     ModelState.AddModelError(
-                        String.Empty, String.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
+                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
                     return View();
                 }
 
@@ -247,8 +248,8 @@ namespace NuGetGallery
                 if (package != null)
                 {
                     ModelState.AddModelError(
-                        String.Empty,
-                        String.Format(
+                        string.Empty,
+                        string.Format(
                             CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified, package.PackageRegistration.Id, package.Version));
                     return View();
                 }
@@ -262,7 +263,7 @@ namespace NuGetGallery
         public virtual ActionResult DisplayPackage(string id, string version)
         {
             string normalized = SemanticVersionExtensions.Normalize(version);
-            if (!String.Equals(version, normalized))
+            if (!string.Equals(version, normalized))
             {
                 // Permanent redirect to the normalized one (to avoid multiple URLs for the same content)
                 return RedirectToActionPermanent("DisplayPackage", new { id = id, version = normalized });
@@ -395,7 +396,7 @@ namespace NuGetGallery
                 // If user logged on in as owner a different tab, then clicked the link, we can redirect them to ReportMyPackage
                 if (package.IsOwner(user))
                 {
-                    return RedirectToAction("ReportMyPackage", new {id, version});
+                    return RedirectToAction("ReportMyPackage", new { id, version });
                 }
 
                 if (user.Confirmed)
@@ -404,11 +405,11 @@ namespace NuGetGallery
                 }
             }
 
-            ViewData[Constants.ReturnUrlViewDataKey] = Url.Action("ReportMyPackage", new {id, version});
+            ViewData[Constants.ReturnUrlViewDataKey] = Url.Action("ReportMyPackage", new { id, version });
             return View(model);
         }
 
-        private static readonly ReportPackageReason[] ReportMyPackageReasons = new[] {
+        private static readonly ReportPackageReason[] ReportMyPackageReasons = {
             ReportPackageReason.ContainsPrivateAndConfidentialData,
             ReportPackageReason.PublishedWithWrongVersion,
             ReportPackageReason.ReleasedInPublicByAccident,
@@ -956,7 +957,7 @@ namespace NuGetGallery
             {
                 caught = ipex.AsUserSafeException();
             }
-                catch(InvalidDataException idex)
+            catch (InvalidDataException idex)
             {
                 caught = idex.AsUserSafeException();
             }

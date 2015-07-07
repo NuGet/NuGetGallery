@@ -17,10 +17,19 @@ namespace NuGetGallery.Configuration
 {
     public class ConfigurationService : IConfigurationSource
     {
-        private const string SettingPrefix = "Gallery.";
-        private const string FeaturePrefix = "Feature.";
-
+        private const string _settingPrefix = "Gallery.";
+        private const string _featurePrefix = "Feature.";
+        private bool _notInCloud;
         private IAppConfiguration _current;
+        private readonly Lazy<string> _httpSiteRootThunk;
+        private readonly Lazy<string> _httpsSiteRootThunk;
+        private FeatureConfiguration _features;
+
+        public ConfigurationService()
+        {
+            _httpSiteRootThunk = new Lazy<string>(GetHttpSiteRoot);
+            _httpsSiteRootThunk = new Lazy<string>(GetHttpsSiteRoot);
+        }
 
         public virtual IAppConfiguration Current
         {
@@ -28,21 +37,10 @@ namespace NuGetGallery.Configuration
             set { _current = value; }
         }
 
-        private FeatureConfiguration _features;
-
         public virtual FeatureConfiguration Features
         {
             get { return _features ?? (_features = ResolveFeatures()); }
             set { _features = value; }
-        }
-
-        private readonly Lazy<string> _httpSiteRootThunk;
-        private readonly Lazy<string> _httpsSiteRootThunk;
-
-        public ConfigurationService()
-        {
-            _httpSiteRootThunk = new Lazy<string>(GetHttpSiteRoot);
-            _httpsSiteRootThunk = new Lazy<string>(GetHttpsSiteRoot);
         }
 
         /// <summary>
@@ -57,12 +55,12 @@ namespace NuGetGallery.Configuration
 
         public virtual FeatureConfiguration ResolveFeatures()
         {
-            return ResolveConfigObject(new FeatureConfiguration(), FeaturePrefix);
+            return ResolveConfigObject(new FeatureConfiguration(), _featurePrefix);
         }
 
         public virtual IAppConfiguration ResolveSettings()
         {
-            return ResolveConfigObject(new AppConfiguration(), SettingPrefix);
+            return ResolveConfigObject(new AppConfiguration(), _settingPrefix);
         }
 
         public virtual T ResolveConfigObject<T>(T instance, string prefix)
@@ -142,8 +140,6 @@ namespace NuGetGallery.Configuration
             }
             return cloudValue;
         }
-
-        public bool _notInCloud = false;
 
         public virtual string GetCloudSetting(string settingName)
         {

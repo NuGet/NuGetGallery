@@ -11,7 +11,8 @@ using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
-    public partial class UsersController : AppController
+    public partial class UsersController
+        : AppController
     {
         public ICuratedFeedService CuratedFeedService { get; protected set; }
         public IUserService UserService { get; protected set; }

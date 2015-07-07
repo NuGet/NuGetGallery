@@ -1,14 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
+
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using System.Web.DynamicData;
-using System.Web.Optimization;
 using System.Web.Routing;
-using System.Web.UI;
 using DynamicData.EFCodeFirstProvider;
 using NuGetGallery.Configuration;
 
@@ -17,10 +14,10 @@ namespace NuGetGallery.Areas.Admin.DynamicData
     public class DynamicDataManager
     {
         [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes", Justification = "We do treat this as immutable.")]
-        public static readonly MetaModel DefaultModel = new MetaModel() { DynamicDataFolderVirtualPath = "~/Areas/Admin/DynamicData" };
+        public static readonly MetaModel DefaultModel = new MetaModel { DynamicDataFolderVirtualPath = "~/Areas/Admin/DynamicData" };
 
         private static DynamicDataRoute _route;
-        
+
         public static void Register(RouteCollection routes, string root, IAppConfiguration configuration)
         {
             // Set up unobtrusive validation
@@ -45,12 +42,12 @@ namespace NuGetGallery.Areas.Admin.DynamicData
             }
             catch (SqlException e)
             {
-                QuietlyLogException(e);
+                QuietLog.LogHandledException(e);
                 return;
             }
             catch (DataException e)
             {
-                QuietlyLogException(e);
+                QuietLog.LogHandledException(e);
                 return;
             }
 
@@ -66,18 +63,6 @@ namespace NuGetGallery.Areas.Admin.DynamicData
                 "dd_default",
                 root,
                 "~/Areas/Admin/DynamicData/Default.aspx");
-        }
-
-        private static void QuietlyLogException(Exception e)
-        {
-            try
-            {
-                QuietLog.LogHandledException(e);
-            }
-            catch
-            {
-                // logging failed, don't allow exception to escape
-            }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -25,26 +26,6 @@ namespace NuGetGallery
 {
     public static class ExtensionMethods
     {
-        public static string ToJavaScriptUTC(this DateTime self)
-        {
-            return self.ToUniversalTime().ToString("O", CultureInfo.CurrentCulture);
-        }
-
-        public static string ToNuGetShortDateTimeString(this DateTime self)
-        {
-            return self.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.CurrentCulture);
-        }
-
-        public static string ToNuGetShortDateString(this DateTime self)
-        {
-            return self.ToString("yyyy-MM-dd", CultureInfo.CurrentCulture);
-        }
-
-        public static string ToNuGetLongDateString(this DateTime self)
-        {
-            return self.ToString("dddd, MMMM dd yyyy", CultureInfo.CurrentCulture);
-        }
-
         public static void AddOrSet<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> self, TKey key, TValue val)
         {
             self.AddOrUpdate(key, val, (_, __) => val);
@@ -230,16 +211,6 @@ namespace NuGetGallery
         public static string CardinalityLabel(this int count, string singular, string plural)
         {
             return count == 1 ? singular : plural;
-        }
-
-        public static bool IsInThePast(this DateTime? date)
-        {
-            return date.Value.IsInThePast();
-        }
-
-        public static bool IsInThePast(this DateTime date)
-        {
-            return date < DateTime.UtcNow;
         }
 
         public static IQueryable<T> SortBy<T>(this IQueryable<T> source, string sortExpression)

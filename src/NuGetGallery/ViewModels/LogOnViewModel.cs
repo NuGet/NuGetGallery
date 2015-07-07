@@ -24,7 +24,7 @@ namespace NuGetGallery
         {
         }
 
-        public LogOnViewModel(SignInViewModel signIn)
+        internal LogOnViewModel(SignInViewModel signIn)
         {
             SignIn = signIn;
             Register = new RegisterViewModel();

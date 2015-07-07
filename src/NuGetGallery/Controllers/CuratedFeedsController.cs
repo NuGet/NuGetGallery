@@ -1,12 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
-using System.Data.Entity;
+
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using NuGet;
-using NuGetGallery;
 
 namespace NuGetGallery
 {
@@ -77,7 +74,7 @@ namespace NuGetGallery
             int totalHits = results.Hits;
             if (page == 1 && !results.Data.Any())
             {
-                // In the event the index wasn't updated, we may get an incorrect count. 
+                // In the event the index wasn't updated, we may get an incorrect count.
                 totalHits = 0;
             }
 

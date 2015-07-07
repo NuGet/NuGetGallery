@@ -35,7 +35,7 @@ namespace NuGetGallery
     public static class AppActivator
     {
         private static JobManager _jobManager;
-        private static readonly Bootstrapper NinjectBootstrapper = new Bootstrapper();
+        private static readonly Bootstrapper _ninjectBootstrapper = new Bootstrapper();
 
         public static void PreStart()
         {
@@ -57,7 +57,7 @@ namespace NuGetGallery
                     CloudPreStart();
                 }
             }
-            catch (Exception)
+            catch
             {
                 // Azure SDK not available!
             }
@@ -86,7 +86,7 @@ namespace NuGetGallery
             ret.AreaMasterLocationFormats =
                 ret.AreaViewLocationFormats =
                 ret.AreaPartialViewLocationFormats =
-                new string[]
+                new[]
             {
                 "~/Areas/{2}/Views/{1}/{0}.cshtml",
                 "~/Branding/Views/Shared/{0}.cshtml",
@@ -94,9 +94,9 @@ namespace NuGetGallery
             };
 
             ret.MasterLocationFormats =
-                ret.ViewLocationFormats  =
+                ret.ViewLocationFormats =
                 ret.PartialViewLocationFormats =
-                new string[]
+                new[]
             {
                 "~/Branding/Views/{1}/{0}.cshtml",
                 "~/Views/{1}/{0}.cshtml",
@@ -228,7 +228,7 @@ namespace NuGetGallery
                     }
                 }
             }
-            catch (Exception)
+            catch
             {
                 // Meh, so Azure isn't available...
             }
@@ -251,12 +251,12 @@ namespace NuGetGallery
         {
             DynamicModuleUtility.RegisterModule(typeof(OnePerRequestHttpModule));
             DynamicModuleUtility.RegisterModule(typeof(NinjectHttpModule));
-            NinjectBootstrapper.Initialize(() => Container.Kernel);
+            _ninjectBootstrapper.Initialize(() => Container.Kernel);
         }
 
         private static void NinjectStop()
         {
-            NinjectBootstrapper.ShutDown();
+            _ninjectBootstrapper.ShutDown();
         }
     }
 }

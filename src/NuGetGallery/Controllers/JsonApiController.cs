@@ -1,13 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Globalization;
 using System.Linq;
 using System.Web.Mvc;
 using MvcHaack.Ajax;
-using System.Globalization;
 
 namespace NuGetGallery
 {
-    public partial class JsonApiController : JsonController
+    public partial class JsonApiController
+        : JsonController
     {
         private readonly IMessageService _messageService;
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
@@ -79,7 +81,7 @@ namespace NuGetGallery
             var ownerRequest = _packageService.CreatePackageOwnerRequest(package, currentUser, user);
 
             var confirmationUrl = Url.ConfirmationUrl(
-                "ConfirmOwner", 
+                "ConfirmOwner",
                 "Packages",
                 user.Username,
                 ownerRequest.ConfirmationCode,

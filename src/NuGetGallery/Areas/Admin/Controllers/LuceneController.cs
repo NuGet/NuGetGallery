@@ -31,13 +31,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         public virtual async Task<ActionResult> Index()
         {
-            return View("Index",
-                await GetLuceneInfo());
+            return View("Index", await GetLuceneInfo());
         }
 
         private async Task<LuceneInfoModel> GetLuceneInfo()
         {
-            var model = new LuceneInfoModel()
+            var model = new LuceneInfoModel
             {
                 Directory = IndexingService.IndexPath,
                 IsLocal = IndexingService.IsLocal,
