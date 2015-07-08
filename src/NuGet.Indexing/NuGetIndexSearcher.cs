@@ -17,8 +17,10 @@ namespace NuGet.Indexing
         Filter[][] _latest;
 
         public NuGetIndexSearcher(
-            NuGetSearcherManager manager, 
-            IndexReader reader, IDictionary<string, string> commitUserData, 
+            NuGetSearcherManager manager,
+            IndexReader reader,
+            IndexReader originalReader,
+            IDictionary<string, string> commitUserData, 
             IDictionary<string, Filter> curatedFeeds, 
             Filter[][] latest,
             VersionsHandler.VersionResult[] versions,
@@ -28,6 +30,7 @@ namespace NuGet.Indexing
             : base(reader)
         {
             Manager = manager;
+            OriginalReader = originalReader;
             CommitUserData = commitUserData;
             _curatedFeeds = curatedFeeds;
             _latest = latest;
@@ -39,6 +42,7 @@ namespace NuGet.Indexing
         }
 
         public NuGetSearcherManager Manager { get; private set; }
+        public IndexReader OriginalReader { get; private set; }
         public IDictionary<string, string> CommitUserData { get; private set; }
         public VersionsHandler.VersionResult[] Versions { get; private set; }
         public IDictionary<string, int> Rankings { get; private set; }

@@ -1,10 +1,11 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Threading;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
+using System;
+using System.Threading;
 
 namespace NuGet.Indexing
 {
@@ -31,11 +32,17 @@ namespace NuGet.Indexing
                     if (_currentSearcher == null)
                     {
                         _currentSearcher = CreateSearcher(IndexReader.Open(Directory, true));
+                        if (_currentSearcher == null)
+                        {
+                            throw new Exception("Unable to create IndexSearcher");
+                        }
                     }
                 }
             }
             Warm(_currentSearcher);
         }
+
+        protected abstract IndexReader Reopen(IndexSearcher searcher);
 
         protected abstract TIndexSearcher CreateSearcher(IndexReader reader);
 
@@ -72,12 +79,17 @@ namespace NuGet.Indexing
                 TIndexSearcher searcher = Get();
                 try
                 {
-                    var newReader = _currentSearcher.IndexReader.Reopen();
+                    //var newReader = _currentSearcher.IndexReader.Reopen();
+                    var newReader = Reopen(_currentSearcher);
+
                     if (newReader != _currentSearcher.IndexReader)
                     {
                         var newSearcher = CreateSearcher(newReader);
-                        Warm(newSearcher);
-                        SwapSearcher(newSearcher);
+                        if (newSearcher != null)
+                        {
+                            Warm(newSearcher);
+                            SwapSearcher(newSearcher);
+                        }
                     }
                 }
                 finally

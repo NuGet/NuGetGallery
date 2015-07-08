@@ -37,15 +37,29 @@ namespace NuGet.Indexing
             await ServiceHelpers.WriteResponse(context, System.Net.HttpStatusCode.OK, result);
         }
 
-        public static async Task Stats(IOwinContext context, ISearchIndexInfo temp)
+        public static async Task Stats(IOwinContext context, NuGetSearcherManager searcherManager)
         {
-            JObject result = new JObject();
-            result.Add("numDocs", temp.NumDocs);
-            result.Add("indexName", temp.IndexName);
-            result.Add("lastReopen", temp.LastReopen);
-            result.Add("commitUserData", GetCommitUserData(temp));
+            var searcher = searcherManager.Get();
+            try
+            {
+                JObject result = new JObject();
+                result.Add("numDocs", searcher.IndexReader.NumDocs());
+                result.Add("indexName", searcher.Manager.IndexName);
+                result.Add("lastReopen", searcher.LastReopen);
 
-            await ServiceHelpers.WriteResponse(context, System.Net.HttpStatusCode.OK, result);
+                JObject commitUserData = new JObject();
+                foreach (var userData in searcher.CommitUserData)
+                {
+                    commitUserData.Add(userData.Key, userData.Value);
+                }
+                result.Add("commitUserData", commitUserData);
+
+                await ServiceHelpers.WriteResponse(context, System.Net.HttpStatusCode.OK, result);
+            }
+            finally
+            {
+                searcherManager.Release(searcher);
+            }
         }
 
         static JObject GetCommitUserData(ISearchIndexInfo temp)

@@ -15,6 +15,11 @@ namespace NuGet.Indexing
         {
         }
 
+        protected override IndexReader Reopen(IndexSearcher searcher)
+        {
+            return searcher.IndexReader.Reopen();
+        }
+
         protected override IndexSearcher CreateSearcher(IndexReader reader)
         {
             return new IndexSearcher(reader);
