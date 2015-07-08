@@ -258,12 +258,6 @@ namespace Stats.ParseAzureCdnLogs
                 var logEntry = ParseLogEntryFromLine(line);
                 if (logEntry != null)
                 {
-                    // reverse chronological order of log entries
-                    logEntry.RowKey = RowKeyBuilder.CreateReverseChronological(logEntry.EdgeServerTimeDelivered);
-
-                    // parition by date
-                    logEntry.PartitionKey = logEntry.EdgeServerTimeDelivered.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
-
                     logEntries.Add(logEntry);
                 }
             }

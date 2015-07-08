@@ -73,7 +73,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Table\PackageStatisticTable.cs" />
-    <Compile Include="Table\RowKeyBuilder.cs" />
     <Compile Include="Table\TableOperationBuilder.cs" />
   </ItemGroup>
   <ItemGroup>

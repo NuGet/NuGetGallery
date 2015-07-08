@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Stats.AzureCdnLogs.Common;
 using Stats.ParseAzureCdnLogs;

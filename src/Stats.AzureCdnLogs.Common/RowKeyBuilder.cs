@@ -4,7 +4,7 @@
 using System;
 using System.Globalization;
 
-namespace Stats.ParseAzureCdnLogs
+namespace Stats.AzureCdnLogs.Common
 {
     public static class RowKeyBuilder
     {

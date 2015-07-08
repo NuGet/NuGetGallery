@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Stats.AzureCdnLogs.Common
@@ -9,10 +10,27 @@ namespace Stats.AzureCdnLogs.Common
     public class CdnLogEntry
         : TableEntity
     {
+        private DateTime _edgeServerTimeDelivered;
+
         /// <summary>
         /// The date and time (GMT) at which an edge server delivered the requested content to the client.
         /// </summary>
-        public DateTime EdgeServerTimeDelivered { get; set; }
+        public DateTime EdgeServerTimeDelivered
+        {
+            get { return _edgeServerTimeDelivered; }
+            set
+            {
+                _edgeServerTimeDelivered = value;
+                if (_edgeServerTimeDelivered != null)
+                {
+                    // reverse chronological order of log entries
+                    RowKey = RowKeyBuilder.CreateReverseChronological(_edgeServerTimeDelivered);
+
+                    // parition by date
+                    PartitionKey = _edgeServerTimeDelivered.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+                }
+            }
+        }
 
         /// <summary>
         /// The length of time, in milliseconds, that it took an edge server to process the requested action.
