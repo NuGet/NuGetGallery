@@ -1,6 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
 using Microsoft.Owin;
 using Microsoft.Owin.FileSystems;
 using Microsoft.Owin.StaticFiles;
@@ -170,37 +169,45 @@ namespace NuGet.Services.BasicSearch
         {
             try
             {
-                switch (context.Request.Path.Value)
+                if (_searcherManager == null)
                 {
-                    case "/":
-                        await context.Response.WriteAsync("READY");
-                        context.Response.StatusCode = (int)HttpStatusCode.OK;
-                        break;
-                    case "/find":
-                        await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.Find(context, _searcherManager));
-                        break;
-                    case "/query":
-                        await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.Query(context, _searcherManager));
-                        break;
-                    case "/autocomplete":
-                        await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.AutoComplete(context, _searcherManager));
-                        break;
-                    case "/search/query":
-                        await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, GalleryServiceImpl.Query(context, _searcherManager));
-                        break;
-                    case "/rankings":
-                        await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceInfoImpl.Rankings(context, _searcherManager));
-                        break;
+                    await context.Response.WriteAsync("UNINITIALIZED");
+                    context.Response.StatusCode = (int)HttpStatusCode.OK;
+                }
+                else
+                {
+                    switch (context.Request.Path.Value)
+                    {
+                        case "/":
+                            await context.Response.WriteAsync("READY");
+                            context.Response.StatusCode = (int)HttpStatusCode.OK;
+                            break;
+                        case "/find":
+                            await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.Find(context, _searcherManager));
+                            break;
+                        case "/query":
+                            await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.Query(context, _searcherManager));
+                            break;
+                        case "/autocomplete":
+                            await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceImpl.AutoComplete(context, _searcherManager));
+                            break;
+                        case "/search/query":
+                            await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, GalleryServiceImpl.Query(context, _searcherManager));
+                            break;
+                        case "/rankings":
+                            await ServiceHelpers.WriteResponse(context, HttpStatusCode.OK, ServiceInfoImpl.Rankings(context, _searcherManager));
+                            break;
 
-                    //case "/stats":
-                    //case "/search/diag":
-                    //    _searcherManager.MaybeReopen();
-                    //    await ServiceInfoImpl.Stats(context, _searcherManager);
-                    //    break;
-                    default:
-                        await context.Response.WriteAsync("unrecognized");
-                        context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                        break;
+                        case "/search/diag":
+                            _searcherManager.MaybeReopen();
+                            await ServiceInfoImpl.Stats(context, _searcherManager);
+                            break;
+
+                        default:
+                            await context.Response.WriteAsync("unrecognized");
+                            context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                            break;
+                    }
                 }
             }
             catch (ClientException e)
