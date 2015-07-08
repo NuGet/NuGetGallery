@@ -2,24 +2,16 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Microsoft.WindowsAzure.Storage.Table;
-using Stats.AzureCdnLogs.Common;
 
 namespace Stats.ParseAzureCdnLogs
 {
     internal static class TableOperationBuilder
     {
-        public static TableOperation CreateInsertOperation(CdnLogEntry entity)
+        public static TableOperation CreateInsertOperation(TableEntity entity)
         {
-            // reverse chronological order of log entries
-            entity.RowKey = RowKeyBuilder.CreateReverseChronological(entity.EdgeServerTimeDelivered);
-
-            // parition by date
-            entity.PartitionKey = entity.EdgeServerTimeDelivered.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
-
-            var tableOperation = TableOperation.Insert(entity);
+            var tableOperation = TableOperation.InsertOrReplace(entity);
             return tableOperation;
         }
 
@@ -29,7 +21,7 @@ namespace Stats.ParseAzureCdnLogs
         /// </summary>
         /// <param name="entities"></param>
         /// <returns></returns>
-        public static IEnumerable<TableBatchOperation> GetOptimalInsertBatchOperations(IEnumerable<CdnLogEntry> entities)
+        public static IEnumerable<TableBatchOperation> GetOptimalInsertBatchOperations(IEnumerable<TableEntity> entities)
         {
             const int maxBatchSize = 100;
             var list = new List<TableBatchOperation>();

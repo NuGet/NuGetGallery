@@ -12,29 +12,6 @@ namespace Tests.Stats.ParseAzureCdnLogs
 {
     public class TableOperationBuildFacts
     {
-        public class TheCreateInsertOperationMethod
-        {
-            [Fact]
-            public void SetsRowKey()
-            {
-                var entity = new CdnLogEntry { EdgeServerTimeDelivered = DateTime.UtcNow };
-
-                Assert.Null(entity.RowKey);
-                TableOperationBuilder.CreateInsertOperation(entity);
-                Assert.NotNull(entity.RowKey);
-            }
-
-            [Fact]
-            public void SetsPartitionKey()
-            {
-                var entity = new CdnLogEntry { EdgeServerTimeDelivered = DateTime.UtcNow };
-
-                Assert.Null(entity.PartitionKey);
-                TableOperationBuilder.CreateInsertOperation(entity);
-                Assert.NotNull(entity.PartitionKey);
-            }
-        }
-
         public class TheGetOptimalInsertBatchOperationsMethod
         {
             [Fact]

@@ -71,6 +71,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CdnLogCustomFieldParserFacts.cs" />
+    <Compile Include="PackageDefinitionFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TableOperationBuildFacts.cs" />
     <Compile Include="W3CParseUtilsFacts.cs" />

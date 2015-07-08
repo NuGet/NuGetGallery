@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -20,15 +21,18 @@ namespace Stats.ParseAzureCdnLogs
         private readonly TimeSpan _defaultLeaseTime = TimeSpan.FromSeconds(60);
         private readonly TimeSpan _leaseExpirationThreshold = TimeSpan.FromSeconds(40);
         private readonly CloudBlobContainer _targetContainer;
-        private readonly CdnLogEntryTable _targetTable;
+        private readonly CdnLogEntryTable _cdnLogEntryTable;
+        private readonly PackageStatisticTable _statisticTable;
         private readonly CloudBlobContainer _deadLetterContainer;
         private readonly JobEventSource _jobEventSource;
 
-        public CloudTableLogParser(JobEventSource jobEventSource, CloudBlobContainer targetContainer, CdnLogEntryTable targetTable, CloudBlobContainer deadLetterContainer)
+        public CloudTableLogParser(JobEventSource jobEventSource, CloudBlobContainer targetContainer, CdnLogEntryTable cdnLogEntryTable,
+            PackageStatisticTable statisticTable, CloudBlobContainer deadLetterContainer)
         {
             _jobEventSource = jobEventSource;
             _targetContainer = targetContainer;
-            _targetTable = targetTable;
+            _cdnLogEntryTable = cdnLogEntryTable;
+            _statisticTable = statisticTable;
             _deadLetterContainer = deadLetterContainer;
         }
 
@@ -65,7 +69,7 @@ namespace Stats.ParseAzureCdnLogs
 
                 autoRenewLeaseThread.Abort();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 // avoid continuous rethrow and dead-letter the blob...
                 autoRenewLeaseThread.Abort();
@@ -127,12 +131,14 @@ namespace Stats.ParseAzureCdnLogs
 
         private async Task BatchInsertParsedLogEntriesAsync(string blobUri, string log)
         {
-            IEnumerable<CdnLogEntry> logEntries;
+            IReadOnlyCollection<CdnLogEntry> logEntries;
+            IReadOnlyCollection<PackageStatistics> packageStatistics;
             try
             {
                 // parse the text from memory into table entities
                 _jobEventSource.BeginningParseLog(blobUri);
                 logEntries = ParseLogEntriesFromW3CLog(log);
+                packageStatistics = ParsePackageStatisticFromLogEntries(logEntries);
                 _jobEventSource.FinishingParseLog(blobUri);
             }
             catch
@@ -146,7 +152,8 @@ namespace Stats.ParseAzureCdnLogs
             {
                 // batch insert the parsed log entries into table storage
                 _jobEventSource.BeginningBatchInsert(blobUri);
-                await _targetTable.InsertBatchAsync(logEntries);
+                await _cdnLogEntryTable.InsertBatchAsync(logEntries);
+                await _statisticTable.InsertBatchAsync(packageStatistics);
                 _jobEventSource.FinishingBatchInsert(blobUri);
             }
             catch
@@ -241,7 +248,7 @@ namespace Stats.ParseAzureCdnLogs
             return leaseId;
         }
 
-        private static IEnumerable<CdnLogEntry> ParseLogEntriesFromW3CLog(string log)
+        private static IReadOnlyCollection<CdnLogEntry> ParseLogEntriesFromW3CLog(string log)
         {
             var logEntries = new List<CdnLogEntry>();
 
@@ -251,6 +258,12 @@ namespace Stats.ParseAzureCdnLogs
                 var logEntry = ParseLogEntryFromLine(line);
                 if (logEntry != null)
                 {
+                    // reverse chronological order of log entries
+                    logEntry.RowKey = RowKeyBuilder.CreateReverseChronological(logEntry.EdgeServerTimeDelivered);
+
+                    // parition by date
+                    logEntry.PartitionKey = logEntry.EdgeServerTimeDelivered.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+
                     logEntries.Add(logEntry);
                 }
             }
@@ -320,6 +333,64 @@ namespace Stats.ParseAzureCdnLogs
             TrySetStringProperty(value => entry.CustomField = value, columns[16]);
 
             return entry;
+        }
+
+        private static IReadOnlyCollection<PackageStatistics> ParsePackageStatisticFromLogEntries(IReadOnlyCollection<CdnLogEntry> logEntries)
+        {
+            var packageStatistics = new List<PackageStatistics>();
+
+            foreach (var cdnLogEntry in logEntries)
+            {
+                var statistic = new PackageStatistics();
+
+                // combination of partition- and row-key correlates each statistic to a cdn raw log entry
+                statistic.PartitionKey = cdnLogEntry.PartitionKey;
+                statistic.RowKey = cdnLogEntry.RowKey;
+                statistic.EdgeServerTimeDelivered = cdnLogEntry.EdgeServerTimeDelivered;
+
+                var packageDefinition = PackageDefinition.FromRequestUrl(cdnLogEntry.RequestUrl);
+                statistic.PackageId = packageDefinition.PackageId;
+                statistic.PackageVersion = packageDefinition.PackageVersion;
+
+                var customFieldDictionary = CdnLogCustomFieldParser.Parse(cdnLogEntry.CustomField);
+                if (customFieldDictionary.ContainsKey(NuGetCustomHeaders.NuGetOperation))
+                {
+                    var operation = customFieldDictionary[NuGetCustomHeaders.NuGetOperation];
+                    if (!string.Equals("-", operation))
+                    {
+                        statistic.Operation = operation;
+                    }
+                }
+                if (customFieldDictionary.ContainsKey(NuGetCustomHeaders.NuGetDependentPackage))
+                {
+                    var dependentPackage = customFieldDictionary[NuGetCustomHeaders.NuGetDependentPackage];
+                    if (!string.Equals("-", dependentPackage))
+                    {
+                        statistic.DependentPackage = dependentPackage;
+                    }
+                }
+                if (customFieldDictionary.ContainsKey(NuGetCustomHeaders.NuGetProjectGuids))
+                {
+                    var dependentPackage = customFieldDictionary[NuGetCustomHeaders.NuGetProjectGuids];
+                    if (!string.Equals("-", dependentPackage))
+                    {
+                        statistic.ProjectGuids = dependentPackage;
+                    }
+                }
+
+                if (cdnLogEntry.UserAgent.StartsWith("\"") && cdnLogEntry.UserAgent.EndsWith("\""))
+                {
+                    statistic.UserAgent = cdnLogEntry.UserAgent.Substring(1, cdnLogEntry.UserAgent.Length - 2);
+                }
+                else
+                {
+                    statistic.UserAgent = cdnLogEntry.UserAgent;
+                }
+
+                packageStatistics.Add(statistic);
+            }
+
+            return packageStatistics;
         }
 
         private static void TrySetLongProperty(Action<long?> propertySetter, string record)
