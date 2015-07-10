@@ -10,6 +10,11 @@ namespace Stats.AzureCdnLogs.Common
     {
         public static IDictionary<string, string> Parse(string customField)
         {
+            if (customField == null)
+            {
+                return new Dictionary<string, string>();
+            }
+
             var temp = customField;
             if (customField.StartsWith("\"") && customField.EndsWith("\""))
             {

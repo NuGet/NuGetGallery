@@ -10,13 +10,14 @@ namespace Stats.AzureCdnLogs.Common
     public class PackageDefinition
     {
         private const string _nupkgExtension = ".nupkg";
+        private const string _dotSeparator = ".";
 
         public string PackageId { get; set; }
         public string PackageVersion { get; set; }
 
         public static PackageDefinition FromRequestUrl(string requestUrl)
         {
-            if (string.IsNullOrWhiteSpace(requestUrl) || !requestUrl.EndsWith(".nupkg"))
+            if (string.IsNullOrWhiteSpace(requestUrl) || !requestUrl.EndsWith(_nupkgExtension))
             {
                 return null;
             }
@@ -51,8 +52,8 @@ namespace Stats.AzureCdnLogs.Common
                 }
 
                 var packageDefinition = new PackageDefinition();
-                packageDefinition.PackageId = string.Join(".", packageIdSegments);
-                packageDefinition.PackageVersion = string.Join(".", packageVersionSegments);
+                packageDefinition.PackageId = string.Join(_dotSeparator, packageIdSegments);
+                packageDefinition.PackageVersion = string.Join(_dotSeparator, packageVersionSegments);
 
                 return packageDefinition;
             }

@@ -20,5 +20,14 @@ namespace Tests.Stats.ParseAzureCdnLogs
             Assert.True(customFields.ContainsKey("UA"));
             Assert.Equal("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0; AppInsights)", customFields["UA"]);
         }
+
+        [Fact]
+        public void FromCdnLogCustomFieldProperlyReturnsEmptyDictionaryForNullValue()
+        {
+            var customFields = CdnLogCustomFieldParser.Parse(null);
+
+            Assert.NotNull(customFields);
+            Assert.Equal(0, customFields.Count);
+        }
     }
 }

@@ -414,6 +414,10 @@ namespace Stats.ParseAzureCdnLogs
             {
                 propertySetter(record);
             }
+            else
+            {
+                propertySetter(string.Empty);
+            }
         }
 
         private static DateTime FromUnixTimestamp(string unixTimestamp)
