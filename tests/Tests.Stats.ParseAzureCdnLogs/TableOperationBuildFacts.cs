@@ -21,7 +21,14 @@ namespace Tests.Stats.ParseAzureCdnLogs
                 var entities = new List<CdnLogEntry>();
                 for (int i = 0; i < 120; i++)
                 {
-                    var tableEntity = new CdnLogEntry { EdgeServerTimeDelivered = DateTime.UtcNow };
+                    var edgeServerTimeDelivered = DateTime.UtcNow;
+                    var tableEntity = new CdnLogEntry { EdgeServerTimeDelivered = edgeServerTimeDelivered };
+                    // reverse chronological order of log entries
+                    tableEntity.RowKey = RowKeyBuilder.CreateReverseChronological(tableEntity.EdgeServerTimeDelivered);
+
+                    // parition by date
+                    tableEntity.PartitionKey = tableEntity.EdgeServerTimeDelivered.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+
                     entities.Add(tableEntity);
                 }
 
@@ -43,6 +50,13 @@ namespace Tests.Stats.ParseAzureCdnLogs
                 for (int i = 0; i < 120; i++)
                 {
                     var tableEntity = new CdnLogEntry { EdgeServerTimeDelivered = i % 2 == 0 ? DateTime.UtcNow : DateTime.UtcNow.AddDays(-1) };
+
+                    // reverse chronological order of log entries
+                    tableEntity.RowKey = RowKeyBuilder.CreateReverseChronological(tableEntity.EdgeServerTimeDelivered);
+
+                    // parition by date
+                    tableEntity.PartitionKey = tableEntity.EdgeServerTimeDelivered.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+
                     entities.Add(tableEntity);
                 }
 
