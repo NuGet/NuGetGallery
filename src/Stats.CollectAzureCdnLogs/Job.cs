@@ -236,7 +236,7 @@ namespace Stats.CollectAzureCdnLogs
         {
             const string spaceCharacter = " ";
             const string dashCharacter = "-";
-            var parsedEntries = ParseLogEntriesFromW3CLog(log);
+            var parsedEntries = CdnLogEntryParser.ParseLogEntriesFromW3CLog(log);
 
             var stringBuilder = new StringBuilder("#Fields: timestamp time-taken c-ip filesize s-ip s-port sc-status sc-bytes cs-method cs-uri-stem - rs-duration rs-bytes c-referrer c-user-agent customer-id x-ec_custom-1\n");
             foreach (var logEntry in parsedEntries)
@@ -282,87 +282,6 @@ namespace Stats.CollectAzureCdnLogs
             }
 
             return stringBuilder.ToString();
-        }
-
-        private static IEnumerable<CdnLogEntry> ParseLogEntriesFromW3CLog(string log)
-        {
-            var logEntries = new List<CdnLogEntry>();
-
-            var logLines = log.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var line in logLines)
-            {
-                var logEntry = ParseLogEntryFromLine(line);
-                if (logEntry != null)
-                {
-                    logEntries.Add(logEntry);
-                }
-            }
-
-            return logEntries;
-        }
-
-        private static CdnLogEntry ParseLogEntryFromLine(string line)
-        {
-            // ignore comment rows (i.e., first row listing the column headers
-            if (line.StartsWith("#"))
-                return null;
-
-            // columns are space-separated
-            var columns = W3CParseUtils.GetLogLineRecords(line);
-
-            var entry = new CdnLogEntry();
-
-            // timestamp
-            entry.EdgeServerTimeDelivered = FromUnixTimestamp(columns[0]);
-
-            // time-taken
-            TrySetIntProperty(value => entry.EdgeServerTimeTaken = value, columns[1]);
-
-            // c-ip
-            TrySetStringProperty(value => entry.ClientIpAddress = value, columns[2]);
-
-            // filesize
-            TrySetLongProperty(value => entry.FileSize = value, columns[3]);
-
-            // s-ip
-            TrySetStringProperty(value => entry.EdgeServerIpAddress = value, columns[4]);
-
-            // s-port
-            TrySetIntProperty(value => entry.EdgeServerPort = value, columns[5]);
-
-            // sc-status
-            TrySetStringProperty(value => entry.CacheStatusCode = value, columns[6]);
-
-            // sc-bytes
-            TrySetLongProperty(value => entry.EdgeServerBytesSent = value, columns[7]);
-
-            // cs-method
-            TrySetStringProperty(value => entry.HttpMethod = value, columns[8]);
-
-            // cs-uri-stem
-            TrySetStringProperty(value => entry.RequestUrl = value, columns[9]);
-
-            // skip column 10, it just contains the '-' character
-
-            // rs-duration
-            TrySetIntProperty(value => entry.RemoteServerTimeTaken = value, columns[11]);
-
-            // rs-bytes
-            TrySetLongProperty(value => entry.RemoteServerBytesSent = value, columns[12]);
-
-            // c-referrer
-            TrySetStringProperty(value => entry.Referrer = value, columns[13]);
-
-            // c-user-agent
-            TrySetStringProperty(value => entry.UserAgent = value, columns[14]);
-
-            // customer-id
-            TrySetStringProperty(value => entry.CustomerId = value, columns[15]);
-
-            // x-ec_custom-1
-            TrySetStringProperty(value => entry.CustomField = value, columns[16]);
-
-            return entry;
         }
 
         private static void TrySetLongProperty(Action<long?> propertySetter, string record)

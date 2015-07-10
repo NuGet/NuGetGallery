@@ -68,6 +68,7 @@
     <Compile Include="AzureCdnPlatformExtensions.cs" />
     <Compile Include="CdnLogEntry.cs" />
     <Compile Include="CdnLogCustomFieldParser.cs" />
+    <Compile Include="CdnLogEntryParser.cs" />
     <Compile Include="NuGetCustomHeaders.cs" />
     <Compile Include="PackageDefinition.cs" />
     <Compile Include="PackageStatistics.cs" />
