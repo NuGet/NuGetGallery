@@ -334,6 +334,13 @@ namespace Stats.ParseAzureCdnLogs
 
             foreach (var cdnLogEntry in logEntries)
             {
+                var packageDefinition = PackageDefinition.FromRequestUrl(cdnLogEntry.RequestUrl);
+
+                if (packageDefinition == null)
+                {
+                    continue;
+                }
+
                 var statistic = new PackageStatistics();
 
                 // combination of partition- and row-key correlates each statistic to a cdn raw log entry
@@ -341,7 +348,6 @@ namespace Stats.ParseAzureCdnLogs
                 statistic.RowKey = cdnLogEntry.RowKey;
                 statistic.EdgeServerTimeDelivered = cdnLogEntry.EdgeServerTimeDelivered;
 
-                var packageDefinition = PackageDefinition.FromRequestUrl(cdnLogEntry.RequestUrl);
                 statistic.PackageId = packageDefinition.PackageId;
                 statistic.PackageVersion = packageDefinition.PackageVersion;
 

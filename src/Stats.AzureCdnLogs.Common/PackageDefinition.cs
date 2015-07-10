@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,7 +16,12 @@ namespace Stats.AzureCdnLogs.Common
 
         public static PackageDefinition FromRequestUrl(string requestUrl)
         {
-            var urlSegments = requestUrl.Split('/');
+            if (string.IsNullOrWhiteSpace(requestUrl) || !requestUrl.EndsWith(".nupkg"))
+            {
+                return null;
+            }
+
+            var urlSegments = requestUrl.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
             var fileName = urlSegments.Last();
 
             if (fileName.EndsWith(_nupkgExtension))
