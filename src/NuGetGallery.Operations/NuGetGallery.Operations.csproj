@@ -114,7 +114,6 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Entity" />
-    <Reference Include="System.Data.Services.Client" />
     <Reference Include="System.Net" />
     <Reference Include="System.Net.Http">
       <Private>True</Private>
@@ -305,7 +304,9 @@
     <Compile Include="Util.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
     <None Include="Service References\SqlDac\Microsoft.SqlServer.Management.Dac.Services.wsdl" />
     <None Include="Service References\SqlDac\Microsoft.SqlServer.Management.Dac.ServiceTypes.xsd">

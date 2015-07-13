@@ -36,7 +36,9 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
-    <None Include="app.config" />
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="NuGet.Services.Search.Client.nuspec" />
     <None Include="packages.config">
       <SubType>Designer</SubType>

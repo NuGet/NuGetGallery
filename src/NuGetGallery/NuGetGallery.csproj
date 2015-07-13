@@ -1061,6 +1061,7 @@
     <Content Include="ApplicationInsights.config" />
     <Content Include="NuGetGallery.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Content\Logos\dnf.png" />
