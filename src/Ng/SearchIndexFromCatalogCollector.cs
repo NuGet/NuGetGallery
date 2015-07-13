@@ -175,7 +175,7 @@ namespace Ng
 
         IDictionary<string, string> CreateCommitMetadata(DateTime commitTimeStamp)
         {
-            return new Dictionary<string, string> { { "commitTimeStamp", commitTimeStamp.ToString("O") } };
+            return new Dictionary<string, string> { { "commitTimeStamp", commitTimeStamp.ToString("O") }, { "commit-time-stamp", commitTimeStamp.ToString() } };
         }
 
         internal static IndexWriter CreateIndexWriter(Lucene.Net.Store.Directory directory)

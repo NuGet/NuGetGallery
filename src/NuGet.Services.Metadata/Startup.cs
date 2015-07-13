@@ -232,10 +232,10 @@ namespace NuGet.Services.Metadata
                         await ServiceInfoImpl.Segments(context, _searcherManager.GetSegments());
                         break;
 
-                    case "/stats":
-                        _searcherManager.MaybeReopen();
-                        await ServiceInfoImpl.Stats(context, _searcherManager);
-                        break;
+                    //case "/stats":
+                    //    _searcherManager.MaybeReopen();
+                    //    await ServiceInfoImpl.Stats(context, _searcherManager);
+                    //    break;
 
                     default:
                         string storagePrimary = _configurationService.Get("Storage.Primary");
