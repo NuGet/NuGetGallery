@@ -20,17 +20,17 @@ namespace Stats.ParseAzureCdnLogs
         private readonly TimeSpan _leaseExpirationThreshold = TimeSpan.FromSeconds(40);
         private readonly CloudBlobContainer _targetContainer;
         private readonly CdnLogEntryTable _cdnLogEntryTable;
-        private readonly PackageStatisticTable _statisticTable;
+        private readonly PackageStatisticsTable _statisticsTable;
         private readonly CloudBlobContainer _deadLetterContainer;
         private readonly JobEventSource _jobEventSource;
 
         public CloudTableLogParser(JobEventSource jobEventSource, CloudBlobContainer targetContainer, CdnLogEntryTable cdnLogEntryTable,
-            PackageStatisticTable statisticTable, CloudBlobContainer deadLetterContainer)
+            PackageStatisticsTable statisticsTable, CloudBlobContainer deadLetterContainer)
         {
             _jobEventSource = jobEventSource;
             _targetContainer = targetContainer;
             _cdnLogEntryTable = cdnLogEntryTable;
-            _statisticTable = statisticTable;
+            _statisticsTable = statisticsTable;
             _deadLetterContainer = deadLetterContainer;
         }
 
@@ -136,7 +136,7 @@ namespace Stats.ParseAzureCdnLogs
                 // parse the text from memory into table entities
                 _jobEventSource.BeginningParseLog(blobUri);
                 logEntries = CdnLogEntryParser.ParseLogEntriesFromW3CLog(log);
-                packageStatistics = ParsePackageStatisticFromLogEntries(logEntries);
+                packageStatistics = PackageStatisticsParser.FromCdnLogEntries(logEntries);
                 _jobEventSource.FinishingParseLog(blobUri);
             }
             catch
@@ -151,7 +151,7 @@ namespace Stats.ParseAzureCdnLogs
                 // batch insert the parsed log entries into table storage
                 _jobEventSource.BeginningBatchInsert(blobUri);
                 await _cdnLogEntryTable.InsertBatchAsync(logEntries);
-                await _statisticTable.InsertBatchAsync(packageStatistics);
+                await _statisticsTable.InsertBatchAsync(packageStatistics);
                 _jobEventSource.FinishingBatchInsert(blobUri);
             }
             catch
@@ -244,70 +244,6 @@ namespace Stats.ParseAzureCdnLogs
                 throw;
             }
             return leaseId;
-        }
-
-        private static IReadOnlyCollection<PackageStatistics> ParsePackageStatisticFromLogEntries(IReadOnlyCollection<CdnLogEntry> logEntries)
-        {
-            var packageStatistics = new List<PackageStatistics>();
-
-            foreach (var cdnLogEntry in logEntries)
-            {
-                var packageDefinition = PackageDefinition.FromRequestUrl(cdnLogEntry.RequestUrl);
-
-                if (packageDefinition == null)
-                {
-                    continue;
-                }
-
-                var statistic = new PackageStatistics();
-
-                // combination of partition- and row-key correlates each statistic to a cdn raw log entry
-                statistic.PartitionKey = cdnLogEntry.PartitionKey;
-                statistic.RowKey = cdnLogEntry.RowKey;
-                statistic.EdgeServerTimeDelivered = cdnLogEntry.EdgeServerTimeDelivered;
-
-                statistic.PackageId = packageDefinition.PackageId;
-                statistic.PackageVersion = packageDefinition.PackageVersion;
-
-                var customFieldDictionary = CdnLogCustomFieldParser.Parse(cdnLogEntry.CustomField);
-                if (customFieldDictionary.ContainsKey(NuGetCustomHeaders.NuGetOperation))
-                {
-                    var operation = customFieldDictionary[NuGetCustomHeaders.NuGetOperation];
-                    if (!string.Equals("-", operation))
-                    {
-                        statistic.Operation = operation;
-                    }
-                }
-                if (customFieldDictionary.ContainsKey(NuGetCustomHeaders.NuGetDependentPackage))
-                {
-                    var dependentPackage = customFieldDictionary[NuGetCustomHeaders.NuGetDependentPackage];
-                    if (!string.Equals("-", dependentPackage))
-                    {
-                        statistic.DependentPackage = dependentPackage;
-                    }
-                }
-                if (customFieldDictionary.ContainsKey(NuGetCustomHeaders.NuGetProjectGuids))
-                {
-                    var dependentPackage = customFieldDictionary[NuGetCustomHeaders.NuGetProjectGuids];
-                    if (!string.Equals("-", dependentPackage))
-                    {
-                        statistic.ProjectGuids = dependentPackage;
-                    }
-                }
-
-                if (cdnLogEntry.UserAgent.StartsWith("\"") && cdnLogEntry.UserAgent.EndsWith("\""))
-                {
-                    statistic.UserAgent = cdnLogEntry.UserAgent.Substring(1, cdnLogEntry.UserAgent.Length - 2);
-                }
-                else
-                {
-                    statistic.UserAgent = cdnLogEntry.UserAgent;
-                }
-
-                packageStatistics.Add(statistic);
-            }
-
-            return packageStatistics;
         }
     }
 }

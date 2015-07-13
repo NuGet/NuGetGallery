@@ -66,14 +66,17 @@
   <ItemGroup>
     <Compile Include="AzureCdnPlatform.cs" />
     <Compile Include="AzureCdnPlatformExtensions.cs" />
+    <Compile Include="AzureTableBase.cs" />
     <Compile Include="CdnLogEntry.cs" />
     <Compile Include="CdnLogCustomFieldParser.cs" />
     <Compile Include="CdnLogEntryParser.cs" />
     <Compile Include="NuGetCustomHeaders.cs" />
     <Compile Include="PackageDefinition.cs" />
     <Compile Include="PackageStatistics.cs" />
+    <Compile Include="PackageStatisticsTable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RowKeyBuilder.cs" />
+    <Compile Include="TableOperationBuilder.cs" />
     <Compile Include="UnknownAzureCdnPlatformException.cs" />
     <Compile Include="W3CParseUtils.cs" />
   </ItemGroup>

@@ -71,8 +71,8 @@ namespace Stats.ParseAzureCdnLogs
                 var cdnLogEntryTable = new CdnLogEntryTable(_cloudStorageAccount, _cloudStorageTableName);
                 await cdnLogEntryTable.CreateIfNotExists();
 
-                var packageStatisticsTable = new PackageStatisticTable(_cloudStorageAccount);
-                await packageStatisticsTable.CreateIfNotExists();
+                var packageStatisticsTable = new PackageStatisticsTable(_cloudStorageAccount);
+                await packageStatisticsTable.CreateIfNotExistsAsync();
 
                 // Get the dead-letter table (corrupted or failed blobs will end up there)
                 var deadLetterBlobContainer = cloudBlobClient.GetContainerReference(_cloudStorageContainerName + "-deadletter");

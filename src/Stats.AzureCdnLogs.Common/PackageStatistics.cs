@@ -16,5 +16,10 @@ namespace Stats.AzureCdnLogs.Common
         public string DependentPackage { get; set; }
         public string ProjectGuids { get; set; }
         public DateTime EdgeServerTimeDelivered { get; set; }
+        public string Client { get; set; }
+        public string ClientCategory { get; set; }
+        public int ClientMajorVersion { get; set; }
+        public int ClientMinorVersion { get; set; }
+        public string ClientPlatform { get; set; }
     }
 }

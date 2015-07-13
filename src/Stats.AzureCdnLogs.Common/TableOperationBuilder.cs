@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.WindowsAzure.Storage.Table;
 
-namespace Stats.ParseAzureCdnLogs
+namespace Stats.AzureCdnLogs.Common
 {
-    internal static class TableOperationBuilder
+    public static class TableOperationBuilder
     {
         public static TableOperation CreateInsertOperation(TableEntity entity)
         {
