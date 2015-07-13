@@ -71,6 +71,9 @@ namespace Stats.ParseAzureCdnLogs
             // Refer to http://fsprojects.github.io/Paket
             // Paket 0.x doesn't send a version, so be sure to omit the slash
             _knownClients.Add("Paket", new NuGetClientInfo("Paket"));
+
+            // Refer to www.xamarin.com
+            _knownClients.Add("Xamarin Studio/", new NuGetClientInfo("Xamarin Studio"));
         }
 
         private static void RegisterBrowsers()
