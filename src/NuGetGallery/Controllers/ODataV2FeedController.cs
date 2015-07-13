@@ -24,6 +24,8 @@ namespace NuGetGallery.Controllers
     public class ODataV2FeedController 
         : NuGetODataController
     {
+        private const int MaxPageSize = SearchAdaptor.MaxPageSize;
+
         private readonly IEntityRepository<Package> _packagesRepository;
         private readonly ConfigurationService _configurationService;
         private readonly ISearchService _searchService;
@@ -42,7 +44,7 @@ namespace NuGetGallery.Controllers
             _searchService = searchService;
         }
 
-        [HttpGet, HttpPost, EnableQuery(PageSize = SearchAdaptor.MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [HttpGet, HttpPost, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
         public IQueryable<V2FeedPackage> Get()
         {
             var packages = _packagesRepository
@@ -64,13 +66,13 @@ namespace NuGetGallery.Controllers
             return CountResult(count);
         }
 
-        [HttpGet, EnableQuery(PageSize = SearchAdaptor.MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [HttpGet, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
         public async Task<IHttpActionResult> Get(string id, string version)
         {
             return await GetCore(id, version);
         }
 
-        [HttpGet, HttpPost, EnableQuery(PageSize = SearchAdaptor.MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [HttpGet, HttpPost, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
         public async Task<IHttpActionResult> FindPackagesById([FromODataUri]string id)
         {
             return await GetCore(id, null);
@@ -116,7 +118,7 @@ namespace NuGetGallery.Controllers
         public async Task<IEnumerable<V2FeedPackage>> Search(ODataQueryOptions<V2FeedPackage> queryOptions, [FromODataUri] string searchTerm = "", [FromODataUri] string targetFramework = "", [FromODataUri] bool includePrerelease = false)
         {
             // Ensure we can provide paging
-            var pageSize = queryOptions.Top != null ? (int?)null : SearchAdaptor.MaxPageSize;
+            var pageSize = queryOptions.Top != null ? (int?)null : MaxPageSize;
             var settings = new ODataQuerySettings(SearchQuerySettings) { PageSize = pageSize };
 
             // Handle OData-style |-separated list of frameworks.
@@ -151,7 +153,7 @@ namespace NuGetGallery.Controllers
 
             // apply OData query options + limit total of entries explicitly
             convertedQuery = (IQueryable<V2FeedPackage>)queryOptions.ApplyTo(
-                convertedQuery.Take(pageSize ?? SearchAdaptor.MaxPageSize)); 
+                convertedQuery.Take(pageSize ?? MaxPageSize)); 
 
             var nextLink = SearchAdaptor.GetNextLink(Request.RequestUri, convertedQuery, new { searchTerm, targetFramework, includePrerelease }, queryOptions, settings, false);
 
@@ -172,7 +174,7 @@ namespace NuGetGallery.Controllers
             return CountResult(queryResults.LongCount());
         }
 
-        [HttpGet, HttpPost, EnableQuery(PageSize = SearchAdaptor.MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]  
+        [HttpGet, HttpPost, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]  
         public IQueryable<V2FeedPackage> GetUpdates([FromODataUri] string packageIds, [FromODataUri] string versions, [FromODataUri] bool includePrerelease, [FromODataUri] bool includeAllVersions, [FromODataUri] string targetFrameworks = "", [FromODataUri] string versionConstraints = "")
         {
             if (String.IsNullOrEmpty(packageIds) || String.IsNullOrEmpty(versions))

@@ -6,6 +6,8 @@ using System.Linq;
 using System.Web.Http;
 using System.Web.Http.OData.Formatter;
 using System.Web.Http.OData.Formatter.Deserialization;
+using System.Xml;
+using Microsoft.Data.OData;
 using NuGetGallery.OData.Serializers;
 
 namespace NuGetGallery
@@ -22,8 +24,17 @@ namespace NuGetGallery
                 new DefaultODataDeserializerProvider());
 
             // Disable json and atomsvc - if these are ever needed, please reorder them so they are at the end of the collection. This will save you a few hours of debugging.
-            var reorderedFormatters = odataFormatters.Where(f => !f.SupportedMediaTypes.Any(m => m.MediaType == "application/atomsvc+xml" || m.MediaType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase)));
+            var reorderedFormatters = odataFormatters
+                .Where(f => !f.SupportedMediaTypes.Any(m => m.MediaType == "application/atomsvc+xml" || m.MediaType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase)))
+                .ToList();
 
+            // Disable indenting
+            foreach (var mediaTypeFormatter in reorderedFormatters)
+            {
+                mediaTypeFormatter.MessageWriterSettings.Indent = false;
+            }
+
+            // Register formatters as the one and only formatters. If ever Web API is enabled, make sure to update this to have JSON/XML support.
             config.Formatters.Clear();
             config.Formatters.InsertRange(0, reorderedFormatters);
             

@@ -39,7 +39,7 @@ namespace NuGetGallery.OData.Serializers
             {
                 // Set Atom entry metadata
                 var atomEntryMetadata = new AtomEntryMetadata();
-                atomEntryMetadata.Title = instance.Id;
+                atomEntryMetadata.Title = instance.Title;
                 if (!string.IsNullOrEmpty(instance.Authors))
                 {
                     atomEntryMetadata.Authors = new[] { new AtomPersonMetadata { Name = instance.Authors } };

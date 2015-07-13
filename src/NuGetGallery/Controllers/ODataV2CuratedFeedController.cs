@@ -22,6 +22,8 @@ namespace NuGetGallery.Controllers
     public class ODataV2CuratedFeedController 
         : NuGetODataController
     {
+        private const int MaxPageSize = 40;
+
         private readonly IEntitiesContext _entities;
         private readonly ConfigurationService _configurationService;
         private readonly ISearchService _searchService;
@@ -42,7 +44,7 @@ namespace NuGetGallery.Controllers
             _curatedFeedService = curatedFeedService;
         }
 
-        [HttpGet, HttpPost, EnableQuery(PageSize = SearchAdaptor.MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [HttpGet, HttpPost, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
         public IQueryable<V2FeedPackage> Get(string curatedFeedName)
         {
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
@@ -66,13 +68,13 @@ namespace NuGetGallery.Controllers
             return CountResult(count);
         }
 
-        [HttpGet, EnableQuery(PageSize = SearchAdaptor.MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [HttpGet, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
         public async Task<IHttpActionResult> Get(string curatedFeedName, string id, string version)
         {
             return await GetCore(curatedFeedName, id, version);
         }
 
-        [HttpGet, HttpPost, EnableQuery(PageSize = SearchAdaptor.MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [HttpGet, HttpPost, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
         public async Task<IHttpActionResult> FindPackagesById(string curatedFeedName, [FromODataUri]string id)
         {
             return await GetCore(curatedFeedName, id, null);
@@ -127,7 +129,7 @@ namespace NuGetGallery.Controllers
             }
 
             // Ensure we can provide paging
-            var pageSize = queryOptions.Top != null ? (int?)null : SearchAdaptor.MaxPageSize;
+            var pageSize = queryOptions.Top != null ? (int?)null : MaxPageSize;
             var settings = new ODataQuerySettings(SearchQuerySettings) { PageSize = pageSize };
 
             // Handle OData-style |-separated list of frameworks.
@@ -160,7 +162,7 @@ namespace NuGetGallery.Controllers
 
             // apply OData query options + limit total of entries explicitly
             convertedQuery = (IQueryable<V2FeedPackage>)queryOptions.ApplyTo(
-                convertedQuery.Take(pageSize ?? SearchAdaptor.MaxPageSize)); 
+                convertedQuery.Take(pageSize ?? MaxPageSize)); 
 
             var nextLink = SearchAdaptor.GetNextLink(Request.RequestUri, convertedQuery, new { searchTerm, targetFramework, includePrerelease }, queryOptions, settings, false);
 
