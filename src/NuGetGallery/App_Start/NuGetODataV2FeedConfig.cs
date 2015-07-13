@@ -32,10 +32,14 @@ namespace NuGetGallery
             conventions.Insert(0, new CompositeKeyRoutingConvention());
 
             // Translate all requests to use V2FeedController instead of PackagesController
-            conventions = conventions.Select(c => new ControllerAliasingODataRoutingConvention(c, "Packages", "ODataV2Feed")).Cast<IODataRoutingConvention>().ToList();
+            conventions =
+                conventions.Select(c => new ControllerAliasingODataRoutingConvention(c, "Packages", "ODataV2Feed"))
+                    .Cast<IODataRoutingConvention>()
+                    .ToList();
 
             // Add OData routes
-            config.Routes.MapODataServiceRoute("api-v2-odata", "api/v2", model, new CountODataPathHandler(), conventions, new DefaultODataBatchHandler(GlobalConfiguration.DefaultServer));
+            config.Routes.MapODataServiceRoute("api-v2-odata", "api/v2", model, new CountODataPathHandler(), conventions,
+                new DefaultODataBatchHandler(GlobalConfiguration.DefaultServer));
         }
 
         public static IEdmModel GetEdmModel()
@@ -73,7 +77,7 @@ namespace NuGetGallery
             var model = builder.GetEdmModel();
             model.SetEdmVersion(new Version(1, 0));
             model.SetEdmxVersion(new Version(1, 0));
-            model.SetHasDefaultStream(model.FindDeclaredType(typeof(V2FeedPackage).FullName) as IEdmEntityType, hasStream: true);
+            model.SetHasDefaultStream(model.FindDeclaredType(typeof(V2FeedPackage).FullName) as IEdmEntityType, true);
 
             return model;
         }

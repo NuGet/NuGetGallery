@@ -23,20 +23,24 @@ namespace NuGetGallery
                 new CustomSerializerProvider(provider => new NuGetEntityTypeSerializer(provider)),
                 new DefaultODataDeserializerProvider());
 
-            // Disable json and atomsvc - if these are ever needed, please reorder them so they are at the end of the collection. This will save you a few hours of debugging.
-            var reorderedFormatters = odataFormatters
-                .Where(f => !f.SupportedMediaTypes.Any(m => m.MediaType == "application/atomsvc+xml" || m.MediaType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase)))
+            // Disable json and atomsvc - if these are ever needed, please reorder them
+            // so they are at the end of the collection.
+            // This will save you a few hours of debugging.
+            var filteredFormatters = odataFormatters
+                .Where(f => !f.SupportedMediaTypes.Any(m => m.MediaType == "application/atomsvc+xml" 
+                    || m.MediaType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase)))
                 .ToList();
 
             // Disable indenting
-            foreach (var mediaTypeFormatter in reorderedFormatters)
+            foreach (var mediaTypeFormatter in filteredFormatters)
             {
                 mediaTypeFormatter.MessageWriterSettings.Indent = false;
             }
 
-            // Register formatters as the one and only formatters. If ever Web API is enabled, make sure to update this to have JSON/XML support.
+            // Register formatters as the one and only formatters.
+            // If WebAPI is ever enabled, ensure to update this to have JSON/XML support.
             config.Formatters.Clear();
-            config.Formatters.InsertRange(0, reorderedFormatters);
+            config.Formatters.InsertRange(0, filteredFormatters);
             
             // Register feeds
             NuGetODataV1FeedConfig.Register(config);
