@@ -52,7 +52,7 @@ namespace NuGet.Indexing
                 {
                     commitUserData.Add(userData.Key, userData.Value);
                 }
-                result.Add("commitUserData", commitUserData);
+                result.Add("CommitUserData", commitUserData);
 
                 await ServiceHelpers.WriteResponse(context, System.Net.HttpStatusCode.OK, result);
             }
