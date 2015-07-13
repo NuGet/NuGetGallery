@@ -63,12 +63,36 @@ namespace NuGetGallery
             {
                 throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, "name"), "name");
             }
+            
+            return GetContentItemCore(
+                name, new [] { 
+                    HtmlContentFileExtension,
+                    MarkdownContentFileExtension,
+                    JsonContentFileExtension }, 
+                expiresIn);
+        }
 
-            return GetContentItemCore(name, expiresIn);
+        public Task<IHtmlString> GetContentItemAsync(string name, string extension, TimeSpan expiresIn)
+        {
+            if (String.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, "name"), "name");
+            }
+            if (String.IsNullOrEmpty(extension))
+            {
+                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, "extension"), "extension");
+            }
+
+            if (!extension.StartsWith("."))
+            {
+                extension = "." + extension;
+            }
+
+            return GetContentItemCore(name, new[] { extension }, expiresIn);
         }
 
         // This NNNCore pattern allows arg checking to happen synchronously, before starting the async operation.
-        private async Task<IHtmlString> GetContentItemCore(string name, TimeSpan expiresIn)
+        private async Task<IHtmlString> GetContentItemCore(string name, string[] extensions, TimeSpan expiresIn)
         {
             using (Trace.Activity("GetContentItem " + name))
             {
@@ -81,11 +105,7 @@ namespace NuGetGallery
                 Trace.Verbose("Cache Expired.");
 
                 // Get the file from the content service
-                var filenames = new[] {
-                    name + HtmlContentFileExtension,
-                    name + MarkdownContentFileExtension,
-                    name + JsonContentFileExtension
-                };
+                var filenames = extensions.Select(extension => name + extension).ToArray();
 
                 foreach (var filename in filenames)
                 {

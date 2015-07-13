@@ -405,10 +405,12 @@ namespace NuGetGallery
             return new EmptyResult();
         }
 
+        [OutputCache(Duration = 30, Location = OutputCacheLocation.ServerAndClient, VaryByParam = "*")]
         public virtual async Task<ActionResult> ServiceAlert()
         {
+            var markdownContentFileExtension = NuGetGallery.ContentService.MarkdownContentFileExtension;
             string alertString = null;
-            var alert = await ContentService.GetContentItemAsync(Constants.ContentNames.Alert, TimeSpan.Zero);
+            var alert = await ContentService.GetContentItemAsync(Constants.ContentNames.Alert, markdownContentFileExtension, TimeSpan.Zero);
             if (alert != null)
             {
                 alertString = alert.ToString().Replace("</div>", " - Check our <a href=\"http://status.nuget.org\">status page</a> for updates.</div>");
@@ -416,8 +418,8 @@ namespace NuGetGallery
 
             if (String.IsNullOrEmpty(alertString) && _config.ReadOnlyMode)
             {
-                var readOnly = await ContentService.GetContentItemAsync(Constants.ContentNames.ReadOnly, TimeSpan.Zero);
-                alertString = (readOnly == null) ? (string)null : readOnly.ToString();
+                var readOnly = await ContentService.GetContentItemAsync(Constants.ContentNames.ReadOnly, markdownContentFileExtension, TimeSpan.Zero);
+                alertString = (readOnly == null) ? null : readOnly.ToString();
             }
             return Content(alertString, "text/html");
         }
