@@ -107,6 +107,43 @@ namespace Stats.AzureCdnLogs.Common
             _table.Execute(TableOperation.InsertOrReplace(element));
         }
 
+        public IReadOnlyCollection<T> GetAllByPartitionKey(string partitionKey)
+        {
+            if (partitionKey == null)
+            {
+                throw new ArgumentNullException("partitionKey");
+            }
+
+            return GetAll(t => t.PartitionKey == partitionKey);
+        }
+
+        internal virtual IReadOnlyCollection<T> GetAll(Expression<Func<T, bool>> predicate)
+        {
+            return GetAll(predicate, null);
+        }
+
+
+        private IReadOnlyCollection<T> GetAll(Expression<Func<T, bool>> predicate, int? limit)
+        {
+            var query = (IQueryable<T>)_table.CreateQuery<T>();
+
+            if (predicate == null)
+            {
+                if (limit.HasValue)
+                {
+                    return query.Take(limit.Value).AsTableQuery().ToList();
+                }
+                return query.AsTableQuery().ToList();
+            }
+
+            if (limit.HasValue)
+            {
+                return query.Where(predicate).Take(limit.Value).AsTableQuery().ToList();
+            }
+
+            return query.Where(predicate).AsTableQuery().ToList();
+        }
+
         protected T Get(Expression<Func<T, bool>> predicate)
         {
             return Query.Where(predicate).FirstOrDefault();

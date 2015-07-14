@@ -14,6 +14,7 @@ namespace Stats.AzureCdnLogs.Common
     {
         private const string _queueName = "packagestatisticsqueue";
         private readonly CloudQueue _queue;
+        private readonly TimeSpan _visibilityTimeout = TimeSpan.FromMinutes(5);
 
         public PackageStatisticsQueue(CloudStorageAccount cloudStorageAccount)
         {
@@ -38,6 +39,26 @@ namespace Stats.AzureCdnLogs.Common
             var serializedMessage = JsonConvert.SerializeObject(message);
             var cloudQueueMessage = new CloudQueueMessage(serializedMessage);
             await _queue.AddMessageAsync(cloudQueueMessage);
+        }
+
+        public async Task<PackageStatisticsQueueMessage> GetMessageAsync()
+        {
+            var message = await _queue.GetMessageAsync(_visibilityTimeout, null, null);
+            var result = JsonConvert.DeserializeObject<PackageStatisticsQueueMessage>(message.AsString);
+
+            if (result != null)
+            {
+                result.Id = message.Id;
+                result.PopReceipt = message.PopReceipt;
+                result.DequeueCount = message.DequeueCount;
+            }
+
+            return result;
+        }
+
+        public async Task DeleteMessage(PackageStatisticsQueueMessage message)
+        {
+            await _queue.DeleteMessageAsync(message.Id, message.PopReceipt);
         }
     }
 }

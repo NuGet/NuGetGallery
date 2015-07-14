@@ -19,6 +19,6 @@ namespace Stats.AzureCdnLogs.Common
         public int DequeueCount { get; set; }
 
         [DataMember]
-        public IEnumerable<KeyValuePair<string, string>> PartitionAndRowKeys { get; set; }
+        public IDictionary<string, string> PartitionAndRowKeys { get; set; }
     }
 }
