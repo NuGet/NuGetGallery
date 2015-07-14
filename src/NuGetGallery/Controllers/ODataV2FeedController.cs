@@ -36,7 +36,10 @@ namespace NuGetGallery.Controllers
              EnsureStableOrdering = true
         };
 
-        public ODataV2FeedController(IEntityRepository<Package> packagesRepository, ConfigurationService configurationService, ISearchService searchService)
+        public ODataV2FeedController(
+            IEntityRepository<Package> packagesRepository, 
+            ConfigurationService configurationService,
+            ISearchService searchService)
             : base(configurationService)
         {
             _packagesRepository = packagesRepository;
@@ -44,7 +47,9 @@ namespace NuGetGallery.Controllers
             _searchService = searchService;
         }
 
-        [HttpGet, HttpPost, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [HttpGet]
+        [HttpPost]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
         public IQueryable<V2FeedPackage> Get()
         {
             var packages = _packagesRepository
@@ -66,13 +71,16 @@ namespace NuGetGallery.Controllers
             return CountResult(count);
         }
 
-        [HttpGet, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [HttpGet]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
         public async Task<IHttpActionResult> Get(string id, string version)
         {
             return await GetCore(id, version);
         }
 
-        [HttpGet, HttpPost, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [HttpGet]
+        [HttpPost]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
         public async Task<IHttpActionResult> FindPackagesById([FromODataUri]string id)
         {
             return await GetCore(id, null);
@@ -80,8 +88,6 @@ namespace NuGetGallery.Controllers
 
         private async Task<IHttpActionResult> GetCore(string id, string version)
         {
-            // todo: route through search service?
-
             if (string.IsNullOrWhiteSpace(id))
             {
                 return BadRequest("Parameter 'id' must be specified.");
@@ -89,7 +95,7 @@ namespace NuGetGallery.Controllers
 
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
-                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+                .Where(p => p.PackageRegistration.Id.Equals(id, stringComparison.OrdinalIgnoreCase));
 
             if (!string.IsNullOrEmpty(version))
             {
@@ -100,7 +106,8 @@ namespace NuGetGallery.Controllers
             {
                 try
                 {
-                    packages = await SearchAdaptor.FindByIdCore(_searchService, GetTraditionalHttpContext().Request, packages, id, curatedFeed: null);
+                    packages = await SearchAdaptor.FindByIdCore(
+                        _searchService, GetTraditionalHttpContext().Request, packages, id, curatedFeed: null);
                 }
                 catch (Exception ex)
                 {
@@ -114,8 +121,14 @@ namespace NuGetGallery.Controllers
             return Ok(query);
         }
 
-        [HttpGet, HttpPost, CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTime)]
-        public async Task<IEnumerable<V2FeedPackage>> Search(ODataQueryOptions<V2FeedPackage> queryOptions, [FromODataUri] string searchTerm = "", [FromODataUri] string targetFramework = "", [FromODataUri] bool includePrerelease = false)
+        [HttpGet]
+        [HttpPost]
+        [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
+        public async Task<IEnumerable<V2FeedPackage>> Search(
+            ODataQueryOptions<V2FeedPackage> queryOptions, 
+            [FromODataUri] string searchTerm = "", 
+            [FromODataUri] string targetFramework = "",
+            [FromODataUri] bool includePrerelease = false)
         {
             // Ensure we can provide paging
             var pageSize = queryOptions.Top != null ? (int?)null : MaxPageSize;
@@ -145,7 +158,8 @@ namespace NuGetGallery.Controllers
                 .Where(p => p.Listed);
 
             // todo: search hijack should take queryOptions instead of manually parsing query options
-            var query = await SearchAdaptor.SearchCore(_searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: null);
+            var query = await SearchAdaptor.SearchCore(
+                _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: null);
 
             var totalHits = query.LongCount();
             var convertedQuery = query
@@ -155,13 +169,19 @@ namespace NuGetGallery.Controllers
             convertedQuery = (IQueryable<V2FeedPackage>)queryOptions.ApplyTo(
                 convertedQuery.Take(pageSize ?? MaxPageSize)); 
 
-            var nextLink = SearchAdaptor.GetNextLink(Request.RequestUri, convertedQuery, new { searchTerm, targetFramework, includePrerelease }, queryOptions, settings, false);
+            var nextLink = SearchAdaptor.GetNextLink(
+                Request.RequestUri, convertedQuery, new { searchTerm, targetFramework, includePrerelease }, queryOptions, settings, false);
 
             return new PageResult<V2FeedPackage>(convertedQuery, nextLink, totalHits);
         }
 
-        [HttpGet, CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTime)]
-        public async Task<HttpResponseMessage> SearchCount(ODataQueryOptions<V2FeedPackage> queryOptions, [FromODataUri] string searchTerm = "", [FromODataUri] string targetFramework = "", [FromODataUri] bool includePrerelease = false)
+        [HttpGet]
+        [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
+        public async Task<HttpResponseMessage> SearchCount(
+            ODataQueryOptions<V2FeedPackage> queryOptions, 
+            [FromODataUri] string searchTerm = "", 
+            [FromODataUri] string targetFramework = "",
+            [FromODataUri] bool includePrerelease = false)
         {
             var queryResults = await Search(queryOptions, searchTerm, targetFramework, includePrerelease);
 
@@ -174,15 +194,24 @@ namespace NuGetGallery.Controllers
             return CountResult(queryResults.LongCount());
         }
 
-        [HttpGet, HttpPost, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]  
-        public IQueryable<V2FeedPackage> GetUpdates([FromODataUri] string packageIds, [FromODataUri] string versions, [FromODataUri] bool includePrerelease, [FromODataUri] bool includeAllVersions, [FromODataUri] string targetFrameworks = "", [FromODataUri] string versionConstraints = "")
+        [HttpGet]
+        [HttpPost]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]  
+        public IQueryable<V2FeedPackage> GetUpdates(
+            [FromODataUri] string packageIds,
+            [FromODataUri] string versions,
+            [FromODataUri] bool includePrerelease, 
+            [FromODataUri] bool includeAllVersions, 
+            [FromODataUri] string targetFrameworks = "", 
+            [FromODataUri] string versionConstraints = "")
         {
-            if (String.IsNullOrEmpty(packageIds) || String.IsNullOrEmpty(versions))
+            if (string.IsNullOrEmpty(packageIds) || string.IsNullOrEmpty(versions))
             {
                 return Enumerable.Empty<V2FeedPackage>().AsQueryable();
             }
 
-            // Workaround https://github.com/NuGet/NuGetGallery/issues/674 for NuGet 2.1 client. Can probably eventually be retired (when nobody uses 2.1 anymore...)
+            // Workaround https://github.com/NuGet/NuGetGallery/issues/674 for NuGet 2.1 client.
+            // Can probably eventually be retired (when nobody uses 2.1 anymore...)
             // Note - it was URI un-escaping converting + to ' ', undoing that is actually a pretty conservative substitution because
             // space characters are never acepted as valid by VersionUtility.ParseFrameworkName.
             if (!string.IsNullOrEmpty(targetFrameworks))
@@ -192,10 +221,10 @@ namespace NuGetGallery.Controllers
 
             var idValues = packageIds.Trim().ToLowerInvariant().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
             var versionValues = versions.Trim().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-            var targetFrameworkValues = String.IsNullOrEmpty(targetFrameworks)
+            var targetFrameworkValues = string.IsNullOrEmpty(targetFrameworks)
                                             ? null
                                             : targetFrameworks.Split('|').Select(VersionUtility.ParseFrameworkName).ToList();
-            var versionConstraintValues = String.IsNullOrEmpty(versionConstraints)
+            var versionConstraintValues = string.IsNullOrEmpty(versionConstraints)
                                             ? new string[idValues.Length]
                                             : versionConstraints.Split('|');
 

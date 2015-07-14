@@ -35,7 +35,11 @@ namespace NuGetGallery.Controllers
              EnsureStableOrdering = true
         };
 
-        public ODataV2CuratedFeedController(IEntitiesContext entities, ConfigurationService configurationService, ISearchService searchService, ICuratedFeedService curatedFeedService)
+        public ODataV2CuratedFeedController(
+            IEntitiesContext entities,
+            ConfigurationService configurationService,
+            ISearchService searchService,
+            ICuratedFeedService curatedFeedService)
             : base(configurationService)
         {
             _entities = entities;
@@ -44,7 +48,9 @@ namespace NuGetGallery.Controllers
             _curatedFeedService = curatedFeedService;
         }
 
-        [HttpGet, HttpPost, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [HttpGet]
+        [HttpPost]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
         public IQueryable<V2FeedPackage> Get(string curatedFeedName)
         {
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
@@ -68,13 +74,16 @@ namespace NuGetGallery.Controllers
             return CountResult(count);
         }
 
-        [HttpGet, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [HttpGet]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
         public async Task<IHttpActionResult> Get(string curatedFeedName, string id, string version)
         {
             return await GetCore(curatedFeedName, id, version);
         }
 
-        [HttpGet, HttpPost, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [HttpGet]
+        [HttpPost]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
         public async Task<IHttpActionResult> FindPackagesById(string curatedFeedName, [FromODataUri]string id)
         {
             return await GetCore(curatedFeedName, id, null);
@@ -82,8 +91,6 @@ namespace NuGetGallery.Controllers
 
         private async Task<IHttpActionResult> GetCore(string curatedFeedName, string id, string version)
         {
-            // todo: route through search service?
-
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
             {
                 throw new HttpResponseException(HttpStatusCode.NotFound);
@@ -106,7 +113,8 @@ namespace NuGetGallery.Controllers
             {
                 try
                 {
-                    packages = await SearchAdaptor.FindByIdCore(_searchService, GetTraditionalHttpContext().Request, packages, id, curatedFeed: null);
+                    packages = await SearchAdaptor.FindByIdCore(
+                        _searchService, GetTraditionalHttpContext().Request, packages, id, curatedFeed: null);
                 }
                 catch (Exception ex)
                 {
@@ -120,8 +128,15 @@ namespace NuGetGallery.Controllers
             return Ok(query);
         }
 
-        [HttpGet, HttpPost, CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTime)]
-        public async Task<IEnumerable<V2FeedPackage>> Search(string curatedFeedName, ODataQueryOptions<V2FeedPackage> queryOptions, [FromODataUri] string searchTerm = "", [FromODataUri] string targetFramework = "", [FromODataUri] bool includePrerelease = false)
+        [HttpGet]
+        [HttpPost]
+        [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
+        public async Task<IEnumerable<V2FeedPackage>> Search(
+            string curatedFeedName, 
+            ODataQueryOptions<V2FeedPackage> queryOptions,
+            [FromODataUri] string searchTerm = "",
+            [FromODataUri] string targetFramework = "", 
+            [FromODataUri] bool includePrerelease = false)
         {
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
             {
@@ -154,7 +169,8 @@ namespace NuGetGallery.Controllers
             var packages = _curatedFeedService.GetPackages(curatedFeedName);
 
             // todo: search hijack should take queryOptions instead of manually parsing query options
-            var query = await SearchAdaptor.SearchCore(_searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: curatedFeed);
+            var query = await SearchAdaptor.SearchCore(
+                _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: curatedFeed);
 
             var totalHits = query.LongCount();
             var convertedQuery = query
@@ -164,13 +180,20 @@ namespace NuGetGallery.Controllers
             convertedQuery = (IQueryable<V2FeedPackage>)queryOptions.ApplyTo(
                 convertedQuery.Take(pageSize ?? MaxPageSize)); 
 
-            var nextLink = SearchAdaptor.GetNextLink(Request.RequestUri, convertedQuery, new { searchTerm, targetFramework, includePrerelease }, queryOptions, settings, false);
+            var nextLink = SearchAdaptor.GetNextLink(
+                Request.RequestUri, convertedQuery, new { searchTerm, targetFramework, includePrerelease }, queryOptions, settings, false);
 
             return new PageResult<V2FeedPackage>(convertedQuery, nextLink, totalHits);
         }
 
-        [HttpGet, CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTime)]
-        public async Task<HttpResponseMessage> SearchCount(string curatedFeedName, ODataQueryOptions<V2FeedPackage> queryOptions, [FromODataUri] string searchTerm = "", [FromODataUri] string targetFramework = "", [FromODataUri] bool includePrerelease = false)
+        [HttpGet]
+        [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
+        public async Task<HttpResponseMessage> SearchCount(
+            string curatedFeedName, 
+            ODataQueryOptions<V2FeedPackage> queryOptions,
+            [FromODataUri] string searchTerm = "", 
+            [FromODataUri] string targetFramework = "", 
+            [FromODataUri] bool includePrerelease = false)
         {
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
             {

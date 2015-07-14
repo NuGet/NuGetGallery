@@ -32,7 +32,10 @@ namespace NuGetGallery.Controllers
              EnsureStableOrdering = true
         };
 
-        public ODataV1FeedController(IEntityRepository<Package> packagesRepository, ConfigurationService configurationService, ISearchService searchService)
+        public ODataV1FeedController(
+            IEntityRepository<Package> packagesRepository, 
+            ConfigurationService configurationService, 
+            ISearchService searchService)
             : base(configurationService)
         {
             _packagesRepository = packagesRepository;
@@ -40,7 +43,9 @@ namespace NuGetGallery.Controllers
             _searchService = searchService;
         }
 
-        [HttpGet, HttpPost, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [HttpGet]
+        [HttpPost]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
         public IQueryable<V1FeedPackage> Get()
         {
             var packages = _packagesRepository.GetAll()
@@ -60,13 +65,16 @@ namespace NuGetGallery.Controllers
             return CountResult(count);
         }
 
-        [HttpGet, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [HttpGet]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
         public async Task<IHttpActionResult> Get(string id, string version)
         {
             return await GetCore(id, version);
         }
 
-        [HttpGet, HttpPost, EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [HttpGet]
+        [HttpPost]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
         public async Task<IHttpActionResult> FindPackagesById([FromODataUri]string id)
         {
             return await GetCore(id, null);
@@ -74,8 +82,6 @@ namespace NuGetGallery.Controllers
 
         private async Task<IHttpActionResult> GetCore(string id, string version)
         {
-            // todo: route through search service?
-
             if (string.IsNullOrWhiteSpace(id))
             {
                 return BadRequest("Parameter 'id' must be specified.");
@@ -94,7 +100,8 @@ namespace NuGetGallery.Controllers
             {
                 try
                 {
-                    packages = await SearchAdaptor.FindByIdCore(_searchService, GetTraditionalHttpContext().Request, packages, id, curatedFeed: null);
+                    packages = await SearchAdaptor.FindByIdCore(
+                        _searchService, GetTraditionalHttpContext().Request, packages, id, curatedFeed: null);
                 }
                 catch (Exception ex)
                 {
@@ -108,8 +115,13 @@ namespace NuGetGallery.Controllers
             return Ok(query);
         }
 
-        [HttpGet, HttpPost, CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTime)]
-        public async Task<IEnumerable<V1FeedPackage>> Search(ODataQueryOptions<V1FeedPackage> queryOptions, [FromODataUri]string searchTerm = "", [FromODataUri]string targetFramework = "")
+        [HttpGet]
+        [HttpPost]
+        [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
+        public async Task<IEnumerable<V1FeedPackage>> Search(
+            ODataQueryOptions<V1FeedPackage> queryOptions,
+            [FromODataUri]string searchTerm = "", 
+            [FromODataUri]string targetFramework = "")
         {
             // Ensure we can provide paging
             var pageSize = queryOptions.Top != null ? (int?)null : MaxPageSize;
@@ -139,7 +151,8 @@ namespace NuGetGallery.Controllers
                 .Where(p => p.Listed && !p.IsPrerelease);
 
             // todo: search hijack should take queryOptions instead of manually parsing query options
-            var query = await SearchAdaptor.SearchCore(_searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, false, curatedFeed: null);
+            var query = await SearchAdaptor.SearchCore(
+                _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, false, curatedFeed: null);
 
             var totalHits = query.LongCount();
             var convertedQuery = query
@@ -149,13 +162,18 @@ namespace NuGetGallery.Controllers
             convertedQuery = (IQueryable<V1FeedPackage>)queryOptions.ApplyTo(
                 convertedQuery.Take(pageSize ?? MaxPageSize)); 
 
-            var nextLink = SearchAdaptor.GetNextLink(Request.RequestUri, convertedQuery, new { searchTerm, targetFramework }, queryOptions, settings, false);
+            var nextLink = SearchAdaptor.GetNextLink(
+                Request.RequestUri, convertedQuery, new { searchTerm, targetFramework }, queryOptions, settings, false);
 
             return new PageResult<V1FeedPackage>(convertedQuery, nextLink, totalHits);
         }
 
-        [HttpGet, CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTime)]
-        public async Task<HttpResponseMessage> SearchCount(ODataQueryOptions<V1FeedPackage> queryOptions, [FromODataUri] string searchTerm = "", [FromODataUri] string targetFramework = "")
+        [HttpGet]
+        [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
+        public async Task<HttpResponseMessage> SearchCount(
+            ODataQueryOptions<V1FeedPackage> queryOptions, 
+            [FromODataUri] string searchTerm = "",
+            [FromODataUri] string targetFramework = "")
         {
             var queryResults = await Search(queryOptions, searchTerm, targetFramework);
 
