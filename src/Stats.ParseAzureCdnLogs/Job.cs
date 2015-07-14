@@ -78,7 +78,11 @@ namespace Stats.ParseAzureCdnLogs
                 var deadLetterBlobContainer = cloudBlobClient.GetContainerReference(_cloudStorageContainerName + "-deadletter");
                 await deadLetterBlobContainer.CreateIfNotExistsAsync();
 
-                var parser = new CloudTableLogParser(JobEventSource.Log, targetBlobContainer, cdnLogEntryTable, packageStatisticsTable, deadLetterBlobContainer);
+                // Get the persistent queue to send messages to-be-processed to
+                var statisticsQueue = new PackageStatisticsQueue(_cloudStorageAccount);
+                await statisticsQueue.CreateIfNotExists();
+
+                var parser = new CloudTableLogParser(JobEventSource.Log, targetBlobContainer, cdnLogEntryTable, packageStatisticsTable, deadLetterBlobContainer, statisticsQueue);
 
                 // Get the next to-be-processed raw log file using the cdn raw log file name prefix
                 var prefix = string.Format(CultureInfo.InvariantCulture, "{0}_{1}_", _azureCdnPlatform.GetRawLogFilePrefix(), _azureCdnAccountNumber);

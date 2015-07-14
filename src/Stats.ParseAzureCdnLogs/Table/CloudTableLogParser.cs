@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,16 +23,18 @@ namespace Stats.ParseAzureCdnLogs
         private readonly CdnLogEntryTable _cdnLogEntryTable;
         private readonly PackageStatisticsTable _statisticsTable;
         private readonly CloudBlobContainer _deadLetterContainer;
+        private readonly PackageStatisticsQueue _statisticsQueue;
         private readonly JobEventSource _jobEventSource;
 
         public CloudTableLogParser(JobEventSource jobEventSource, CloudBlobContainer targetContainer, CdnLogEntryTable cdnLogEntryTable,
-            PackageStatisticsTable statisticsTable, CloudBlobContainer deadLetterContainer)
+            PackageStatisticsTable statisticsTable, CloudBlobContainer deadLetterContainer, PackageStatisticsQueue statisticsQueue)
         {
             _jobEventSource = jobEventSource;
             _targetContainer = targetContainer;
             _cdnLogEntryTable = cdnLogEntryTable;
             _statisticsTable = statisticsTable;
             _deadLetterContainer = deadLetterContainer;
+            _statisticsQueue = statisticsQueue;
         }
 
         public async Task ParseLogFileAsync(CloudBlockBlob blob)
@@ -120,7 +123,15 @@ namespace Stats.ParseAzureCdnLogs
                     {
                         // auto-renew lease when about to expire
                         Thread.Sleep(_leaseExpirationThreshold);
-                        await blob.RenewLeaseAsync(AccessCondition.GenerateLeaseCondition(leaseId));
+                        try
+                        {
+                            await blob.RenewLeaseAsync(AccessCondition.GenerateLeaseCondition(leaseId));
+                        }
+                        catch
+                        {
+                            // the blob could have been deleted in the meantime
+                            // this thread will be killed either way
+                        }
                     }
                 });
             autoRenewLeaseThread.Start();
@@ -145,13 +156,20 @@ namespace Stats.ParseAzureCdnLogs
                 throw;
             }
 
-
             try
             {
                 // batch insert the parsed log entries into table storage
                 _jobEventSource.BeginningBatchInsert(blobUri);
                 await _cdnLogEntryTable.InsertBatchAsync(logEntries);
-                await _statisticsTable.InsertBatchAsync(packageStatistics);
+                await _statisticsTable.InsertOrReplaceBatchAsync(packageStatistics);
+
+                foreach (var batch in SplitList(packageStatistics.Select(e => e.RowKey).ToList()))
+                {
+                    var message = new PackageStatisticsQueueMessage();
+                    message.RowKeys = batch;
+                    await _statisticsQueue.AddMessageAsync(message);
+                }
+
                 _jobEventSource.FinishingBatchInsert(blobUri);
             }
             catch
@@ -244,6 +262,18 @@ namespace Stats.ParseAzureCdnLogs
                 throw;
             }
             return leaseId;
+        }
+
+        public static List<List<string>> SplitList(List<string> source, int size = 500)
+        {
+            var splittedLists = new List<List<string>>();
+
+            for (var i = 0; i < source.Count; i += size)
+            {
+                splittedLists.Add(source.GetRange(i, Math.Min(size, source.Count - i)));
+            }
+
+            return splittedLists;
         }
     }
 }

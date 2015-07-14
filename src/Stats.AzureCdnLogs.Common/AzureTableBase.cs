@@ -47,7 +47,7 @@ namespace Stats.AzureCdnLogs.Common
             return await _table.CreateIfNotExistsAsync();
         }
 
-        public async Task InsertBatchAsync(IEnumerable<TableEntity> entities)
+        public async Task InsertOrReplaceBatchAsync(IEnumerable<TableEntity> entities)
         {
             foreach (var batchOperation in TableOperationBuilder.GetOptimalInsertBatchOperations(entities))
             {
