@@ -1316,7 +1316,7 @@
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport.sql" />
-    <Content Include="robots.txt" />
+    <Content Include="Public\robots.txt" />
     <Content Include="Content\font\fontawesome-webfont.eot" />
     <Content Include="Content\font\fontawesome-webfont.ttf" />
     <Content Include="Content\font\fontawesome-webfont.woff" />
