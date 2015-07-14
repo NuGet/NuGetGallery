@@ -94,8 +94,8 @@
                 </li>
             }
 
-            <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file.">Download</a> <a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">(how-to)</a></li>
-            <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)">Open in Package Explorer</a></li>
+            <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file." rel="nofollow">Download</a> <a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">(how-to)</a></li>
+            <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a></li>
 
             @if (Model.IsOwner(User))
             {
