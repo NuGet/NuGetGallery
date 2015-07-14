@@ -106,7 +106,7 @@ namespace NuGetGallery.Controllers
 
             if (!string.IsNullOrEmpty(version))
             {
-                packages = packages.Where(p => p.Version == version); // todo: normalizedversion?
+                packages = packages.Where(p => p.Version == version);
             }
 
             if (_configurationService.Features.PackageRestoreViaSearch)
