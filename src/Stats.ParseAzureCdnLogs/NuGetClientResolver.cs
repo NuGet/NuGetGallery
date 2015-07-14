@@ -10,10 +10,12 @@ namespace Stats.ParseAzureCdnLogs
     {
         private static readonly NuGetClientInfo _unknownClient = new NuGetClientInfo("Other");
         private static readonly IDictionary<string, NuGetClientInfo> _knownClients;
+        private static readonly IList<string> _blackListedUserAgentPatterns;
 
         static NuGetClientResolver()
         {
             _knownClients = new Dictionary<string, NuGetClientInfo>();
+            _blackListedUserAgentPatterns = new List<string>();
 
             // NuGet Clients
             RegisterNuGetClients();
@@ -23,6 +25,9 @@ namespace Stats.ParseAzureCdnLogs
 
             // Register Browsers
             RegisterBrowsers();
+
+            // Blacklist user agent patterns we whish to ignore
+            RegisterBlacklistPatterns();
         }
 
         private static void RegisterNuGetClients()
@@ -74,12 +79,21 @@ namespace Stats.ParseAzureCdnLogs
 
             // Refer to www.xamarin.com
             _knownClients.Add("Xamarin Studio/", new NuGetClientInfo("Xamarin Studio"));
+
+            // Refer to www.monodevelop.com/
+            _knownClients.Add("MonoDevelop/", new NuGetClientInfo("MonoDevelop"));
         }
 
         private static void RegisterBrowsers()
         {
             _knownClients.Add("Mozilla", NuGetClientInfo.Browser());
             _knownClients.Add("Opera", NuGetClientInfo.Browser());
+        }
+
+        private static void RegisterBlacklistPatterns()
+        {
+            // Ignore requests coming from AppInsights
+            _blackListedUserAgentPatterns.Add("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0; AppInsights)");
         }
 
         public static NuGetClientInfo FromUserAgent(string userAgent)
@@ -98,6 +112,24 @@ namespace Stats.ParseAzureCdnLogs
             }
 
             return _unknownClient;
+        }
+
+        public static bool IsBlackListed(string userAgent)
+        {
+            if (string.IsNullOrEmpty(userAgent))
+            {
+                return false;
+            }
+
+            foreach (var blacklistedUserAgentPattern in _blackListedUserAgentPatterns)
+            {
+                if (userAgent.IndexOf(blacklistedUserAgentPattern, StringComparison.Ordinal) == 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

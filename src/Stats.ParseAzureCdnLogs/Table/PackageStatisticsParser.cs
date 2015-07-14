@@ -37,14 +37,18 @@ namespace Stats.ParseAzureCdnLogs
                 statistic.ProjectGuids = GetCustomFieldValue(customFieldDictionary, NuGetCustomHeaders.NuGetProjectGuids);
                 statistic.UserAgent = GetUserAgentValue(cdnLogEntry);
 
-                var clientInfo = NuGetClientResolver.FromUserAgent(statistic.UserAgent);
-                statistic.Client = clientInfo.Name;
-                statistic.ClientCategory = clientInfo.Category;
-                statistic.ClientMajorVersion = clientInfo.GetMajorVersion(statistic.UserAgent);
-                statistic.ClientMinorVersion = clientInfo.GetMinorVersion(statistic.UserAgent);
-                statistic.ClientPlatform = clientInfo.GetPlatform(statistic.UserAgent);
+                // ignore blacklisted user agents
+                if (!NuGetClientResolver.IsBlackListed(statistic.UserAgent))
+                {
+                    var clientInfo = NuGetClientResolver.FromUserAgent(statistic.UserAgent);
+                    statistic.Client = clientInfo.Name;
+                    statistic.ClientCategory = clientInfo.Category;
+                    statistic.ClientMajorVersion = clientInfo.GetMajorVersion(statistic.UserAgent);
+                    statistic.ClientMinorVersion = clientInfo.GetMinorVersion(statistic.UserAgent);
+                    statistic.ClientPlatform = clientInfo.GetPlatform(statistic.UserAgent);
 
-                packageStatistics.Add(statistic);
+                    packageStatistics.Add(statistic);
+                }
             }
 
             return packageStatistics;

@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="CdnLogCustomFieldParserFacts.cs" />
     <Compile Include="NuGetClientInfoFacts.cs" />
+    <Compile Include="NuGetClientResolverFacts.cs" />
     <Compile Include="PackageDefinitionFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TableOperationBuildFacts.cs" />
