@@ -10,7 +10,7 @@ using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using Stats.AzureCdnLogs.Common;
 
-namespace Stats.AggregateInTableStorage
+namespace Stats.AggregateDownloadsInTempTable
 {
     internal class Job
         : JobBase

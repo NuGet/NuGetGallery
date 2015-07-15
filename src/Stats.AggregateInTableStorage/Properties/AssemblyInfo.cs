@@ -4,11 +4,11 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("Stats.AggregateInTableStorage")]
+[assembly: AssemblyTitle("Stats.AggregateDownloadsInTempTable")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Stats.AggregateInTableStorage")]
+[assembly: AssemblyProduct("Stats.AggregateDownloadsInTempTable")]
 [assembly: AssemblyCopyright("Copyright © .NET Foundation 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

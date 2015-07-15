@@ -3,7 +3,7 @@
 
 using System.Diagnostics.Tracing;
 
-namespace Stats.AggregateInTableStorage
+namespace Stats.AggregateDownloadsInTempTable
 {
     [EventSource(Name = "NetFoundation-NuGet-Jobs-AggregateInTableStorage")]
     public class JobEventSource

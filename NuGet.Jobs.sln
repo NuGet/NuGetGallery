@@ -75,7 +75,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search.GenerateCuratedFeed"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search.GenerateOwners", "src\Search.GenerateOwners\Search.GenerateOwners.csproj", "{E66BC452-C3FB-4541-A5F7-4FFA864CA920}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.AggregateInTableStorage", "src\Stats.AggregateInTableStorage\Stats.AggregateInTableStorage.csproj", "{43ABD720-B2CC-469A-8304-29D1E8A90188}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.AggregateDownloadsInTempTable", "src\Stats.AggregateInTableStorage\Stats.AggregateDownloadsInTempTable.csproj", "{43ABD720-B2CC-469A-8304-29D1E8A90188}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

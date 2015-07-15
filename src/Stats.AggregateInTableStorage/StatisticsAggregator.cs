@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Stats.AzureCdnLogs.Common;
 
-namespace Stats.AggregateInTableStorage
+namespace Stats.AggregateDownloadsInTempTable
 {
     internal class StatisticsAggregator
     {

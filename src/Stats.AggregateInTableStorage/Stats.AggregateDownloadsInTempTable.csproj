@@ -7,8 +7,8 @@
     <ProjectGuid>{43ABD720-B2CC-469A-8304-29D1E8A90188}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Stats.AggregateInTableStorage</RootNamespace>
-    <AssemblyName>Stats.AggregateInTableStorage</AssemblyName>
+    <RootNamespace>Stats.AggregateDownloadsInTempTable</RootNamespace>
+    <AssemblyName>Stats.AggregateDownloadsInTempTable</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

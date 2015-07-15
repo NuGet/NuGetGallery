@@ -3,7 +3,7 @@
 
 using NuGet.Jobs;
 
-namespace Stats.AggregateInTableStorage
+namespace Stats.AggregateDownloadsInTempTable
 {
     class Program
     {
