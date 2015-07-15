@@ -22,7 +22,7 @@ namespace Stats.AggregateDownloadsInTempTable
             _targetTable = targetTable;
 
             var currentProcess = Process.GetCurrentProcess();
-            AggregatorId = $"{Environment.MachineName}::{currentProcess.ProcessName}({currentProcess.Id})::{Thread.CurrentThread.ManagedThreadId}";
+            AggregatorId = string.Format("{0}::{1}({2})::{3}", Environment.MachineName, currentProcess.ProcessName, currentProcess.Id, Thread.CurrentThread.ManagedThreadId);
         }
 
         public string AggregatorId { get; }
