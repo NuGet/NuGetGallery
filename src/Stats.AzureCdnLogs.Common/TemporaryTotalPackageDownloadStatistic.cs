@@ -5,7 +5,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Stats.AzureCdnLogs.Common
 {
-    public class TemporaryPackageDownloadStatistic
+    public class TemporaryTotalPackageDownloadStatistic
         : TableEntity
     {
         private string _packageVersion;

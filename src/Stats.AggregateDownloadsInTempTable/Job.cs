@@ -17,7 +17,7 @@ namespace Stats.AggregateDownloadsInTempTable
     {
         private PackageStatisticsTable _sourceTable;
         private PackageStatisticsQueue _messageQueue;
-        private TemporaryPackageDownloadStatisticsTable _tempAggregationTable;
+        private TemporaryTotalPackageDownloadStatisticsTable _tempAggregationTable;
 
         public Job()
             : base(JobEventSource.Log)
@@ -33,7 +33,7 @@ namespace Stats.AggregateDownloadsInTempTable
 
                 _messageQueue = new PackageStatisticsQueue(cloudStorageAccount);
                 _sourceTable = new PackageStatisticsTable(cloudStorageAccount);
-                _tempAggregationTable = new TemporaryPackageDownloadStatisticsTable(cloudStorageAccount);
+                _tempAggregationTable = new TemporaryTotalPackageDownloadStatisticsTable(cloudStorageAccount);
 
                 return true;
             }

@@ -5,7 +5,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Stats.AzureCdnLogs.Common
 {
-    public class PackageDownloadStatistic
+    public class TotalPackageDownloadStatistic
         : TableEntity
     {
         public string PackageId

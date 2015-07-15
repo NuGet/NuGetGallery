@@ -5,7 +5,7 @@ using System.Diagnostics.Tracing;
 
 namespace Stats.AggregateDownloadsInTempTable
 {
-    [EventSource(Name = "NetFoundation-NuGet-Jobs-AggregateInTableStorage")]
+    [EventSource(Name = "NetFoundation-NuGet-Jobs-AggregateTotalPackageDownloadsInTempTable")]
     public class JobEventSource
         : EventSource
     {

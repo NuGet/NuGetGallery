@@ -14,9 +14,9 @@ namespace Stats.AggregateDownloadsInTempTable
     internal class StatisticsAggregator
     {
         private readonly PackageStatisticsTable _sourceTable;
-        private readonly TemporaryPackageDownloadStatisticsTable _targetTable;
+        private readonly TemporaryTotalPackageDownloadStatisticsTable _targetTable;
 
-        public StatisticsAggregator(PackageStatisticsTable sourceTable, TemporaryPackageDownloadStatisticsTable targetTable)
+        public StatisticsAggregator(PackageStatisticsTable sourceTable, TemporaryTotalPackageDownloadStatisticsTable targetTable)
         {
             _sourceTable = sourceTable;
             _targetTable = targetTable;
@@ -39,7 +39,7 @@ namespace Stats.AggregateDownloadsInTempTable
             // The batch size is max 1000 entities, so no need to worry about max batch size anymore.
             var groupedByPackageId = batch.GroupBy(e => e.PackageId).ToList();
 
-            var temporaryAggregateStats = new List<TemporaryPackageDownloadStatistic>();
+            var temporaryAggregateStats = new List<TemporaryTotalPackageDownloadStatistic>();
             foreach (var packageIdGroup in groupedByPackageId)
             {
                 // As the package ID is the partition key, we can do batch operations on table storage for these records.
@@ -48,7 +48,7 @@ namespace Stats.AggregateDownloadsInTempTable
                 foreach (var packageIdAndVersionGroup in groupedByPackageIdAndVersion)
                 {
                     // aggregated on package id and version
-                    var packageIdAndVersionStatistic = new TemporaryPackageDownloadStatistic();
+                    var packageIdAndVersionStatistic = new TemporaryTotalPackageDownloadStatistic();
                     packageIdAndVersionStatistic.AggregatorId = AggregatorId;
                     packageIdAndVersionStatistic.PackageId = packageId;
                     packageIdAndVersionStatistic.PackageVersion = packageIdAndVersionGroup.Key;

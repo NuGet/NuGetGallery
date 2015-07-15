@@ -68,8 +68,8 @@
   <ItemGroup>
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="EnumerableExtensions.cs" />
-    <Compile Include="PackageDownloadStatistic.cs" />
-    <Compile Include="AggregatePackageStatisticsTable.cs" />
+    <Compile Include="TotalPackageDownloadStatistic.cs" />
+    <Compile Include="TotalPackageDownloadStatisticsTable.cs" />
     <Compile Include="AzureCdnPlatform.cs" />
     <Compile Include="AzureCdnPlatformExtensions.cs" />
     <Compile Include="AzureTableBase.cs" />
@@ -85,8 +85,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RowKeyBuilder.cs" />
     <Compile Include="TableOperationBuilder.cs" />
-    <Compile Include="TemporaryPackageDownloadStatistic.cs" />
-    <Compile Include="TemporaryPackageDownloadStatisticsTable.cs" />
+    <Compile Include="TemporaryTotalPackageDownloadStatistic.cs" />
+    <Compile Include="TemporaryTotalPackageDownloadStatisticsTable.cs" />
     <Compile Include="UnknownAzureCdnPlatformException.cs" />
     <Compile Include="W3CParseUtils.cs" />
   </ItemGroup>
