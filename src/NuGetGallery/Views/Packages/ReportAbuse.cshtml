@@ -9,18 +9,21 @@
 
 <p class="message">
     <strong>Important: Please do not use this form to report a bug in a package you are using!</strong><br />
-    This form is for reporting <em>abusive</em> packages such as 
-    packages containing <em>malicious code</em> or spam. If "@Model.PackageId" simply doesn't 
-    work, or if you need help getting the package installed, please 
-    <a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.PackageId })" title="contact the owners">contact the owners instead.</a> 
+    This form is for reporting <em>abusive</em> packages such as
+    packages containing <em>malicious code</em> or spam. If "@Model.PackageId" simply doesn't
+    work, or if you need help getting the package installed, please
+    <a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.PackageId })" title="contact the owners">contact the owners instead.</a>
 </p>
 
-<p>Please provide a detailed abuse report. Include exactly what the package did, for example if you are reporting a package with a virus or malicious code, 
-    <em>please provide evidence to support your claim!</em> We cannot delete packages without evidence that they exhibit malicious behavior.</p>
+<p>
+    Please provide a detailed abuse report. Include exactly what the package did, for example if you are reporting a package with a virus or malicious code,
+    <em>please provide evidence to support your claim!</em> We cannot delete packages without evidence that they exhibit malicious behavior.
+</p>
 
 @if (!Model.ConfirmedUser)
 {
-    <p>Note: if you are the owner of @Model.PackageId, please 
+    <p>
+        Note: if you are the owner of @Model.PackageId, please
         <a href="@Url.LogOn(returnUrl)">sign in now before you complete this form.</a>
     </p>
 }
@@ -54,7 +57,7 @@
                 new Dictionary<string, object>
                 {
                     { "style", "display: inline" },
-                })<br/>
+                })<br />
         </div>
         <div class="form-field">
             @Html.LabelFor(m => m.Message, "Abuse Report")
@@ -62,9 +65,28 @@
             @Html.TextAreaFor(m => m.Message, 10, 50, null)
             @Html.ValidationMessageFor(m => m.Message, null, new { id = "report-abuse-message" })
         </div>
-        <div class="form-field" >
+        <div class="form-field">
             @Html.CheckBoxFor(m => m.CopySender)
             @Html.LabelFor(m => m.CopySender, new { @class = "checkbox" })
+        </div>
+        <div class="form-field">
+            <br /><span style="color: red">*</span> Required Statements for infringement claims<br /><br />
+            <strong>Good Faith Belief:</strong><br />
+            <p>
+                By typing my name (electronic signature), I have a good faith belief that the use of the material is not authorized by the intellectual property owner, its agent, or the law (e.g., it is not fair use).
+            </p>
+            <strong>Authority to Act:</strong>
+            <p>
+                I represent that the information in the notification is accurate, and under penalty of perjury, that I am authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.
+            </p>
+            <strong>512(f) Acknowledgement:</strong>
+            <p>
+                As applicable under 17 U.S.C. 512(f), I acknowledge that I may be subject to liability for damages if I knowingly materially misrepresent that material or activity is infringing.
+            </p>
+            @Html.LabelFor(m => m.Signature)
+            @Html.EditorFor(m => m.Signature)
+            <span class="field-hint-message">Sign with your real name.</span>
+            @Html.ValidationMessageFor(m => m.Signature)
         </div>
         <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
         @Html.SpamPreventionFields()
