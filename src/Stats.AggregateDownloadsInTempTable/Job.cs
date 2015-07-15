@@ -87,7 +87,7 @@ namespace Stats.AggregateDownloadsInTempTable
                 await _messageQueue.DeleteMessages(messages);
 
                 stopwatch.Stop();
-                Trace.WriteLine($"[{statisticsAggregator.AggregatorId}] Execution time: {stopwatch.ElapsedMilliseconds} ms.");
+                Trace.WriteLine(string.Format("[{0}] Execution time: {1} ms.", statisticsAggregator.AggregatorId, stopwatch.ElapsedMilliseconds));
             }
             catch (Exception exception)
             {
