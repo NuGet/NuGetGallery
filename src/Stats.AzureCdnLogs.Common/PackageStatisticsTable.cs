@@ -1,7 +1,10 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 
@@ -15,11 +18,11 @@ namespace Stats.AzureCdnLogs.Common
         {
         }
 
-        public IReadOnlyCollection<PackageStatistics> GetNextAggregationBatch(PackageStatisticsQueueMessage message)
+        public IReadOnlyCollection<PackageStatistics> GetNextAggregationBatch(IReadOnlyCollection<PackageStatisticsQueueMessage> messages)
         {
             // find all records matching the provided partition and row keys
             var records = new List<PackageStatistics>();
-            var filterConditions = ConstructFilterConditions(message);
+            var filterConditions = ConstructFilterConditions(messages);
 
             foreach (var filterCondition in filterConditions)
             {
@@ -31,14 +34,27 @@ namespace Stats.AzureCdnLogs.Common
             return records;
         }
 
-        private static IReadOnlyCollection<string> ConstructFilterConditions(PackageStatisticsQueueMessage message)
+        private static IReadOnlyCollection<string> ConstructFilterConditions(IReadOnlyCollection<PackageStatisticsQueueMessage> messages)
         {
             var filters = new List<string>();
+
+            foreach (var message in messages)
+            {
+                var filterConditions = ConstructFilterConditions(message);
+                filters.AddRange(filterConditions);
+            }
+
+            return filters;
+        }
+
+        private static IReadOnlyCollection<string> ConstructFilterConditions(PackageStatisticsQueueMessage message)
+        {
+            var filters = new ConcurrentBag<string>();
 
             // max 15 discrete comparisons allowed in $filter
             var partitions = message.PartitionAndRowKeys.Partition(15);
 
-            foreach (IEnumerable<KeyValuePair<string, string>> partition in partitions)
+            Parallel.ForEach(partitions, partition =>
             {
                 string combinedFilterCondition = null;
                 foreach (var keyValuePair in partition)
@@ -54,14 +70,15 @@ namespace Stats.AzureCdnLogs.Common
                     }
                     else
                     {
-                        combinedFilterCondition = TableQuery.CombineFilters(combinedFilterCondition, TableOperators.Or, filterCondition);
+                        combinedFilterCondition = TableQuery.CombineFilters(combinedFilterCondition, TableOperators.Or,
+                            filterCondition);
                     }
                 }
 
                 filters.Add(combinedFilterCondition);
-            }
+            });
 
-            return filters;
+            return filters.ToList();
         }
     }
 }

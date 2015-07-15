@@ -21,7 +21,7 @@ namespace Stats.AzureCdnLogs.Common
         /// </summary>
         /// <param name="entities"></param>
         /// <returns></returns>
-        public static IEnumerable<TableBatchOperation> GetOptimalInsertBatchOperations(IEnumerable<TableEntity> entities)
+        public static IReadOnlyCollection<TableBatchOperation> GetOptimalInsertBatchOperations(IEnumerable<TableEntity> entities)
         {
             const int maxBatchSize = 100;
             var list = new List<TableBatchOperation>();

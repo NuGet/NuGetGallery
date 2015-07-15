@@ -19,7 +19,7 @@ namespace Stats.AzureCdnLogs.Common
         private readonly CloudTable _table;
 
         protected AzureTableBase(CloudStorageAccount cloudStorageAccount)
-            :this(cloudStorageAccount, typeof(T).Name)
+            : this(cloudStorageAccount, typeof(T).Name)
         {
         }
 
@@ -49,9 +49,20 @@ namespace Stats.AzureCdnLogs.Common
 
         public async Task InsertOrReplaceBatchAsync(IEnumerable<TableEntity> entities)
         {
-            foreach (var batchOperation in TableOperationBuilder.GetOptimalInsertBatchOperations(entities))
+            var batchOperations = TableOperationBuilder.GetOptimalInsertBatchOperations(entities);
+            var count = batchOperations.Count();
+            const int maxParallelism = 4;
+
+            for (int i = 0; i < count; i += maxParallelism)
             {
-                await _table.ExecuteBatchAsync(batchOperation);
+                var tasks = new List<Task>();
+                var parallelOperations = batchOperations.Skip(i * maxParallelism).Take(Math.Min(maxParallelism, count - i * maxParallelism));
+                foreach (var parallelOperation in parallelOperations)
+                {
+                    tasks.Add(Task.Run(async () => await _table.ExecuteBatchAsync(parallelOperation)));
+                }
+
+                await Task.WhenAll(tasks);
             }
         }
 

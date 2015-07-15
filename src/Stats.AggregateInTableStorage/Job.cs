@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
@@ -15,8 +16,8 @@ namespace Stats.AggregateInTableStorage
         : JobBase
     {
         private PackageStatisticsTable _sourceTable;
-        private AggregatePackageStatisticsTable _targetTable;
         private PackageStatisticsQueue _messageQueue;
+        private TemporaryPackageDownloadStatisticsTable _tempAggregationTable;
 
         public Job()
             : base(JobEventSource.Log)
@@ -32,7 +33,7 @@ namespace Stats.AggregateInTableStorage
 
                 _messageQueue = new PackageStatisticsQueue(cloudStorageAccount);
                 _sourceTable = new PackageStatisticsTable(cloudStorageAccount);
-                _targetTable = new AggregatePackageStatisticsTable(cloudStorageAccount);
+                _tempAggregationTable = new TemporaryPackageDownloadStatisticsTable(cloudStorageAccount);
 
                 return true;
             }
@@ -45,36 +46,58 @@ namespace Stats.AggregateInTableStorage
 
         public override async Task<bool> Run()
         {
+            var cancellationTokenSource = new CancellationTokenSource();
             try
             {
-                var stopwatch = Stopwatch.StartNew();
-
-                await _targetTable.CreateIfNotExistsAsync();
+                await _tempAggregationTable.CreateIfNotExistsAsync();
                 await _messageQueue.CreateIfNotExists();
 
-                PackageStatisticsQueueMessage message = await _messageQueue.GetMessageAsync();
-
-                var traceMessage = string.Format("Start processing message with ID: {0} (elements count = [{1}].", message.Id, message.PartitionAndRowKeys.Count);
-                Trace.WriteLine(traceMessage);
-
-                if (message != null)
+                var tasks = new List<Task>();
+                for (int i = 0; i < Environment.ProcessorCount; i++)
                 {
-                    await StatisticsAggregator.AggregateTotalDownloadCounts(_sourceTable, _targetTable, message);
-
-                    await _messageQueue.DeleteMessage(message);
+                    tasks.Add(Task.Run(async () => await AggregateDownloadStatisticsAsync(cancellationTokenSource), cancellationTokenSource.Token));
                 }
 
-                stopwatch.Stop();
-                traceMessage = string.Format("Execution time: {0} ms.", stopwatch.ElapsedMilliseconds);
-                Trace.WriteLine(traceMessage);
+                await Task.WhenAll(tasks);
 
                 return true;
             }
             catch (Exception exception)
             {
+                if (!cancellationTokenSource.IsCancellationRequested)
+                {
+                    cancellationTokenSource.Cancel();
+                }
+
                 Trace.TraceError(exception.ToString());
             }
             return false;
+        }
+
+        private async Task AggregateDownloadStatisticsAsync(CancellationTokenSource cancellationTokenSource)
+        {
+            try
+            {
+                var statisticsAggregator = new StatisticsAggregator(_sourceTable, _tempAggregationTable);
+
+                var stopwatch = Stopwatch.StartNew();
+                IReadOnlyCollection<PackageStatisticsQueueMessage> messages = await _messageQueue.GetMessagesAsync();
+
+                await statisticsAggregator.AggregateTotalDownloadCounts(messages);
+                await _messageQueue.DeleteMessages(messages);
+
+                stopwatch.Stop();
+                Trace.WriteLine($"[{statisticsAggregator.AggregatorId}] Execution time: {stopwatch.ElapsedMilliseconds} ms.");
+            }
+            catch (Exception exception)
+            {
+                if (!cancellationTokenSource.IsCancellationRequested)
+                {
+                    cancellationTokenSource.Cancel();
+                }
+
+                Trace.TraceError(exception.ToString());
+            }
         }
 
         private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount)

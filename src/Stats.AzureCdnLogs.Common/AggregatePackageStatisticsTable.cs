@@ -11,7 +11,7 @@ namespace Stats.AzureCdnLogs.Common
         : AzureTableBase<PackageDownloadStatistic>
     {
         public AggregatePackageStatisticsTable(CloudStorageAccount cloudStorageAccount)
-            : base(cloudStorageAccount, typeof (PackageStatistics).Name + "aggregated")
+            : base(cloudStorageAccount, typeof(PackageStatistics).Name + "aggregated")
         {
         }
 
