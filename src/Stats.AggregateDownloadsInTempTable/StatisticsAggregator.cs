@@ -25,7 +25,7 @@ namespace Stats.AggregateDownloadsInTempTable
             AggregatorId = string.Format("{0}::{1}({2})::{3}", Environment.MachineName, currentProcess.ProcessName, currentProcess.Id, Thread.CurrentThread.ManagedThreadId);
         }
 
-        public string AggregatorId { get; }
+        public string AggregatorId { get; private set; }
 
         public async Task AggregateTotalDownloadCounts(IReadOnlyCollection<PackageStatisticsQueueMessage> messages)
         {
