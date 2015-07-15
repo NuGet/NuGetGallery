@@ -1,18 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Net.Mail;
 using AnglicanGeek.MarkdownMailer;
 using Moq;
-using NuGetGallery.Areas.Admin.DynamicData;
-using Xunit;
-using NuGetGallery.Configuration;
-using NuGetGallery.Framework;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
+using NuGetGallery.Configuration;
+using NuGetGallery.Framework;
+using Xunit;
 
 namespace NuGetGallery
 {
@@ -45,6 +44,7 @@ namespace NuGetGallery
                         Package = package,
                         Reason = "Reason!",
                         RequestingUser = null,
+                        Signature = "Joe Schmoe",
                         Url = TestUtility.MockUrlHelper(),
                     });
                 var message = messageService.MockMailSender.Sent.Last();
@@ -86,6 +86,7 @@ namespace NuGetGallery
                         Username = "Joe Schmoe",
                         EmailAddress = "joe@example.com"
                     },
+                    Signature = "Joe Schmoe",
                     Url = TestUtility.MockUrlHelper(),
                     CopySender = true,
                 };
@@ -115,7 +116,7 @@ namespace NuGetGallery
                 {
                     PackageRegistration = new PackageRegistration
                     {
-                        Id = "smangit", 
+                        Id = "smangit",
                         Owners = new Collection<User> { owner }
                     },
                     Version = "1.42.0.1"
@@ -130,6 +131,7 @@ namespace NuGetGallery
                         Package = package,
                         Reason = "Reason!",
                         RequestingUser = owner,
+                        Signature = "Joe Schmoe",
                         Url = TestUtility.MockUrlHelper(),
                     });
 
@@ -169,6 +171,7 @@ namespace NuGetGallery
                         Username = "Joe Schmoe",
                         EmailAddress = "joe@example.com"
                     },
+                    Signature = "Joe Schmoe",
                     Url = TestUtility.MockUrlHelper(),
                     CopySender = true,
                 };
@@ -278,7 +281,7 @@ namespace NuGetGallery
 
                 var messageService = new TestableMessageService();
                 messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
-                
+
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
 
@@ -295,7 +298,7 @@ namespace NuGetGallery
 
                 var messageService = new TestableMessageService();
                 messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
-                
+
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
         }
@@ -306,7 +309,7 @@ namespace NuGetGallery
             public void WillSendEmailToNewUser()
             {
                 var to = new MailAddress("legit@example.com", "too");
-                
+
                 var messageService = new TestableMessageService();
                 messageService.SendNewAccountEmail(to, "http://example.com/confirmation-token-url");
                 var message = messageService.MockMailSender.Sent.Last();
@@ -384,8 +387,8 @@ namespace NuGetGallery
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel() { 
-                        AuthUI = new AuthenticatorUI("sign in", "Microsoft Account", "Microsoft Account") 
+                    .Returns(new CredentialViewModel() {
+                        AuthUI = new AuthenticatorUI("sign in", "Microsoft Account", "Microsoft Account")
                     });
 
                 messageService.SendCredentialRemovedNotice(user, cred);
@@ -405,7 +408,7 @@ namespace NuGetGallery
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel() { 
+                    .Returns(new CredentialViewModel() {
                         TypeCaption = "Password"
                     });
 
@@ -429,8 +432,8 @@ namespace NuGetGallery
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel() { 
-                        AuthUI = new AuthenticatorUI("sign in", "Microsoft Account", "Microsoft Account") 
+                    .Returns(new CredentialViewModel() {
+                        AuthUI = new AuthenticatorUI("sign in", "Microsoft Account", "Microsoft Account")
                     });
 
                 messageService.SendCredentialAddedNotice(user, cred);
@@ -450,7 +453,7 @@ namespace NuGetGallery
                 var messageService = new TestableMessageService();
                 messageService.MockAuthService
                     .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel() { 
+                    .Returns(new CredentialViewModel() {
                         TypeCaption = "Password"
                     });
 
