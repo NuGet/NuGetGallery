@@ -66,6 +66,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DictionaryExtensions.cs" />
+    <Compile Include="EnumerableExtensions.cs" />
     <Compile Include="PackageDownloadStatistic.cs" />
     <Compile Include="AggregatePackageStatisticsTable.cs" />
     <Compile Include="AzureCdnPlatform.cs" />

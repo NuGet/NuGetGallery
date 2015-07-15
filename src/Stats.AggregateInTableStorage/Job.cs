@@ -47,10 +47,15 @@ namespace Stats.AggregateInTableStorage
         {
             try
             {
+                var stopwatch = Stopwatch.StartNew();
+
                 await _targetTable.CreateIfNotExistsAsync();
                 await _messageQueue.CreateIfNotExists();
 
                 PackageStatisticsQueueMessage message = await _messageQueue.GetMessageAsync();
+
+                var traceMessage = string.Format("Start processing message with ID: {0} (elements count = [{1}].", message.Id, message.PartitionAndRowKeys.Count);
+                Trace.WriteLine(traceMessage);
 
                 if (message != null)
                 {
@@ -58,6 +63,10 @@ namespace Stats.AggregateInTableStorage
 
                     await _messageQueue.DeleteMessage(message);
                 }
+
+                stopwatch.Stop();
+                traceMessage = string.Format("Execution time: {0} ms.", stopwatch.ElapsedMilliseconds);
+                Trace.WriteLine(traceMessage);
 
                 return true;
             }

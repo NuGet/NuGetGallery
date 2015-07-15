@@ -14,21 +14,24 @@ namespace Stats.AggregateInTableStorage
         {
             // Get batch of statistics to be processed
             var batch = sourceTable.GetNextAggregationBatch(message);
-
             if (batch.Count == 0)
             {
                 return;
             }
 
-            // The batch size is max 1000 entities, so no need to worry about max batch size anymore.
-            var groupedByPackageId = batch.GroupBy(e => e.PackageId);
+            // The batch size is max 250 entities, so no need to worry about max batch size anymore.
+            var groupedByPackageId = batch.GroupBy(e => e.PackageId).ToList();
+
+            // Get existing aggregate package statistics
+            var existingPackageIdStatistics = targetTable.GetAggregatePackageStatistics(groupedByPackageId.Select(e => e.Key));
+
+
             var statisticsToInsertOrReplace = new List<PackageDownloadStatistic>();
             foreach (var packageIdGroup in groupedByPackageId)
             {
                 // Get existing statistics data for package ID's and versions.
                 // As the package ID is the partition key, we can do batch operations on table storage for these records.
                 var partitionKey = packageIdGroup.Key;
-                var existingPackageIdStatistics = targetTable.GetAllByPartitionKey(partitionKey);
 
                 // aggregated on package id
                 var existingPackageIdStatistic = existingPackageIdStatistics.FirstOrDefault(e => e.PackageId == partitionKey && e.PackageVersion == string.Empty);

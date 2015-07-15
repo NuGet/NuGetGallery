@@ -163,7 +163,7 @@ namespace Stats.ParseAzureCdnLogs
                 await _cdnLogEntryTable.InsertBatchAsync(logEntries);
                 await _statisticsTable.InsertOrReplaceBatchAsync(packageStatistics);
 
-                foreach (var batch in SplitList(packageStatistics.ToDictionary(e => e.RowKey, e => e.PartitionKey)))
+                foreach (var batch in packageStatistics.ToDictionary(e => e.RowKey, e => e.PartitionKey).Partition(250))
                 {
                     var message = new PackageStatisticsQueueMessage();
                     message.PartitionAndRowKeys = batch.ToDictionary(e => e.Key, e => e.Value);
@@ -262,21 +262,6 @@ namespace Stats.ParseAzureCdnLogs
                 throw;
             }
             return leaseId;
-        }
-
-        public static List<IEnumerable<KeyValuePair<string, string>>> SplitList(IDictionary<string, string> source, int size = 250)
-        {
-            // pre-order by partition key and then by descending row key
-            var orderedByPartitionKey = source.OrderBy(e => e.Value).ThenByDescending(e => e.Key).ToList();
-
-            var splitted = new List<IEnumerable<KeyValuePair<string, string>>>();
-
-            for (var i = 0; i < orderedByPartitionKey.Count; i += size)
-            {
-                splitted.Add(orderedByPartitionKey.Skip(i).Take(Math.Min(size, orderedByPartitionKey.Count - i)));
-            }
-
-            return splitted;
         }
     }
 }
