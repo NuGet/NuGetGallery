@@ -1,18 +1,18 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>AggregateDownloadsInTempTable.$branch$</id>
+    <id>Stats.AggregateDownloadsInTempTable.$branch$</id>
     <version>$version$</version>
     <title>Stats.ParseAzureCdnLogs</title>
     <authors>.NET Foundation</authors>
     <owners>.NET Foundation</owners>
-    <description>AggregateDownloadsInTempTable</description>
+    <description>Stats.AggregateDownloadsInTempTable</description>
     <copyright>.NET Foundation</copyright>
   </metadata>
   <files>
     <file src="bin\$configuration$\*.*" target="bin"/>
 	
-    <file src="Scripts\AggregateDownloadsInTempTable.cmd" />
+    <file src="Scripts\Stats.AggregateDownloadsInTempTable.cmd" />
 	
     <file src="Scripts\Functions.ps1" />
     <file src="Scripts\PreDeploy.ps1" />
