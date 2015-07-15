@@ -41,7 +41,6 @@ namespace NuGetGallery
         private readonly IIndexingService _indexingService;
         private readonly ICacheService _cacheService;
         private readonly EditPackageService _editPackageService;
-        private static DateTime? _lastIndexTimestampUtc;
 
         public PackagesController(
             IPackageService packageService,
@@ -260,7 +259,7 @@ namespace NuGetGallery
             return RedirectToRoute(RouteName.VerifyPackage);
         }
 
-        public virtual ActionResult DisplayPackage(string id, string version)
+        public virtual async Task<ActionResult> DisplayPackage(string id, string version)
         {
             string normalized = SemanticVersionExtensions.Normalize(version);
             if (!string.Equals(version, normalized))
@@ -293,7 +292,35 @@ namespace NuGetGallery
                 }
             }
 
-            model.IndexLastWriteTime = _lastIndexTimestampUtc;
+            if (_searchService.ContainsAllVersions)
+            {
+                var isIndexedCacheKey = string.Format("IsIndexed_{0}_{1}", package.PackageRegistration.Id, package.Version);
+                var isIndexed = HttpContext.Cache.Get(isIndexedCacheKey) as bool?;
+                if (!isIndexed.HasValue)
+                {
+                    var searchFilter = SearchAdaptor.GetSearchFilter(
+                            "id:\"" + package.PackageRegistration.Id + "\" AND version:\"" + package.Version + "\"",
+                            1, null, SearchFilter.ODataSearchContext);
+                    var results = await _searchService.Search(searchFilter);
+
+                    isIndexed = results.Hits > 0;
+
+                    var expiration = Cache.NoAbsoluteExpiration;
+                    if (!isIndexed.Value)
+                    {
+                        expiration = DateTime.UtcNow.Add(TimeSpan.FromSeconds(30));
+                    }
+
+                    HttpContext.Cache.Add(isIndexedCacheKey,
+                        isIndexed,
+                        null,
+                        expiration,
+                        Cache.NoSlidingExpiration,
+                        CacheItemPriority.Default, null);
+                }
+
+                model.IsIndexed = isIndexed;
+            }
 
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
@@ -339,8 +366,6 @@ namespace NuGetGallery
                 var searchFilter = SearchAdaptor.GetSearchFilter(q, page, null, SearchFilter.UISearchContext);
                 results = await _searchService.Search(searchFilter);
             }
-
-            _lastIndexTimestampUtc = results.IndexTimestampUtc;
 
             int totalHits = results.Hits;
             if (page == 1 && !results.Data.Any())
