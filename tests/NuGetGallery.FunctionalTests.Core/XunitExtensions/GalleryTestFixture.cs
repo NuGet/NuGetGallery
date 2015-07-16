@@ -24,8 +24,8 @@ namespace NuGetGallery.FunctionalTests
             }
 #endif
 
-            //supress SSL validation so that we can run tests against staging slot as well.
-            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+            // suppress SSL validation for *.cloudapp.net
+            ServicePointManagerInitializer.InitializeServerCertificateValidationCallback();
             Task.Run(async () =>
             {
                 await CheckIfBaseTestPackageExistsAsync();
