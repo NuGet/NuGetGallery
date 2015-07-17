@@ -1,0 +1,72 @@
+﻿user_agent_parsers:
+  # NuGet VS PowerShell Console (NuGet 2.8+)
+  - regex: '(NuGet VS PowerShell Console)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet VS PowerShell Console'
+
+  # NuGet VS Packages Dialog - Solution (NuGet 2.8+)
+  - regex: '(NuGet VS Packages Dialog - Solution)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet VS Packages Dialog - Solution'
+
+  # NuGet VS Packages Dialog (NuGet 2.8+)
+  - regex: '(NuGet VS Packages Dialog)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet VS Packages Dialog - Solution'
+
+  # NuGet Add Package Dialog (pre-NuGet 2.8)
+  - regex: '(NuGet Add Package Dialog)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Add Package Dialog'
+
+  # NuGet Package Manager Console (pre-NuGet 2.8)
+  - regex: '(NuGet Package Manager Console)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Package Manager Console'
+
+  # NuGet Visual Studio Extension (pre-NuGet 2.8)
+  - regex: '(NuGet Visual Studio Extension)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Visual Studio Extension'
+
+  # Package-Installer (pre-NuGet 2.8)
+  - regex: '(Package-Installer)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Package-Installer'
+
+  # NuGet Command Line
+  - regex: '(NuGet Command Line)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Command Line'
+
+  # WebMatrix includes its own core version number as part of the client name, before the slash
+  - regex: '(WebMatrix) (\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'WebMatrix'
+
+  # NuGet Package Explorer (npe.codeplex.com)
+  - regex: '(NuGet Package Explorer Metro)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Package Explorer Metro'
+  - regex: '(NuGet Package Explorer)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Package Explorer'
+
+  # JetBrains TeamCity - uses a space to separate the client from the version instead of slash
+  - regex: '(JetBrains TeamCity) (\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'JetBrains TeamCity'
+
+  # Sonatype Nexus (www.sonatype.com)
+  - regex: '(Nexus)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Sonatype Nexus'
+
+  # JFrog Artifactory (www.jfrog.com)
+  - regex: '(Artifactory)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'JFrog Artifactory'
+
+  # MyGet (www.myget.org)
+  - regex: '(MyGet)/?(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'MyGet'
+
+  # ProGet (www.inedo.com)
+  - regex: '(ProGet)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Inedo ProGet'
+
+  # Paket (http://fsprojects.github.io/Paket)
+  - regex: '(MyGet)/?(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'Paket'
+
+  # Xamarin Studio (www.xamarin.com)
+  - regex: '(Xamarin Studio)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Xamarin Studio'
+  - regex: '(MonoDevelop)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'MonoDevelop'
