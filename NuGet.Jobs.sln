@@ -77,6 +77,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search.GenerateOwners", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.AggregateDownloadsInTempTable", "src\Stats.AggregateDownloadsInTempTable\Stats.AggregateDownloadsInTempTable.csproj", "{43ABD720-B2CC-469A-8304-29D1E8A90188}"
 EndProject
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Stats.Warehouse", "src\Stats.Warehouse\Stats.Warehouse.sqlproj", "{21846E0D-0E79-4E43-9D92-E78854370994}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -195,6 +197,12 @@ Global
 		{43ABD720-B2CC-469A-8304-29D1E8A90188}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43ABD720-B2CC-469A-8304-29D1E8A90188}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43ABD720-B2CC-469A-8304-29D1E8A90188}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21846E0D-0E79-4E43-9D92-E78854370994}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21846E0D-0E79-4E43-9D92-E78854370994}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21846E0D-0E79-4E43-9D92-E78854370994}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{21846E0D-0E79-4E43-9D92-E78854370994}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21846E0D-0E79-4E43-9D92-E78854370994}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21846E0D-0E79-4E43-9D92-E78854370994}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -228,5 +236,6 @@ Global
 		{CAA62EBC-9AE1-4FF5-B162-BA2FD979868D} = {57F34E9A-3A98-4E48-BF76-D49CB9CB3323}
 		{E66BC452-C3FB-4541-A5F7-4FFA864CA920} = {57F34E9A-3A98-4E48-BF76-D49CB9CB3323}
 		{43ABD720-B2CC-469A-8304-29D1E8A90188} = {3B227DEE-B610-440F-866E-6F79D413B21F}
+		{21846E0D-0E79-4E43-9D92-E78854370994} = {3B227DEE-B610-440F-866E-6F79D413B21F}
 	EndGlobalSection
 EndGlobal
