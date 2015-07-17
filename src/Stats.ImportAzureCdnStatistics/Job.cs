@@ -59,15 +59,11 @@ namespace Stats.ImportAzureCdnStatistics
                 // get next batch of elements to be processed
                 Trace.WriteLine("Fetching messages from the queue...");
                 var messages = await _messageQueue.GetMessagesAsync();
-
-                var traceMessage = string.Format("Fetched {0} messages.", messages.Count);
-                Trace.WriteLine(traceMessage);
+                Trace.Write("  DONE (" + messages.Count +" messages)");
 
                 Trace.WriteLine("Fetching raw records for aggregation...");
                 var sourceData = _sourceTable.GetNextAggregationBatch(messages);
-
-                traceMessage = string.Format("Fetched {0} raw package download records...", sourceData.Count);
-                Trace.WriteLine(traceMessage);
+                Trace.Write("  DONE (" + sourceData.Count + " records)");
 
                 // replicate data to the statistics database
                 using (var connection = await _targetDatabase.ConnectTo())
@@ -78,11 +74,12 @@ namespace Stats.ImportAzureCdnStatistics
                 }
 
                 // delete messages from the queue
+                Trace.WriteLine("Deleting processed messages from queue...");
                 await _messageQueue.DeleteMessages(messages);
+                Trace.Write("  DONE");
 
                 stopwatch.Stop();
-                traceMessage = string.Format("Time elapsed: {0}", stopwatch.Elapsed);
-                Trace.WriteLine(traceMessage);
+                Trace.WriteLine("Time elapsed: " + stopwatch.Elapsed);
 
                 return true;
             }
@@ -93,22 +90,41 @@ namespace Stats.ImportAzureCdnStatistics
             }
         }
 
-        private static async Task<DataRow[]> CreateFactsAsync(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        private static async Task<DataTable> CreateFactsAsync(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
             // insert any new dimension data first
+            Trace.WriteLine("Retrieving operation dimensions...");
             var operations = await RetrieveOperationDimensions(sourceData, connection);
+            Trace.Write("  DONE (" + operations.Count + " operations)");
+
+            Trace.WriteLine("Retrieving project type dimensions...");
             var projectTypes = await RetrieveProjectTypeDimensions(sourceData, connection);
+            Trace.Write("  DONE (" + projectTypes.Count + " project types)");
+
+            Trace.WriteLine("Retrieving client dimensions...");
             var clients = await RetrieveClientDimensions(sourceData, connection);
+            Trace.Write("  DONE (" + clients.Count + " clients)");
+
+            Trace.WriteLine("Retrieving platform dimensions...");
             var platforms = await RetrievePlatformDimensions(sourceData, connection);
+            Trace.Write("  DONE (" + platforms.Count + " platforms)");
+
+            Trace.WriteLine("Retrieving time dimensions...");
             var times = await RetrieveTimeDimensions(connection);
+            Trace.Write("  DONE (" + times.Count + " times)");
+
+            Trace.WriteLine("Retrieving date dimensions...");
             var dates = await RetrieveDateDimensions(connection, sourceData.Min(e => e.EdgeServerTimeDelivered), sourceData.Max(e => e.EdgeServerTimeDelivered));
+            Trace.Write("  DONE (" + dates.Count + " dates)");
+
+            Trace.WriteLine("Retrieving package dimensions...");
             var packages = await RetrievePackageDimensions(sourceData, connection);
+            Trace.Write("  DONE (" + packages.Count + " packages)");
 
             // create facts data rows by linking source data with dimensions
             // insert into temp table for increased scalability and allow for aggregation later
 
-            var dataTable = await DataImporter.GetSqlTableAsync("Fact_Download", connection);
-            dataTable.TableName = "Temp_Fact_Download";
+            var dataTable = await DataImporter.GetSqlTableAsync("Temp_Fact_Download", connection);
 
             // ensure all dimension IDs are set to the Unknown equivalent if no dimension data is available
             var operationId = !operations.Any() ? DimensionId.Unknown : 0;
@@ -116,6 +132,7 @@ namespace Stats.ImportAzureCdnStatistics
             var clientId = !clients.Any() ? DimensionId.Unknown : 0;
             var platformId = !platforms.Any() ? DimensionId.Unknown : 0;
 
+            Trace.WriteLine("Creating facts...");
             foreach (var groupedByPackageId in sourceData.GroupBy(e => e.PackageId))
             {
                 var packagesForId = packages.Where(e => e.PackageId == groupedByPackageId.Key).ToList();
@@ -160,7 +177,9 @@ namespace Stats.ImportAzureCdnStatistics
                 }
             }
 
-            return null;
+            Trace.Write("  DONE (" + dataTable.Rows.Count + " records)");
+
+            return dataTable;
         }
 
         private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int projectTypeId, int clientId)
@@ -450,15 +469,17 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task InsertDownloadFacts(DataRow[] facts, SqlConnection connection)
+        private async Task InsertDownloadFacts(DataTable facts, SqlConnection connection)
         {
-            using (var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.TableLock, null))
+            Trace.WriteLine("Inserting into temp table...");
+            using (var bulkCopy = new SqlBulkCopy(connection))
             {
-                bulkCopy.BatchSize = facts.Length;
-                bulkCopy.DestinationTableName = "[Fact.Download]";
-                connection.Open();
+                bulkCopy.BatchSize = facts.Rows.Count;
+                bulkCopy.DestinationTableName = "Temp_Fact_Download";
+
                 await bulkCopy.WriteToServerAsync(facts);
             }
+            Trace.Write("  DONE");
         }
 
         private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount)

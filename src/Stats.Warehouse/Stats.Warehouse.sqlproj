@@ -74,5 +74,6 @@
     <Build Include="Tables\dbo.Dimension_Package.sql" />
     <Build Include="Tables\dbo.Dimension_Client.sql" />
     <Build Include="Tables\dbo.Dimension_Platform.sql" />
+    <Build Include="Tables\dbo.Temp_Fact_Download.sql" />
   </ItemGroup>
 </Project>
