@@ -1,5 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="NuGetGallery.Cloud" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2015-04.2.6">
+ <LoadBalancerProbes>
+    <LoadBalancerProbe name="HTTP" path="/" protocol="http" port="80" />
+  </LoadBalancerProbes>
    <!-- Size of the instances -->
   <WebRole name="NuGetGallery" vmsize="ExtraLarge">
     <ConfigurationSettings>
