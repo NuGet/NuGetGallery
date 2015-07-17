@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Stats.AzureCdnLogs.Common;
 
@@ -8,6 +9,38 @@ namespace Stats.ParseAzureCdnLogs
 {
     public class PackageStatisticsParser
     {
+        private static readonly IList<string> _blackListedUserAgentPatterns = new List<string>();
+
+        static PackageStatisticsParser()
+        {
+            // Blacklist user agent patterns we whish to ignore
+            RegisterBlacklistPatterns();
+        }
+
+        private static void RegisterBlacklistPatterns()
+        {
+            // Ignore requests coming from AppInsights
+            _blackListedUserAgentPatterns.Add("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0; AppInsights)");
+        }
+
+        public static bool IsBlackListed(string userAgent)
+        {
+            if (string.IsNullOrEmpty(userAgent))
+            {
+                return false;
+            }
+
+            foreach (var blacklistedUserAgentPattern in _blackListedUserAgentPatterns)
+            {
+                if (userAgent.IndexOf(blacklistedUserAgentPattern, StringComparison.Ordinal) == 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static IReadOnlyCollection<PackageStatistics> FromCdnLogEntries(IReadOnlyCollection<CdnLogEntry> logEntries)
         {
             var packageStatistics = new List<PackageStatistics>();
@@ -38,15 +71,8 @@ namespace Stats.ParseAzureCdnLogs
                 statistic.UserAgent = GetUserAgentValue(cdnLogEntry);
 
                 // ignore blacklisted user agents
-                if (!NuGetClientResolver.IsBlackListed(statistic.UserAgent))
+                if (!IsBlackListed(statistic.UserAgent))
                 {
-                    var clientInfo = NuGetClientResolver.FromUserAgent(statistic.UserAgent);
-                    statistic.Client = clientInfo.Name;
-                    statistic.ClientCategory = clientInfo.Category;
-                    statistic.ClientMajorVersion = clientInfo.GetMajorVersion(statistic.UserAgent);
-                    statistic.ClientMinorVersion = clientInfo.GetMinorVersion(statistic.UserAgent);
-                    statistic.ClientPlatform = clientInfo.GetPlatform(statistic.UserAgent);
-
                     packageStatistics.Add(statistic);
                 }
             }

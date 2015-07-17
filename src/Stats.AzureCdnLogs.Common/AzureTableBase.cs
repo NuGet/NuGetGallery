@@ -133,7 +133,6 @@ namespace Stats.AzureCdnLogs.Common
             return GetAll(predicate, null);
         }
 
-
         private IReadOnlyCollection<T> GetAll(Expression<Func<T, bool>> predicate, int? limit)
         {
             var query = (IQueryable<T>)_table.CreateQuery<T>();
