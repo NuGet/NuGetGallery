@@ -26,6 +26,10 @@ namespace Stats.ImportAzureCdnStatistics
                                                                                "INSERT INTO [Dimension_Platform] ([OSFamily], [Major], [Minor], [Patch], [PatchMinor]) VALUES('{0}', '{1}', '{2}', '{3}', '{4}');" +
                                                                                "SELECT [Id] FROM [Dimension_Platform] WHERE [OSFamily] = '{0}' AND [Major] = '{1}' AND [Minor] = '{2}' AND [Patch] = '{3}' AND [PatchMinor] = '{4}'";
 
+        private const string _sqlGetPackageDimensionAndCreateIfNotExists = "IF NOT EXISTS (SELECT Id FROM [Dimension_Package] WHERE [PackageId] = '{0}' AND [PackageVersion] = '{1}') " +
+                                                                               "INSERT INTO [Dimension_Package] ([PackageId], [PackageVersion]) VALUES('{0}', '{1}');" +
+                                                                               "SELECT [Id] FROM [Dimension_Package] WHERE [PackageId] = '{0}' AND [PackageVersion] = '{1}'";
+
         public static string GetOperationDimensionAndCreateIfNotExists(string operation)
         {
             return string.Format(_sqlGetOperationDimensionAndCreateIfNotExists, operation);
@@ -41,7 +45,7 @@ namespace Stats.ImportAzureCdnStatistics
             return string.Format(_sqlGetClientDimensionAndCreateIfNotExists, clientDimension.ClientName, clientDimension.Major, clientDimension.Minor, clientDimension.Patch);
         }
 
-        public static string GetPlatformDimensionAndCreateIfNotExists(ClientPlatformDimension platformDimension)
+        public static string GetPlatformDimensionAndCreateIfNotExists(PlatformDimension platformDimension)
         {
             return string.Format(_sqlGetPlatformDimensionAndCreateIfNotExists, platformDimension.OSFamily, platformDimension.Major, platformDimension.Minor, platformDimension.Patch, platformDimension.PatchMinor);
         }
@@ -54,6 +58,11 @@ namespace Stats.ImportAzureCdnStatistics
         public static string GetDateDimensions(DateTime min, DateTime max)
         {
             return string.Format(_sqlGetDateDimensions, min.ToString("yyyy-MM-dd"), max.ToString("yyyy-MM-dd"));
+        }
+
+        public static string GetPackageDimensionAndCreateIfNotExists(PackageDimension package)
+        {
+            return string.Format(_sqlGetPackageDimensionAndCreateIfNotExists, package.PackageId, package.PackageVersion);
         }
     }
 }

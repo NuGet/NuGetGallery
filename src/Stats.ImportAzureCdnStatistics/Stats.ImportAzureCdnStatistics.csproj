@@ -75,19 +75,24 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientDimension.cs" />
-    <Compile Include="ClientPlatformDimension.cs" />
+    <Compile Include="DimensionId.cs" />
+    <Compile Include="PlatformDimension.cs" />
+    <Compile Include="DataImporter.cs" />
+    <Compile Include="DateDimension.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="JobEventSource.cs" />
+    <Compile Include="PackageDimension.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlQueries.cs" />
+    <Compile Include="TimeDimension.cs" />
     <Compile Include="UserAgentParser.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <EmbeddedResource Include="knownclients.yaml">
-		<LogicalName>knownclients.yaml</LogicalName>
-	</EmbeddedResource>
+      <LogicalName>knownclients.yaml</LogicalName>
+    </EmbeddedResource>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

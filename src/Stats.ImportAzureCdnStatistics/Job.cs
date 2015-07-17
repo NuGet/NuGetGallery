@@ -96,20 +96,131 @@ namespace Stats.ImportAzureCdnStatistics
         private static async Task<DataRow[]> CreateFactsAsync(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
             // insert any new dimension data first
-            var operations = await InsertOperationDimensions(sourceData, connection);
-            var projectTypes = await InsertProjectTypeDimensions(sourceData, connection);
-            var clients = await InsertClientDimensions(sourceData, connection);
-            var clientPlatforms = await InsertClientPlatformDimensions(sourceData, connection);
-            var times = await GetAllTimeDimensions(connection);
-            var dates = await GetDateDimensions(connection, sourceData.Min(e => e.EdgeServerTimeDelivered), sourceData.Max(e => e.EdgeServerTimeDelivered));
+            var operations = await RetrieveOperationDimensions(sourceData, connection);
+            var projectTypes = await RetrieveProjectTypeDimensions(sourceData, connection);
+            var clients = await RetrieveClientDimensions(sourceData, connection);
+            var platforms = await RetrievePlatformDimensions(sourceData, connection);
+            var times = await RetrieveTimeDimensions(connection);
+            var dates = await RetrieveDateDimensions(connection, sourceData.Min(e => e.EdgeServerTimeDelivered), sourceData.Max(e => e.EdgeServerTimeDelivered));
+            var packages = await RetrievePackageDimensions(sourceData, connection);
 
             // create facts data rows by linking source data with dimensions
-            // todo: continue here :)
+            // insert into temp table for increased scalability and allow for aggregation later
+
+            var dataTable = await DataImporter.GetSqlTableAsync("Fact_Download", connection);
+            dataTable.TableName = "Temp_Fact_Download";
+
+            // ensure all dimension IDs are set to the Unknown equivalent if no dimension data is available
+            var operationId = !operations.Any() ? DimensionId.Unknown : 0;
+            var projectTypeId = !projectTypes.Any() ? DimensionId.Unknown : 0;
+            var clientId = !clients.Any() ? DimensionId.Unknown : 0;
+            var platformId = !platforms.Any() ? DimensionId.Unknown : 0;
+
+            foreach (var groupedByPackageId in sourceData.GroupBy(e => e.PackageId))
+            {
+                var packagesForId = packages.Where(e => e.PackageId == groupedByPackageId.Key).ToList();
+
+                foreach (var groupedByPackageIdAndVersion in groupedByPackageId.GroupBy(e => e.PackageVersion))
+                {
+                    var packageId = packagesForId.First(e => e.PackageVersion == groupedByPackageIdAndVersion.Key).Id;
+
+                    foreach (var element in groupedByPackageIdAndVersion)
+                    {
+                        // required dimensions
+                        var dateId = dates.First(e => e.Date.Equals(element.EdgeServerTimeDelivered.Date)).Id;
+                        var timeId = times.First(e => e.HourOfDay == element.EdgeServerTimeDelivered.Hour).Id;
+
+                        // dimensions that could be "(unknown)"
+                        if (operationId == 0)
+                        {
+                            operationId = operations[element.Operation];
+                        }
+                        if (platformId == 0)
+                        {
+                            platformId = platforms[element.UserAgent];
+                        }
+                        if (clientId == 0)
+                        {
+                            clientId = clients[element.UserAgent];
+                        }
+
+                        if (projectTypeId != DimensionId.Unknown)
+                        {
+                            // foreach project type
+                            foreach (var projectGuid in element.ProjectGuids.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
+                            {
+                                projectTypeId = projectTypes[projectGuid];
+
+                                var dataRow = dataTable.NewRow();
+                                FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, projectTypeId, clientId);
+                                dataTable.Rows.Add(dataRow);
+                            }
+                        }
+                    }
+                }
+            }
 
             return null;
         }
 
-        private static async Task<IReadOnlyCollection<DateDimension>> GetDateDimensions(SqlConnection connection, DateTime min, DateTime max)
+        private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int projectTypeId, int clientId)
+        {
+            dataRow["Dimension_Package_Id"] = packageId;
+            dataRow["Dimension_Date_Id"] = dateId;
+            dataRow["Dimension_Time_Id"] = timeId;
+            dataRow["Dimension_Operation_Id"] = operationId;
+            dataRow["Dimension_ProjectType_Id"] = projectTypeId;
+            dataRow["Dimension_Client_Id"] = clientId;
+            dataRow["Dimension_Platform_Id"] = platformId;
+            dataRow["DownloadCount"] = 1;
+        }
+
+        private static async Task<IReadOnlyCollection<PackageDimension>> RetrievePackageDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        {
+            var packages = sourceData
+                   .Select(e => new PackageDimension(e.PackageId, e.PackageVersion))
+                   .Distinct()
+                   .ToList();
+
+
+            var results = new List<PackageDimension>();
+            if (!packages.Any())
+            {
+                return results;
+            }
+
+            using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
+            {
+                try
+                {
+                    foreach (var package in packages)
+                    {
+                        var command = connection.CreateCommand();
+                        command.Transaction = transaction;
+                        command.CommandText = SqlQueries.GetPackageDimensionAndCreateIfNotExists(package);
+                        command.CommandType = CommandType.Text;
+
+                        package.Id = (int)await command.ExecuteScalarAsync();
+
+                        if (!results.Contains(package))
+                            results.Add(package);
+                    }
+
+                    transaction.Commit();
+                }
+                catch (Exception e)
+                {
+                    Trace.TraceError(e.ToString());
+                    transaction.Rollback();
+
+                    throw;
+                }
+            }
+
+            return results;
+        }
+
+        private static async Task<IReadOnlyCollection<DateDimension>> RetrieveDateDimensions(SqlConnection connection, DateTime min, DateTime max)
         {
             var results = new List<DateDimension>();
 
@@ -132,7 +243,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IReadOnlyCollection<TimeDimension>> GetAllTimeDimensions(SqlConnection connection)
+        private static async Task<IReadOnlyCollection<TimeDimension>> RetrieveTimeDimensions(SqlConnection connection)
         {
             var results = new List<TimeDimension>();
 
@@ -155,16 +266,19 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IDictionary<int, string>> InsertOperationDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        private static async Task<IDictionary<string, int>> RetrieveOperationDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
-            var operations = sourceData.Select(e => e.Operation).Distinct().ToList();
-            if (operations.Count == 0)
-            {
-                // set operation to be (unknown)
-                operations.Add("(unknown)");
-            }
+            var operations = sourceData
+                .Where(e => !string.IsNullOrEmpty(e.Operation))
+                .Select(e => e.Operation)
+                .Distinct()
+                .ToList();
 
-            var results = new Dictionary<int, string>();
+            var results = new Dictionary<string, int>();
+            if (!operations.Any())
+            {
+                return results;
+            }
 
             using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
@@ -183,7 +297,7 @@ namespace Stats.ImportAzureCdnStatistics
                         command.CommandText = SqlQueries.GetOperationDimensionAndCreateIfNotExists(parameter);
                         command.CommandType = CommandType.Text;
                         var id = (int)await command.ExecuteScalarAsync();
-                        results.Add(id, parameter);
+                        results.Add(parameter, id);
                     }
 
                     transaction.Commit();
@@ -200,16 +314,19 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IDictionary<int, string>> InsertProjectTypeDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        private static async Task<IDictionary<string, int>> RetrieveProjectTypeDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
-            var projectTypes = sourceData.SelectMany(e => e.ProjectGuids.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries)).Distinct().ToList();
-            if (projectTypes.Count == 0)
-            {
-                // add the (unknown) operation
-                projectTypes.Add("(unknown)");
-            }
+            var projectTypes = sourceData
+                .Where(e => !string.IsNullOrEmpty(e.ProjectGuids))
+                .SelectMany(e => e.ProjectGuids.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
+                .Distinct()
+                .ToList();
 
-            var results = new Dictionary<int, string>();
+            var results = new Dictionary<string, int>();
+            if (!projectTypes.Any())
+            {
+                return results;
+            }
 
             using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
@@ -228,7 +345,7 @@ namespace Stats.ImportAzureCdnStatistics
                         command.CommandText = SqlQueries.GetProjectTypeDimensionAndCreateIfNotExists(parameter);
                         command.CommandType = CommandType.Text;
                         var id = (int)await command.ExecuteScalarAsync();
-                        results.Add(id, parameter);
+                        results.Add(parameter, id);
                     }
 
                     transaction.Commit();
@@ -245,16 +362,20 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IReadOnlyCollection<ClientDimension>> InsertClientDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        private static async Task<IDictionary<string, int>> RetrieveClientDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
-            var clientDimensions = sourceData.Select(ClientDimension.FromPackageStatistic).Distinct().ToList();
-            if (clientDimensions.Count == 0)
+            var clientDimensions = sourceData
+                .Where(e => !string.IsNullOrEmpty(e.UserAgent))
+                .GroupBy(e => e.UserAgent)
+                .Select(e => e.First())
+                .ToDictionary(e => e.UserAgent, ClientDimension.FromPackageStatistic);
+
+            var results = new Dictionary<string, int>();
+            if (!clientDimensions.Any())
             {
-                // add the (unknown) operation
-                clientDimensions.Add(ClientDimension.Unknown);
+                return results;
             }
 
-            var results = new List<ClientDimension>();
             using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
                 try
@@ -263,12 +384,12 @@ namespace Stats.ImportAzureCdnStatistics
                     {
                         var command = connection.CreateCommand();
                         command.Transaction = transaction;
-                        command.CommandText = SqlQueries.GetClientDimensionAndCreateIfNotExists(clientDimension);
+                        command.CommandText = SqlQueries.GetClientDimensionAndCreateIfNotExists(clientDimension.Value);
                         command.CommandType = CommandType.Text;
 
-                        clientDimension.Id = (int)await command.ExecuteScalarAsync();
+                        clientDimension.Value.Id = (int)await command.ExecuteScalarAsync();
 
-                        results.Add(clientDimension);
+                        results.Add(clientDimension.Key, clientDimension.Value.Id);
                     }
 
                     transaction.Commit();
@@ -285,16 +406,20 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IReadOnlyCollection<ClientPlatformDimension>> InsertClientPlatformDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        private static async Task<IDictionary<string, int>> RetrievePlatformDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
-            var platformDimensions = sourceData.Select(ClientPlatformDimension.FromPackageStatistic).Distinct().ToList();
-            if (platformDimensions.Count == 0)
+            var platformDimensions = sourceData
+                .Where(e => !string.IsNullOrEmpty(e.UserAgent))
+                .GroupBy(e => e.UserAgent)
+                .Select(e => e.First())
+                .ToDictionary(e => e.UserAgent, PlatformDimension.FromPackageStatistic);
+
+            var results = new Dictionary<string, int>();
+            if (!platformDimensions.Any())
             {
-                // add the (unknown) operation
-                platformDimensions.Add(ClientPlatformDimension.Unknown);
+                return results;
             }
 
-            var results = new List<ClientPlatformDimension>();
             using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
                 try
@@ -303,12 +428,12 @@ namespace Stats.ImportAzureCdnStatistics
                     {
                         var command = connection.CreateCommand();
                         command.Transaction = transaction;
-                        command.CommandText = SqlQueries.GetPlatformDimensionAndCreateIfNotExists(platformDimension);
+                        command.CommandText = SqlQueries.GetPlatformDimensionAndCreateIfNotExists(platformDimension.Value);
                         command.CommandType = CommandType.Text;
 
-                        platformDimension.Id = (int)await command.ExecuteScalarAsync();
+                        platformDimension.Value.Id = (int)await command.ExecuteScalarAsync();
 
-                        results.Add(platformDimension);
+                        results.Add(platformDimension.Key, platformDimension.Value.Id);
                     }
 
                     transaction.Commit();

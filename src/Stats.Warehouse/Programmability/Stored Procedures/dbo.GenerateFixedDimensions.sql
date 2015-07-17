@@ -224,7 +224,13 @@ AS
 	-- ====================================================================
 
 	DELETE [dbo].[Dimension_Operation]
-	INSERT [dbo].[Dimension_Operation] (Operation) VALUES ( '(unknown)' )
+
+	SET IDENTITY_INSERT [dbo].[Dimension_Operation] ON
+
+	INSERT [dbo].[Dimension_Operation] (Id, Operation) VALUES ( 1, '(unknown)' )
+
+	SET IDENTITY_INSERT [dbo].[Dimension_Operation] OFF
+
 	INSERT [dbo].[Dimension_Operation] (Operation) VALUES ( 'Install' )
 	INSERT [dbo].[Dimension_Operation] (Operation) VALUES ( 'Update' )
 	INSERT [dbo].[Dimension_Operation] (Operation) VALUES ( 'Restore' )
@@ -240,20 +246,27 @@ AS
 	-- ====================================================================
 
 	DELETE [dbo].[Dimension_ProjectType]
-	INSERT [dbo].[Dimension_ProjectType] (ProjectType) VALUES ( '(unknown)' )
+	SET IDENTITY_INSERT [dbo].[Dimension_ProjectType] ON
+	INSERT [dbo].[Dimension_ProjectType] (Id, ProjectType) VALUES ( 1, '(unknown)' )
+	SET IDENTITY_INSERT [dbo].[Dimension_ProjectType] OFF
 
 	-- ====================================================================
 	-- Populates the Client dimension.
 	-- ====================================================================
 
 	DELETE [dbo].[Dimension_Client]
-	INSERT [dbo].[Dimension_Client] (ClientName) VALUES ( '(unknown)' )
+
+	SET IDENTITY_INSERT [dbo].[Dimension_Client] ON
+	INSERT [dbo].[Dimension_Client] (Id, ClientName) VALUES ( 1, '(unknown)' )
+	SET IDENTITY_INSERT [dbo].[Dimension_Client] OFF
 
 	-- ====================================================================
 	-- Populates the ClientPlatform dimension.
 	-- ====================================================================
 
 	DELETE [dbo].[Dimension_Platform]
-	INSERT [dbo].[Dimension_Platform] (OSFamily) VALUES ( '(unknown)' )
+	SET IDENTITY_INSERT [dbo].[Dimension_Platform] ON
+	INSERT [dbo].[Dimension_Platform] (Id, OSFamily) VALUES ( 1, '(unknown)' )
+	SET IDENTITY_INSERT [dbo].[Dimension_Platform] OFF
 
 RETURN 0

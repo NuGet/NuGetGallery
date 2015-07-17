@@ -6,11 +6,11 @@ using UAParser;
 
 namespace Stats.ImportAzureCdnStatistics
 {
-    public class ClientPlatformDimension
+    public class PlatformDimension
     {
         private static readonly Parser _parser;
 
-        static ClientPlatformDimension()
+        static PlatformDimension()
         {
             _parser = Parser.GetDefault();
         }
@@ -22,7 +22,7 @@ namespace Stats.ImportAzureCdnStatistics
         public string Patch { get; set; }
         public string PatchMinor { get; set; }
 
-        public static ClientPlatformDimension FromPackageStatistic(PackageStatistics packageStatistics)
+        public static PlatformDimension FromPackageStatistic(PackageStatistics packageStatistics)
         {
             if (string.IsNullOrEmpty(packageStatistics.UserAgent))
             {
@@ -33,14 +33,14 @@ namespace Stats.ImportAzureCdnStatistics
             return dimension;
         }
 
-        private static ClientPlatformDimension Parse(string userAgent)
+        private static PlatformDimension Parse(string userAgent)
         {
-            ClientPlatformDimension result;
+            PlatformDimension result;
 
             var parsed = _parser.ParseOS(userAgent);
             if (parsed != null)
             {
-                result = new ClientPlatformDimension();
+                result = new PlatformDimension();
                 result.OSFamily = parsed.Family;
                 result.Major = parsed.Major;
                 result.Minor = parsed.Minor;
@@ -55,9 +55,9 @@ namespace Stats.ImportAzureCdnStatistics
             return result;
         }
 
-        public static ClientPlatformDimension Unknown
+        public static PlatformDimension Unknown
         {
-            get { return new ClientPlatformDimension {Id = 1, OSFamily = "(unknown)"}; }
+            get { return new PlatformDimension { Id = DimensionId.Unknown, OSFamily = "(unknown)" }; }
         }
     }
 }

@@ -43,9 +43,9 @@ namespace Stats.ImportAzureCdnStatistics
             return result;
         }
 
-        public static ClientDimension Unknown
+        private static ClientDimension Unknown
         {
-            get { return new ClientDimension { Id = 1, ClientName = "(unknown)" }; }
+            get { return new ClientDimension { Id = DimensionId.Unknown, ClientName = "(unknown)" }; }
         }
     }
 }
