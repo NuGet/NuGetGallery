@@ -108,6 +108,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
             }
 
+            // if version is non-null, check if it's semantically correct and normalize it.
             if (!String.IsNullOrEmpty(version))
             {
                 SemanticVersion dummy;
@@ -115,86 +116,52 @@ namespace NuGetGallery
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The package version is not a valid semantic version");
                 }
+                // Normalize the version
+                version = SemanticVersionExtensions.Normalize(version);
             }
-
-            // Normalize the version
-            version = SemanticVersionExtensions.Normalize(version);
-
-            // if the version is null, the user is asking for the latest version. Presumably they don't want includePrerelease release versions.
-            // The allow prerelease flag is ignored if both partialId and version are specified.
-            // In general we want to try to add download statistics for any package regardless of whether a version was specified.
-
-            // Only allow database requests to take up to 5 seconds.  Any longer and we just lose the data; oh well.
-            EntitiesContext.SetCommandTimeout(5);
-
-            Package package = null;
-            try
+            else
             {
-                package = PackageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
-                if (package == null)
-                {
-                    return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
-                }
-
+                // if version is null, get the latest version from the database.
+                // This ensures that on package restore scenario where version will be non null, we don't hit the database.
                 try
                 {
-                    var stats = new PackageStatistics
+                    var package = PackageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
+                    if (package == null)
                     {
-                        IPAddress = Request.UserHostAddress,
-                        UserAgent = Request.UserAgent,
-                        Package = package,
-                        Operation = Request.Headers["NuGet-Operation"],
-                        DependentPackage = Request.Headers["NuGet-DependentPackage"],
-                        ProjectGuids = Request.Headers["NuGet-ProjectGuids"],
-                    };
+                       return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                    }
+                    version = package.NormalizedVersion;
 
-                    if (_config == null || _config.MetricsServiceUri == null)
-                    {
-                        PackageService.AddDownloadStatistics(stats);
-                    }
-                    else
-                    {
-                        // Disable warning about not awaiting async calls because we are _intentionally_ not awaiting this.
-#pragma warning disable 4014
-                        Task.Run(() => PostDownloadStatistics(id, package.NormalizedVersion, stats.IPAddress, stats.UserAgent, stats.Operation, stats.DependentPackage, stats.ProjectGuids));
-#pragma warning restore 4014
-                    }
-                }
-                catch (ReadOnlyModeException)
-                {
-                    // *gulp* Swallowed. It's OK not to add statistics and ok to not log errors in read only mode.
                 }
                 catch (SqlException e)
                 {
-                    // Log the error and continue
                     QuietLog.LogHandledException(e);
+
+                    // Database was unavailable and we don't have a version, return a 503
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
                 }
                 catch (DataException e)
                 {
-                    // Log the error and continue
                     QuietLog.LogHandledException(e);
+
+			        // Database was unavailable and we don't have a version, return a 503
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
                 }
-            }
-            catch (SqlException e)
-            {
-                QuietLog.LogHandledException(e);
-            }
-            catch (DataException e)
-            {
-                QuietLog.LogHandledException(e);
+
             }
 
-            // Fall back to constructing the URL based on the package version and ID.
-            if (string.IsNullOrEmpty(version) && package == null)
+            // If metrics service is specified we post the data to it asynchronously. Else we skip stats.
+            if (_config != null && _config.MetricsServiceUri != null)
             {
-                // Database was unavailable and we don't have a version, return a 503
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
+                // Disable warning about not awaiting async calls because we are _intentionally_ not awaiting this.
+#pragma warning disable 4014
+                Task.Run(() => PostDownloadStatistics(id, version, Request.UserHostAddress, Request.UserAgent, Request.Headers["NuGet-Operation"], Request.Headers["NuGet-DependentPackage"], Request.Headers["NuGet-ProjectGuids"]));
+#pragma warning restore 4014
             }
+
             return await PackageFileService.CreateDownloadPackageActionResultAsync(
                 HttpContext.Request.Url,
-                id,
-                String.IsNullOrEmpty(version) ? package.NormalizedVersion : version);
+                id, version);
         }
 
         private static JObject GetJObject(string id, string version, string ipAddress, string userAgent, string operation, string dependentPackage, string projectGuids)
@@ -229,7 +196,7 @@ namespace NuGetGallery
             {
                 QuietLog.LogHandledException(ex);
             }
-            catch(AggregateException ex)
+            catch (AggregateException ex)
             {
                 QuietLog.LogHandledException(ex.InnerException ?? ex);
             }
@@ -470,10 +437,10 @@ namespace NuGetGallery
         {
             var query = GetService<IPackageIdsQuery>();
             return new JsonResult
-                {
-                    Data = (query.Execute(partialId, includePrerelease).ToArray()),
-                    JsonRequestBehavior = JsonRequestBehavior.AllowGet
-                };
+            {
+                Data = (query.Execute(partialId, includePrerelease).ToArray()),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet
+            };
         }
 
         [HttpGet]
@@ -482,10 +449,10 @@ namespace NuGetGallery
         {
             var query = GetService<IPackageVersionsQuery>();
             return new JsonResult
-                {
-                    Data = query.Execute(id, includePrerelease).ToArray(),
-                    JsonRequestBehavior = JsonRequestBehavior.AllowGet
-                };
+            {
+                Data = query.Execute(id, includePrerelease).ToArray(),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet
+            };
         }
 
         [HttpGet]
