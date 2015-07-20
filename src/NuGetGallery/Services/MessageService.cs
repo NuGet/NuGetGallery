@@ -38,6 +38,8 @@ namespace NuGetGallery
             const string bodyTemplate = @"
 **Email:** {Name} ({Address})
 
+**Signature:** {Signature}
+
 **Package:** {Id}
 {PackageUrl}
 
@@ -135,7 +137,7 @@ namespace NuGetGallery
 
 -----------------------------------------------
 <em style=""font-size: 0.8em;"">
-    To stop receiving contact emails as an owner of this package, sign in to the {4} and 
+    To stop receiving contact emails as an owner of this package, sign in to the {4} and
     [change your email notification settings]({5}).
 </em>";
 
@@ -169,7 +171,7 @@ namespace NuGetGallery
 
         public void SendNewAccountEmail(MailAddress toAddress, string confirmationUrl)
         {
-            string body = @"Thank you for registering with the {0}. 
+            string body = @"Thank you for registering with the {0}.
 We can't wait to see what packages you'll upload.
 
 So we can be sure to contact you, please verify your email address and click the following link:
@@ -199,7 +201,7 @@ The {0} Team";
 
         public void SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl)
         {
-            string body = @"You recently changed your {0} email address. 
+            string body = @"You recently changed your {0} email address.
 
 To verify your new email address, please click the following link:
 
@@ -231,7 +233,7 @@ The {0} Team";
         {
             string body = @"Hi there,
 
-The email address associated to your {0} account was recently 
+The email address associated to your {0} account was recently
 changed from _{1}_ to _{2}_.
 
 Thanks,
@@ -288,7 +290,7 @@ The {0} Team";
 
             const string subject = "[{0}] The user '{1}' wants to add you as an owner of the package '{2}'.";
 
-            string body = @"The user '{0}' wants to add you as an owner of the package '{1}'. 
+            string body = @"The user '{0}' wants to add you as an owner of the package '{1}'.
 If you do not want to be listed as an owner of this package, simply delete this email.
 
 To accept this request and become a listed owner of the package, click the following URL:

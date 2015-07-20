@@ -7,7 +7,7 @@
             <li>
                 @if (!Model.OnlyHasAllFrameworks)
                 {
-                    <h4>@dependencySet.Key</h4>
+                    <h4>@(dependencySet.Key == ".NETPlatform 5.0" ? "DotNET 5.0" : dependencySet.Key)</h4>
                 }
                 <ul class="dependencySet">
                     @foreach (var dependency in dependencySet.Value)

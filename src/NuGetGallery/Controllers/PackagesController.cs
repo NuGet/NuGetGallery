@@ -513,10 +513,10 @@ namespace NuGetGallery
                 Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
                 RequestingUser = user,
                 Url = Url,
-                CopySender = reportForm.CopySender
+                CopySender = reportForm.CopySender,
+                Signature = reportForm.Signature
             };
-            _messageService.ReportAbuse(request
-                );
+            _messageService.ReportAbuse(request);
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
             return Redirect(Url.Package(id, version));
