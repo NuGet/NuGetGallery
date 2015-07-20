@@ -1010,6 +1010,10 @@
     <Compile Include="Migrations\201505261416326_UniquePackageRegistration.Designer.cs">
       <DependentUpon>201505261416326_UniquePackageRegistration.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201507171324501_AdditionalIndexesForPerformance.cs" />
+    <Compile Include="Migrations\201507171324501_AdditionalIndexesForPerformance.Designer.cs">
+      <DependentUpon>201507171324501_AdditionalIndexesForPerformance.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -1029,6 +1033,7 @@
     <Content Include="ApplicationInsights.config" />
     <Content Include="NuGetGallery.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Content\Logos\dnf.png" />
@@ -1449,6 +1454,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201505261416326_UniquePackageRegistration.resx">
       <DependentUpon>201505261416326_UniquePackageRegistration.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201507171324501_AdditionalIndexesForPerformance.resx">
+      <DependentUpon>201507171324501_AdditionalIndexesForPerformance.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
