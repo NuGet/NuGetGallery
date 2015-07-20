@@ -130,7 +130,10 @@ namespace NuGet.Indexing
                 // Just write the document to index. No Facet.
                 foreach (IndexDocumentData data in rangeToIndex)
                 {
-                    indexWriter.AddDocument(CreateLuceneDocument(data));
+                    if (data.Package.Listed)
+                    {
+                        indexWriter.AddDocument(CreateLuceneDocument(data));
+                    }
                 }
 
                 highestPackageKey = rangeToIndex.Max(i => i.Package.Key);
