@@ -34,7 +34,7 @@ website for the NuGet client. For information about the NuGet clients, visit htt
  5. Run the following command in the Package Manager Console:
  
     ```
-    Update-Database
+    Update-Database -StartUpProjectName NuGetGallery
     ```
 If this fails, you are likely to get more useful output by passing -Debug than -Verbose.
 
