@@ -59,7 +59,7 @@ namespace Stats.ImportAzureCdnStatistics
                 // get next batch of elements to be processed
                 Trace.WriteLine("Fetching messages from the queue...");
                 var messages = await _messageQueue.GetMessagesAsync();
-                Trace.Write("  DONE (" + messages.Count +" messages)");
+                Trace.Write("  DONE (" + messages.Count + " messages)");
 
                 Trace.WriteLine("Fetching raw records for aggregation...");
                 var sourceData = _sourceTable.GetNextAggregationBatch(messages);
@@ -142,10 +142,10 @@ namespace Stats.ImportAzureCdnStatistics
             var dataTable = DataImporter.GetDataTable("Fact_Download", connection);
 
             // ensure all dimension IDs are set to the Unknown equivalent if no dimension data is available
-            var operationId = !operations.Any() ? DimensionId.Unknown : 0;
-            var projectTypeId = !projectTypes.Any() ? DimensionId.Unknown : 0;
-            var clientId = !clients.Any() ? DimensionId.Unknown : 0;
-            var platformId = !platforms.Any() ? DimensionId.Unknown : 0;
+            int? operationId = !operations.Any() ? DimensionId.Unknown : (int?)null;
+            int? projectTypeId = !projectTypes.Any() ? DimensionId.Unknown : (int?)null;
+            int? clientId = !clients.Any() ? DimensionId.Unknown : (int?)null;
+            int? platformId = !platforms.Any() ? DimensionId.Unknown : (int?)null;
 
             Trace.WriteLine("Creating facts...");
             stopwatch.Restart();
@@ -164,35 +164,35 @@ namespace Stats.ImportAzureCdnStatistics
                         var timeId = times.First(e => e.HourOfDay == element.EdgeServerTimeDelivered.Hour).Id;
 
                         // dimensions that could be "(unknown)"
-                        if (operationId == 0)
+                        if (!operationId.HasValue)
                         {
                             operationId = operations[element.Operation];
                         }
-                        if (platformId == 0)
+                        if (!platformId.HasValue)
                         {
                             platformId = platforms[element.UserAgent];
                         }
-                        if (clientId == 0)
+                        if (!clientId.HasValue)
                         {
                             clientId = clients[element.UserAgent];
                         }
 
-                        if (projectTypeId != DimensionId.Unknown)
+                        if (!projectTypeId.HasValue)
                         {
                             // foreach project type
-                            foreach (var projectGuid in element.ProjectGuids.Split(new[] {";"}, StringSplitOptions.RemoveEmptyEntries))
+                            foreach (var projectGuid in element.ProjectGuids.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
                             {
                                 projectTypeId = projectTypes[projectGuid];
 
                                 var dataRow = dataTable.NewRow();
-                                FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, projectTypeId, clientId);
+                                FillDataRow(dataRow, dateId, timeId, packageId, operationId.Value, platformId.Value, projectTypeId.Value, clientId.Value);
                                 dataTable.Rows.Add(dataRow);
                             }
                         }
                         else
                         {
                             var dataRow = dataTable.NewRow();
-                            FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, projectTypeId, clientId);
+                            FillDataRow(dataRow, dateId, timeId, packageId, operationId.Value, platformId.Value, projectTypeId.Value, clientId.Value);
                             dataTable.Rows.Add(dataRow);
                         }
                     }
@@ -224,38 +224,31 @@ namespace Stats.ImportAzureCdnStatistics
                    .Distinct()
                    .ToList();
 
-
             var results = new List<PackageDimension>();
             if (!packages.Any())
             {
                 return results;
             }
 
-            using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
+            var parameterValue = CreateDataTable(packages);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "[dbo].[EnsurePackageDimensionsExist]";
+            command.CommandType = CommandType.StoredProcedure;
+
+            var parameter = command.Parameters.AddWithValue("packages", parameterValue);
+            parameter.SqlDbType = SqlDbType.Structured;
+            parameter.TypeName = "[dbo].[PackageDimensionTableType]";
+
+            using (var dataReader = await command.ExecuteReaderAsync())
             {
-                try
+                while (await dataReader.ReadAsync())
                 {
-                    foreach (var package in packages)
-                    {
-                        var command = connection.CreateCommand();
-                        command.Transaction = transaction;
-                        command.CommandText = SqlQueries.GetPackageDimensionAndCreateIfNotExists(package);
-                        command.CommandType = CommandType.Text;
+                    var package = new PackageDimension(dataReader.GetString(1), dataReader.GetString(2));
+                    package.Id = dataReader.GetInt32(0);
 
-                        package.Id = (int)await command.ExecuteScalarAsync();
-
-                        if (!results.Contains(package))
-                            results.Add(package);
-                    }
-
-                    transaction.Commit();
-                }
-                catch (Exception e)
-                {
-                    Trace.TraceError(e.ToString());
-                    transaction.Rollback();
-
-                    throw;
+                    if (!results.Contains(package))
+                        results.Add(package);
                 }
             }
 
@@ -322,34 +315,18 @@ namespace Stats.ImportAzureCdnStatistics
                 return results;
             }
 
-            using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
+            var operationsParameter = string.Join(",", operations);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "[dbo].[EnsureOperationDimensionsExist]";
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("operations", operationsParameter);
+
+            using (var dataReader = await command.ExecuteReaderAsync())
             {
-                try
+                while (await dataReader.ReadAsync())
                 {
-                    foreach (var operation in operations)
-                    {
-                        string parameter = operation;
-                        if (string.IsNullOrEmpty(operation))
-                        {
-                            parameter = "(unknown)";
-                        }
-
-                        var command = connection.CreateCommand();
-                        command.Transaction = transaction;
-                        command.CommandText = SqlQueries.GetOperationDimensionAndCreateIfNotExists(parameter);
-                        command.CommandType = CommandType.Text;
-                        var id = (int)await command.ExecuteScalarAsync();
-                        results.Add(parameter, id);
-                    }
-
-                    transaction.Commit();
-                }
-                catch (Exception e)
-                {
-                    Trace.TraceError(e.ToString());
-                    transaction.Rollback();
-
-                    throw;
+                    results.Add(dataReader.GetString(1), dataReader.GetInt32(0));
                 }
             }
 
@@ -370,34 +347,18 @@ namespace Stats.ImportAzureCdnStatistics
                 return results;
             }
 
-            using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
+            var projectTypesParameter = string.Join(",", projectTypes);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "[dbo].[EnsureProjectTypeDimensionsExist]";
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("projectTypes", projectTypesParameter);
+
+            using (var dataReader = await command.ExecuteReaderAsync())
             {
-                try
+                while (await dataReader.ReadAsync())
                 {
-                    foreach (var projectType in projectTypes)
-                    {
-                        string parameter = projectType;
-                        if (string.IsNullOrEmpty(projectType))
-                        {
-                            parameter = "(unknown)";
-                        }
-
-                        var command = connection.CreateCommand();
-                        command.Transaction = transaction;
-                        command.CommandText = SqlQueries.GetProjectTypeDimensionAndCreateIfNotExists(parameter);
-                        command.CommandType = CommandType.Text;
-                        var id = (int)await command.ExecuteScalarAsync();
-                        results.Add(parameter, id);
-                    }
-
-                    transaction.Commit();
-                }
-                catch (Exception e)
-                {
-                    Trace.TraceError(e.ToString());
-                    transaction.Rollback();
-
-                    throw;
+                    results.Add(dataReader.GetString(1), dataReader.GetInt32(0));
                 }
             }
 
@@ -418,30 +379,21 @@ namespace Stats.ImportAzureCdnStatistics
                 return results;
             }
 
-            using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
+            var parameterValue = CreateDataTable(clientDimensions);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "[dbo].[EnsureClientDimensionsExist]";
+            command.CommandType = CommandType.StoredProcedure;
+
+            var parameter = command.Parameters.AddWithValue("clients", parameterValue);
+            parameter.SqlDbType = SqlDbType.Structured;
+            parameter.TypeName = "[dbo].[ClientDimensionTableType]";
+
+            using (var dataReader = await command.ExecuteReaderAsync())
             {
-                try
+                while (await dataReader.ReadAsync())
                 {
-                    foreach (var clientDimension in clientDimensions)
-                    {
-                        var command = connection.CreateCommand();
-                        command.Transaction = transaction;
-                        command.CommandText = SqlQueries.GetClientDimensionAndCreateIfNotExists(clientDimension.Value);
-                        command.CommandType = CommandType.Text;
-
-                        clientDimension.Value.Id = (int)await command.ExecuteScalarAsync();
-
-                        results.Add(clientDimension.Key, clientDimension.Value.Id);
-                    }
-
-                    transaction.Commit();
-                }
-                catch (Exception e)
-                {
-                    Trace.TraceError(e.ToString());
-                    transaction.Rollback();
-
-                    throw;
+                    results.Add(dataReader.GetString(1), dataReader.GetInt32(0));
                 }
             }
 
@@ -462,30 +414,21 @@ namespace Stats.ImportAzureCdnStatistics
                 return results;
             }
 
-            using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
+            var parameterValue = CreateDataTable(platformDimensions);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "[dbo].[EnsurePlatformDimensionsExist]";
+            command.CommandType = CommandType.StoredProcedure;
+
+            var parameter = command.Parameters.AddWithValue("platforms", parameterValue);
+            parameter.SqlDbType = SqlDbType.Structured;
+            parameter.TypeName = "[dbo].[PlatformDimensionTableType]";
+
+            using (var dataReader = await command.ExecuteReaderAsync())
             {
-                try
+                while (await dataReader.ReadAsync())
                 {
-                    foreach (var platformDimension in platformDimensions)
-                    {
-                        var command = connection.CreateCommand();
-                        command.Transaction = transaction;
-                        command.CommandText = SqlQueries.GetPlatformDimensionAndCreateIfNotExists(platformDimension.Value);
-                        command.CommandType = CommandType.Text;
-
-                        platformDimension.Value.Id = (int)await command.ExecuteScalarAsync();
-
-                        results.Add(platformDimension.Key, platformDimension.Value.Id);
-                    }
-
-                    transaction.Commit();
-                }
-                catch (Exception e)
-                {
-                    Trace.TraceError(e.ToString());
-                    transaction.Rollback();
-
-                    throw;
+                    results.Add(dataReader.GetString(1), dataReader.GetInt32(0));
                 }
             }
 
@@ -518,6 +461,71 @@ namespace Stats.ImportAzureCdnStatistics
                 return account;
             }
             throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is invalid.");
+        }
+
+        private static DataTable CreateDataTable(IDictionary<string, PlatformDimension> platformDimensions)
+        {
+            var table = new DataTable();
+            table.Columns.Add("UserAgent", typeof(string));
+            table.Columns.Add("OSFamily", typeof(string));
+            table.Columns.Add("Major", typeof(int));
+            table.Columns.Add("Minor", typeof(int));
+            table.Columns.Add("Patch", typeof(int));
+            table.Columns.Add("PatchMinor", typeof(int));
+
+            foreach (var platformDimension in platformDimensions)
+            {
+                var row = table.NewRow();
+                row["UserAgent"] = platformDimension.Key;
+                row["OSFamily"] = platformDimension.Value.OSFamily;
+                row["Major"] = platformDimension.Value.Major;
+                row["Minor"] = platformDimension.Value.Minor;
+                row["Patch"] = platformDimension.Value.Patch;
+                row["PatchMinor"] = platformDimension.Value.PatchMinor;
+
+                table.Rows.Add(row);
+            }
+            return table;
+        }
+
+        private static DataTable CreateDataTable(Dictionary<string, ClientDimension> clientDimensions)
+        {
+            var table = new DataTable();
+            table.Columns.Add("UserAgent", typeof(string));
+            table.Columns.Add("ClientName", typeof(string));
+            table.Columns.Add("Major", typeof(int));
+            table.Columns.Add("Minor", typeof(int));
+            table.Columns.Add("Patch", typeof(int));
+
+            foreach (var clientDimension in clientDimensions)
+            {
+                var row = table.NewRow();
+                row["UserAgent"] = clientDimension.Key;
+                row["ClientName"] = clientDimension.Value.ClientName;
+                row["Major"] = clientDimension.Value.Major;
+                row["Minor"] = clientDimension.Value.Minor;
+                row["Patch"] = clientDimension.Value.Patch;
+
+                table.Rows.Add(row);
+            }
+            return table;
+        }
+
+        private static DataTable CreateDataTable(IReadOnlyCollection<PackageDimension> packageDimensions)
+        {
+            var table = new DataTable();
+            table.Columns.Add("PackageId", typeof(string));
+            table.Columns.Add("PackageVersion", typeof(string));
+
+            foreach (var packageDimension in packageDimensions)
+            {
+                var row = table.NewRow();
+                row["PackageId"] = packageDimension.PackageId;
+                row["PackageVersion"] = packageDimension.PackageVersion;
+
+                table.Rows.Add(row);
+            }
+            return table;
         }
     }
 }
