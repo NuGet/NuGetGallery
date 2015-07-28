@@ -53,6 +53,7 @@ namespace Stats.ImportAzureCdnStatistics
                 // fallback to default parser
                 parsedResult = _defaultParser.ParseOS(userAgent);
             }
+
             return parsedResult;
         }
 
