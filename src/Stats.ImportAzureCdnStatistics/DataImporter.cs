@@ -3,7 +3,6 @@
 
 using System.Data;
 using System.Data.SqlClient;
-using System.Threading.Tasks;
 
 namespace Stats.ImportAzureCdnStatistics
 {
@@ -11,20 +10,17 @@ namespace Stats.ImportAzureCdnStatistics
     {
         private const string _sqlSelectTop1FromTable = "SELECT TOP 1 * FROM [dbo].[{0}]";
 
-        public static async Task<DataTable> GetSqlTableAsync(string tableName, SqlConnection connection)
+        public static DataTable GetDataTable(string tableName, SqlConnection connection)
         {
             var dataTable = new DataTable();
             var query = string.Format(_sqlSelectTop1FromTable, tableName);
-
-            using (var command = connection.CreateCommand())
+            var tableAdapter = new SqlDataAdapter(query, connection)
             {
-                command.CommandText = query;
-                command.CommandType = CommandType.Text;
+                MissingSchemaAction = MissingSchemaAction.AddWithKey
+            };
+            tableAdapter.Fill(dataTable);
 
-                dataTable.Load(await command.ExecuteReaderAsync());
-            }
-
-            dataTable.Clear();
+            dataTable.Rows.Clear();
 
             return dataTable;
         }

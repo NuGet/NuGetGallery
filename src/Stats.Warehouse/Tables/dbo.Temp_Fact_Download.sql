@@ -1,5 +1,5 @@
 ﻿CREATE TABLE [dbo].[Temp_Fact_Download] (
-	[Id]							UNIQUEIDENTIFIER NOT NULL,
+	[Id]							UNIQUEIDENTIFIER NOT NULL DEFAULT newid(),
     [Dimension_Package_Id]			INT NOT NULL,
     [Dimension_Date_Id]				INT NOT NULL,
     [Dimension_Time_Id]				INT NOT NULL,

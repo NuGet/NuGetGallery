@@ -70,12 +70,12 @@ namespace Stats.ImportAzureCdnStatistics
                 {
                     var facts = await CreateFactsAsync(sourceData, connection);
 
-                    await InsertDownloadFacts(facts, connection);
+                    await InsertDownloadFactsAsync(facts, connection);
                 }
 
                 // delete messages from the queue
                 Trace.WriteLine("Deleting processed messages from queue...");
-                await _messageQueue.DeleteMessages(messages);
+                await _messageQueue.DeleteMessagesAsync(messages);
                 Trace.Write("  DONE");
 
                 stopwatch.Stop();
@@ -124,7 +124,7 @@ namespace Stats.ImportAzureCdnStatistics
             // create facts data rows by linking source data with dimensions
             // insert into temp table for increased scalability and allow for aggregation later
 
-            var dataTable = await DataImporter.GetSqlTableAsync("Temp_Fact_Download", connection);
+            var dataTable = DataImporter.GetDataTable("Temp_Fact_Download", connection);
 
             // ensure all dimension IDs are set to the Unknown equivalent if no dimension data is available
             var operationId = !operations.Any() ? DimensionId.Unknown : 0;
@@ -164,7 +164,7 @@ namespace Stats.ImportAzureCdnStatistics
                         if (projectTypeId != DimensionId.Unknown)
                         {
                             // foreach project type
-                            foreach (var projectGuid in element.ProjectGuids.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
+                            foreach (var projectGuid in element.ProjectGuids.Split(new[] {";"}, StringSplitOptions.RemoveEmptyEntries))
                             {
                                 projectTypeId = projectTypes[projectGuid];
 
@@ -172,6 +172,12 @@ namespace Stats.ImportAzureCdnStatistics
                                 FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, projectTypeId, clientId);
                                 dataTable.Rows.Add(dataRow);
                             }
+                        }
+                        else
+                        {
+                            var dataRow = dataTable.NewRow();
+                            FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, projectTypeId, clientId);
+                            dataTable.Rows.Add(dataRow);
                         }
                     }
                 }
@@ -184,6 +190,7 @@ namespace Stats.ImportAzureCdnStatistics
 
         private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int projectTypeId, int clientId)
         {
+            dataRow["Id"] = Guid.NewGuid();
             dataRow["Dimension_Package_Id"] = packageId;
             dataRow["Dimension_Date_Id"] = dateId;
             dataRow["Dimension_Time_Id"] = timeId;
@@ -469,7 +476,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private async Task InsertDownloadFacts(DataTable facts, SqlConnection connection)
+        private static async Task InsertDownloadFactsAsync(DataTable facts, SqlConnection connection)
         {
             Trace.WriteLine("Inserting into temp table...");
             using (var bulkCopy = new SqlBulkCopy(connection))

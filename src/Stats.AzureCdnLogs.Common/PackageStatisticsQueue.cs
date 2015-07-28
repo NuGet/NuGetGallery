@@ -83,7 +83,7 @@ namespace Stats.AzureCdnLogs.Common
             await _queue.DeleteMessageAsync(message.Id, message.PopReceipt);
         }
 
-        public async Task DeleteMessages(IEnumerable<PackageStatisticsQueueMessage> messages)
+        public async Task DeleteMessagesAsync(IEnumerable<PackageStatisticsQueueMessage> messages)
         {
             var tasks = new List<Task>();
 
