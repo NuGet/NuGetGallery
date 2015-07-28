@@ -92,34 +92,49 @@ namespace Stats.ImportAzureCdnStatistics
 
         private static async Task<DataTable> CreateFactsAsync(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             // insert any new dimension data first
-            Trace.WriteLine("Querying dimension: operation ...");
+            Trace.WriteLine("Querying dimension: operation");
             var operations = await RetrieveOperationDimensions(sourceData, connection);
-            Trace.Write("  DONE (" + operations.Count + " objects)");
+            stopwatch.Stop();
+            Trace.Write("  DONE (" + operations.Count + " objects, " + stopwatch.ElapsedMilliseconds + "ms)");
 
-            Trace.WriteLine("Querying dimension: project type ...");
+            Trace.WriteLine("Querying dimension: project type");
+            stopwatch.Restart();
             var projectTypes = await RetrieveProjectTypeDimensions(sourceData, connection);
-            Trace.Write("  DONE (" + projectTypes.Count + " objects)");
+            stopwatch.Stop();
+            Trace.Write("  DONE (" + projectTypes.Count + " objects, " + stopwatch.ElapsedMilliseconds + "ms)");
 
-            Trace.WriteLine("Querying dimension: client ...");
+            Trace.WriteLine("Querying dimension: client");
+            stopwatch.Restart();
             var clients = await RetrieveClientDimensions(sourceData, connection);
-            Trace.Write("  DONE (" + clients.Count + " objects)");
+            stopwatch.Stop();
+            Trace.Write("  DONE (" + clients.Count + " objects, " + stopwatch.ElapsedMilliseconds + "ms)");
 
-            Trace.WriteLine("Querying dimension: platform ...");
+            Trace.WriteLine("Querying dimension: platform");
+            stopwatch.Restart();
             var platforms = await RetrievePlatformDimensions(sourceData, connection);
-            Trace.Write("  DONE (" + platforms.Count + " objects)");
+            stopwatch.Stop();
+            Trace.Write("  DONE (" + platforms.Count + " objects, " + stopwatch.ElapsedMilliseconds + "ms)");
 
-            Trace.WriteLine("Querying dimension: time ...");
+            Trace.WriteLine("Querying dimension: time");
+            stopwatch.Restart();
             var times = await RetrieveTimeDimensions(connection);
-            Trace.Write("  DONE (" + times.Count + " objects)");
+            stopwatch.Stop();
+            Trace.Write("  DONE (" + times.Count + " objects, " + stopwatch.ElapsedMilliseconds + "ms)");
 
-            Trace.WriteLine("Querying dimension: date ...");
+            Trace.WriteLine("Querying dimension: date");
+            stopwatch.Restart();
             var dates = await RetrieveDateDimensions(connection, sourceData.Min(e => e.EdgeServerTimeDelivered), sourceData.Max(e => e.EdgeServerTimeDelivered));
-            Trace.Write("  DONE (" + dates.Count + " objects)");
+            stopwatch.Stop();
+            Trace.Write("  DONE (" + dates.Count + " objects, " + stopwatch.ElapsedMilliseconds + "ms)");
 
-            Trace.WriteLine("Querying dimension: package ...");
+            Trace.WriteLine("Querying dimension: package");
+            stopwatch.Restart();
             var packages = await RetrievePackageDimensions(sourceData, connection);
-            Trace.Write("  DONE (" + packages.Count + " objects)");
+            stopwatch.Stop();
+            Trace.Write("  DONE (" + packages.Count + " objects, " + stopwatch.ElapsedMilliseconds + "ms)");
 
             // create facts data rows by linking source data with dimensions
             // insert into temp table for increased scalability and allow for aggregation later
@@ -133,6 +148,7 @@ namespace Stats.ImportAzureCdnStatistics
             var platformId = !platforms.Any() ? DimensionId.Unknown : 0;
 
             Trace.WriteLine("Creating facts...");
+            stopwatch.Restart();
             foreach (var groupedByPackageId in sourceData.GroupBy(e => e.PackageId))
             {
                 var packagesForId = packages.Where(e => e.PackageId == groupedByPackageId.Key).ToList();
@@ -182,8 +198,8 @@ namespace Stats.ImportAzureCdnStatistics
                     }
                 }
             }
-
-            Trace.Write("  DONE (" + dataTable.Rows.Count + " records)");
+            stopwatch.Stop();
+            Trace.Write("  DONE (" + dataTable.Rows.Count + " records, " + stopwatch.ElapsedMilliseconds + "ms)");
 
             return dataTable;
         }

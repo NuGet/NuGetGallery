@@ -1,15 +1,16 @@
-﻿CREATE VIEW [dbo].[Fact_Downloads]
+﻿CREATE VIEW [dbo].[vwAggregatedDownloads] WITH SCHEMABINDING
 	AS SELECT P.[PackageId]
 	  ,P.[PackageVersion]
 	  ,D.[Date]
 	  ,T.[HourOfDay]
-      ,SUM(F.[DownloadCount]) AS TotalDownloadCount
+      ,SUM(ISNULL(F.[DownloadCount], 0)) AS TotalDownloadCount
 	  ,C.[ClientName]
-	  ,CONCAT(ISNULL(C.[Major], '0'), '.', ISNULL(C.[Minor], '0'), '.', ISNULL(C.[Patch], '0')) AS ClientVersion
+	  ,C.[ClientVersion]
 	  ,O.[Operation]
 	  ,PT.[ProjectType]
 	  ,PL.[OSFamily]
-	  ,CONCAT(ISNULL(PL.[Major], '0'), '.', ISNULL(PL.[Minor], '0'), '.', ISNULL(PL.[Patch], '0'), '.', ISNULL(PL.[PatchMinor], '0')) AS OSVersion
+	  ,PL.[OSVersion]
+	  ,COUNT_BIG(*) AS [Count]
   FROM [dbo].[Fact_Download] AS F
 
   INNER JOIN	[dbo].[Dimension_Package] AS P
@@ -31,16 +32,9 @@
 			P.[PackageVersion],
 			D.[Date],
 			T.[HourOfDay],
-			F.[Dimension_Client_Id],
 			C.[ClientName],
-			C.[Major],
-			C.[Minor],
-			C.[Patch],
-			F.[Dimension_Platform_Id],
+			C.[ClientVersion],
 			PL.[OSFamily],
-			PL.[Major],
-			PL.[Minor],
-			PL.[Patch],
-			PL.[PatchMinor],
+			PL.[OSVersion],
 			O.[Operation],
 			PT.[ProjectType]
