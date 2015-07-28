@@ -3,7 +3,6 @@
 
 using System;
 using Stats.AzureCdnLogs.Common;
-using UAParser;
 
 namespace Stats.ImportAzureCdnStatistics
 {
@@ -11,11 +10,11 @@ namespace Stats.ImportAzureCdnStatistics
     {
         private const string _other = "other";
         private const string _zeroString = "0";
-        private static readonly Parser _parser;
+        private static readonly UserAgentParser _parser;
 
         static ClientDimension()
         {
-            _parser = Parser.GetDefault();
+            _parser = new UserAgentParser();
         }
 
         public int Id { get; set; }
