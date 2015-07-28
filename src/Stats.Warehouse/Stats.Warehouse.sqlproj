@@ -63,6 +63,7 @@
     <Folder Include="Programmability" />
     <Folder Include="Programmability\Stored Procedures" />
     <Folder Include="Tables" />
+    <Folder Include="Views" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Programmability\Stored Procedures\dbo.GenerateFixedDimensions.sql" />
@@ -74,5 +75,6 @@
     <Build Include="Tables\dbo.Dimension_Client.sql" />
     <Build Include="Tables\dbo.Dimension_Platform.sql" />
     <Build Include="Tables\dbo.Fact_Download.sql" />
+    <Build Include="Views\dbo.Fact_Downloads.sql" />
   </ItemGroup>
 </Project>
