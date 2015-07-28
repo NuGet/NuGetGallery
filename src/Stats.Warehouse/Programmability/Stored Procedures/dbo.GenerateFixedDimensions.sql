@@ -257,7 +257,7 @@ AS
 	DELETE [dbo].[Dimension_Client]
 
 	SET IDENTITY_INSERT [dbo].[Dimension_Client] ON
-	INSERT [dbo].[Dimension_Client] (Id, ClientName) VALUES ( 1, '(unknown)' )
+	INSERT [dbo].[Dimension_Client] (Id, ClientName, Major, Minor, Patch) VALUES ( 1, '(unknown)', 0, 0, 0 )
 	SET IDENTITY_INSERT [dbo].[Dimension_Client] OFF
 
 	-- ====================================================================

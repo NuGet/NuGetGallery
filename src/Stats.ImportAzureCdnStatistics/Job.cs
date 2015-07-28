@@ -93,38 +93,38 @@ namespace Stats.ImportAzureCdnStatistics
         private static async Task<DataTable> CreateFactsAsync(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
             // insert any new dimension data first
-            Trace.WriteLine("Retrieving operation dimensions...");
+            Trace.WriteLine("Querying dimension: operation ...");
             var operations = await RetrieveOperationDimensions(sourceData, connection);
-            Trace.Write("  DONE (" + operations.Count + " operations)");
+            Trace.Write("  DONE (" + operations.Count + " objects)");
 
-            Trace.WriteLine("Retrieving project type dimensions...");
+            Trace.WriteLine("Querying dimension: project type ...");
             var projectTypes = await RetrieveProjectTypeDimensions(sourceData, connection);
-            Trace.Write("  DONE (" + projectTypes.Count + " project types)");
+            Trace.Write("  DONE (" + projectTypes.Count + " objects)");
 
-            Trace.WriteLine("Retrieving client dimensions...");
+            Trace.WriteLine("Querying dimension: client ...");
             var clients = await RetrieveClientDimensions(sourceData, connection);
-            Trace.Write("  DONE (" + clients.Count + " clients)");
+            Trace.Write("  DONE (" + clients.Count + " objects)");
 
-            Trace.WriteLine("Retrieving platform dimensions...");
+            Trace.WriteLine("Querying dimension: platform ...");
             var platforms = await RetrievePlatformDimensions(sourceData, connection);
-            Trace.Write("  DONE (" + platforms.Count + " platforms)");
+            Trace.Write("  DONE (" + platforms.Count + " objects)");
 
-            Trace.WriteLine("Retrieving time dimensions...");
+            Trace.WriteLine("Querying dimension: time ...");
             var times = await RetrieveTimeDimensions(connection);
-            Trace.Write("  DONE (" + times.Count + " times)");
+            Trace.Write("  DONE (" + times.Count + " objects)");
 
-            Trace.WriteLine("Retrieving date dimensions...");
+            Trace.WriteLine("Querying dimension: date ...");
             var dates = await RetrieveDateDimensions(connection, sourceData.Min(e => e.EdgeServerTimeDelivered), sourceData.Max(e => e.EdgeServerTimeDelivered));
-            Trace.Write("  DONE (" + dates.Count + " dates)");
+            Trace.Write("  DONE (" + dates.Count + " objects)");
 
-            Trace.WriteLine("Retrieving package dimensions...");
+            Trace.WriteLine("Querying dimension: package ...");
             var packages = await RetrievePackageDimensions(sourceData, connection);
-            Trace.Write("  DONE (" + packages.Count + " packages)");
+            Trace.Write("  DONE (" + packages.Count + " objects)");
 
             // create facts data rows by linking source data with dimensions
             // insert into temp table for increased scalability and allow for aggregation later
 
-            var dataTable = DataImporter.GetDataTable("Temp_Fact_Download", connection);
+            var dataTable = DataImporter.GetDataTable("Fact_Download", connection);
 
             // ensure all dimension IDs are set to the Unknown equivalent if no dimension data is available
             var operationId = !operations.Any() ? DimensionId.Unknown : 0;
@@ -482,7 +482,7 @@ namespace Stats.ImportAzureCdnStatistics
             using (var bulkCopy = new SqlBulkCopy(connection))
             {
                 bulkCopy.BatchSize = facts.Rows.Count;
-                bulkCopy.DestinationTableName = "Temp_Fact_Download";
+                bulkCopy.DestinationTableName = facts.TableName;
 
                 await bulkCopy.WriteToServerAsync(facts);
             }

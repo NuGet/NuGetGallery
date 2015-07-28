@@ -70,10 +70,9 @@
     <Build Include="Tables\dbo.Dimension_Operation.sql" />
     <Build Include="Tables\dbo.Dimension_Time.sql" />
     <Build Include="Tables\dbo.Dimension_ProjectType.sql" />
-    <Build Include="Tables\dbo.Fact_Download.sql" />
     <Build Include="Tables\dbo.Dimension_Package.sql" />
     <Build Include="Tables\dbo.Dimension_Client.sql" />
     <Build Include="Tables\dbo.Dimension_Platform.sql" />
-    <Build Include="Tables\dbo.Temp_Fact_Download.sql" />
+    <Build Include="Tables\dbo.Fact_Download.sql" />
   </ItemGroup>
 </Project>
