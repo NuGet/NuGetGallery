@@ -62,11 +62,13 @@
     family_replacement: 'Inedo ProGet'
 
   # Paket (http://fsprojects.github.io/Paket)
-  - regex: '(MyGet)/?(\d+)?\.?(\d+)?\.?(\d+)?'
+  - regex: '(Paket)/?(\d+)?\.?(\d+)?\.?(\d+)?'
     family_replacement: 'Paket'
 
   # Xamarin Studio (www.xamarin.com)
   - regex: '(Xamarin Studio)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'Xamarin Studio'
+
+  # MonoDevelop
   - regex: '(MonoDevelop)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'MonoDevelop'
