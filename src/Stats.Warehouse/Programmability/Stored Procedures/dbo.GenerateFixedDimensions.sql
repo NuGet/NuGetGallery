@@ -266,7 +266,7 @@ AS
 
 	DELETE [dbo].[Dimension_Platform]
 	SET IDENTITY_INSERT [dbo].[Dimension_Platform] ON
-	INSERT [dbo].[Dimension_Platform] (Id, OSFamily) VALUES ( 1, '(unknown)' )
+	INSERT [dbo].[Dimension_Platform] (Id, OSFamily, Major, Minor, Patch, PatchMinor) VALUES ( 1, '(unknown)', 0, 0, 0, 0 )
 	SET IDENTITY_INSERT [dbo].[Dimension_Platform] OFF
 
 RETURN 0

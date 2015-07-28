@@ -2,17 +2,17 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Stats.AzureCdnLogs.Common;
-using UAParser;
 
 namespace Stats.ImportAzureCdnStatistics
 {
     public class PlatformDimension
     {
-        private static readonly Parser _parser;
+        private const string _zeroString = "0";
+        private static readonly UserAgentParser _parser;
 
         static PlatformDimension()
         {
-            _parser = Parser.GetDefault();
+            _parser = new UserAgentParser();
         }
 
         public int Id { get; set; }
@@ -42,10 +42,10 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 result = new PlatformDimension();
                 result.OSFamily = parsed.Family;
-                result.Major = parsed.Major;
-                result.Minor = parsed.Minor;
-                result.Patch = parsed.Patch;
-                result.PatchMinor = parsed.PatchMinor;
+                result.Major = string.IsNullOrWhiteSpace(parsed.Major) ? _zeroString : parsed.Major;
+                result.Minor = string.IsNullOrWhiteSpace(parsed.Minor) ? _zeroString : parsed.Minor;
+                result.Patch = string.IsNullOrWhiteSpace(parsed.Patch) ? _zeroString : parsed.Patch;
+                result.PatchMinor = string.IsNullOrWhiteSpace(parsed.PatchMinor) ? _zeroString : parsed.PatchMinor;
             }
             else
             {
@@ -57,7 +57,7 @@ namespace Stats.ImportAzureCdnStatistics
 
         public static PlatformDimension Unknown
         {
-            get { return new PlatformDimension { Id = DimensionId.Unknown, OSFamily = "(unknown)" }; }
+            get { return new PlatformDimension { Id = DimensionId.Unknown, OSFamily = "(unknown)", Major = _zeroString, Minor = _zeroString, Patch = _zeroString, PatchMinor = _zeroString }; }
         }
     }
 }
