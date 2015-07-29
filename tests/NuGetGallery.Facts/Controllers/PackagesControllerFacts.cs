@@ -217,7 +217,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void GivenAValidPackageThatTheCurrentUserOwnsItDisablesResponseCaching()
+            public async Task GivenAValidPackageThatTheCurrentUserOwnsItDisablesResponseCaching()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -253,7 +253,7 @@ namespace NuGetGallery
                     .Returns(package);
 
                 // Act
-                controller.DisplayPackage("Foo", "1.1.1");
+                await controller.DisplayPackage("Foo", "1.1.1");
 
                 // Assert
                 httpCachePolicy.VerifyAll();
