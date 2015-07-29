@@ -2,15 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Blob;
 
-namespace Stats.ParseAzureCdnLogs
+namespace Stats.ImportAzureCdnStatistics
 {
-    internal class CloudBlobRawLogSource
+    public class CloudBlobRawLogSource
     {
         private readonly JobEventSource _jobEventSource;
         private readonly CloudBlobContainer _container;
@@ -21,20 +20,20 @@ namespace Stats.ParseAzureCdnLogs
             _container = container;
         }
 
-        public async Task<IEnumerable<IListBlobItem>> ListNextLogFileToBeProcessedAsync(string prefix)
+        public async Task<IListBlobItem> ListNextLogFileToBeProcessedAsync(string prefix)
         {
             try
             {
                 _jobEventSource.BeginningBlobListing(prefix);
-                var blobResultSegment = await _container.ListBlobsSegmentedAsync(prefix, null);
+                var blobResultSegment = await _container.ListBlobsSegmentedAsync(prefix, true, BlobListingDetails.None, 1, null, null, null);
                 _jobEventSource.FinishingBlobListing(prefix);
-                return blobResultSegment.Results;
+                return blobResultSegment.Results.SingleOrDefault();
             }
             catch (Exception e)
             {
                 Trace.TraceError(e.ToString());
                 _jobEventSource.FailedBlobListing(prefix);
-                return Enumerable.Empty<IListBlobItem>();
+                return null;
             }
         }
     }

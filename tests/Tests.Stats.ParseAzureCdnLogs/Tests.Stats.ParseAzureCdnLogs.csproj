@@ -83,10 +83,6 @@
       <Project>{f72c31a7-424d-48c6-924c-ebfd4be0918b}</Project>
       <Name>Stats.AzureCdnLogs.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Stats.ParseAzureCdnLogs\Stats.ParseAzureCdnLogs.csproj">
-      <Project>{e4d21592-63d0-4793-b236-6d86b71265fc}</Project>
-      <Name>Stats.ParseAzureCdnLogs</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

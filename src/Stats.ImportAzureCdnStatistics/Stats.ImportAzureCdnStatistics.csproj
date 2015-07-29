@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>References\ICSharpCode.SharpZipLib.0.86.0\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Data.Edm, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.Data.Edm.5.6.4\lib\net40\Microsoft.Data.Edm.dll</HintPath>
       <Private>True</Private>
@@ -75,8 +78,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientDimension.cs" />
+    <Compile Include="CloudBlobRawLogSource.cs" />
+    <Compile Include="CdnLogParser.cs" />
     <Compile Include="DimensionId.cs" />
-    <Compile Include="DownloadFacts.cs" />
+    <Compile Include="PackageStatisticsParser.cs" />
     <Compile Include="PlatformDimension.cs" />
     <Compile Include="DataImporter.cs" />
     <Compile Include="DateDimension.cs" />

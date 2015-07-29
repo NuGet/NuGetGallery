@@ -5,8 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGet.Jobs;
 using Stats.AzureCdnLogs.Common;
 
@@ -15,9 +18,11 @@ namespace Stats.ImportAzureCdnStatistics
     public class Job
         : JobBase
     {
-        private PackageStatisticsTable _sourceTable;
-        private PackageStatisticsQueue _messageQueue;
+        private string _azureCdnAccountNumber;
+        private string _cloudStorageContainerName;
+        private AzureCdnPlatform _azureCdnPlatform;
         private SqlConnectionStringBuilder _targetDatabase;
+        private CloudStorageAccount _cloudStorageAccount;
 
         public Job()
             : base(JobEventSource.Log)
@@ -28,13 +33,15 @@ namespace Stats.ImportAzureCdnStatistics
         {
             try
             {
-                var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
+                var azureCdnPlatform = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnPlatform);
                 var cloudStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
-                var cloudStorageAccount = ValidateAzureCloudStorageAccount(cloudStorageAccountConnectionString);
+                var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
+                _cloudStorageAccount = ValidateAzureCloudStorageAccount(cloudStorageAccountConnectionString);
 
                 _targetDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
-                _sourceTable = new PackageStatisticsTable(cloudStorageAccount);
-                _messageQueue = new PackageStatisticsQueue(cloudStorageAccount);
+                _azureCdnAccountNumber = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnAccountNumber);
+                _azureCdnPlatform = ValidateAzureCdnPlatform(azureCdnPlatform);
+                _cloudStorageContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName));
 
                 return true;
             }
@@ -51,30 +58,37 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 var stopwatch = Stopwatch.StartNew();
 
-                await _sourceTable.CreateIfNotExistsAsync();
-                await _messageQueue.CreateIfNotExists();
+                // construct a cloud blob client for the configured storage account
+                var cloudBlobClient = _cloudStorageAccount.CreateCloudBlobClient();
+                cloudBlobClient.DefaultRequestOptions.RetryPolicy = new ExponentialRetry(TimeSpan.FromSeconds(10), 5);
 
-                // get next batch of elements to be processed
-                Trace.WriteLine("Fetching messages from the queue...");
-                var messages = await _messageQueue.GetMessagesAsync();
-                Trace.Write("  DONE (" + messages.Count + " messages)");
+                // Get the source blob container (containing compressed log files)
+                // and construct a log source (fetching raw logs from the source blob container)
+                var sourceBlobContainer = cloudBlobClient.GetContainerReference(_cloudStorageContainerName);
+                var logSource = new CloudBlobRawLogSource(JobEventSource.Log, sourceBlobContainer);
 
-                Trace.WriteLine("Fetching raw records for aggregation...");
-                IReadOnlyCollection<PackageStatistics> sourceData = _sourceTable.GetNextAggregationBatch(messages);
-                Trace.Write("  DONE (" + sourceData.Count + " records)");
+                // Get the target blob container (for archiving decompressed log files)
+                var targetBlobContainer = cloudBlobClient.GetContainerReference(_cloudStorageContainerName + "-archive");
+                await targetBlobContainer.CreateIfNotExistsAsync();
 
-                // replicate data to the statistics database
-                using (var connection = await _targetDatabase.ConnectTo())
-                {
-                    var facts = await DownloadFacts.CreateAsync(sourceData, connection);
+                // Get the dead-letter table (corrupted or failed blobs will end up there)
+                var deadLetterBlobContainer = cloudBlobClient.GetContainerReference(_cloudStorageContainerName + "-deadletter");
+                await deadLetterBlobContainer.CreateIfNotExistsAsync();
 
-                    await Warehouse.InsertDownloadFactsAsync(facts, connection);
-                }
+                // Create a parser
+                var parser = new CdnLogParser(JobEventSource.Log, targetBlobContainer, deadLetterBlobContainer, _targetDatabase);
 
-                // delete messages from the queue
-                Trace.WriteLine("Deleting processed messages from queue...");
-                await _messageQueue.DeleteMessagesAsync(messages);
-                Trace.Write("  DONE");
+                // Get the next to-be-processed raw log file using the cdn raw log file name prefix
+                var prefix = string.Format(CultureInfo.InvariantCulture, "{0}_{1}_", _azureCdnPlatform.GetRawLogFilePrefix(), _azureCdnAccountNumber);
+
+                // get next raw log file to be processed
+                var logFile = await logSource.ListNextLogFileToBeProcessedAsync(prefix);
+                // Get the source blob
+                var blobName = logFile.Uri.Segments.Last();
+                var logFileBlob = sourceBlobContainer.GetBlockBlobReference(blobName);
+                Trace.Write("  DONE (" + blobName + ")");
+
+                await parser.ParseLogFileAsync(logFileBlob);
 
                 stopwatch.Stop();
                 Trace.WriteLine("Time elapsed: " + stopwatch.Elapsed);
@@ -101,6 +115,30 @@ namespace Stats.ImportAzureCdnStatistics
                 return account;
             }
             throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is invalid.");
+        }
+
+        private static AzureCdnPlatform ValidateAzureCdnPlatform(string azureCdnPlatform)
+        {
+            if (string.IsNullOrEmpty(azureCdnPlatform))
+            {
+                throw new ArgumentException("Job parameter for Azure CDN Platform is not defined.");
+            }
+
+            AzureCdnPlatform value;
+            if (Enum.TryParse(azureCdnPlatform, true, out value))
+            {
+                return value;
+            }
+            throw new ArgumentException("Job parameter for Azure CDN Platform is invalid. Allowed values are: HttpLargeObject, HttpSmallObject, ApplicationDeliveryNetwork, FlashMediaStreaming.");
+        }
+
+        private static string ValidateAzureContainerName(string containerName)
+        {
+            if (string.IsNullOrWhiteSpace(containerName))
+            {
+                throw new ArgumentException("Job parameter for Azure Storage Container Name is not defined.");
+            }
+            return containerName;
         }
     }
 }

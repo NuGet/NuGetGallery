@@ -3,22 +3,33 @@
 
 using System.Data;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 
 namespace Stats.ImportAzureCdnStatistics
 {
     internal class DataImporter
     {
+        private readonly SqlConnectionStringBuilder _targetDatabase;
         private const string _sqlSelectTop1FromTable = "SELECT TOP 1 * FROM [dbo].[{0}]";
 
-        public static DataTable GetDataTable(string tableName, SqlConnection connection)
+        public DataImporter(SqlConnectionStringBuilder targetDatabase)
+        {
+            _targetDatabase = targetDatabase;
+        }
+
+        public async Task<DataTable> GetDataTableAsync(string tableName)
         {
             var dataTable = new DataTable();
             var query = string.Format(_sqlSelectTop1FromTable, tableName);
-            var tableAdapter = new SqlDataAdapter(query, connection)
+
+            using (var connection = await _targetDatabase.ConnectTo())
             {
-                MissingSchemaAction = MissingSchemaAction.AddWithKey
-            };
-            tableAdapter.Fill(dataTable);
+                var tableAdapter = new SqlDataAdapter(query, connection)
+                {
+                    MissingSchemaAction = MissingSchemaAction.AddWithKey
+                };
+                tableAdapter.Fill(dataTable);
+            }
 
             dataTable.Rows.Clear();
 
