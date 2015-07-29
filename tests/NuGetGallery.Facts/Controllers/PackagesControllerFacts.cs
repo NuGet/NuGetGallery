@@ -147,13 +147,13 @@ namespace NuGetGallery
         public class TheDisplayPackageMethod
         {
             [Fact]
-            public void GivenANonNormalizedVersionIt302sToTheNormalizedVersion()
+            public async Task GivenANonNormalizedVersionIt302sToTheNormalizedVersion()
             {
                 // Arrange
                 var controller = CreateController();
 
                 // Act
-                var result = controller.DisplayPackage("Foo", "01.01.01");
+                var result = await controller.DisplayPackage("Foo", "01.01.01");
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new
@@ -165,7 +165,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void GivenANonExistantPackageIt404s()
+            public async Task GivenANonExistantPackageIt404s()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -175,14 +175,14 @@ namespace NuGetGallery
                               .ReturnsNull();
 
                 // Act
-                var result = controller.DisplayPackage("Foo", "1.1.1");
+                var result = await controller.DisplayPackage("Foo", "1.1.1");
 
                 // Assert
                 ResultAssert.IsNotFound(result);
             }
 
             [Fact]
-            public void GivenAValidPackageThatTheCurrentUserDoesNotOwnItDisplaysCurrentMetadata()
+            public async Task GivenAValidPackageThatTheCurrentUserDoesNotOwnItDisplaysCurrentMetadata()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -207,7 +207,7 @@ namespace NuGetGallery
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
-                var result = controller.DisplayPackage("Foo", "1.1.1");
+                var result = await controller.DisplayPackage("Foo", "1.1.1");
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -217,7 +217,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void GivenAValidPackageThatTheCurrentUserOwnsItDisablesResponseCaching()
+            public async Task GivenAValidPackageThatTheCurrentUserOwnsItDisablesResponseCaching()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -253,14 +253,14 @@ namespace NuGetGallery
                     .Returns(package);
 
                 // Act
-                controller.DisplayPackage("Foo", "1.1.1");
+                await controller.DisplayPackage("Foo", "1.1.1");
 
                 // Assert
                 httpCachePolicy.VerifyAll();
             }
 
             [Fact]
-            public void GivenAValidPackageThatTheCurrentUserOwnsWithNoEditsItDisplaysCurrentMetadata()
+            public async Task GivenAValidPackageThatTheCurrentUserOwnsWithNoEditsItDisplaysCurrentMetadata()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -298,7 +298,7 @@ namespace NuGetGallery
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
-                var result = controller.DisplayPackage("Foo", "1.1.1");
+                var result = await controller.DisplayPackage("Foo", "1.1.1");
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -308,7 +308,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void GivenAValidPackageThatTheCurrentUserOwnsWithEditsItDisplaysEditedMetadata()
+            public async Task GivenAValidPackageThatTheCurrentUserOwnsWithEditsItDisplaysEditedMetadata()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -348,7 +348,7 @@ namespace NuGetGallery
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
-                var result = controller.DisplayPackage("Foo", "1.1.1");
+                var result = await controller.DisplayPackage("Foo", "1.1.1");
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);

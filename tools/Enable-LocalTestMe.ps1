@@ -23,7 +23,10 @@ if(!$MakeCertPath) {
     if(!$SDKVersion) {
         throw "Could not find Windows SDK. Please install the Windows SDK before running this script, or use -MakeCertPath to specify the path to makecert.exe"
     }
-    $SDKRegKey = (Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v$SDKVersion")
+    $SDKRegKey = (Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v$SDKVersion" -ErrorAction SilentlyContinue)
+	if ($SDKRegKey -eq $null) {
+	    $SDKRegKey = (Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v$SDKVersion`A" -ErrorAction SilentlyContinue)
+	}
     $WinSDKDir = $SDKRegKey.InstallationFolder
     $xArch = "x86"
     if($env:PROCESSOR_ARCHITECTURE -eq "AMD64") {
@@ -77,7 +80,7 @@ function Invoke-Netsh() {
 Invoke-Netsh http add urlacl "url=http://$Subdomain.localtest.me:80/" "sddl=D:(A;;GX;;;S-1-1-0)"
 Invoke-Netsh http add urlacl "url=https://$Subdomain.localtest.me:443/" "sddl=D:(A;;GX;;;S-1-1-0)"
 
-
+echo $AppCmdPath list site $SiteFullName
 $SiteFullName = "$SiteName ($Subdomain.localtest.me)"
 $sites = @(&$AppCmdPath list site $SiteFullName)
 if($sites.Length -gt 0) {

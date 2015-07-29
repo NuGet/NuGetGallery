@@ -94,8 +94,8 @@
                 </li>
             }
 
-            <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file.">Download</a> <a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">(how-to)</a></li>
-            <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)">Open in Package Explorer</a></li>
+            <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file." rel="nofollow">Download</a> <a href="@Url.Action(actionName: "Download", controllerName: "Packages")" title="How do I download?">(how-to)</a></li>
+            <li><a class="s-clickonce" href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a></li>
 
             @if (Model.IsOwner(User))
             {
@@ -198,15 +198,10 @@
         </p>
     }
 
-    @if (Model.Listed && !Model.IsProbablyIndexed(Model.IndexLastWriteTime))
+    @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value)
     {
         <p class="message warning">
-            <strong>This package has not been indexed yet.</strong> It will appear in search results and will be available for install/restore after indexing is completed.<br />
-            @if (Model.IndexLastWriteTime.HasValue)
-            {
-                <br />
-                <text>Search index last updated <time class="timeago" datetime="@Model.IndexLastWriteTime.Value.ToJavaScriptUTC()">@Model.IndexLastWriteTime.Value.ToNuGetShortDateTimeString() UTC </time>.</text>
-            }
+            <strong>This package has not been indexed yet.</strong> It will appear in search results and will be available for install/restore after indexing is completed.
         </p>
     }
 
@@ -363,11 +358,6 @@
                                 <a href="@Url.Package(packageVersion)" title="@packageVersion.Title @packageVersion.Version (this version)">
                                     @packageVersion.Title.Abbreviate(20) @packageVersion.Version (this version)
                                 </a>
-                            }
-
-                            @if (!packageVersion.IsProbablyIndexed(Model.IndexLastWriteTime))
-                            {
-                                <span title="This package has not been indexed yet. It will appear in search results and will be available for install/restore after indexing is completed.">pending</span>
                             }
                         </td>
                         <td>
