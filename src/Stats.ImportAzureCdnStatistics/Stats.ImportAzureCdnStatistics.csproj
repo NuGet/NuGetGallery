@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="ClientDimension.cs" />
     <Compile Include="DimensionId.cs" />
+    <Compile Include="DownloadFacts.cs" />
     <Compile Include="PlatformDimension.cs" />
     <Compile Include="DataImporter.cs" />
     <Compile Include="DateDimension.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="SqlQueries.cs" />
     <Compile Include="TimeDimension.cs" />
     <Compile Include="UserAgentParser.cs" />
+    <Compile Include="Warehouse.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
