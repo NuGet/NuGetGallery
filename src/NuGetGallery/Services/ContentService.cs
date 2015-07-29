@@ -83,7 +83,7 @@ namespace NuGetGallery
                 throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, "extension"), "extension");
             }
 
-            if (!extension.StartsWith(".", StringComparison.Ordinal))
+            if (!extension.StartsWith(".", StringComparison.OrdinalIgnoreCase))
             {
                 extension = "." + extension;
             }

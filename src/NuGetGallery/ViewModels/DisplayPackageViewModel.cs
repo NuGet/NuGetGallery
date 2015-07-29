@@ -67,14 +67,6 @@ namespace NuGetGallery
             }
         }
 
-        public bool IsProbablyIndexed(DateTime? indexLastWriteTime)
-        {
-            return (indexLastWriteTime.HasValue 
-                && indexLastWriteTime.Value > DateTime.UtcNow.AddDays(-10) // to prevent message from showing on ultra-stale index
-                && LastUpdated <= indexLastWriteTime 
-                && (!LastEdited.HasValue || LastEdited <= indexLastWriteTime));
-        }
-
-        public DateTime? IndexLastWriteTime { get; set; }
+        public bool? IsIndexed { get; set; }
     }
 }

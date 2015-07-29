@@ -198,15 +198,10 @@
         </p>
     }
 
-    @if (Model.Listed && !Model.IsProbablyIndexed(Model.IndexLastWriteTime))
+    @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value)
     {
         <p class="message warning">
-            <strong>This package has not been indexed yet.</strong> It will appear in search results and will be available for install/restore after indexing is completed.<br />
-            @if (Model.IndexLastWriteTime.HasValue)
-            {
-                <br />
-                <text>Search index last updated <time class="timeago" datetime="@Model.IndexLastWriteTime.Value.ToJavaScriptUTC()">@Model.IndexLastWriteTime.Value.ToNuGetShortDateTimeString() UTC </time>.</text>
-            }
+            <strong>This package has not been indexed yet.</strong> It will appear in search results and will be available for install/restore after indexing is completed.
         </p>
     }
 
@@ -363,11 +358,6 @@
                                 <a href="@Url.Package(packageVersion)" title="@packageVersion.Title @packageVersion.Version (this version)">
                                     @packageVersion.Title.Abbreviate(20) @packageVersion.Version (this version)
                                 </a>
-                            }
-
-                            @if (!packageVersion.IsProbablyIndexed(Model.IndexLastWriteTime))
-                            {
-                                <span title="This package has not been indexed yet. It will appear in search results and will be available for install/restore after indexing is completed.">pending</span>
                             }
                         </td>
                         <td>
