@@ -5,7 +5,7 @@ using System.Linq;
 using Stats.AzureCdnLogs.Common;
 using Xunit;
 
-namespace Tests.Stats.ParseAzureCdnLogs
+namespace Tests.Stats.ImportAzureCdnStatistics
 {
     public class W3CParseUtilsFacts
     {

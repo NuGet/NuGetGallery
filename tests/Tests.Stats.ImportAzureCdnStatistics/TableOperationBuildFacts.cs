@@ -6,10 +6,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Stats.AzureCdnLogs.Common;
-using Stats.ParseAzureCdnLogs;
 using Xunit;
 
-namespace Tests.Stats.ParseAzureCdnLogs
+namespace Tests.Stats.ImportAzureCdnStatistics
 {
     public class TableOperationBuildFacts
     {

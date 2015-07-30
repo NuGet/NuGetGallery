@@ -4,7 +4,7 @@
 using Stats.AzureCdnLogs.Common;
 using Xunit;
 
-namespace Tests.Stats.ParseAzureCdnLogs
+namespace Tests.Stats.ImportAzureCdnStatistics
 {
     public class PackageDefinitionFacts
     {
