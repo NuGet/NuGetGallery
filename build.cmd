@@ -6,10 +6,10 @@ if "%config%" == "" (
 
 REM Package restore
 Powershell.exe -NoProfile -ExecutionPolicy ByPass -Command "& '%cd%\restoreNuGetExe.ps1'"
-tools\nuget.exe restore NuGet.Jobs.sln -OutputDirectory %cd%\packages -NonInteractive -source https://www.nuget.org/api/v2
+tools\nuget.exe restore NuGet.Jobs.sln -OutputDirectory %cd%\packages -NonInteractive
 
 REM Build
-%WINDIR%\Microsoft.NET\Framework\v4.0.30319\msbuild NuGet.Jobs.sln /p:Configuration="%config%" /m /v:M /fl /flp:LogFile=msbuild.log;Verbosity=Normal /nr:false
+%ProgramFiles(x86)%\MSBuild\12.0\bin\amd64\msbuild NuGet.Jobs.sln /p:Configuration="%config%" /m /v:M /fl /flp:LogFile=msbuild.log;Verbosity=Normal /nr:false
 
 REM Test
 tools\nuget.exe install xunit.runner.console -Version 2.0.0 -OutputDirectory packages
