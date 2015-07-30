@@ -6,7 +6,7 @@ if "%config%" == "" (
 
 REM Package restore
 Powershell.exe -NoProfile -ExecutionPolicy ByPass -Command "& '%cd%\restoreNuGetExe.ps1'"
-tools\nuget.exe restore NuGet.Jobs.sln -OutputDirectory %cd%\packages -NonInteractive
+tools\nuget.exe restore NuGet.Jobs.sln -OutputDirectory %cd%\packages -NonInteractive -source https://www.nuget.org/api/v2
 
 REM Build
 %WINDIR%\Microsoft.NET\Framework\v4.0.30319\msbuild NuGet.Jobs.sln /p:Configuration="%config%" /m /v:M /fl /flp:LogFile=msbuild.log;Verbosity=Normal /nr:false
