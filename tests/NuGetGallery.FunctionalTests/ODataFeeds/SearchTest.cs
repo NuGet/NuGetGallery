@@ -38,7 +38,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
 
         private async Task SearchFeedAsync(string feedRootUrl, string title)
         {
-            var requestUrl = feedRootUrl + @"Search()?$filter=IsLatestVersion&$skip=0&$top=10&searchTerm='asp.net%20web%20helpers'&targetFramework='net40'&includePrerelease=false";
+            var requestUrl = feedRootUrl + @"Search()?$filter=IsLatestVersion&$skip=0&$top=10&searchTerm='web%20helpers'&targetFramework='net40'&includePrerelease=false";
             TestOutputHelper.WriteLine("Request: GET " + requestUrl);
 
             var request = WebRequest.Create(requestUrl);
