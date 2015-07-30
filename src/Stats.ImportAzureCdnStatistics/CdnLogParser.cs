@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,9 +58,12 @@ namespace Stats.ImportAzureCdnStatistics
                 var log = await DecompressBlobAsync(blob, blobUri, leaseId);
                 var packageStatistics = ParseLogEntries(blobUri, log);
 
-                // replicate data to the statistics database
-                var warehouse = new Warehouse(_jobEventSource, _targetDatabase);
-                await warehouse.InsertDownloadFactsAsync(packageStatistics);
+                if (!packageStatistics.Any())
+                {
+                    // replicate data to the statistics database
+                    var warehouse = new Warehouse(_jobEventSource, _targetDatabase);
+                    await warehouse.InsertDownloadFactsAsync(packageStatistics);
+                }
 
                 await ArchiveDecompressedBlobAsync(blob, blobUri, log);
 
@@ -77,11 +81,11 @@ namespace Stats.ImportAzureCdnStatistics
 
                 // copy the blob to a dead-letter container
                 var deadLetterBlob = _deadLetterContainer.GetBlockBlobReference(blob.Name);
-                deadLetterBlob.StartCopyFromBlob(blob, AccessCondition.GenerateLeaseCondition(leaseId));
+                deadLetterBlob.StartCopyFromBlob(blob);
 
                 // add the job error to the blob's metadata
                 deadLetterBlob.FetchAttributes();
-                deadLetterBlob.Metadata.Add("JobError", e.ToString());
+                deadLetterBlob.Metadata.Add("JobError", e.ToString().Replace("\r\n", "\n"));
                 deadLetterBlob.SetMetadata();
 
                 // delete the blob from the 'to-be-processed' container
