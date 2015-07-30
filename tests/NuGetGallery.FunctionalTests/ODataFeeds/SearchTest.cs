@@ -11,12 +11,11 @@ using Xunit.Abstractions;
 namespace NuGetGallery.FunctionalTests.ODataFeeds
 {
     public class SearchTest
+        : GalleryTestBase
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public SearchTest(ITestOutputHelper testOutputHelper)
+        public SearchTest(ITestOutputHelper testOutputHelper) 
+            : base(testOutputHelper)
         {
-            _testOutputHelper = testOutputHelper;
         }
 
         [Fact]
@@ -40,12 +39,12 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         private async Task SearchFeedAsync(string feedRootUrl, string title)
         {
             var requestUrl = feedRootUrl + @"Search()?$filter=IsLatestVersion&$skip=0&$top=10&searchTerm='asp.net%20web%20helpers'&targetFramework='net40'&includePrerelease=false";
-            _testOutputHelper.WriteLine("Request: GET " + requestUrl);
+            TestOutputHelper.WriteLine("Request: GET " + requestUrl);
 
             var request = WebRequest.Create(requestUrl);
             var response = (HttpWebResponse) await request.GetResponseAsync();
 
-            _testOutputHelper.WriteLine("Response: HTTP " + response.StatusCode);
+            TestOutputHelper.WriteLine("Response: HTTP " + response.StatusCode);
 
             string responseText;
             using (var sr = new StreamReader(response.GetResponseStream()))
