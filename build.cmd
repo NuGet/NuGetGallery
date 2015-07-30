@@ -3,7 +3,7 @@ set config=%1
 if "%config%" == "" (
    set config=Release
 )
-set msbuild="%ProgramFiles(x86)%\MSBuild\12.0\bin\amd64\msbuild"
+set msbuild="%ProgramFiles(x86)%\MSBuild\14.0\bin\amd64\msbuild.exe"
 
 REM Package restore
 Powershell.exe -NoProfile -ExecutionPolicy ByPass -Command "& '%cd%\restoreNuGetExe.ps1'"
