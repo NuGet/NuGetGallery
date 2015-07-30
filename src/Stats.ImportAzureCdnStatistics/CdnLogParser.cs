@@ -58,7 +58,7 @@ namespace Stats.ImportAzureCdnStatistics
                 var log = await DecompressBlobAsync(blob, blobUri, leaseId);
                 var packageStatistics = ParseLogEntries(blobUri, log);
 
-                if (!packageStatistics.Any())
+                if (packageStatistics.Any())
                 {
                     // replicate data to the statistics database
                     var warehouse = new Warehouse(_jobEventSource, _targetDatabase);
