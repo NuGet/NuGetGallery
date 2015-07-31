@@ -31,12 +31,24 @@ namespace Stats.ImportAzureCdnStatistics
             Trace.WriteLine("Inserting into facts table...");
 
             using (var connection = await _targetDatabase.ConnectTo())
-            using (var bulkCopy = new SqlBulkCopy(connection))
+            using (var transaction = connection.BeginTransaction(IsolationLevel.Serializable))
             {
-                bulkCopy.BatchSize = downloadFacts.Rows.Count;
-                bulkCopy.DestinationTableName = downloadFacts.TableName;
+                try
+                {
+                    using (var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction))
+                    {
+                        bulkCopy.BatchSize = downloadFacts.Rows.Count;
+                        bulkCopy.DestinationTableName = downloadFacts.TableName;
 
-                await bulkCopy.WriteToServerAsync(downloadFacts);
+                        await bulkCopy.WriteToServerAsync(downloadFacts);
+                    }
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
 
             Trace.Write("  DONE");
