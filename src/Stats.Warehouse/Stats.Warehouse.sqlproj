@@ -88,5 +88,6 @@
     <Build Include="Programmability\Stored Procedures\dbo.EnsureClientDimensionsExist.sql" />
     <Build Include="Programmability\Types\dbo.PackageDimensionTableType.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.EnsurePackageDimensionsExist.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.SelectTotalDownloadCountsPerPackageVersion.sql" />
   </ItemGroup>
 </Project>
