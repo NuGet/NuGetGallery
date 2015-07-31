@@ -153,10 +153,17 @@ namespace NuGetGallery
             // If metrics service is specified we post the data to it asynchronously. Else we skip stats.
             if (_config != null && _config.MetricsServiceUri != null)
             {
-                // Disable warning about not awaiting async calls because we are _intentionally_ not awaiting this.
+                try
+                {
+                    // Disable warning about not awaiting async calls because we are _intentionally_ not awaiting this.
 #pragma warning disable 4014
-                Task.Run(() => PostDownloadStatistics(id, version, Request.UserHostAddress, Request.UserAgent, Request.Headers["NuGet-Operation"], Request.Headers["NuGet-DependentPackage"], Request.Headers["NuGet-ProjectGuids"]));
+                    Task.Run(() => PostDownloadStatistics(id, version, Request.UserHostAddress, Request.UserAgent, Request.Headers["NuGet-Operation"], Request.Headers["NuGet-DependentPackage"], Request.Headers["NuGet-ProjectGuids"]));
 #pragma warning restore 4014
+                }
+                catch (Exception ex)
+                {
+                    QuietLog.LogHandledException(ex);
+                }
             }
 
             return await PackageFileService.CreateDownloadPackageActionResultAsync(
