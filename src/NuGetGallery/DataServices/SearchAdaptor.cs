@@ -50,7 +50,7 @@ namespace NuGetGallery
 
         public static async Task<IQueryable<Package>> GetResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
         {
-            var result = await searchService.Search(searchFilter);
+            var result = await searchService.Search(searchFilter).ConfigureAwait(false);
 
             // For count queries, we can ask the SearchService to not filter the source results. This would avoid hitting the database and consequently make
             // it very fast.
@@ -85,7 +85,7 @@ namespace NuGetGallery
                 searchFilter.SupportedFramework = null;
                 searchFilter.IncludeAllVersions = true;
 
-                var results = await GetResultsFromSearchService(searchService, searchFilter);
+                var results = await GetResultsFromSearchService(searchService, searchFilter).ConfigureAwait(false);
 
                 return results;
             }
@@ -113,7 +113,7 @@ namespace NuGetGallery
                 searchFilter.CuratedFeed = curatedFeed;
                 searchFilter.SupportedFramework = targetFramework;
 
-                var results = await GetResultsFromSearchService(searchService, searchFilter);
+                var results = await GetResultsFromSearchService(searchService, searchFilter).ConfigureAwait(false);
 
                 return results;
             }

@@ -34,7 +34,7 @@ namespace NuGet.Services.Search.Client
 
         public async Task<IEnumerable<Uri>> GetEndpointsForResourceType(string resourceType)
         {
-            await DiscoverEndpointsAsync();
+            await DiscoverEndpointsAsync().ConfigureAwait(false);
 
             return _serviceIndexDocument.Doc["resources"].Where(j => (j["@type"].Type == JTokenType.Array ? j["@type"].Any(v => (string)v == resourceType) : ((string)j["@type"]) == resourceType)).Select(o => o["@id"].ToObject<Uri>()).ToList();
         }
@@ -69,7 +69,7 @@ namespace NuGet.Services.Search.Client
                     {
                         _serviceIndexDocumentUpdating = false;
                     }
-                });
+                }).ConfigureAwait(false);
         }
 
         class ServiceIndexDocument
