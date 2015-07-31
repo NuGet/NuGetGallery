@@ -35,6 +35,13 @@ namespace Stats.AzureCdnLogs.Common
                 for (var i = 0; i < fileNameSegments.Length; i++)
                 {
                     var segment = fileNameSegments[i];
+                    if (i == 0)
+                    {
+                        // first segment is always part of package id
+                        packageIdSegments.Add(segment);
+                        continue;
+                    }
+
                     int parsedSegement;
                     var isNumericSegment = int.TryParse(segment, out parsedSegement);
                     if ((!isNumericSegment && !firstPackageVersionSegment.HasValue) || (!isNumericSegment && i < firstPackageVersionSegment.Value))

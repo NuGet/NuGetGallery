@@ -12,6 +12,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
         [InlineData("nuget.core", "1.0.1-beta1", "http://localhost/packages/nuget.core.1.0.1-beta1.nupkg")]
         [InlineData("nuget.core", "1.0.1", "http://localhost/packages/nuget.core.1.0.1.nupkg")]
         [InlineData("nuget.core", "1.0", "http://localhost/packages/nuget.core.1.0.nupkg")]
+        [InlineData("1", "1.0.0", "http://localhost/packages/1.1.0.0.nupkg")]
         public void ExtractsPackageIdAndVersionFromRequestUrl(string expectedPackageId, string expectedPackageVersion, string requestUrl)
         {
             var packageDefinition = PackageDefinition.FromRequestUrl(requestUrl);
