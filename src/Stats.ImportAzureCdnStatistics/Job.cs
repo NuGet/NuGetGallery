@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
@@ -65,7 +64,7 @@ namespace Stats.ImportAzureCdnStatistics
                 // Get the source blob container (containing compressed log files)
                 // and construct a log source (fetching raw logs from the source blob container)
                 var sourceBlobContainer = cloudBlobClient.GetContainerReference(_cloudStorageContainerName);
-                var logSource = new CloudBlobRawLogSource(JobEventSource.Log, sourceBlobContainer);
+                var blobLeaseManager = new LogFileProvider(sourceBlobContainer);
 
                 // Get the target blob container (for archiving decompressed log files)
                 var targetBlobContainer = cloudBlobClient.GetContainerReference(_cloudStorageContainerName + "-archive");
@@ -76,19 +75,23 @@ namespace Stats.ImportAzureCdnStatistics
                 await deadLetterBlobContainer.CreateIfNotExistsAsync();
 
                 // Create a parser
-                var parser = new CdnLogParser(JobEventSource.Log, targetBlobContainer, deadLetterBlobContainer, _targetDatabase);
+                var logProcessor = new LogFileProcessor(targetBlobContainer, deadLetterBlobContainer, _targetDatabase);
 
                 // Get the next to-be-processed raw log file using the cdn raw log file name prefix
                 var prefix = string.Format(CultureInfo.InvariantCulture, "{0}_{1}_", _azureCdnPlatform.GetRawLogFilePrefix(), _azureCdnAccountNumber);
 
                 // get next raw log file to be processed
-                var logFile = await logSource.ListNextLogFileToBeProcessedAsync(prefix);
-                // Get the source blob
-                var blobName = logFile.Uri.Segments.Last();
-                var logFileBlob = sourceBlobContainer.GetBlockBlobReference(blobName);
-                Trace.Write("  DONE (" + blobName + ")");
-
-                await parser.ParseLogFileAsync(logFileBlob);
+                using (ILeasedLogFile leasedLogFile = await blobLeaseManager.LeaseNextLogFileToBeProcessedAsync(prefix))
+                {
+                    try
+                    {
+                        await logProcessor.ProcessLogFileAsync(leasedLogFile);
+                    }
+                    catch (Exception parseException)
+                    {
+                        Console.WriteLine(parseException);
+                    }
+                }
 
                 stopwatch.Stop();
                 Trace.WriteLine("Time elapsed: " + stopwatch.Elapsed);

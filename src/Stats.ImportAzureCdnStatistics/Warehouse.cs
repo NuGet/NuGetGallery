@@ -28,7 +28,7 @@ namespace Stats.ImportAzureCdnStatistics
         {
             var downloadFacts = await CreateAsync(packageStatistics);
 
-            Trace.WriteLine("Inserting into temp table...");
+            Trace.WriteLine("Inserting into facts table...");
 
             using (var connection = await _targetDatabase.ConnectTo())
             using (var bulkCopy = new SqlBulkCopy(connection))

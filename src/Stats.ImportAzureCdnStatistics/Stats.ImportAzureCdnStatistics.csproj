@@ -77,21 +77,22 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClientDimension.cs" />
-    <Compile Include="CloudBlobRawLogSource.cs" />
-    <Compile Include="CdnLogParser.cs" />
-    <Compile Include="DimensionId.cs" />
+    <Compile Include="LogFileProvider.cs" />
+    <Compile Include="Dimensions\ClientDimension.cs" />
+    <Compile Include="LogFileProcessor.cs" />
+    <Compile Include="Dimensions\DimensionId.cs" />
+    <Compile Include="ILeasedLogFile.cs" />
     <Compile Include="PackageStatisticsParser.cs" />
-    <Compile Include="PlatformDimension.cs" />
+    <Compile Include="Dimensions\PlatformDimension.cs" />
     <Compile Include="DataImporter.cs" />
-    <Compile Include="DateDimension.cs" />
+    <Compile Include="Dimensions\DateDimension.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="JobEventSource.cs" />
-    <Compile Include="PackageDimension.cs" />
+    <Compile Include="Dimensions\PackageDimension.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlQueries.cs" />
-    <Compile Include="TimeDimension.cs" />
+    <Compile Include="Dimensions\TimeDimension.cs" />
     <Compile Include="UserAgentParser.cs" />
     <Compile Include="Warehouse.cs" />
   </ItemGroup>
