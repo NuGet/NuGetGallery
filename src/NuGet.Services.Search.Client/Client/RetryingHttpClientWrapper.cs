@@ -39,12 +39,12 @@ namespace NuGet.Services.Search.Client
 
         public async Task<string> GetStringAsync(IEnumerable<Uri> endpoints)
         {
-            return await GetWithRetry(endpoints, (client, uri, cancellationToken) => _httpClient.GetStringAsync(uri));
+            return await GetWithRetry(endpoints, (client, uri, cancellationToken) => _httpClient.GetStringAsync(uri)).ConfigureAwait(false);
         }
 
         public async Task<HttpResponseMessage> GetAsync(IEnumerable<Uri> endpoints)
         {
-            return await GetWithRetry(endpoints, (client, uri, cancellationToken) => _httpClient.GetAsync(uri, cancellationToken));
+            return await GetWithRetry(endpoints, (client, uri, cancellationToken) => _httpClient.GetAsync(uri, cancellationToken)).ConfigureAwait(false);
         }
         
         private async Task<TResponseType> GetWithRetry<TResponseType>(IEnumerable<Uri> endpoints, Func<HttpClient, Uri, CancellationToken, Task<TResponseType>> run)
@@ -73,7 +73,7 @@ namespace NuGet.Services.Search.Client
             Task<TResponseType> completedTask;
             do
             {
-                completedTask = await Task.WhenAny(taskList);
+                completedTask = await Task.WhenAny(taskList).ConfigureAwait(false);
                 taskList.Remove(completedTask);
 
                 if (completedTask.Exception != null)
@@ -93,7 +93,7 @@ namespace NuGet.Services.Search.Client
                 }
                 throw new AggregateException(exceptions);
             }
-            return await completedTask;
+            return await completedTask.ConfigureAwait(false);
         }
 
         private List<Task<TResponseType>> CreateRequestQueue<TResponseType>(List<Uri> endpoints, Func<HttpClient, Uri, CancellationToken, Task<TResponseType>> run, CancellationTokenSource cancellatonTokenSource)
