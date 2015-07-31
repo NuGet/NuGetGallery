@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -91,7 +92,10 @@ namespace NuGetGallery
                 try
                 {
                     var telemetryClient = new TelemetryClient();
-                    telemetryClient.TrackException(exArgs.Exception);
+                    telemetryClient.TrackException(exArgs.Exception, new Dictionary<string, string>()
+                    {
+                        {"ExceptionOrigin", "UnobservedTaskException"}
+                    });
                 }
                 catch (Exception)
                 {
