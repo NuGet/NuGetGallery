@@ -10,20 +10,32 @@ BEGIN
 				[ProjectType] NVARCHAR(32)
 			)
 
-			-- Check which dimensions are new
-			INSERT INTO	@newDimensions ([ProjectType])
-			SELECT		[Value]
-			FROM		[dbo].[ParseCSVString](@projectTypes)
-			WHERE		[Value] NOT IN (SELECT [ProjectType] FROM [Dimension_ProjectType])
+			BEGIN TRY
+				SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
+				BEGIN TRANSACTION
 
-			-- Insert the new dimensions
-			INSERT INTO	[Dimension_ProjectType]
-			SELECT		[ProjectType]
-			FROM		@newDimensions
+					-- Check which dimensions are new
+					INSERT INTO	@newDimensions ([ProjectType])
+					SELECT		[Value]
+					FROM		[dbo].[ParseCSVString](@projectTypes)
+					WHERE		[Value] NOT IN (SELECT [ProjectType] FROM [Dimension_ProjectType])
+
+					-- Insert the new dimensions
+					INSERT INTO	[Dimension_ProjectType]
+					SELECT		[ProjectType]
+					FROM		@newDimensions
+
+					COMMIT
+
+			END TRY
+			BEGIN CATCH
+				IF @@TRANCOUNT > 0
+					ROLLBACK
+			END CATCH
 
 			-- Select all matching dimensions
 			SELECT		[Id], [ProjectType]
 			FROM		[Dimension_ProjectType]
-			WHERE		[ProjectType] IN (SELECT * FROM dbo.ParseCSVString(@projectTypes))
+			WHERE		ISNULL([ProjectType], '') IN (SELECT * FROM dbo.ParseCSVString(@projectTypes))
 		END
 END

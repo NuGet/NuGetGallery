@@ -14,38 +14,50 @@ BEGIN
 	DECLARE @PackageId VARCHAR(128)
 	DECLARE @PackageVersion NVARCHAR(64)
 
-	-- Open Cursor
-	DECLARE package_Cursor CURSOR FOR
-		SELECT	[PackageId], [PackageVersion]
-		FROM	@packages
+	BEGIN TRY
+		SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
+		BEGIN TRANSACTION
 
-	OPEN	package_Cursor FETCH NEXT
-	FROM	package_Cursor
-	INTO	@packageId, @packageVersion
+		-- Open Cursor
+		DECLARE package_Cursor CURSOR FOR
+			SELECT	[PackageId], [PackageVersion]
+			FROM	@packages
 
-	WHILE @@FETCH_STATUS = 0
-	BEGIN
+		OPEN	package_Cursor FETCH NEXT
+		FROM	package_Cursor
+		INTO	@packageId, @packageVersion
 
-		-- Create dimension if not exists
-		IF NOT EXISTS (SELECT Id FROM [Dimension_Package] WHERE [PackageId] = @PackageId AND [PackageVersion] = @PackageVersion)
-			INSERT INTO [Dimension_Package] ([PackageId], [PackageVersion])
-				OUTPUT inserted.Id, inserted.PackageId, inserted.PackageVersion INTO @results
-			VALUES (@PackageId, @PackageVersion);
-		ELSE
-			INSERT INTO @results ([Id], [PackageId], [PackageVersion])
-			SELECT	[Id], [PackageId], [PackageVersion]
-			FROM	[dbo].[Dimension_Package]
-			WHERE	[PackageId] = @PackageId
-					AND [PackageVersion] = @PackageVersion
+		WHILE @@FETCH_STATUS = 0
+		BEGIN
 
-		-- Advance cursor
-		FETCH NEXT FROM package_Cursor
-		INTO @packageId, @packageVersion
-	END
+			-- Create dimension if not exists
+			IF NOT EXISTS (SELECT Id FROM [Dimension_Package] WHERE ISNULL([PackageId], '') = @PackageId AND ISNULL([PackageVersion], '') = @PackageVersion)
+				INSERT INTO [Dimension_Package] ([PackageId], [PackageVersion])
+					OUTPUT inserted.Id, inserted.PackageId, inserted.PackageVersion INTO @results
+				VALUES (@PackageId, @PackageVersion);
+			ELSE
+				INSERT INTO @results ([Id], [PackageId], [PackageVersion])
+				SELECT	[Id], [PackageId], [PackageVersion]
+				FROM	[dbo].[Dimension_Package]
+				WHERE	ISNULL([PackageId], '') = @PackageId
+						AND ISNULL([PackageVersion], '') = @PackageVersion
 
-	-- Close cursor
-	CLOSE package_Cursor
-	DEALLOCATE package_Cursor
+			-- Advance cursor
+			FETCH NEXT FROM package_Cursor
+			INTO @packageId, @packageVersion
+		END
+
+		-- Close cursor
+		CLOSE package_Cursor
+		DEALLOCATE package_Cursor
+
+		COMMIT
+
+	END TRY
+	BEGIN CATCH
+		IF @@TRANCOUNT > 0
+			ROLLBACK
+	END CATCH
 
 	-- Select all matching dimensions
 	SELECT		[Id], [PackageId], [PackageVersion]
