@@ -39,7 +39,7 @@ namespace Stats.ImportAzureCdnStatistics
                 {
                     // replicate data to the statistics database
                     var warehouse = new Warehouse(_jobEventSource, _targetDatabase);
-                    await warehouse.InsertDownloadFactsAsync(packageStatistics);
+                    await warehouse.InsertDownloadFactsAsync(packageStatistics, logFile.Blob.Name);
                 }
 
                 await ArchiveDecompressedBlobAsync(logFile, log);

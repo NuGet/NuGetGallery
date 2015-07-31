@@ -24,9 +24,9 @@ namespace Stats.ImportAzureCdnStatistics
             _targetDatabase = targetDatabase;
         }
 
-        internal async Task InsertDownloadFactsAsync(IReadOnlyCollection<PackageStatistics> packageStatistics)
+        internal async Task InsertDownloadFactsAsync(IReadOnlyCollection<PackageStatistics> packageStatistics, string logFileName)
         {
-            var downloadFacts = await CreateAsync(packageStatistics);
+            var downloadFacts = await CreateAsync(packageStatistics, logFileName);
 
             Trace.WriteLine("Inserting into facts table...");
 
@@ -54,7 +54,7 @@ namespace Stats.ImportAzureCdnStatistics
             Trace.Write("  DONE");
         }
 
-        private async Task<DataTable> CreateAsync(IReadOnlyCollection<PackageStatistics> sourceData)
+        private async Task<DataTable> CreateAsync(IReadOnlyCollection<PackageStatistics> sourceData, string logFileName)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -147,14 +147,14 @@ namespace Stats.ImportAzureCdnStatistics
                                 projectTypeId = projectTypes[projectGuid];
 
                                 var dataRow = dataTable.NewRow();
-                                FillDataRow(dataRow, dateId, timeId, packageId, operationId.Value, platformId.Value, projectTypeId.Value, clientId.Value);
+                                FillDataRow(dataRow, dateId, timeId, packageId, operationId.Value, platformId.Value, projectTypeId.Value, clientId.Value, logFileName);
                                 dataTable.Rows.Add(dataRow);
                             }
                         }
                         else
                         {
                             var dataRow = dataTable.NewRow();
-                            FillDataRow(dataRow, dateId, timeId, packageId, operationId.Value, platformId.Value, projectTypeId.Value, clientId.Value);
+                            FillDataRow(dataRow, dateId, timeId, packageId, operationId.Value, platformId.Value, projectTypeId.Value, clientId.Value, logFileName);
                             dataTable.Rows.Add(dataRow);
                         }
                     }
@@ -221,7 +221,7 @@ namespace Stats.ImportAzureCdnStatistics
             return dimensions;
         }
 
-        private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int projectTypeId, int clientId)
+        private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int projectTypeId, int clientId, string logFileName)
         {
             dataRow["Id"] = Guid.NewGuid();
             dataRow["Dimension_Package_Id"] = packageId;
@@ -231,6 +231,7 @@ namespace Stats.ImportAzureCdnStatistics
             dataRow["Dimension_ProjectType_Id"] = projectTypeId;
             dataRow["Dimension_Client_Id"] = clientId;
             dataRow["Dimension_Platform_Id"] = platformId;
+            dataRow["LogFileName"] = logFileName;
             dataRow["DownloadCount"] = 1;
         }
 
