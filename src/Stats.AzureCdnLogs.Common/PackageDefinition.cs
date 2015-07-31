@@ -42,6 +42,12 @@ namespace Stats.AzureCdnLogs.Common
                         continue;
                     }
 
+                    if (i < fileNameSegments.Length - 4)
+                    {
+                        // version part can only contain 4 segments maximum
+                        packageIdSegments.Add(segment);
+                    }
+
                     int parsedSegement;
                     var isNumericSegment = int.TryParse(segment, out parsedSegement);
                     if ((!isNumericSegment && !firstPackageVersionSegment.HasValue) || (!isNumericSegment && i < firstPackageVersionSegment.Value))
