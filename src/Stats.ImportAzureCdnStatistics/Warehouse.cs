@@ -452,10 +452,10 @@ namespace Stats.ImportAzureCdnStatistics
             var table = new DataTable();
             table.Columns.Add("UserAgent", typeof(string));
             table.Columns.Add("OSFamily", typeof(string));
-            table.Columns.Add("Major", typeof(int));
-            table.Columns.Add("Minor", typeof(int));
-            table.Columns.Add("Patch", typeof(int));
-            table.Columns.Add("PatchMinor", typeof(int));
+            table.Columns.Add("Major", typeof(string));
+            table.Columns.Add("Minor", typeof(string));
+            table.Columns.Add("Patch", typeof(string));
+            table.Columns.Add("PatchMinor", typeof(string));
 
             foreach (var platformDimension in platformDimensions)
             {
@@ -477,9 +477,9 @@ namespace Stats.ImportAzureCdnStatistics
             var table = new DataTable();
             table.Columns.Add("UserAgent", typeof(string));
             table.Columns.Add("ClientName", typeof(string));
-            table.Columns.Add("Major", typeof(int));
-            table.Columns.Add("Minor", typeof(int));
-            table.Columns.Add("Patch", typeof(int));
+            table.Columns.Add("Major", typeof(string));
+            table.Columns.Add("Minor", typeof(string));
+            table.Columns.Add("Patch", typeof(string));
 
             foreach (var clientDimension in clientDimensions)
             {
