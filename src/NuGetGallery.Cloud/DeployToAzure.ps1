@@ -159,13 +159,13 @@ function ConfigureDiagnostics([string]$roleName)
 
 	Write-Host "Configuring diagnostics for '$OctopusAzureServiceName' (role: $roleName, slot: $OctopusAzureSlot)..."
 	
-	$extension = Get-AzureServiceDiagnosticsExtension -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -ErrorAction SilentlyContinue -ErrorVariable errorVariable
+	$extension = Get-AzureServiceDiagnosticsExtension -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -Role 'NuGetGallery' -ErrorAction SilentlyContinue -ErrorVariable errorVariable
 	if (!($?)) {
 		Write-Host "Diagnostics error occurred. Details: $errorVariable"
 	} elseif ($extension -ne $null) {
 		Write-Host "Diagnostics already configured. Skipping."
 	} else {
-		Set-AzureServiceDiagnosticsExtension -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -DiagnosticsConfigurationPath $config -StorageContext $storageContext -Role $roleName -Verbose
+		Set-AzureServiceDiagnosticsExtension -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -Role 'NuGetGallery' -DiagnosticsConfigurationPath $config -StorageContext $storageContext -Role $roleName -Verbose
 	}
 	
 	Write-Host "Configured diagnostics for role $roleName."
