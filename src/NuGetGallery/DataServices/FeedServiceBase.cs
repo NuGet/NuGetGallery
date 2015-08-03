@@ -196,7 +196,7 @@ namespace NuGetGallery
             }
         }
 
-        private bool ShouldCacheOutput(HttpContextBase context)
+        private static bool ShouldCacheOutput(HttpContextBase context)
         {
             return context.Request.HttpMethod.Equals("GET", StringComparison.OrdinalIgnoreCase)
                 && string.IsNullOrEmpty(context.Request.Url.Query)
