@@ -7,6 +7,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.GZip;
 using Microsoft.WindowsAzure.Storage;
@@ -43,7 +44,7 @@ namespace Stats.ImportAzureCdnStatistics
                     await warehouse.InsertDownloadFactsAsync(packageStatistics, logFile.Blob.Name);
                 }
 
-                await ArchiveDecompressedBlobAsync(logFile, log);
+                await ArchiveBlobAsync(logFile);
 
                 // delete the blob from the 'to-be-processed' container
                 await DeleteSourceBlobAsync(logFile);
@@ -54,32 +55,35 @@ namespace Stats.ImportAzureCdnStatistics
                 await logFile.AcquireInfiniteLeaseAsync();
 
                 // copy the blob to a dead-letter container
-                await EnsureCopiedToDeadLetterContainerAsync(logFile, e);
+                await EnsureCopiedToContainerAsync(logFile, _deadLetterContainer, e);
 
                 // delete the blob from the 'to-be-processed' container
                 await logFile.Blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, AccessCondition.GenerateLeaseCondition(logFile.LeaseId), null, null);
             }
         }
 
-        private async Task EnsureCopiedToDeadLetterContainerAsync(ILeasedLogFile logFile, Exception e)
+        private static async Task EnsureCopiedToContainerAsync(ILeasedLogFile logFile, CloudBlobContainer targetContainer, Exception e = null)
         {
-            var deadLetterBlob = _deadLetterContainer.GetBlockBlobReference(logFile.Blob.Name);
-            if (!await deadLetterBlob.ExistsAsync())
+            var archivedBlob = targetContainer.GetBlockBlobReference(logFile.Blob.Name);
+            if (!await archivedBlob.ExistsAsync())
             {
-                await deadLetterBlob.StartCopyFromBlobAsync(logFile.Blob);
+                await archivedBlob.StartCopyFromBlobAsync(logFile.Blob);
 
-                deadLetterBlob = (CloudBlockBlob)await _deadLetterContainer.GetBlobReferenceFromServerAsync(logFile.Blob.Name);
+                archivedBlob = (CloudBlockBlob)await targetContainer.GetBlobReferenceFromServerAsync(logFile.Blob.Name);
 
-                while (deadLetterBlob.CopyState.Status == CopyStatus.Pending)
+                while (archivedBlob.CopyState.Status == CopyStatus.Pending)
                 {
                     Task.Delay(TimeSpan.FromSeconds(1)).Wait();
-                    deadLetterBlob = (CloudBlockBlob)await _deadLetterContainer.GetBlobReferenceFromServerAsync(logFile.Blob.Name);
+                    archivedBlob = (CloudBlockBlob)await targetContainer.GetBlobReferenceFromServerAsync(logFile.Blob.Name);
                 }
 
-                // add the job error to the blob's metadata
-                await deadLetterBlob.FetchAttributesAsync();
-                deadLetterBlob.Metadata.Add("JobError", e.ToString().Replace("\r\n", string.Empty));
-                await deadLetterBlob.SetMetadataAsync();
+                if (e != null)
+                {
+                    // add the job error to the blob's metadata
+                    await archivedBlob.FetchAttributesAsync();
+                    archivedBlob.Metadata.Add("JobError", e.ToString().Replace("\r\n", string.Empty));
+                    await archivedBlob.SetMetadataAsync();
+                }
             }
         }
 
@@ -162,26 +166,17 @@ namespace Stats.ImportAzureCdnStatistics
             return log;
         }
 
-        private async Task ArchiveDecompressedBlobAsync(ILeasedLogFile logFile, string log)
+        private async Task ArchiveBlobAsync(ILeasedLogFile logFile)
         {
             var stopwatch = Stopwatch.StartNew();
             try
             {
-                // stream the decompressed file to an archive container
-                var decompressedBlobName = logFile.Blob.Name.Replace(".gz", string.Empty);
-                var targetBlob = _targetContainer.GetBlockBlobReference(decompressedBlobName);
+                await EnsureCopiedToContainerAsync(logFile, _targetContainer);
 
-                if (!await targetBlob.ExistsAsync())
-                {
-                    targetBlob.Properties.ContentType = "text/plain";
-                    _jobEventSource.BeginningArchiveUpload(logFile.Uri);
-                    await targetBlob.UploadTextAsync(log);
+                _jobEventSource.FinishingArchiveUpload(logFile.Uri);
 
-                    _jobEventSource.FinishingArchiveUpload(logFile.Uri);
-
-                    stopwatch.Stop();
-                    ApplicationInsights.TrackMetric("Blob archiving duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
-                }
+                stopwatch.Stop();
+                ApplicationInsights.TrackMetric("Blob archiving duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
             }
             catch (Exception exception)
             {
