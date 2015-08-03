@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -33,7 +34,7 @@ namespace Stats.ImportAzureCdnStatistics
             try
             {
                 var log = await DecompressBlobAsync(logFile);
-                var packageStatistics = ParseLogEntries(logFile.Uri, log);
+                var packageStatistics = ParseLogEntries(logFile.Uri, log, logFile.Blob.Name);
 
                 if (packageStatistics.Any())
                 {
@@ -66,9 +67,11 @@ namespace Stats.ImportAzureCdnStatistics
             }
         }
 
-        private IReadOnlyCollection<PackageStatistics> ParseLogEntries(string blobUri, string log)
+        private IReadOnlyCollection<PackageStatistics> ParseLogEntries(string blobUri, string log, string blobName)
         {
             IReadOnlyCollection<PackageStatistics> packageStatistics;
+
+            var stopwatch = Stopwatch.StartNew();
 
             try
             {
@@ -77,9 +80,17 @@ namespace Stats.ImportAzureCdnStatistics
                 var logEntries = CdnLogEntryParser.ParseLogEntriesFromW3CLog(log);
                 packageStatistics = PackageStatisticsParser.FromCdnLogEntries(logEntries);
                 _jobEventSource.FinishingParseLog(blobUri, packageStatistics.Count);
+
+                stopwatch.Stop();
+                ApplicationInsights.TrackMetric("Blob parsing duration (ms)", stopwatch.ElapsedMilliseconds, blobName);
             }
             catch (Exception exception)
             {
+                if (stopwatch.IsRunning)
+                {
+                    stopwatch.Stop();
+                }
+
                 _jobEventSource.FailedParseLog(blobUri);
                 ApplicationInsights.TrackException(exception);
                 throw;
@@ -91,9 +102,12 @@ namespace Stats.ImportAzureCdnStatistics
         private async Task<string> DecompressBlobAsync(ILeasedLogFile logFile)
         {
             string log;
+            var stopwatch = Stopwatch.StartNew();
+
             try
             {
                 _jobEventSource.BeginningDecompressBlob(logFile.Uri);
+
                 using (var decompressedStream = new MemoryStream())
                 {
                     // decompress into memory (these are rolling log files and relatively small)
@@ -110,11 +124,20 @@ namespace Stats.ImportAzureCdnStatistics
                         log = await streamReader.ReadToEndAsync();
                     }
 
+                    stopwatch.Stop();
+
                     _jobEventSource.FinishedDecompressBlob(logFile.Uri);
+
+                    ApplicationInsights.TrackMetric("Blob decompression duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
                 }
             }
             catch (Exception exception)
             {
+                if (stopwatch.IsRunning)
+                {
+                    stopwatch.Stop();
+                }
+
                 _jobEventSource.FailedDecompressBlob(logFile.Uri);
                 ApplicationInsights.TrackException(exception);
                 throw;
@@ -125,6 +148,7 @@ namespace Stats.ImportAzureCdnStatistics
 
         private async Task ArchiveDecompressedBlobAsync(ILeasedLogFile logFile, string log)
         {
+            var stopwatch = Stopwatch.StartNew();
             try
             {
                 // stream the decompressed file to an archive container
@@ -136,11 +160,20 @@ namespace Stats.ImportAzureCdnStatistics
                     targetBlob.Properties.ContentType = "text/plain";
                     _jobEventSource.BeginningArchiveUpload(logFile.Uri);
                     await targetBlob.UploadTextAsync(log);
+
                     _jobEventSource.FinishingArchiveUpload(logFile.Uri);
+
+                    stopwatch.Stop();
+                    ApplicationInsights.TrackMetric("Blob archiving duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
                 }
             }
             catch (Exception exception)
             {
+                if (stopwatch.IsRunning)
+                {
+                    stopwatch.Stop();
+                }
+
                 _jobEventSource.FailedArchiveUpload(logFile.Uri);
                 ApplicationInsights.TrackException(exception);
                 throw;

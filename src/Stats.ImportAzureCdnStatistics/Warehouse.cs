@@ -26,7 +26,9 @@ namespace Stats.ImportAzureCdnStatistics
 
         internal async Task InsertDownloadFactsAsync(IReadOnlyCollection<PackageStatistics> packageStatistics, string logFileName)
         {
+            var stopwatch = Stopwatch.StartNew();
             var downloadFacts = await CreateAsync(packageStatistics, logFileName);
+            ApplicationInsights.TrackMetric("Blob record count", downloadFacts.Rows.Count, logFileName);
 
             Trace.WriteLine("Inserting into facts table...");
 
@@ -43,9 +45,17 @@ namespace Stats.ImportAzureCdnStatistics
                         await bulkCopy.WriteToServerAsync(downloadFacts);
                     }
                     transaction.Commit();
+
+                    stopwatch.Stop();
+                    ApplicationInsights.TrackMetric("Insert facts duration (ms)", stopwatch.ElapsedMilliseconds, logFileName);
                 }
                 catch (Exception exception)
                 {
+                    if (stopwatch.IsRunning)
+                    {
+                        stopwatch.Stop();
+                    }
+
                     ApplicationInsights.TrackException(exception);
                     transaction.Rollback();
                     throw;

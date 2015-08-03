@@ -35,8 +35,8 @@ namespace Stats.ImportAzureCdnStatistics
             }
 
             var telemetryClient = new TelemetryClient();
-            var exceptionTelemetry = new ExceptionTelemetry(exception);
-            telemetryClient.TrackException(exceptionTelemetry);
+            var telemetry = new ExceptionTelemetry(exception);
+            telemetryClient.TrackException(telemetry);
             telemetryClient.Flush();
         }
 
@@ -48,11 +48,26 @@ namespace Stats.ImportAzureCdnStatistics
             }
 
             var telemetryClient = new TelemetryClient();
-            var eventTelemetry = new EventTelemetry("PackageNotFound");
-            eventTelemetry.Properties.Add("PackageId", id);
-            eventTelemetry.Properties.Add("PackageVersion", version);
+            var telemetry = new EventTelemetry("PackageNotFound");
+            telemetry.Properties.Add("PackageId", id);
+            telemetry.Properties.Add("PackageVersion", version);
 
-            telemetryClient.TrackEvent(eventTelemetry);
+            telemetryClient.TrackEvent(telemetry);
+            telemetryClient.Flush();
+        }
+
+        public static void TrackMetric(string metricName, double value, string logFileName)
+        {
+            if (!_initialized)
+            {
+                return;
+            }
+
+            var telemetryClient = new TelemetryClient();
+            var telemetry = new MetricTelemetry(metricName, value);
+            telemetry.Properties.Add("LogFile", logFileName);
+
+            telemetryClient.TrackMetric(telemetry);
             telemetryClient.Flush();
         }
     }
