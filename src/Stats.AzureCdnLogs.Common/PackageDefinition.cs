@@ -46,6 +46,7 @@ namespace Stats.AzureCdnLogs.Common
                     {
                         // version part can only contain 4 segments maximum
                         packageIdSegments.Add(segment);
+                        continue;
                     }
 
                     int parsedSegement;
