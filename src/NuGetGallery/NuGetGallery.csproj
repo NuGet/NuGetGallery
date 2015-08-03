@@ -1018,6 +1018,10 @@
     <Compile Include="Migrations\201507171324501_AdditionalIndexesForPerformance.Designer.cs">
       <DependentUpon>201507171324501_AdditionalIndexesForPerformance.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201508031046581_IndexPackagesLastUpdatedWithIsListed.cs" />
+    <Compile Include="Migrations\201508031046581_IndexPackagesLastUpdatedWithIsListed.Designer.cs">
+      <DependentUpon>201508031046581_IndexPackagesLastUpdatedWithIsListed.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -1461,6 +1465,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201507171324501_AdditionalIndexesForPerformance.resx">
       <DependentUpon>201507171324501_AdditionalIndexesForPerformance.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201508031046581_IndexPackagesLastUpdatedWithIsListed.resx">
+      <DependentUpon>201508031046581_IndexPackagesLastUpdatedWithIsListed.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
