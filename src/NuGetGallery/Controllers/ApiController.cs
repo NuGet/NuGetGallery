@@ -10,7 +10,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.UI;
 using Newtonsoft.Json.Linq;
@@ -155,10 +157,13 @@ namespace NuGetGallery
             {
                 try
                 {
-                    // Disable warning about not awaiting async calls because we are _intentionally_ not awaiting this.
-#pragma warning disable 4014
-                    Task.Run(() => PostDownloadStatistics(id, version, Request.UserHostAddress, Request.UserAgent, Request.Headers["NuGet-Operation"], Request.Headers["NuGet-DependentPackage"], Request.Headers["NuGet-ProjectGuids"]));
-#pragma warning restore 4014
+                    var userHostAddress = Request.UserHostAddress;
+                    var userAgent = Request.UserAgent;
+                    var operation = Request.Headers["NuGet-Operation"];
+                    var dependentPackage = Request.Headers["NuGet-DependentPackage"];
+                    var projectGuids = Request.Headers["NuGet-ProjectGuids"];
+
+                    HostingEnvironment.QueueBackgroundWorkItem(cancellationToken => PostDownloadStatistics(id, version, userHostAddress, userAgent, operation, dependentPackage, projectGuids, cancellationToken));
                 }
                 catch (Exception ex)
                 {
@@ -185,10 +190,12 @@ namespace NuGetGallery
             return jObject;
         }
 
-        private async Task PostDownloadStatistics(string id, string version, string ipAddress, string userAgent, string operation, string dependentPackage, string projectGuids)
+        private async Task PostDownloadStatistics(string id, string version, string ipAddress, string userAgent, string operation, string dependentPackage, string projectGuids, CancellationToken cancellationToken)
         {
-            if (_config == null || _config.MetricsServiceUri == null)
+            if (_config == null || _config.MetricsServiceUri == null || cancellationToken.IsCancellationRequested)
+            {
                 return;
+            }
 
             try
             {
@@ -196,7 +203,7 @@ namespace NuGetGallery
 
                 using (var httpClient = new System.Net.Http.HttpClient())
                 {
-                    await httpClient.PostAsync(new Uri(_config.MetricsServiceUri, _metricsDownloadEventMethod), new StringContent(jObject.ToString(), Encoding.UTF8, _contentTypeJson));
+                    await httpClient.PostAsync(new Uri(_config.MetricsServiceUri, _metricsDownloadEventMethod), new StringContent(jObject.ToString(), Encoding.UTF8, _contentTypeJson), cancellationToken);
                 }
             }
             catch (WebException ex)
@@ -206,6 +213,10 @@ namespace NuGetGallery
             catch (AggregateException ex)
             {
                 QuietLog.LogHandledException(ex.InnerException ?? ex);
+            }
+            catch (TaskCanceledException)
+            {
+                // noop
             }
         }
 
