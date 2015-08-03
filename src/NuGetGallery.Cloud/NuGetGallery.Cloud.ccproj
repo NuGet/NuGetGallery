@@ -57,6 +57,12 @@
     <Folder Include="NuGetGalleryContent\bin" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="NuGetGalleryContent\bin\InstallDotNet452.cmd">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="NuGetGalleryContent\bin\NDP452-KB2901954-Web.exe">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="NuGetGalleryContent\bin\Startup.cmd">
       <SubType>Content</SubType>
     </Content>

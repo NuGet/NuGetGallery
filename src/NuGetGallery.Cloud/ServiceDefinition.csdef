@@ -44,6 +44,13 @@
       </Site>
     </Sites>
     <Startup>
+      <Task commandLine="InstallDotNet452.cmd" executionContext="elevated" taskType="simple">
+        <Environment>
+          <Variable name="PathToInstallLogs">
+            <RoleInstanceValue xpath="/RoleEnvironment/CurrentInstance/LocalResources/LocalResource[@name='InstallLogs']/@path" />
+          </Variable>
+        </Environment>
+      </Task>
       <Task commandLine="Startup.cmd" executionContext="elevated" taskType="simple" />
     </Startup>
     <Endpoints>
