@@ -54,16 +54,32 @@ namespace Stats.ImportAzureCdnStatistics
                 await logFile.AcquireInfiniteLeaseAsync();
 
                 // copy the blob to a dead-letter container
-                var deadLetterBlob = _deadLetterContainer.GetBlockBlobReference(logFile.Blob.Name);
+                await EnsureCopiedToDeadLetterContainerAsync(logFile, e);
+
+                // delete the blob from the 'to-be-processed' container
+                await logFile.Blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, AccessCondition.GenerateLeaseCondition(logFile.LeaseId), null, null);
+            }
+        }
+
+        private async Task EnsureCopiedToDeadLetterContainerAsync(ILeasedLogFile logFile, Exception e)
+        {
+            var deadLetterBlob = _deadLetterContainer.GetBlockBlobReference(logFile.Blob.Name);
+            if (!await deadLetterBlob.ExistsAsync())
+            {
                 await deadLetterBlob.StartCopyFromBlobAsync(logFile.Blob);
+
+                deadLetterBlob = (CloudBlockBlob)await _deadLetterContainer.GetBlobReferenceFromServerAsync(logFile.Blob.Name);
+
+                while (deadLetterBlob.CopyState.Status == CopyStatus.Pending)
+                {
+                    Task.Delay(TimeSpan.FromSeconds(1)).Wait();
+                    deadLetterBlob = (CloudBlockBlob)await _deadLetterContainer.GetBlobReferenceFromServerAsync(logFile.Blob.Name);
+                }
 
                 // add the job error to the blob's metadata
                 await deadLetterBlob.FetchAttributesAsync();
                 deadLetterBlob.Metadata.Add("JobError", e.ToString().Replace("\r\n", string.Empty));
                 await deadLetterBlob.SetMetadataAsync();
-
-                // delete the blob from the 'to-be-processed' container
-                await logFile.Blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, AccessCondition.GenerateLeaseCondition(logFile.LeaseId), null, null);
             }
         }
 
