@@ -41,6 +41,7 @@ namespace Stats.ImportAzureCdnStatistics
                     {
                         bulkCopy.BatchSize = downloadFacts.Rows.Count;
                         bulkCopy.DestinationTableName = downloadFacts.TableName;
+                        bulkCopy.BulkCopyTimeout = _defaultCommandTimeout;
 
                         await bulkCopy.WriteToServerAsync(downloadFacts);
                     }
