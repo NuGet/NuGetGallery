@@ -167,8 +167,12 @@ function ConfigureDiagnostics([string]$roleName)
 	} else {
 		Set-AzureServiceDiagnosticsExtension -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -DiagnosticsConfigurationPath $config -StorageContext $storageContext -Role $roleName -Verbose -ErrorAction SilentlyContinue -ErrorVariable errorVariable
 		if (!($?)) {
-			Write-Host "Diagnostics error occurred. Details: $errorVariable"
-		}
+			if ($errorVariable.count -gt 0 -and $errorVariable[0].ToString().Contains("already exists")) {
+				Write-Host "Diagnostics already configured. Skipping."
+			} else {
+				Write-Host "Diagnostics error occurred. Details: $errorVariable"
+			}
+		} 
 	}
 	
 	Write-Host "Configured diagnostics for role $roleName."
