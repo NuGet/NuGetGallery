@@ -96,8 +96,8 @@ AS
 	SET XACT_ABORT ON
 	SET NOCOUNT ON
 	DECLARE @Date DATE, @EndDate DATE
-	SET @Date = '2010-01-01'
-	SET @EndDate = '2099-12-31'
+	SET @Date = CAST('2010-01-01' AS DATE)
+	SET @EndDate = CAST('2099-12-31' AS DATE)
 
 	IF (SELECT COUNT(*) FROM [dbo].[Dimension_Date] WHERE Id <> -1) = 0
 	BEGIN

@@ -7,7 +7,7 @@ BEGIN
 			SET NOCOUNT ON;
 
 			DECLARE @newDimensions TABLE(
-				[Operation] NVARCHAR(32)
+				[Operation] NVARCHAR(255)
 			)
 
 			BEGIN TRY
@@ -40,6 +40,6 @@ BEGIN
 			-- Select all matching dimensions
 			SELECT		[Id], [Operation]
 			FROM		[Dimension_Operation]
-			WHERE		ISNULL([Operation], '') IN (SELECT * FROM dbo.ParseCSVString(@operations))
+			WHERE		ISNULL([Operation], '') IN (SELECT [Value] FROM dbo.ParseCSVString(@operations))
 		END
 END

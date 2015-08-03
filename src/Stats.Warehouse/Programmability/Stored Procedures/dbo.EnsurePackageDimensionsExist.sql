@@ -8,11 +8,11 @@ BEGIN
 	(
 		[Id]				INT				NOT NULL,
 		[PackageId]         NVARCHAR(128)	NULL,
-		[PackageVersion]	NVARCHAR(64)	NULL
+		[PackageVersion]	NVARCHAR(128)	NULL
 	)
 
 	DECLARE @PackageId VARCHAR(128)
-	DECLARE @PackageVersion NVARCHAR(64)
+	DECLARE @PackageVersion NVARCHAR(128)
 
 	BEGIN TRY
 		SET TRANSACTION ISOLATION LEVEL SERIALIZABLE

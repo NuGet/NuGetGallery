@@ -7,7 +7,7 @@ BEGIN
 			SET NOCOUNT ON;
 
 			DECLARE @newDimensions TABLE(
-				[ProjectType] NVARCHAR(32)
+				[ProjectType] NVARCHAR(255)
 			)
 
 			BEGIN TRY
@@ -40,6 +40,6 @@ BEGIN
 			-- Select all matching dimensions
 			SELECT		[Id], [ProjectType]
 			FROM		[Dimension_ProjectType]
-			WHERE		ISNULL([ProjectType], '') IN (SELECT * FROM dbo.ParseCSVString(@projectTypes))
+			WHERE		ISNULL([ProjectType], '') IN (SELECT [Value] FROM dbo.ParseCSVString(@projectTypes))
 		END
 END
