@@ -7,7 +7,7 @@ set msbuild="%ProgramFiles(x86)%\MSBuild\14.0\bin\amd64\msbuild.exe"
 
 REM Package restore
 Powershell.exe -NoProfile -ExecutionPolicy ByPass -Command "& '%cd%\restoreNuGetExe.ps1'"
-tools\nuget.exe restore NuGet.Jobs.sln -OutputDirectory %cd%\packages -NonInteractive
+tools\nuget.exe restore NuGet.Jobs.sln -OutputDirectory %cd%\packages -NonInteractive -source https://www.nuget.org/api/v2
 
 REM Build
 %msbuild% NuGet.Jobs.sln /p:Configuration="%config%" /m /v:M /fl /flp:LogFile=msbuild.log;Verbosity=Normal /nr:false
