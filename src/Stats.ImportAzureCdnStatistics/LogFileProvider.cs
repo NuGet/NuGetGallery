@@ -14,7 +14,7 @@ namespace Stats.ImportAzureCdnStatistics
 {
     internal class LogFileProvider
     {
-        private const int _maxListBlobResultSegments = 5;
+        private const int _maxListBlobResultSegments = 10;
         private readonly TimeSpan _defaultLeaseTime = TimeSpan.FromSeconds(60);
         private readonly JobEventSource _jobEventSource = JobEventSource.Log;
         private readonly CloudBlobContainer _container;
@@ -78,14 +78,15 @@ namespace Stats.ImportAzureCdnStatistics
             catch (StorageException storageException)
             {
                 // check if this is a 409 Conflict with a StatusDescription stating that "There is already a lease present."
+                // or 404 NotFound (might have been removed by another other instance of this job)
                 var webException = storageException.InnerException as WebException;
                 if (webException != null)
                 {
                     var httpWebResponse = webException.Response as HttpWebResponse;
                     if (httpWebResponse != null)
                     {
-                        if (httpWebResponse.StatusCode == HttpStatusCode.Conflict
-                            && httpWebResponse.StatusDescription == "There is already a lease present.")
+                        if ((httpWebResponse.StatusCode == HttpStatusCode.Conflict
+                            && httpWebResponse.StatusDescription == "There is already a lease present.") || httpWebResponse.StatusCode == HttpStatusCode.NotFound)
                         {
                             return null;
                         }
