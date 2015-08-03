@@ -50,10 +50,10 @@ namespace Stats.ImportAzureCdnStatistics
                 }
 
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                Trace.TraceError(e.ToString());
                 _jobEventSource.FailedBlobListing(prefix);
+                ApplicationInsights.TrackException(exception);
             }
 
             return null;
@@ -92,6 +92,8 @@ namespace Stats.ImportAzureCdnStatistics
                     }
                 }
                 _jobEventSource.FailedAcquireLease(blobUriString);
+                ApplicationInsights.TrackException(storageException);
+
                 throw;
             }
             return leaseId;
@@ -152,8 +154,8 @@ namespace Stats.ImportAzureCdnStatistics
                             }
                             catch
                             {
-                                // the blob could have been deleted in the meantime
-                                // this thread will be killed either way
+                                // The blob could have been deleted in the meantime and this thread will be killed either way.
+                                // No need to track in Application Insights.
                                 _jobEventSource.FailedRenewLease(blobUriString);
                             }
                         }

@@ -78,9 +78,10 @@ namespace Stats.ImportAzureCdnStatistics
                 packageStatistics = PackageStatisticsParser.FromCdnLogEntries(logEntries);
                 _jobEventSource.FinishingParseLog(blobUri, packageStatistics.Count);
             }
-            catch
+            catch (Exception exception)
             {
                 _jobEventSource.FailedParseLog(blobUri);
+                ApplicationInsights.TrackException(exception);
                 throw;
             }
 
@@ -112,9 +113,10 @@ namespace Stats.ImportAzureCdnStatistics
                     _jobEventSource.FinishedDecompressBlob(logFile.Uri);
                 }
             }
-            catch
+            catch (Exception exception)
             {
                 _jobEventSource.FailedDecompressBlob(logFile.Uri);
+                ApplicationInsights.TrackException(exception);
                 throw;
             }
 
@@ -137,9 +139,10 @@ namespace Stats.ImportAzureCdnStatistics
                     _jobEventSource.FinishingArchiveUpload(logFile.Uri);
                 }
             }
-            catch
+            catch (Exception exception)
             {
                 _jobEventSource.FailedArchiveUpload(logFile.Uri);
+                ApplicationInsights.TrackException(exception);
                 throw;
             }
         }
@@ -155,9 +158,10 @@ namespace Stats.ImportAzureCdnStatistics
                     await logFile.Blob.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots, accessCondition, null, null);
                     _jobEventSource.FinishedDelete(logFile.Uri);
                 }
-                catch
+                catch (Exception exception)
                 {
                     _jobEventSource.FailedDelete(logFile.Uri);
+                    ApplicationInsights.TrackException(exception);
                     throw;
                 }
             }

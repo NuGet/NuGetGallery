@@ -96,5 +96,8 @@ namespace NuGet.Jobs
         public const string DashboardStorageContainer = "DashboardStorageContainer";
         public const string LogFileSuffix = "LogFileSuffix";
         public const string StatisticsDatabase = "StatisticsDatabase";
+
+        // Application Insights
+        public const string InstrumentationKey = "InstrumentationKey";
     }
 }

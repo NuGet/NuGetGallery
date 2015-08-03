@@ -44,8 +44,9 @@ namespace Stats.ImportAzureCdnStatistics
                     }
                     transaction.Commit();
                 }
-                catch
+                catch (Exception exception)
                 {
+                    ApplicationInsights.TrackException(exception);
                     transaction.Rollback();
                     throw;
                 }
@@ -96,7 +97,18 @@ namespace Stats.ImportAzureCdnStatistics
 
                 foreach (var groupedByPackageIdAndVersion in groupedByPackageId.GroupBy(e => e.PackageVersion))
                 {
-                    var packageId = packagesForId.First(e => e.PackageVersion == groupedByPackageIdAndVersion.Key).Id;
+                    var package = packagesForId.FirstOrDefault(e => e.PackageVersion == groupedByPackageIdAndVersion.Key);
+                    if (package == null)
+                    {
+                        // This package id and version could not be 100% accurately parsed from the CDN Request URL,
+                        // likely due to weird package ID which could be interpreted as a version string.
+                        // Track it in Application Insights.
+                        ApplicationInsights.TrackPackageNotFound(groupedByPackageId.Key, groupedByPackageIdAndVersion.Key);
+
+                        continue;
+                    }
+
+                    var packageId = package.Id;
 
                     foreach (var element in groupedByPackageIdAndVersion)
                     {
@@ -182,9 +194,11 @@ namespace Stats.ImportAzureCdnStatistics
                 stopwatch.Stop();
                 _jobEventSource.FinishedRetrieveDimension(dimension, stopwatch.ElapsedMilliseconds);
             }
-            catch
+            catch (Exception exception)
             {
                 _jobEventSource.FailedRetrieveDimension(dimension);
+                ApplicationInsights.TrackException(exception);
+
                 if (stopwatch.IsRunning)
                     stopwatch.Stop();
 
@@ -210,9 +224,11 @@ namespace Stats.ImportAzureCdnStatistics
                 stopwatch.Stop();
                 _jobEventSource.FinishedRetrieveDimension(dimension, stopwatch.ElapsedMilliseconds);
             }
-            catch
+            catch (Exception exception)
             {
                 _jobEventSource.FailedRetrieveDimension(dimension);
+                ApplicationInsights.TrackException(exception);
+
                 if (stopwatch.IsRunning)
                     stopwatch.Stop();
 

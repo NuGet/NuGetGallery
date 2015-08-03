@@ -32,6 +32,9 @@ namespace Stats.ImportAzureCdnStatistics
         {
             try
             {
+                var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
+                ApplicationInsights.Initialize(instrumentationKey);
+
                 var azureCdnPlatform = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnPlatform);
                 var cloudStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
                 var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
@@ -44,19 +47,20 @@ namespace Stats.ImportAzureCdnStatistics
 
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                Trace.TraceError(ex.ToString());
+                ApplicationInsights.TrackException(exception);
+                Trace.TraceError(exception.ToString());
             }
             return false;
         }
 
         public override async Task<bool> Run()
         {
+            var stopwatch = Stopwatch.StartNew();
+
             try
             {
-                var stopwatch = Stopwatch.StartNew();
-
                 // construct a cloud blob client for the configured storage account
                 var cloudBlobClient = _cloudStorageAccount.CreateCloudBlobClient();
                 cloudBlobClient.DefaultRequestOptions.RetryPolicy = new ExponentialRetry(TimeSpan.FromSeconds(10), 5);
@@ -83,14 +87,7 @@ namespace Stats.ImportAzureCdnStatistics
                 // get next raw log file to be processed
                 using (ILeasedLogFile leasedLogFile = await blobLeaseManager.LeaseNextLogFileToBeProcessedAsync(prefix))
                 {
-                    try
-                    {
-                        await logProcessor.ProcessLogFileAsync(leasedLogFile);
-                    }
-                    catch (Exception parseException)
-                    {
-                        Console.WriteLine(parseException);
-                    }
+                    await logProcessor.ProcessLogFileAsync(leasedLogFile);
                 }
 
                 stopwatch.Stop();
@@ -100,6 +97,11 @@ namespace Stats.ImportAzureCdnStatistics
             }
             catch (Exception exception)
             {
+                if (stopwatch.IsRunning)
+                {
+                    stopwatch.Stop();
+                }
+
                 Trace.TraceError(exception.ToString());
                 return false;
             }
