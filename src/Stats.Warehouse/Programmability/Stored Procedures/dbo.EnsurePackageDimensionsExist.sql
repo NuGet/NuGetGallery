@@ -55,8 +55,12 @@ BEGIN
 
 	END TRY
 	BEGIN CATCH
+
 		IF @@TRANCOUNT > 0
-			ROLLBACK
+			ROLLBACK;
+
+		THROW
+
 	END CATCH
 
 	-- Select all matching dimensions
