@@ -158,10 +158,10 @@ function ConfigureDiagnostics([string]$roleName)
 	$storageContext = New-AzureStorageContext -ConnectionString $diagnosticsConfigurationSetting.value
 
 	Write-Host "Configuring diagnostics for '$OctopusAzureServiceName' (role: $roleName, slot: $OctopusAzureSlot)..."
-	
-	$extension = Get-AzureServiceDiagnosticsExtension -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -ErrorAction SilentlyContinue -ErrorVariable errorVariable
+
+	$extension = Get-AzureServiceExtension -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -ExtensionName 'PaaSDiagnostics' -ProviderNamespace 'Microsoft.Azure.Diagnostics' -ErrorAction SilentlyContinue -ErrorVariable errorVariable
 	if (!($?)) {
-		Write-Host "Diagnostics error occurred. Details: $errorVariable"
+		Write-Host "Error occurred getting extension. Details: $errorVariable"
 	} elseif ($extension -ne $null) {
 		Write-Host "Diagnostics already configured. Skipping."
 	} else {

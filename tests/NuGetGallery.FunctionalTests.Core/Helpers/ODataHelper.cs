@@ -37,7 +37,7 @@ namespace NuGetGallery.FunctionalTests
                 using (var client = new HttpClient(handler))
                 {
                     string requestUri = UrlHelper.V2FeedRootUrl + @"Package/" + packageId + @"/" + version;
-                    var response = await client.GetAsync(requestUri);
+                    var response = await client.GetAsync(requestUri).ConfigureAwait(false);
 
                     //print the header
                     WriteLine("HTTP status code : {0}", response.StatusCode);
@@ -62,12 +62,12 @@ namespace NuGetGallery.FunctionalTests
         public async Task<bool> ContainsResponseText(string url, params string[] expectedTexts)
         {
             var request = WebRequest.Create(url);
-            var response = await request.GetResponseAsync();
+            var response = await request.GetResponseAsync().ConfigureAwait(false);
 
             string responseText;
             using (var sr = new StreamReader(response.GetResponseStream()))
             {
-                responseText = await sr.ReadToEndAsync();
+                responseText = await sr.ReadToEndAsync().ConfigureAwait(false);
             }
 
             foreach (string s in expectedTexts)

@@ -131,12 +131,12 @@ namespace NuGet.Services.Search.Client
             }
 
             var qs = new FormUrlEncodedContent(nameValue);
-            var queryString = await qs.ReadAsStringAsync();
+            var queryString = await qs.ReadAsStringAsync().ConfigureAwait(false);
 
-            var endpoints = await _discoveryClient.GetEndpointsForResourceType(_resourceType);
+            var endpoints = await _discoveryClient.GetEndpointsForResourceType(_resourceType).ConfigureAwait(false);
             var requestEndpoints = endpoints.Select(e => AppendPathToUri(e, "search/query", queryString));
 
-            var httpResponseMessage = await _retryingHttpClientWrapper.GetAsync(requestEndpoints);
+            var httpResponseMessage = await _retryingHttpClientWrapper.GetAsync(requestEndpoints).ConfigureAwait(false);
             return new ServiceResponse<SearchResults>(httpResponseMessage);
         }
 
@@ -153,33 +153,33 @@ namespace NuGet.Services.Search.Client
 
         public async Task<ServiceResponse<IDictionary<int, int>>> GetChecksums(int minKey, int maxKey)
         {
-            var endpoints = await _discoveryClient.GetEndpointsForResourceType(_resourceType);
+            var endpoints = await _discoveryClient.GetEndpointsForResourceType(_resourceType).ConfigureAwait(false);
             var requestEndpoints = endpoints.Select(e => AppendPathToUri(e, "search/range", string.Format("min={0}&max={1}", minKey, maxKey)));
 
-            var response = await _retryingHttpClientWrapper.GetAsync(requestEndpoints);
+            var response = await _retryingHttpClientWrapper.GetAsync(requestEndpoints).ConfigureAwait(false);
             return new ServiceResponse<IDictionary<int, int>>(
                 response,
-                async () => (await response.Content.ReadAsAsync<IDictionary<string, int>>())
+                async () => (await response.Content.ReadAsAsync<IDictionary<string, int>>().ConfigureAwait(false))
                     .Select(pair => new KeyValuePair<int, int>(Int32.Parse(pair.Key), pair.Value))
                     .ToDictionary(pair => pair.Key, pair => pair.Value));
         }
 
         public async Task<ServiceResponse<IEnumerable<string>>> GetStoredFieldNames()
         {
-            var endpoints = await _discoveryClient.GetEndpointsForResourceType(_resourceType);
+            var endpoints = await _discoveryClient.GetEndpointsForResourceType(_resourceType).ConfigureAwait(false);
             var requestEndpoints = endpoints.Select(e => AppendPathToUri(e, "search/fields"));
 
             return new ServiceResponse<IEnumerable<string>>(
-                await _retryingHttpClientWrapper.GetAsync(requestEndpoints));
+                await _retryingHttpClientWrapper.GetAsync(requestEndpoints).ConfigureAwait(false));
         }
 
         public async Task<ServiceResponse<JObject>> GetDiagnostics()
         {
-            var endpoints = await _discoveryClient.GetEndpointsForResourceType(_resourceType);
+            var endpoints = await _discoveryClient.GetEndpointsForResourceType(_resourceType).ConfigureAwait(false);
             var requestEndpoints = endpoints.Select(e => AppendPathToUri(e, "search/diag"));
 
             return new ServiceResponse<JObject>(
-                await _retryingHttpClientWrapper.GetAsync(requestEndpoints));
+                await _retryingHttpClientWrapper.GetAsync(requestEndpoints).ConfigureAwait(false));
         }
     }
 }

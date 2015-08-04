@@ -29,6 +29,7 @@ namespace NuGetGallery
             conventions.Insert(0, new EntitySetCountRoutingConvention());
             conventions.Insert(0, new ActionCountRoutingConvention("ODataV2Feed"));
             conventions.Insert(0, new MethodNameActionRoutingConvention("ODataV2Feed"));
+            conventions.Insert(0, new EntitySetPropertyRoutingConvention("ODataV2Feed"));
             conventions.Insert(0, new CompositeKeyRoutingConvention());
 
             // Translate all requests to use V2FeedController instead of PackagesController

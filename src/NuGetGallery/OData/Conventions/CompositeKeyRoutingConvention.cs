@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http.Controllers;
 using System.Web.Http.OData.Routing;
@@ -15,8 +14,6 @@ namespace NuGetGallery.OData.Conventions
     public class CompositeKeyRoutingConvention
         : EntityRoutingConvention
     {
-        private static readonly char[] KeyTrimChars = new char[] {' ', '\''};
-
         public override string SelectAction(ODataPath odataPath, HttpControllerContext controllerContext, ILookup<string, HttpActionDescriptor> actionMap)
         {
             var action = base.SelectAction(odataPath, controllerContext, actionMap);
@@ -28,23 +25,9 @@ namespace NuGetGallery.OData.Conventions
                     var keyRaw = routeValues[ODataRouteConstants.Key] as string;
                     if (keyRaw != null)
                     {
-                        IEnumerable<string> compoundKeyPairs = keyRaw.Split(',');
-                        if (!compoundKeyPairs.Any())
+                        if (!CompositeODataKeyHelper.TryEnrichRouteValues(keyRaw, routeValues))
                         {
                             return action;
-                        }
-
-                        foreach (var compoundKeyPair in compoundKeyPairs)
-                        {
-                            string[] pair = compoundKeyPair.Split('=');
-                            if (pair.Length != 2)
-                            {
-                                continue;
-                            }
-                            var keyName = pair[0].Trim(KeyTrimChars);
-                            var keyValue = pair[1].Trim(KeyTrimChars);
-
-                            routeValues.Add(keyName, keyValue);
                         }
                     }
                 }

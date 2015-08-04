@@ -17,12 +17,11 @@ namespace NuGetGallery.OData.Conventions
     {
         public override string SelectAction(ODataPath odataPath, HttpControllerContext controllerContext, ILookup<string, HttpActionDescriptor> actionMap)
         {
-            if (controllerContext.Request.Method == HttpMethod.Get && odataPath.PathTemplate == "~/entityset/$count")
+            if (controllerContext.Request.Method == HttpMethod.Get 
+                && odataPath.PathTemplate == "~/entityset/$count"
+                && actionMap.Contains("GetCount"))
             {
-                if (actionMap.Contains("GetCount"))
-                {
-                    return "GetCount";
-                }
+                return "GetCount";
             }
             return null;
         }

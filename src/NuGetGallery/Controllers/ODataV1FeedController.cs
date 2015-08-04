@@ -43,9 +43,10 @@ namespace NuGetGallery.Controllers
             _searchService = searchService;
         }
 
+        // /api/v1/Packages
         [HttpGet]
         [HttpPost]
-        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true, AllowedQueryOptions = AllowedQueryOptions.All)]
         public IQueryable<V1FeedPackage> Get()
         {
             var packages = _packagesRepository.GetAll()
@@ -56,6 +57,7 @@ namespace NuGetGallery.Controllers
             return packages;
         }
 
+        // /api/v1/Packages/$count
         [HttpGet]
         public HttpResponseMessage GetCount(ODataQueryOptions<V1FeedPackage> options)
         {
@@ -65,16 +67,20 @@ namespace NuGetGallery.Controllers
             return CountResult(count);
         }
 
+        // /api/v1/Packages(Id=,Version=)
         [HttpGet]
-        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true, AllowedQueryOptions = AllowedQueryOptions.All)]
         public async Task<IHttpActionResult> Get(string id, string version)
         {
             return await GetCore(id, version);
         }
 
+        // /api/v1/FindPackagesById()?id=
         [HttpGet]
         [HttpPost]
-        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true, AllowedQueryOptions = AllowedQueryOptions.All)]
         public async Task<IHttpActionResult> FindPackagesById([FromODataUri]string id)
         {
             return await GetCore(id, null);
@@ -82,11 +88,6 @@ namespace NuGetGallery.Controllers
 
         private async Task<IHttpActionResult> GetCore(string id, string version)
         {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return BadRequest("Parameter 'id' must be specified.");
-            }
-
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) && !p.IsPrerelease);
@@ -115,6 +116,20 @@ namespace NuGetGallery.Controllers
             return Ok(query);
         }
 
+        // /api/v1/Packages(Id=,Version=)/propertyName
+        [HttpGet]
+        public IHttpActionResult GetPropertyFromPackages(string propertyName, string id, string version)
+        {
+            switch (propertyName.ToLowerInvariant())
+            {
+                case "id": return Ok(id);
+                case "version": return Ok(version);
+            }
+
+            return BadRequest("Querying property " + propertyName + " is not supported.");
+        }
+
+        // /api/v1/Search()?searchTerm=&targetFramework=&includePrerelease=
         [HttpGet]
         [HttpPost]
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
@@ -168,6 +183,7 @@ namespace NuGetGallery.Controllers
             return new PageResult<V1FeedPackage>(convertedQuery, nextLink, totalHits);
         }
 
+        // /api/v1/Search()/$count?searchTerm=&targetFramework=&includePrerelease=
         [HttpGet]
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
         public async Task<HttpResponseMessage> SearchCount(

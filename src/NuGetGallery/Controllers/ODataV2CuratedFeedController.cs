@@ -48,9 +48,10 @@ namespace NuGetGallery.Controllers
             _curatedFeedService = curatedFeedService;
         }
 
+        // /api/v2/curated-feed/curatedFeedName/Packages
         [HttpGet]
         [HttpPost]
-        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true, AllowedQueryOptions = AllowedQueryOptions.All)]
         public IQueryable<V2FeedPackage> Get(string curatedFeedName)
         {
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
@@ -65,6 +66,7 @@ namespace NuGetGallery.Controllers
             return packages;
         }
 
+        // /api/v2/curated-feed/curatedFeedName/Packages/$count
         [HttpGet]
         public HttpResponseMessage GetCount(string curatedFeedName, ODataQueryOptions<V2FeedPackage> options)
         {
@@ -74,16 +76,20 @@ namespace NuGetGallery.Controllers
             return CountResult(count);
         }
 
+        // /api/v2/curated-feed/curatedFeedName/Packages(Id=,Version=)
         [HttpGet]
-        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true, AllowedQueryOptions = AllowedQueryOptions.All)]
         public async Task<IHttpActionResult> Get(string curatedFeedName, string id, string version)
         {
             return await GetCore(curatedFeedName, id, version);
         }
 
+        // /api/v2/curated-feed/curatedFeedName/FindPackagesById()?id=
         [HttpGet]
         [HttpPost]
-        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true)]
+        [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
+        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true, AllowedQueryOptions = AllowedQueryOptions.All)]
         public async Task<IHttpActionResult> FindPackagesById(string curatedFeedName, [FromODataUri]string id)
         {
             return await GetCore(curatedFeedName, id, null);
@@ -94,11 +100,6 @@ namespace NuGetGallery.Controllers
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
             {
                 throw new HttpResponseException(HttpStatusCode.NotFound);
-            }
-
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return BadRequest("Parameter 'id' must be specified.");
             }
 
             var packages = _curatedFeedService.GetPackages(curatedFeedName)
@@ -128,6 +129,20 @@ namespace NuGetGallery.Controllers
             return Ok(query);
         }
 
+        // /api/v2/curated-feed/curatedFeedName/Packages(Id=,Version=)/propertyName
+        [HttpGet]
+        public IHttpActionResult GetPropertyFromPackages(string propertyName, string id, string version)
+        {
+            switch (propertyName.ToLowerInvariant())
+            {
+                case "id": return Ok(id);
+                case "version": return Ok(version);
+            }
+
+            return BadRequest("Querying property " + propertyName + " is not supported.");
+        }
+
+        // /api/v2/curated-feed/curatedFeedName/Search()?searchTerm=&targetFramework=&includePrerelease=
         [HttpGet]
         [HttpPost]
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
@@ -186,6 +201,7 @@ namespace NuGetGallery.Controllers
             return new PageResult<V2FeedPackage>(convertedQuery, nextLink, totalHits);
         }
 
+        // /api/v2/curated-feed/curatedFeedName/Search()/$count?searchTerm=&targetFramework=&includePrerelease=
         [HttpGet]
         [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
         public async Task<HttpResponseMessage> SearchCount(

@@ -2,8 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
+using Elmah;
+using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
@@ -79,6 +84,44 @@ namespace NuGetGallery
             {
                 auther.Startup(config, app);
             }
+
+            // Catch unobserved exceptions from threads before they cause IIS to crash:
+            TaskScheduler.UnobservedTaskException += (sender, exArgs) =>
+            {
+                // Send to AppInsights
+                try
+                {
+                    var telemetryClient = new TelemetryClient();
+                    telemetryClient.TrackException(exArgs.Exception, new Dictionary<string, string>()
+                    {
+                        {"ExceptionOrigin", "UnobservedTaskException"}
+                    });
+                }
+                catch (Exception)
+                {
+                    // this is a tragic moment... swallow Exception to prevent crashing IIS
+                }
+
+                // Send to ELMAH
+                try
+                {
+                    HttpContext current = HttpContext.Current;
+                    if (current != null)
+                    {
+                        var errorSignal = ErrorSignal.FromContext(current);
+                        if (errorSignal != null)
+                        {
+                            errorSignal.Raise(exArgs.Exception, current);
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // more tragedy... swallow Exception to prevent crashing IIS
+                }
+
+                exArgs.SetObserved();
+            };
         }
     }
 }

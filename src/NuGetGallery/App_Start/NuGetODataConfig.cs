@@ -14,7 +14,8 @@ namespace NuGetGallery
 {
     public static class NuGetODataConfig
     {
-        public const int SearchCacheTimeInSeconds = 30;
+        public const int GetByIdAndVersionCacheTimeInSeconds = 600;
+        public const int SearchCacheTimeInSeconds = 45;
 
         public static void Register(HttpConfiguration config)
         {
