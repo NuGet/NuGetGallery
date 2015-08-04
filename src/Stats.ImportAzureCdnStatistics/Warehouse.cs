@@ -15,6 +15,8 @@ namespace Stats.ImportAzureCdnStatistics
     internal class Warehouse
     {
         private const int _defaultCommandTimeout = 300; // 5 minutes max
+        private const int _maxRetryCount = 3;
+        private readonly TimeSpan _retryDelay = TimeSpan.FromSeconds(5);
         private readonly JobEventSource _jobEventSource;
         private readonly SqlConnectionStringBuilder _targetDatabase;
 
@@ -192,60 +194,128 @@ namespace Stats.ImportAzureCdnStatistics
         private async Task<IDictionary<string, int>> GetDimension(string dimension, Func<SqlConnection, Task<IDictionary<string, int>>> retrieve)
         {
             var stopwatch = Stopwatch.StartNew();
-            IDictionary<string, int> dimensions;
-            try
-            {
-                _jobEventSource.BeginningRetrieveDimension(dimension);
+            var count = _maxRetryCount;
 
-                using (var connection = await _targetDatabase.ConnectTo())
+            while (count > 0)
+            {
+                try
                 {
-                    dimensions = await retrieve(connection);
-                }
+                    _jobEventSource.BeginningRetrieveDimension(dimension);
 
-                stopwatch.Stop();
-                _jobEventSource.FinishedRetrieveDimension(dimension, stopwatch.ElapsedMilliseconds);
-            }
-            catch (Exception exception)
-            {
-                _jobEventSource.FailedRetrieveDimension(dimension);
-                ApplicationInsights.TrackException(exception);
+                    IDictionary<string, int> dimensions;
+                    using (var connection = await _targetDatabase.ConnectTo())
+                    {
+                        dimensions = await retrieve(connection);
+                    }
 
-                if (stopwatch.IsRunning)
                     stopwatch.Stop();
+                    _jobEventSource.FinishedRetrieveDimension(dimension, stopwatch.ElapsedMilliseconds);
 
-                throw;
+                    return dimensions;
+                }
+                catch (SqlException e)
+                {
+                    --count;
+                    if (count <= 0)
+                    {
+                        throw;
+                    }
+
+                    if (e.Number == 1205)
+                    {
+                        Trace.TraceWarning("Deadlock, retrying...");
+                    }
+                    else if (e.Number == -2)
+                    {
+                        Trace.TraceWarning("Timeout, retrying...");
+                    }
+                    else if (e.Number == 2601)
+                    {
+                        Trace.TraceWarning("Duplicate key, retrying...");
+                    }
+                    else
+                    {
+                        throw;
+                    }
+
+                    Task.Delay(_retryDelay).Wait();
+                }
+                catch (Exception exception)
+                {
+                    _jobEventSource.FailedRetrieveDimension(dimension);
+                    ApplicationInsights.TrackException(exception);
+
+                    if (stopwatch.IsRunning)
+                        stopwatch.Stop();
+
+                    throw;
+                }
             }
 
-            return dimensions;
+            return new Dictionary<string, int>();
         }
 
         private async Task<IReadOnlyCollection<T>> GetDimension<T>(string dimension, Func<SqlConnection, Task<IReadOnlyCollection<T>>> retrieve)
         {
             var stopwatch = Stopwatch.StartNew();
-            IReadOnlyCollection<T> dimensions;
-            try
-            {
-                _jobEventSource.BeginningRetrieveDimension(dimension);
+            var count = _maxRetryCount;
 
-                using (var connection = await _targetDatabase.ConnectTo())
+            while (count > 0)
+            {
+                try
                 {
-                    dimensions = await retrieve(connection);
-                }
+                    _jobEventSource.BeginningRetrieveDimension(dimension);
 
-                stopwatch.Stop();
-                _jobEventSource.FinishedRetrieveDimension(dimension, stopwatch.ElapsedMilliseconds);
-            }
-            catch (Exception exception)
-            {
-                _jobEventSource.FailedRetrieveDimension(dimension);
-                ApplicationInsights.TrackException(exception);
+                    IReadOnlyCollection<T> dimensions;
+                    using (var connection = await _targetDatabase.ConnectTo())
+                    {
+                        dimensions = await retrieve(connection);
+                    }
 
-                if (stopwatch.IsRunning)
                     stopwatch.Stop();
+                    _jobEventSource.FinishedRetrieveDimension(dimension, stopwatch.ElapsedMilliseconds);
 
-                throw;
+                    return dimensions;
+                }
+                catch (SqlException e)
+                {
+                    --count;
+                    if (count <= 0)
+                    {
+                        throw;
+                    }
+
+                    if (e.Number == 1205)
+                    {
+                        Trace.TraceWarning("Deadlock, retrying...");
+                    }
+                    else if (e.Number == -2)
+                    {
+                        Trace.TraceWarning("Timeout, retrying...");
+                    }
+                    else if (e.Number == 2601)
+                    {
+                        Trace.TraceWarning("Duplicate key, retrying...");
+                    }
+                    else
+                    {
+                        throw;
+                    }
+
+                    Task.Delay(_retryDelay).Wait();
+                }
+                catch (Exception exception)
+                {
+                    _jobEventSource.FailedRetrieveDimension(dimension);
+                    ApplicationInsights.TrackException(exception);
+
+                    if (stopwatch.IsRunning)
+                        stopwatch.Stop();
+
+                    throw;
+                }
             }
-            return dimensions;
+            return Enumerable.Empty<T>().ToList();
         }
 
         private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int projectTypeId, int clientId, string logFileName)
@@ -349,7 +419,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private async Task<IDictionary<string, int>> RetrieveOperationDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        private static async Task<IDictionary<string, int>> RetrieveOperationDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
             var operations = sourceData
                 .Where(e => !string.IsNullOrEmpty(e.Operation))
@@ -382,7 +452,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private async Task<IDictionary<string, int>> RetrieveProjectTypeDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        private static async Task<IDictionary<string, int>> RetrieveProjectTypeDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
             var projectTypes = sourceData
                 .Where(e => !string.IsNullOrEmpty(e.ProjectGuids))
@@ -415,7 +485,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private async Task<IDictionary<string, int>> RetrieveClientDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        private static async Task<IDictionary<string, int>> RetrieveClientDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
             var clientDimensions = sourceData
                 .Where(e => !string.IsNullOrEmpty(e.UserAgent))
@@ -451,7 +521,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private async Task<IDictionary<string, int>> RetrievePlatformDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        private static async Task<IDictionary<string, int>> RetrievePlatformDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
             var platformDimensions = sourceData
                 .Where(e => !string.IsNullOrEmpty(e.UserAgent))
