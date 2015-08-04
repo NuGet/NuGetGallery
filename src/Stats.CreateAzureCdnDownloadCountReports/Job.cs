@@ -54,8 +54,6 @@ namespace Stats.CreateAzureCdnDownloadCountReports
         {
             try
             {
-                var stopwatch = Stopwatch.StartNew();
-
                 // construct a cloud blob client for the configured storage account
                 var cloudBlobClient = _cloudStorageAccount.CreateCloudBlobClient();
                 cloudBlobClient.DefaultRequestOptions.RetryPolicy = new ExponentialRetry(TimeSpan.FromSeconds(10), 5);
@@ -78,29 +76,29 @@ namespace Stats.CreateAzureCdnDownloadCountReports
                 }
                 Trace.TraceInformation("Gathered {0} rows of data.", downloadData.Count);
 
-                // Group based on Package Id
-                var grouped = downloadData.GroupBy(p => p.PackageId);
-                var registrations = new JArray();
-                foreach (var group in grouped)
+                if (downloadData.Any())
                 {
-                    var details = new JArray();
-                    details.Add(group.Key);
-                    foreach (var gv in group)
+                    // Group based on Package Id
+                    var grouped = downloadData.GroupBy(p => p.PackageId);
+                    var registrations = new JArray();
+                    foreach (var group in grouped)
                     {
-                        var version = new JArray(gv.PackageVersion, gv.TotalDownloadCount);
-                        details.Add(version);
+                        var details = new JArray();
+                        details.Add(group.Key);
+                        foreach (var gv in group)
+                        {
+                            var version = new JArray(gv.PackageVersion, gv.TotalDownloadCount);
+                            details.Add(version);
+                        }
+                        registrations.Add(details);
                     }
-                    registrations.Add(details);
+
+                    var blob = targetBlobContainer.GetBlockBlobReference(_reportName);
+                    Trace.TraceInformation("Writing report to {0}", blob.Uri.AbsoluteUri);
+                    blob.Properties.ContentType = "application/json";
+                    await blob.UploadTextAsync(registrations.ToString(Formatting.None));
+                    Trace.TraceInformation("Wrote report to {0}", blob.Uri.AbsoluteUri);
                 }
-
-                var blob = targetBlobContainer.GetBlockBlobReference(_reportName);
-                Trace.TraceInformation("Writing report to {0}", blob.Uri.AbsoluteUri);
-                blob.Properties.ContentType = "application/json";
-                await blob.UploadTextAsync(registrations.ToString(Formatting.None));
-                Trace.TraceInformation("Wrote report to {0}", blob.Uri.AbsoluteUri);
-
-                stopwatch.Stop();
-                Trace.WriteLine("Time elapsed: " + stopwatch.Elapsed);
 
                 return true;
             }
