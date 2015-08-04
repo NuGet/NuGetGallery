@@ -57,8 +57,6 @@ namespace Stats.ImportAzureCdnStatistics
 
         public override async Task<bool> Run()
         {
-            var stopwatch = Stopwatch.StartNew();
-
             try
             {
                 // construct a cloud blob client for the configured storage account
@@ -90,18 +88,10 @@ namespace Stats.ImportAzureCdnStatistics
                     await logProcessor.ProcessLogFileAsync(leasedLogFile);
                 }
 
-                stopwatch.Stop();
-                Trace.WriteLine("Time elapsed: " + stopwatch.Elapsed);
-
                 return true;
             }
             catch (Exception exception)
             {
-                if (stopwatch.IsRunning)
-                {
-                    stopwatch.Stop();
-                }
-
                 Trace.TraceError(exception.ToString());
                 return false;
             }
