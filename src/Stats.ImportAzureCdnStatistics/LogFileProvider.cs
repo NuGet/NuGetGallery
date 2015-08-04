@@ -88,6 +88,7 @@ namespace Stats.ImportAzureCdnStatistics
                         if ((httpWebResponse.StatusCode == HttpStatusCode.Conflict
                             && httpWebResponse.StatusDescription == "There is already a lease present.") || httpWebResponse.StatusCode == HttpStatusCode.NotFound)
                         {
+                            _jobEventSource.FailedAcquireLease(blobUriString); // no need to report these in Application Insights
                             return null;
                         }
                     }
