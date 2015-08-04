@@ -1,12 +1,12 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.OData.Routing;
 using System.Web.Http.OData.Routing.Conventions;
-using Microsoft.Data.Edm.Library;
 
 namespace NuGetGallery.OData.Conventions
 {
@@ -43,7 +43,7 @@ namespace NuGetGallery.OData.Conventions
             var keyValuePathSegment = odataPath.Segments.OfType<KeyValuePathSegment>().Single();
             var propertyAccessPathSegment = odataPath.Segments.OfType<PropertyAccessPathSegment>().Single();
 
-            var actionName = string.Format("GetPropertyFrom{0}", entitySetPathSegment.EntitySetName);
+            var actionName = string.Format(CultureInfo.InvariantCulture, "GetPropertyFrom{0}", entitySetPathSegment.EntitySetName);
 
             if (actionMap.Contains(actionName) && actionMap[actionName].Any(desc => MatchHttpMethod(desc, controllerContext.Request.Method)))
             {
