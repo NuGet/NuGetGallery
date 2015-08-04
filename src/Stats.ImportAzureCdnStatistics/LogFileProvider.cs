@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using ThreadState = System.Threading.ThreadState;
 
 namespace Stats.ImportAzureCdnStatistics
 {
@@ -168,7 +169,7 @@ namespace Stats.ImportAzureCdnStatistics
 
             public void Dispose()
             {
-                if (_autoRenewLeaseThread != null && _autoRenewLeaseThread.IsAlive)
+                if (_autoRenewLeaseThread != null && ((_autoRenewLeaseThread.ThreadState & ThreadState.AbortRequested) != 0))
                 {
                     _autoRenewLeaseThread.Abort();
                 }
