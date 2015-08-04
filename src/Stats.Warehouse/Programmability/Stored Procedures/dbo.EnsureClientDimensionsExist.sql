@@ -17,8 +17,6 @@ BEGIN
 	DECLARE @Patch VARCHAR(50)
 
 	BEGIN TRY
-		SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
-		BEGIN TRANSACTION
 
 		-- Open Cursor
 		DECLARE client_Cursor CURSOR FOR
@@ -31,6 +29,9 @@ BEGIN
 
 		WHILE @@FETCH_STATUS = 0
 		BEGIN
+
+			SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
+			BEGIN TRANSACTION
 
 			-- Create dimension if not exists
 			IF NOT EXISTS (SELECT Id FROM [Dimension_Client] (NOLOCK) WHERE ISNULL([ClientName], '') = @ClientName AND ISNULL([Major], '') = @Major AND ISNULL([Minor], '') = @Minor AND ISNULL([Patch], '') = @Patch)
@@ -46,6 +47,8 @@ BEGIN
 						AND ISNULL([Minor], '') = @Minor
 						AND ISNULL([Patch], '') = @Patch
 
+			COMMIT
+
 			-- Advance cursor
 			FETCH NEXT FROM client_Cursor
 			INTO @UserAgent, @ClientName, @Major, @Minor, @Patch
@@ -54,8 +57,6 @@ BEGIN
 		-- Close cursor
 		CLOSE client_Cursor
 		DEALLOCATE client_Cursor
-
-		COMMIT
 
 	END TRY
 	BEGIN CATCH

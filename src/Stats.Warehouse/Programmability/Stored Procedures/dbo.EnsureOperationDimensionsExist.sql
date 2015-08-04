@@ -11,14 +11,15 @@ BEGIN
 			)
 
 			BEGIN TRY
-				SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
-				BEGIN TRANSACTION
 
 					-- Check which dimensions are new
 					INSERT INTO	@newDimensions ([Operation])
 					SELECT		[Value]
 					FROM		[dbo].[ParseCSVString](@operations)
 					WHERE		[Value] NOT IN (SELECT [Operation] FROM [Dimension_Operation] (NOLOCK))
+
+					SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
+					BEGIN TRANSACTION
 
 					-- Insert the new dimensions
 					INSERT INTO	[Dimension_Operation]

@@ -18,8 +18,6 @@ BEGIN
 	DECLARE @PatchMinor VARCHAR(50)
 
 	BEGIN TRY
-		SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
-		BEGIN TRANSACTION
 
 		-- Open Cursor
 		DECLARE platform_Cursor CURSOR FOR
@@ -32,6 +30,9 @@ BEGIN
 
 		WHILE @@FETCH_STATUS = 0
 		BEGIN
+
+			SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
+			BEGIN TRANSACTION
 
 			-- Create dimension if not exists
 			IF NOT EXISTS (SELECT Id FROM [Dimension_Platform] (NOLOCK) WHERE ISNULL([OSFamily], '') = @OSFamily AND ISNULL([Major], '') = @Major AND ISNULL([Minor], '') = @Minor AND ISNULL([Patch], '') = @Patch AND ISNULL([PatchMinor], '') = @PatchMinor)
@@ -48,6 +49,8 @@ BEGIN
 						AND ISNULL([Patch], '') = @Patch
 						AND ISNULL([PatchMinor], '') = @PatchMinor
 
+			COMMIT
+
 			-- Advance cursor
 			FETCH NEXT FROM platform_Cursor
 			INTO @UserAgent, @OSFamily, @Major, @Minor, @Patch, @PatchMinor
@@ -56,8 +59,6 @@ BEGIN
 		-- Close cursor
 		CLOSE platform_Cursor
 		DEALLOCATE platform_Cursor
-
-		COMMIT
 
 	END TRY
 	BEGIN CATCH

@@ -15,8 +15,6 @@ BEGIN
 	DECLARE @PackageVersion NVARCHAR(128)
 
 	BEGIN TRY
-		SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
-		BEGIN TRANSACTION
 
 		-- Open Cursor
 		DECLARE package_Cursor CURSOR FOR
@@ -30,6 +28,9 @@ BEGIN
 		WHILE @@FETCH_STATUS = 0
 		BEGIN
 
+			SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
+			BEGIN TRANSACTION
+
 			-- Create dimension if not exists
 			IF NOT EXISTS (SELECT Id FROM [Dimension_Package] (NOLOCK) WHERE ISNULL([PackageId], '') = @PackageId AND ISNULL([PackageVersion], '') = @PackageVersion)
 				INSERT INTO [Dimension_Package] ([PackageId], [PackageVersion])
@@ -42,6 +43,8 @@ BEGIN
 				WHERE	ISNULL([PackageId], '') = @PackageId
 						AND ISNULL([PackageVersion], '') = @PackageVersion
 
+			COMMIT
+
 			-- Advance cursor
 			FETCH NEXT FROM package_Cursor
 			INTO @packageId, @packageVersion
@@ -50,8 +53,6 @@ BEGIN
 		-- Close cursor
 		CLOSE package_Cursor
 		DEALLOCATE package_Cursor
-
-		COMMIT
 
 	END TRY
 	BEGIN CATCH
