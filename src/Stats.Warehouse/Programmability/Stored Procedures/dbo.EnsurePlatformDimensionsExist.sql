@@ -34,14 +34,14 @@ BEGIN
 		BEGIN
 
 			-- Create dimension if not exists
-			IF NOT EXISTS (SELECT Id FROM [Dimension_Platform] WHERE ISNULL([OSFamily], '') = @OSFamily AND ISNULL([Major], '') = @Major AND ISNULL([Minor], '') = @Minor AND ISNULL([Patch], '') = @Patch AND ISNULL([PatchMinor], '') = @PatchMinor)
+			IF NOT EXISTS (SELECT Id FROM [Dimension_Platform] (NOLOCK) WHERE ISNULL([OSFamily], '') = @OSFamily AND ISNULL([Major], '') = @Major AND ISNULL([Minor], '') = @Minor AND ISNULL([Patch], '') = @Patch AND ISNULL([PatchMinor], '') = @PatchMinor)
 				INSERT INTO [Dimension_Platform] ([OSFamily], [Major], [Minor], [Patch], [PatchMinor])
 					OUTPUT inserted.Id, @UserAgent INTO @results
 				VALUES (@OSFamily, @Major, @Minor, @Patch, @PatchMinor);
 			ELSE
 				INSERT INTO @results ([Id], [UserAgent])
 				SELECT	[Id], @UserAgent
-				FROM	[dbo].[Dimension_Platform]
+				FROM	[dbo].[Dimension_Platform] (NOLOCK)
 				WHERE	ISNULL([OSFamily], '') = @OSFamily
 						AND ISNULL([Major], '') = @Major
 						AND ISNULL([Minor], '') = @Minor

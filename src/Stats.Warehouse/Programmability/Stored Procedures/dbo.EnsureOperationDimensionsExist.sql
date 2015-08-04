@@ -18,7 +18,7 @@ BEGIN
 					INSERT INTO	@newDimensions ([Operation])
 					SELECT		[Value]
 					FROM		[dbo].[ParseCSVString](@operations)
-					WHERE		[Value] NOT IN (SELECT [Operation] FROM [Dimension_Operation])
+					WHERE		[Value] NOT IN (SELECT [Operation] FROM [Dimension_Operation] (NOLOCK))
 
 					-- Insert the new dimensions
 					INSERT INTO	[Dimension_Operation]
@@ -39,7 +39,7 @@ BEGIN
 
 			-- Select all matching dimensions
 			SELECT		[Id], [Operation]
-			FROM		[Dimension_Operation]
+			FROM		[Dimension_Operation] (NOLOCK)
 			WHERE		ISNULL([Operation], '') IN (SELECT [Value] FROM dbo.ParseCSVString(@operations))
 		END
 END

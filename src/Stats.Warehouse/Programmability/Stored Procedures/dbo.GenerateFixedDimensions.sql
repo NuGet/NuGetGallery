@@ -7,7 +7,7 @@ AS
 
 	DELETE [dbo].[Dimension_Date]
 
-	IF NOT EXISTS(SELECT * FROM [dbo].[Dimension_Date] WHERE Id = -1)
+	IF NOT EXISTS(SELECT * FROM [dbo].[Dimension_Date] (NOLOCK) WHERE Id = -1)
 	BEGIN
 
 		SET IDENTITY_INSERT [dbo].[Dimension_Date] ON
@@ -99,7 +99,7 @@ AS
 	SET @Date = CAST('2010-01-01' AS DATE)
 	SET @EndDate = CAST('2099-12-31' AS DATE)
 
-	IF (SELECT COUNT(*) FROM [dbo].[Dimension_Date] WHERE Id <> -1) = 0
+	IF (SELECT COUNT(*) FROM [dbo].[Dimension_Date] (NOLOCK) WHERE Id <> -1) = 0
 	BEGIN
 
 		DECLARE @FYDays INT, @FYWeek INT, @FYMonth INT, @FYQuarter INT, @FYYear INT, @FYStartDate DATETIME

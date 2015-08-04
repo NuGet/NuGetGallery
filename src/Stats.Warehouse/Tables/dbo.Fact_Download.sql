@@ -8,7 +8,7 @@
     [Dimension_Client_Id]			INT NOT NULL,
     [Dimension_Platform_Id]			INT NOT NULL,
     [DownloadCount]					INT NULL,
-    [LogFileName]						NVARCHAR(255) NULL,
+    [LogFileName]					NVARCHAR(255) NULL,
     CONSTRAINT [PK_Fact_Download] PRIMARY KEY CLUSTERED ([Id]) WITH (STATISTICS_NORECOMPUTE = ON)
 );
 GO

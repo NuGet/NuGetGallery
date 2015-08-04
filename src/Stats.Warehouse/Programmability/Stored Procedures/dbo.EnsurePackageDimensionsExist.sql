@@ -31,14 +31,14 @@ BEGIN
 		BEGIN
 
 			-- Create dimension if not exists
-			IF NOT EXISTS (SELECT Id FROM [Dimension_Package] WHERE ISNULL([PackageId], '') = @PackageId AND ISNULL([PackageVersion], '') = @PackageVersion)
+			IF NOT EXISTS (SELECT Id FROM [Dimension_Package] (NOLOCK) WHERE ISNULL([PackageId], '') = @PackageId AND ISNULL([PackageVersion], '') = @PackageVersion)
 				INSERT INTO [Dimension_Package] ([PackageId], [PackageVersion])
 					OUTPUT inserted.Id, inserted.PackageId, inserted.PackageVersion INTO @results
 				VALUES (@PackageId, @PackageVersion);
 			ELSE
 				INSERT INTO @results ([Id], [PackageId], [PackageVersion])
 				SELECT	[Id], [PackageId], [PackageVersion]
-				FROM	[dbo].[Dimension_Package]
+				FROM	[dbo].[Dimension_Package] (NOLOCK)
 				WHERE	ISNULL([PackageId], '') = @PackageId
 						AND ISNULL([PackageVersion], '') = @PackageVersion
 

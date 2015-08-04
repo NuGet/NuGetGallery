@@ -18,7 +18,7 @@ BEGIN
 					INSERT INTO	@newDimensions ([ProjectType])
 					SELECT		[Value]
 					FROM		[dbo].[ParseCSVString](@projectTypes)
-					WHERE		[Value] NOT IN (SELECT [ProjectType] FROM [Dimension_ProjectType])
+					WHERE		[Value] NOT IN (SELECT [ProjectType] FROM [Dimension_ProjectType] (NOLOCK))
 
 					-- Insert the new dimensions
 					INSERT INTO	[Dimension_ProjectType]
@@ -39,7 +39,7 @@ BEGIN
 
 			-- Select all matching dimensions
 			SELECT		[Id], [ProjectType]
-			FROM		[Dimension_ProjectType]
+			FROM		[Dimension_ProjectType] (NOLOCK)
 			WHERE		ISNULL([ProjectType], '') IN (SELECT [Value] FROM dbo.ParseCSVString(@projectTypes))
 		END
 END

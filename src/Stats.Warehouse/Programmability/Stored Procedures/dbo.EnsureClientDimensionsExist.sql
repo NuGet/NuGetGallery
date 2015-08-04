@@ -33,14 +33,14 @@ BEGIN
 		BEGIN
 
 			-- Create dimension if not exists
-			IF NOT EXISTS (SELECT Id FROM [Dimension_Client] WHERE ISNULL([ClientName], '') = @ClientName AND ISNULL([Major], '') = @Major AND ISNULL([Minor], '') = @Minor AND ISNULL([Patch], '') = @Patch)
+			IF NOT EXISTS (SELECT Id FROM [Dimension_Client] (NOLOCK) WHERE ISNULL([ClientName], '') = @ClientName AND ISNULL([Major], '') = @Major AND ISNULL([Minor], '') = @Minor AND ISNULL([Patch], '') = @Patch)
 				INSERT INTO [Dimension_Client] ([ClientName], [Major], [Minor], [Patch])
 					OUTPUT inserted.Id, @UserAgent INTO @results
 				VALUES (@ClientName, @Major, @Minor, @Patch);
 			ELSE
 				INSERT INTO @results ([Id], [UserAgent])
 				SELECT	[Id], @UserAgent
-				FROM	[dbo].[Dimension_Client]
+				FROM	[dbo].[Dimension_Client] (NOLOCK)
 				WHERE	ISNULL([ClientName], '') = @ClientName
 						AND ISNULL([Major], '') = @Major
 						AND ISNULL([Minor], '') = @Minor
