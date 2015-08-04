@@ -2,12 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Stats.AzureCdnLogs.Common
 {
     public class CdnLogEntry
-        : TableEntity
     {
         /// <summary>
         /// The date and time (GMT) at which an edge server delivered the requested content to the client.

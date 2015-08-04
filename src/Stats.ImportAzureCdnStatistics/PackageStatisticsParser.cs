@@ -55,12 +55,7 @@ namespace Stats.ImportAzureCdnStatistics
                 }
 
                 var statistic = new PackageStatistics();
-
-                // combination of partition- and row-key correlates each statistic to a cdn raw log entry
-                statistic.PartitionKey = cdnLogEntry.PartitionKey;
-                statistic.RowKey = cdnLogEntry.RowKey;
                 statistic.EdgeServerTimeDelivered = cdnLogEntry.EdgeServerTimeDelivered;
-
                 statistic.PackageId = packageDefinition.PackageId;
                 statistic.PackageVersion = packageDefinition.PackageVersion;
 

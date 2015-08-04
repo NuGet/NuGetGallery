@@ -6,9 +6,9 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 
-namespace Stats.ImportAzureCdnStatistics
+namespace Stats.AzureCdnLogs.Common
 {
-    internal static class ApplicationInsights
+    public static class ApplicationInsights
     {
         private static bool _initialized;
 

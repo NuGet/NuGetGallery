@@ -42,15 +42,6 @@ namespace Stats.AzureCdnLogs.Common
             // timestamp
             entry.EdgeServerTimeDelivered = FromUnixTimestamp(columns[0]);
 
-            if (entry.EdgeServerTimeDelivered != null)
-            {
-                // reverse chronological order of log entries
-                entry.RowKey = RowKeyBuilder.CreateReverseChronological(entry.EdgeServerTimeDelivered);
-
-                // parition by date
-                entry.PartitionKey = entry.EdgeServerTimeDelivered.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
-            }
-
             // time-taken
             TrySetIntProperty(value => entry.EdgeServerTimeTaken = value, columns[1]);
 

@@ -5,7 +5,7 @@ using System;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 
-namespace Stats.ImportAzureCdnStatistics
+namespace Stats.AzureCdnLogs.Common
 {
     internal class SessionInitializer
         : IContextInitializer
