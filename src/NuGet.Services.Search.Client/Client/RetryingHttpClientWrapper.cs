@@ -86,7 +86,7 @@ namespace NuGet.Services.Search.Client
 
             if (completedTask == null || completedTask.IsFaulted || completedTask.IsCanceled)
             {
-                var exceptionsToThrow = exceptions.Where(e => !(e is TaskCanceledException)).ToList();
+                var exceptionsToThrow = exceptions.Where(e => !(e is TaskCanceledException || e.InnerException is TaskCanceledException)).ToList();
                 if (exceptionsToThrow.Count == 1)
                 {
                     throw exceptionsToThrow.First();
@@ -145,12 +145,6 @@ namespace NuGet.Services.Search.Client
                             else
                             {
                                 cancellatonTokenSource.Cancel();
-                            }
-
-                            if (ex is TaskCanceledException || ex.InnerException is TaskCanceledException)
-                            {
-                                // if we're canceling out, return the default value
-                                return default(TResponseType);
                             }
 
                             throw;
