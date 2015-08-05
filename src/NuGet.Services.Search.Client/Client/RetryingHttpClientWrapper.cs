@@ -146,6 +146,13 @@ namespace NuGet.Services.Search.Client
                             {
                                 cancellatonTokenSource.Cancel();
                             }
+
+                            if (ex is TaskCanceledException || ex.InnerException is TaskCanceledException)
+                            {
+                                // if we're canceling out, return the default value
+                                return default(TResponseType);
+                            }
+
                             throw;
                         }
                     }, cancellatonTokenSource.Token));
