@@ -31,6 +31,9 @@ namespace Stats.ImportAzureCdnStatistics
 
         public async Task ProcessLogFileAsync(ILeasedLogFile logFile)
         {
+            if (logFile == null)
+                return;
+
             try
             {
                 var log = await DecompressBlobAsync(logFile);
