@@ -131,14 +131,11 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<FormsAuthenticationService>()
-                .AsSelf()
                 .As<IFormsAuthenticationService>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<CookieTempDataProvider>()
-                .AsSelf()
                 .As<ITempDataProvider>()
-                .AsSelf()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<NuGetExeDownloaderService>()
