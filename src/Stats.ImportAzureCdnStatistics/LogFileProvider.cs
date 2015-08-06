@@ -157,9 +157,7 @@ namespace Stats.ImportAzureCdnStatistics
                                 System.Diagnostics.Trace.TraceInformation("Thread [{0}] working.",
                                     Thread.CurrentThread.ManagedThreadId);
                                 _jobEventSource.BeginningRenewLease(blobUriString);
-                                await
-                                    blob.RenewLeaseAsync(AccessCondition.GenerateLeaseCondition(leaseId),
-                                        cancellationToken);
+                                await blob.RenewLeaseAsync(AccessCondition.GenerateLeaseCondition(leaseId), cancellationToken);
                                 _jobEventSource.FinishedRenewLease(blobUriString);
                             }
                         }

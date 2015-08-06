@@ -62,7 +62,7 @@ namespace Stats.ImportAzureCdnStatistics
                 await EnsureCopiedToContainerAsync(logFile, _deadLetterContainer, e);
 
                 // delete the blob from the 'to-be-processed' container
-                await logFile.Blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, AccessCondition.GenerateLeaseCondition(logFile.LeaseId), null, null);
+                await DeleteSourceBlobAsync(logFile);
             }
         }
 
