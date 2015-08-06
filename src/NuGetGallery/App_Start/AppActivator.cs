@@ -62,7 +62,7 @@ namespace NuGetGallery
         {
             if (!OwinStartup.HasRun)
             {
-                throw new System.ApplicationException("The OwinStartup module did not run. Make sure the application runs in an OWIN pipeline and Microsoft.Owin.Host.SystemWeb.dll is in the bin directory.");
+                throw new NullReferenceException("The OwinStartup module did not run. Make sure the application runs in an OWIN pipeline and Microsoft.Owin.Host.SystemWeb.dll is in the bin directory.");
             }
 
             // Get configuration from the kernel

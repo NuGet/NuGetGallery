@@ -260,7 +260,7 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
         }
 
-        private void ConfigureSearch(ContainerBuilder builder, ConfigurationService configuration)
+        private static void ConfigureSearch(ContainerBuilder builder, ConfigurationService configuration)
         {
             if (configuration.Current.ServiceDiscoveryUri == null)
             {
@@ -283,7 +283,7 @@ namespace NuGetGallery
             }
         }
 
-        private void ConfigureForLocalFileSystem(ContainerBuilder builder)
+        private static void ConfigureForLocalFileSystem(ContainerBuilder builder)
         {
             builder.RegisterType<FileSystemFileStorageService>()
                 .AsSelf()
@@ -312,7 +312,7 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
         }
 
-        private void ConfigureForAzureStorage(ContainerBuilder builder, ConfigurationService configuration)
+        private static void ConfigureForAzureStorage(ContainerBuilder builder, ConfigurationService configuration)
         {
             builder.RegisterInstance(new CloudBlobClientWrapper(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .AsSelf()
