@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 
 namespace Stats.AzureCdnLogs.Common
 {
@@ -21,6 +22,9 @@ namespace Stats.AzureCdnLogs.Common
             {
                 return null;
             }
+
+            requestUrl = HttpUtility.UrlDecode(requestUrl);
+
 
             var urlSegments = requestUrl.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
             var fileName = urlSegments.Last();
