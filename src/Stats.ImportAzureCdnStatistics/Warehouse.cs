@@ -46,8 +46,9 @@ namespace Stats.ImportAzureCdnStatistics
                         bulkCopy.BulkCopyTimeout = _defaultCommandTimeout;
 
                         await bulkCopy.WriteToServerAsync(downloadFacts);
+
+                        transaction.Commit();
                     }
-                    transaction.Commit();
 
                     stopwatch.Stop();
                     ApplicationInsights.TrackMetric("Insert facts duration (ms)", stopwatch.ElapsedMilliseconds, logFileName);
