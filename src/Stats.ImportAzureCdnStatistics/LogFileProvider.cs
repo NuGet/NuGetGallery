@@ -108,6 +108,7 @@ namespace Stats.ImportAzureCdnStatistics
             private readonly JobEventSource _jobEventSource = JobEventSource.Log;
             private readonly Thread _autoRenewLeaseThread;
             private readonly TimeSpan _leaseExpirationThreshold = TimeSpan.FromSeconds(40);
+            private readonly CancellationTokenSource _cancellationTokenSource;
 
             internal LeasedLogFile(CloudBlockBlob blob, string leaseId)
             {
@@ -121,7 +122,8 @@ namespace Stats.ImportAzureCdnStatistics
                 Uri = blob.Uri.ToString();
 
                 // hold on to the lease for the duration of this method-action by auto-renewing in the background
-                _autoRenewLeaseThread = StartNewAutoRenewLeaseThread(blob, leaseId);
+                _cancellationTokenSource = new CancellationTokenSource();
+                _autoRenewLeaseThread = StartNewAutoRenewLeaseThread(blob, leaseId, _cancellationTokenSource.Token);
             }
 
             public string Uri { get; private set; }
@@ -138,28 +140,39 @@ namespace Stats.ImportAzureCdnStatistics
                 await Blob.AcquireLeaseAsync(null, LeaseId);
             }
 
-            private Thread StartNewAutoRenewLeaseThread(ICloudBlob blob, string leaseId)
+            private Thread StartNewAutoRenewLeaseThread(ICloudBlob blob, string leaseId, CancellationToken cancellationToken)
             {
                 var autoRenewLeaseThread = new Thread(
                     async () =>
                     {
-                        while (await blob.ExistsAsync())
+                        System.Diagnostics.Trace.TraceInformation("Thread [{0}] started.", Thread.CurrentThread.ManagedThreadId);
+                        var blobUriString = blob.Uri.ToString();
+                        try
                         {
-                            // auto-renew lease when about to expire
-                            Thread.Sleep(_leaseExpirationThreshold);
-                            var blobUriString = blob.Uri.ToString();
-                            try
+                            while (!cancellationToken.IsCancellationRequested &&
+                                   await blob.ExistsAsync(cancellationToken))
                             {
+                                // auto-renew lease when about to expire
+                                Thread.Sleep(_leaseExpirationThreshold);
+                                System.Diagnostics.Trace.TraceInformation("Thread [{0}] working.",
+                                    Thread.CurrentThread.ManagedThreadId);
                                 _jobEventSource.BeginningRenewLease(blobUriString);
-                                await blob.RenewLeaseAsync(AccessCondition.GenerateLeaseCondition(leaseId));
+                                await
+                                    blob.RenewLeaseAsync(AccessCondition.GenerateLeaseCondition(leaseId),
+                                        cancellationToken);
                                 _jobEventSource.FinishedRenewLease(blobUriString);
                             }
-                            catch
-                            {
-                                // The blob could have been deleted in the meantime and this thread will be killed either way.
-                                // No need to track in Application Insights.
-                                _jobEventSource.FailedRenewLease(blobUriString);
-                            }
+                        }
+                        catch (TaskCanceledException)
+                        {
+                            System.Diagnostics.Trace.TraceWarning("Thread [{0}] cancelled.", Thread.CurrentThread.ManagedThreadId);
+                            // No need to track
+                        }
+                        catch
+                        {
+                            System.Diagnostics.Trace.TraceError("Thread [{0}] error.", Thread.CurrentThread.ManagedThreadId);
+                            // The blob could have been deleted in the meantime and this thread will be killed either way.
+                            // No need to track in Application Insights.
                         }
                     });
                 autoRenewLeaseThread.Start();
@@ -168,9 +181,12 @@ namespace Stats.ImportAzureCdnStatistics
 
             public void Dispose()
             {
-                if (_autoRenewLeaseThread != null && ((_autoRenewLeaseThread.ThreadState & ThreadState.AbortRequested) != 0))
+                if (_autoRenewLeaseThread != null)
                 {
-                    _autoRenewLeaseThread.Abort();
+                    System.Diagnostics.Trace.TraceInformation("Thread [{0}] disposing.", _autoRenewLeaseThread.ManagedThreadId);
+                    _cancellationTokenSource.Cancel(false);
+                    _autoRenewLeaseThread.Join();
+                    System.Diagnostics.Trace.TraceInformation("Thread [{0}] disposed.", _autoRenewLeaseThread.ManagedThreadId);
                 }
             }
         }
