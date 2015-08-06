@@ -91,5 +91,6 @@
     <Build Include="Programmability\Stored Procedures\dbo.EnsurePackageDimensionsExist.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.SelectTotalDownloadCountsPerPackageVersion.sql" />
     <Build Include="Programmability\Functions\dbo.GetClientCategory.sql" />
+    <Build Include="Tables\dbo.Support_TranslatePackages.sql" />
   </ItemGroup>
 </Project>
