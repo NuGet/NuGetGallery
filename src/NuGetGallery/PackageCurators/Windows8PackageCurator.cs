@@ -6,6 +6,11 @@ namespace NuGetGallery
 {
     public class Windows8PackageCurator : TagBasedPackageCurator
     {
+        public Windows8PackageCurator(ICuratedFeedService curatedFeedService)
+            : base(curatedFeedService)
+        {
+        }
+
         protected override IEnumerable<string> RequiredTags
         {
             get

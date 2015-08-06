@@ -1,32 +1,31 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
+using System.Web.Mvc;
 using Glimpse.Core.Framework;
-using Ninject;
 
 namespace NuGetGallery.Diagnostics
 {
-    public class NinjectGlimpseServiceLocator : IServiceLocator
+    public class GlimpseServiceLocator : IServiceLocator
     {
         public ICollection<T> GetAllInstances<T>() where T : class
         {
-            var ninjectResources = Container.Kernel.GetAll<T>().ToList();
+            var instances = DependencyResolver.Current.GetServices<T>().ToList();
 
             // Glimpse interprets an empty collection to mean: I'm overriding your defaults and telling you NOT to load anythig
             // However, we want an empty collection to indicate to Glimpse that it should use the default. Returning null does that.
-            if (!ninjectResources.Any())
+            if (!instances.Any())
             {
                 return null;
             }
-            return ninjectResources;
+            return instances;
         }
 
         public T GetInstance<T>() where T : class
         {
-            return Container.Kernel.TryGet<T>();
+            return DependencyResolver.Current.GetService<T>();
         }
     }
 }

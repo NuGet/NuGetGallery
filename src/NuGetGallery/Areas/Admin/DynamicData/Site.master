@@ -1,6 +1,6 @@
 ﻿<%@ Master Language="C#" CodeBehind="Site.master.cs" Inherits="NuGetGallery.Areas.Admin.DynamicData.Site" %>
 <%@ Import Namespace="System.Web.Optimization" %>
-<%@ Import Namespace="Ninject" %>
+<%@ Import Namespace="NuGetGallery.Configuration" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -19,7 +19,7 @@
 <body>
     <% 
         // Cheap and easy DI. Not too clean :)
-        var config = NuGetGallery.Container.Kernel.Get<NuGetGallery.Configuration.AppConfiguration>();
+        var config = DependencyResolver.Current.GetService<IAppConfiguration>();
         string cls = "banner-warning";
         string message = "You are working with Live Data. Be careful!";
         if (String.Equals(config.Environment, "Production"))

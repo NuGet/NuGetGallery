@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Ninject;
+using System.Web.Mvc;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
@@ -13,7 +13,7 @@ namespace NuGetGallery
 
         public NuGetContext(AppController ctrl)
         {
-            Config = Container.Kernel.TryGet<ConfigurationService>();
+            Config = DependencyResolver.Current.GetService<ConfigurationService>();
 
             _currentUser = new Lazy<User>(() => ctrl.OwinContext.GetCurrentUser());
         }

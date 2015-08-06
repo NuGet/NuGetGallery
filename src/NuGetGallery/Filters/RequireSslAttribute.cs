@@ -1,12 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Globalization;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
-using Ninject;
-using Ninject.Web.Mvc.Filter;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Filters
@@ -15,13 +13,7 @@ namespace NuGetGallery.Filters
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public sealed class RequireSslAttribute : FilterAttribute, IAuthorizationFilter
     {
-        private IAppConfiguration _configuration;
-        
-        public IAppConfiguration Configuration
-        {
-            get { return _configuration ?? (_configuration = Container.Kernel.Get<IAppConfiguration>()); }
-            set { _configuration = value; }
-        }
+        public IAppConfiguration Configuration { get; set; }
 
         public void OnAuthorization(AuthorizationContext filterContext)
         {

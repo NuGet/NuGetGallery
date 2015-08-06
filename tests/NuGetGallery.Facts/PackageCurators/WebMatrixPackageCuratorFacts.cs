@@ -12,28 +12,32 @@ namespace NuGetGallery.PackageCurators
     {
         public class TestableWebMatrixPackageCurator : WebMatrixPackageCurator
         {
-            public TestableWebMatrixPackageCurator()
+            public static TestableWebMatrixPackageCurator Create(Action<Mock<ICuratedFeedService>> setupCuratedFeedServiceStub)
             {
-                StubCuratedFeed = new CuratedFeed { Key = 0 };
-                StubCuratedFeedService = new Mock<ICuratedFeedService>();
+                var stubCuratedFeed = new CuratedFeed { Key = 0 };
+                var stubCuratedFeedService = new Mock<ICuratedFeedService>();
 
-                StubCuratedFeedService
+                stubCuratedFeedService
                     .Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>()))
-                    .Returns(StubCuratedFeed);
+                    .Returns(stubCuratedFeed);
+
+                if (setupCuratedFeedServiceStub != null)
+                {
+                    setupCuratedFeedServiceStub(stubCuratedFeedService);
+                }
+
+                return new TestableWebMatrixPackageCurator(stubCuratedFeed, stubCuratedFeedService);
+            }
+
+            public TestableWebMatrixPackageCurator(CuratedFeed stubCuratedFeed, Mock<ICuratedFeedService> stubCuratedFeedService)
+                : base(stubCuratedFeedService.Object)
+            {
+                StubCuratedFeed = stubCuratedFeed;
+                StubCuratedFeedService = stubCuratedFeedService;
             }
 
             public CuratedFeed StubCuratedFeed { get; private set; }
             public Mock<ICuratedFeedService> StubCuratedFeedService { get; private set; }
-
-            protected override T GetService<T>()
-            {
-                if (typeof(T) == typeof(ICuratedFeedService))
-                {
-                    return (T)StubCuratedFeedService.Object;
-                }
-
-                throw new Exception("Tried to get an unexpected service.");
-            }
         }
 
         public class TheCurateMethod
@@ -41,8 +45,10 @@ namespace NuGetGallery.PackageCurators
             [Fact]
             public void WillNotIncludeThePackageWhenTheWebMatrixCuratedFeedDoesNotExist()
             {
-                var curator = new TestableWebMatrixPackageCurator();
-                curator.StubCuratedFeedService.Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
+                var curator = TestableWebMatrixPackageCurator.Create(stubCuratedFeedService =>
+                {
+                    stubCuratedFeedService.Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
+                });
 
                 curator.Curate(CreateStubGalleryPackage(), null, commitChanges: true);
 
@@ -92,7 +98,7 @@ namespace NuGetGallery.PackageCurators
             [Fact]
             public void WillNotExamineTheNuGetPackageFilesWhenTaggedWithAspNetWebPages()
             {
-                var curator = new TestableWebMatrixPackageCurator();
+                var curator = TestableWebMatrixPackageCurator.Create(null);
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 var stubNuGetPackage = CreateStubNuGetPackage();
                 stubGalleryPackage.Tags = "aTag aspnetwebpages aThirdTag";
@@ -247,7 +253,7 @@ namespace NuGetGallery.PackageCurators
             [Fact]
             public void WillIncludeThePackageUsingTheCuratedFeedKey()
             {
-                var curator = new TestableWebMatrixPackageCurator();
+                var curator = TestableWebMatrixPackageCurator.Create(null);
                 curator.StubCuratedFeed.Key = 42;
 
                 curator.Curate(CreateStubGalleryPackage(), CreateStubNuGetPackage().Object, commitChanges: true);
@@ -265,7 +271,7 @@ namespace NuGetGallery.PackageCurators
             [Fact]
             public void WillIncludeThePackageUsingThePackageRegistrationKey()
             {
-                var curator = new TestableWebMatrixPackageCurator();
+                var curator = TestableWebMatrixPackageCurator.Create(null);
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 stubGalleryPackage.PackageRegistration.Key = 42;
 
@@ -284,7 +290,7 @@ namespace NuGetGallery.PackageCurators
             [Fact]
             public void WillSetTheAutomaticBitWhenIncludingThePackage()
             {
-                var curator = new TestableWebMatrixPackageCurator();
+                var curator = TestableWebMatrixPackageCurator.Create(null);
 
                 curator.Curate(CreateStubGalleryPackage(), CreateStubNuGetPackage().Object, commitChanges: true);
 

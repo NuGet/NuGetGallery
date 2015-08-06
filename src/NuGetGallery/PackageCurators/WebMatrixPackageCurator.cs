@@ -11,12 +11,17 @@ namespace NuGetGallery
 {
     public class WebMatrixPackageCurator : AutomaticPackageCurator
     {
+        public WebMatrixPackageCurator(ICuratedFeedService curatedFeedService)
+            : base(curatedFeedService)
+        {
+        }
+
         public override void Curate(
             Package galleryPackage,
             INupkg nugetPackage,
             bool commitChanges)
         {
-            var curatedFeed = GetService<ICuratedFeedService>().GetFeedByName("webmatrix", includePackages: true);
+            var curatedFeed = CuratedFeedService.GetFeedByName("webmatrix", includePackages: true);
             if (curatedFeed == null)
             {
                 return;
@@ -25,7 +30,7 @@ namespace NuGetGallery
             var shouldBeIncluded = ShouldCuratePackage(curatedFeed, galleryPackage, nugetPackage);
             if (shouldBeIncluded)
             {
-                GetService<ICuratedFeedService>().CreatedCuratedPackage(
+                CuratedFeedService.CreatedCuratedPackage(
                     curatedFeed,
                     galleryPackage.PackageRegistration,
                     included: true,

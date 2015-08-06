@@ -1,17 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Web;
-using System.Web.Configuration;
 using System.Web.Mvc;
-using Microsoft.WindowsAzure.ServiceRuntime;
-using Ninject;
-using Ninject.Infrastructure;
-using Ninject.Planning.Bindings;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;

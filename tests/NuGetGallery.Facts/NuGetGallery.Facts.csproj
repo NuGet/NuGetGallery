@@ -47,17 +47,23 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\AnglicanGeek.MarkdownMailer.1.2\lib\net40\AnglicanGeek.MarkdownMailer.dll</HintPath>
     </Reference>
+    <Reference Include="Autofac">
+      <HintPath>..\..\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="Glimpse.AspNet, Version=1.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Glimpse.AspNet, Version=1.9.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Glimpse.AspNet.1.6.0\lib\net45\Glimpse.AspNet.dll</HintPath>
+      <HintPath>..\..\packages\Glimpse.AspNet.1.9.2\lib\net45\Glimpse.AspNet.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Glimpse.Core, Version=1.8.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Glimpse.Core, Version=1.8.6.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Glimpse.1.8.0\lib\net45\Glimpse.Core.dll</HintPath>
+      <HintPath>..\..\packages\Glimpse.1.8.6\lib\net45\Glimpse.Core.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
@@ -126,26 +132,6 @@
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="Ninject, Version=3.2.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Ninject.3.2.0.0\lib\net45-full\Ninject.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Ninject.MockingKernel, Version=3.2.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Ninject.MockingKernel.3.2.0.0\lib\net45-full\Ninject.MockingKernel.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Ninject.MockingKernel.Moq, Version=3.2.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Ninject.MockingKernel.Moq.3.2.0.0\lib\net45-full\Ninject.MockingKernel.Moq.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Ninject.Web.Common, Version=3.2.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Ninject.Web.Common.3.2.0.0\lib\net45-full\Ninject.Web.Common.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Ninject.Web.Mvc, Version=3.2.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Ninject.MVC5.3.2.1.0\lib\net45-full\Ninject.Web.Mvc.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Core, Version=2.8.60717.93, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -239,7 +225,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfigIsCorrectlyApplied.cs" />
-    <Compile Include="App_Start\NinjectWebCommon.cs" />
     <Compile Include="Authentication\AuthenticatorFacts.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandlerFacts.cs" />
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
@@ -267,10 +252,13 @@
     <Compile Include="Filters\RequireSslAttributeFacts.cs" />
     <Compile Include="Framework\AssertEx.cs" />
     <Compile Include="Framework\Fakes.cs" />
+    <Compile Include="Framework\LooseMocksRegistrationSource.cs" />
+    <Compile Include="Framework\MockWiringExtensions.cs" />
     <Compile Include="Framework\TestAuditingService.cs" />
     <Compile Include="Framework\TestContainer.cs" />
     <Compile Include="Framework\TestExtensionMethods.cs" />
     <Compile Include="Framework\UnitTestBindings.cs" />
+    <Compile Include="GlimpseSecurityPolicy.cs" />
     <Compile Include="Helpers\EnumHelperFacts.cs" />
     <Compile Include="Infrastructure\AnalysisHelperFacts.cs" />
     <Compile Include="Infrastructure\CookieTempDataProviderFacts.cs" />

@@ -103,6 +103,23 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\WebGrease.1.1.0\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="Autofac, Version=3.5.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Autofac.3.5.0\lib\net40\Autofac.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Autofac.Integration.Mvc">
+      <HintPath>..\..\packages\Autofac.Mvc5.3.3.4\lib\net45\Autofac.Integration.Mvc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Autofac.Integration.Mvc.Owin">
+      <HintPath>..\..\packages\Autofac.Mvc5.Owin.3.1.0\lib\net45\Autofac.Integration.Mvc.Owin.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Autofac.Integration.Owin">
+      <HintPath>..\..\packages\Autofac.Owin.3.1.0\lib\net45\Autofac.Integration.Owin.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="DynamicData.EFCodeFirstProvider, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\DynamicData.EFCodeFirstProvider.0.3.0.0\lib\net40\DynamicData.EFCodeFirstProvider.dll</HintPath>
@@ -118,25 +135,28 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="Glimpse.Ado, Version=1.7.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Glimpse.Ado, Version=1.7.3.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Glimpse.Ado.1.7.0\lib\net45\Glimpse.Ado.dll</HintPath>
+      <HintPath>..\..\packages\Glimpse.Ado.1.7.3\lib\net45\Glimpse.Ado.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Glimpse.AspNet, Version=1.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Glimpse.AspNet, Version=1.9.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Glimpse.AspNet.1.6.0\lib\net45\Glimpse.AspNet.dll</HintPath>
+      <HintPath>..\..\packages\Glimpse.AspNet.1.9.2\lib\net45\Glimpse.AspNet.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Glimpse.Core, Version=1.8.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Glimpse.Core, Version=1.8.6.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Glimpse.1.8.0\lib\net45\Glimpse.Core.dll</HintPath>
+      <HintPath>..\..\packages\Glimpse.1.8.6\lib\net45\Glimpse.Core.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Glimpse.EF43, Version=1.6.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Glimpse.EF43.1.6.0\lib\net40\Glimpse.EF43.dll</HintPath>
+    <Reference Include="Glimpse.EF5">
+      <HintPath>..\..\packages\Glimpse.EF5.1.6.5\lib\net45\Glimpse.EF5.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Glimpse.Mvc4, Version=1.5.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Glimpse.Mvc4.1.5.1\lib\net40\Glimpse.Mvc4.dll</HintPath>
+    <Reference Include="Glimpse.Mvc5">
+      <HintPath>..\..\packages\Glimpse.Mvc5.1.5.3\lib\net45\Glimpse.Mvc5.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
@@ -293,18 +313,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Ninject, Version=3.2.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Ninject.3.2.0.0\lib\net45-full\Ninject.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Ninject.Web.Common, Version=3.2.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Ninject.Web.Common.3.2.0.0\lib\net45-full\Ninject.Web.Common.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Ninject.Web.Mvc, Version=3.2.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Ninject.MVC5.3.2.1.0\lib\net45-full\Ninject.Web.Mvc.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="NuGet.Core, Version=2.8.60717.93, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.Core.2.8.6\lib\net40-Client\NuGet.Core.dll</HintPath>
@@ -431,7 +439,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="App_Start\NinjectWebCommon.cs" />
+    <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
     <Compile Include="Controllers\NuGetContext.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
@@ -450,7 +458,7 @@
     <Compile Include="Authentication\AuthenticatedUser.cs" />
     <Compile Include="Authentication\AuthenticationService.cs" />
     <Compile Include="Authentication\AuthenticationTypes.cs" />
-    <Compile Include="Authentication\AuthNinjectModule.cs" />
+    <Compile Include="Authentication\AuthDependenciesModule.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
     <Compile Include="Authentication\ForceSslWhenAuthenticatedMiddleware.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticator.cs" />
@@ -478,14 +486,16 @@
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
     <Compile Include="Diagnostics\PerfEvent.cs" />
     <Compile Include="Diagnostics\SendErrorsToTelemetryAttribute.cs" />
+    <Compile Include="GlimpseSecurityPolicy.cs" />
     <Compile Include="Helpers\HostMachine.cs" />
     <Compile Include="Helpers\AppInsightsHealthIndicatorLogger.cs" />
+    <Compile Include="Infrastructure\DependencyResolverServiceProviderAdapter.cs" />
     <Compile Include="Infrastructure\MessageQueue.cs" />
     <Compile Include="Diagnostics\NullDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\IDiagnosticsService.cs" />
     <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
-    <Compile Include="Diagnostics\NinjectGlimpseServiceLocator.cs" />
+    <Compile Include="Diagnostics\GlimpseServiceLocator.cs" />
     <Compile Include="Configuration\StorageType.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\AdminControllerBase.cs" />
@@ -752,7 +762,7 @@
     <Compile Include="DataServices\V2FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Diagnostics\DiagnosticsNinjectModule.cs" />
+    <Compile Include="Diagnostics\DiagnosticsDependenciesModule.cs" />
     <Compile Include="Diagnostics\GlimpseRuntimePolicy.cs" />
     <Compile Include="Filters\ApiAuthorizeAttribute.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
@@ -1113,7 +1123,6 @@
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
-    <Compile Include="Infrastructure\NuGetControllerFactory.cs" />
     <Compile Include="Services\Extensions.cs" />
     <Compile Include="Services\IMessageService.cs" />
     <Compile Include="Services\MessageService.cs" />
@@ -1129,8 +1138,7 @@
     <Compile Include="Services\PackageService.cs" />
     <Compile Include="Configuration\AppConfiguration.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="App_Start\Container.cs" />
-    <Compile Include="App_Start\ContainerBindings.cs" />
+    <Compile Include="App_Start\DefaultDependenciesModule.cs" />
     <Compile Include="Services\CryptographyService.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />
