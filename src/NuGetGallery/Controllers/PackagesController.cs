@@ -18,6 +18,7 @@ using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
+using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Packaging;
 using PoliteCaptcha;
 
@@ -292,7 +293,8 @@ namespace NuGetGallery
                 }
             }
 
-            if (_searchService.ContainsAllVersions)
+            var externalSerachService = _searchService as ExternalSearchService;
+            if (_searchService.ContainsAllVersions && externalSerachService != null)
             {
                 var isIndexedCacheKey = string.Format("IsIndexed_{0}_{1}", package.PackageRegistration.Id, package.Version);
                 var isIndexed = HttpContext.Cache.Get(isIndexedCacheKey) as bool?;
@@ -301,7 +303,7 @@ namespace NuGetGallery
                     var searchFilter = SearchAdaptor.GetSearchFilter(
                             "id:\"" + package.PackageRegistration.Id + "\" AND version:\"" + package.Version + "\"",
                             1, null, SearchFilter.ODataSearchContext);
-                    var results = await _searchService.Search(searchFilter);
+                    var results = await externalSerachService.RawSearch(searchFilter);
 
                     isIndexed = results.Hits > 0;
 
