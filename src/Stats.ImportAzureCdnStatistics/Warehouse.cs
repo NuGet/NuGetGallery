@@ -106,14 +106,14 @@ namespace Stats.ImportAzureCdnStatistics
             int? platformId = !platforms.Any() ? DimensionId.Unknown : (int?)null;
 
             Trace.WriteLine("Creating facts...");
-            foreach (var groupedByPackageId in sourceData.GroupBy(e => e.PackageId))
+            foreach (var groupedByPackageId in sourceData.GroupBy(e => e.PackageId, StringComparer.OrdinalIgnoreCase))
             {
-                var packagesForId = packages.Where(e => e.PackageId == groupedByPackageId.Key).ToList();
+                var packagesForId = packages.Where(e => string.Equals(e.PackageId, groupedByPackageId.Key, StringComparison.OrdinalIgnoreCase)).ToList();
 
-                foreach (var groupedByPackageIdAndVersion in groupedByPackageId.GroupBy(e => e.PackageVersion))
+                foreach (var groupedByPackageIdAndVersion in groupedByPackageId.GroupBy(e => e.PackageVersion, StringComparer.OrdinalIgnoreCase))
                 {
                     int packageId;
-                    var package = packagesForId.FirstOrDefault(e => e.PackageVersion == groupedByPackageIdAndVersion.Key);
+                    var package = packagesForId.FirstOrDefault(e => string.Equals(e.PackageVersion, groupedByPackageIdAndVersion.Key, StringComparison.OrdinalIgnoreCase));
                     if (package == null)
                     {
                         // This package id and version could not be 100% accurately parsed from the CDN Request URL,
