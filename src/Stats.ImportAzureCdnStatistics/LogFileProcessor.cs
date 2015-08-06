@@ -53,6 +53,8 @@ namespace Stats.ImportAzureCdnStatistics
             }
             catch (Exception e)
             {
+                await _deadLetterBlobContainer.CreateIfNotExistsAsync();
+
                 // avoid continuous rethrow and dead-letter the blob...
                 await logFile.AcquireInfiniteLeaseAsync();
 
