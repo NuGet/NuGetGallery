@@ -7,8 +7,8 @@ BEGIN
 	DECLARE @results TABLE
 	(
 		[Id]				INT				NOT NULL,
-		[PackageId]         NVARCHAR(128)	NULL,
-		[PackageVersion]	NVARCHAR(128)	NULL
+		[PackageId]         NVARCHAR(128)	NOT NULL,
+		[PackageVersion]	NVARCHAR(128)	NOT NULL
 	)
 
 	DECLARE @PackageId VARCHAR(128)
@@ -32,7 +32,7 @@ BEGIN
 			BEGIN TRANSACTION
 
 			-- Create dimension if not exists
-			IF NOT EXISTS (SELECT Id FROM [Dimension_Package] (NOLOCK) WHERE ISNULL([PackageId], '') = @PackageId AND ISNULL([PackageVersion], '') = @PackageVersion)
+			IF NOT EXISTS (SELECT Id FROM [Dimension_Package] (NOLOCK) WHERE [PackageId] = @PackageId AND [PackageVersion] = @PackageVersion)
 				INSERT INTO [Dimension_Package] ([PackageId], [PackageVersion])
 					OUTPUT inserted.Id, inserted.PackageId, inserted.PackageVersion INTO @results
 				VALUES (@PackageId, @PackageVersion);
@@ -40,8 +40,8 @@ BEGIN
 				INSERT INTO @results ([Id], [PackageId], [PackageVersion])
 				SELECT	[Id], [PackageId], [PackageVersion]
 				FROM	[dbo].[Dimension_Package] (NOLOCK)
-				WHERE	ISNULL([PackageId], '') = @PackageId
-						AND ISNULL([PackageVersion], '') = @PackageVersion
+				WHERE	[PackageId] = @PackageId
+						AND [PackageVersion] = @PackageVersion
 
 			COMMIT
 

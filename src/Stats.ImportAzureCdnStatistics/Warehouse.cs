@@ -80,11 +80,12 @@ namespace Stats.ImportAzureCdnStatistics
             var timesTask = GetDimension("time", connection => RetrieveTimeDimensions(connection));
             var datesTask = GetDimension("date", connection => RetrieveDateDimensions(connection, sourceData.Min(e => e.EdgeServerTimeDelivered), sourceData.Max(e => e.EdgeServerTimeDelivered)));
             var packagesTask = GetDimension("package", connection => RetrievePackageDimensions(sourceData, connection));
+            var packageTranslationsTask = GetDimension("package translations", connection => RetrievePackageTranslations(sourceData, connection));
 
             // create facts data rows by linking source data with dimensions
             // insert into temp table for increased scalability and allow for aggregation later
 
-            await Task.WhenAll(operationsTask, projectTypesTask, clientsTask, platformsTask, timesTask, datesTask, packagesTask);
+            await Task.WhenAll(operationsTask, projectTypesTask, clientsTask, platformsTask, timesTask, datesTask, packagesTask, packageTranslationsTask);
 
             var operations = operationsTask.Result;
             var projectTypes = projectTypesTask.Result;
@@ -93,6 +94,7 @@ namespace Stats.ImportAzureCdnStatistics
             var times = timesTask.Result;
             var dates = datesTask.Result;
             var packages = packagesTask.Result;
+            var packageTranslations = packageTranslationsTask.Result;
 
             var dataImporter = new DataImporter(_targetDatabase);
             var dataTable = await dataImporter.GetDataTableAsync("Fact_Download");
@@ -110,18 +112,31 @@ namespace Stats.ImportAzureCdnStatistics
 
                 foreach (var groupedByPackageIdAndVersion in groupedByPackageId.GroupBy(e => e.PackageVersion))
                 {
+                    int packageId;
                     var package = packagesForId.FirstOrDefault(e => e.PackageVersion == groupedByPackageIdAndVersion.Key);
                     if (package == null)
                     {
                         // This package id and version could not be 100% accurately parsed from the CDN Request URL,
                         // likely due to weird package ID which could be interpreted as a version string.
-                        // Track it in Application Insights.
-                        ApplicationInsights.TrackPackageNotFound(groupedByPackageId.Key, groupedByPackageIdAndVersion.Key);
+                        // Look for a mapping in the support table in an attempt to auto-correct this entry.
+                        var packageTranslation = packageTranslations.FirstOrDefault(t => t.IncorrectPackageId == groupedByPackageId.Key && t.IncorrectPackageVersion == groupedByPackageIdAndVersion.Key);
+                        if (packageTranslation != null)
+                        {
+                            // there seems to be a mapping
+                            packageId = packageTranslation.CorrectedPackageId;
+                        }
+                        else
+                        {
+                            // Track it in Application Insights.
+                            ApplicationInsights.TrackPackageNotFound(groupedByPackageId.Key, groupedByPackageIdAndVersion.Key);
 
-                        continue;
+                            continue;
+                        }
                     }
-
-                    var packageId = package.Id;
+                    else
+                    {
+                        packageId = package.Id;
+                    }
 
                     foreach (var element in groupedByPackageIdAndVersion)
                     {
@@ -366,6 +381,30 @@ namespace Stats.ImportAzureCdnStatistics
 
                     if (!results.Contains(package))
                         results.Add(package);
+                }
+            }
+
+            return results;
+        }
+
+        private static async Task<IReadOnlyCollection<PackageTranslation>> RetrievePackageTranslations(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        {
+            var command = connection.CreateCommand();
+            command.CommandText = "[dbo].[GetPackageTranslations]";
+            command.CommandTimeout = _defaultCommandTimeout;
+            command.CommandType = CommandType.StoredProcedure;
+
+            var results = new List<PackageTranslation>();
+            using (var dataReader = await command.ExecuteReaderAsync())
+            {
+                while (await dataReader.ReadAsync())
+                {
+                    var packageTranslation = new PackageTranslation();
+                    packageTranslation.CorrectedPackageId = dataReader.GetInt32(0);
+                    packageTranslation.IncorrectPackageId = dataReader.GetString(1);
+                    packageTranslation.IncorrectPackageVersion = dataReader.GetString(2);
+
+                    results.Add(packageTranslation);
                 }
             }
 

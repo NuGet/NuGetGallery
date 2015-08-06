@@ -42,6 +42,8 @@ BEGIN
 		OR	CHARINDEX('Opera', @ClientName) > 0
 		OR	CHARINDEX('Chrome', @ClientName) > 0
 		OR	CHARINDEX('Browser', @ClientName) > 0
+		OR	@ClientName = 'IE'
+		OR	CHARINDEX('IE Mobile', @ClientName) > 0
 		)
         RETURN 'Browser'
 

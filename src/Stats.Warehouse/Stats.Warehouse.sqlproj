@@ -92,5 +92,6 @@
     <Build Include="Programmability\Stored Procedures\dbo.SelectTotalDownloadCountsPerPackageVersion.sql" />
     <Build Include="Programmability\Functions\dbo.GetClientCategory.sql" />
     <Build Include="Tables\dbo.Support_TranslatePackages.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.GetPackageTranslations.sql" />
   </ItemGroup>
 </Project>
