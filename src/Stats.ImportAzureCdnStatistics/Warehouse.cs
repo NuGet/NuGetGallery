@@ -59,7 +59,7 @@ namespace Stats.ImportAzureCdnStatistics
                         stopwatch.Stop();
                     }
 
-                    ApplicationInsights.TrackException(exception);
+                    ApplicationInsights.TrackException(exception, logFileName);
                     transaction.Rollback();
                     throw;
                 }
@@ -128,7 +128,7 @@ namespace Stats.ImportAzureCdnStatistics
                         else
                         {
                             // Track it in Application Insights.
-                            ApplicationInsights.TrackPackageNotFound(groupedByPackageId.Key, groupedByPackageIdAndVersion.Key);
+                            ApplicationInsights.TrackPackageNotFound(groupedByPackageId.Key, groupedByPackageIdAndVersion.Key, logFileName);
 
                             continue;
                         }

@@ -114,7 +114,7 @@ namespace Stats.ImportAzureCdnStatistics
                 }
 
                 _jobEventSource.FailedParseLog(blobUri);
-                ApplicationInsights.TrackException(exception);
+                ApplicationInsights.TrackException(exception, blobName);
                 throw;
             }
 
@@ -161,7 +161,7 @@ namespace Stats.ImportAzureCdnStatistics
                 }
 
                 _jobEventSource.FailedDecompressBlob(logFile.Uri);
-                ApplicationInsights.TrackException(exception);
+                ApplicationInsights.TrackException(exception, logFile.Blob.Name);
                 throw;
             }
 
@@ -188,7 +188,7 @@ namespace Stats.ImportAzureCdnStatistics
                 }
 
                 _jobEventSource.FailedArchiveUpload(logFile.Uri);
-                ApplicationInsights.TrackException(exception);
+                ApplicationInsights.TrackException(exception, logFile.Blob.Name);
                 throw;
             }
         }
@@ -207,7 +207,7 @@ namespace Stats.ImportAzureCdnStatistics
                 catch (Exception exception)
                 {
                     _jobEventSource.FailedDelete(logFile.Uri);
-                    ApplicationInsights.TrackException(exception);
+                    ApplicationInsights.TrackException(exception, logFile.Blob.Name);
                     throw;
                 }
             }

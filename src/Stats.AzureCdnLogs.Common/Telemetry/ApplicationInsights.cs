@@ -27,7 +27,7 @@ namespace Stats.AzureCdnLogs.Common
             }
         }
 
-        public static void TrackException(Exception exception)
+        public static void TrackException(Exception exception, string logFileName = null)
         {
             if (!_initialized)
             {
@@ -36,11 +36,17 @@ namespace Stats.AzureCdnLogs.Common
 
             var telemetryClient = new TelemetryClient();
             var telemetry = new ExceptionTelemetry(exception);
+
+            if (!string.IsNullOrWhiteSpace(logFileName))
+            {
+                telemetry.Properties.Add("LogFile", logFileName);
+            }
+
             telemetryClient.TrackException(telemetry);
             telemetryClient.Flush();
         }
 
-        public static void TrackPackageNotFound(string id, string version)
+        public static void TrackPackageNotFound(string id, string version, string logFileName)
         {
             if (!_initialized)
             {
@@ -51,6 +57,7 @@ namespace Stats.AzureCdnLogs.Common
             var telemetry = new EventTelemetry("PackageNotFound");
             telemetry.Properties.Add("PackageId", id);
             telemetry.Properties.Add("PackageVersion", version);
+            telemetry.Properties.Add("LogFile", logFileName);
 
             telemetryClient.TrackEvent(telemetry);
             telemetryClient.Flush();
