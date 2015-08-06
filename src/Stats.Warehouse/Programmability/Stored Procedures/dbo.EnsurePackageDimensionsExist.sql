@@ -28,20 +28,24 @@ BEGIN
 		WHILE @@FETCH_STATUS = 0
 		BEGIN
 
+
+			DECLARE @packageIdLowercase NVARCHAR(128) = LOWER(@packageId)
+			DECLARE @packageVersionLowercase NVARCHAR(128) = LOWER(@packageVersion)
+
 			SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
 			BEGIN TRANSACTION
 
 			-- Create dimension if not exists
-			IF NOT EXISTS (SELECT Id FROM [Dimension_Package] (NOLOCK) WHERE [PackageId] = @PackageId AND [PackageVersion] = @PackageVersion)
+			IF NOT EXISTS (SELECT Id FROM [Dimension_Package] (NOLOCK) WHERE LOWER([PackageId]) = @packageIdLowercase AND LOWER([PackageVersion]) = @packageVersionLowercase)
 				INSERT INTO [Dimension_Package] ([PackageId], [PackageVersion])
 					OUTPUT inserted.Id, inserted.PackageId, inserted.PackageVersion INTO @results
-				VALUES (@PackageId, @PackageVersion);
+				VALUES (@packageIdLowercase, LOWER(@PackageVersion));
 			ELSE
 				INSERT INTO @results ([Id], [PackageId], [PackageVersion])
 				SELECT	[Id], [PackageId], [PackageVersion]
 				FROM	[dbo].[Dimension_Package] (NOLOCK)
-				WHERE	[PackageId] = @PackageId
-						AND [PackageVersion] = @PackageVersion
+				WHERE	LOWER([PackageId]) = @packageIdLowercase
+						AND LOWER([PackageVersion]) = @packageVersionLowercase
 
 			COMMIT
 

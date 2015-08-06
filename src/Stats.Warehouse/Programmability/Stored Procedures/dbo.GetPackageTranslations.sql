@@ -31,8 +31,8 @@ BEGIN
 			,T.[CorrectedPackageId]
 	FROM	[dbo].[Dimension_Package] AS P (NOLOCK)
 	INNER JOIN	@translations AS T
-	ON		P.PackageId = T.IncorrectPackageId
-			AND P.PackageVersion = T.IncorrectPackageVersion
+	ON		LOWER(P.PackageId) = LOWER(T.IncorrectPackageId)
+			AND LOWER(P.PackageVersion) = LOWER(T.IncorrectPackageVersion)
 
 	-- Correct the fact table by adjusting the package dimension mapping
 	BEGIN TRY
