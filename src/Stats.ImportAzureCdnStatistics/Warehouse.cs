@@ -19,6 +19,9 @@ namespace Stats.ImportAzureCdnStatistics
         private readonly TimeSpan _retryDelay = TimeSpan.FromSeconds(5);
         private readonly JobEventSource _jobEventSource;
         private readonly SqlConnectionStringBuilder _targetDatabase;
+        private static IReadOnlyCollection<TimeDimension> _times;
+        private static readonly IList<PackageDimension> _cachedPackageDimensions = new List<PackageDimension>();
+        private static readonly IDictionary<string, int> _cachedClientDimensions = new Dictionary<string, int>();
 
         public Warehouse(JobEventSource jobEventSource, SqlConnectionStringBuilder targetDatabase)
         {
@@ -26,11 +29,8 @@ namespace Stats.ImportAzureCdnStatistics
             _targetDatabase = targetDatabase;
         }
 
-        internal async Task InsertDownloadFactsAsync(IReadOnlyCollection<PackageStatistics> packageStatistics, string logFileName)
+        internal async Task InsertDownloadFactsAsync(DataTable downloadFacts, string logFileName)
         {
-            var downloadFacts = await CreateAsync(packageStatistics, logFileName);
-            ApplicationInsights.TrackMetric("Blob record count", downloadFacts.Rows.Count, logFileName);
-
             Trace.WriteLine("Inserting into facts table...");
             var stopwatch = Stopwatch.StartNew();
 
@@ -67,34 +67,37 @@ namespace Stats.ImportAzureCdnStatistics
             Trace.Write("  DONE");
         }
 
-        private async Task<DataTable> CreateAsync(IReadOnlyCollection<PackageStatistics> sourceData, string logFileName)
+        public async Task<DataTable> CreateAsync(IReadOnlyCollection<PackageStatistics> sourceData, string logFileName)
         {
             var stopwatch = Stopwatch.StartNew();
 
             // insert any new dimension data first
+            if (_times == null)
+            {
+                // this call is only needed once in the lifetime of the service
+                _times = await GetDimension("time", logFileName, connection => RetrieveTimeDimensions(connection));
+            }
+
             var packagesTask = GetDimension("package", logFileName, connection => RetrievePackageDimensions(sourceData, connection));
             var operationsTask = GetDimension("operation", logFileName, connection => RetrieveOperationDimensions(sourceData, connection));
             var projectTypesTask = GetDimension("project type", logFileName, connection => RetrieveProjectTypeDimensions(sourceData, connection));
             var clientsTask = GetDimension("client", logFileName, connection => RetrieveClientDimensions(sourceData, connection));
             var platformsTask = GetDimension("platform", logFileName, connection => RetrievePlatformDimensions(sourceData, connection));
-            var timesTask = GetDimension("time", logFileName, connection => RetrieveTimeDimensions(connection));
             var datesTask = GetDimension("date", logFileName, connection => RetrieveDateDimensions(connection, sourceData.Min(e => e.EdgeServerTimeDelivered), sourceData.Max(e => e.EdgeServerTimeDelivered)));
             var packageTranslationsTask = GetDimension("package translations", logFileName, connection => RetrievePackageTranslations(sourceData, connection));
 
-            // create facts data rows by linking source data with dimensions
-            // insert into temp table for increased scalability and allow for aggregation later
-
-            await Task.WhenAll(operationsTask, projectTypesTask, clientsTask, platformsTask, timesTask, datesTask, packagesTask, packageTranslationsTask);
+            await Task.WhenAll(operationsTask, projectTypesTask, clientsTask, platformsTask, datesTask, packagesTask, packageTranslationsTask);
 
             var operations = operationsTask.Result;
             var projectTypes = projectTypesTask.Result;
             var clients = clientsTask.Result;
             var platforms = platformsTask.Result;
-            var times = timesTask.Result;
+
             var dates = datesTask.Result;
             var packages = packagesTask.Result;
             var packageTranslations = packageTranslationsTask.Result;
 
+            // create facts data rows by linking source data with dimensions
             var dataImporter = new DataImporter(_targetDatabase);
             var dataTable = await dataImporter.GetDataTableAsync("Fact_Download");
 
@@ -141,7 +144,7 @@ namespace Stats.ImportAzureCdnStatistics
                     {
                         // required dimensions
                         var dateId = dates.First(e => e.Date.Equals(element.EdgeServerTimeDelivered.Date)).Id;
-                        var timeId = times.First(e => e.HourOfDay == element.EdgeServerTimeDelivered.Hour).Id;
+                        var timeId = _times.First(e => e.HourOfDay == element.EdgeServerTimeDelivered.Hour).Id;
 
                         // dimensions that could be "(unknown)"
                         if (!operationId.HasValue)
@@ -201,6 +204,7 @@ namespace Stats.ImportAzureCdnStatistics
             }
             stopwatch.Stop();
             Trace.Write("  DONE (" + dataTable.Rows.Count + " records, " + stopwatch.ElapsedMilliseconds + "ms)");
+            ApplicationInsights.TrackMetric("Blob record count", dataTable.Rows.Count, logFileName);
 
             return dataTable;
         }
@@ -368,7 +372,10 @@ namespace Stats.ImportAzureCdnStatistics
                 return results;
             }
 
-            var parameterValue = CreateDataTable(packages);
+            results.AddRange(_cachedPackageDimensions.Where(p1 => packages.FirstOrDefault(p2 => string.Equals(p1.PackageId, p2.PackageId, StringComparison.OrdinalIgnoreCase) && string.Equals(p1.PackageVersion, p2.PackageVersion, StringComparison.OrdinalIgnoreCase)) != null));
+
+            var nonCachedPackageDimensions = packages.Except(results).ToList();
+            var parameterValue = CreateDataTable(nonCachedPackageDimensions);
 
             var command = connection.CreateCommand();
             command.CommandText = "[dbo].[EnsurePackageDimensionsExist]";
@@ -387,7 +394,13 @@ namespace Stats.ImportAzureCdnStatistics
                     package.Id = dataReader.GetInt32(0);
 
                     if (!results.Contains(package))
+                    {
                         results.Add(package);
+                    }
+                    if (!_cachedPackageDimensions.Contains(package))
+                    {
+                        _cachedPackageDimensions.Add(package);
+                    }
                 }
             }
 
@@ -546,7 +559,21 @@ namespace Stats.ImportAzureCdnStatistics
                 return results;
             }
 
-            var parameterValue = CreateDataTable(clientDimensions);
+            var nonCachedClientDimensions = new Dictionary<string, ClientDimension>();
+            foreach (var clientDimension in clientDimensions)
+            {
+                if (_cachedClientDimensions.ContainsKey(clientDimension.Key))
+                {
+                    var cachedClientDimensionId = _cachedClientDimensions[clientDimension.Key];
+                    results.Add(clientDimension.Key, cachedClientDimensionId);
+                }
+                else
+                {
+                    nonCachedClientDimensions.Add(clientDimension.Key, clientDimension.Value);
+                }
+            }
+
+            var parameterValue = CreateDataTable(nonCachedClientDimensions);
 
             var command = connection.CreateCommand();
             command.CommandText = "[dbo].[EnsureClientDimensionsExist]";
@@ -561,7 +588,16 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 while (await dataReader.ReadAsync())
                 {
-                    results.Add(dataReader.GetString(1), dataReader.GetInt32(0));
+                    var userAgent = dataReader.GetString(1);
+                    var clientDimensionId = dataReader.GetInt32(0);
+
+
+                    if (!_cachedClientDimensions.ContainsKey(userAgent))
+                    {
+                        _cachedClientDimensions.Add(userAgent, clientDimensionId);
+                    }
+
+                    results.Add(userAgent, clientDimensionId);
                 }
             }
 

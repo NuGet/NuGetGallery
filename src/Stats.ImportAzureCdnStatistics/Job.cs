@@ -82,9 +82,11 @@ namespace Stats.ImportAzureCdnStatistics
                 var prefix = string.Format(CultureInfo.InvariantCulture, "{0}_{1}_", _azureCdnPlatform.GetRawLogFilePrefix(), _azureCdnAccountNumber);
 
                 // get next raw log file to be processed
-                using (ILeasedLogFile leasedLogFile = await blobLeaseManager.LeaseNextLogFileToBeProcessedAsync(prefix))
+                var leasedLogFiles = await blobLeaseManager.LeaseNextLogFilesToBeProcessedAsync(prefix);
+                foreach (var leasedLogFile in leasedLogFiles)
                 {
                     await logProcessor.ProcessLogFileAsync(leasedLogFile);
+                    leasedLogFile.Dispose();
                 }
 
                 return true;

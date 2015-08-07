@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -15,6 +16,7 @@ namespace Stats.ImportAzureCdnStatistics
     internal class LogFileProvider
     {
         private const int _maxListBlobResultSegments = 10;
+        private const int _maxLeasesPerJobRun = 3;
         private readonly TimeSpan _defaultLeaseTime = TimeSpan.FromSeconds(60);
         private readonly JobEventSource _jobEventSource = JobEventSource.Log;
         private readonly CloudBlobContainer _container;
@@ -24,7 +26,7 @@ namespace Stats.ImportAzureCdnStatistics
             _container = container;
         }
 
-        public async Task<ILeasedLogFile> LeaseNextLogFileToBeProcessedAsync(string prefix)
+        public async Task<IReadOnlyCollection<ILeasedLogFile>> LeaseNextLogFilesToBeProcessedAsync(string prefix)
         {
             try
             {
@@ -32,8 +34,14 @@ namespace Stats.ImportAzureCdnStatistics
                 var blobResultSegments = await _container.ListBlobsSegmentedAsync(prefix, true, BlobListingDetails.None, _maxListBlobResultSegments, null, null, null);
                 _jobEventSource.FinishingBlobListing(prefix);
 
+                var leasedFiles = new List<ILeasedLogFile>();
                 foreach (var logFile in blobResultSegments.Results)
                 {
+                    if (leasedFiles.Count == _maxLeasesPerJobRun)
+                    {
+                        break;
+                    }
+
                     // Get the source blob
                     var blobName = logFile.Uri.Segments.Last();
                     var logFileBlob = _container.GetBlockBlobReference(blobName);
@@ -46,9 +54,10 @@ namespace Stats.ImportAzureCdnStatistics
                         continue;
                     }
 
-                    return new LeasedLogFile(logFileBlob, leaseId);
+                    leasedFiles.Add(new LeasedLogFile(logFileBlob, leaseId));
                 }
 
+                return leasedFiles;
             }
             catch (Exception exception)
             {
@@ -56,7 +65,7 @@ namespace Stats.ImportAzureCdnStatistics
                 ApplicationInsights.TrackException(exception);
             }
 
-            return null;
+            return Enumerable.Empty<ILeasedLogFile>().ToList();
         }
 
         private async Task<string> TryAcquireLeaseAsync(ICloudBlob blob)

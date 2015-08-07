@@ -36,14 +36,14 @@ namespace Stats.ImportAzureCdnStatistics
 
             try
             {
-                var log = await DecompressBlobAsync(logFile);
-                var packageStatistics = ParseLogEntries(logFile.Uri, log, logFile.Blob.Name);
+                var packageStatistics = await ParseLogEntries(logFile);
 
                 if (packageStatistics.Any())
                 {
                     // replicate data to the statistics database
                     var warehouse = new Warehouse(_jobEventSource, _targetDatabase);
-                    await warehouse.InsertDownloadFactsAsync(packageStatistics, logFile.Blob.Name);
+                    var downloadFacts = await warehouse.CreateAsync(packageStatistics, logFile.Blob.Name);
+                    await warehouse.InsertDownloadFactsAsync(downloadFacts, logFile.Blob.Name);
                 }
 
                 await ArchiveBlobAsync(logFile);
@@ -101,8 +101,12 @@ namespace Stats.ImportAzureCdnStatistics
             }
         }
 
-        private IReadOnlyCollection<PackageStatistics> ParseLogEntries(string blobUri, string log, string blobName)
+        private async Task<IReadOnlyCollection<PackageStatistics>> ParseLogEntries(ILeasedLogFile logFile)
         {
+            var log = await DecompressBlobAsync(logFile);
+            var blobUri = logFile.Uri;
+            var blobName = logFile.Blob.Name;
+
             IReadOnlyCollection<PackageStatistics> packageStatistics;
 
             var stopwatch = Stopwatch.StartNew();
