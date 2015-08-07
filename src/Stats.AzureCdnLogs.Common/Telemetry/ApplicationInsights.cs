@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data.SqlClient;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -65,17 +66,40 @@ namespace Stats.AzureCdnLogs.Common
 
         public static void TrackMetric(string metricName, double value, string logFileName)
         {
+        }
+
+        public static void TrackRetrieveDimensionDuration(string dimension, long value, string logFileName)
+        {
             if (!_initialized)
             {
                 return;
             }
 
             var telemetryClient = new TelemetryClient();
-            var telemetry = new MetricTelemetry(metricName, value);
+            var telemetry = new MetricTelemetry("Retrieve Dimension duration (ms)", value);
+            telemetry.Properties.Add("Dimension", dimension);
             telemetry.Properties.Add("LogFile", logFileName);
 
             telemetryClient.TrackMetric(telemetry);
             telemetryClient.Flush();
+        }
+
+        public static void TrackSqlException(string eventName, SqlException sqlException, string logFileName, string dimension)
+        {
+            if (!_initialized)
+            {
+                return;
+            }
+
+            var telemetryClient = new TelemetryClient();
+            var telemetry = new EventTelemetry(eventName);
+            telemetry.Properties.Add("Dimension", dimension);
+            telemetry.Properties.Add("LogFile", logFileName);
+
+            telemetryClient.TrackEvent(telemetry);
+            telemetryClient.Flush();
+
+            TrackException(sqlException, logFileName);
         }
     }
 }

@@ -28,11 +28,11 @@ namespace Stats.ImportAzureCdnStatistics
 
         internal async Task InsertDownloadFactsAsync(IReadOnlyCollection<PackageStatistics> packageStatistics, string logFileName)
         {
-            var stopwatch = Stopwatch.StartNew();
             var downloadFacts = await CreateAsync(packageStatistics, logFileName);
             ApplicationInsights.TrackMetric("Blob record count", downloadFacts.Rows.Count, logFileName);
 
             Trace.WriteLine("Inserting into facts table...");
+            var stopwatch = Stopwatch.StartNew();
 
             using (var connection = await _targetDatabase.ConnectTo())
             using (var transaction = connection.BeginTransaction(IsolationLevel.Serializable))
@@ -72,14 +72,14 @@ namespace Stats.ImportAzureCdnStatistics
             var stopwatch = Stopwatch.StartNew();
 
             // insert any new dimension data first
-            var operationsTask = GetDimension("operation", connection => RetrieveOperationDimensions(sourceData, connection));
-            var projectTypesTask = GetDimension("project type", connection => RetrieveProjectTypeDimensions(sourceData, connection));
-            var clientsTask = GetDimension("client", connection => RetrieveClientDimensions(sourceData, connection));
-            var platformsTask = GetDimension("platform", connection => RetrievePlatformDimensions(sourceData, connection));
-            var timesTask = GetDimension("time", connection => RetrieveTimeDimensions(connection));
-            var datesTask = GetDimension("date", connection => RetrieveDateDimensions(connection, sourceData.Min(e => e.EdgeServerTimeDelivered), sourceData.Max(e => e.EdgeServerTimeDelivered)));
-            var packagesTask = GetDimension("package", connection => RetrievePackageDimensions(sourceData, connection));
-            var packageTranslationsTask = GetDimension("package translations", connection => RetrievePackageTranslations(sourceData, connection));
+            var operationsTask = GetDimension("operation", logFileName, connection => RetrieveOperationDimensions(sourceData, connection));
+            var projectTypesTask = GetDimension("project type", logFileName, connection => RetrieveProjectTypeDimensions(sourceData, connection));
+            var clientsTask = GetDimension("client", logFileName, connection => RetrieveClientDimensions(sourceData, connection));
+            var platformsTask = GetDimension("platform", logFileName, connection => RetrievePlatformDimensions(sourceData, connection));
+            var timesTask = GetDimension("time", logFileName, connection => RetrieveTimeDimensions(connection));
+            var datesTask = GetDimension("date", logFileName, connection => RetrieveDateDimensions(connection, sourceData.Min(e => e.EdgeServerTimeDelivered), sourceData.Max(e => e.EdgeServerTimeDelivered)));
+            var packagesTask = GetDimension("package", logFileName, connection => RetrievePackageDimensions(sourceData, connection));
+            var packageTranslationsTask = GetDimension("package translations", logFileName, connection => RetrievePackageTranslations(sourceData, connection));
 
             // create facts data rows by linking source data with dimensions
             // insert into temp table for increased scalability and allow for aggregation later
@@ -205,7 +205,7 @@ namespace Stats.ImportAzureCdnStatistics
             return dataTable;
         }
 
-        private async Task<IDictionary<string, int>> GetDimension(string dimension, Func<SqlConnection, Task<IDictionary<string, int>>> retrieve)
+        private async Task<IDictionary<string, int>> GetDimension(string dimension, string logFileName, Func<SqlConnection, Task<IDictionary<string, int>>> retrieve)
         {
             var stopwatch = Stopwatch.StartNew();
             var count = _maxRetryCount;
@@ -224,6 +224,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                     stopwatch.Stop();
                     _jobEventSource.FinishedRetrieveDimension(dimension, stopwatch.ElapsedMilliseconds);
+                    ApplicationInsights.TrackRetrieveDimensionDuration(dimension, stopwatch.ElapsedMilliseconds, logFileName);
 
                     return dimensions;
                 }
@@ -238,14 +239,17 @@ namespace Stats.ImportAzureCdnStatistics
                     if (e.Number == 1205)
                     {
                         Trace.TraceWarning("Deadlock, retrying...");
+                        ApplicationInsights.TrackSqlException("SQL Deadlock", e, logFileName, dimension);
                     }
                     else if (e.Number == -2)
                     {
                         Trace.TraceWarning("Timeout, retrying...");
+                        ApplicationInsights.TrackSqlException("SQL Timeout", e, logFileName, dimension);
                     }
                     else if (e.Number == 2601)
                     {
                         Trace.TraceWarning("Duplicate key, retrying...");
+                        ApplicationInsights.TrackSqlException("SQL Duplicate Key", e, logFileName, dimension);
                     }
                     else
                     {
@@ -257,7 +261,7 @@ namespace Stats.ImportAzureCdnStatistics
                 catch (Exception exception)
                 {
                     _jobEventSource.FailedRetrieveDimension(dimension);
-                    ApplicationInsights.TrackException(exception);
+                    ApplicationInsights.TrackException(exception, logFileName);
 
                     if (stopwatch.IsRunning)
                         stopwatch.Stop();
@@ -269,7 +273,7 @@ namespace Stats.ImportAzureCdnStatistics
             return new Dictionary<string, int>();
         }
 
-        private async Task<IReadOnlyCollection<T>> GetDimension<T>(string dimension, Func<SqlConnection, Task<IReadOnlyCollection<T>>> retrieve)
+        private async Task<IReadOnlyCollection<T>> GetDimension<T>(string dimension, string logFileName, Func<SqlConnection, Task<IReadOnlyCollection<T>>> retrieve)
         {
             var stopwatch = Stopwatch.StartNew();
             var count = _maxRetryCount;
@@ -288,6 +292,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                     stopwatch.Stop();
                     _jobEventSource.FinishedRetrieveDimension(dimension, stopwatch.ElapsedMilliseconds);
+                    ApplicationInsights.TrackRetrieveDimensionDuration(dimension, stopwatch.ElapsedMilliseconds, logFileName);
 
                     return dimensions;
                 }
@@ -302,14 +307,17 @@ namespace Stats.ImportAzureCdnStatistics
                     if (e.Number == 1205)
                     {
                         Trace.TraceWarning("Deadlock, retrying...");
+                        ApplicationInsights.TrackSqlException("SQL Deadlock", e, logFileName, dimension);
                     }
                     else if (e.Number == -2)
                     {
                         Trace.TraceWarning("Timeout, retrying...");
+                        ApplicationInsights.TrackSqlException("SQL Timeout", e, logFileName, dimension);
                     }
                     else if (e.Number == 2601)
                     {
                         Trace.TraceWarning("Duplicate key, retrying...");
+                        ApplicationInsights.TrackSqlException("SQL Duplicate Key", e, logFileName, dimension);
                     }
                     else
                     {
@@ -321,7 +329,7 @@ namespace Stats.ImportAzureCdnStatistics
                 catch (Exception exception)
                 {
                     _jobEventSource.FailedRetrieveDimension(dimension);
-                    ApplicationInsights.TrackException(exception);
+                    ApplicationInsights.TrackException(exception, logFileName);
 
                     if (stopwatch.IsRunning)
                         stopwatch.Stop();
