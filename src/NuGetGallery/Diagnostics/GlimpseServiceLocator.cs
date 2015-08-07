@@ -15,12 +15,13 @@ namespace NuGetGallery.Diagnostics
 {
     public class GlimpseServiceLocator : IServiceLocator
     {
-        static Dictionary<Type, object[]> _localObjects = new Dictionary<Type, object[]>();
+        static readonly Dictionary<Type, object[]> LocalObjects = new Dictionary<Type, object[]>();
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
         static GlimpseServiceLocator()
         {
             var configuration = new ConfigurationService();
-            _localObjects.Add(typeof(IRuntimePolicy), new object[]
+            LocalObjects.Add(typeof(IRuntimePolicy), new object[]
             {
                 new GlimpseRuntimePolicy(configuration.Current),
                 new GlimpseResourcePolicy(),
@@ -30,7 +31,7 @@ namespace NuGetGallery.Diagnostics
                         new Regex(@"^.*(Web|Script)Resource\.axd.*$")
                     })
             });
-            _localObjects.Add(typeof(IPersistenceStore), new object[] { new ConcurrentInMemoryPersistenceStore() });
+            LocalObjects.Add(typeof(IPersistenceStore), new object[] { new ConcurrentInMemoryPersistenceStore() });
         }
         
         public ICollection<T> GetAllInstances<T>() where T : class
@@ -38,7 +39,7 @@ namespace NuGetGallery.Diagnostics
             var instances = DependencyResolver.Current.GetServices<T>().ToList();
 
             object[] localObjects = null;
-            if (_localObjects.TryGetValue(typeof (T), out localObjects))
+            if (LocalObjects.TryGetValue(typeof (T), out localObjects))
             {
                 foreach (var localObject in localObjects)
                 {
@@ -58,7 +59,7 @@ namespace NuGetGallery.Diagnostics
         public T GetInstance<T>() where T : class
         {
             object[] localObjects = null;
-            if (_localObjects.TryGetValue(typeof (T), out localObjects))
+            if (LocalObjects.TryGetValue(typeof (T), out localObjects))
             {
                 return localObjects[0] as T;
             }
