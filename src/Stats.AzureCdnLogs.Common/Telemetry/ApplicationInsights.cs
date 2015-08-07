@@ -72,7 +72,7 @@ namespace Stats.AzureCdnLogs.Common
             }
 
             var telemetryClient = new TelemetryClient();
-            var telemetry = new MetricTelemetry("Retrieve Dimension duration (ms)", value);
+            var telemetry = new MetricTelemetry(metricName, value);
 
             if (!string.IsNullOrWhiteSpace(logFileName))
             {
