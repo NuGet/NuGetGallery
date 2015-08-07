@@ -55,9 +55,6 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 await _deadLetterContainer.CreateIfNotExistsAsync();
 
-                // avoid continuous rethrow and dead-letter the blob...
-                await logFile.AcquireInfiniteLeaseAsync();
-
                 // copy the blob to a dead-letter container
                 await EnsureCopiedToContainerAsync(logFile, _deadLetterContainer, e);
 
@@ -81,11 +78,24 @@ namespace Stats.ImportAzureCdnStatistics
                     archivedBlob = (CloudBlockBlob)await targetContainer.GetBlobReferenceFromServerAsync(logFile.Blob.Name);
                 }
 
+                await archivedBlob.FetchAttributesAsync();
+
                 if (e != null)
                 {
                     // add the job error to the blob's metadata
-                    await archivedBlob.FetchAttributesAsync();
-                    archivedBlob.Metadata.Add("JobError", e.ToString().Replace("\r\n", string.Empty));
+                    if (archivedBlob.Metadata.ContainsKey("JobError"))
+                    {
+                        archivedBlob.Metadata["JobError"] = e.ToString().Replace("\r\n", string.Empty);
+                    }
+                    else
+                    {
+                        archivedBlob.Metadata.Add("JobError", e.ToString().Replace("\r\n", string.Empty));
+                    }
+                    await archivedBlob.SetMetadataAsync();
+                }
+                else if (archivedBlob.Metadata.ContainsKey("JobError"))
+                {
+                    archivedBlob.Metadata.Remove("JobError");
                     await archivedBlob.SetMetadataAsync();
                 }
             }
