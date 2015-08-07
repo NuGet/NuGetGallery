@@ -6,57 +6,34 @@ BEGIN
 
 	DECLARE @results TABLE
 	(
-		[Id]				INT				NOT NULL,
+		[Id]				INT				NOT NULL PRIMARY KEY,
 		[PackageId]         NVARCHAR(255)	NOT NULL,
-		[PackageVersion]	NVARCHAR(128)	NOT NULL
+		[PackageVersion]	NVARCHAR(128)	NOT NULL,
+		UNIQUE NONCLUSTERED ([PackageId], [PackageVersion])
 	)
 
-	DECLARE @PackageId NVARCHAR(128)
-	DECLARE @PackageVersion NVARCHAR(128)
+	-- Select existing packages and insert them into the results table
+	INSERT INTO @results ([Id], [PackageId], [PackageVersion])
+		SELECT	P.[Id], P.[PackageId], P.[PackageVersion]
+		FROM	[dbo].[Dimension_Package] AS P (NOLOCK)
+		INNER JOIN	@packages AS I
+		ON	P.[LowercasedPackageId] = LOWER(I.PackageId)
+			AND P.[LowercasedPackageVersion] = LOWER(I.PackageVersion)
 
+	-- Insert new packages
 	BEGIN TRY
+		SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+		BEGIN TRANSACTION
 
-		-- Open Cursor
-		DECLARE package_Cursor CURSOR FOR
+			INSERT INTO [Dimension_Package] ([PackageId], [PackageVersion])
+				OUTPUT inserted.Id, inserted.PackageId, inserted.PackageVersion INTO @results
 			SELECT	[PackageId], [PackageVersion]
-			FROM	@packages
+				FROM	@packages
+			EXCEPT
+			SELECT	[PackageId], [PackageVersion]
+				FROM	@results
 
-		OPEN	package_Cursor FETCH NEXT
-		FROM	package_Cursor
-		INTO	@packageId, @packageVersion
-
-		WHILE @@FETCH_STATUS = 0
-		BEGIN
-
-
-			DECLARE @packageIdLowercase NVARCHAR(255) = LOWER(@packageId)
-			DECLARE @packageVersionLowercase NVARCHAR(128) = LOWER(@packageVersion)
-
-			SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
-			BEGIN TRANSACTION
-
-			-- Create dimension if not exists
-			IF NOT EXISTS (SELECT Id FROM [Dimension_Package] (NOLOCK) WHERE LOWER([PackageId]) = @packageIdLowercase AND LOWER([PackageVersion]) = @packageVersionLowercase)
-				INSERT INTO [Dimension_Package] ([PackageId], [PackageVersion])
-					OUTPUT inserted.Id, inserted.PackageId, inserted.PackageVersion INTO @results
-				VALUES (@packageIdLowercase, LOWER(@PackageVersion));
-			ELSE
-				INSERT INTO @results ([Id], [PackageId], [PackageVersion])
-				SELECT	[Id], [PackageId], [PackageVersion]
-				FROM	[dbo].[Dimension_Package] (NOLOCK)
-				WHERE	LOWER([PackageId]) = @packageIdLowercase
-						AND LOWER([PackageVersion]) = @packageVersionLowercase
-
-			COMMIT
-
-			-- Advance cursor
-			FETCH NEXT FROM package_Cursor
-			INTO @packageId, @packageVersion
-		END
-
-		-- Close cursor
-		CLOSE package_Cursor
-		DEALLOCATE package_Cursor
+		COMMIT
 
 	END TRY
 	BEGIN CATCH

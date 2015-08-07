@@ -25,7 +25,7 @@ BEGIN
 	INNER JOIN	[dbo].[Dimension_Date] AS D (NOLOCK)
 	ON			D.[Id] = F.[Dimension_Date_Id]
 
-	WHERE	D.[Date] > @CursorPosition AND D.[Date] <= @CursorRunToPosition
+	WHERE	ISNULL(D.[Date], CONVERT(DATETIME, '1900-01-01')) > @CursorPosition AND ISNULL(D.[Date], CONVERT(DATETIME, '1900-01-01')) <= @CursorRunToPosition
 
 	ORDER BY P.[PackageId] ASC
 END

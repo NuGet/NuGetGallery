@@ -72,13 +72,13 @@ namespace Stats.ImportAzureCdnStatistics
             var stopwatch = Stopwatch.StartNew();
 
             // insert any new dimension data first
+            var packagesTask = GetDimension("package", logFileName, connection => RetrievePackageDimensions(sourceData, connection));
             var operationsTask = GetDimension("operation", logFileName, connection => RetrieveOperationDimensions(sourceData, connection));
             var projectTypesTask = GetDimension("project type", logFileName, connection => RetrieveProjectTypeDimensions(sourceData, connection));
             var clientsTask = GetDimension("client", logFileName, connection => RetrieveClientDimensions(sourceData, connection));
             var platformsTask = GetDimension("platform", logFileName, connection => RetrievePlatformDimensions(sourceData, connection));
             var timesTask = GetDimension("time", logFileName, connection => RetrieveTimeDimensions(connection));
             var datesTask = GetDimension("date", logFileName, connection => RetrieveDateDimensions(connection, sourceData.Min(e => e.EdgeServerTimeDelivered), sourceData.Max(e => e.EdgeServerTimeDelivered)));
-            var packagesTask = GetDimension("package", logFileName, connection => RetrievePackageDimensions(sourceData, connection));
             var packageTranslationsTask = GetDimension("package translations", logFileName, connection => RetrievePackageTranslations(sourceData, connection));
 
             // create facts data rows by linking source data with dimensions
