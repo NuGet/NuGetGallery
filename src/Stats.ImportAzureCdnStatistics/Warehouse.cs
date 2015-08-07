@@ -37,18 +37,16 @@ namespace Stats.ImportAzureCdnStatistics
             using (var connection = await _targetDatabase.ConnectTo())
             using (var transaction = connection.BeginTransaction(IsolationLevel.Serializable))
             {
+                var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction);
+                bulkCopy.BatchSize = downloadFacts.Rows.Count;
+                bulkCopy.DestinationTableName = downloadFacts.TableName;
+                bulkCopy.BulkCopyTimeout = _defaultCommandTimeout;
+
                 try
                 {
-                    using (var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction))
-                    {
-                        bulkCopy.BatchSize = downloadFacts.Rows.Count;
-                        bulkCopy.DestinationTableName = downloadFacts.TableName;
-                        bulkCopy.BulkCopyTimeout = _defaultCommandTimeout;
+                    await bulkCopy.WriteToServerAsync(downloadFacts);
 
-                        await bulkCopy.WriteToServerAsync(downloadFacts);
-
-                        transaction.Commit();
-                    }
+                    transaction.Commit();
 
                     stopwatch.Stop();
                     ApplicationInsights.TrackMetric("Insert facts duration (ms)", stopwatch.ElapsedMilliseconds, logFileName);
