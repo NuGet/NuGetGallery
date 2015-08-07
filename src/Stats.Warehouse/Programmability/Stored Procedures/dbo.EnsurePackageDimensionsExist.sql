@@ -11,7 +11,7 @@ BEGIN
 		[PackageVersion]	NVARCHAR(128)	NOT NULL
 	)
 
-	DECLARE @PackageId VARCHAR(128)
+	DECLARE @PackageId NVARCHAR(128)
 	DECLARE @PackageVersion NVARCHAR(128)
 
 	BEGIN TRY
