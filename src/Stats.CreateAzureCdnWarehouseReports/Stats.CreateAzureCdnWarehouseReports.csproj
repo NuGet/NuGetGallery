@@ -100,6 +100,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DirtyPackageId.cs" />
     <Compile Include="Formatting\JsonFormat.cs" />
     <Compile Include="Formatting\NuGetContractResolver.cs" />
     <Compile Include="Job.cs" />
