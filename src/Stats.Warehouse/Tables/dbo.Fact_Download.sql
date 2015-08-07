@@ -10,6 +10,7 @@
     [DownloadCount]					INT NULL,
     [LogFileName]					NVARCHAR(255) NULL,
 	[UserAgent]						NVARCHAR(500) NULL,
+    [Timestamp] DATETIME NOT NULL DEFAULT GETDATE(), 
     CONSTRAINT [PK_Fact_Download] PRIMARY KEY CLUSTERED ([Id]) WITH (STATISTICS_NORECOMPUTE = ON)
 );
 GO

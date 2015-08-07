@@ -32,6 +32,7 @@ namespace Stats.ImportAzureCdnStatistics
             }
 
             dataTable.Rows.Clear();
+            dataTable.Columns.Remove("Timestamp");
 
             return dataTable;
         }
