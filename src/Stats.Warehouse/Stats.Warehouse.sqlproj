@@ -64,7 +64,6 @@
     <Folder Include="Programmability" />
     <Folder Include="Programmability\Stored Procedures" />
     <Folder Include="Tables" />
-    <Folder Include="Views" />
     <Folder Include="Programmability\Functions" />
     <Folder Include="Programmability\Types" />
   </ItemGroup>
@@ -78,8 +77,6 @@
     <Build Include="Tables\dbo.Dimension_Client.sql" />
     <Build Include="Tables\dbo.Dimension_Platform.sql" />
     <Build Include="Tables\dbo.Fact_Download.sql" />
-    <Build Include="Views\dbo.vwAggregatedDownloads.sql" />
-    <Build Include="Views\dbo.Index_vwAggregatedDownloads.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.EnsureOperationDimensionsExist.sql" />
     <Build Include="Programmability\Functions\dbo.ParseCsvString.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.EnsureProjectTypeDimensionsExist.sql" />
