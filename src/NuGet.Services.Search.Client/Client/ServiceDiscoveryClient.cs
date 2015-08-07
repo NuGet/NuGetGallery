@@ -34,9 +34,27 @@ namespace NuGet.Services.Search.Client
 
         public async Task<IEnumerable<Uri>> GetEndpointsForResourceType(string resourceType)
         {
-            await DiscoverEndpointsAsync().ConfigureAwait(false);
+            try
+            {
+                await DiscoverEndpointsAsync().ConfigureAwait(false);
+            }
+            catch (NullReferenceException)
+            {
+                // if this happens, we may have received an invalid document
+                if (_serviceIndexDocument == null)
+                {
+                    // if we don't have a cached instance, throw (as we can't do anything here)
+                    throw;
+                }
 
-            return _serviceIndexDocument.Doc["resources"].Where(j => (j["@type"].Type == JTokenType.Array ? j["@type"].Any(v => (string)v == resourceType) : ((string)j["@type"]) == resourceType)).Select(o => o["@id"].ToObject<Uri>()).ToList();
+                // if we do have a cached one, keep it for another minute
+                _serviceIndexDocument = new ServiceIndexDocument(_serviceIndexDocument.Doc, DateTime.UtcNow.AddMinutes(1) - _serviceIndexDocumentExpiration);
+            }
+
+            return _serviceIndexDocument.Doc["resources"]
+                .Where(j => (j["@type"].Type == JTokenType.Array ? j["@type"].Any(v => (string)v == resourceType) : ((string)j["@type"]) == resourceType))
+                .Select(o => o["@id"].ToObject<Uri>())
+                .ToList();
         }
 
         public async Task DiscoverEndpointsAsync()
@@ -46,16 +64,42 @@ namespace NuGet.Services.Search.Client
             {
                 return;
             }
-
+            
             // Lock to make sure that we can only attempt one update at a time.
-            lock (_serviceIndexDocumentLock)
+            var performServiceIndexDocumentUpdate = false;
+            if (!_serviceIndexDocumentUpdating)
             {
-                if (_serviceIndexDocumentUpdating)
-                    return;
-
-                _serviceIndexDocumentUpdating = true;
+                lock (_serviceIndexDocumentLock)
+                {
+                    if (!_serviceIndexDocumentUpdating)
+                    {
+                        _serviceIndexDocumentUpdating = true;
+                        performServiceIndexDocumentUpdate = true;
+                    }
+                }
             }
 
+            if (performServiceIndexDocumentUpdate)
+            {
+                // Fetch the service index document if we're the one to do the update
+                await DiscoverEndpointsCoreAsync().ConfigureAwait(false);
+            }
+            else if (_serviceIndexDocument == null && _serviceIndexDocumentUpdating)
+            {
+                // If there is no service index document yet, then someone else is updating it.
+                // Wait up to 5 seconds to ensure the document is loaded.
+                int timeWaitedForUpdateInMilliseconds = 0;
+                int timeToWaitBeforeCheckingInMilliseconds = 200;
+                while (_serviceIndexDocument == null && _serviceIndexDocumentUpdating && timeWaitedForUpdateInMilliseconds < 5000)
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(timeToWaitBeforeCheckingInMilliseconds)).ConfigureAwait(false);
+                    timeWaitedForUpdateInMilliseconds += timeToWaitBeforeCheckingInMilliseconds;
+                }
+            }
+        }
+
+        private async Task DiscoverEndpointsCoreAsync()
+        {
             // Fetch the service index document
             await _httpClient.GetStringAsync(_serviceDiscoveryEndpoint)
                 .ContinueWith(t =>
