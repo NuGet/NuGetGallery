@@ -14,6 +14,7 @@ using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Lucene;
 
@@ -255,6 +256,11 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IPackageVersionsQuery>()
                 .InstancePerLifetimeScope();
+
+            builder.RegisterType<DiagnosticsService>()
+                .AsSelf()
+                .As<IDiagnosticsService>()
+                .SingleInstance();
         }
 
         private static void ConfigureSearch(ContainerBuilder builder, ConfigurationService configuration)
