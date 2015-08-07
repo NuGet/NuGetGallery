@@ -51,6 +51,7 @@ namespace NuGet.Jobs
         //Arguments specific to CreateWarehouseReports job
         public const string WarehouseStorageAccount = "WarehouseStorageAccount";
         public const string WarehouseContainerName = "WarehouseContainerName";
+        public const string WarehouseReportName = "WarehouseReportName";
 
         // Arguments specific to Search* jobs
         public const string DataStorageAccount = "DataStorageAccount";

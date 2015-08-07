@@ -81,6 +81,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Statistics (Azure CDN)", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.CreateAzureCdnDownloadCountReports", "src\Stats.CreateAzureCdnDownloadCountReports\Stats.CreateAzureCdnDownloadCountReports.csproj", "{7275F6E2-0A0B-4C28-BB64-94B8C9E8F3E8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.CreateAzureCdnWarehouseReports", "src\Stats.CreateAzureCdnWarehouseReports\Stats.CreateAzureCdnWarehouseReports.csproj", "{E9D937CE-7D3D-4B4A-8FD1-AF721F362948}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -205,6 +207,10 @@ Global
 		{7275F6E2-0A0B-4C28-BB64-94B8C9E8F3E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7275F6E2-0A0B-4C28-BB64-94B8C9E8F3E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7275F6E2-0A0B-4C28-BB64-94B8C9E8F3E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9D937CE-7D3D-4B4A-8FD1-AF721F362948}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9D937CE-7D3D-4B4A-8FD1-AF721F362948}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9D937CE-7D3D-4B4A-8FD1-AF721F362948}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9D937CE-7D3D-4B4A-8FD1-AF721F362948}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -239,5 +245,6 @@ Global
 		{21846E0D-0E79-4E43-9D92-E78854370994} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
 		{80073256-BF15-4E92-B63A-D6922493DA27} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{7275F6E2-0A0B-4C28-BB64-94B8C9E8F3E8} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
+		{E9D937CE-7D3D-4B4A-8FD1-AF721F362948} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
 	EndGlobalSection
 EndGlobal

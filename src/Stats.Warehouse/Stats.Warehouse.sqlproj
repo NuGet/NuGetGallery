@@ -87,8 +87,15 @@
     <Build Include="Programmability\Types\dbo.PackageDimensionTableType.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.EnsurePackageDimensionsExist.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.SelectTotalDownloadCountsPerPackageVersion.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.DownloadReportNuGetClientVersion.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.DownloadReportLast6Months.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.DownloadReportRecentPopularity.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.DownloadReportRecentPopularityDetail.sql" />
     <Build Include="Programmability\Functions\dbo.GetClientCategory.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.DownloadReportRecentPopularityDetailByPackage.sql" />
     <Build Include="Tables\dbo.Support_TranslatePackages.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.GetPackageTranslations.sql" />
+    <Build Include="Tables\dbo.Cursors.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.GetDirtyPackageIds.sql" />
   </ItemGroup>
 </Project>
