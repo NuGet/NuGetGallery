@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{96E4AFF8-D3A1-4102-ADCF-05F186F916A9}"
 	ProjectSection(SolutionItems) = preProject
@@ -26,11 +26,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Core.Facts", "
 EndProject
 Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGetGallery.Cloud", "src\NuGetGallery.Cloud\NuGetGallery.Cloud.ccproj", "{0041ACA0-30EC-4554-8C7C-0AF810F3086F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Search.Client", "src\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj", "{CE0AC7E5-CDF7-4899-AD72-DCB64E402EBE}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3. Tests", "3. Tests", "{39E54EC3-CBAA-453A-BE64-748FE1559A58}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "0. Shared", "0. Shared", "{155100FF-524B-4CAF-93C6-A57478B3DBAD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Search.Client", "src\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj", "{6931C2EE-E081-4518-9798-D34D83B35BF6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -66,10 +66,10 @@ Global
 		{0041ACA0-30EC-4554-8C7C-0AF810F3086F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0041ACA0-30EC-4554-8C7C-0AF810F3086F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0041ACA0-30EC-4554-8C7C-0AF810F3086F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CE0AC7E5-CDF7-4899-AD72-DCB64E402EBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CE0AC7E5-CDF7-4899-AD72-DCB64E402EBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CE0AC7E5-CDF7-4899-AD72-DCB64E402EBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CE0AC7E5-CDF7-4899-AD72-DCB64E402EBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6931C2EE-E081-4518-9798-D34D83B35BF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6931C2EE-E081-4518-9798-D34D83B35BF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6931C2EE-E081-4518-9798-D34D83B35BF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6931C2EE-E081-4518-9798-D34D83B35BF6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,6 +82,6 @@ Global
 		{097B2CDD-9623-4C34-93C2-D373D51F5B4E} = {155100FF-524B-4CAF-93C6-A57478B3DBAD}
 		{8AC9E39E-366C-47E5-80AE-38E71CD31386} = {39E54EC3-CBAA-453A-BE64-748FE1559A58}
 		{0041ACA0-30EC-4554-8C7C-0AF810F3086F} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
-		{CE0AC7E5-CDF7-4899-AD72-DCB64E402EBE} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
+		{6931C2EE-E081-4518-9798-D34D83B35BF6} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
 	EndGlobalSection
 EndGlobal

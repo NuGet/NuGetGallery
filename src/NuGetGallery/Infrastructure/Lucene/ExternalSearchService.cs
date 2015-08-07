@@ -21,8 +21,8 @@ namespace NuGetGallery.Infrastructure.Lucene
         public static readonly string SearchRoundtripTimePerfCounter = "SearchRoundtripTime";
 
         private static IEndpointHealthIndicatorStore _healthIndicatorStore;
+        private static SearchClient _client;
 
-        private readonly SearchClient _client;
         private JObject _diagCache;
 
         public Uri ServiceUri { get; private set; }
@@ -67,12 +67,15 @@ namespace NuGetGallery.Infrastructure.Lucene
                 }.Uri;
             }
 
+            // note: intentionally not locking the next two assignments to avoid blocking calls
             if (_healthIndicatorStore == null)
             {
                 _healthIndicatorStore = new BaseUrlHealthIndicatorStore(new AppInsightsHealthIndicatorLogger());
             }
-
-            _client = new SearchClient(ServiceUri, config.SearchServiceResourceType, credentials, _healthIndicatorStore, new TracingHttpHandler(Trace));
+            if (_client == null)
+            {
+                _client = new SearchClient(ServiceUri, config.SearchServiceResourceType, credentials, _healthIndicatorStore, new TracingHttpHandler(Trace));
+            }
         }
 
         private static readonly Task<bool> _exists = Task.FromResult(true);

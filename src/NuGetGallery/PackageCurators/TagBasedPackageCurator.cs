@@ -1,15 +1,20 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NuGet;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
     public abstract class TagBasedPackageCurator : AutomaticPackageCurator
     {
+        protected TagBasedPackageCurator(ICuratedFeedService curatedFeedService) 
+            : base(curatedFeedService)
+        {
+        }
+
         /// <summary>
         ///     Gets a list of tags required for a package to be selected by this curator. A package MUST have ONE of the specified tags to be curated.
         /// </summary>
@@ -23,7 +28,7 @@ namespace NuGetGallery
         public override void Curate(Package galleryPackage, INupkg nugetPackage, bool commitChanges)
         {
             // Make sure the target feed exists
-            CuratedFeed feed = GetService<ICuratedFeedService>().GetFeedByName(CuratedFeedName, includePackages: true);
+            CuratedFeed feed = CuratedFeedService.GetFeedByName(CuratedFeedName, includePackages: true);
             if (feed != null && galleryPackage.Tags != null)
             {
                 // Break the tags up so we can be sure we don't catch any partial matches (i.e. "foobar" when we're looking for "foo")
@@ -36,7 +41,7 @@ namespace NuGetGallery
                     // But now we need to ensure that the package's dependencies are also curated
                     if (DependenciesAreCurated(galleryPackage, feed))
                     {
-                        GetService<ICuratedFeedService>().CreatedCuratedPackage(
+                        CuratedFeedService.CreatedCuratedPackage(
                             feed, 
                             galleryPackage.PackageRegistration, 
                             automaticallyCurated: true,

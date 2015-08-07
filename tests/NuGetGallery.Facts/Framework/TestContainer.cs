@@ -2,37 +2,43 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Autofac;
 using Microsoft.Owin;
 using Moq;
-using Ninject;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Framework
 {
     public class TestContainer : IDisposable
     {
-        public IKernel Kernel { get; private set; }
+        public IContainer Container { get; private set; }
 
         public TestContainer() : this(UnitTestBindings.CreateContainer(autoMock: true)) { }
-        protected TestContainer(IKernel kernel)
+
+        protected TestContainer(IContainer container)
         {
             // Initialize the container
-            Kernel = kernel;
+            Container = container;
         }
 
         protected TController GetController<TController>() where TController : Controller
         {
-            if (!Kernel.GetBindings(typeof(TController)).Any())
+            if (!Container.IsRegistered(typeof(TController)))
             {
-                Kernel.Bind<TController>().ToSelf();
+                var updater = new ContainerBuilder();
+                updater.RegisterType<TController>().PropertiesAutowired().AsSelf();
+                updater.Update(Container);
             }
-            var c = Kernel.Get<TController>();
+
+            var c = Container.Resolve<TController>();
+
+            Container.InjectMockProperties(Mock.Get(c));
+
             c.ControllerContext = new ControllerContext(
-                new RequestContext(Kernel.Get<HttpContextBase>(), new RouteData()), c);
+                new RequestContext(Container.Resolve<HttpContextBase>(), new RouteData()), c);
 
             var routeCollection = new RouteCollection();
             Routes.RegisterRoutes(routeCollection);
@@ -41,8 +47,8 @@ namespace NuGetGallery.Framework
             var appCtrl = c as AppController;
             if (appCtrl != null)
             {
-                appCtrl.OwinContext = Kernel.Get<IOwinContext>();
-                appCtrl.NuGetContext.Config = Kernel.Get<ConfigurationService>();
+                appCtrl.OwinContext = Container.Resolve<IOwinContext>();
+                appCtrl.NuGetContext.Config = Container.Resolve<ConfigurationService>();
             }
 
             return c;
@@ -50,19 +56,34 @@ namespace NuGetGallery.Framework
 
         protected TService GetService<TService>()
         {
-            var serviceInterfaces = typeof(TService).GetInterfaces();
-            Kernel.Bind(serviceInterfaces).To(typeof(TService));
+            var updater = new ContainerBuilder();
+            updater.RegisterType<TService>().AsImplementedInterfaces().AsSelf();
+            updater.Update(Container);
+            
             return Get<TService>();
         }
 
         protected FakeEntitiesContext GetFakeContext()
         {
             var fakeContext = new FakeEntitiesContext();
-            Kernel.Bind<IEntitiesContext>().ToConstant(fakeContext);
-            Kernel.Bind<IEntityRepository<Package>>().ToConstant(new EntityRepository<Package>(fakeContext));
-            Kernel.Bind<IEntityRepository<PackageOwnerRequest>>().ToConstant(new EntityRepository<PackageOwnerRequest>(fakeContext));
-            Kernel.Bind<IEntityRepository<PackageStatistics>>().ToConstant(new EntityRepository<PackageStatistics>(fakeContext));
-            Kernel.Bind<IEntityRepository<PackageRegistration>>().ToConstant(new EntityRepository<PackageRegistration>(fakeContext));
+
+            var updater = new ContainerBuilder();
+            updater.RegisterInstance(fakeContext).As<IEntitiesContext>();
+
+            updater.RegisterInstance(new EntityRepository<Package>(fakeContext))
+                .As<IEntityRepository<Package>>();
+
+            updater.RegisterInstance(new EntityRepository<PackageOwnerRequest>(fakeContext))
+                .As<IEntityRepository<PackageOwnerRequest>>();
+
+            updater.RegisterInstance(new EntityRepository<PackageStatistics>(fakeContext))
+                .As<IEntityRepository<PackageStatistics>>();
+
+            updater.RegisterInstance(new EntityRepository<PackageRegistration>(fakeContext))
+                .As<IEntityRepository<PackageRegistration>>();
+
+            updater.Update(Container);
+            
             return fakeContext;
         }
 
@@ -71,25 +92,43 @@ namespace NuGetGallery.Framework
             if(typeof(Controller).IsAssignableFrom(typeof(T))) {
                 throw new InvalidOperationException("Use GetController<T> to get a controller instance");
             }
-            return Kernel.Get<T>();
+            return Container.Resolve<T>();
         }
 
         protected Mock<T> GetMock<T>() where T : class
         {
-            if (!Kernel.GetBindings(typeof(T)).Any())
+            bool registerMock = false;
+            if (Container.IsRegistered(typeof (T)))
             {
-                Kernel.Bind<T>().ToConstant((new Mock<T>() { CallBase = true }).Object);
+                try
+                {
+                    Mock.Get(Container.Resolve<T>());
+                }
+                catch
+                {
+                    registerMock = true;
+                }
             }
-            T instance = Kernel.Get<T>();
+            
+            if (registerMock || !Container.IsRegistered(typeof(T)))
+            {
+                var mockInstance = (new Mock<T>() {CallBase = true}).Object;
+
+                var updater = new ContainerBuilder();
+                updater.RegisterInstance(mockInstance).As<T>();
+                updater.Update(Container);
+            }
+
+            T instance = Container.Resolve<T>();
             return Mock.Get(instance);
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (Kernel != null)
+            if (Container != null)
             {
-                Kernel.Dispose();
-                Kernel = null;
+                Container.Dispose();
+                Container = null;
             }
         }
 
