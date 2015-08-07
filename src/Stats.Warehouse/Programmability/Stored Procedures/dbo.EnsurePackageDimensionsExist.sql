@@ -7,7 +7,7 @@ BEGIN
 	DECLARE @results TABLE
 	(
 		[Id]				INT				NOT NULL,
-		[PackageId]         NVARCHAR(128)	NOT NULL,
+		[PackageId]         NVARCHAR(255)	NOT NULL,
 		[PackageVersion]	NVARCHAR(128)	NOT NULL
 	)
 
@@ -29,7 +29,7 @@ BEGIN
 		BEGIN
 
 
-			DECLARE @packageIdLowercase NVARCHAR(128) = LOWER(@packageId)
+			DECLARE @packageIdLowercase NVARCHAR(255) = LOWER(@packageId)
 			DECLARE @packageVersionLowercase NVARCHAR(128) = LOWER(@packageVersion)
 
 			SET TRANSACTION ISOLATION LEVEL SERIALIZABLE

@@ -7,7 +7,7 @@ BEGIN
 	DECLARE @translations AS TABLE
 	(
 		[CorrectedPackageId] INT NOT NULL,
-		[IncorrectPackageId] NVARCHAR(128) NOT NULL,
+		[IncorrectPackageId] NVARCHAR(255) NOT NULL,
 		[IncorrectPackageVersion] NVARCHAR(128) NOT NULL
 	)
 
