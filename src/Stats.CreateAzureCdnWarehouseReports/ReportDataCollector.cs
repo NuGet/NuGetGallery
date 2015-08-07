@@ -133,16 +133,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 command.CommandTimeout = _commandTimeout;
                 command.Parameters.Add("@Position", SqlDbType.DateTime).Value = runToCursor;
 
-                var packageIds = new List<DirtyPackageId>();
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    while (await reader.ReadAsync())
-                    {
-                        packageIds.Add(new DirtyPackageId(reader.GetString(0), reader.GetDateTime(1)));
-                    }
-                }
-
-                return packageIds;
+                await command.ExecuteNonQueryAsync();
             }
         }
     }
