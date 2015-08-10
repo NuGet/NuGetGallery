@@ -3,13 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace Stats.AzureCdnLogs.Common
 {
     public static class CdnLogEntryParser
     {
-        private static readonly DateTime UnixTimestamp = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+        private static readonly DateTime _unixTimestamp = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
         public static IReadOnlyCollection<CdnLogEntry> ParseLogEntriesFromW3CLog(string log)
         {
@@ -32,7 +31,15 @@ namespace Stats.AzureCdnLogs.Common
         {
             // ignore comment rows (i.e., first row listing the column headers
             if (line.StartsWith("#"))
+            {
                 return null;
+            }
+
+            // disregard 404's
+            if (line.Contains("TCP_MISS/404"))
+            {
+                return null;
+            }
 
             // columns are space-separated
             var columns = W3CParseUtils.GetLogLineRecords(line);
@@ -124,7 +131,7 @@ namespace Stats.AzureCdnLogs.Common
         {
             // Unix timestamp is seconds past epoch
             var secondsPastEpoch = double.Parse(unixTimestamp);
-            return UnixTimestamp + TimeSpan.FromSeconds(secondsPastEpoch);
+            return _unixTimestamp + TimeSpan.FromSeconds(secondsPastEpoch);
         }
     }
 }

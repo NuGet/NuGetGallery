@@ -372,7 +372,13 @@ namespace Stats.ImportAzureCdnStatistics
                 return results;
             }
 
-            results.AddRange(_cachedPackageDimensions.Where(p1 => packages.FirstOrDefault(p2 => string.Equals(p1.PackageId, p2.PackageId, StringComparison.OrdinalIgnoreCase) && string.Equals(p1.PackageVersion, p2.PackageVersion, StringComparison.OrdinalIgnoreCase)) != null));
+            results.AddRange(_cachedPackageDimensions
+                .Where(p1 => packages
+                    .FirstOrDefault(p2 =>
+                        string.Equals(p1.PackageId, p2.PackageId, StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(p1.PackageVersion, p2.PackageVersion, StringComparison.OrdinalIgnoreCase)) != null
+                    )
+                );
 
             var nonCachedPackageDimensions = packages.Except(results).ToList();
             var parameterValue = CreateDataTable(nonCachedPackageDimensions);
