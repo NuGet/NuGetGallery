@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -10,52 +11,34 @@ namespace NuGetGallery
     public class StatisticsPackagesViewModel
     {
         private DateTime? _lastUpdatedUtc;
+        private static readonly string[] _months = { string.Empty, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
         public StatisticsPackagesViewModel()
         {
         }
 
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesSummary 
-        {
-            get; set;
-        }
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesSummary { get; set; }
 
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsSummary
-        {
-            get; set;
-        }
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsSummary { get; set; }
 
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesAll
-        {
-            get; set; 
-        }
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesAll { get; set; }
 
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsAll
-        {
-            get; set;
-        }
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsAll { get; set; }
 
-        public IEnumerable<StatisticsNuGetUsageItem> NuGetClientVersion
-        {
-            get; set;
-        }
+        public IEnumerable<StatisticsNuGetUsageItem> NuGetClientVersion { get; set; }
 
-        public IEnumerable<StatisticsMonthlyUsageItem> Last6Months
-        {
-            get; set;
-        }
-        
+        public IEnumerable<StatisticsMonthlyUsageItem> Last6Months { get; set; }
+
         public CultureInfo ClientCulture { get; set; }
 
-        public StatisticsPackagesReport Report
-        {
-            get;
-            private set;
-        }
+        public StatisticsPackagesReport Report { get; private set; }
 
         public bool IsDownloadPackageAvailable { get; set; }
+
         public bool IsDownloadPackageDetailAvailable { get; set; }
+
         public bool IsNuGetClientVersionAvailable { get; set; }
+
         public bool IsLast6MonthsAvailable { get; set; }
 
         public int NuGetClientVersionTotalDownloads { get; private set; }
@@ -63,13 +46,10 @@ namespace NuGetGallery
         public bool IsReportAvailable { get { return (Report != null); } }
 
         public string PackageId { get; private set; }
+
         public string PackageVersion { get; private set; }
 
-        public bool UseD3
-        {
-            get;
-            set;
-        }
+        public bool UseD3 { get; set; }
 
         public DateTime? LastUpdatedUtc
         {
@@ -99,11 +79,9 @@ namespace NuGetGallery
         {
             if (IsNuGetClientVersionAvailable)
             {
-                NuGetClientVersionTotalDownloads = NuGetClientVersion.Sum(item => item.Downloads);    
+                NuGetClientVersionTotalDownloads = NuGetClientVersion.Sum(item => item.Downloads);
             }
         }
-
-        private static string[] _months = { string.Empty, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
         public string DisplayMonth(int year, int monthOfYear)
         {

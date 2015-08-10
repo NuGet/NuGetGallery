@@ -97,7 +97,7 @@ var drawDownloadsByVersionBarChart = function () {
         };
         data[data.length] = item;
     });
-    
+
     data.sort(sortByVersion);
 
     //  limit the bar graph to the most recent 15 versions
