@@ -80,6 +80,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                     foreach (var reportGenerator in reportGenerators)
                     {
                         await ProcessReport(destinationContainer, reportGenerator.Key, reportGenerator.Value);
+                        ApplicationInsights.TrackReportProcessed(reportGenerator.Key.ReportName + " report");
                     }
 
                     await RebuildPackageReports(destinationContainer);
@@ -128,6 +129,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 var reportDataCollector = new ReportDataCollector("[dbo].[DownloadReportRecentPopularityDetailByPackage]", _sourceDatabase);
 
                 ProcessReport(destinationContainer, reportBuilder, reportDataCollector, Tuple.Create("@PackageId", 128, dirtyPackageId.PackageId)).Wait();
+                ApplicationInsights.TrackReportProcessed("recentpopularitydetailbypackageid report", dirtyPackageId.PackageId.ToLowerInvariant());
             });
 
             if (result.IsCompleted)

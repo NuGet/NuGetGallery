@@ -17,11 +17,7 @@ BEGIN
 				DATEPART(year, DATEADD(month, -7, GETDATE())),
 				DATEPART(month, DATEADD(month, -7, GETDATE())),
 				1, 0, 0, 0, 0)
-		AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, GETDATE()))) <
-			DATETIMEFROMPARTS(
-				DATEPART(year, GETDATE()),
-				DATEPART(month, GETDATE()),
-				1, 0, 0, 0, 0)
+		AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, GETDATE()))) < GETDATE()
 
 	GROUP BY	D.[Year], D.[MonthOfYear]
 	ORDER BY	[Year], [MonthOfYear]

@@ -83,6 +83,25 @@ namespace Stats.AzureCdnLogs.Common
             telemetryClient.Flush();
         }
 
+        public static void TrackReportProcessed(string reportName, string packageId = null)
+        {
+            if (!_initialized)
+            {
+                return;
+            }
+
+            var telemetryClient = new TelemetryClient();
+            var telemetry = new MetricTelemetry(reportName, 1);
+
+            if (!string.IsNullOrWhiteSpace(packageId))
+            {
+                telemetry.Properties.Add("Package Id", packageId);
+            }
+
+            telemetryClient.TrackMetric(telemetry);
+            telemetryClient.Flush();
+        }
+
         public static void TrackRetrieveDimensionDuration(string dimension, long value, string logFileName)
         {
             if (!_initialized)
