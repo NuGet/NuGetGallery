@@ -21,4 +21,5 @@ namespace Stats.AzureCdnLogs.Common
             context.Component.Version = typeof(SessionInitializer).Assembly.GetName().Version.ToString();
             context.Device.RoleName = Assembly.GetEntryAssembly().GetName().Name;
         }
+    }
 }
