@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Reflection;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 
@@ -18,6 +19,6 @@ namespace Stats.AzureCdnLogs.Common
             context.Device.RoleInstance = Environment.MachineName;
             context.Device.OperatingSystem = Environment.OSVersion.ToString();
             context.Component.Version = typeof(SessionInitializer).Assembly.GetName().Version.ToString();
+            context.Device.RoleName = Assembly.GetEntryAssembly().GetName().Name;
         }
-    }
 }
