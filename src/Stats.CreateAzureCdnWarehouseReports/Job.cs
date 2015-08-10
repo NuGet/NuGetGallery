@@ -101,6 +101,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             catch (Exception exception)
             {
                 Trace.TraceError(exception.ToString());
+                ApplicationInsights.TrackException(exception);
                 return false;
             }
         }
