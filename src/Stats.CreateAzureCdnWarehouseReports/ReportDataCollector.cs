@@ -128,7 +128,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
         {
             using (var connection = await sourceDatabase.ConnectTo())
             {
-                var command = new SqlCommand("UPDATE [dbo].[Cursors] SET [Position] = @Position WHERE [Name] = 'GetDirtyPackageId'", connection);
+                var command = new SqlCommand("[dbo].[UpdateDirtyPackageIdCursor]", connection);
                 command.CommandType = CommandType.StoredProcedure;
                 command.CommandTimeout = _commandTimeout;
                 command.Parameters.Add("@Position", SqlDbType.DateTime).Value = runToCursor;
