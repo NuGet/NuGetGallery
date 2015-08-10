@@ -19,7 +19,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
         public async Task WriteReport(string reportName, string json)
         {
-            var blob = _destinationContainer.GetBlockBlobReference("popularity/" + reportName + ".json");
+            var blob = _destinationContainer.GetBlockBlobReference(reportName + ".json");
             blob.Properties.ContentType = _contentTypeJson;
 
             Trace.TraceInformation("{0}: Writing report to {1}", reportName, blob.Uri.AbsoluteUri);

@@ -7,7 +7,6 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.WindowsAzure.Storage;
@@ -121,7 +120,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             if (!dirtyPackageIds.Any())
                 return;
 
-            var result = Parallel.ForEach(dirtyPackageIds, new ParallelOptions { MaxDegreeOfParallelism = 4 }, dirtyPackageId =>
+            var result = Parallel.ForEach(dirtyPackageIds, new ParallelOptions { MaxDegreeOfParallelism = 8 }, dirtyPackageId =>
             {
                 var reportName = _packageReportDetailBaseName + dirtyPackageId.PackageId.ToLowerInvariant();
                 var reportBuilder = new RecentPopularityDetailByPackageReportBuilder(reportName);
@@ -144,24 +143,25 @@ namespace Stats.CreateAzureCdnWarehouseReports
             IList<string> packageIds;
             using (var connection = await _sourceDatabase.ConnectTo())
             {
-                var sql = "[dbo].[DownloadReport_ListInactive]";
+                var sql = "[dbo].[DownloadReportListInactive]";
                 packageIds = (await connection.QueryAsync<string>(sql, CommandType.StoredProcedure)).ToList();
             }
             Trace.TraceInformation("Found {0} inactive packages.", packageIds.Count);
 
             // Collect the list of reports
+            var subContainer = "recentpopularity/";
             Trace.TraceInformation("Collecting list of package detail reports");
-            var reports = destinationContainer.ListBlobs("popularity/" + _packageReportDetailBaseName)
+            var reports = destinationContainer.ListBlobs(subContainer + _packageReportDetailBaseName)
                     .OfType<CloudBlockBlob>()
                     .Select(b => b.Name);
 
             var reportSet = new HashSet<string>(reports);
             Trace.TraceInformation("Collected {0} package detail reports", reportSet.Count);
 
-            Parallel.ForEach(packageIds, new ParallelOptions { MaxDegreeOfParallelism = 4 }, async id =>
+            Parallel.ForEach(packageIds, new ParallelOptions { MaxDegreeOfParallelism = 8}, async id =>
             {
                 string reportName = _packageReportDetailBaseName + id;
-                string blobName = "popularity/" + reportName + ".json";
+                string blobName = subContainer + reportName + ".json";
                 if (reportSet.Contains(blobName))
                 {
                     var blob = destinationContainer.GetBlockBlobReference(blobName);

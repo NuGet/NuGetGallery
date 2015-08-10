@@ -97,5 +97,6 @@
     <Build Include="Programmability\Stored Procedures\dbo.GetPackageTranslations.sql" />
     <Build Include="Tables\dbo.Cursors.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.GetDirtyPackageIds.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.DownloadReportListInactive.sql" />
   </ItemGroup>
 </Project>
