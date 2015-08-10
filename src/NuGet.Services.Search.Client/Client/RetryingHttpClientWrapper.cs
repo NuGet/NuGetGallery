@@ -202,8 +202,7 @@ namespace NuGet.Services.Search.Client
 
         private static bool ShouldTryOther(HttpResponseMessage response)
         {
-            if (response.IsSuccessStatusCode
-                || response.StatusCode == HttpStatusCode.BadGateway
+            if (response.StatusCode == HttpStatusCode.BadGateway
                 || response.StatusCode == HttpStatusCode.GatewayTimeout
                 || response.StatusCode == HttpStatusCode.ServiceUnavailable
                 || response.StatusCode == HttpStatusCode.RequestTimeout
