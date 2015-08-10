@@ -123,7 +123,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
             var result = Parallel.ForEach(dirtyPackageIds, new ParallelOptions { MaxDegreeOfParallelism = 8 }, dirtyPackageId =>
             {
-                var reportName = _packageReportDetailBaseName + dirtyPackageId.PackageId.ToLowerInvariant();
+                var reportName = "recentpopularity/" + _packageReportDetailBaseName + dirtyPackageId.PackageId.ToLowerInvariant();
                 var reportBuilder = new RecentPopularityDetailByPackageReportBuilder(reportName);
                 var reportDataCollector = new ReportDataCollector("[dbo].[DownloadReportRecentPopularityDetailByPackage]", _sourceDatabase);
 
