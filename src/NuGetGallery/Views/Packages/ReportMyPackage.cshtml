@@ -10,6 +10,8 @@
 
 @using (Html.BeginForm())
 {
+    @Html.HiddenFor(m => m.Signature)
+
     <fieldset id="report-abuse-form" class="form">
         <legend>Contact Support</legend>
         @Html.AntiForgeryToken()

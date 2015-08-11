@@ -470,6 +470,7 @@ namespace NuGetGallery
                 PackageId = id,
                 PackageVersion = package.Version,
                 CopySender = true,
+                Signature = user.Username
             };
 
             return View(model);
