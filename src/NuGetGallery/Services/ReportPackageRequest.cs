@@ -64,6 +64,10 @@ namespace NuGetGallery
 
         private static string Escape(string s)
         {
+            if (string.IsNullOrEmpty(s))
+            {
+                return string.Empty;
+            }
             return s.Replace("{", @"\{\");
         }
     }
