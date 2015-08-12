@@ -6,10 +6,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class StreamStorageContent : StorageContent
     {
-        public StreamStorageContent(Stream content, string contentType = "")
+        public StreamStorageContent(Stream content, string contentType = "", string cacheControl = "")
         {
             Content = content;
             ContentType = contentType;
+            CacheControl = cacheControl;
         }
 
         public Stream Content

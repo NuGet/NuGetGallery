@@ -96,7 +96,7 @@ namespace Ng
         {
             string relativeAddress = string.Format("{1}/{0}.nuspec", id, version);
             Uri nuspecUri = new Uri(storage.BaseAddress, relativeAddress);
-            await storage.Save(nuspecUri, new StringStorageContent(nuspec, "text/xml"), cancellationToken);
+            await storage.Save(nuspecUri, new StringStorageContent(nuspec, "text/xml", "max-age=120"), cancellationToken);
         }
 
         static HashSet<NuGetVersion> GetVersions(string json)
@@ -116,7 +116,7 @@ namespace Ng
         StorageContent CreateContent(IEnumerable<string> versions)
         {
             JObject obj = new JObject { { "versions", new JArray(versions) } };
-            return new StringStorageContent(obj.ToString(), "application/json");
+            return new StringStorageContent(obj.ToString(), "application/json", "no-store");
         }
 
         static string GetNuspec(Stream stream, string id)
@@ -147,7 +147,7 @@ namespace Ng
                 {
                     string relativeAddress = string.Format("{1}/{0}.{1}.nupkg", id, version);
                     Uri nupkgUri = new Uri(storage.BaseAddress, string.Format("{1}/{0}.{1}.nupkg", id, version));
-                    await storage.Save(nupkgUri, new StreamStorageContent(stream, "application/octet-stream"), cancellationToken);
+                    await storage.Save(nupkgUri, new StreamStorageContent(stream, "application/octet-stream", "max-age=120"), cancellationToken);
                 }
             }
         }
