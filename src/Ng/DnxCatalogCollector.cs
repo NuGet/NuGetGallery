@@ -105,9 +105,15 @@ namespace Ng
             if (json != null)
             {
                 JObject obj = JObject.Parse(json);
-                foreach (JToken version in obj["versions"])
+
+                JArray versions = obj["versions"] as JArray;
+
+                if (versions != null)
                 {
-                    result.Add(NuGetVersion.Parse(version.ToString()));
+                    foreach (JToken version in versions)
+                    {
+                        result.Add(NuGetVersion.Parse(version.ToString()));
+                    }
                 }
             }
             return result;
