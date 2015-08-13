@@ -3,6 +3,8 @@
 
 using System;
 using System.Globalization;
+using System.Web;
+using System.Web.Mvc;
 
 namespace NuGetGallery.Helpers
 {
@@ -41,17 +43,17 @@ namespace NuGetGallery.Helpers
             return text.Substring(0, length - 3) + "...";
         }
 
-        public static string TruncateAtWordBoundary(this string input, int length = 300, string ommission = "...", string morText = "")
+        public static MvcHtmlString TruncateAtWordBoundary(this string input, int length = 300, string ommission = "...", string moreText = "")
         {
             if (string.IsNullOrEmpty(input) || input.Length < length)
-                return input;
+                return new MvcHtmlString(input);
 
             int nextSpace = input.LastIndexOf(" ", length, StringComparison.Ordinal);
 
-            return string.Format(CultureInfo.CurrentCulture, "{2}{1}{0}",
-                                 morText,
+            return new MvcHtmlString(string.Format(CultureInfo.CurrentCulture, "{2}{1}{0}",
+                                 moreText,
                                  ommission,
-                                 input.Substring(0, (nextSpace > 0) ? nextSpace : length).Trim());
+                                 HttpUtility.HtmlEncode(input.Substring(0, (nextSpace > 0) ? nextSpace : length).Trim())));
         }
     }
 }

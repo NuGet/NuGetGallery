@@ -81,10 +81,12 @@
       <HintPath>..\..\packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Common">
-      <HintPath>..\..\packages\Microsoft.WindowsAzure.Common.0.9.3-preview\lib\net45\Microsoft.WindowsAzure.Common.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.WindowsAzure.Common.1.4.1\lib\net45\Microsoft.WindowsAzure.Common.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Common.NetFramework">
-      <HintPath>..\..\packages\Microsoft.WindowsAzure.Common.0.9.3-preview\lib\net45\Microsoft.WindowsAzure.Common.NetFramework.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.WindowsAzure.Common.1.4.1\lib\net45\Microsoft.WindowsAzure.Common.NetFramework.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Configuration, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -99,7 +101,8 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="NLog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

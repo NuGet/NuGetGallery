@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -39,15 +40,16 @@ namespace NuGet.Services.Search.Client
 
         public async Task<string> GetStringAsync(IEnumerable<Uri> endpoints)
         {
-            return await GetWithRetry(endpoints, (client, uri, cancellationToken) => _httpClient.GetStringAsync(uri)).ConfigureAwait(false);
+            var response = await GetWithRetry(endpoints, _httpClient).ConfigureAwait(false);
+            return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         }
 
         public async Task<HttpResponseMessage> GetAsync(IEnumerable<Uri> endpoints)
         {
-            return await GetWithRetry(endpoints, (client, uri, cancellationToken) => _httpClient.GetAsync(uri, cancellationToken)).ConfigureAwait(false);
+            return await GetWithRetry(endpoints, _httpClient).ConfigureAwait(false);
         }
-        
-        private async Task<TResponseType> GetWithRetry<TResponseType>(IEnumerable<Uri> endpoints, Func<HttpClient, Uri, CancellationToken, Task<TResponseType>> run)
+
+        private async Task<HttpResponseMessage> GetWithRetry(IEnumerable<Uri> endpoints, HttpClient httpClient)
         {
             // Build endpoints, ordered by health and their order of appearance.
             // Most traffic should go to the first endpoint if all is healthy.
@@ -64,13 +66,13 @@ namespace NuGet.Services.Search.Client
             var cancellationTokenSource = new CancellationTokenSource();
 
             // Create requests queue
-            var tasks = CreateRequestQueue(healthyEndpoints, run, cancellationTokenSource);
+            var tasks = CreateRequestQueue(healthyEndpoints, httpClient, cancellationTokenSource);
 
             // When the first succesful task comes in, return it. If no succesfull tasks are returned, throw an AggregateException.
             var exceptions = new List<Exception>();
 
             var taskList = tasks.ToList();
-            Task<TResponseType> completedTask;
+            Task<HttpResponseMessage> completedTask;
             do
             {
                 completedTask = await Task.WhenAny(taskList).ConfigureAwait(false);
@@ -80,13 +82,20 @@ namespace NuGet.Services.Search.Client
                 {
                     exceptions.AddRange(completedTask.Exception.InnerExceptions);
                 }
+                else
+                {
+                    cancellationTokenSource.Cancel(false);
+                }
             } while ((completedTask.IsFaulted || completedTask.IsCanceled) && taskList.Any());
 
-            cancellationTokenSource.Cancel(false);
-
-            if (completedTask == null || completedTask.IsFaulted || completedTask.IsCanceled)
+            if (!cancellationTokenSource.IsCancellationRequested)
             {
-                var exceptionsToThrow = exceptions.Where(e => !(e is TaskCanceledException)).ToList();
+                cancellationTokenSource.Cancel(false);
+            }
+
+            if (completedTask.IsFaulted || completedTask.IsCanceled)
+            {
+                var exceptionsToThrow = exceptions.Where(e => !(e is TaskCanceledException || e.InnerException is TaskCanceledException)).ToList();
                 if (exceptionsToThrow.Count == 1)
                 {
                     throw exceptionsToThrow.First();
@@ -95,24 +104,26 @@ namespace NuGet.Services.Search.Client
             }
             return await completedTask.ConfigureAwait(false);
         }
-
-        private List<Task<TResponseType>> CreateRequestQueue<TResponseType>(List<Uri> endpoints, Func<HttpClient, Uri, CancellationToken, Task<TResponseType>> run, CancellationTokenSource cancellatonTokenSource)
+        
+        private IEnumerable<Task<HttpResponseMessage>> CreateRequestQueue(List<Uri> endpoints, HttpClient httpClient, CancellationTokenSource cancellationTokenSource)
         {
             // Queue up a series of requests. Make each request wait a little longer.
-            var tasks = new List<Task<TResponseType>>(endpoints.Count);
-
             for (var i = 0; i < endpoints.Count; i++)
             {
+                if (cancellationTokenSource.IsCancellationRequested)
+                {
+                    yield break;
+                }
+
                 var endpoint = endpoints[i];
 
-                tasks.Add(Task.Delay(i * PeriodToDelayAlternateRequest, cancellatonTokenSource.Token)
-                    .ContinueWith(task =>
+                yield return Task.Delay(i * PeriodToDelayAlternateRequest, cancellationTokenSource.Token)
+                    .ContinueWith(async task =>
                     {
                         try
                         {
-                            var response = run(_httpClient, endpoint, cancellatonTokenSource.Token).Result;
-
-                            var responseMessage = response as HttpResponseMessage;
+                            var responseMessage = await httpClient.GetAsync(endpoint, cancellationTokenSource.Token).ConfigureAwait(false);
+                            
                             if (responseMessage != null && !responseMessage.IsSuccessStatusCode)
                             {
                                 if (ShouldTryOther(responseMessage))
@@ -125,13 +136,13 @@ namespace NuGet.Services.Search.Client
                                 }
                                 else
                                 {
-                                    cancellatonTokenSource.Cancel();
+                                    cancellationTokenSource.Cancel();
                                 }
                             }
 
                             _endpointHealthIndicatorStore.IncreaseHealth(endpoint);
 
-                            return response;
+                            return responseMessage;
                         }
                         catch (Exception ex)
                         {
@@ -144,20 +155,13 @@ namespace NuGet.Services.Search.Client
                             }
                             else
                             {
-                                cancellatonTokenSource.Cancel();
+                                cancellationTokenSource.Cancel();
                             }
 
-                            if (!(ex is TaskCanceledException || ex.InnerException is TaskCanceledException))
-                            {
-                                throw;
-                            }
-
-                            return default(TResponseType);
+                            throw;
                         }
-                    }, cancellatonTokenSource.Token));
+                    }, TaskContinuationOptions.OnlyOnRanToCompletion).Unwrap();
             }
-
-            return tasks;
         }
 
         private static bool ShouldTryOther(Exception ex)
@@ -198,8 +202,7 @@ namespace NuGet.Services.Search.Client
 
         private static bool ShouldTryOther(HttpResponseMessage response)
         {
-            if (response.IsSuccessStatusCode
-                || response.StatusCode == HttpStatusCode.BadGateway
+            if (response.StatusCode == HttpStatusCode.BadGateway
                 || response.StatusCode == HttpStatusCode.GatewayTimeout
                 || response.StatusCode == HttpStatusCode.ServiceUnavailable
                 || response.StatusCode == HttpStatusCode.RequestTimeout

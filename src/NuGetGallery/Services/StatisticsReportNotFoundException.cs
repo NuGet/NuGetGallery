@@ -1,9 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+using System.Runtime.Serialization;
 
 namespace NuGetGallery
 {
@@ -17,8 +16,8 @@ namespace NuGetGallery
         public StatisticsReportNotFoundException(string message) : base(message) { }
         public StatisticsReportNotFoundException(string message, Exception inner) : base(message, inner) { }
         protected StatisticsReportNotFoundException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context)
+          SerializationInfo info,
+          StreamingContext context)
             : base(info, context) { }
     }
 }

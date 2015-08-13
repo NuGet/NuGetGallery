@@ -3,7 +3,6 @@
 @using NuGetGallery
 @using NuGetGallery.Helpers
 @using NuGetGallery.Configuration
-@using Ninject
 
 @helper PreviousNextPager(IPreviousNextPager pager)
 {
@@ -123,7 +122,7 @@
 @helper InstrumentationScript()
 {
     // Get instrumentation key
-    var config = Container.Kernel.TryGet<ConfigurationService>();
+    var config = DependencyResolver.Current.GetService<ConfigurationService>();
     var iKey = config == null ? string.Empty : config.Current.AppInsightsInstrumentationKey;
 
     if (!string.IsNullOrEmpty(iKey))
@@ -158,7 +157,7 @@
 {
     // Get Version info and gallery brand name
     var ver = ApplicationVersionHelper.GetVersion();
-    var config = Container.Kernel.TryGet<ConfigurationService>();
+    var config = DependencyResolver.Current.GetService<ConfigurationService>();
     string brand = config == null ? "" : config.Current.Brand;
 
     <p id="releaseTag">
@@ -203,7 +202,7 @@
 
 @helper AnalyticsScript()
 {
-    var config = Container.Kernel.TryGet<ConfigurationService>();
+    var config = DependencyResolver.Current.GetService<ConfigurationService>();
     if(config != null) {
         var propertyId = config.Current.GoogleAnalyticsPropertyId;
         if (propertyId != null)

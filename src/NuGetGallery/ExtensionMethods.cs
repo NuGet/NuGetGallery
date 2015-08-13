@@ -352,9 +352,8 @@ namespace NuGetGallery
 
                 if (!String.IsNullOrEmpty(userName))
                 {
-                    return DependencyResolver
-                        .Current
-                        .GetService<UserService>()
+                    return DependencyResolver.Current
+                        .GetService<IUserService>()
                         .FindByUsername(userName);
                 }
             }

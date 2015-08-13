@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using NuGet.Services.Search.Models;
@@ -125,7 +126,14 @@ namespace NuGetGallery.OData
                 if (IsSelectV2FeedPackage(remnant as MethodCallExpression))
                 {
                     // We can hijack!
-                    result = Hijack(comparisons);
+                    try
+                    {
+                        result = Hijack(comparisons);
+                    }
+                    catch (HttpRequestException)
+                    {
+                        return false;
+                    }
                     return true;
                 }
 

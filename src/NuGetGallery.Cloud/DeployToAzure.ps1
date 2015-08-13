@@ -165,6 +165,7 @@ function ConfigureDiagnostics([string]$roleName)
 	} elseif ($extension -ne $null) {
 		Write-Host "Diagnostics already configured. Skipping."
 	} else {
+		Remove-AzureServiceDiagnosticsExtension -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -ErrorAction SilentlyContinue -ErrorVariable errorVariable
 		Set-AzureServiceDiagnosticsExtension -ServiceName $OctopusAzureServiceName -Slot $OctopusAzureSlot -DiagnosticsConfigurationPath $config -StorageContext $storageContext -Role $roleName -Verbose
 	}
 	

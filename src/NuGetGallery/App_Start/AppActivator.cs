@@ -16,16 +16,15 @@ using Elmah;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using Ninject;
-using Ninject.Web.Common;
 using NuGetGallery;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
-using WebActivator;
+using Owin;
 using WebBackgrounder;
+using WebActivatorEx;
 
 [assembly: PreApplicationStartMethod(typeof(AppActivator), "PreStart")]
 [assembly: PostApplicationStartMethod(typeof(AppActivator), "PostStart")]
@@ -36,7 +35,6 @@ namespace NuGetGallery
     public static class AppActivator
     {
         private static JobManager _jobManager;
-        private static readonly Bootstrapper _ninjectBootstrapper = new Bootstrapper();
 
         public static void PreStart()
         {
@@ -46,9 +44,7 @@ namespace NuGetGallery
 
             ViewEngines.Engines.Clear();
             ViewEngines.Engines.Add(CreateViewEngine());
-
-            NinjectPreStart();
-            ElmahPreStart();
+            
             GlimpsePreStart();
 
             try
@@ -66,8 +62,13 @@ namespace NuGetGallery
 
         public static void PostStart()
         {
+            if (!OwinStartup.HasRun)
+            {
+                throw new AppActivatorException("The OwinStartup module did not run. Make sure the application runs in an OWIN pipeline and Microsoft.Owin.Host.SystemWeb.dll is in the bin directory.");
+            }
+
             // Get configuration from the kernel
-            var config = Container.Kernel.Get<IAppConfiguration>();
+            var config = DependencyResolver.Current.GetService<IAppConfiguration>();
 
             BackgroundJobsPostStart(config);
             AppPostStart(config);
@@ -77,7 +78,6 @@ namespace NuGetGallery
         public static void Stop()
         {
             BackgroundJobsStop();
-            NinjectStop();
         }
 
         private static RazorViewEngine CreateViewEngine()
@@ -166,13 +166,11 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(fontAwesomeBundle);
         }
 
-        private static void ElmahPreStart()
-        {
-            ServiceCenter.Current = _ => Container.Kernel;
-        }
-
         private static void AppPostStart(IAppConfiguration configuration)
         {
+            WebApiConfig.Register(GlobalConfiguration.Configuration);
+            NuGetODataConfig.Register(GlobalConfiguration.Configuration);
+
             Routes.RegisterRoutes(RouteTable.Routes, configuration.FeedOnlyMode);
             AreaRegistration.RegisterAllAreas();
 
@@ -180,14 +178,11 @@ namespace NuGetGallery
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new AntiForgeryErrorFilter());
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
-
-            WebApiConfig.Register(GlobalConfiguration.Configuration);
-            NuGetODataConfig.Register(GlobalConfiguration.Configuration);
         }
 
         private static void BackgroundJobsPostStart(IAppConfiguration configuration)
         {
-            var indexer = Container.Kernel.TryGet<IIndexingService>();
+            var indexer = DependencyResolver.Current.GetService<IIndexingService>();
             var jobs = new List<IJob>();
             if (indexer != null)
             {
@@ -248,18 +243,6 @@ namespace NuGetGallery
             {
                 _jobManager.Dispose();
             }
-        }
-
-        private static void NinjectPreStart()
-        {
-            DynamicModuleUtility.RegisterModule(typeof(OnePerRequestHttpModule));
-            DynamicModuleUtility.RegisterModule(typeof(NinjectHttpModule));
-            _ninjectBootstrapper.Initialize(() => Container.Kernel);
-        }
-
-        private static void NinjectStop()
-        {
-            _ninjectBootstrapper.ShutDown();
         }
     }
 }

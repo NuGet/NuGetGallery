@@ -4,8 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Http;
 using System.Web.Mvc;
 using Elmah;
 using Microsoft.ApplicationInsights;
@@ -14,11 +16,11 @@ using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
-using Ninject;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
 using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure;
 using Owin;
 
 [assembly: OwinStartup(typeof(NuGetGallery.OwinStartup))]
@@ -27,12 +29,28 @@ namespace NuGetGallery
 {
     public class OwinStartup
     {
+        public static bool HasRun { get; private set; }
+
         // This method is auto-detected by the OWIN pipeline. DO NOT RENAME IT!
         public static void Configuration(IAppBuilder app)
         {
+            // Tune ServicePointManager
+            // (based on http://social.technet.microsoft.com/Forums/en-US/windowsazuredata/thread/d84ba34b-b0e0-4961-a167-bbe7618beb83 and https://msdn.microsoft.com/en-us/library/system.net.servicepointmanager.aspx)
+            ServicePointManager.DefaultConnectionLimit = 500;
+            ServicePointManager.UseNagleAlgorithm = false;
+            ServicePointManager.Expect100Continue = false;
+
+            // Register IoC
+            app.UseAutofacInjection(GlobalConfiguration.Configuration);
+            var dependencyResolver = DependencyResolver.Current;
+
+            // Register Elmah
+            var elmahServiceCenter = new DependencyResolverServiceProviderAdapter(dependencyResolver);
+            ServiceCenter.Current = _ => elmahServiceCenter;
+
             // Get config
-            var config = Container.Kernel.Get<ConfigurationService>();
-            var auth = Container.Kernel.Get<AuthenticationService>();
+            var config = dependencyResolver.GetService<ConfigurationService>();
+            var auth = dependencyResolver.GetService<AuthenticationService>();
 
             // Setup telemetry
             var instrumentationKey = config.Current.AppInsightsInstrumentationKey;
@@ -122,6 +140,8 @@ namespace NuGetGallery
 
                 exArgs.SetObserved();
             };
+
+            HasRun = true;
         }
     }
 }

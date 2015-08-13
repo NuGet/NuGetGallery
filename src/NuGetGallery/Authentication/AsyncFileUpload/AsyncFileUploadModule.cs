@@ -4,7 +4,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Web;
-using Ninject;
+using Autofac;
+using Autofac.Integration.Mvc;
 
 namespace NuGetGallery.AsyncFileUpload
 {
@@ -18,7 +19,7 @@ namespace NuGetGallery.AsyncFileUpload
 
         public void Init(HttpApplication application)
         {
-            _cacheService = Container.Kernel.Get<ICacheService>();
+            _cacheService = new HttpContextCacheService();
 
             application.PostAuthenticateRequest += PostAuthorizeRequest;
         }
@@ -38,7 +39,7 @@ namespace NuGetGallery.AsyncFileUpload
             }
 
             var username = app.Context.User.Identity.Name;
-            if (String.IsNullOrEmpty(username))
+            if (string.IsNullOrEmpty(username))
             {
                 return;
             }
@@ -105,7 +106,7 @@ namespace NuGetGallery.AsyncFileUpload
 
             // not a multipart content type
             string contentType = context.Request.ContentType;
-            if (contentType == null || !contentType.StartsWith("multipart/form-data", StringComparison.OrdinalIgnoreCase))
+            if (!contentType.StartsWith("multipart/form-data", StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
