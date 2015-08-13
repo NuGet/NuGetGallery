@@ -11,8 +11,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
     internal class RecentPopularityDetailByPackageReportBuilder
         : ReportBuilder
     {
-        public RecentPopularityDetailByPackageReportBuilder(string reportName)
-            : base(reportName)
+        public RecentPopularityDetailByPackageReportBuilder(string reportName, string reportArtifactName)
+            : base(reportName, reportArtifactName)
         {
         }
 

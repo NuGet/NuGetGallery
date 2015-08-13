@@ -12,9 +12,17 @@ namespace Stats.CreateAzureCdnWarehouseReports
         public ReportBuilder(string reportName)
         {
             ReportName = reportName;
+            ReportArtifactName = reportName;
+        }
+
+        public ReportBuilder(string reportName, string reportArtifactName)
+        {
+            ReportName = reportName;
+            ReportArtifactName = reportArtifactName;
         }
 
         public string ReportName { get; private set; }
+        public string ReportArtifactName { get; private set; }
 
         public string CreateReport(DataTable table)
         {

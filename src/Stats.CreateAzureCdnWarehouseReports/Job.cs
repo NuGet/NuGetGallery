@@ -19,7 +19,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
     public class Job
         : JobBase
     {
-        private const string _packageReportDetailBaseName = "recentpopularitydetail_";
+        private const string _recentPopularityDetailByPackageReportBaseName = "recentpopularitydetail_";
+        private const string _downloadsByPackageIdReportBaseName = "downloads_";
         private CloudStorageAccount _cloudStorageAccount;
         private string _cloudStorageContainerName;
         private SqlConnectionStringBuilder _sourceDatabase;
@@ -31,6 +32,12 @@ namespace Stats.CreateAzureCdnWarehouseReports
             {ReportNames.Last6Months, "[dbo].[DownloadReportLast6Months]" },
             {ReportNames.RecentPopularity, "[dbo].[DownloadReportRecentPopularity]" },
             {ReportNames.RecentPopularityDetail, "[dbo].[DownloadReportRecentPopularityDetail]" },
+        };
+
+        private static readonly IDictionary<string, string> _storedProceduresPerPackageId = new Dictionary<string, string>
+        {
+            {ReportNames.RecentPopularityDetailByPackageId, "[dbo].[DownloadReportRecentPopularityDetailByPackage]" },
+            {ReportNames.DownloadsByPackageId, "[dbo].[DownloadsByPackageId]" },
         };
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
@@ -62,7 +69,6 @@ namespace Stats.CreateAzureCdnWarehouseReports
         {
             try
             {
-
                 var destinationContainer = _cloudStorageAccount.CreateCloudBlobClient().GetContainerReference(_cloudStorageContainerName);
                 Trace.TraceInformation("Generating reports from {0}/{1} and saving to {2}/{3}", _sourceDatabase.DataSource, _sourceDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
 
@@ -84,7 +90,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                     }
 
                     await RebuildPackageReports(destinationContainer);
-                    await CleanInactivePackageReports(destinationContainer);
+                    await CleanInactiveRecentPopularityDetailByPackageReports(destinationContainer);
                 }
                 else
                 {
@@ -113,23 +119,30 @@ namespace Stats.CreateAzureCdnWarehouseReports
             var json = reportBuilder.CreateReport(dataTable);
 
             var reportWriter = new ReportWriter(destinationContainer);
-            await reportWriter.WriteReport(reportBuilder.ReportName, json);
+            await reportWriter.WriteReport(reportBuilder.ReportArtifactName, json);
         }
 
         private async Task RebuildPackageReports(CloudBlobContainer destinationContainer)
         {
             var dirtyPackageIds = await ReportDataCollector.GetDirtyPackageIds(_sourceDatabase);
+
             if (!dirtyPackageIds.Any())
                 return;
 
             var result = Parallel.ForEach(dirtyPackageIds, new ParallelOptions { MaxDegreeOfParallelism = 8 }, dirtyPackageId =>
             {
-                var reportName = "recentpopularity/" + _packageReportDetailBaseName + dirtyPackageId.PackageId.ToLowerInvariant();
-                var reportBuilder = new RecentPopularityDetailByPackageReportBuilder(reportName);
-                var reportDataCollector = new ReportDataCollector("[dbo].[DownloadReportRecentPopularityDetailByPackage]", _sourceDatabase);
+                // generate all reports
+                var reportGenerators = new Dictionary<ReportBuilder, ReportDataCollector>
+                    {
+                        { new RecentPopularityDetailByPackageReportBuilder(ReportNames.RecentPopularityDetailByPackageId, "recentpopularity/" + _recentPopularityDetailByPackageReportBaseName + dirtyPackageId.PackageId.ToLowerInvariant()), new ReportDataCollector(_storedProceduresPerPackageId[ReportNames.RecentPopularityDetailByPackageId], _sourceDatabase) },
+                        { new DownloadsByPackageIdReportBuilder(ReportNames.DownloadsByPackageId, "downloads/" + _downloadsByPackageIdReportBaseName + dirtyPackageId.PackageId.ToLowerInvariant()), new ReportDataCollector(_storedProceduresPerPackageId[ReportNames.DownloadsByPackageId], _sourceDatabase) }
+                    };
 
-                ProcessReport(destinationContainer, reportBuilder, reportDataCollector, Tuple.Create("@PackageId", 128, dirtyPackageId.PackageId)).Wait();
-                ApplicationInsights.TrackReportProcessed("recentpopularitydetailbypackageid report", dirtyPackageId.PackageId.ToLowerInvariant());
+                foreach (var reportGenerator in reportGenerators)
+                {
+                    ProcessReport(destinationContainer, reportGenerator.Key, reportGenerator.Value, Tuple.Create("@PackageId", 128, dirtyPackageId.PackageId)).Wait();
+                    ApplicationInsights.TrackReportProcessed(reportGenerator.Key.ReportName + " report", dirtyPackageId.PackageId.ToLowerInvariant());
+                }
             });
 
             if (result.IsCompleted)
@@ -140,7 +153,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
         }
 
 
-        private async Task CleanInactivePackageReports(CloudBlobContainer destinationContainer)
+        private async Task CleanInactiveRecentPopularityDetailByPackageReports(CloudBlobContainer destinationContainer)
         {
             Trace.TraceInformation("Getting list of inactive packages.");
             IList<string> packageIds;
@@ -154,7 +167,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             // Collect the list of reports
             var subContainer = "recentpopularity/";
             Trace.TraceInformation("Collecting list of package detail reports");
-            var reports = destinationContainer.ListBlobs(subContainer + _packageReportDetailBaseName)
+            var reports = destinationContainer.ListBlobs(subContainer + _recentPopularityDetailByPackageReportBaseName)
                     .OfType<CloudBlockBlob>()
                     .Select(b => b.Name);
 
@@ -163,7 +176,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
             Parallel.ForEach(packageIds, new ParallelOptions { MaxDegreeOfParallelism = 8}, async id =>
             {
-                string reportName = _packageReportDetailBaseName + id;
+                string reportName = _recentPopularityDetailByPackageReportBaseName + id;
                 string blobName = subContainer + reportName + ".json";
                 if (reportSet.Contains(blobName))
                 {
@@ -220,6 +233,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
             public const string Last6Months = "last6months";
             public const string RecentPopularity = "recentpopularity";
             public const string RecentPopularityDetail = "recentpopularitydetail";
+            public const string RecentPopularityDetailByPackageId = "recentpopularitydetailbypackageid";
+            public const string DownloadsByPackageId = "downloaddetailbypackageid";
         }
     }
 }
