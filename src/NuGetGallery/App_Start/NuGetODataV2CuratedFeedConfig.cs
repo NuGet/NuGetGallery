@@ -71,7 +71,7 @@ namespace NuGetGallery
             var model = builder.GetEdmModel();
             model.SetEdmVersion(new Version(1, 0));
             model.SetEdmxVersion(new Version(1, 0));
-            model.SetHasDefaultStream(model.FindDeclaredType(typeof(V2FeedPackage).FullName) as IEdmEntityType, true);
+            model.SetHasDefaultStream(model.FindDeclaredType(typeof(V2FeedPackage).FullName) as IEdmEntityType, hasStream: true);
 
             return model;
         }

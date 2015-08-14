@@ -13,6 +13,7 @@ using System.Web;
 using System.Web.Http.OData.Query;
 using System.Web.Routing;
 using NuGet.Services.Search.Models;
+using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.OData.QueryInterceptors;
 using QueryInterceptor;
 
@@ -55,8 +56,24 @@ namespace NuGetGallery.OData
 
         public static async Task<IQueryable<Package>> GetResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
         {
-            var result = await searchService.Search(searchFilter).ConfigureAwait(false);
+            var result = await searchService.Search(searchFilter);
+            return FormatResults(searchFilter, result);
+        }
 
+        public static async Task<IQueryable<Package>> GetRawResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
+        {
+            var externalSearchService = searchService as ExternalSearchService;
+            if (externalSearchService != null)
+            {
+                var result = await externalSearchService.RawSearch(searchFilter);
+                return FormatResults(searchFilter, result);
+            }
+
+            return await GetResultsFromSearchService(searchService, searchFilter);
+        }
+
+        private static IQueryable<Package> FormatResults(SearchFilter searchFilter, SearchResults result)
+        {
             // For count queries, we can ask the SearchService to not filter the source results. This would avoid hitting the database and consequently make it very fast.
             if (searchFilter.CountOnly)
             {
@@ -70,11 +87,12 @@ namespace NuGetGallery.OData
             return result.Data.InterceptWith(new DisregardODataInterceptor());
         }
 
-        public static async Task<IQueryable<Package>> FindByIdCore(
+        public static async Task<IQueryable<Package>> FindByIdAndVersionCore(
                    ISearchService searchService,
                    HttpRequestBase request,
                    IQueryable<Package> packages,
                    string id,
+                   string version,
                    CuratedFeed curatedFeed)
         {
             SearchFilter searchFilter;
@@ -83,13 +101,19 @@ namespace NuGetGallery.OData
             //  b) The sort order is something Lucene can handle
             if (TryReadSearchFilter(searchService.ContainsAllVersions, request.RawUrl, out searchFilter))
             {
-                searchFilter.SearchTerm = string.Format(CultureInfo.CurrentCulture, "Id:\"{0}\"", id);
+                var searchTerm = string.Format(CultureInfo.CurrentCulture, "Id:\"{0}\"", id);
+                if (!string.IsNullOrEmpty(version))
+                {
+                    searchTerm = string.Format(CultureInfo.CurrentCulture, "Id:\"{0}\" AND Version:\"{1}\"", id, version);
+                }
+
+                searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = true;
                 searchFilter.CuratedFeed = curatedFeed;
                 searchFilter.SupportedFramework = null;
                 searchFilter.IncludeAllVersions = true;
 
-                var results = await GetResultsFromSearchService(searchService, searchFilter).ConfigureAwait(false);
+                var results = await GetRawResultsFromSearchService(searchService, searchFilter);
 
                 return results;
             }
@@ -117,7 +141,7 @@ namespace NuGetGallery.OData
                 searchFilter.CuratedFeed = curatedFeed;
                 searchFilter.SupportedFramework = targetFramework;
 
-                var results = await GetResultsFromSearchService(searchService, searchFilter).ConfigureAwait(false);
+                var results = await GetResultsFromSearchService(searchService, searchFilter);
 
                 return results;
             }

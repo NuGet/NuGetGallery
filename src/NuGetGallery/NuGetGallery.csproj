@@ -1086,6 +1086,9 @@
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
+    <Compile Include="WebApi\PlainTextResult.cs" />
+    <Compile Include="WebApi\QueryResult.cs" />
+    <Compile Include="WebApi\QueryResultExtensions.cs" />
     <Content Include="App_Data\Files\Content\ReadOnly.md" />
     <Content Include="ApplicationInsights.config" />
     <Content Include="NuGetGallery.dll.config">

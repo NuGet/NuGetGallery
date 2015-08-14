@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Net.Http;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -15,6 +14,7 @@ using NuGet;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryInterceptors;
+using NuGetGallery.WebApi;
 using QueryInterceptor;
 using WebApi.OutputCache.V2;
 
@@ -30,12 +30,6 @@ namespace NuGetGallery.Controllers
         private readonly ConfigurationService _configurationService;
         private readonly ISearchService _searchService;
 
-        private static readonly ODataQuerySettings SearchQuerySettings = new ODataQuerySettings 
-        { 
-             HandleNullPropagation = HandleNullPropagationOption.False,
-             EnsureStableOrdering = true
-        };
-
         public ODataV2FeedController(
             IEntityRepository<Package> packagesRepository, 
             ConfigurationService configurationService,
@@ -50,49 +44,46 @@ namespace NuGetGallery.Controllers
         // /api/v2/Packages
         [HttpGet]
         [HttpPost]
-        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true, AllowedQueryOptions = AllowedQueryOptions.All)]
-        public IQueryable<V2FeedPackage> Get()
+        [CacheOutput(NoCache = true)]
+        public IHttpActionResult Get(ODataQueryOptions<V2FeedPackage> options)
         {
-            var packages = _packagesRepository
+            var queryable = _packagesRepository
                 .GetAll()
                 .UseSearchService(_searchService, null, _configurationService.GetSiteRoot(UseHttps()), _configurationService.Features.FriendlyLicenses)
                 .WithoutVersionSort()
                 .ToV2FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()), _configurationService.Features.FriendlyLicenses)
                 .InterceptWith(new NormalizeVersionInterceptor());
 
-            return packages;
+            return QueryResult(options, queryable, MaxPageSize);
         }
 
         // /api/v2/Packages/$count
         [HttpGet]
-        public HttpResponseMessage GetCount(ODataQueryOptions<V2FeedPackage> options)
+        [CacheOutput(NoCache = true)]
+        public IHttpActionResult GetCount(ODataQueryOptions<V2FeedPackage> options)
         {
-            var queryResults = (IQueryable<V2FeedPackage>)options.ApplyTo(Get());
-            var count = queryResults.Count();
-
-            return CountResult(count);
+            return Get(options).FormattedAsCountResult<V2FeedPackage>();
         }
 
         // /api/v2/Packages(Id=,Version=)
         [HttpGet]
-        [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
-        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true, AllowedQueryOptions = AllowedQueryOptions.All)]
-        public async Task<IHttpActionResult> Get(string id, string version)
+        [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
+        public async Task<IHttpActionResult> Get(ODataQueryOptions<V2FeedPackage> options, string id, string version)
         {
-            return await GetCore(id, version);
+            var result = await GetCore(options, id, version);
+            return result.FormattedAsSingleResult<V2FeedPackage>();
         }
 
         // /api/v2/FindPackagesById()?id=
         [HttpGet]
         [HttpPost]
-        [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
-        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true, AllowedQueryOptions = AllowedQueryOptions.All)]
-        public async Task<IHttpActionResult> FindPackagesById([FromODataUri]string id)
+        [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
+        public async Task<IHttpActionResult> FindPackagesById(ODataQueryOptions<V2FeedPackage> options, [FromODataUri]string id)
         {
-            return await GetCore(id, null);
+            return await GetCore(options, id, null);
         }
 
-        private async Task<IHttpActionResult> GetCore(string id, string version)
+        private async Task<IHttpActionResult> GetCore(ODataQueryOptions<V2FeedPackage> options, string id, string version)
         {
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
@@ -103,23 +94,21 @@ namespace NuGetGallery.Controllers
                 packages = packages.Where(p => p.Version == version);
             }
 
-            if (_configurationService.Features.PackageRestoreViaSearch)
+            // try the search service
+            try
             {
-                try
-                {
-                    packages = await SearchAdaptor.FindByIdCore(
-                        _searchService, GetTraditionalHttpContext().Request, packages, id, curatedFeed: null);
-                }
-                catch (Exception ex)
-                {
-                    // Swallowing Exception intentionally. If *anything* goes wrong in search, just fall back to the database.
-                    // We don't want to break package restores. We do want to know if this happens, so here goes:
-                    QuietLog.LogHandledException(ex);
-                }
+                packages = await SearchAdaptor.FindByIdAndVersionCore(
+                    _searchService, GetTraditionalHttpContext().Request, packages, id, version, curatedFeed: null);
+            }
+            catch (Exception ex)
+            {
+                // Swallowing Exception intentionally. If *anything* goes wrong in search, just fall back to the database.
+                // We don't want to break package restores. We do want to know if this happens, so here goes:
+                QuietLog.LogHandledException(ex);
             }
 
-            var query = packages.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
-            return Ok(query);
+            var queryable = packages.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+            return QueryResult(options, queryable, MaxPageSize);
         }
 
         // /api/v2/Packages(Id=,Version=)/propertyName
@@ -138,17 +127,13 @@ namespace NuGetGallery.Controllers
         // /api/v2/Search()?searchTerm=&targetFramework=&includePrerelease=
         [HttpGet]
         [HttpPost]
-        [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
-        public async Task<IEnumerable<V2FeedPackage>> Search(
-            ODataQueryOptions<V2FeedPackage> queryOptions, 
-            [FromODataUri] string searchTerm = "", 
-            [FromODataUri] string targetFramework = "",
-            [FromODataUri] bool includePrerelease = false)
+        [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds, ClientTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
+        public async Task<IHttpActionResult> Search(
+            ODataQueryOptions<V2FeedPackage> options, 
+            [FromODataUri]string searchTerm = "", 
+            [FromODataUri]string targetFramework = "",
+            [FromODataUri]bool includePrerelease = false)
         {
-            // Ensure we can provide paging
-            var pageSize = queryOptions.Top != null ? (int?)null : MaxPageSize;
-            var settings = new ODataQuerySettings(SearchQuerySettings) { PageSize = pageSize };
-
             // Handle OData-style |-separated list of frameworks.
             string[] targetFrameworkList = (targetFramework ?? "").Split(new[] { '\'', '|' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -172,59 +157,48 @@ namespace NuGetGallery.Controllers
                 .Include(p => p.PackageRegistration.Owners)
                 .Where(p => p.Listed);
 
-            // todo: search hijack should take queryOptions instead of manually parsing query options
+            // todo: search hijack should take options instead of manually parsing query options
             var query = await SearchAdaptor.SearchCore(
                 _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: null);
 
+            // Build queryable (explicit Take() needed to limit search hijack result set size if $top is specified)
             var totalHits = query.LongCount();
-            var convertedQuery = query
+            var queryable = query
+                .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
                 .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
 
-            // apply OData query options + limit total of entries explicitly
-            convertedQuery = (IQueryable<V2FeedPackage>)queryOptions.ApplyTo(
-                convertedQuery.Take(pageSize ?? MaxPageSize)); 
-
-            var nextLink = SearchAdaptor.GetNextLink(
-                Request.RequestUri, convertedQuery, new { searchTerm, targetFramework, includePrerelease }, queryOptions, settings, false);
-
-            return new PageResult<V2FeedPackage>(convertedQuery, nextLink, totalHits);
+            return QueryResult(options, queryable, MaxPageSize, totalHits, (o, s) => 
+                SearchAdaptor.GetNextLink(Request.RequestUri, queryable, new { searchTerm, targetFramework, includePrerelease }, o, s, false));
         }
 
         // /api/v2/Search()/$count?searchTerm=&targetFramework=&includePrerelease=
         [HttpGet]
-        [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
-        public async Task<HttpResponseMessage> SearchCount(
-            ODataQueryOptions<V2FeedPackage> queryOptions, 
-            [FromODataUri] string searchTerm = "", 
-            [FromODataUri] string targetFramework = "",
-            [FromODataUri] bool includePrerelease = false)
+        [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds, ClientTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
+        public async Task<IHttpActionResult> SearchCount(
+            ODataQueryOptions<V2FeedPackage> options, 
+            [FromODataUri]string searchTerm = "", 
+            [FromODataUri]string targetFramework = "",
+            [FromODataUri]bool includePrerelease = false)
         {
-            var queryResults = await Search(queryOptions, searchTerm, targetFramework, includePrerelease);
-
-            var pageResult = queryResults as PageResult;
-            if (pageResult != null && pageResult.Count.HasValue)
-            {
-                return CountResult(pageResult.Count.Value);
-            }
-
-            return CountResult(queryResults.LongCount());
+            var searchResults = await Search(options, searchTerm, targetFramework, includePrerelease);
+            return searchResults.FormattedAsCountResult<V2FeedPackage>();
         }
 
         // /api/v2/GetUpdates()?packageIds=&versions=&includePrerelease=&includeAllVersions=&targetFrameworks=&versionConstraints=
         [HttpGet]
         [HttpPost]
-        [EnableQuery(PageSize = MaxPageSize, HandleNullPropagation = HandleNullPropagationOption.False, EnsureStableOrdering = true, AllowedQueryOptions = AllowedQueryOptions.All)]  
-        public IQueryable<V2FeedPackage> GetUpdates(
-            [FromODataUri] string packageIds,
-            [FromODataUri] string versions,
-            [FromODataUri] bool includePrerelease, 
-            [FromODataUri] bool includeAllVersions, 
-            [FromODataUri] string targetFrameworks = "", 
-            [FromODataUri] string versionConstraints = "")
+        public IHttpActionResult GetUpdates(
+            ODataQueryOptions<V2FeedPackage> options,
+            [FromODataUri]string packageIds,
+            [FromODataUri]string versions,
+            [FromODataUri]bool includePrerelease, 
+            [FromODataUri]bool includeAllVersions, 
+            [FromODataUri]string targetFrameworks = "", 
+            [FromODataUri]string versionConstraints = "")
         {
             if (string.IsNullOrEmpty(packageIds) || string.IsNullOrEmpty(versions))
             {
-                return Enumerable.Empty<V2FeedPackage>().AsQueryable();
+                return Ok(Enumerable.Empty<V2FeedPackage>().AsQueryable());
             }
 
             // Workaround https://github.com/NuGet/NuGetGallery/issues/674 for NuGet 2.1 client.
@@ -248,7 +222,7 @@ namespace NuGetGallery.Controllers
             if (idValues.Length == 0 || idValues.Length != versionValues.Length || idValues.Length != versionConstraintValues.Length)
             {
                 // Exit early if the request looks invalid
-                return Enumerable.Empty<V2FeedPackage>().AsQueryable();
+                return Ok(Enumerable.Empty<V2FeedPackage>().AsQueryable());
             }
 
             var versionLookup = idValues.Select((id, i) =>
@@ -279,30 +253,27 @@ namespace NuGetGallery.Controllers
                     idValues.Contains(p.PackageRegistration.Id.ToLower()))
                 .OrderBy(p => p.PackageRegistration.Id);
 
-            return GetUpdates(packages, versionLookup, targetFrameworkValues, includeAllVersions).AsQueryable()
+            var queryable = GetUpdates(packages, versionLookup, targetFrameworkValues, includeAllVersions)
+                .AsQueryable()
                 .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+
+            return QueryResult(options, queryable, MaxPageSize);
         }
 
         // /api/v2/GetUpdates()/$count?packageIds=&versions=&includePrerelease=&includeAllVersions=&targetFrameworks=&versionConstraints=
         [HttpGet]
         [HttpPost]
-        public HttpResponseMessage GetUpdatesCount(
-            [FromODataUri] string packageIds,
-            [FromODataUri] string versions,
-            [FromODataUri] bool includePrerelease,
-            [FromODataUri] bool includeAllVersions,
-            [FromODataUri] string targetFrameworks = "",
-            [FromODataUri] string versionConstraints = "")
+        public IHttpActionResult GetUpdatesCount(
+            ODataQueryOptions<V2FeedPackage> options,
+            [FromODataUri]string packageIds,
+            [FromODataUri]string versions,
+            [FromODataUri]bool includePrerelease,
+            [FromODataUri]bool includeAllVersions,
+            [FromODataUri]string targetFrameworks = "",
+            [FromODataUri]string versionConstraints = "")
         {
-            var queryResults = GetUpdates(packageIds, versions, includePrerelease, includeAllVersions, targetFrameworks, versionConstraints);
-
-            var pageResult = queryResults as PageResult;
-            if (pageResult != null && pageResult.Count.HasValue)
-            {
-                return CountResult(pageResult.Count.Value);
-            }
-
-            return CountResult(queryResults.LongCount());
+            return GetUpdates(options, packageIds, versions, includePrerelease, includeAllVersions, targetFrameworks, versionConstraints)
+                .FormattedAsCountResult<V2FeedPackage>();
         }
 
         private static IEnumerable<Package> GetUpdates(
@@ -326,6 +297,7 @@ namespace NuGetGallery.Controllers
                                         targetFrameworkValues.Any(s => VersionUtility.IsCompatible(s, supportedPackageFrameworks))) &&
                                         (versionConstraint == null || versionConstraint.Satisfies(version));
                             })
+                          orderby p.PackageRegistration.Id, SemanticVersion.Parse(p.Version) descending 
                           select p;
 
             if (!includeAllVersions)

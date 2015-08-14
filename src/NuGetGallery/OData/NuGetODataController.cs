@@ -1,23 +1,25 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Text;
 using System.Web;
 using System.Web.Http;
 using System.Web.Http.OData;
+using System.Web.Http.OData.Query;
 using NuGetGallery.Configuration;
+using NuGetGallery.WebApi;
 
 namespace NuGetGallery.OData
 {
-    public abstract class NuGetODataController : ODataController
+    public abstract class NuGetODataController 
+        : ODataController
     {
         private readonly ConfigurationService _configurationService;
 
-        public NuGetODataController(ConfigurationService configurationService)
+        protected NuGetODataController(ConfigurationService configurationService)
         {
             _configurationService = configurationService;
         }
@@ -50,12 +52,33 @@ namespace NuGetGallery.OData
             return _configurationService.GetSiteRoot(UseHttps()).TrimEnd('/') + '/';
         }
 
-        protected virtual HttpResponseMessage CountResult(long count)
+        /// <summary>
+        /// Generates a QueryResult.
+        /// </summary>
+        /// <typeparam name="TModel">Model type.</typeparam>
+        /// <param name="options">OData query options.</param>
+        /// <param name="queryable">Queryable to build QueryResult from.</param>
+        /// <param name="maxPageSize">Maximum page size.</param>
+        /// <returns>A QueryResult instance.</returns>
+        protected virtual IHttpActionResult QueryResult<TModel>(ODataQueryOptions<TModel> options, IQueryable<TModel> queryable, int maxPageSize)
         {
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(count.ToString(CultureInfo.InvariantCulture), Encoding.UTF8, "text/plain")
-            };
+            return new QueryResult<TModel>(options, queryable, this, maxPageSize);
+        }
+
+        /// <summary>
+        /// Generates a QueryResult that is already paged. For example if an upstream service returns only one page of results, this overload will ensure only that page is returned.
+        /// </summary>
+        /// <remarks>The next link has to be generated manually.</remarks>
+        /// <typeparam name="TModel">Model type.</typeparam>
+        /// <param name="options">OData query options.</param>
+        /// <param name="queryable">Queryable to build QueryResult from.</param>
+        /// <param name="maxPageSize">Maximum page size.</param>
+        /// <param name="totalResults">The total number of results. This number can be larger than the size of the page being served.</param>
+        /// <param name="generateNextLink">Function that generates a next link.</param>
+        /// <returns>A QueryResult instance.</returns>
+        protected virtual IHttpActionResult QueryResult<TModel>(ODataQueryOptions<TModel> options, IQueryable<TModel> queryable, int maxPageSize, long totalResults, Func<ODataQueryOptions<TModel>, ODataQuerySettings, Uri> generateNextLink)
+        {
+            return new QueryResult<TModel>(options, queryable, this, maxPageSize, totalResults, generateNextLink);
         }
     }
 }

@@ -98,7 +98,13 @@ namespace NuGetGallery
                     v1Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
-                    var result = await v1Service.Search(new ODataQueryOptions<V1FeedPackage>(new ODataQueryContext(NuGetODataV1FeedConfig.GetEdmModel(), typeof(V1FeedPackage)), v1Service.Request), null, null);
+                    var result = (await v1Service.Search(
+                        new ODataQueryOptions<V1FeedPackage>(new ODataQueryContext(NuGetODataV1FeedConfig.GetEdmModel(), typeof(V1FeedPackage)), v1Service.Request), 
+                        null, 
+                        null))
+                        .ExpectQueryResult<V1FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<PageResult<V1FeedPackage>>();
 
                     // Assert
                     Assert.Equal(1, result.Count());
@@ -138,13 +144,17 @@ namespace NuGetGallery
                     }.AsQueryable());
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
-                    configuration.Setup(c => c.Features.PackageRestoreViaSearch).Returns(false);
 
                     var v1Service = new TestableV1Feed(repo.Object, configuration.Object, null);
                     v1Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
-                    var result = (await v1Service.FindPackagesById("Foo")).AsContent<IQueryable<V1FeedPackage>>();
+                    var result = (await v1Service.FindPackagesById(
+                        new ODataQueryOptions<V1FeedPackage>(new ODataQueryContext(NuGetODataV1FeedConfig.GetEdmModel(), typeof(V1FeedPackage)), v1Service.Request), 
+                        "Foo"))
+                        .ExpectQueryResult<V1FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V1FeedPackage>>();
 
                     // Assert
                     Assert.Equal(1, result.Count());
@@ -204,7 +214,12 @@ namespace NuGetGallery
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
-                    var result = (await v2Service.FindPackagesById("Foo")).AsContent<IQueryable<V2FeedPackage>>();
+                    var result = (await v2Service.FindPackagesById(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
+                        "Foo"))
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>();
 
                     // Assert
                     Assert.Equal(2, result.Count());
@@ -234,10 +249,18 @@ namespace NuGetGallery
                     var repo = Mock.Of<IEntityRepository<Package>>();
                     var configuration = Mock.Of<ConfigurationService>();
                     var v2Service = new TestableV2Feed(repo, configuration, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
-                    var result = v2Service.GetUpdates(id, version, includePrerelease: false, includeAllVersions: true, targetFrameworks: null, versionConstraints: null)
-                        .ToList();
+                    var result = v2Service.GetUpdates(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
+                        id, 
+                        version, 
+                        includePrerelease: false, 
+                        includeAllVersions: true, 
+                        targetFrameworks: null, 
+                        versionConstraints: null)
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>();
 
                     // Assert
                     Assert.Empty(result);
@@ -266,12 +289,21 @@ namespace NuGetGallery
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
-                    var result = v2Service.GetUpdates("Foo|Qux", "1.0.0|abcd", includePrerelease: false, includeAllVersions: false, targetFrameworks: null, versionConstraints: null)
-                        .ToList();
+                    var result = v2Service.GetUpdates(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request), 
+                        "Foo|Qux", 
+                        "1.0.0|abcd", 
+                        includePrerelease: false, 
+                        includeAllVersions: false,
+                        targetFrameworks: null,
+                        versionConstraints: null)
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>();
 
                     // Assert
-                    Assert.Equal(1, result.Count);
-                    AssertPackage(new { Id = "Foo", Version = "1.2.0" }, result[0]);
+                    Assert.Equal(1, result.Count());
+                    AssertPackage(new { Id = "Foo", Version = "1.2.0" }, result.First());
                 }
 
                 [Fact]
@@ -297,11 +329,21 @@ namespace NuGetGallery
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
-                    var result = v2Service.GetUpdates("Foo|Qux", "1.0.0|0.9", includePrerelease: false, includeAllVersions: true, targetFrameworks: null, versionConstraints: null)
-                        .ToList();
+                    var result = v2Service.GetUpdates(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request), 
+                        "Foo|Qux",
+                        "1.0.0|0.9",
+                        includePrerelease: false,
+                        includeAllVersions: true, 
+                        targetFrameworks: null, 
+                        versionConstraints: null)
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ToArray();
 
                     // Assert
-                    Assert.Equal(3, result.Count);
+                    Assert.Equal(3, result.Length);
                     AssertPackage(new { Id = "Foo", Version = "1.1.0" }, result[0]);
                     AssertPackage(new { Id = "Foo", Version = "1.2.0" }, result[1]);
                     AssertPackage(new { Id = "Qux", Version = "2.0" }, result[2]);
@@ -333,19 +375,21 @@ namespace NuGetGallery
                     configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
                     var result = v2Service.GetUpdates(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
                         "Foo|Qux",
                         "1.0.0|0.9",
                         includePrerelease: false,
                         includeAllVersions: true,
                         targetFrameworks: null,
                         versionConstraints: constraintString)
-                        .ToList();
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>();
 
                     // Assert
-                    Assert.Equal(0, result.Count);
+                    Assert.Equal(0, result.Count());
                 }
 
                 [Fact]
@@ -373,16 +417,20 @@ namespace NuGetGallery
 
                     // Act
                     var result = v2Service.GetUpdates(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
                         "Foo|Qux",
                         "1.0.0|0.9",
                         includePrerelease: false,
                         includeAllVersions: true,
                         targetFrameworks: null,
                         versionConstraints: "(,1.2.0)|[2.0,2.3]")
-                        .ToList();
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ToArray();
 
                     // Assert
-                    Assert.Equal(2, result.Count);
+                    Assert.Equal(2, result.Length);
                     AssertPackage(new { Id = "Foo", Version = "1.1.0" }, result[0]);
                     AssertPackage(new { Id = "Qux", Version = "2.0" }, result[1]);
                 }
@@ -412,16 +460,20 @@ namespace NuGetGallery
 
                     // Act
                     var result = v2Service.GetUpdates(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
                         "Foo|Qux",
                         "1.0.0|0.9",
                         includePrerelease: false,
                         includeAllVersions: true,
                         targetFrameworks: null,
                         versionConstraints: "(,1.2.0)|abdfsdf")
-                        .ToList();
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ToArray();
 
                     // Assert
-                    Assert.Equal(3, result.Count);
+                    Assert.Equal(3, result.Length);
                     AssertPackage(new { Id = "Foo", Version = "1.1.0" }, result[0]);
                     AssertPackage(new { Id = "Qux", Version = "2.0" }, result[1]);
                     AssertPackage(new { Id = "Qux", Version = "3.0" }, result[2]);
@@ -452,16 +504,20 @@ namespace NuGetGallery
 
                     // Act
                     var result = v2Service.GetUpdates(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
                         "Foo|Qux",
                         "1.0.0|0.9",
                         includePrerelease: false,
                         includeAllVersions: false,
                         targetFrameworks: null,
                         versionConstraints: "|(1.2,2.8)")
-                        .ToList();
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ToArray();
 
                     // Assert
-                    Assert.Equal(2, result.Count);
+                    Assert.Equal(2, result.Length);
                     AssertPackage(new { Id = "Foo", Version = "1.2.0" }, result[0]);
                     AssertPackage(new { Id = "Qux", Version = "2.0" }, result[1]);
                 }
@@ -491,16 +547,19 @@ namespace NuGetGallery
 
                     // Act
                     var result = v2Service.GetUpdates(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
                         "Foo|Qux",
                         "1.0.0|0.9",
                         includePrerelease: false,
                         includeAllVersions: false,
                         targetFrameworks: null,
                         versionConstraints: "3.4|4.0")
-                        .ToList();
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>();
 
                     // Assert
-                    Assert.Equal(0, result.Count);
+                    Assert.Equal(0, result.Count());
                 }
 
                 [Fact]
@@ -525,16 +584,20 @@ namespace NuGetGallery
 
                     // Act
                     var result = v2Service.GetUpdates(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
                         "foo",
                         "1.0.0",
                         includePrerelease: false,
                         includeAllVersions: false,
                         targetFrameworks: null,
                         versionConstraints: null)
-                        .ToList();
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ToArray();
 
                     // Assert
-                    Assert.Equal(1, result.Count);
+                    Assert.Equal(1, result.Length);
                     Assert.Equal("Foo", result[0].Id);
                     Assert.Equal("1.2.0", result[0].Version);
                 }
@@ -564,16 +627,20 @@ namespace NuGetGallery
 
                     // Act
                     var result = v2Service.GetUpdates(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
                         "Foo|Foo|Qux",
                         "1.0.0|1.2.0|0.9",
                         includePrerelease: false,
                         includeAllVersions: false,
                         targetFrameworks: null,
                         versionConstraints: null)
-                        .ToList();
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ToArray();
 
                     // Assert
-                    Assert.Equal(2, result.Count);
+                    Assert.Equal(2, result.Length);
                     AssertPackage(new { Id = "Foo", Version = "1.2.0" }, result[0]);
                     AssertPackage(new { Id = "Qux", Version = "3.0" }, result[1]);
                 }
@@ -602,18 +669,22 @@ namespace NuGetGallery
 
                     // Act
                     var result = v2Service.GetUpdates(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
                         "Foo|Qux",
                         "1.1.0|0.9",
                         includePrerelease: true,
                         includeAllVersions: true,
                         targetFrameworks: null,
                         versionConstraints: null)
-                        .ToList();
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ToArray();
 
                     // Assert
-                    Assert.Equal(3, result.Count);
-                    AssertPackage(new { Id = "Foo", Version = "1.2.0-alpha" }, result[0]);
-                    AssertPackage(new { Id = "Foo", Version = "1.2.0" }, result[1]);
+                    Assert.Equal(3, result.Length);
+                    AssertPackage(new { Id = "Foo", Version = "1.2.0" }, result[0]);
+                    AssertPackage(new { Id = "Foo", Version = "1.2.0-alpha" }, result[1]);
                     AssertPackage(new { Id = "Qux", Version = "2.0" }, result[2]);
                 }
 
@@ -642,16 +713,20 @@ namespace NuGetGallery
                     // Act
                     var result =
                         v2Service.GetUpdates(
+                            new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
                             "Foo|Qux|Foo",
                             "0.9|1.5|1.1.2",
                             includePrerelease: false,
                             includeAllVersions: true,
                             targetFrameworks: null,
                             versionConstraints: null)
-                            .ToList();
+                            .ExpectQueryResult<V2FeedPackage>()
+                            .GetInnerResult()
+                            .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                            .ToArray();
 
                     // Assert
-                    Assert.Equal(4, result.Count);
+                    Assert.Equal(4, result.Length);
                     AssertPackage(new { Id = "Foo", Version = "1.0.0" }, result[0]);
                     AssertPackage(new { Id = "Foo", Version = "1.1.0" }, result[1]);
                     AssertPackage(new { Id = "Foo", Version = "1.2.0" }, result[2]);
@@ -708,11 +783,21 @@ namespace NuGetGallery
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
-                    var result = v2Service.GetUpdates("Foo|Qux", "1.0|1.5", includePrerelease: false, includeAllVersions: true, targetFrameworks: "net40", versionConstraints: null)
-                        .ToList();
+                    var result = v2Service.GetUpdates(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request), 
+                        "Foo|Qux", 
+                        "1.0|1.5",
+                        includePrerelease: false, 
+                        includeAllVersions: true, 
+                        targetFrameworks: "net40", 
+                        versionConstraints: null)
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ToArray();
 
                     // Assert
-                    Assert.Equal(2, result.Count);
+                    Assert.Equal(2, result.Length);
                     AssertPackage(new { Id = "Foo", Version = "1.1.0" }, result[0]);
                     AssertPackage(new { Id = "Qux", Version = "2.0" }, result[1]);
                 }
@@ -776,11 +861,21 @@ namespace NuGetGallery
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
-                    var result = v2Service.GetUpdates("Foo|Qux", "1.0|1.5", includePrerelease: true, includeAllVersions: false, targetFrameworks: "net40", versionConstraints: null)
-                        .ToList();
+                    var result = v2Service.GetUpdates(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request), 
+                        "Foo|Qux", 
+                        "1.0|1.5", 
+                        includePrerelease: true, 
+                        includeAllVersions: false, 
+                        targetFrameworks: "net40", 
+                        versionConstraints: null)
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ToArray();
 
                     // Assert
-                    Assert.Equal(2, result.Count);
+                    Assert.Equal(2, result.Length);
                     AssertPackage(new { Id = "Foo", Version = "1.3.0-alpha" }, result[0]);
                     AssertPackage(new { Id = "Qux", Version = "2.0" }, result[1]);
                 }

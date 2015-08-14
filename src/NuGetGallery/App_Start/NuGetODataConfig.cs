@@ -6,15 +6,13 @@ using System.Linq;
 using System.Web.Http;
 using System.Web.Http.OData.Formatter;
 using System.Web.Http.OData.Formatter.Deserialization;
-using System.Xml;
-using Microsoft.Data.OData;
 using NuGetGallery.OData.Serializers;
 
 namespace NuGetGallery
 {
     public static class NuGetODataConfig
     {
-        public const int GetByIdAndVersionCacheTimeInSeconds = 600;
+        public const int GetByIdAndVersionCacheTimeInSeconds = 60;
         public const int SearchCacheTimeInSeconds = 45;
 
         public static void Register(HttpConfiguration config)
@@ -28,7 +26,7 @@ namespace NuGetGallery
             // so they are at the end of the collection.
             // This will save you a few hours of debugging.
             var filteredFormatters = odataFormatters
-                .Where(f => !f.SupportedMediaTypes.Any(m => m.MediaType == "application/atomsvc+xml" 
+                .Where(f => !f.SupportedMediaTypes.Any(m => m.MediaType.Equals("application/atomsvc+xml", StringComparison.OrdinalIgnoreCase)
                     || m.MediaType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase)))
                 .ToList();
 
