@@ -49,7 +49,7 @@ namespace Ng
                 }
                 else
                 {
-                    Trace.TraceInformation("no nuspec available for {0}/{1} skipping", id, version);
+                    Trace.TraceWarning("no nuspec available for {0}/{1} skipping", id, version);
                 }
             }
 
@@ -130,9 +130,21 @@ namespace Ng
             string name = string.Format("{0}.nuspec", id);
             using (ZipArchive archive = new ZipArchive(stream, ZipArchiveMode.Read, true))
             {
+                // first look for a nuspec file named as the package id
                 foreach (ZipArchiveEntry entry in archive.Entries)
                 {
                     if (entry.FullName.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        using (TextReader reader = new StreamReader(entry.Open()))
+                        {
+                            return reader.ReadToEnd();
+                        }
+                    }
+                }
+                // failing that, just return the first file that appears to be a nuspec
+                foreach (ZipArchiveEntry entry in archive.Entries)
+                {
+                    if (entry.FullName.EndsWith(".nuspec", StringComparison.InvariantCultureIgnoreCase))
                     {
                         using (TextReader reader = new StreamReader(entry.Open()))
                         {
