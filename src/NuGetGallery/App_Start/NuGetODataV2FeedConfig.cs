@@ -51,7 +51,7 @@ namespace NuGetGallery
             builder.MaxDataServiceVersion = new Version(2, 0);
             builder.Namespace = "NuGetGallery";
             builder.ContainerName = "V2FeedContext";
-
+            
             var packagesCollection = builder.EntitySet<V2FeedPackage>("Packages");
             packagesCollection.EntityType.HasKey(pkg => pkg.Id);
             packagesCollection.EntityType.HasKey(pkg => pkg.Version);
@@ -79,7 +79,7 @@ namespace NuGetGallery
             model.SetEdmVersion(new Version(1, 0));
             model.SetEdmxVersion(new Version(1, 0));
             model.SetHasDefaultStream(model.FindDeclaredType(typeof(V2FeedPackage).FullName) as IEdmEntityType, hasStream: true);
-
+            
             return model;
         }
     }

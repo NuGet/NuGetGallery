@@ -52,11 +52,9 @@ namespace NuGetGallery.WebApi
                 _isPagedResult = true;
             }
 
-            _validationSettings = new ODataValidationSettings()
-            {
-                // disable projections
-                AllowedQueryOptions = AllowedQueryOptions.All & ~AllowedQueryOptions.Select
-            };
+            // todo: if we decide to no longer support projections
+            //AllowedQueryOptions = AllowedQueryOptions.All & ~AllowedQueryOptions.Select
+            _validationSettings = new ODataValidationSettings();
 
             _querySettings = new ODataQuerySettings()
             {
@@ -66,11 +64,11 @@ namespace NuGetGallery.WebApi
             };
         }
 
-        public Task<HttpResponseMessage> ExecuteAsync(CancellationToken cancellationToken)
+        public async Task<HttpResponseMessage> ExecuteAsync(CancellationToken cancellationToken)
         {
             try
             {
-                return GetInnerResult().ExecuteAsync(cancellationToken);
+                return await GetInnerResult().ExecuteAsync(cancellationToken);
             }
             catch (ODataException e)
             {
@@ -79,7 +77,7 @@ namespace NuGetGallery.WebApi
                     string.Format(CultureInfo.InvariantCulture, "URI or query string invalid. {0}", e.Message),
                     e);
 
-                return Task.FromResult(response);
+                return response;
             }
         }
 
@@ -102,8 +100,10 @@ namespace NuGetGallery.WebApi
             }
 
             // Apply the query
-            var queryResult = ExecuteQuery(_queryable, queryOptions);
-            if (queryResult == null)
+            var queryResults = ExecuteQuery(_queryable, queryOptions);
+            var modelQueryResults = queryResults as IQueryable<TModel>; // cast succeeds if querying on model
+            var projectedQueryResults = queryResults as IQueryable<IEdmEntityObject>; // cast succeeds in case of projection
+            if (queryResults == null)
             {
                 // No results
                 return NotFoundResult();
@@ -118,8 +118,15 @@ namespace NuGetGallery.WebApi
                 }
                 else
                 {
-                    // Handle result that is already paged
-                    return NegotiatedContentResult(queryResult.First());
+                    // Handle single result
+                    if (modelQueryResults != null)
+                    {
+                        return NegotiatedContentResult(modelQueryResults.First());
+                    }
+                    else if (projectedQueryResults != null)
+                    {
+                        return NegotiatedContentResult(projectedQueryResults.AsEnumerable().First());
+                    }
                 }
             }
             else
@@ -136,8 +143,16 @@ namespace NuGetGallery.WebApi
                     else
                     {
                         // Handle result that is already paged
-                        return NegotiatedContentResult(
-                            new PageResult<TModel>(queryResult, _generateNextLink(_queryOptions, _querySettings), _totalResults));
+                        if (modelQueryResults != null)
+                        {
+                            return NegotiatedContentResult(
+                                new PageResult<TModel>(modelQueryResults, _generateNextLink(_queryOptions, _querySettings), _totalResults));
+                        }
+                        else if (projectedQueryResults != null)
+                        {
+                            return NegotiatedContentResult(
+                                new PageResult<IEdmEntityObject>(projectedQueryResults, _generateNextLink(_queryOptions, _querySettings), _totalResults));
+                        }
                     }
                 }
                 else
@@ -146,15 +161,38 @@ namespace NuGetGallery.WebApi
                     if (FormatAsCountResult)
                     {
                         // Handle $count
-                        return CountResult(queryResult.Count());
+                        if (modelQueryResults != null)
+                        {
+                            return CountResult(modelQueryResults.Count());
+                        }
+                        else if (projectedQueryResults != null)
+                        {
+                            return CountResult(projectedQueryResults.AsEnumerable().Count());
+                        }
                     }
                     else
                     {
                         // Handle regular queryable
-                        return NegotiatedContentResult(queryResult);
+                        if (modelQueryResults != null)
+                        {
+                            return NegotiatedContentResult(modelQueryResults);
+                        }
+                        else if (projectedQueryResults != null)
+                        {
+                            // For projections we have to craft the result with a proper type hint
+                            // to make the OData XML serializers like the collection result.
+                            var firstElement = projectedQueryResults.FirstOrDefault();
+                            if (firstElement != null)
+                            {
+                                return ProjectedNegotiatedContentResult(projectedQueryResults, firstElement.GetType());
+                            }
+                            return NegotiatedContentResult(projectedQueryResults);
+                        }
                     }
                 }
             }
+
+            return BadRequest("Could not execute OData query. Executing the query returned neither a strong-typed model result nor a projection result.");
         }
 
         private void ValidateQuery(ODataQueryOptions<TModel> queryOptions)
@@ -176,7 +214,7 @@ namespace NuGetGallery.WebApi
             queryOptions.Validate(_validationSettings);
         }
 
-        private IQueryable<TModel> ExecuteQuery(IQueryable<TModel> queryable, ODataQueryOptions<TModel> queryOptions)
+        private IQueryable ExecuteQuery(IQueryable<TModel> queryable, ODataQueryOptions<TModel> queryOptions)
         {
             if (queryOptions == null)
             {
@@ -184,7 +222,21 @@ namespace NuGetGallery.WebApi
             }
 
             ValidateQuery(queryOptions);
-            return (IQueryable<TModel>)queryOptions.ApplyTo(queryable, _querySettings);
+
+            var queryResult = queryOptions.ApplyTo(queryable, _querySettings);
+
+            var projection = queryResult as IQueryable<IEdmEntityObject>;
+            if (projection != null)
+            {
+                return projection;
+            }
+            
+            return queryResult;
+        }
+        
+        private BadRequestErrorMessageResult BadRequest(string message)
+        {
+            return new BadRequestErrorMessageResult(message, _controller);
         }
 
         private NotFoundResult NotFoundResult()
@@ -197,9 +249,17 @@ namespace NuGetGallery.WebApi
             return new PlainTextResult(count.ToString(CultureInfo.InvariantCulture), _controller.Request);
         }
 
-        private OkNegotiatedContentResult<TContentModel> NegotiatedContentResult<TContentModel>(TContentModel content)
+        private OkNegotiatedContentResult<TResponseModel> NegotiatedContentResult<TResponseModel>(TResponseModel content)
         {
-            return new OkNegotiatedContentResult<TContentModel>(content, _controller);
+            return new OkNegotiatedContentResult<TResponseModel>(content, _controller);
+        }
+
+        private IHttpActionResult ProjectedNegotiatedContentResult<TResponseModel>(TResponseModel content, Type projectedType)
+        {
+            Type resultType = typeof(OkNegotiatedContentResult<>)
+                .MakeGenericType(typeof(IQueryable<>)
+                .MakeGenericType(projectedType));
+            return Activator.CreateInstance(resultType, content, _controller) as IHttpActionResult;
         }
     }
 }

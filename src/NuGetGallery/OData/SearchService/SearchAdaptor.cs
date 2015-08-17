@@ -342,6 +342,22 @@ namespace NuGetGallery.OData
                 queryBuilder.Append("&");
             }
 
+            if (options.SelectExpand != null)
+            {
+                if (!string.IsNullOrEmpty(options.SelectExpand.RawSelect))
+                {
+                    queryBuilder.Append("$select=");
+                    queryBuilder.Append(options.SelectExpand.RawSelect);
+                    queryBuilder.Append("&");
+                }
+                if (!string.IsNullOrEmpty(options.SelectExpand.RawExpand))
+                {
+                    queryBuilder.Append("$expand=");
+                    queryBuilder.Append(options.SelectExpand.RawExpand);
+                    queryBuilder.Append("&");
+                }
+            }
+
             if (options.Filter != null)
             {
                 queryBuilder.Append("$filter=");
