@@ -100,6 +100,11 @@ namespace NuGetGallery.Controllers
                 QuietLog.LogHandledException(ex);
             }
 
+            if (!packages.Any())
+            {
+                return NotFound();
+            }
+
             var queryable = packages.ToV1FeedPackageQuery(GetSiteRoot());
             return QueryResult(options, queryable, MaxPageSize);
         }

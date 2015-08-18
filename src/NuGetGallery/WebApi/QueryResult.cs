@@ -114,18 +114,28 @@ namespace NuGetGallery.WebApi
                 if (FormatAsCountResult)
                 {
                     // Handle $count
-                    return CountResult(1);
+                    var count = 0;
+                    if (modelQueryResults != null)
+                    {
+                        count = Math.Min(1, modelQueryResults.Count());
+                    }
+                    else if (projectedQueryResults != null)
+                    {
+                        count = Math.Min(1, projectedQueryResults.Count());
+                    }
+
+                    return CountResult(count);
                 }
                 else
                 {
                     // Handle single result
                     if (modelQueryResults != null)
                     {
-                        return NegotiatedContentResult(modelQueryResults.First());
+                        return NegotiatedContentResult(modelQueryResults.FirstOrDefault());
                     }
                     else if (projectedQueryResults != null)
                     {
-                        return NegotiatedContentResult(projectedQueryResults.AsEnumerable().First());
+                        return NegotiatedContentResult(projectedQueryResults.AsEnumerable().FirstOrDefault());
                     }
                 }
             }

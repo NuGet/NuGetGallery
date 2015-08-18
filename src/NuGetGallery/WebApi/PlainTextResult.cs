@@ -12,20 +12,20 @@ namespace NuGetGallery.WebApi
     public class PlainTextResult
         : IHttpActionResult
     {
-        private readonly string _content;
         private readonly HttpRequestMessage _request;
+        public string Content { get; private set; }
 
         public PlainTextResult(string content, HttpRequestMessage request)
         {
-            _content = content;
             _request = request;
+            Content = content;
         }
 
         public Task<HttpResponseMessage> ExecuteAsync(CancellationToken cancellationToken)
         {
             var response = new HttpResponseMessage()
             {
-                Content = new StringContent(_content, Encoding.UTF8, "text/plain"),
+                Content = new StringContent(Content, Encoding.UTF8, "text/plain"),
                 RequestMessage = _request
             };
             return Task.FromResult(response);

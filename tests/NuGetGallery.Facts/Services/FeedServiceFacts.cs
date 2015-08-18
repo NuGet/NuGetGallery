@@ -9,11 +9,12 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
-using Microsoft.Data.Edm;
+using System.Web.Http.Results;
 using Moq;
 using NuGetGallery.Configuration;
 using NuGetGallery.Controllers;
 using NuGetGallery.OData;
+using NuGetGallery.WebApi;
 using Xunit;
 
 namespace NuGetGallery
@@ -167,6 +168,232 @@ namespace NuGetGallery
 
         public class TheV2Feed
         {
+            private static Mock<IEntityRepository<Package>> SetupSampleRepository()
+            {
+                var fooPackage = new PackageRegistration { Id = "Foo" };
+                var barPackage = new PackageRegistration { Id = "Bar" };
+                var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                repo.Setup(r => r.GetAll()).Returns(new[]
+                {
+                        new Package
+                            {
+                                PackageRegistration = fooPackage,
+                                Version = "1.0.0",
+                                IsPrerelease = false,
+                                Listed = true,
+                                DownloadStatistics = new List<PackageStatistics>(),
+                                Authors = new [] { new PackageAuthor { Name = "Test "} },
+                                FlattenedAuthors = "Test",
+                                Description = "Foo",
+                                Summary = "Foo",
+                                Tags = "Foo CommonTag"
+                            },
+                        new Package
+                            {
+                                PackageRegistration = fooPackage,
+                                Version = "1.0.1-a",
+                                IsPrerelease = true,
+                                Listed = true,
+                                DownloadStatistics = new List<PackageStatistics>(),
+                                Authors = new [] { new PackageAuthor { Name = "Test "} },
+                                FlattenedAuthors = "Test",
+                                Description = "Foo",
+                                Summary = "Foo",
+                                Tags = "Foo CommonTag"
+                            },
+                        new Package
+                            {
+                                PackageRegistration = barPackage,
+                                Version = "1.0.0",
+                                IsPrerelease = false,
+                                Listed = true,
+                                DownloadStatistics = new List<PackageStatistics>(),
+                                Authors = new [] { new PackageAuthor { Name = "Test "} },
+                                FlattenedAuthors = "Test",
+                                Description = "Bar",
+                                Summary = "Bar",
+                                Tags = "Bar CommonTag"
+                            },
+                        new Package
+                            {
+                                PackageRegistration = barPackage,
+                                Version = "2.0.0",
+                                IsPrerelease = false,
+                                Listed = true,
+                                DownloadStatistics = new List<PackageStatistics>(),
+                                Authors = new [] { new PackageAuthor { Name = "Test "} },
+                                FlattenedAuthors = "Test",
+                                Description = "Bar",
+                                Summary = "Bar",
+                                Tags = "Bar CommonTag"
+                            },
+                        new Package
+                            {
+                                PackageRegistration = barPackage,
+                                Version = "2.0.1-a",
+                                IsPrerelease = true,
+                                Listed = true,
+                                DownloadStatistics = new List<PackageStatistics>(),
+                                Authors = new [] { new PackageAuthor { Name = "Test "} },
+                                FlattenedAuthors = "Test",
+                                Description = "Bar",
+                                Summary = "Bar",
+                                Tags = "Bar CommonTag"
+                            },
+                        new Package
+                            {
+                                PackageRegistration = barPackage,
+                                Version = "2.0.1-b",
+                                IsPrerelease = true,
+                                Listed = false,
+                                DownloadStatistics = new List<PackageStatistics>(),
+                                Authors = new [] { new PackageAuthor { Name = "Test "} },
+                                FlattenedAuthors = "Test",
+                                Description = "Bar",
+                                Summary = "Bar",
+                                Tags = "Bar CommonTag"
+                            }
+                    }.AsQueryable());
+
+                return repo;
+            }
+
+            public class ThePackagesCollection
+            {
+                [Theory]
+                [InlineData("Id eq 'Foo'", 100, 2, new[] { "Foo", "Foo" }, new[] { "1.0.0", "1.0.1-a" })]
+                [InlineData("Id eq 'Bar'", 1, 1, new[] { "Bar" }, new[] { "1.0.0" })]
+                [InlineData("Id eq 'Bar' and IsPrerelease eq true", 100, 2, new[] { "Bar", "Bar" }, new[] { "2.0.1-a" , "2.0.1-b" })]
+                [InlineData("Id eq 'Bar' or Id eq 'Foo'", 100, 6, new[] { "Foo", "Foo", "Bar", "Bar", "Bar", "Bar" }, new[] { "1.0.0", "1.0.1-a", "1.0.0", "2.0.0", "2.0.1-a", "2.0.1-b" })]
+                public void V2FeedPackagesReturnsCollection(string filter, int top, int expectedNumberOfPackages, string[] expectedIds, string[] expectedVersions)
+                {
+                    // Arrange
+                    var repo = SetupSampleRepository();
+
+                    var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
+                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(false);
+
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/api/v2/Packages?$filter=" + filter + "&$top=" + top);
+
+                    // Act
+                    var result = v2Service.Get(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request))
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ToArray();
+
+                    // Assert
+                    Assert.Equal(expectedNumberOfPackages, result.Length);
+                    for (int i = 0; i < expectedIds.Length; i++)
+                    {
+                        var expectedId = expectedIds[i];
+                        var expectedVersion = expectedVersions[i];
+
+                        Assert.True(result.Any(p => p.Id == expectedId && p.Version == expectedVersion), string.Format("Search results did not contain {0} {1}", expectedId, expectedVersion));
+                    }
+                }
+
+                [Theory]
+                [InlineData("Id eq 'Foo'", 100, 2)]
+                [InlineData("Id eq 'Bar'", 1, 1)]
+                [InlineData("Id eq 'Bar' and IsPrerelease eq true", 100, 2)]
+                [InlineData("Id eq 'Bar' or Id eq 'Foo'", 100, 6)]
+                [InlineData("Id eq 'NotBar'", 100, 0)]
+                public void V2FeedPackagesCountReturnsCorrectCount(string filter, int top, int expectedNumberOfPackages)
+                {
+                    // Arrange
+                    var repo = SetupSampleRepository();
+
+                    var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
+                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(false);
+
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/api/v2/Packages/$count?$filter=" + filter + "&$top=" + top);
+
+                    // Act
+                    var result = v2Service.GetCount(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request))
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectResult<PlainTextResult>();
+
+                    // Assert
+                    Assert.Equal(expectedNumberOfPackages.ToString(), result.Content);
+                }
+
+                [Theory]
+                [InlineData("Foo", "1.0.0")]
+                [InlineData("Foo", "1.0.1-a")]
+                [InlineData("Bar", "1.0.0")]
+                [InlineData("Bar", "2.0.0")]
+                [InlineData("Bar", "2.0.1-b")]
+                public async Task V2FeedPackagesByIdAndVersionReturnsPackage(string expectedId, string expectedVersion)
+                {
+                    // Arrange
+                    var repo = SetupSampleRepository();
+
+                    var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
+                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(false);
+
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/api/v2/Packages(Id='" + expectedId + "', Version='" + expectedVersion + "')");
+
+                    // Act
+                    var result = (await v2Service.Get(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request), expectedId, expectedVersion))
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<V2FeedPackage>();
+
+                    // Assert
+                    Assert.Equal(expectedId, result.Id);
+                    Assert.Equal(expectedVersion, result.Version);
+                }
+
+                [Theory]
+                [InlineData("NoFoo", "1.0.0")]
+                [InlineData("NoBar", "1.0.0-a")]
+                [InlineData("Bar", "9.9.9")]
+                public async Task V2FeedPackagesByIdAndVersionReturnsNotFoundWhenPackageNotFound(string expectedId, string expectedVersion)
+                {
+                    // Arrange
+                    var repo = SetupSampleRepository();
+
+                    var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
+                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(false);
+
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/api/v2/Packages(Id='" + expectedId + "', Version='" + expectedVersion + "')");
+                   
+                    // Act
+                    (await v2Service.Get(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request), expectedId, expectedVersion))
+                        .ExpectResult<NotFoundResult>();
+                }
+            }
+
             public class TheFindPackagesByIdMethod
             {
                 [Fact]
@@ -228,6 +455,91 @@ namespace NuGetGallery
 
                     Assert.Equal("Foo", result.Last().Id);
                     Assert.Equal("1.0.1-a", result.Last().Version);
+                }
+            }
+
+            public class TheSearchMethod
+            {
+                [Theory]
+                [InlineData("Foo", false, 1, new[] { "Foo" }, new[] { "1.0.0" })]
+                [InlineData("Bar", false, 2, new[] { "Bar", "Bar" }, new[] { "1.0.0", "2.0.0" })]
+                [InlineData("", false, 3, new[] { "Foo", "Bar", "Bar" }, new[] { "1.0.0", "1.0.0", "2.0.0" })]
+                [InlineData("CommonTag", false, 3, new[] { "Foo", "Bar", "Bar" }, new[] { "1.0.0", "1.0.0", "2.0.0" })]
+                [InlineData("", true, 5, new[] { "Foo", "Foo", "Bar", "Bar", "Bar" }, new[] { "1.0.0", "1.0.1-a", "1.0.0", "2.0.0", "2.0.1-a" })]
+                public async Task V2FeedSearchFiltersPackagesBySearchTermAndPrereleaseFlag(string searchTerm, bool includePrerelease, int expectedNumberOfPackages, string[] expectedIds, string[] expectedVersions)
+                {
+                    // Arrange
+                    var repo = SetupSampleRepository();
+
+                    var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
+                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(false);
+
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/api/v2/Search()?searchTerm='" + searchTerm + "'&targetFramework=''&includePrerelease=false");
+
+                    // Act
+                    var result = (await v2Service.Search(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
+                        searchTerm: searchTerm,
+                        targetFramework: null,
+                        includePrerelease: includePrerelease))
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<PageResult<V2FeedPackage>>()
+                        .ToArray();
+
+                    // Assert
+                    Assert.Equal(expectedNumberOfPackages, result.Length);
+                    for (int i = 0; i < expectedIds.Length; i++)
+                    {
+                        var expectedId = expectedIds[i];
+                        var expectedVersion = expectedVersions[i];
+
+                        Assert.True(result.Any(p => p.Id == expectedId && p.Version == expectedVersion), string.Format("Search results did not contain {0} {1}", expectedId, expectedVersion));
+                    }
+                }
+
+                [Theory]
+                [InlineData("Foo", false, 1)]
+                [InlineData("Bar", false, 2)]
+                [InlineData("", false, 3)]
+                [InlineData("CommonTag", false, 3)]
+                [InlineData("", true, 5)]
+                public async Task V2FeedSearchCountFiltersPackagesBySearchTermAndPrereleaseFlag(string searchTerm, bool includePrerelease, int expectedNumberOfPackages)
+                {
+                    // Arrange
+                    var repo = SetupSampleRepository();
+
+                    var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
+                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(false);
+
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/api/v2/Search()/$count?searchTerm='" + searchTerm + "'&targetFramework=''&includePrerelease=false");
+
+                    // Act
+                    var result = (await v2Service.SearchCount(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
+                        searchTerm: searchTerm,
+                        targetFramework: null,
+                        includePrerelease: includePrerelease))
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectResult<PlainTextResult>();
+
+                    // Assert
+                    Assert.Equal(expectedNumberOfPackages.ToString(), result.Content);
                 }
             }
 

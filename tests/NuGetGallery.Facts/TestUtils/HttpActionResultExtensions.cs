@@ -31,5 +31,19 @@ namespace NuGetGallery
             throw new ArgumentException(string.Format("The argument is not of type QueryResult<{0}>. Got {1} instead.",
                 typeof(T).FullName, actionResult.GetType().FullName), "actionResult");
         }
+
+        public static TExpectedResultType ExpectResult<TExpectedResultType>(this IHttpActionResult actionResult)
+            where TExpectedResultType : IHttpActionResult
+        {
+            try
+            {
+                return (TExpectedResultType) actionResult;
+            }
+            catch
+            {
+                throw new ArgumentException(string.Format("The argument is not of type {0}. Got {1} instead.",
+                    typeof (TExpectedResultType).FullName, actionResult.GetType().FullName), "actionResult");
+            }
+        }
     }
 }
