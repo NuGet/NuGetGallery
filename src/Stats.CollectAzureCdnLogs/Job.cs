@@ -184,6 +184,7 @@ namespace Stats.CollectAzureCdnLogs
                                     }
                                 }
 
+                                // REVIEW: Instead of having the entire string in memory, we may want to make this a stream that is read, processed and flushed to the resulting blob in one go.
                                 // Parse the data and remove anything we don't want to store
                                 string modifiedLog = GetParsedModifiedLog(log);
 
