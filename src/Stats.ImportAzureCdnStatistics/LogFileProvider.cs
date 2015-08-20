@@ -15,7 +15,7 @@ namespace Stats.ImportAzureCdnStatistics
 {
     internal class LogFileProvider
     {
-        private const int _maxListBlobResultSegments = 10;
+        private const int _maxListBlobResultSegments = 30;
         private const int _maxLeasesPerJobRun = 3;
         private readonly TimeSpan _defaultLeaseTime = TimeSpan.FromSeconds(60);
         private readonly JobEventSource _jobEventSource = JobEventSource.Log;
