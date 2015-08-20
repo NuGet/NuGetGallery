@@ -249,6 +249,9 @@
     <Compile Include="Controllers\PackagesControllerFacts.cs" />
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
+    <Compile Include="TestUtils\Infrastructure\TestableV1Feed.cs" />
+    <Compile Include="TestUtils\Infrastructure\TestableV2Feed.cs" />
+    <Compile Include="TestUtils\Infrastructure\TestDependencyResolver.cs" />
     <Compile Include="OData\Interceptors\NormalizeVersionInterceptorFacts.cs" />
     <Compile Include="OData\Interceptors\PackageExtensionsFacts.cs" />
     <Compile Include="Diagnostics\DiagnosticsServiceFacts.cs" />
@@ -284,6 +287,7 @@
     <Compile Include="Services\CloudBlobFileStorageServiceFacts.cs" />
     <Compile Include="Services\CuratedFeedServiceFacts.cs" />
     <Compile Include="Services\ContentServiceFacts.cs" />
+    <Compile Include="TestUtils\Infrastructure\FeedServiceHelpers.cs" />
     <Compile Include="Services\FileSystemFileStorageServiceFacts.cs" />
     <Compile Include="Services\MessageServiceFacts.cs" />
     <Compile Include="Services\NuGetExeDownloaderServiceFacts.cs" />

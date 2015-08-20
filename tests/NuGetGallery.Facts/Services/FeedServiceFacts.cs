@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http.OData;
@@ -13,7 +14,9 @@ using System.Web.Http.Results;
 using Moq;
 using NuGetGallery.Configuration;
 using NuGetGallery.Controllers;
+using NuGetGallery.Helpers;
 using NuGetGallery.OData;
+using NuGetGallery.TestUtils.Infrastructure;
 using NuGetGallery.WebApi;
 using Xunit;
 
@@ -21,6 +24,137 @@ namespace NuGetGallery
 {
     public class FeedServiceFacts
     {
+        public class TheODataResponses
+        {
+            public class ForV1
+            {
+                [Theory]
+                [InlineData("https://nuget.org/api/v1/Packages", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/Packages/$count", "text/plain; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/Packages(Id='Foo',Version='1.0.0')", "application/atom+xml; type=entry; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/FindPackagesById()?id='Foo'", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/Search()?searchTerm='foo'&targetFramework='net45'&includePrerelease=true", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/Search()/$count?searchTerm='foo'&targetFramework='net45'&includePrerelease=true", "text/plain; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/Packages?$select=Id,Version,IsLatestVersion", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/Packages/$count?$select=Id,Version,IsLatestVersion", "text/plain; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/Packages(Id='Foo',Version='1.0.0')?$select=Id,Version,IsLatestVersion", "application/atom+xml; type=entry; charset=utf-8")]
+                public async Task ReturnCorrectDefaultContentTypes(string requestUrl, string responseContentType)
+                {
+                    using (var server = FeedServiceHelpers.SetupODataServer())
+                    {
+                        var client = new HttpClient(server);
+                        var response = await client.GetAsync(requestUrl);
+
+                        Assert.Equal(responseContentType, response.Content.Headers.ContentType.ToString());
+                    }
+                }
+
+                [Theory]
+                [InlineData("https://nuget.org/api/v1/Packages(Id='NoFoo',Version='1.0.0')")]
+                public async Task Return404NotFoundForUnexistingPackage(string requestUrl)
+                {
+                    using (var server = FeedServiceHelpers.SetupODataServer())
+                    {
+                        var client = new HttpClient(server);
+                        var response = await client.GetAsync(requestUrl);
+
+                        Assert.False(response.IsSuccessStatusCode);
+                    }
+                }
+
+                [Theory]
+                [InlineData("https://nuget.org/api/v1/Packages", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/Packages/$count", "text/plain; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/Packages(Id='Foo',Version='1.0.0')", "application/atom+xml; type=entry; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/FindPackagesById()?id='Foo'", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/Search()?searchTerm='foo'&targetFramework='net45'&includePrerelease=true", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/Search()/$count?searchTerm='foo'&targetFramework='net45'&includePrerelease=true", "text/plain; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/Packages?$select=Id,Version,IsLatestVersion", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/Packages/$count?$select=Id,Version,IsLatestVersion", "text/plain; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v1/Packages(Id='Foo',Version='1.0.0')?$select=Id,Version,IsLatestVersion", "application/atom+xml; type=entry; charset=utf-8")]
+                public async Task ReturnDefaultContentTypesEvenForCustomAcceptHeader(string requestUrl, string responseContentType)
+                {
+                    using (var server = FeedServiceHelpers.SetupODataServer())
+                    {
+                        var client = new HttpClient(server);
+
+                        var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+                        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                        var response = await client.SendAsync(request);
+
+                        Assert.Equal(responseContentType, response.Content.Headers.ContentType.ToString());
+                    }
+                }
+            }
+
+            public class ForV2
+            {
+                [Theory]
+                [InlineData("https://nuget.org/api/v2/Packages", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/Packages/$count", "text/plain; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/Packages(Id='Foo',Version='1.0.0')", "application/atom+xml; type=entry; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/FindPackagesById()?id='Foo'", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/Search()?searchTerm='foo'&targetFramework='net45'&includePrerelease=true", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/Search()/$count?searchTerm='foo'&targetFramework='net45'&includePrerelease=true", "text/plain; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/GetUpdates()?packageIds='Foo|Bar'&versions='0.0.1|0.0.1'&includePrerelease=false&includeAllVersions=false&targetFrameworks=''&versionConstraints=''", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/GetUpdates()/$count?packageIds='Foo|Bar'&versions='0.0.1|0.0.1'&includePrerelease=false&includeAllVersions=false&targetFrameworks=''&versionConstraints=''", "text/plain; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/Packages?$select=Id,Version,IsLatestVersion", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/Packages/$count?$select=Id,Version,IsLatestVersion", "text/plain; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/Packages(Id='Foo',Version='1.0.0')?$select=Id,Version,IsLatestVersion", "application/atom+xml; type=entry; charset=utf-8")]
+                public async Task ReturnCorrectDefaultContentTypes(string requestUrl, string responseContentType)
+                {
+                    using (var server = FeedServiceHelpers.SetupODataServer())
+                    {
+                        var client = new HttpClient(server);
+                        var response = await client.GetAsync(requestUrl);
+
+                        Assert.Equal(responseContentType, response.Content.Headers.ContentType.ToString());
+                    }
+                }
+
+                [Theory]
+                [InlineData("https://nuget.org/api/v2/Packages(Id='NoFoo',Version='1.0.0')")]
+                public async Task Return404NotFoundForUnexistingPackage(string requestUrl)
+                {
+                    using (var server = FeedServiceHelpers.SetupODataServer())
+                    {
+                        var client = new HttpClient(server);
+                        var response = await client.GetAsync(requestUrl);
+
+                        Assert.False(response.IsSuccessStatusCode);
+                    }
+                }
+
+                [Theory]
+                [InlineData("https://nuget.org/api/v2/Packages", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/Packages/$count", "text/plain; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/Packages(Id='Foo',Version='1.0.0')", "application/atom+xml; type=entry; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/FindPackagesById()?id='Foo'", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/Search()?searchTerm='foo'&targetFramework='net45'&includePrerelease=true", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/Search()/$count?searchTerm='foo'&targetFramework='net45'&includePrerelease=true", "text/plain; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/GetUpdates()?packageIds='Foo|Bar'&versions='0.0.1|0.0.1'&includePrerelease=false&includeAllVersions=false&targetFrameworks=''&versionConstraints=''", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/GetUpdates()/$count?packageIds='Foo|Bar'&versions='0.0.1|0.0.1'&includePrerelease=false&includeAllVersions=false&targetFrameworks=''&versionConstraints=''", "text/plain; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/Packages?$select=Id,Version,IsLatestVersion", "application/atom+xml; type=feed; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/Packages/$count?$select=Id,Version,IsLatestVersion", "text/plain; charset=utf-8")]
+                [InlineData("https://nuget.org/api/v2/Packages(Id='Foo',Version='1.0.0')?$select=Id,Version,IsLatestVersion", "application/atom+xml; type=entry; charset=utf-8")]
+                public async Task ReturnDefaultContentTypesEvenForCustomAcceptHeader(string requestUrl, string responseContentType)
+                {
+                    using (var server = FeedServiceHelpers.SetupODataServer())
+                    {
+                        var client = new HttpClient(server);
+
+                        var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+                        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                        var response = await client.SendAsync(request);
+
+                        Assert.Equal(responseContentType, response.Content.Headers.ContentType.ToString());
+                    }
+                }
+            }
+        }
+
         public class TheGetSiteRootMethod
         {
             [Theory]
@@ -168,95 +302,6 @@ namespace NuGetGallery
 
         public class TheV2Feed
         {
-            private static Mock<IEntityRepository<Package>> SetupSampleRepository()
-            {
-                var fooPackage = new PackageRegistration { Id = "Foo" };
-                var barPackage = new PackageRegistration { Id = "Bar" };
-                var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                repo.Setup(r => r.GetAll()).Returns(new[]
-                {
-                        new Package
-                            {
-                                PackageRegistration = fooPackage,
-                                Version = "1.0.0",
-                                IsPrerelease = false,
-                                Listed = true,
-                                DownloadStatistics = new List<PackageStatistics>(),
-                                Authors = new [] { new PackageAuthor { Name = "Test "} },
-                                FlattenedAuthors = "Test",
-                                Description = "Foo",
-                                Summary = "Foo",
-                                Tags = "Foo CommonTag"
-                            },
-                        new Package
-                            {
-                                PackageRegistration = fooPackage,
-                                Version = "1.0.1-a",
-                                IsPrerelease = true,
-                                Listed = true,
-                                DownloadStatistics = new List<PackageStatistics>(),
-                                Authors = new [] { new PackageAuthor { Name = "Test "} },
-                                FlattenedAuthors = "Test",
-                                Description = "Foo",
-                                Summary = "Foo",
-                                Tags = "Foo CommonTag"
-                            },
-                        new Package
-                            {
-                                PackageRegistration = barPackage,
-                                Version = "1.0.0",
-                                IsPrerelease = false,
-                                Listed = true,
-                                DownloadStatistics = new List<PackageStatistics>(),
-                                Authors = new [] { new PackageAuthor { Name = "Test "} },
-                                FlattenedAuthors = "Test",
-                                Description = "Bar",
-                                Summary = "Bar",
-                                Tags = "Bar CommonTag"
-                            },
-                        new Package
-                            {
-                                PackageRegistration = barPackage,
-                                Version = "2.0.0",
-                                IsPrerelease = false,
-                                Listed = true,
-                                DownloadStatistics = new List<PackageStatistics>(),
-                                Authors = new [] { new PackageAuthor { Name = "Test "} },
-                                FlattenedAuthors = "Test",
-                                Description = "Bar",
-                                Summary = "Bar",
-                                Tags = "Bar CommonTag"
-                            },
-                        new Package
-                            {
-                                PackageRegistration = barPackage,
-                                Version = "2.0.1-a",
-                                IsPrerelease = true,
-                                Listed = true,
-                                DownloadStatistics = new List<PackageStatistics>(),
-                                Authors = new [] { new PackageAuthor { Name = "Test "} },
-                                FlattenedAuthors = "Test",
-                                Description = "Bar",
-                                Summary = "Bar",
-                                Tags = "Bar CommonTag"
-                            },
-                        new Package
-                            {
-                                PackageRegistration = barPackage,
-                                Version = "2.0.1-b",
-                                IsPrerelease = true,
-                                Listed = false,
-                                DownloadStatistics = new List<PackageStatistics>(),
-                                Authors = new [] { new PackageAuthor { Name = "Test "} },
-                                FlattenedAuthors = "Test",
-                                Description = "Bar",
-                                Summary = "Bar",
-                                Tags = "Bar CommonTag"
-                            }
-                    }.AsQueryable());
-
-                return repo;
-            }
 
             public class ThePackagesCollection
             {
@@ -268,7 +313,7 @@ namespace NuGetGallery
                 public void V2FeedPackagesReturnsCollection(string filter, int top, int expectedNumberOfPackages, string[] expectedIds, string[] expectedVersions)
                 {
                     // Arrange
-                    var repo = SetupSampleRepository();
+                    var repo = FeedServiceHelpers.SetupTestPackageRepository();
 
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
@@ -309,7 +354,7 @@ namespace NuGetGallery
                 public void V2FeedPackagesCountReturnsCorrectCount(string filter, int top, int expectedNumberOfPackages)
                 {
                     // Arrange
-                    var repo = SetupSampleRepository();
+                    var repo = FeedServiceHelpers.SetupTestPackageRepository();
 
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
@@ -342,7 +387,7 @@ namespace NuGetGallery
                 public async Task V2FeedPackagesByIdAndVersionReturnsPackage(string expectedId, string expectedVersion)
                 {
                     // Arrange
-                    var repo = SetupSampleRepository();
+                    var repo = FeedServiceHelpers.SetupTestPackageRepository();
 
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
@@ -374,7 +419,7 @@ namespace NuGetGallery
                 public async Task V2FeedPackagesByIdAndVersionReturnsNotFoundWhenPackageNotFound(string expectedId, string expectedVersion)
                 {
                     // Arrange
-                    var repo = SetupSampleRepository();
+                    var repo = FeedServiceHelpers.SetupTestPackageRepository();
 
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
@@ -469,7 +514,7 @@ namespace NuGetGallery
                 public async Task V2FeedSearchFiltersPackagesBySearchTermAndPrereleaseFlag(string searchTerm, bool includePrerelease, int expectedNumberOfPackages, string[] expectedIds, string[] expectedVersions)
                 {
                     // Arrange
-                    var repo = SetupSampleRepository();
+                    var repo = FeedServiceHelpers.SetupTestPackageRepository();
 
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
@@ -514,7 +559,7 @@ namespace NuGetGallery
                 public async Task V2FeedSearchCountFiltersPackagesBySearchTermAndPrereleaseFlag(string searchTerm, bool includePrerelease, int expectedNumberOfPackages)
                 {
                     // Arrange
-                    var repo = SetupSampleRepository();
+                    var repo = FeedServiceHelpers.SetupTestPackageRepository();
 
                     var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
@@ -1193,63 +1238,11 @@ namespace NuGetGallery
                 }
             }
         }
-
-        private static HttpContextBase GetContext(bool isSecure = false)
-        {
-            var httpRequest = new Mock<HttpRequestBase>();
-            httpRequest.Setup(s => s.IsSecureConnection).Returns(isSecure);
-            var httpContext = new Mock<HttpContextBase>();
-            httpContext.Setup(s => s.Request).Returns(httpRequest.Object);
-
-            return httpContext.Object;
-        }
-
+        
         private static void AssertPackage(dynamic expected, V2FeedPackage package)
         {
             Assert.Equal(expected.Id, package.Id);
             Assert.Equal(expected.Version, package.Version);
-        }
-
-        public class TestableV1Feed : ODataV1FeedController
-        {
-            public TestableV1Feed(
-                IEntityRepository<Package> repo,
-                ConfigurationService configuration,
-                ISearchService searchService)
-                : base(repo, configuration, searchService)
-            {
-            }
-
-            protected override HttpContextBase GetTraditionalHttpContext()
-            {
-                return GetContext();
-            }
-
-            public string GetSiteRootForTest()
-            {
-                return GetSiteRoot();
-            }
-        }
-
-        public class TestableV2Feed : ODataV2FeedController
-        {
-            public TestableV2Feed(
-                IEntityRepository<Package> repo,
-                ConfigurationService configuration,
-                ISearchService searchService)
-                : base(repo, configuration, searchService)
-            {
-            }
-
-            protected override HttpContextBase GetTraditionalHttpContext()
-            {
-                return GetContext();
-            }
-
-            public string GetSiteRootForTest()
-            {
-                return GetSiteRoot();
-            }
         }
     }
 }
