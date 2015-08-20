@@ -37,8 +37,7 @@ namespace Stats.ImportAzureCdnStatistics
             using (var connection = await _targetDatabase.ConnectTo())
             using (var transaction = connection.BeginTransaction(IsolationLevel.Serializable))
             {
-                var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction);
-                bulkCopy.BatchSize = downloadFacts.Rows.Count;
+                var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default | SqlBulkCopyOptions.TableLock, transaction);
                 bulkCopy.DestinationTableName = downloadFacts.TableName;
                 bulkCopy.BulkCopyTimeout = _defaultCommandTimeout;
 
