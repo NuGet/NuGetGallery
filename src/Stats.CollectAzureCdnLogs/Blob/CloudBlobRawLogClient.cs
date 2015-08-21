@@ -33,7 +33,7 @@ namespace Stats.CollectAzureCdnLogs.Blob
             return cloudBlobContainer;
         }
 
-        public async Task<bool> UploadBlobAsync(CloudBlobContainer targetContainer, RawLogFileInfo logFile, Stream rawLogStream)
+        public async Task<CloudBlobStream> OpenBlobForWriteAsync(CloudBlobContainer targetContainer, RawLogFileInfo logFile, string fileName)
         {
             if (targetContainer == null)
             {
@@ -43,40 +43,16 @@ namespace Stats.CollectAzureCdnLogs.Blob
             {
                 throw new ArgumentNullException("logFile");
             }
-            if (rawLogStream == null)
-            {
-                throw new ArgumentNullException("rawLogStream");
-            }
 
             var blobName = logFile.Uri.ToString();
-            try
-            {
-                _jobEventSource.BeginningBlobUpload(blobName);
 
-                // ensure we upload from the start of the stream
-                rawLogStream.Position = 0;
+            _jobEventSource.BeginningBlobUpload(blobName);
 
-                // ensure the .download suffix is trimmed away
-                var fileName = logFile.FileName.Replace(".download", string.Empty);
+            var blob = targetContainer.GetBlockBlobReference(fileName);
+            blob.Properties.ContentType = logFile.ContentType;
 
-                Trace.TraceInformation("Uploading file '{0}'.", fileName);
-
-                var blob = targetContainer.GetBlockBlobReference(fileName);
-                blob.Properties.ContentType = logFile.ContentType;
-
-                // 3. Upload the file using the original file name.
-                await blob.UploadFromStreamAsync(rawLogStream);
-
-                Trace.TraceInformation("Finished uploading file '{0}' to '{1}'.", fileName, blob.Uri.AbsoluteUri);
-                _jobEventSource.FinishingBlobUpload(blobName);
-                return true;
-            }
-            catch (Exception exception)
-            {
-                Trace.TraceError(exception.ToString());
-                _jobEventSource.FailedToUploadFile(blobName, exception.ToString());
-            }
-            return false;
+            // return a writeable stream
+            return await blob.OpenWriteAsync();
         }
 
         public async Task<bool> CheckIfBlobExistsAsync(CloudBlobContainer targetContainer, RawLogFileInfo logFile)

@@ -27,7 +27,7 @@ namespace Stats.AzureCdnLogs.Common
             return logEntries;
         }
 
-        private static CdnLogEntry ParseLogEntryFromLine(string line)
+        public static CdnLogEntry ParseLogEntryFromLine(string line)
         {
             // ignore comment rows (i.e., first row listing the column headers
             if (line.StartsWith("#"))

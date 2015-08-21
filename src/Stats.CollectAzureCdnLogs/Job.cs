@@ -165,50 +165,67 @@ namespace Stats.CollectAzureCdnLogs
 
                             if (!alreadyUploaded)
                             {
-                                string log;
-
-                                // First decompress and stream into memory for parsing
-                                using (var decompressedStream = new MemoryStream())
+                                // open the raw log from FTP
+                                using (var rawLogStream = await ftpClient.OpenReadAsync(rawLogUri))
+                                using (var rawLogStreamInMemory = new MemoryStream())
                                 {
-                                    using (var rawLogStream = await ftpClient.OpenReadAsync(rawLogUri))
-                                    using (var gzipStream = new GZipInputStream(rawLogStream))
+                                    // copy the raw, compressed stream to memory - FTP does not like reading line by line
+                                    await rawLogStream.CopyToAsync(rawLogStreamInMemory);
+                                    rawLogStreamInMemory.Position = 0;
+
+                                    // process the raw, compressed memory stream
+                                    using (var rawGzipStream = new GZipInputStream(rawLogStreamInMemory))
                                     {
-                                        await gzipStream.CopyToAsync(decompressedStream);
+                                        try
+                                        {
+                                            // ensure the .download suffix is trimmed away
+                                            var fileName = rawLogFile.FileName.Replace(".download", string.Empty);
+
+                                            Trace.TraceInformation("Uploading file '{0}'.", fileName);
+                                            JobEventSource.Log.BeginningBlobUpload(rawLogFile.Uri.ToString());
+
+                                            // open the resulting cleaned blob and stream modified entries
+                                            // note the missing using() statement so that we can skip committing if an exception occurs
+                                            var resultLogStream = await azureClient.OpenBlobForWriteAsync(cloudBlobContainer, rawLogFile, fileName);
+                                            try
+                                            {
+                                                using (var resultGzipStream = new GZipOutputStream(resultLogStream))
+                                                {
+                                                    resultGzipStream.IsStreamOwner = false;
+                                                    
+                                                    ProcessLogStream(rawGzipStream, resultGzipStream);
+
+                                                    resultGzipStream.Flush();
+                                                }
+
+                                                // commit to blob storage
+                                                resultLogStream.Commit();
+
+                                                uploadSucceeded = true;
+                                            }
+                                            catch
+                                            {
+                                                resultLogStream = null;
+                                                uploadSucceeded = false;
+                                                throw;
+                                            }
+
+                                            Trace.TraceInformation("Finished uploading file '{0}' to '{1}'.", fileName, rawLogFile.Uri.AbsoluteUri);
+                                            JobEventSource.Log.FinishingBlobUpload(rawLogFile.Uri.ToString());
+                                        }
+                                        catch (Exception exception)
+                                        {
+                                            Trace.TraceError(exception.ToString());
+                                            JobEventSource.Log.FailedToUploadFile(rawLogFile.Uri.ToString(), exception.ToString());
+                                        }
                                     }
-
-                                    // reset the stream's position and read to end
-                                    decompressedStream.Position = 0;
-                                    using (var streamReader = new StreamReader(decompressedStream))
-                                    {
-                                        log = await streamReader.ReadToEndAsync();
-                                    }
-                                }
-
-                                // REVIEW: Instead of having the entire string in memory, we may want to make this a stream that is read, processed and flushed to the resulting blob in one go.
-                                // Parse the data and remove anything we don't want to store
-                                string modifiedLog = GetParsedModifiedLog(log);
-
-                                // Upload to blob storage
-                                // convert string to stream
-                                byte[] byteArray = Encoding.UTF8.GetBytes(modifiedLog);
-                                using (var outputStream = new MemoryStream())
-                                {
-                                    using (var gzipStream = new GZipOutputStream(outputStream))
-                                    {
-                                        // must synchronously compress in memory because GZipOutputStream has does not support BeginWrite
-                                        gzipStream.IsStreamOwner = false;
-                                        gzipStream.Write(byteArray, 0, byteArray.Length);
-                                        gzipStream.Flush();
-                                    }
-
-                                    uploadSucceeded = await azureClient.UploadBlobAsync(cloudBlobContainer, rawLogFile, outputStream);
                                 }
                             }
 
                             // Delete the renamed file from the origin.
                             if (alreadyUploaded || uploadSucceeded)
                             {
-                                await ftpClient.DeleteAsync(rawLogUri);
+                                ftpClient.DeleteAsync(rawLogUri);
                             }
                         }
                     }
@@ -233,54 +250,79 @@ namespace Stats.CollectAzureCdnLogs
             return false;
         }
 
-        private static string GetParsedModifiedLog(string log)
+        private static void ProcessLogStream(Stream sourceStream, Stream targetStream)
+        {
+            // note: not using async/await pattern as underlying streams do not support async
+            using (var sourceStreamReader = new StreamReader(sourceStream))
+            {
+                using (var targetStreamWriter = new StreamWriter(targetStream))
+                {
+                    targetStreamWriter.Write("#Fields: timestamp time-taken c-ip filesize s-ip s-port sc-status sc-bytes cs-method cs-uri-stem - rs-duration rs-bytes c-referrer c-user-agent customer-id x-ec_custom-1\n");
+
+                    do
+                    {
+                        var rawLogLine = sourceStreamReader.ReadLine();
+                        var logLine = GetParsedModifiedLogEntry(rawLogLine);
+                        if (!string.IsNullOrEmpty(logLine))
+                        {
+                            targetStreamWriter.Write(logLine);
+                        }
+                    } while (!sourceStreamReader.EndOfStream);
+                }
+            }
+        }
+
+        private static string GetParsedModifiedLogEntry(string rawLogEntry)
         {
             const string spaceCharacter = " ";
             const string dashCharacter = "-";
-            var parsedEntries = CdnLogEntryParser.ParseLogEntriesFromW3CLog(log);
+            var parsedEntry = CdnLogEntryParser.ParseLogEntryFromLine(rawLogEntry);
 
-            var stringBuilder = new StringBuilder("#Fields: timestamp time-taken c-ip filesize s-ip s-port sc-status sc-bytes cs-method cs-uri-stem - rs-duration rs-bytes c-referrer c-user-agent customer-id x-ec_custom-1\n");
-            foreach (var logEntry in parsedEntries)
+            if (parsedEntry == null)
             {
-                // timestamp
-                stringBuilder.Append(ToUnixTimeStamp(logEntry.EdgeServerTimeDelivered) + spaceCharacter);
-                // time-taken
-                stringBuilder.Append((logEntry.EdgeServerTimeTaken.HasValue ? logEntry.EdgeServerTimeTaken.Value.ToString() : dashCharacter) + spaceCharacter);
-
-                // REMOVE c-ip
-                stringBuilder.Append(dashCharacter + spaceCharacter);
-
-                // filesize
-                stringBuilder.Append((logEntry.FileSize.HasValue ? logEntry.FileSize.Value.ToString() : dashCharacter) + spaceCharacter);
-                // s-ip
-                stringBuilder.Append((logEntry.EdgeServerIpAddress ?? dashCharacter) + spaceCharacter);
-                // s-port
-                stringBuilder.Append((logEntry.EdgeServerPort.HasValue ? logEntry.EdgeServerPort.Value.ToString() : dashCharacter) + spaceCharacter);
-                // sc-status
-                stringBuilder.Append((logEntry.CacheStatusCode ?? dashCharacter) + spaceCharacter);
-                // sc-bytes
-                stringBuilder.Append((logEntry.EdgeServerBytesSent.HasValue ? logEntry.EdgeServerBytesSent.Value.ToString() : dashCharacter) + spaceCharacter);
-                // cs-method
-                stringBuilder.Append((logEntry.HttpMethod ?? dashCharacter) + spaceCharacter);
-                // cs-uri-stem
-                stringBuilder.Append((logEntry.RequestUrl ?? dashCharacter) + spaceCharacter);
-
-                // -
-                stringBuilder.Append(dashCharacter + spaceCharacter);
-
-                // rs-duration
-                stringBuilder.Append((logEntry.RemoteServerTimeTaken.HasValue ? logEntry.RemoteServerTimeTaken.Value.ToString() : dashCharacter) + spaceCharacter);
-                // rs-bytes
-                stringBuilder.Append((logEntry.RemoteServerBytesSent.HasValue ? logEntry.RemoteServerBytesSent.Value.ToString() : dashCharacter) + spaceCharacter);
-                // c-referrer
-                stringBuilder.Append((logEntry.Referrer ?? dashCharacter) + spaceCharacter);
-                // c-user-agent
-                stringBuilder.Append((logEntry.UserAgent ?? dashCharacter) + spaceCharacter);
-                // customer-id
-                stringBuilder.Append((logEntry.CustomerId ?? dashCharacter) + spaceCharacter);
-                // x-ec_custom-1
-                stringBuilder.AppendLine((logEntry.CustomField ?? dashCharacter) + spaceCharacter);
+                return null;
             }
+
+            var stringBuilder = new StringBuilder();
+
+            // timestamp
+            stringBuilder.Append(ToUnixTimeStamp(parsedEntry.EdgeServerTimeDelivered) + spaceCharacter);
+            // time-taken
+            stringBuilder.Append((parsedEntry.EdgeServerTimeTaken.HasValue ? parsedEntry.EdgeServerTimeTaken.Value.ToString() : dashCharacter) + spaceCharacter);
+
+            // REMOVE c-ip
+            stringBuilder.Append(dashCharacter + spaceCharacter);
+
+            // filesize
+            stringBuilder.Append((parsedEntry.FileSize.HasValue ? parsedEntry.FileSize.Value.ToString() : dashCharacter) + spaceCharacter);
+            // s-ip
+            stringBuilder.Append((parsedEntry.EdgeServerIpAddress ?? dashCharacter) + spaceCharacter);
+            // s-port
+            stringBuilder.Append((parsedEntry.EdgeServerPort.HasValue ? parsedEntry.EdgeServerPort.Value.ToString() : dashCharacter) + spaceCharacter);
+            // sc-status
+            stringBuilder.Append((parsedEntry.CacheStatusCode ?? dashCharacter) + spaceCharacter);
+            // sc-bytes
+            stringBuilder.Append((parsedEntry.EdgeServerBytesSent.HasValue ? parsedEntry.EdgeServerBytesSent.Value.ToString() : dashCharacter) + spaceCharacter);
+            // cs-method
+            stringBuilder.Append((parsedEntry.HttpMethod ?? dashCharacter) + spaceCharacter);
+            // cs-uri-stem
+            stringBuilder.Append((parsedEntry.RequestUrl ?? dashCharacter) + spaceCharacter);
+
+            // -
+            stringBuilder.Append(dashCharacter + spaceCharacter);
+
+            // rs-duration
+            stringBuilder.Append((parsedEntry.RemoteServerTimeTaken.HasValue ? parsedEntry.RemoteServerTimeTaken.Value.ToString() : dashCharacter) + spaceCharacter);
+            // rs-bytes
+            stringBuilder.Append((parsedEntry.RemoteServerBytesSent.HasValue ? parsedEntry.RemoteServerBytesSent.Value.ToString() : dashCharacter) + spaceCharacter);
+            // c-referrer
+            stringBuilder.Append((parsedEntry.Referrer ?? dashCharacter) + spaceCharacter);
+            // c-user-agent
+            stringBuilder.Append((parsedEntry.UserAgent ?? dashCharacter) + spaceCharacter);
+            // customer-id
+            stringBuilder.Append((parsedEntry.CustomerId ?? dashCharacter) + spaceCharacter);
+            // x-ec_custom-1
+            stringBuilder.AppendLine((parsedEntry.CustomField ?? dashCharacter) + spaceCharacter);
 
             return stringBuilder.ToString();
         }
