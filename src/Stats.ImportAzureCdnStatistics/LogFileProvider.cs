@@ -35,6 +35,7 @@ namespace Stats.ImportAzureCdnStatistics
                 _jobEventSource.FinishingBlobListing(prefix);
 
                 var leasedFiles = new List<ILeasedLogFile>();
+
                 foreach (var logFile in blobResultSegments.Results)
                 {
                     if (leasedFiles.Count == _maxLeasesPerJobRun)

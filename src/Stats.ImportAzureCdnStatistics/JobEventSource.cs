@@ -52,20 +52,20 @@ namespace Stats.ImportAzureCdnStatistics
             WriteEvent(6, uri);
         }
 
-        [Event(eventId: 7, Level = EventLevel.Informational, Message = "Beginning decompressing blob {0}", Task = Tasks.DecompressBlob, Opcode = EventOpcode.Start)]
-        public void BeginningDecompressBlob(string uri)
+        [Event(eventId: 7, Level = EventLevel.Informational, Message = "Beginning opening of compressed blob {0}", Task = Tasks.DecompressBlob, Opcode = EventOpcode.Start)]
+        public void BeginningOpenCompressedBlob(string uri)
         {
             WriteEvent(7, uri);
         }
 
-        [Event(eventId: 8, Level = EventLevel.Informational, Message = "Finished decompressing blob {0}", Task = Tasks.DecompressBlob, Opcode = EventOpcode.Stop)]
-        public void FinishedDecompressBlob(string uri)
+        [Event(eventId: 8, Level = EventLevel.Informational, Message = "Finished opening of compressed blob {0}", Task = Tasks.DecompressBlob, Opcode = EventOpcode.Stop)]
+        public void FinishedOpenCompressedBlob(string uri)
         {
             WriteEvent(8, uri);
         }
 
-        [Event(eventId: 9, Level = EventLevel.Error, Message = "Failed to decompress blob {0}", Task = Tasks.DecompressBlob, Opcode = EventOpcode.Suspend)]
-        public void FailedDecompressBlob(string uri)
+        [Event(eventId: 9, Level = EventLevel.Error, Message = "Failed to open compressed blob {0}", Task = Tasks.DecompressBlob, Opcode = EventOpcode.Suspend)]
+        public void FailedOpenCompressedBlob(string uri)
         {
             WriteEvent(9, uri);
         }

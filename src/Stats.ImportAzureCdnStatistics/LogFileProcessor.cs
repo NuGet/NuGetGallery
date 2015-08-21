@@ -103,20 +103,39 @@ namespace Stats.ImportAzureCdnStatistics
 
         private async Task<IReadOnlyCollection<PackageStatistics>> ParseLogEntries(ILeasedLogFile logFile)
         {
-            var log = await DecompressBlobAsync(logFile);
+            var logStream = await OpenCompressedBlobAsync(logFile);
             var blobUri = logFile.Uri;
             var blobName = logFile.Blob.Name;
 
-            IReadOnlyCollection<PackageStatistics> packageStatistics;
+            var packageStatistics = new List<PackageStatistics>();
 
             var stopwatch = Stopwatch.StartNew();
 
             try
             {
-                // parse the text from memory into table entities
+                // parse the log into table entities
                 _jobEventSource.BeginningParseLog(blobUri);
-                var logEntries = CdnLogEntryParser.ParseLogEntriesFromW3CLog(log);
-                packageStatistics = PackageStatisticsParser.FromCdnLogEntries(logEntries);
+
+                using (var logStreamReader = new StreamReader(logStream))
+                {
+                    do
+                    {
+                        var rawLogLine = logStreamReader.ReadLine();
+                        if (rawLogLine != null)
+                        {
+                            var logEntry = CdnLogEntryParser.ParseLogEntryFromLine(rawLogLine);
+                            if (logEntry != null)
+                            {
+                                var statistic = PackageStatisticsParser.FromCdnLogEntry(logEntry);
+                                if (statistic != null)
+                                {
+                                    packageStatistics.Add(statistic);
+                                }
+                            }
+                        }
+                    } while (!logStreamReader.EndOfStream);
+                }
+                
                 _jobEventSource.FinishingParseLog(blobUri, packageStatistics.Count);
 
                 stopwatch.Stop();
@@ -133,41 +152,38 @@ namespace Stats.ImportAzureCdnStatistics
                 ApplicationInsights.TrackException(exception, blobName);
                 throw;
             }
+            finally
+            {
+                logStream.Dispose();
+            }
 
             return packageStatistics;
         }
 
-        private async Task<string> DecompressBlobAsync(ILeasedLogFile logFile)
+        private async Task<Stream> OpenCompressedBlobAsync(ILeasedLogFile logFile)
         {
-            string log;
             var stopwatch = Stopwatch.StartNew();
 
             try
             {
-                _jobEventSource.BeginningDecompressBlob(logFile.Uri);
+                _jobEventSource.BeginningOpenCompressedBlob(logFile.Uri);
 
-                using (var decompressedStream = new MemoryStream())
+                var memoryStream = new MemoryStream();
+
+                // decompress into memory (these are rolling log files and relatively small)
+                using (var blobStream = await logFile.Blob.OpenReadAsync(AccessCondition.GenerateLeaseCondition(logFile.LeaseId), null, null))
                 {
-                    // decompress into memory (these are rolling log files and relatively small)
-                    using (var blobStream = await logFile.Blob.OpenReadAsync(AccessCondition.GenerateLeaseCondition(logFile.LeaseId), null, null))
-                    using (var gzipStream = new GZipInputStream(blobStream))
-                    {
-                        await gzipStream.CopyToAsync(decompressedStream);
-                    }
-
-                    // reset the stream's position and read to end
-                    decompressedStream.Position = 0;
-                    using (var streamReader = new StreamReader(decompressedStream))
-                    {
-                        log = await streamReader.ReadToEndAsync();
-                    }
-
-                    stopwatch.Stop();
-
-                    _jobEventSource.FinishedDecompressBlob(logFile.Uri);
-
-                    ApplicationInsights.TrackMetric("Blob decompression duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
+                    await blobStream.CopyToAsync(memoryStream);
+                    memoryStream.Position = 0;
                 }
+
+                stopwatch.Stop();
+
+                _jobEventSource.FinishedOpenCompressedBlob(logFile.Uri);
+
+                ApplicationInsights.TrackMetric("Open compressed blob duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
+
+                return new GZipInputStream(memoryStream);
             }
             catch (Exception exception)
             {
@@ -176,12 +192,10 @@ namespace Stats.ImportAzureCdnStatistics
                     stopwatch.Stop();
                 }
 
-                _jobEventSource.FailedDecompressBlob(logFile.Uri);
+                _jobEventSource.FailedOpenCompressedBlob(logFile.Uri);
                 ApplicationInsights.TrackException(exception, logFile.Blob.Name);
                 throw;
             }
-
-            return log;
         }
 
         private async Task ArchiveBlobAsync(ILeasedLogFile logFile)

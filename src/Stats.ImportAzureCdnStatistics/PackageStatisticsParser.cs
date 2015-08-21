@@ -47,32 +47,42 @@ namespace Stats.ImportAzureCdnStatistics
 
             foreach (var cdnLogEntry in logEntries)
             {
-                var packageDefinition = PackageDefinition.FromRequestUrl(cdnLogEntry.RequestUrl);
-
-                if (packageDefinition == null)
-                {
-                    continue;
-                }
-
-                var statistic = new PackageStatistics();
-                statistic.EdgeServerTimeDelivered = cdnLogEntry.EdgeServerTimeDelivered;
-                statistic.PackageId = packageDefinition.PackageId;
-                statistic.PackageVersion = packageDefinition.PackageVersion;
-
-                var customFieldDictionary = CdnLogCustomFieldParser.Parse(cdnLogEntry.CustomField);
-                statistic.Operation = GetCustomFieldValue(customFieldDictionary, NuGetCustomHeaders.NuGetOperation);
-                statistic.DependentPackage = GetCustomFieldValue(customFieldDictionary, NuGetCustomHeaders.NuGetDependentPackage);
-                statistic.ProjectGuids = GetCustomFieldValue(customFieldDictionary, NuGetCustomHeaders.NuGetProjectGuids);
-                statistic.UserAgent = GetUserAgentValue(cdnLogEntry);
-
-                // ignore blacklisted user agents
-                if (!IsBlackListed(statistic.UserAgent))
+                var statistic = FromCdnLogEntry(cdnLogEntry);
+                if (statistic != null)
                 {
                     packageStatistics.Add(statistic);
                 }
             }
 
             return packageStatistics;
+        }
+
+        public static PackageStatistics FromCdnLogEntry(CdnLogEntry cdnLogEntry)
+        {
+            var packageDefinition = PackageDefinition.FromRequestUrl(cdnLogEntry.RequestUrl);
+
+            if (packageDefinition == null)
+            {
+                return null;
+            }
+
+            var statistic = new PackageStatistics();
+            statistic.EdgeServerTimeDelivered = cdnLogEntry.EdgeServerTimeDelivered;
+            statistic.PackageId = packageDefinition.PackageId;
+            statistic.PackageVersion = packageDefinition.PackageVersion;
+
+            var customFieldDictionary = CdnLogCustomFieldParser.Parse(cdnLogEntry.CustomField);
+            statistic.Operation = GetCustomFieldValue(customFieldDictionary, NuGetCustomHeaders.NuGetOperation);
+            statistic.DependentPackage = GetCustomFieldValue(customFieldDictionary, NuGetCustomHeaders.NuGetDependentPackage);
+            statistic.ProjectGuids = GetCustomFieldValue(customFieldDictionary, NuGetCustomHeaders.NuGetProjectGuids);
+            statistic.UserAgent = GetUserAgentValue(cdnLogEntry);
+
+            // ignore blacklisted user agents
+            if (!IsBlackListed(statistic.UserAgent))
+            {
+                return statistic;
+            }
+            return null;
         }
 
         private static string GetUserAgentValue(CdnLogEntry cdnLogEntry)
