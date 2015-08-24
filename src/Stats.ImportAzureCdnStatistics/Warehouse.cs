@@ -346,6 +346,12 @@ namespace Stats.ImportAzureCdnStatistics
 
         private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int projectTypeId, int clientId, string logFileName, string userAgent)
         {
+            // trim userAgent
+            if (!string.IsNullOrEmpty(userAgent) && userAgent.Length >= 500)
+            {
+                userAgent = userAgent.Substring(0, 499) + ")";
+            }
+
             dataRow["Id"] = Guid.NewGuid();
             dataRow["Dimension_Package_Id"] = packageId;
             dataRow["Dimension_Date_Id"] = dateId;
