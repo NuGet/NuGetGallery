@@ -14,7 +14,7 @@ namespace Stats.ImportAzureCdnStatistics
 {
     internal class Warehouse
     {
-        private const int _defaultCommandTimeout = 420; // 7 minutes max
+        private const int _defaultCommandTimeout = 1800; // 30 minutes max
         private const int _maxRetryCount = 3;
         private readonly TimeSpan _retryDelay = TimeSpan.FromSeconds(5);
         private readonly JobEventSource _jobEventSource;
