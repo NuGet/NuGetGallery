@@ -488,6 +488,7 @@
     <Compile Include="Helpers\AppInsightsHealthIndicatorLogger.cs" />
     <Compile Include="Helpers\Telemetry.cs" />
     <Compile Include="Infrastructure\DependencyResolverServiceProviderAdapter.cs" />
+    <Compile Include="Infrastructure\Lucene\CloudDownloadCountServiceRefreshJob.cs" />
     <Compile Include="Infrastructure\MessageQueue.cs" />
     <Compile Include="Diagnostics\NullDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
@@ -1055,12 +1056,15 @@
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
     <Compile Include="Services\AppActivatorException.cs" />
+    <Compile Include="Services\CloudDownloadCountService.cs" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
+    <Compile Include="Services\DownloadCountEntityInterceptor.cs" />
     <Compile Include="Services\ICuratedFeedService.cs" />
     <Compile Include="Services\CloudFileReference.cs" />
     <Compile Include="Services\ContentService.cs" />
     <Compile Include="Services\IContentService.cs" />
+    <Compile Include="Services\IDownloadCountService.cs" />
     <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\IStatusService.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />

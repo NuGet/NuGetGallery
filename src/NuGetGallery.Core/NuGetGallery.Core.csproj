@@ -106,10 +106,13 @@
     <Compile Include="Entities\EmailMessage.cs" />
     <Compile Include="Entities\EntitiesContext.cs" />
     <Compile Include="Entities\EntityException.cs" />
+    <Compile Include="Entities\Interception\EntityInterception.cs" />
+    <Compile Include="Entities\Interception\EntityInterceptorDbContext.cs" />
     <Compile Include="Entities\EntityRepository.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
     <Compile Include="Entities\IEntitiesContext.cs" />
     <Compile Include="Entities\IEntity.cs" />
+    <Compile Include="Entities\Interception\IEntityInterceptor.cs" />
     <Compile Include="Entities\IEntityRepository.cs" />
     <Compile Include="Entities\Package.cs" />
     <Compile Include="Entities\PackageAuthor.cs" />

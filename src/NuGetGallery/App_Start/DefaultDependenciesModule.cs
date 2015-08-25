@@ -339,6 +339,14 @@ namespace NuGetGallery
                 .As<IReportService>()
                 .SingleInstance();
 
+            // when running on Windows Azure, download counts come from the downloads.v1.json blob
+            var downloadCountService = new CloudDownloadCountService(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant);
+            builder.RegisterInstance(downloadCountService)
+                .AsSelf()
+                .As<IDownloadCountService>()
+                .SingleInstance();
+            EntityInterception.AddInterceptor(new DownloadCountEntityInterceptor(downloadCountService));
+
             builder.RegisterType<JsonStatisticsService>()
                 .AsSelf()
                 .As<IStatisticsService>()
