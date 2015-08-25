@@ -36,8 +36,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
         private static readonly IDictionary<string, string> _storedProceduresPerPackageId = new Dictionary<string, string>
         {
-            {ReportNames.RecentPopularityDetailByPackageId, "[dbo].[DownloadReportRecentPopularityDetailByPackage]" },
-            {ReportNames.DownloadsByPackageId, "[dbo].[DownloadsByPackageId]" },
+            {ReportNames.RecentPopularityDetailByPackageId, "[dbo].[DownloadReportRecentPopularityDetailByPackage]" }
         };
 
         public override bool Init(IDictionary<string, string> jobArgsDictionary)
@@ -134,8 +133,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 // generate all reports
                 var reportGenerators = new Dictionary<ReportBuilder, ReportDataCollector>
                     {
-                        { new RecentPopularityDetailByPackageReportBuilder(ReportNames.RecentPopularityDetailByPackageId, "recentpopularity/" + _recentPopularityDetailByPackageReportBaseName + dirtyPackageId.PackageId.ToLowerInvariant()), new ReportDataCollector(_storedProceduresPerPackageId[ReportNames.RecentPopularityDetailByPackageId], _sourceDatabase) },
-                        { new DownloadsByPackageIdReportBuilder(ReportNames.DownloadsByPackageId, "downloads/" + _downloadsByPackageIdReportBaseName + dirtyPackageId.PackageId.ToLowerInvariant()), new ReportDataCollector(_storedProceduresPerPackageId[ReportNames.DownloadsByPackageId], _sourceDatabase) }
+                        { new RecentPopularityDetailByPackageReportBuilder(ReportNames.RecentPopularityDetailByPackageId, "recentpopularity/" + _recentPopularityDetailByPackageReportBaseName + dirtyPackageId.PackageId.ToLowerInvariant()), new ReportDataCollector(_storedProceduresPerPackageId[ReportNames.RecentPopularityDetailByPackageId], _sourceDatabase) }
                     };
 
                 foreach (var reportGenerator in reportGenerators)
@@ -234,7 +232,6 @@ namespace Stats.CreateAzureCdnWarehouseReports
             public const string RecentPopularity = "recentpopularity";
             public const string RecentPopularityDetail = "recentpopularitydetail";
             public const string RecentPopularityDetailByPackageId = "recentpopularitydetailbypackageid";
-            public const string DownloadsByPackageId = "downloaddetailbypackageid";
         }
     }
 }
