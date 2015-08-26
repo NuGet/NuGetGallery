@@ -8,9 +8,10 @@ BEGIN
 
 	-- Run to second latest timestamp in facts table
 	DECLARE @CursorRunToPosition DATETIME = (
-												SELECT	MAX([Timestamp])
+												SELECT	TOP 1 [Timestamp]
 												FROM	[dbo].[Fact_Download] (NOLOCK)
 												WHERE	[Timestamp] < (SELECT MAX([Timestamp]) FROM [dbo].[Fact_Download] (NOLOCK) )
+												ORDER BY [Timestamp] DESC
 											 )
 
 	-- query for dirty package id's
