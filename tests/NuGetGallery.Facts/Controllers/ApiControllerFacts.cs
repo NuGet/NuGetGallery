@@ -615,36 +615,24 @@ namespace NuGetGallery
                     {
                         { "PackageId", "A" },
                         { "PackageVersion", "1.0" },
-                        { "PackageTitle", "Package A Title" },
-                        { "PackageDescription", "Package A Description" },
-                        { "PackageIconUrl", "Package A IconUrl" },
                         { "Downloads", 3 }
                     },
                     new JObject
                     {
                         { "PackageId", "A" },
                         { "PackageVersion", "1.1" },
-                        { "PackageTitle", "Package A Title" },
-                        { "PackageDescription", "Package A Description" },
-                        { "PackageIconUrl", "Package A IconUrl" },
                         { "Downloads", 4 }
                     },
                     new JObject
                     {
                         { "PackageId", "B" },
                         { "PackageVersion", "1.0" },
-                        { "PackageTitle", "Package B Title" },
-                        { "PackageDescription", "Package B Description" },
-                        { "PackageIconUrl", "Package B IconUrl" },
                         { "Downloads", 5 }
                     },
                     new JObject
                     {
                         { "PackageId", "B" },
                         { "PackageVersion", "1.1" },
-                        { "PackageTitle", "Package B Title" },
-                        { "PackageDescription", "Package B Description" },
-                        { "PackageIconUrl", "Package B IconUrl" },
                         { "Downloads", 6 }
                     },
                 };
@@ -653,7 +641,7 @@ namespace NuGetGallery
 
                 var fakeReportService = new Mock<IReportService>();
 
-                fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, DateTime.UtcNow)));
+                fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, DateTime.UtcNow)));
 
                 var controller = new TestableApiController
                 {
@@ -670,7 +658,6 @@ namespace NuGetGallery
 
                 Assert.True((string)result[3]["Gallery"] == "http://nuget.org/packages/B/1.1", "unexpected content result[3].Gallery");
                 Assert.True((int)result[2]["Downloads"] == 5, "unexpected content result[2].Downloads");
-                Assert.True((string)result[1]["PackageDescription"] == "Package A Description", "unexpected content result[1].PackageDescription");
             }
 
             [Fact]
@@ -705,7 +692,7 @@ namespace NuGetGallery
 
                 var fakeReportService = new Mock<IReportService>();
 
-                fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, DateTime.UtcNow)));
+                fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, DateTime.UtcNow)));
 
                 var controller = new TestableApiController
                 {

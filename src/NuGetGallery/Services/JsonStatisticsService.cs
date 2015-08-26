@@ -13,8 +13,9 @@ namespace NuGetGallery
 {
     public class JsonStatisticsService : IStatisticsService
     {
-        private const string _recentpopularityBlobNameFormat = "recentpopularity/{0}.json";
-        private const string _recentpopularityDetailBlobNameFormat = "recentpopularity/{0}{1}.json";
+        private const string RecentpopularityBlobNameFormat = "recentpopularity/{0}.json";
+        private const string RecentpopularityDetailBlobNameFormat = "recentpopularity/{0}{1}.json";
+
         private readonly IReportService _reportService;
         private List<StatisticsPackagesItemViewModel> _downloadPackagesSummary;
         private List<StatisticsPackagesItemViewModel> _downloadPackageVersionsSummary;
@@ -71,7 +72,8 @@ namespace NuGetGallery
         {
             try
             {
-                var reportContent = await _reportService.Load(StatisticsReportName.RecentPopularity + ".json");
+                var reportName = (StatisticsReportName.RecentPopularity + ".json").ToLowerInvariant();
+                var reportContent = await _reportService.Load(reportName);
                 if (reportContent == null)
                 {
                     return StatisticsReportResult.Failed;
@@ -112,7 +114,7 @@ namespace NuGetGallery
         {
             try
             {
-                var reportName = StatisticsReportName.RecentPopularityDetail + ".json";
+                var reportName = (StatisticsReportName.RecentPopularityDetail + ".json").ToLowerInvariant();
                 var reportContent = await _reportService.Load(reportName);
                 if (reportContent == null)
                 {
@@ -155,7 +157,7 @@ namespace NuGetGallery
         {
             try
             {
-                var reportName = StatisticsReportName.NuGetClientVersion + ".json";
+                var reportName = (StatisticsReportName.NuGetClientVersion + ".json").ToLowerInvariant();
                 var reportContent = await _reportService.Load(reportName);
                 if (reportContent == null)
                 {
@@ -189,7 +191,7 @@ namespace NuGetGallery
         {
             try
             {
-                var reportName = StatisticsReportName.Last6Months + ".json";
+                var reportName = (StatisticsReportName.Last6Months + ".json").ToLowerInvariant();
                 var reportContent = await _reportService.Load(reportName);
                 if (reportContent == null)
                 {
@@ -229,7 +231,8 @@ namespace NuGetGallery
                     return null;
                 }
 
-                var reportName = string.Format(CultureInfo.CurrentCulture, _recentpopularityDetailBlobNameFormat, StatisticsReportName.RecentPopularityDetail_, packageId);
+                var reportName = string.Format(CultureInfo.CurrentCulture, RecentpopularityDetailBlobNameFormat,
+                    StatisticsReportName.RecentPopularityDetail_, packageId).ToLowerInvariant();
                 var reportContent = await _reportService.Load(reportName);
 
                 if (reportContent == null)
@@ -284,7 +287,8 @@ namespace NuGetGallery
                     return null;
                 }
 
-                var reportName = string.Format(CultureInfo.CurrentCulture, _recentpopularityDetailBlobNameFormat, StatisticsReportName.RecentPopularityDetail_, packageId);
+                var reportName = string.Format(CultureInfo.CurrentCulture, RecentpopularityDetailBlobNameFormat, 
+                    StatisticsReportName.RecentPopularityDetail_, packageId).ToLowerInvariant();
                 var reportContent = await _reportService.Load(reportName);
                 if (reportContent == null)
                 {

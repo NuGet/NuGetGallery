@@ -41,7 +41,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException("id");
             }
 
-            var queryString = "take=30&id=" + Uri.EscapeUriString(id);
+            var queryString = "id=" + Uri.EscapeUriString(id);
             if (!includePrerelease.HasValue)
             {
                 queryString += "&prerelease=false";
