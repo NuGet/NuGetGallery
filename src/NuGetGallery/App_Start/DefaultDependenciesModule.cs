@@ -277,7 +277,7 @@ namespace NuGetGallery
                     .InstancePerLifetimeScope();
             }
         }
-        private void ConfigureAutocomplete(ContainerBuilder builder, ConfigurationService configuration)
+        private static void ConfigureAutocomplete(ContainerBuilder builder, ConfigurationService configuration)
         {
             if (configuration.Current.ServiceDiscoveryUri != null &&
                 !string.IsNullOrEmpty(configuration.Current.AutocompleteServiceResourceType))
