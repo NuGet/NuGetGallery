@@ -451,24 +451,24 @@ namespace NuGetGallery
 
         [HttpGet]
         [ActionName("PackageIDs")]
-        public virtual ActionResult GetPackageIds(string partialId, bool? includePrerelease)
+        public virtual async Task<ActionResult> GetPackageIds(string partialId, bool? includePrerelease)
         {
             var query = GetService<IPackageIdsQuery>();
             return new JsonResult
             {
-                Data = (query.Execute(partialId, includePrerelease).ToArray()),
+                Data = (await query.Execute(partialId, includePrerelease)).ToArray(),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }
 
         [HttpGet]
         [ActionName("PackageVersions")]
-        public virtual ActionResult GetPackageVersions(string id, bool? includePrerelease)
+        public virtual async Task<ActionResult> GetPackageVersions(string id, bool? includePrerelease)
         {
             var query = GetService<IPackageVersionsQuery>();
             return new JsonResult
             {
-                Data = query.Execute(id, includePrerelease).ToArray(),
+                Data = (await query.Execute(id, includePrerelease)).ToArray(),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }
