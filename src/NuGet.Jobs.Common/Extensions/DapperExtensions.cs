@@ -10,11 +10,12 @@ namespace System.Data.SqlClient
 {
     public static class DapperExtensions
     {
-        public static Task ExecuteAsync(this SqlConnection connection, string sql, SqlTransaction transaction = null)
+        public static Task ExecuteAsync(this SqlConnection connection, string sql, SqlTransaction transaction = null, int timeout = 30)
         {
             SqlCommand cmd = connection.CreateCommand();
             cmd.CommandText = sql;
             cmd.CommandType = CommandType.Text;
+            cmd.CommandTimeout = timeout;
             if (transaction != null)
             {
                 cmd.Transaction = transaction;

@@ -11,11 +11,41 @@ using System.Threading.Tasks;
 using NuGet.Jobs;
 
 namespace Stats.AggregateCdnDownloadsInGallery
-{
+{  
     public class Job
         : JobBase
     {
-        private const string _storedProcedureName = "[dbo].[SelectTotalDownloadCountsPerPackageVersion]";
+        private const string TempTableName = "#AggregateCdnDownloadsInGallery";
+        private const string CreateTempTable = @"
+            IF OBJECT_ID('tempdb.dbo.#AggregateCdnDownloadsInGallery', 'U') IS NOT NULL
+                DROP TABLE #AggregateCdnDownloadsInGallery
+
+            CREATE TABLE #AggregateCdnDownloadsInGallery
+            (
+                [PackageRegistrationKey]    INT             NOT NULL,
+                [PackageVersion]            NVARCHAR(255)	NOT NULL,
+                [DownloadCount]             INT             NOT NULL,
+            )";
+        private const string UpdateFromTempTable = @"
+            -- Update Packages table
+            UPDATE P SET P.[DownloadCount] = Stats.[DownloadCount]
+            FROM [dbo].[Packages] AS P
+            INNER JOIN #AggregateCdnDownloadsInGallery AS Stats ON Stats.[PackageRegistrationKey] = P.[PackageRegistrationKey]
+            WHERE P.[Version] = Stats.[PackageVersion]
+
+            -- Update PackageRegistrations table
+            UPDATE PR SET PR.[DownloadCount] = AggregateStats.[DownloadCount]
+            FROM [dbo].[PackageRegistrations] AS PR
+            INNER JOIN (
+	            SELECT Stats.[PackageRegistrationKey] AS [PackageRegistrationKey], SUM(Stats.[DownloadCount]) AS [DownloadCount]
+	            FROM #AggregateCdnDownloadsInGallery AS Stats
+	            GROUP BY Stats.[PackageRegistrationKey]
+            ) AS AggregateStats ON AggregateStats.[PackageRegistrationKey] = PR.[Key]
+
+            -- No more need for temp table
+            DROP TABLE #AggregateCdnDownloadsInGallery";
+
+        private const string StoredProcedureName = "[dbo].[SelectTotalDownloadCountsPerPackageVersion]";
         private SqlConnectionStringBuilder _statisticsDatabase;
         private SqlConnectionStringBuilder _destinationDatabase;
 
@@ -55,7 +85,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 using (var statisticsDatabase = await _statisticsDatabase.ConnectTo())
                 using (var statisticsDatabaseTransaction = statisticsDatabase.BeginTransaction(IsolationLevel.Snapshot)) {
                     downloadData = (await statisticsDatabase.QueryWithRetryAsync<DownloadCountData>(
-                        _storedProcedureName, transaction: statisticsDatabaseTransaction, commandType: CommandType.StoredProcedure)).ToList();
+                        StoredProcedureName, transaction: statisticsDatabaseTransaction, commandType: CommandType.StoredProcedure)).ToList();
                 }
 
                 Trace.TraceInformation("Gathered {0} rows of data.", downloadData.Count);
@@ -65,15 +95,33 @@ namespace Stats.AggregateCdnDownloadsInGallery
                     // Group based on Package Id
                     var packageRegistrationGroups = downloadData.GroupBy(p => p.PackageId);
 
-                    Trace.TraceInformation("Updating destination database Download Counts... (" + packageRegistrationGroups.Count() + " package registrations to process)");
                     using (var destinationDatabase = await _destinationDatabase.ConnectTo())
                     {
+                        // Fetch package registrations so we can match
+                        Trace.TraceInformation("Retrieving package registrations...");
                         var packageRegistrationLookup = (
                             await destinationDatabase.QueryWithRetryAsync<PackageRegistrationData>(
                                 "SELECT [Key], LOWER([Id]) AS Id FROM [dbo].[PackageRegistrations]"))
                             .Where(item => !string.IsNullOrEmpty(item.Id))
                             .ToDictionary(item => item.Id, item => item.Key);
+                        Trace.TraceInformation("Retrieved package registrations.");
 
+                        // Create a temporary table
+                        Trace.TraceInformation("Creating temporary table...");
+                        await destinationDatabase.ExecuteAsync(CreateTempTable);
+                        
+                        // Load temporary table
+                        var aggregateCdnDownloadsInGalleryTable = new DataTable();
+                        var command = new SqlCommand("SELECT * FROM " + TempTableName, destinationDatabase);
+                        command.CommandType = CommandType.Text;
+                        command.CommandTimeout = 60 * 5;
+                        var reader = await command.ExecuteReaderAsync();
+                        aggregateCdnDownloadsInGalleryTable.Load(reader);
+                        aggregateCdnDownloadsInGalleryTable.Rows.Clear();
+                        Trace.TraceInformation("Created temporary table.");
+
+                        // Populate temporary table in memory
+                        Trace.TraceInformation("Populating temporary table in memory...");
                         foreach (var packageRegistrationGroup in packageRegistrationGroups)
                         {
                             // don't process empty package id's
@@ -81,40 +129,44 @@ namespace Stats.AggregateCdnDownloadsInGallery
                             {
                                 continue;
                             }
+                            
+                            var packageId = packageRegistrationGroup.First().PackageId.ToLowerInvariant();
 
-                            using (var packageRegistrationGroupTransaction = destinationDatabase.BeginTransaction())
+                            // Get package registration key
+                            if (!packageRegistrationLookup.ContainsKey(packageId))
                             {
-                                var packageId = packageRegistrationGroup.First().PackageId.ToLowerInvariant();
-                                var totalForGroup = packageRegistrationGroup.Sum(p => p.TotalDownloadCount);
+                                continue;
+                            }
+                            var packageRegistrationKey = packageRegistrationLookup[packageId];
 
-                                // Get package registration key
-                                if (!packageRegistrationLookup.ContainsKey(packageId))
-                                {
-                                    continue;
-                                }
-                                var packageRegistrationKey = packageRegistrationLookup[packageId];
-
-                                // Set download count on individual packages
-                                foreach (var package in packageRegistrationGroup)
-                                {
-                                    // Set download count on package registration
-                                    await destinationDatabase.ExecuteAsync(
-                                        string.Format("UPDATE [dbo].[Packages] SET [DownloadCount] = {0} WHERE LOWER([Version]) = '{1}' AND [PackageRegistrationKey] = {2} AND [DownloadCount] <> {0}", package.TotalDownloadCount, package.PackageVersion.ToLowerInvariant(), packageRegistrationKey),
-                                        packageRegistrationGroupTransaction);
-                                }
-                                
-                                // Set download count on package registration
-                                await destinationDatabase.ExecuteAsync(
-                                    string.Format("UPDATE [dbo].[PackageRegistrations] SET [DownloadCount] = {0} WHERE [Key] = {1} AND [DownloadCount] <> {0}", totalForGroup, packageRegistrationKey),
-                                    packageRegistrationGroupTransaction);
-
-                                packageRegistrationGroupTransaction.Commit();
-
-                                Trace.TraceInformation("Updated download counts for package " + packageId + ".");
+                            // Set download count on individual packages
+                            foreach (var package in packageRegistrationGroup)
+                            {
+                                var row = aggregateCdnDownloadsInGalleryTable.NewRow();
+                                row["PackageRegistrationKey"] = packageRegistrationKey;
+                                row["PackageVersion"] = package.PackageVersion;
+                                row["DownloadCount"] = package.TotalDownloadCount;
+                                aggregateCdnDownloadsInGalleryTable.Rows.Add(row);
                             }
                         }
+                        Trace.TraceInformation("Populated temporary table in memory. (" + aggregateCdnDownloadsInGalleryTable.Rows.Count + " rows)");
+
+                        // Transfer to SQL database
+                        Trace.TraceInformation("Populating temporary table in database...");
+                        using (SqlBulkCopy bulkcopy = new SqlBulkCopy(destinationDatabase))
+                        {
+                            bulkcopy.BulkCopyTimeout = 60 * 30; // 30 minutes
+                            bulkcopy.DestinationTableName = TempTableName;
+                            bulkcopy.WriteToServer(aggregateCdnDownloadsInGalleryTable);
+                            bulkcopy.Close();
+                        }
+                        Trace.TraceInformation("Populated temporary table in database.");
+
+                        // Update counts in destination database
+                        Trace.TraceInformation("Updating destination database Download Counts... (" + packageRegistrationGroups.Count() + " package registrations to process)");
+                        await destinationDatabase.ExecuteAsync(UpdateFromTempTable, timeout: 60 * 30); // 30 minutes
+                        Trace.TraceInformation("Updated destination database Download Counts.");
                     }
-                    Trace.TraceInformation("Updated destination database Download Counts.");
                 }
 
                 return true;

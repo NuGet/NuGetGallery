@@ -10,6 +10,5 @@ namespace Stats.AggregateCdnDownloadsInGallery
         public string PackageId { get; set; }
         public string PackageVersion { get; set; }
         public long TotalDownloadCount { get; set; }
-        public DateTime CursorRunToPosition { get; set; }
     }
 }
