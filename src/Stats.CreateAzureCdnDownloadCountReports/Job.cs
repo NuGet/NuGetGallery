@@ -71,9 +71,9 @@ namespace Stats.CreateAzureCdnDownloadCountReports
                 IReadOnlyCollection<DownloadCountData> downloadData;
                 Trace.TraceInformation("Gathering Download Counts from {0}/{1}...", _sourceDatabase.DataSource, _sourceDatabase.InitialCatalog);
                 using (var connection = await _sourceDatabase.ConnectTo())
-                using (connection.BeginTransaction(IsolationLevel.Snapshot)) { 
+                using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot)) { 
                     downloadData = (await connection.QueryWithRetryAsync<DownloadCountData>(
-                        _storedProcedureName, commandType: CommandType.StoredProcedure)).ToList();
+                        _storedProcedureName, commandType: CommandType.StoredProcedure, transaction: transaction)).ToList();
                 }
 
                 Trace.TraceInformation("Gathered {0} rows of data.", downloadData.Count);
