@@ -13,17 +13,12 @@ BEGIN
 
 	EXCEPT
 
-		SELECT	DISTINCT P.PackageId
-		FROM	[dbo].[Fact_Download] AS F
+		-- Find all packages that have been downloaded in the last 42 days
+		SELECT	DISTINCT P.[PackageId]
+		FROM	[dbo].[Fact_Download] (NOLOCK) AS F
 
-		INNER JOIN	Dimension_Package AS P
+		INNER JOIN	[dbo].[Dimension_Package] AS P (NOLOCK)
 		ON			P.[Id] = F.[Dimension_Package_Id]
 
-		INNER JOIN	Dimension_Date AS D
-		ON			D.[Id] = F.[Dimension_Date_Id]
-
-		WHERE		D.[Date] IS NOT NULL
-				AND ISNULL(D.[Date], CONVERT(DATE, '1900-01-01')) >= CONVERT(DATE, DATEADD(day, -42, GETDATE()))
-				AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, GETDATE()))) < CONVERT(DATE, GETDATE())
-
+		WHERE	ISNULL(F.[Timestamp], CONVERT(DATETIME, '1900-01-01')) > CONVERT(DATE, DATEADD(day, -42, GETDATE()))
 END
