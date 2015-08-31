@@ -115,6 +115,11 @@ namespace Stats.CreateAzureCdnWarehouseReports
         private static async Task ProcessReport(CloudBlobContainer destinationContainer, ReportBuilder reportBuilder, ReportDataCollector reportDataCollector, params Tuple<string, int, string>[] parameters)
         {
             var dataTable = await reportDataCollector.CollectAsync(parameters);
+            if (dataTable.Rows.Count == 0)
+            {
+                return;
+            }
+
             var json = reportBuilder.CreateReport(dataTable);
 
             var reportWriter = new ReportWriter(destinationContainer);
