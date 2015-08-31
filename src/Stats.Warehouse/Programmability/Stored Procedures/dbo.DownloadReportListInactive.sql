@@ -13,7 +13,7 @@ BEGIN
 
 	EXCEPT
 
-		-- Find all packages that have been downloaded in the last 42 days
+		-- Find all packages that have had download facts added in the last 42 days
 		SELECT	DISTINCT P.[PackageId]
 		FROM	[dbo].[Fact_Download] (NOLOCK) AS F
 
