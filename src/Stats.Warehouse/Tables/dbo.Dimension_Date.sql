@@ -39,8 +39,10 @@
     [FiscalYearName]              NVARCHAR (10)  NOT NULL,
     CONSTRAINT [PK_Dimension_Date] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (STATISTICS_NORECOMPUTE = ON)
 );
-
-
 GO
 CREATE UNIQUE NONCLUSTERED INDEX [Dimension_Date_NCI_Date]
-    ON [dbo].[Dimension_Date]([Date] ASC) WITH (STATISTICS_NORECOMPUTE = ON);
+    ON [dbo].[Dimension_Date]([Date] ASC) WITH (STATISTICS_NORECOMPUTE = ON)
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [Dimension_Date_NCI_Date_Desc]
+    ON [dbo].[Dimension_Date]([Date] DESC) WITH (STATISTICS_NORECOMPUTE = ON)
+GO

@@ -8,9 +8,10 @@ BEGIN
 
 	-- Run to second latest timestamp in facts table
 	DECLARE @CursorRunToPosition DATETIME = (
-												SELECT	MAX([Timestamp])
+												SELECT	TOP 1 [Timestamp]
 												FROM	[dbo].[Fact_Download] (NOLOCK)
 												WHERE	[Timestamp] < (SELECT MAX([Timestamp]) FROM [dbo].[Fact_Download] (NOLOCK) )
+												ORDER BY [Timestamp] DESC
 											 )
 
 	-- query for dirty package id's
@@ -22,10 +23,7 @@ BEGIN
 	INNER JOIN	[dbo].[Dimension_Package] AS P (NOLOCK)
 	ON			P.[Id] = F.[Dimension_Package_Id]
 
-	INNER JOIN	[dbo].[Dimension_Date] AS D (NOLOCK)
-	ON			D.[Id] = F.[Dimension_Date_Id]
-
-	WHERE	ISNULL(D.[Date], CONVERT(DATETIME, '1900-01-01')) > @CursorPosition AND ISNULL(D.[Date], CONVERT(DATETIME, '1900-01-01')) <= @CursorRunToPosition
+	WHERE	ISNULL(F.[Timestamp], CONVERT(DATETIME, '1900-01-01')) > @CursorPosition AND ISNULL(F.[Timestamp], CONVERT(DATETIME, '1900-01-01')) <= @CursorRunToPosition
 
 	ORDER BY P.[PackageId] ASC
 END

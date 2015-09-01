@@ -21,5 +21,4 @@ BEGIN
 
 	GROUP BY	D.[Year], D.[MonthOfYear]
 	ORDER BY	[Year], [MonthOfYear]
-
 END

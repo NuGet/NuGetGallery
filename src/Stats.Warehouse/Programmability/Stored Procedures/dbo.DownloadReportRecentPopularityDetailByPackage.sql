@@ -2,6 +2,7 @@
 	@PackageId NVARCHAR(128)
 AS
 BEGIN
+	-- Find all packages that have had download facts added in the last 42 days, today included
 	SET NOCOUNT ON;
 
 	SELECT
@@ -28,7 +29,7 @@ BEGIN
 
 	WHERE		D.[Date] IS NOT NULL
 			AND ISNULL(D.[Date], CONVERT(DATE, '1900-01-01')) >= CONVERT(DATE, DATEADD(day, -42, GETDATE()))
-			AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, GETDATE()))) < CONVERT(DATE, GETDATE())
+			AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, GETDATE()))) <= CONVERT(DATE, GETDATE())
 			AND P.PackageId = @PackageId
 			AND C.ClientCategory NOT IN ('Crawler', 'Browser', 'Unknown')
 
@@ -48,5 +49,4 @@ BEGIN
 				C.Minor,
 				O.Operation,
 				[Downloads] DESC
-
 END

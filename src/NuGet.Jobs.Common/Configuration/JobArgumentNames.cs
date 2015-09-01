@@ -11,6 +11,7 @@ namespace NuGet.Jobs
         // Job argument names
         public const string Once = "Once";
         public const string Sleep = "Sleep";
+        public const string Interval = "Interval";
 
         // Database argument names
         public const string SourceDatabase = "SourceDatabase";

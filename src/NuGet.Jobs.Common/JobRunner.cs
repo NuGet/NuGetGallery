@@ -49,7 +49,15 @@ namespace NuGet.Jobs
                 var jobArgsDictionary = JobConfigurationManager.GetJobArgsDictionary(job.JobTraceListener, commandLineArgs, job.JobName);
 
                 bool runContinuously = !JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.Once);
-                int? sleepDuration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Sleep);
+                int? sleepDuration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Sleep); // sleep is in milliseconds
+                if (!sleepDuration.HasValue)
+                {
+                    sleepDuration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Interval); 
+                    if (sleepDuration.HasValue)
+                    {
+                        sleepDuration = sleepDuration.Value * 1000; // interval is in seconds
+                    }
+                }
 
                 // Setup the job for running
                 JobSetup(job, jobArgsDictionary, ref sleepDuration);

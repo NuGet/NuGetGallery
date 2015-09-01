@@ -15,6 +15,5 @@ CREATE UNIQUE NONCLUSTERED INDEX [IX_Dimension_Client_UniqueIndex] ON [dbo].[Dim
 WITH (STATISTICS_NORECOMPUTE = ON)
 GO
 
-
 CREATE INDEX [IX_Dimension_Client_ClientCategory] ON [dbo].[Dimension_Client] ([ClientCategory]) WITH (STATISTICS_NORECOMPUTE = ON)
 GO

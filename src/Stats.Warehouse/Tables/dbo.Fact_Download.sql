@@ -14,6 +14,10 @@
     CONSTRAINT [PK_Fact_Download] PRIMARY KEY CLUSTERED ([Id]) WITH (STATISTICS_NORECOMPUTE = ON)
 );
 GO
+CREATE NONCLUSTERED INDEX [Fact_Download_NCI_TimestampDesc]
+    ON [dbo].[Fact_Download]([Timestamp] DESC)
+    INCLUDE([Dimension_Date_Id], [Dimension_Package_Id], [DownloadCount]) WITH (STATISTICS_NORECOMPUTE = ON);
+GO
 CREATE NONCLUSTERED INDEX [Fact_Download_NCI_DownloadCount]
     ON [dbo].[Fact_Download]([DownloadCount] ASC) WITH (STATISTICS_NORECOMPUTE = ON);
 GO

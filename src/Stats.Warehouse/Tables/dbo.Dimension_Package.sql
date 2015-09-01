@@ -6,8 +6,6 @@
 	[LowercasedPackageVersion] AS LOWER([PackageVersion]) PERSISTED,
     CONSTRAINT [PK_Dimension_Package] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (STATISTICS_NORECOMPUTE = ON)
 );
-
-
 GO
 
 CREATE UNIQUE NONCLUSTERED INDEX [Dimension_Package_NCI_PackageId_PackageVersion]
