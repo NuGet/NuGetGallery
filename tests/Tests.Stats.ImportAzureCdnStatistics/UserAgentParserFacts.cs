@@ -38,8 +38,11 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             [InlineData("MyGet/1.2.3 (Microsoft Windows NT 6.2.9200.0)", "MyGet", "1", "2", "3")]
             [InlineData("ProGet/1.2.3 (Microsoft Windows NT 6.2.9200.0)", "Inedo ProGet", "1", "2", "3")]
             [InlineData("Paket/1.2.3 (Microsoft Windows NT 6.2.9200.0)", "Paket", "1", "2", "3")]
+            [InlineData("Paket", "Paket", null, null, null)]
             [InlineData("Xamarin Studio/1.2.3 (Microsoft Windows NT 6.2.9200.0)", "Xamarin Studio", "1", "2", "3")]
             [InlineData("MonoDevelop/1.2.3 (Microsoft Windows NT 6.2.9200.0)", "MonoDevelop", "1", "2", "3")]
+            [InlineData("NuGet Command Line/2.8.50320.36 (Microsoft Windows NT 6.1.7601 Service Pack 1)", "NuGet Command Line", "2", "8", "50320")]
+            [InlineData("NuGet Core/2.8.50926.663 (Microsoft Windows NT 6.3.9600.0)", "NuGet Core", "2", "8", "50926")]
             public void RecognizesNuGetClients(string userAgent, string expectedClient, string expectedMajor, string expectedMinor, string expectedPatch)
             {
                 var parsed = _parser.ParseUserAgent(userAgent);
