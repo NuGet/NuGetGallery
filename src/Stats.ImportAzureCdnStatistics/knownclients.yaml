@@ -76,3 +76,7 @@
   # MonoDevelop
   - regex: '(MonoDevelop)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'MonoDevelop'
+
+  # DNX
+  - regex: '(Microsoft_.NET_Development_Utility)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'DNX Utility'
