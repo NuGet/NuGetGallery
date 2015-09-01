@@ -3,16 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NuGet.Jobs;
 
 namespace Stats.CreateAzureCdnDownloadCountReports
@@ -20,11 +14,10 @@ namespace Stats.CreateAzureCdnDownloadCountReports
     public class Job
         : JobBase
     {
-        private const string _storedProcedureName = "[dbo].[SelectTotalDownloadCountsPerPackageVersion]";
-        private const string _reportName = "downloads.v1.json";
         private CloudStorageAccount _cloudStorageAccount;
-        private SqlConnectionStringBuilder _sourceDatabase;
-        private string _destinationContainerName;
+        private SqlConnectionStringBuilder _statisticsDatabase;
+        private SqlConnectionStringBuilder _galleryDatabase;
+        private string _statisticsContainerName;
 
         public Job()
             : base(JobEventSource.Log)
@@ -35,11 +28,15 @@ namespace Stats.CreateAzureCdnDownloadCountReports
         {
             try
             {
+                var statisticsDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
+                _statisticsDatabase = new SqlConnectionStringBuilder(statisticsDatabaseConnectionString);
+
+                var galleryDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.SourceDatabase);
+                _galleryDatabase = new SqlConnectionStringBuilder(galleryDatabaseConnectionString);
+
                 var cloudStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
-                var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
                 _cloudStorageAccount = ValidateAzureCloudStorageAccount(cloudStorageAccountConnectionString);
-                _sourceDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
-                _destinationContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName));
+                _statisticsContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName));
 
                 return true;
             }
@@ -54,53 +51,13 @@ namespace Stats.CreateAzureCdnDownloadCountReports
         {
             try
             {
-                // construct a cloud blob client for the configured storage account
-                var cloudBlobClient = _cloudStorageAccount.CreateCloudBlobClient();
-                cloudBlobClient.DefaultRequestOptions.RetryPolicy = new ExponentialRetry(TimeSpan.FromSeconds(10), 5);
+                // build downloads.v1.json
+                var downloadCountReport = new DownloadCountReport(_cloudStorageAccount, _statisticsContainerName, _statisticsDatabase, _galleryDatabase);
+                await downloadCountReport.Run();
 
-                // Get the target blob container (to store the generated reports)
-                var targetBlobContainer = cloudBlobClient.GetContainerReference(_destinationContainerName);
-                await targetBlobContainer.CreateIfNotExistsAsync();
-                var blobContainerPermissions = new BlobContainerPermissions();
-                blobContainerPermissions.PublicAccess = BlobContainerPublicAccessType.Blob;
-                await targetBlobContainer.SetPermissionsAsync(blobContainerPermissions);
-
-                Trace.TraceInformation("Generating Download Count Report from {0}/{1} to {2}/{3}.", _sourceDatabase.DataSource, _sourceDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, _destinationContainerName);
-
-                // Gather download count data from statistics warehouse
-                IReadOnlyCollection<DownloadCountData> downloadData;
-                Trace.TraceInformation("Gathering Download Counts from {0}/{1}...", _sourceDatabase.DataSource, _sourceDatabase.InitialCatalog);
-                using (var connection = await _sourceDatabase.ConnectTo())
-                using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot)) { 
-                    downloadData = (await connection.QueryWithRetryAsync<DownloadCountData>(
-                        _storedProcedureName, commandType: CommandType.StoredProcedure, transaction: transaction)).ToList();
-                }
-
-                Trace.TraceInformation("Gathered {0} rows of data.", downloadData.Count);
-
-                if (downloadData.Any())
-                {
-                    // Group based on Package Id
-                    var grouped = downloadData.GroupBy(p => p.PackageId);
-                    var registrations = new JArray();
-                    foreach (var group in grouped)
-                    {
-                        var details = new JArray();
-                        details.Add(group.Key);
-                        foreach (var gv in group)
-                        {
-                            var version = new JArray(gv.PackageVersion, gv.TotalDownloadCount);
-                            details.Add(version);
-                        }
-                        registrations.Add(details);
-                    }
-
-                    var blob = targetBlobContainer.GetBlockBlobReference(_reportName);
-                    Trace.TraceInformation("Writing report to {0}", blob.Uri.AbsoluteUri);
-                    blob.Properties.ContentType = "application/json";
-                    await blob.UploadTextAsync(registrations.ToString(Formatting.None));
-                    Trace.TraceInformation("Wrote report to {0}", blob.Uri.AbsoluteUri);
-                }
+                // build stats-totals.json
+                var galleryTotalsReport = new GalleryTotalsReport(_cloudStorageAccount, _statisticsContainerName, _statisticsDatabase, _galleryDatabase);
+                await galleryTotalsReport.Run();
 
                 return true;
             }

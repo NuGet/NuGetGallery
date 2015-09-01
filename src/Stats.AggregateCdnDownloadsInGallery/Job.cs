@@ -59,9 +59,9 @@ namespace Stats.AggregateCdnDownloadsInGallery
             try
             {
                 var statisticsDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
-                var destinationDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DestinationDatabase);
-
                 _statisticsDatabase = new SqlConnectionStringBuilder(statisticsDatabaseConnectionString);
+
+                var destinationDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DestinationDatabase);
                 _destinationDatabase = new SqlConnectionStringBuilder(destinationDatabaseConnectionString);
 
                 return true;

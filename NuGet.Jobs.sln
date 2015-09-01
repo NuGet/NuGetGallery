@@ -61,7 +61,7 @@ Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Stats.Warehouse", "src\Stat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Stats.ImportAzureCdnStatistics", "tests\Tests.Stats.ImportAzureCdnStatistics\Tests.Stats.ImportAzureCdnStatistics.csproj", "{80073256-BF15-4E92-B63A-D6922493DA27}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Statistics (Azure CDN)", "Statistics (Azure CDN)", "{B9D03824-A9CA-43AC-86D6-8BB399B9A228}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Statistics", "Statistics", "{B9D03824-A9CA-43AC-86D6-8BB399B9A228}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.CreateAzureCdnDownloadCountReports", "src\Stats.CreateAzureCdnDownloadCountReports\Stats.CreateAzureCdnDownloadCountReports.csproj", "{7275F6E2-0A0B-4C28-BB64-94B8C9E8F3E8}"
 EndProject

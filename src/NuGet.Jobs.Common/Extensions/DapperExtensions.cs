@@ -70,7 +70,7 @@ namespace System.Data.SqlClient
             }
             throw new Exception("Unknown error! Should have thrown the final timeout!");
         }
-
+        
         public static async Task<T> ExecuteScalarWithRetryAsync<T>(
             this SqlConnection connection,
             string sql,

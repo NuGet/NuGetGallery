@@ -67,10 +67,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DownloadCountData.cs" />
+    <Compile Include="GalleryTotalsData.cs" />
+    <Compile Include="GalleryTotalsReport.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="JobEventSource.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="DownloadCountReport.cs" />
+    <Compile Include="ReportBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
