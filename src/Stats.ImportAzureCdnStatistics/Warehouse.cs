@@ -101,11 +101,10 @@ namespace Stats.ImportAzureCdnStatistics
             var dataImporter = new DataImporter(_targetDatabase);
             var dataTable = await dataImporter.GetDataTableAsync("Fact_Download");
 
-            // ensure all dimension IDs are set to the Unknown equivalent if no dimension data is available
-            int? operationId = !operations.Any() ? DimensionId.Unknown : (int?)null;
-            int? projectTypeId = !projectTypes.Any() ? DimensionId.Unknown : (int?)null;
-            int? clientId = !clients.Any() ? DimensionId.Unknown : (int?)null;
-            int? platformId = !platforms.Any() ? DimensionId.Unknown : (int?)null;
+            var knownOperationsAvailable = operations.Any();
+            var knownProjectTypesAvailable = projectTypes.Any();
+            var knownClientsAvailable = clients.Any();
+            var knownPlatformsAvailable = platforms.Any();
 
             Trace.WriteLine("Creating facts...");
             foreach (var groupedByPackageId in sourceData.GroupBy(e => e.PackageId, StringComparer.OrdinalIgnoreCase))
@@ -147,41 +146,27 @@ namespace Stats.ImportAzureCdnStatistics
                         var timeId = _times.First(e => e.HourOfDay == element.EdgeServerTimeDelivered.Hour).Id;
 
                         // dimensions that could be "(unknown)"
-                        if (!operationId.HasValue)
+                        int operationId = DimensionId.Unknown;
+
+                        if (knownOperationsAvailable && operations.ContainsKey(element.Operation))
                         {
-                            if (!operations.ContainsKey(element.Operation))
-                            {
-                                operationId = DimensionId.Unknown;
-                            }
-                            else
-                            {
-                                operationId = operations[element.Operation];
-                            }
-                        }
-                        if (!platformId.HasValue)
-                        {
-                            if (!platforms.ContainsKey(element.UserAgent))
-                            {
-                                platformId = DimensionId.Unknown;
-                            }
-                            else
-                            {
-                                platformId = platforms[element.UserAgent];
-                            }
-                        }
-                        if (!clientId.HasValue)
-                        {
-                            if (!clients.ContainsKey(element.UserAgent))
-                            {
-                                clientId = DimensionId.Unknown;
-                            }
-                            else
-                            {
-                                clientId = clients[element.UserAgent];
-                            }
+                            operationId = operations[element.Operation];
                         }
 
-                        if (!projectTypeId.HasValue)
+                        int platformId = DimensionId.Unknown;
+                        if (knownPlatformsAvailable && platforms.ContainsKey(element.UserAgent))
+                        {
+                            platformId = platforms[element.UserAgent];
+                        }
+
+                        int clientId = DimensionId.Unknown;
+                        if (knownClientsAvailable && clients.ContainsKey(element.UserAgent))
+                        {
+                            clientId = clients[element.UserAgent];
+                        }
+
+                        int projectTypeId = DimensionId.Unknown;
+                        if (knownProjectTypesAvailable)
                         {
                             // foreach project type
                             foreach (var projectGuid in element.ProjectGuids.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
@@ -189,14 +174,14 @@ namespace Stats.ImportAzureCdnStatistics
                                 projectTypeId = projectTypes[projectGuid];
 
                                 var dataRow = dataTable.NewRow();
-                                FillDataRow(dataRow, dateId, timeId, packageId, operationId.Value, platformId.Value, projectTypeId.Value, clientId.Value, logFileName, element.UserAgent);
+                                FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, projectTypeId, clientId, logFileName, element.UserAgent);
                                 dataTable.Rows.Add(dataRow);
                             }
                         }
                         else
                         {
                             var dataRow = dataTable.NewRow();
-                            FillDataRow(dataRow, dateId, timeId, packageId, operationId.Value, platformId.Value, projectTypeId.Value, clientId.Value, logFileName, element.UserAgent);
+                            FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, projectTypeId, clientId, logFileName, element.UserAgent);
                             dataTable.Rows.Add(dataRow);
                         }
                     }
