@@ -35,9 +35,13 @@
   - regex: '(NuGet Command Line)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'NuGet Command Line'
 
+  # NuGet
+  - regex: '(NuGet)/?(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet'
+
   # NuGet Core
   - regex: '(NuGet Core)/?(\d+)\.(\d+)\.?(\d+)?'
-    family_replacement: 'NuGet Core'
+    family_replacement: 'NuGet'
 
   # WebMatrix includes its own core version number as part of the client name, before the slash
   - regex: '(WebMatrix) (\d+)\.(\d+)\.?(\d+)?'
@@ -79,6 +83,10 @@
 
   # MonoDevelop
   - regex: '(MonoDevelop)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'MonoDevelop'
+
+  # MonoDevelop-Unity
+  - regex: '(MonoDevelop-Unity)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'MonoDevelop'
 
   # SharpDevelop
