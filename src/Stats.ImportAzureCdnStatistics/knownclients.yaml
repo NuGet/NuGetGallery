@@ -1,4 +1,8 @@
 ﻿user_agent_parsers:
+  # NuGet Client V3
+  - regex: '(NuGet Client V3)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet Client V3'
+
   # NuGet VS PowerShell Console (NuGet 2.8+)
   - regex: '(NuGet VS PowerShell Console)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'NuGet VS PowerShell Console'
