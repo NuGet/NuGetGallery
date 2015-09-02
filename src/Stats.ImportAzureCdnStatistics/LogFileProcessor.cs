@@ -17,6 +17,8 @@ namespace Stats.ImportAzureCdnStatistics
 {
     internal class LogFileProcessor
     {
+        private const ushort GzipLeadBytes = 0x8b1f;
+
         private readonly CloudBlobContainer _targetContainer;
         private readonly CloudBlobContainer _deadLetterContainer;
         private readonly SqlConnectionStringBuilder _targetDatabase;
@@ -160,6 +162,23 @@ namespace Stats.ImportAzureCdnStatistics
             return packageStatistics;
         }
 
+        private static async Task<bool> IsGzipCompressed(Stream stream)
+        {
+            stream.Position = 0;
+
+            try
+            {
+                var bytes = new byte[4];
+                await stream.ReadAsync(bytes, 0, 4);
+
+                return (BitConverter.ToUInt16(bytes, 0) == GzipLeadBytes);
+            }
+            finally
+            {
+                stream.Position = 0;
+            }
+        }
+
         private async Task<Stream> OpenCompressedBlobAsync(ILeasedLogFile logFile)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -183,7 +202,15 @@ namespace Stats.ImportAzureCdnStatistics
 
                 ApplicationInsights.TrackMetric("Open compressed blob duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
 
-                return new GZipInputStream(memoryStream);
+                // verify if the stream is gzipped or not
+                if (await IsGzipCompressed(memoryStream))
+                {
+                    return new GZipInputStream(memoryStream);
+                }
+                else
+                {
+                    return memoryStream;
+                }
             }
             catch (Exception exception)
             {
