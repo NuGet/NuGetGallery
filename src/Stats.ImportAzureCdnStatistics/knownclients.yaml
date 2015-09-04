@@ -96,3 +96,7 @@
   # DNX
   - regex: '(Microsoft_.NET_Development_Utility)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'DNX Utility'
+
+  # PowerShell
+  - regex: '(WindowsPowerShell)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'Windows PowerShell'
