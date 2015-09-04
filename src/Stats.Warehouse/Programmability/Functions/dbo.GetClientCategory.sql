@@ -74,7 +74,7 @@ BEGIN
 		OR	CHARINDEX('Opera', @ClientName) > 0
 		OR	CHARINDEX('Chrome', @ClientName) > 0
 		OR	CHARINDEX('Chromium', @ClientName) > 0
-		OR	CHARINDEX('Internet Explorer') > 0
+		OR	CHARINDEX('Internet Explorer', @ClientName) > 0
 		OR	CHARINDEX('Browser', @ClientName) > 0
 		OR	@ClientName = 'IE'
 		OR	@ClientName = 'Iron'
