@@ -49,6 +49,8 @@ BEGIN
 		OR	CHARINDEX('Slurp', @ClientName) > 0
 		OR	CHARINDEX('BingPreview', @ClientName) > 0
 		OR	CHARINDEX('crawler', @ClientName) > 0
+		OR	CHARINDEX('sniffer', @ClientName) > 0
+		OR	CHARINDEX('spider', @ClientName) > 0
 		)
         RETURN 'Crawler'
 
