@@ -8,7 +8,9 @@
 @section SideColumn {
     @if (!String.IsNullOrEmpty(Model.EmailAddress))
     {
-        ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 128);
+        <p>
+            @ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 128);
+        </p>
     }
     <div id="stats">
         <div class="stat">
