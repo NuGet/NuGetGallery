@@ -6,7 +6,7 @@
 
 
 @section SideColumn {
-    @if (String.IsNullOrEmpty(Model.EmailAddress))
+    @if (!String.IsNullOrEmpty(Model.EmailAddress))
     {
         ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 128);
     }
