@@ -35,6 +35,23 @@ BEGIN
 		)
 		RETURN 'NuGet Package Explorer'
 
+	IF	(
+			CHARINDEX('PowerShell', @ClientName) > 0
+		OR	CHARINDEX('curl', @ClientName) > 0
+		OR	CHARINDEX('Wget', @ClientName) > 0
+		)
+		RETURN 'Script'
+
+	IF (
+			-- Bots / Crawlers (filtered in the reports)
+			CHARINDEX('Bot', @ClientName) > 0
+		OR	CHARINDEX('bot', @ClientName) > 0
+		OR	CHARINDEX('Slurp', @ClientName) > 0
+		OR	CHARINDEX('BingPreview', @ClientName) > 0
+		OR	CHARINDEX('crawler', @ClientName) > 0
+		)
+        RETURN 'Crawler'
+
 	IF (
 			CHARINDEX('Mobile', @ClientName) > 0
 		OR	CHARINDEX('Android', @ClientName) > 0
@@ -49,11 +66,13 @@ BEGIN
 
     IF (
 			-- Browsers
+			-- Check these late in the process, because other User Agents tend to also send browser strings (e.g. PowerShell sends the Mozilla string along)
 			CHARINDEX('Mozilla', @ClientName) > 0
 		OR	CHARINDEX('Firefox', @ClientName) > 0
 		OR	CHARINDEX('Opera', @ClientName) > 0
 		OR	CHARINDEX('Chrome', @ClientName) > 0
 		OR	CHARINDEX('Chromium', @ClientName) > 0
+		OR	CHARINDEX('Internet Explorer') > 0
 		OR	CHARINDEX('Browser', @ClientName) > 0
 		OR	@ClientName = 'IE'
 		OR	@ClientName = 'Iron'
@@ -67,19 +86,9 @@ BEGIN
 		OR	CHARINDEX('Lynx', @ClientName) > 0
 		OR	CHARINDEX('Galeon', @ClientName) > 0
 		OR	CHARINDEX('Epiphany', @ClientName) > 0
-		OR	CHARINDEX('AppleMail', @ClientName) > 0
 		OR	CHARINDEX('Lunascape', @ClientName) > 0
 		)
         RETURN 'Browser'
-
-	IF (
-			-- Bots / Crawlers (filtered in the reports)
-			CHARINDEX('Bot', @ClientName) > 0
-		OR	CHARINDEX('bot', @ClientName) > 0
-		OR	CHARINDEX('Slurp', @ClientName) > 0
-		OR	CHARINDEX('BingPreview', @ClientName) > 0
-		)
-        RETURN 'Crawler'
 
 	IF (
 			-- explicitly categorize unknowns, test frameworks or others that should be filtered out in the reports
@@ -87,6 +96,8 @@ BEGIN
 		OR	CHARINDEX('WebKit Nightly', @ClientName) > 0
 		OR	CHARINDEX('Python Requests', @ClientName) > 0
 		OR	CHARINDEX('Jasmine', @ClientName) > 0
+		OR	CHARINDEX('Java', @ClientName) > 0
+		OR	CHARINDEX('AppleMail', @ClientName) > 0
 		)
 		RETURN 'Unknown'
 
