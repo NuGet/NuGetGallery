@@ -31,7 +31,7 @@ BEGIN
 			AND ISNULL(D.[Date], CONVERT(DATE, '1900-01-01')) >= CONVERT(DATE, DATEADD(day, -42, GETDATE()))
 			AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, GETDATE()))) <= CONVERT(DATE, GETDATE())
 			AND P.PackageId = @PackageId
-			AND C.ClientCategory NOT IN ('Crawler', 'Browser', 'Unknown')
+			AND C.ClientCategory NOT IN ('Crawler', 'Script', 'Unknown')
 
 	GROUP BY
 				P.PackageVersion,
