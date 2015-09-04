@@ -1,5 +1,4 @@
-﻿@using System.Diagnostics.Eventing.Reader
-@model UserProfileModel
+﻿@model UserProfileModel
 @{
     ViewBag.Title = @Model.Username;
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
@@ -7,13 +6,9 @@
 
 
 @section SideColumn {
-    @* Change to not null or empty *@
-    @if (!String.IsNullOrEmpty(Model.EmailAddress))
+    @if (String.IsNullOrEmpty(Model.EmailAddress))
     {
-        <p>
-            @ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 128);
-        </p>
-
+        ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 128);
     }
     <div id="stats">
         <div class="stat">
