@@ -205,10 +205,16 @@
         </p>
     }
 
-    <div class="package-page-heading">
-        <h1 title="@Model.Title">@Model.Title.Abbreviate(40)</h1>
-        <h2>@Model.Version</h2>
-    </div>
+<div class="package-page-heading">
+    <h1 title="@Model.Title">@Model.Title.Abbreviate(40)</h1>
+    <h2>@Model.Version</h2>
+</div>
+
+    @if (Model.Title.Length > 39)
+    {
+        <p>@Model.Title</p>
+    }
+
     @foreach (var line in Model.Description.ToStringSafe().Split('\n'))
     {
         <p>@line</p>
