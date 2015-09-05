@@ -210,7 +210,7 @@
     <h2>@Model.Version</h2>
 </div>
 
-    @if (Model.Title.Length > 39)
+    @if (Model.Title.Length >= 40)
     {
         <p>@Model.Title</p>
     }
