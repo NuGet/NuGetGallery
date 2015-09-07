@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" CodeBehind="Children.ascx.cs" Inherits="NuGetGallery.Areas.Admin.DynamicData.ChildrenField" %>
+<%@ Control Language="C#" CodeBehind="Children.ascx.cs" Inherits="NuGetGallery.ChildrenField" %>
 
-<asp:HyperLink ID="HyperLink1" runat="server" NavigateUrl="<%#GetChildrenPath() %>" />
+<asp:HyperLink ID="HyperLink1" runat="server" NavigateUrl="<%# GetChildrenPath() %>" />
 
