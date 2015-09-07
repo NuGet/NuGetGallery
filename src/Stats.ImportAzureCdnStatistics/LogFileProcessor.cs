@@ -137,7 +137,7 @@ namespace Stats.ImportAzureCdnStatistics
                         }
                     } while (!logStreamReader.EndOfStream);
                 }
-                
+
                 _jobEventSource.FinishingParseLog(blobUri, packageStatistics.Count);
 
                 stopwatch.Stop();

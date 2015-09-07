@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Stats.AzureCdnLogs.Common;
 
 namespace Stats.ImportAzureCdnStatistics
 {
@@ -11,6 +10,7 @@ namespace Stats.ImportAzureCdnStatistics
         private const string _other = "other";
         private const string _zeroString = "0";
         private static readonly UserAgentParser _parser;
+        private static ClientDimension _unknownClientDimension;
 
         static ClientDimension()
         {
@@ -23,15 +23,15 @@ namespace Stats.ImportAzureCdnStatistics
         public string Minor { get; set; }
         public string Patch { get; set; }
 
-        public static ClientDimension FromPackageStatistic(PackageStatistics packageStatistics)
+        public static ClientDimension FromUserAgent(string userAgent)
         {
-            if (string.IsNullOrEmpty(packageStatistics.UserAgent))
+            if (string.IsNullOrEmpty(userAgent))
             {
                 return Unknown;
             }
 
             ClientDimension result;
-            var parsed = _parser.ParseUserAgent(packageStatistics.UserAgent);
+            var parsed = _parser.ParseUserAgent(userAgent);
             if (parsed != null)
             {
                 if (string.Equals(_other, parsed.Family, StringComparison.OrdinalIgnoreCase))
@@ -49,9 +49,16 @@ namespace Stats.ImportAzureCdnStatistics
             return result;
         }
 
-        private static ClientDimension Unknown
+        internal static ClientDimension Unknown
         {
-            get { return new ClientDimension { Id = DimensionId.Unknown, ClientName = "(unknown)", Major = _zeroString, Minor = _zeroString, Patch = _zeroString }; }
+            get
+            {
+                if (_unknownClientDimension == null)
+                {
+                    _unknownClientDimension = new ClientDimension { Id = DimensionId.Unknown, ClientName = "(unknown)", Major = _zeroString, Minor = _zeroString, Patch = _zeroString };
+                }
+                return _unknownClientDimension;
+            }
         }
     }
 }

@@ -81,6 +81,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClientDimensionTableType.cs" />
     <Compile Include="LogFileProvider.cs" />
     <Compile Include="Dimensions\ClientDimension.cs" />
     <Compile Include="LogFileProcessor.cs" />

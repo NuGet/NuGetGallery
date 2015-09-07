@@ -19,7 +19,7 @@ BEGIN
 		AND ISNULL(D.[Date], CONVERT(DATE, '1900-01-01')) >= CONVERT(DATE, DATEADD(day, -42, GETDATE()))
 		AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, GETDATE()))) <= CONVERT(DATE, GETDATE())
 		AND Client.[ClientCategory] = 'NuGet'
-		AND Client.[Major] <> 99
+		AND ISNULL(Client.[Major], '0') <> '99'
 
 	GROUP BY Client.[Major], Client.[Minor]
 	ORDER BY	[Major], [Minor]

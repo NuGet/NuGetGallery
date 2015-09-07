@@ -100,3 +100,7 @@
   # PowerShell
   - regex: '(WindowsPowerShell)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'Windows PowerShell'
+
+  # Fiddler
+  - regex: '(Fiddler)/?(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'Fiddler'
