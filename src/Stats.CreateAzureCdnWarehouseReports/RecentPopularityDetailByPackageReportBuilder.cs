@@ -62,7 +62,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 {
                     obj.Add("Client", row[2].ToString());
                     obj.Add("ClientName", row[2].ToString());
-                    obj.Add("ClientVersion", "");
+                    obj.Add("ClientVersion", "(unknown)");
                 }
 
                 if (row[5].ToString() != "(unknown)")
