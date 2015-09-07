@@ -24,7 +24,7 @@ namespace Stats.RefreshClientDimension
             {
                 Run().Wait();
             }
-
+            Trace.TraceInformation("Finished");
             Console.ReadKey(true);
         }
 
