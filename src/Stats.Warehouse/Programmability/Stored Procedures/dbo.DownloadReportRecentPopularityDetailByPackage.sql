@@ -32,7 +32,7 @@ BEGIN
 			AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, GETDATE()))) <= CONVERT(DATE, GETDATE())
 			AND P.PackageId = @PackageId
 			AND C.ClientCategory NOT IN ('Crawler', 'Script', 'Unknown')
-			AND NOT (C.ClientCategory = 'NuGet' AND C.Major = 99)
+			AND NOT (C.ClientCategory = 'NuGet' AND ISNULL(C.Major, '0') = '99')
 
 	GROUP BY
 				P.PackageVersion,

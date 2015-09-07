@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Runtime.InteropServices.ComTypes;
 using Stats.ImportAzureCdnStatistics;
 using Xunit;
 using Xunit.Abstractions;
@@ -51,7 +50,8 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             [InlineData("NuGet Client V3/3.1.0.0 (Microsoft Windows NT 10.0.10240.0, VS Enterprise/14.0)", "NuGet Client V3", "3", "1", "0")]
             [InlineData("SharpDevelop/1.2.3 (Microsoft Windows NT 6.2.9200.0)", "SharpDevelop", "1", "2", "3")]
             [InlineData("Mozilla/5.0 (Windows NT; Windows NT 6.2; en-US) WindowsPowerShell/5.0.9701.0", "Windows PowerShell", "5", "0", "9701")]
-            public void RecognizesNuGetClients(string userAgent, string expectedClient, string expectedMajor, string expectedMinor, string expectedPatch)
+            [InlineData("Fiddler", "Fiddler", null, null, null)]
+            public void RecognizesCustomClients(string userAgent, string expectedClient, string expectedMajor, string expectedMinor, string expectedPatch)
             {
                 var parsed = _parser.ParseUserAgent(userAgent);
                 _testOutputHelper.WriteLine(parsed.ToString());

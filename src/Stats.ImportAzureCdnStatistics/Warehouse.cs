@@ -548,7 +548,7 @@ namespace Stats.ImportAzureCdnStatistics
                 .Where(e => !string.IsNullOrEmpty(e.UserAgent))
                 .GroupBy(e => e.UserAgent)
                 .Select(e => e.First())
-                .ToDictionary(e => e.UserAgent, ClientDimension.FromPackageStatistic);
+                .ToDictionary(e => e.UserAgent, statistics => ClientDimension.FromUserAgent(statistics.UserAgent));
 
             var results = new Dictionary<string, int>();
             if (!clientDimensions.Any())
@@ -570,7 +570,7 @@ namespace Stats.ImportAzureCdnStatistics
                 }
             }
 
-            var parameterValue = CreateDataTable(nonCachedClientDimensions);
+            var parameterValue = ClientDimensionTableType.CreateDataTable(nonCachedClientDimensions);
 
             var command = connection.CreateCommand();
             command.CommandText = "[dbo].[EnsureClientDimensionsExist]";
@@ -656,29 +656,6 @@ namespace Stats.ImportAzureCdnStatistics
                 row["Minor"] = platformDimension.Value.Minor;
                 row["Patch"] = platformDimension.Value.Patch;
                 row["PatchMinor"] = platformDimension.Value.PatchMinor;
-
-                table.Rows.Add(row);
-            }
-            return table;
-        }
-
-        private static DataTable CreateDataTable(Dictionary<string, ClientDimension> clientDimensions)
-        {
-            var table = new DataTable();
-            table.Columns.Add("UserAgent", typeof(string));
-            table.Columns.Add("ClientName", typeof(string));
-            table.Columns.Add("Major", typeof(string));
-            table.Columns.Add("Minor", typeof(string));
-            table.Columns.Add("Patch", typeof(string));
-
-            foreach (var clientDimension in clientDimensions)
-            {
-                var row = table.NewRow();
-                row["UserAgent"] = clientDimension.Key;
-                row["ClientName"] = clientDimension.Value.ClientName;
-                row["Major"] = clientDimension.Value.Major;
-                row["Minor"] = clientDimension.Value.Minor;
-                row["Patch"] = clientDimension.Value.Patch;
 
                 table.Rows.Add(row);
             }

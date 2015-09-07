@@ -10,7 +10,7 @@
     [DownloadCount]					INT NULL,
     [LogFileName]					NVARCHAR(255) NULL,
 	[UserAgent]						NVARCHAR(500) NULL,
-    [Timestamp] DATETIME NOT NULL DEFAULT GETDATE(), 
+    [Timestamp] DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT [PK_Fact_Download] PRIMARY KEY CLUSTERED ([Id]) WITH (STATISTICS_NORECOMPUTE = ON)
 );
 GO
@@ -32,4 +32,8 @@ GO
 CREATE NONCLUSTERED INDEX [Fact_Download_NCI_Client_Id]
     ON [dbo].[Fact_Download] ([Dimension_Date_Id])
 	INCLUDE ([Dimension_Client_Id], [DownloadCount]) WITH (ONLINE = ON)
+GO
+CREATE NONCLUSTERED INDEX [Fact_Download_NCI_UserAgent]
+    ON [dbo].[Fact_Download] ([UserAgent])
+	INCLUDE ([Dimension_Client_Id]) WITH (ONLINE = ON)
 GO

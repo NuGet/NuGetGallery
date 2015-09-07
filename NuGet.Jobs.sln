@@ -69,6 +69,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.CreateAzureCdnWarehou
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.AggregateCdnDownloadsInGallery", "src\Stats.AggregateCdnDownloadsInGallery\Stats.AggregateCdnDownloadsInGallery.csproj", "{6E27275F-0A0B-BB64-4C28-8F3E894B8C9E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.RefreshClientDimension", "src\Stats.RefreshClientDimension\Stats.RefreshClientDimension.csproj", "{B5C01B7A-933D-483E-AF07-6AA266B0EB49}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -173,6 +175,10 @@ Global
 		{6E27275F-0A0B-BB64-4C28-8F3E894B8C9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6E27275F-0A0B-BB64-4C28-8F3E894B8C9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6E27275F-0A0B-BB64-4C28-8F3E894B8C9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5C01B7A-933D-483E-AF07-6AA266B0EB49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5C01B7A-933D-483E-AF07-6AA266B0EB49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5C01B7A-933D-483E-AF07-6AA266B0EB49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5C01B7A-933D-483E-AF07-6AA266B0EB49}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -202,5 +208,6 @@ Global
 		{7275F6E2-0A0B-4C28-BB64-94B8C9E8F3E8} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
 		{E9D937CE-7D3D-4B4A-8FD1-AF721F362948} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
 		{6E27275F-0A0B-BB64-4C28-8F3E894B8C9E} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
+		{B5C01B7A-933D-483E-AF07-6AA266B0EB49} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
 	EndGlobalSection
 EndGlobal
