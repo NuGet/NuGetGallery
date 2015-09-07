@@ -13,11 +13,15 @@ BEGIN
 
 	WHERE	D.[Date] IS NOT NULL
 			AND ISNULL(D.[Date], CONVERT(DATE, '1900-01-01')) >=
-			DATETIMEFROMPARTS(
-				DATEPART(year, DATEADD(month, -7, GETDATE())),
-				DATEPART(month, DATEADD(month, -7, GETDATE())),
-				1, 0, 0, 0, 0)
-		AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, GETDATE()))) < GETDATE()
+				DATETIMEFROMPARTS(
+					DATEPART(year, DATEADD(month, -7, GETDATE())),
+					DATEPART(month, DATEADD(month, -7, GETDATE())),
+					1, 0, 0, 0, 0)
+			AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, GETDATE()))) <
+				DATETIMEFROMPARTS(
+					DATEPART(year, GETDATE()),
+					DATEPART(month, GETDATE()),
+					1, 0, 0, 0, 0)
 
 	GROUP BY	D.[Year], D.[MonthOfYear]
 	ORDER BY	[Year], [MonthOfYear]
