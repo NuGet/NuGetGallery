@@ -9,19 +9,7 @@ BEGIN
 	IF @ClientName IS NULL
 		RETURN ''
 
-    IF	(
-			-- VS NuGet 2.8+
-			CHARINDEX('NuGet VS PowerShell Console', @ClientName) > 0
-		OR	CHARINDEX('NuGet VS Packages Dialog - Solution', @ClientName) > 0
-		OR	CHARINDEX('NuGet VS Packages Dialog', @ClientName) > 0
-
-			-- VS NuGet (pre-2.8)
-		OR	CHARINDEX('NuGet Add Package Dialog', @ClientName) > 0
-        OR	CHARINDEX('NuGet Command Line', @ClientName) > 0
-        OR	CHARINDEX('NuGet Package Manager Console', @ClientName) > 0
-        OR	CHARINDEX('NuGet Visual Studio Extension', @ClientName) > 0
-        OR	CHARINDEX('Package-Installer', @ClientName) > 0
-		)
+    IF	([dbo].[IsNuGetClient] (@ClientName) = 1)
         RETURN 'NuGet'
 
 		-- WebMatrix
@@ -35,73 +23,21 @@ BEGIN
 		)
 		RETURN 'NuGet Package Explorer'
 
-	IF	(
-			CHARINDEX('PowerShell', @ClientName) > 0
-		OR	CHARINDEX('curl', @ClientName) > 0
-		OR	CHARINDEX('Wget', @ClientName) > 0
-		OR	CHARINDEX('Java', @ClientName) > 0
-		)
+	IF	([dbo].[IsScriptClient] (@ClientName) = 1)
 		RETURN 'Script'
 
-	IF (
-			-- Bots / Crawlers (filtered in the reports)
-			CHARINDEX('Bot', @ClientName) > 0
-		OR	CHARINDEX('bot', @ClientName) > 0
-		OR	CHARINDEX('Slurp', @ClientName) > 0
-		OR	CHARINDEX('BingPreview', @ClientName) > 0
-		OR	CHARINDEX('crawler', @ClientName) > 0
-		OR	CHARINDEX('sniffer', @ClientName) > 0
-		OR	CHARINDEX('spider', @ClientName) > 0
-		)
+	IF	([dbo].[IsCrawler] (@ClientName) = 1)
         RETURN 'Crawler'
 
-	IF (
-			CHARINDEX('Mobile', @ClientName) > 0
-		OR	CHARINDEX('Android', @ClientName) > 0
-		OR	CHARINDEX('Kindle', @ClientName) > 0
-		OR	CHARINDEX('BlackBerry', @ClientName) > 0
-		OR	CHARINDEX('Openwave', @ClientName) > 0
-		OR	CHARINDEX('NetFront', @ClientName) > 0
-		OR	CHARINDEX('CFNetwork', @ClientName) > 0
-		OR	CHARINDEX('iLunascape', @ClientName) > 0
-		)
+	IF ([dbo].[IsMobileClient] (@ClientName) = 1)
 		RETURN 'Mobile'
 
-    IF (
-			-- Browsers
-			-- Check these late in the process, because other User Agents tend to also send browser strings (e.g. PowerShell sends the Mozilla string along)
-			CHARINDEX('Mozilla', @ClientName) > 0
-		OR	CHARINDEX('Firefox', @ClientName) > 0
-		OR	CHARINDEX('Opera', @ClientName) > 0
-		OR	CHARINDEX('Chrome', @ClientName) > 0
-		OR	CHARINDEX('Chromium', @ClientName) > 0
-		OR	CHARINDEX('Internet Explorer', @ClientName) > 0
-		OR	CHARINDEX('Browser', @ClientName) > 0
-		OR	@ClientName = 'IE'
-		OR	@ClientName = 'Iron'
-		OR	CHARINDEX('Safari', @ClientName) > 0
-		OR	CHARINDEX('Sogou Explorer', @ClientName) > 0
-		OR	CHARINDEX('Maxthon', @ClientName) > 0
-		OR	CHARINDEX('SeaMonkey', @ClientName) > 0
-		OR	CHARINDEX('Iceweasel', @ClientName) > 0
-		OR	CHARINDEX('Sleipnir', @ClientName) > 0
-		OR	CHARINDEX('Konqueror', @ClientName) > 0
-		OR	CHARINDEX('Lynx', @ClientName) > 0
-		OR	CHARINDEX('Galeon', @ClientName) > 0
-		OR	CHARINDEX('Epiphany', @ClientName) > 0
-		OR	CHARINDEX('Lunascape', @ClientName) > 0
-		)
+	-- Check these late in the process, because other User Agents tend to also send browser strings (e.g. PowerShell sends the Mozilla string along)
+    IF ([dbo].[IsBrowser] (@ClientName) = 1)
         RETURN 'Browser'
 
-	IF (
-			-- explicitly categorize unknowns, test frameworks or others that should be filtered out in the reports
-			CHARINDEX('PhantomJS', @ClientName) > 0
-		OR	CHARINDEX('WebKit Nightly', @ClientName) > 0
-		OR	CHARINDEX('Python Requests', @ClientName) > 0
-		OR	CHARINDEX('Jasmine', @ClientName) > 0
-		OR	CHARINDEX('Java', @ClientName) > 0
-		OR	CHARINDEX('AppleMail', @ClientName) > 0
-		)
+	-- explicitly categorize unknowns, test frameworks or others that should be filtered out in the reports
+	IF ([dbo].[IsUnknownClient] (@ClientName) = 1)
 		RETURN 'Unknown'
 
 	-- Return empty for all others to allow ecosystem user agents to be picked up in the reports

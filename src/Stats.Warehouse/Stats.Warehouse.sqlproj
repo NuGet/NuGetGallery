@@ -102,5 +102,11 @@
     <Build Include="Programmability\Stored Procedures\dbo.SelectTotalDownloadCounts.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.GetUnknownUserAgents.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.PatchClientDimensionForUserAgent.sql" />
+    <Build Include="Programmability\Functions\dbo.IsNuGetClient.sql" />
+    <Build Include="Programmability\Functions\dbo.IsScriptClient.sql" />
+    <Build Include="Programmability\Functions\dbo.IsCrawler.sql" />
+    <Build Include="Programmability\Functions\dbo.IsMobileClient.sql" />
+    <Build Include="Programmability\Functions\dbo.IsBrowser.sql" />
+    <Build Include="Programmability\Functions\dbo.IsUnknownClient.sql" />
   </ItemGroup>
 </Project>
