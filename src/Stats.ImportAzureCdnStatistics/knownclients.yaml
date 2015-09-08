@@ -104,3 +104,11 @@
   # Fiddler
   - regex: '(Fiddler)/?(\d+)?\.?(\d+)?\.?(\d+)?'
     family_replacement: 'Fiddler'
+
+  # curl
+  - regex: '(curl)/?(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'curl'
+
+  # Java
+  - regex: '(Java)/?(\d+)?\.?(\d+)?\.?(\d+)?'
+    family_replacement: 'Java'
