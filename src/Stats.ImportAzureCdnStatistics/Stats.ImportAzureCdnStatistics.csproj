@@ -81,7 +81,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dimensions\IpAddressFact.cs" />
+    <Compile Include="UserAgentFactTableType.cs" />
     <Compile Include="ClientDimensionTableType.cs" />
+    <Compile Include="Dimensions\ToolDimension.cs" />
+    <Compile Include="Dimensions\UserAgentFact.cs" />
     <Compile Include="LogFileProvider.cs" />
     <Compile Include="Dimensions\ClientDimension.cs" />
     <Compile Include="LogFileProcessor.cs" />
@@ -98,7 +102,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlQueries.cs" />
     <Compile Include="Dimensions\TimeDimension.cs" />
+    <Compile Include="StatisticsParser.cs" />
     <Compile Include="Support\PackageTranslation.cs" />
+    <Compile Include="ToolStatisticsParser.cs" />
     <Compile Include="UserAgentParser.cs" />
     <Compile Include="Warehouse.cs" />
   </ItemGroup>

@@ -43,8 +43,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CdnStatistics.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="EnumerableExtensions.cs" />
+    <Compile Include="ITrackEdgeServerIpAddress.cs" />
+    <Compile Include="ITrackUserAgent.cs" />
     <Compile Include="Telemetry\ApplicationInsights.cs" />
     <Compile Include="Telemetry\SessionInitializer.cs" />
     <Compile Include="AzureCdnPlatform.cs" />
@@ -56,6 +59,7 @@
     <Compile Include="PackageDefinition.cs" />
     <Compile Include="PackageStatistics.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ToolStatistics.cs" />
     <Compile Include="UnknownAzureCdnPlatformException.cs" />
     <Compile Include="W3CParseUtils.cs" />
   </ItemGroup>

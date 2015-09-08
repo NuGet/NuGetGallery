@@ -56,6 +56,12 @@
     <Compile Include="..\Stats.ImportAzureCdnStatistics\Dimensions\DimensionId.cs">
       <Link>DimensionId.cs</Link>
     </Compile>
+    <Compile Include="..\Stats.ImportAzureCdnStatistics\Dimensions\UserAgentFact.cs">
+      <Link>UserAgentFact.cs</Link>
+    </Compile>
+    <Compile Include="..\Stats.ImportAzureCdnStatistics\UserAgentFactTableType.cs">
+      <Link>UserAgentFactTableType.cs</Link>
+    </Compile>
     <Compile Include="..\Stats.ImportAzureCdnStatistics\UserAgentParser.cs">
       <Link>UserAgentParser.cs</Link>
     </Compile>

@@ -22,7 +22,7 @@ namespace Stats.ImportAzureCdnStatistics
         public string Patch { get; set; }
         public string PatchMinor { get; set; }
 
-        public static PlatformDimension FromPackageStatistic(PackageStatistics packageStatistics)
+        public static PlatformDimension FromUserAgent(ITrackUserAgent packageStatistics)
         {
             if (string.IsNullOrEmpty(packageStatistics.UserAgent))
             {

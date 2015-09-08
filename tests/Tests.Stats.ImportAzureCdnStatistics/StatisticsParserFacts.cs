@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Tests.Stats.ImportAzureCdnStatistics
 {
-    public class PackageStatisticsParserFacts
+    public class StatisticsParserFacts
     {
         public class TheIsBlackListedMethod
         {
@@ -15,14 +15,14 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             [InlineData(null)]
             public void DoesNotBlacklistEmptyUserAgentStrings(string userAgent)
             {
-                Assert.False(PackageStatisticsParser.IsBlackListed(userAgent));
+                Assert.False(StatisticsParser.IsBlackListed(userAgent));
             }
 
             [Theory]
             [InlineData("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0; AppInsights)")]
             public void DoesBlacklistAppInsightsUserAgentStrings(string userAgent)
             {
-                Assert.True(PackageStatisticsParser.IsBlackListed(userAgent));
+                Assert.True(StatisticsParser.IsBlackListed(userAgent));
             }
         }
     }

@@ -9,7 +9,7 @@ AS
 
 	IF NOT EXISTS(SELECT * FROM [dbo].[Dimension_Date] (NOLOCK) WHERE Id = -1)
 	BEGIN
-
+	use
 		SET IDENTITY_INSERT [dbo].[Dimension_Date] ON
 
 		INSERT INTO [dbo].[Dimension_Date] (
@@ -268,5 +268,24 @@ AS
 	SET IDENTITY_INSERT [dbo].[Dimension_Platform] ON
 	INSERT [dbo].[Dimension_Platform] (Id, OSFamily, Major, Minor, Patch, PatchMinor) VALUES ( 1, '(unknown)', 0, 0, 0, 0 )
 	SET IDENTITY_INSERT [dbo].[Dimension_Platform] OFF
+
+	-- ====================================================================
+	-- Populates the UserAgent facts.
+	-- ====================================================================
+
+	DELETE [dbo].[Fact_UserAgent]
+	SET IDENTITY_INSERT [dbo].[Fact_UserAgent] ON
+	INSERT [dbo].[Fact_UserAgent] (Id, UserAgent) VALUES ( 1, '(unknown)' )
+	SET IDENTITY_INSERT [dbo].[Fact_UserAgent] OFF
+
+	-- ====================================================================
+	-- Populates the LogFileName facts.
+	-- ====================================================================
+
+	DELETE [dbo].[Fact_LogFileName]
+	SET IDENTITY_INSERT [dbo].[Fact_LogFileName] ON
+	INSERT [dbo].[Fact_LogFileName] (Id, LogFileName) VALUES ( 1, '(unknown)' )
+	INSERT [dbo].[Fact_LogFileName] (Id, LogFileName) VALUES ( 2, '(manual correction)' )
+	SET IDENTITY_INSERT [dbo].[Fact_LogFileName] OFF
 
 RETURN 0

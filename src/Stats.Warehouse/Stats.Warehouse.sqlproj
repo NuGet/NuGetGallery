@@ -108,5 +108,18 @@
     <Build Include="Programmability\Functions\dbo.IsMobileClient.sql" />
     <Build Include="Programmability\Functions\dbo.IsBrowser.sql" />
     <Build Include="Programmability\Functions\dbo.IsUnknownClient.sql" />
+    <Build Include="Tables\dbo.Fact_Dist_Download.sql" />
+    <Build Include="Programmability\Types\dbo.ToolDimensionTableType.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsureToolDimensionsExist.sql" />
+    <Build Include="Tables\dbo.Dimension_Tool.sql" />
+    <Build Include="Tables\dbo.Fact_UserAgent.sql" />
+    <Build Include="Tables\dbo.Fact_LogFileName.sql" />
+    <Build Include="Programmability\Types\UserAgentFactTableType.sql" />
+    <Build Include="Programmability\Types\LogFileNameFactTableType.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsureUserAgentFactsExist.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsureLogFileNameFactsExist.sql" />
+    <Build Include="Tables\dbo.Fact_IpAddress.sql" />
+    <Build Include="Programmability\Types\IpAddressFactTableType.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsureIpAddressFactsExist.sql" />
   </ItemGroup>
 </Project>

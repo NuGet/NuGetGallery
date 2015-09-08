@@ -5,8 +5,8 @@
     [Major]					VARCHAR(50)		NULL,
     [Minor]					VARCHAR(50)		NULL,
     [Patch]					VARCHAR(50)		NULL,
-	[ClientVersion]			AS CONCAT(ISNULL([Major], '0'), '.', ISNULL([Minor], '0'), '.', ISNULL([Patch], '0')) PERSISTED,
-	[ClientCategory]		AS [dbo].[GetClientCategory] ([ClientName]) PERSISTED,
+    [ClientVersion]  AS     (concat(isnull([Major],'0'),'.',isnull([Minor],'0'),'.',isnull([Patch],'0'))) PERSISTED NOT NULL,
+    [ClientCategory] AS     ([dbo].[GetClientCategory]([ClientName])) PERSISTED,
     CONSTRAINT [PK_Dimension_Client] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (STATISTICS_NORECOMPUTE = ON)
 )
 GO
