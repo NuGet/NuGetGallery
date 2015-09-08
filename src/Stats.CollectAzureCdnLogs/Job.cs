@@ -192,7 +192,7 @@ namespace Stats.CollectAzureCdnLogs
                                                 using (var resultGzipStream = new GZipOutputStream(resultLogStream))
                                                 {
                                                     resultGzipStream.IsStreamOwner = false;
-                                                    
+
                                                     ProcessLogStream(rawGzipStream, resultGzipStream);
 
                                                     resultGzipStream.Flush();
@@ -225,7 +225,7 @@ namespace Stats.CollectAzureCdnLogs
                             // Delete the renamed file from the origin.
                             if (alreadyUploaded || uploadSucceeded)
                             {
-                                ftpClient.DeleteAsync(rawLogUri);
+                                await ftpClient.DeleteAsync(rawLogUri);
                             }
                         }
                     }
