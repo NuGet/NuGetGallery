@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Text.RegularExpressions;
 using Stats.AzureCdnLogs.Common;
 
@@ -11,7 +12,7 @@ namespace Stats.ImportAzureCdnStatistics
     {
         public static ToolStatistics FromCdnLogEntry(CdnLogEntry logEntry)
         {
-            var statistics = GetToolStatisticsFromRequestUrl(logEntry.RequestUrl);
+            var statistics = GetToolStatisticsFromRequestUrl(logEntry.RequestUrl, logEntry.EdgeServerTimeDelivered);
             if (statistics != null)
             {
                 statistics.EdgeServerIpAddress = logEntry.EdgeServerIpAddress;
@@ -20,13 +21,15 @@ namespace Stats.ImportAzureCdnStatistics
             return statistics;
         }
 
-        public static ToolStatistics GetToolStatisticsFromRequestUrl(string requestUrl)
+        public static ToolStatistics GetToolStatisticsFromRequestUrl(string requestUrl, DateTime edgeServerTimeDelivered)
         {
             var matches = Regex.Matches(requestUrl, @"(http[s]?[:]//dist.nuget.org/[\w]*\/nugetdist.blob.core.windows.net/artifacts/)(?<toolId>[\w-]+)/(?<toolVersion>[a-zA-Z0-9.-]+)/(?<fileName>[\w.]+)");
             if (matches.Count == 1)
             {
                 var match = matches[0];
                 var statistics = new ToolStatistics();
+                statistics.EdgeServerTimeDelivered = edgeServerTimeDelivered;
+
                 statistics.ToolId = match.Groups["toolId"].Value.Trim();
                 statistics.ToolVersion = match.Groups["toolVersion"].Value.Trim();
                 statistics.FileName = match.Groups["fileName"].Value.Trim();

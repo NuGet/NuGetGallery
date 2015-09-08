@@ -1029,7 +1029,7 @@ namespace Stats.ImportAzureCdnStatistics
             table.Columns.Add("LogFileName", typeof(string));
 
             var row = table.NewRow();
-            row["UserAgent"] = logFileName;
+            row["LogFileName"] = logFileName;
 
             table.Rows.Add(row);
 
