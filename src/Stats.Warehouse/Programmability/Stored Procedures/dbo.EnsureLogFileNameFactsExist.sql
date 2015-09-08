@@ -16,7 +16,7 @@ BEGIN
 
 		-- Open Cursor
 		DECLARE logfilenames_Cursor CURSOR FOR
-			SELECT	[UserAgent]
+			SELECT	[LogFileName]
 			FROM	@logfilenames
 
 		OPEN	logfilenames_Cursor FETCH NEXT
