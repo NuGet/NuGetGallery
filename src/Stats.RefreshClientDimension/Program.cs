@@ -40,11 +40,12 @@ namespace Stats.RefreshClientDimension
                     // 1. parse them and detect the ones that are recognized by the parser
                     var recognizedUserAgents = TryParseUnknownUserAgents(unknownUserAgents);
 
-                    // 2. enumerate recognized user agents and ensure dimension exists
-                    var recognizedUserAgentsWithClientDimensionId = await Warehouse.EnsureRecognizedUserAgentsExist(connection, recognizedUserAgents);
+                    // 2. enumerate recognized user agents and ensure dimensions exists
+                    var recognizedUserAgentsWithClientDimensionId = await Warehouse.EnsureClientDimensionsExist(connection, recognizedUserAgents);
+                    var recognizedUserAgentsWithUserAgentId = await Warehouse.EnsureUserAgentFactsExist(connection, unknownUserAgents.ToDictionary(e => e, e => new UserAgentFact(e)));
 
                     // 3. link the new client dimension to the facts
-                    await Warehouse.PatchClientDimension(connection, recognizedUserAgents, recognizedUserAgentsWithClientDimensionId);
+                    await Warehouse.PatchClientDimension(connection, recognizedUserAgents, recognizedUserAgentsWithClientDimensionId, recognizedUserAgentsWithUserAgentId);
                 }
             }
             catch (Exception exception)

@@ -81,8 +81,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="UserAgentFactTableType.cs" />
     <Compile Include="ClientDimensionTableType.cs" />
     <Compile Include="Dimensions\ToolDimension.cs" />
+    <Compile Include="Dimensions\UserAgentFact.cs" />
     <Compile Include="LogFileProvider.cs" />
     <Compile Include="Dimensions\ClientDimension.cs" />
     <Compile Include="LogFileProcessor.cs" />

@@ -112,5 +112,11 @@
     <Build Include="Programmability\Types\dbo.ToolDimensionTableType.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.EnsureToolDimensionsExist.sql" />
     <Build Include="Tables\dbo.Dimension_Tool.sql" />
+    <Build Include="Tables\dbo.Fact_UserAgent.sql" />
+    <Build Include="Tables\dbo.Fact_LogFileName.sql" />
+    <Build Include="Programmability\Types\UserAgentFactTableType.sql" />
+    <Build Include="Programmability\Types\LogFileNameFactTableType.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsureUserAgentFactsExist.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsureLogFileNameFactsExist.sql" />
   </ItemGroup>
 </Project>
