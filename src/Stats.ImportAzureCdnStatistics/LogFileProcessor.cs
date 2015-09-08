@@ -38,14 +38,25 @@ namespace Stats.ImportAzureCdnStatistics
 
             try
             {
-                var packageStatistics = await ParseLogEntries(logFile);
+                var cdnStatistics = await ParseLogEntries(logFile);
+                var hasPackageStatistics = cdnStatistics.PackageStatistics.Any();
+                var hasToolStatistics = cdnStatistics.ToolStatistics.Any();
 
-                if (packageStatistics.Any())
+                if (hasPackageStatistics || hasToolStatistics)
                 {
                     // replicate data to the statistics database
                     var warehouse = new Warehouse(_jobEventSource, _targetDatabase);
-                    var downloadFacts = await warehouse.CreateAsync(packageStatistics, logFile.Blob.Name);
-                    await warehouse.InsertDownloadFactsAsync(downloadFacts, logFile.Blob.Name);
+
+                    if (hasPackageStatistics)
+                    {
+                        var downloadFacts = await warehouse.CreateAsync(cdnStatistics.PackageStatistics, logFile.Blob.Name);
+                        await warehouse.InsertDownloadFactsAsync(downloadFacts, logFile.Blob.Name);
+                    }
+                    if (hasToolStatistics)
+                    {
+                        var downloadFacts = await warehouse.CreateAsync(cdnStatistics.ToolStatistics, logFile.Blob.Name);
+                        await warehouse.InsertDownloadFactsAsync(downloadFacts, logFile.Blob.Name);
+                    }
                 }
 
                 await ArchiveBlobAsync(logFile);
@@ -103,13 +114,14 @@ namespace Stats.ImportAzureCdnStatistics
             }
         }
 
-        private async Task<IReadOnlyCollection<PackageStatistics>> ParseLogEntries(ILeasedLogFile logFile)
+        private async Task<CdnStatistics> ParseLogEntries(ILeasedLogFile logFile)
         {
             var logStream = await OpenCompressedBlobAsync(logFile);
             var blobUri = logFile.Uri;
             var blobName = logFile.Blob.Name;
 
             var packageStatistics = new List<PackageStatistics>();
+            var toolStatistics = new List<ToolStatistics>();
 
             var stopwatch = Stopwatch.StartNew();
 
@@ -132,6 +144,15 @@ namespace Stats.ImportAzureCdnStatistics
                                 if (statistic != null)
                                 {
                                     packageStatistics.Add(statistic);
+                                }
+                                else
+                                {
+                                    // check if this is a dist.nuget.org download
+                                    if (logEntry.RequestUrl.Contains("dist.nuget.org/"))
+                                    {
+                                        var toolInfo = ToolStatisticsParser.FromCdnLogEntry(logEntry);
+                                        toolStatistics.Add(toolInfo);
+                                    }
                                 }
                             }
                         }
@@ -159,7 +180,9 @@ namespace Stats.ImportAzureCdnStatistics
                 logStream.Dispose();
             }
 
-            return packageStatistics;
+
+            var cdnStatistics = new CdnStatistics(packageStatistics, toolStatistics);
+            return cdnStatistics;
         }
 
         private static async Task<bool> IsGzipCompressed(Stream stream)

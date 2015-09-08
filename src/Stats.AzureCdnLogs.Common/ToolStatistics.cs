@@ -5,16 +5,15 @@ using System;
 
 namespace Stats.AzureCdnLogs.Common
 {
-    public class PackageStatistics
+    public class ToolStatistics
         : ITrackUserAgent
     {
-        public string PackageId { get; set; }
-        public string PackageVersion { get; set; }
+        public string Path { get; set; }
         public string UserAgent { get; set; }
-        public string Operation { get; set; }
-        public string DependentPackage { get; set; }
-        public string ProjectGuids { get; set; }
         public DateTime EdgeServerTimeDelivered { get; set; }
         public string EdgeServerIpAddress { get; set; }
+        public string ToolId { get; set; }
+        public string ToolVersion { get; set; }
+        public string FileName { get; set; }
     }
 }

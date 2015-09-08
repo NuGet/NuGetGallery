@@ -64,6 +64,24 @@ namespace Stats.AzureCdnLogs.Common
             telemetryClient.Flush();
         }
 
+        public static void TrackToolNotFound(string id, string version, string fileName, string logFileName)
+        {
+            if (!_initialized)
+            {
+                return;
+            }
+
+            var telemetryClient = new TelemetryClient();
+            var telemetry = new EventTelemetry("ToolNotFound");
+            telemetry.Properties.Add("ToolId", id);
+            telemetry.Properties.Add("ToolVersion", version);
+            telemetry.Properties.Add("FileName", fileName);
+            telemetry.Properties.Add("LogFile", logFileName);
+
+            telemetryClient.TrackEvent(telemetry);
+            telemetryClient.Flush();
+        }
+
         public static void TrackMetric(string metricName, double value, string logFileName)
         {
             if (!_initialized)

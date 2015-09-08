@@ -108,5 +108,9 @@
     <Build Include="Programmability\Functions\dbo.IsMobileClient.sql" />
     <Build Include="Programmability\Functions\dbo.IsBrowser.sql" />
     <Build Include="Programmability\Functions\dbo.IsUnknownClient.sql" />
+    <Build Include="Tables\dbo.Fact_Dist_Download.sql" />
+    <Build Include="Programmability\Types\dbo.ToolDimensionTableType.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsureToolDimensionsExist.sql" />
+    <Build Include="Tables\dbo.Dimension_Tool.sql" />
   </ItemGroup>
 </Project>

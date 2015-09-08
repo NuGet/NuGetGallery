@@ -21,6 +21,7 @@ namespace Stats.ImportAzureCdnStatistics
         private readonly SqlConnectionStringBuilder _targetDatabase;
         private static IReadOnlyCollection<TimeDimension> _times;
         private static readonly IList<PackageDimension> _cachedPackageDimensions = new List<PackageDimension>();
+        private static readonly IList<ToolDimension> _cachedToolDimensions = new List<ToolDimension>();
         private static readonly IDictionary<string, int> _cachedClientDimensions = new Dictionary<string, int>();
 
         public Warehouse(JobEventSource jobEventSource, SqlConnectionStringBuilder targetDatabase)
@@ -194,6 +195,98 @@ namespace Stats.ImportAzureCdnStatistics
             return dataTable;
         }
 
+        public async Task<DataTable> CreateAsync(IReadOnlyCollection<ToolStatistics> sourceData, string logFileName)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            // insert any new dimension data first
+            if (_times == null)
+            {
+                // this call is only needed once in the lifetime of the service
+                _times = await GetDimension("time", logFileName, connection => RetrieveTimeDimensions(connection));
+            }
+
+            var clientsTask = GetDimension("client", logFileName, connection => RetrieveClientDimensions(sourceData, connection));
+            var platformsTask = GetDimension("platform", logFileName, connection => RetrievePlatformDimensions(sourceData, connection));
+            var datesTask = GetDimension("date", logFileName, connection => RetrieveDateDimensions(connection, sourceData.Min(e => e.EdgeServerTimeDelivered), sourceData.Max(e => e.EdgeServerTimeDelivered)));
+            var toolsTask = GetDimension("tool", logFileName, connection => RetrieveToolDimensions(sourceData, connection));
+
+            await Task.WhenAll(clientsTask, platformsTask, datesTask, toolsTask);
+
+            var clients = clientsTask.Result;
+            var platforms = platformsTask.Result;
+            var dates = datesTask.Result;
+            var tools = toolsTask.Result;
+
+            // create facts data rows by linking source data with dimensions
+            var dataImporter = new DataImporter(_targetDatabase);
+            var dataTable = await dataImporter.GetDataTableAsync("Fact_Dist_Download");
+
+            var knownClientsAvailable = clients.Any();
+            var knownPlatformsAvailable = platforms.Any();
+
+            Trace.WriteLine("Creating tools facts...");
+
+            foreach (var groupedByToolId in sourceData.GroupBy(e => e.ToolId, StringComparer.OrdinalIgnoreCase))
+            {
+                var toolsForId = tools.Where(e => string.Equals(e.ToolId, groupedByToolId.Key, StringComparison.OrdinalIgnoreCase)).ToList();
+
+                foreach (var groupedByToolIdAndVersion in groupedByToolId.GroupBy(e => e.ToolVersion, StringComparer.OrdinalIgnoreCase))
+                {
+                    var toolVersion = groupedByToolIdAndVersion.Key;
+                    var toolsForIdAndVersion = toolsForId.Where(e => string.Equals(e.ToolVersion, toolVersion, StringComparison.OrdinalIgnoreCase)).ToList();
+
+                    foreach (var groupdByToolIdAndVersionAndFileName in groupedByToolIdAndVersion.GroupBy(e => e.FileName, StringComparer.OrdinalIgnoreCase))
+                    {
+                        var fileName = groupdByToolIdAndVersionAndFileName.Key;
+                        var tool = toolsForIdAndVersion.FirstOrDefault(e => string.Equals(e.FileName, fileName, StringComparison.OrdinalIgnoreCase));
+
+                        int toolId;
+                        if (tool == null)
+                        {
+                            // Track it in Application Insights.
+                            ApplicationInsights.TrackToolNotFound(groupedByToolId.Key, toolVersion, fileName, logFileName);
+
+                            continue;
+                        }
+                        else
+                        {
+                            toolId = tool.Id;
+                        }
+
+                        foreach (var element in groupedByToolIdAndVersion)
+                        {
+                            // required dimensions
+                            var dateId = dates.First(e => e.Date.Equals(element.EdgeServerTimeDelivered.Date)).Id;
+                            var timeId = _times.First(e => e.HourOfDay == element.EdgeServerTimeDelivered.Hour).Id;
+
+                            // dimensions that could be "(unknown)"
+                            int platformId = DimensionId.Unknown;
+                            if (knownPlatformsAvailable && platforms.ContainsKey(element.UserAgent))
+                            {
+                                platformId = platforms[element.UserAgent];
+                            }
+
+                            int clientId = DimensionId.Unknown;
+                            if (knownClientsAvailable && clients.ContainsKey(element.UserAgent))
+                            {
+                                clientId = clients[element.UserAgent];
+                            }
+
+                            var dataRow = dataTable.NewRow();
+                            FillToolDataRow(dataRow, dateId, timeId, toolId, platformId, clientId, logFileName, element.UserAgent);
+                            dataTable.Rows.Add(dataRow);
+                        }
+                    }
+                }
+            }
+
+            stopwatch.Stop();
+            Trace.Write("  DONE (" + dataTable.Rows.Count + " records, " + stopwatch.ElapsedMilliseconds + "ms)");
+
+            return dataTable;
+        }
+
         private async Task<IDictionary<string, int>> GetDimension(string dimension, string logFileName, Func<SqlConnection, Task<IDictionary<string, int>>> retrieve)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -348,6 +441,80 @@ namespace Stats.ImportAzureCdnStatistics
             dataRow["LogFileName"] = logFileName;
             dataRow["UserAgent"] = userAgent;
             dataRow["DownloadCount"] = 1;
+        }
+
+        private static void FillToolDataRow(DataRow dataRow, int dateId, int timeId, int toolId, int platformId, int clientId, string logFileName, string userAgent)
+        {
+            // trim userAgent
+            if (!string.IsNullOrEmpty(userAgent) && userAgent.Length >= 500)
+            {
+                userAgent = userAgent.Substring(0, 499) + ")";
+            }
+
+            dataRow["Id"] = Guid.NewGuid();
+            dataRow["Dimension_Tool_Id"] = toolId;
+            dataRow["Dimension_Date_Id"] = dateId;
+            dataRow["Dimension_Time_Id"] = timeId;
+            dataRow["Dimension_Client_Id"] = clientId;
+            dataRow["Dimension_Platform_Id"] = platformId;
+            dataRow["LogFileName"] = logFileName;
+            dataRow["UserAgent"] = userAgent;
+            dataRow["DownloadCount"] = 1;
+        }
+
+        private async Task<IReadOnlyCollection<ToolDimension>> RetrieveToolDimensions(IReadOnlyCollection<ToolStatistics> sourceData, SqlConnection connection)
+        {
+            var tools = sourceData
+                   .Select(e => new ToolDimension(e.ToolId, e.ToolVersion, e.FileName))
+                   .Distinct()
+                   .ToList();
+
+            var results = new List<ToolDimension>();
+            if (!tools.Any())
+            {
+                return results;
+            }
+
+            results.AddRange(_cachedToolDimensions
+                .Where(p1 => tools
+                    .FirstOrDefault(p2 =>
+                        string.Equals(p1.ToolId, p2.ToolId, StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(p1.ToolVersion, p2.ToolVersion, StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(p1.FileName, p2.FileName, StringComparison.OrdinalIgnoreCase)) != null
+                    )
+                );
+
+            var nonCachedToolDimensions = tools.Except(results).ToList();
+            var parameterValue = CreateDataTable(nonCachedToolDimensions);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "[dbo].[EnsureToolDimensionsExist]";
+            command.CommandTimeout = _defaultCommandTimeout;
+            command.CommandType = CommandType.StoredProcedure;
+
+            var parameter = command.Parameters.AddWithValue("tools", parameterValue);
+            parameter.SqlDbType = SqlDbType.Structured;
+            parameter.TypeName = "[dbo].[ToolDimensionTableType]";
+
+            using (var dataReader = await command.ExecuteReaderAsync())
+            {
+                while (await dataReader.ReadAsync())
+                {
+                    var tool = new ToolDimension(dataReader.GetString(1), dataReader.GetString(2), dataReader.GetString(3));
+                    tool.Id = dataReader.GetInt32(0);
+
+                    if (!results.Contains(tool))
+                    {
+                        results.Add(tool);
+                    }
+                    if (!_cachedToolDimensions.Contains(tool))
+                    {
+                        _cachedToolDimensions.Add(tool);
+                    }
+                }
+            }
+
+            return results;
         }
 
         private static async Task<IReadOnlyCollection<PackageDimension>> RetrievePackageDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
@@ -542,7 +709,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IDictionary<string, int>> RetrieveClientDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        private static async Task<IDictionary<string, int>> RetrieveClientDimensions(IReadOnlyCollection<ITrackUserAgent> sourceData, SqlConnection connection)
         {
             var clientDimensions = sourceData
                 .Where(e => !string.IsNullOrEmpty(e.UserAgent))
@@ -601,13 +768,13 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IDictionary<string, int>> RetrievePlatformDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        private static async Task<IDictionary<string, int>> RetrievePlatformDimensions(IReadOnlyCollection<ITrackUserAgent> sourceData, SqlConnection connection)
         {
             var platformDimensions = sourceData
                 .Where(e => !string.IsNullOrEmpty(e.UserAgent))
                 .GroupBy(e => e.UserAgent)
                 .Select(e => e.First())
-                .ToDictionary(e => e.UserAgent, PlatformDimension.FromPackageStatistic);
+                .ToDictionary(e => e.UserAgent, PlatformDimension.FromUserAgent);
 
             var results = new Dictionary<string, int>();
             if (!platformDimensions.Any())
@@ -673,6 +840,25 @@ namespace Stats.ImportAzureCdnStatistics
                 var row = table.NewRow();
                 row["PackageId"] = packageDimension.PackageId;
                 row["PackageVersion"] = packageDimension.PackageVersion;
+
+                table.Rows.Add(row);
+            }
+            return table;
+        }
+
+        private static DataTable CreateDataTable(IReadOnlyCollection<ToolDimension> toolDimensions)
+        {
+            var table = new DataTable();
+            table.Columns.Add("ToolId", typeof(string));
+            table.Columns.Add("ToolVersion", typeof(string));
+            table.Columns.Add("FileName", typeof(string));
+
+            foreach (var toolDimension in toolDimensions)
+            {
+                var row = table.NewRow();
+                row["ToolId"] = toolDimension.ToolId;
+                row["ToolVersion"] = toolDimension.ToolVersion;
+                row["FileName"] = toolDimension.FileName;
 
                 table.Rows.Add(row);
             }
