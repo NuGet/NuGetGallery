@@ -227,13 +227,17 @@ namespace Stats.ImportAzureCdnStatistics
             var platformsTask = GetDimension("platform", logFileName, connection => RetrievePlatformDimensions(sourceData, connection));
             var datesTask = GetDimension("date", logFileName, connection => RetrieveDateDimensions(connection, sourceData.Min(e => e.EdgeServerTimeDelivered), sourceData.Max(e => e.EdgeServerTimeDelivered)));
             var toolsTask = GetDimension("tool", logFileName, connection => RetrieveToolDimensions(sourceData, connection));
+            var userAgentsTask = GetDimension("useragent", logFileName, connection => RetrieveUserAgentFacts(sourceData, connection));
+            var logFileNamesTask = GetDimension("logfilename", logFileName, connection => RetrieveLogFileNameFacts(logFileName, connection));
 
-            await Task.WhenAll(clientsTask, platformsTask, datesTask, toolsTask);
+            await Task.WhenAll(clientsTask, platformsTask, datesTask, toolsTask, userAgentsTask, logFileNamesTask);
 
             var clients = clientsTask.Result;
             var platforms = platformsTask.Result;
             var dates = datesTask.Result;
             var tools = toolsTask.Result;
+            var userAgents = userAgentsTask.Result;
+            var logFileNames = logFileNamesTask.Result;
 
             // create facts data rows by linking source data with dimensions
             var dataImporter = new DataImporter(_targetDatabase);
@@ -241,6 +245,13 @@ namespace Stats.ImportAzureCdnStatistics
 
             var knownClientsAvailable = clients.Any();
             var knownPlatformsAvailable = platforms.Any();
+            var knownUserAgentsAvailable = userAgents.Any();
+
+            int logFileNameId = DimensionId.Unknown;
+            if (logFileNames.Any() && logFileNames.ContainsKey(logFileName))
+            {
+                logFileNameId = logFileNames[logFileName];
+            }
 
             Trace.WriteLine("Creating tools facts...");
 
@@ -290,8 +301,14 @@ namespace Stats.ImportAzureCdnStatistics
                                 clientId = clients[element.UserAgent];
                             }
 
+                            int userAgentId = DimensionId.Unknown;
+                            if (knownUserAgentsAvailable && userAgents.ContainsKey(element.UserAgent))
+                            {
+                                userAgentId = userAgents[element.UserAgent];
+                            }
+
                             var dataRow = dataTable.NewRow();
-                            FillToolDataRow(dataRow, dateId, timeId, toolId, platformId, clientId, logFileName, element.UserAgent);
+                            FillToolDataRow(dataRow, dateId, timeId, toolId, platformId, clientId, userAgentId, logFileNameId);
                             dataTable.Rows.Add(dataRow);
                         }
                     }
@@ -454,26 +471,20 @@ namespace Stats.ImportAzureCdnStatistics
             dataRow["DownloadCount"] = 1;
         }
 
-        private static void FillToolDataRow(DataRow dataRow, int dateId, int timeId, int toolId, int platformId, int clientId, string logFileName, string userAgent)
+        private static void FillToolDataRow(DataRow dataRow, int dateId, int timeId, int toolId, int platformId, int clientId, int userAgentId, int logFileNameId)
         {
-            // trim userAgent
-            if (!string.IsNullOrEmpty(userAgent) && userAgent.Length >= 500)
-            {
-                userAgent = userAgent.Substring(0, 499) + ")";
-            }
-
             dataRow["Id"] = Guid.NewGuid();
             dataRow["Dimension_Tool_Id"] = toolId;
             dataRow["Dimension_Date_Id"] = dateId;
             dataRow["Dimension_Time_Id"] = timeId;
             dataRow["Dimension_Client_Id"] = clientId;
             dataRow["Dimension_Platform_Id"] = platformId;
-            dataRow["LogFileName"] = logFileName;
-            dataRow["UserAgent"] = userAgent;
+            dataRow["Fact_UserAgent_Id"] = userAgentId;
+            dataRow["Fact_LogFileName_Id"] = logFileNameId;
             dataRow["DownloadCount"] = 1;
         }
 
-        private async Task<IReadOnlyCollection<ToolDimension>> RetrieveToolDimensions(IReadOnlyCollection<ToolStatistics> sourceData, SqlConnection connection)
+        private static async Task<IReadOnlyCollection<ToolDimension>> RetrieveToolDimensions(IReadOnlyCollection<ToolStatistics> sourceData, SqlConnection connection)
         {
             var tools = sourceData
                    .Select(e => new ToolDimension(e.ToolId, e.ToolVersion, e.FileName))
@@ -815,7 +826,7 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
-        private static async Task<IDictionary<string, int>> RetrieveUserAgentFacts(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
+        private static async Task<IDictionary<string, int>> RetrieveUserAgentFacts(IReadOnlyCollection<ITrackUserAgent> sourceData, SqlConnection connection)
         {
             var userAgentFacts = sourceData
                 .Where(e => !string.IsNullOrEmpty(e.UserAgent))
