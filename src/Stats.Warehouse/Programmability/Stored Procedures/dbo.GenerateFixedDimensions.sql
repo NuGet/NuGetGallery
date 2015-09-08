@@ -9,7 +9,6 @@ AS
 
 	IF NOT EXISTS(SELECT * FROM [dbo].[Dimension_Date] (NOLOCK) WHERE Id = -1)
 	BEGIN
-	use
 		SET IDENTITY_INSERT [dbo].[Dimension_Date] ON
 
 		INSERT INTO [dbo].[Dimension_Date] (
