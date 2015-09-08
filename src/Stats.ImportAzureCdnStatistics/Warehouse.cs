@@ -88,8 +88,9 @@ namespace Stats.ImportAzureCdnStatistics
             var packageTranslationsTask = GetDimension("package translations", logFileName, connection => RetrievePackageTranslations(sourceData, connection));
             var userAgentsTask = GetDimension("useragent", logFileName, connection => RetrieveUserAgentFacts(sourceData, connection));
             var logFileNamesTask = GetDimension("logfilename", logFileName, connection => RetrieveLogFileNameFacts(logFileName, connection));
+            var ipAddressesTask = GetDimension("ipaddress", logFileName, connection => RetrieveIpAddressesFacts(sourceData, connection));
 
-            await Task.WhenAll(operationsTask, projectTypesTask, clientsTask, platformsTask, datesTask, packagesTask, packageTranslationsTask, userAgentsTask, logFileNamesTask);
+            await Task.WhenAll(operationsTask, projectTypesTask, clientsTask, platformsTask, datesTask, packagesTask, packageTranslationsTask, userAgentsTask, logFileNamesTask, ipAddressesTask);
 
             var operations = operationsTask.Result;
             var projectTypes = projectTypesTask.Result;
@@ -97,6 +98,7 @@ namespace Stats.ImportAzureCdnStatistics
             var platforms = platformsTask.Result;
             var userAgents = userAgentsTask.Result;
             var logFileNames = logFileNamesTask.Result;
+            var ipAddresses = ipAddressesTask.Result;
 
             var dates = datesTask.Result;
             var packages = packagesTask.Result;
@@ -111,6 +113,7 @@ namespace Stats.ImportAzureCdnStatistics
             var knownClientsAvailable = clients.Any();
             var knownPlatformsAvailable = platforms.Any();
             var knownUserAgentsAvailable = userAgents.Any();
+            var knownIpAddressesAvailable = ipAddresses.Any();
 
             int logFileNameId = DimensionId.Unknown;
             if (logFileNames.Any() && logFileNames.ContainsKey(logFileName))
@@ -183,6 +186,12 @@ namespace Stats.ImportAzureCdnStatistics
                             userAgentId = userAgents[element.UserAgent];
                         }
 
+                        int edgeServerIpAddressId = DimensionId.Unknown;
+                        if (!string.IsNullOrEmpty(element.EdgeServerIpAddress) && knownIpAddressesAvailable && ipAddresses.ContainsKey(element.EdgeServerIpAddress))
+                        {
+                            edgeServerIpAddressId = ipAddresses[element.EdgeServerIpAddress];
+                        }
+
                         int projectTypeId = DimensionId.Unknown;
                         if (knownProjectTypesAvailable)
                         {
@@ -192,14 +201,14 @@ namespace Stats.ImportAzureCdnStatistics
                                 projectTypeId = projectTypes[projectGuid];
 
                                 var dataRow = dataTable.NewRow();
-                                FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, projectTypeId, clientId, userAgentId, logFileNameId);
+                                FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, projectTypeId, clientId, userAgentId, logFileNameId, edgeServerIpAddressId);
                                 dataTable.Rows.Add(dataRow);
                             }
                         }
                         else
                         {
                             var dataRow = dataTable.NewRow();
-                            FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, projectTypeId, clientId, userAgentId, logFileNameId);
+                            FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, projectTypeId, clientId, userAgentId, logFileNameId, edgeServerIpAddressId);
                             dataTable.Rows.Add(dataRow);
                         }
                     }
@@ -229,8 +238,9 @@ namespace Stats.ImportAzureCdnStatistics
             var toolsTask = GetDimension("tool", logFileName, connection => RetrieveToolDimensions(sourceData, connection));
             var userAgentsTask = GetDimension("useragent", logFileName, connection => RetrieveUserAgentFacts(sourceData, connection));
             var logFileNamesTask = GetDimension("logfilename", logFileName, connection => RetrieveLogFileNameFacts(logFileName, connection));
+            var ipAddressesTask = GetDimension("ipaddress", logFileName, connection => RetrieveIpAddressesFacts(sourceData, connection));
 
-            await Task.WhenAll(clientsTask, platformsTask, datesTask, toolsTask, userAgentsTask, logFileNamesTask);
+            await Task.WhenAll(clientsTask, platformsTask, datesTask, toolsTask, userAgentsTask, logFileNamesTask, ipAddressesTask);
 
             var clients = clientsTask.Result;
             var platforms = platformsTask.Result;
@@ -238,6 +248,7 @@ namespace Stats.ImportAzureCdnStatistics
             var tools = toolsTask.Result;
             var userAgents = userAgentsTask.Result;
             var logFileNames = logFileNamesTask.Result;
+            var ipAddresses = ipAddressesTask.Result;
 
             // create facts data rows by linking source data with dimensions
             var dataImporter = new DataImporter(_targetDatabase);
@@ -246,6 +257,7 @@ namespace Stats.ImportAzureCdnStatistics
             var knownClientsAvailable = clients.Any();
             var knownPlatformsAvailable = platforms.Any();
             var knownUserAgentsAvailable = userAgents.Any();
+            var knownIpAddressesAvailable = ipAddresses.Any();
 
             int logFileNameId = DimensionId.Unknown;
             if (logFileNames.Any() && logFileNames.ContainsKey(logFileName))
@@ -307,8 +319,14 @@ namespace Stats.ImportAzureCdnStatistics
                                 userAgentId = userAgents[element.UserAgent];
                             }
 
+                            int edgeServerIpAddressId = DimensionId.Unknown;
+                            if (!string.IsNullOrEmpty(element.EdgeServerIpAddress) && knownIpAddressesAvailable && ipAddresses.ContainsKey(element.EdgeServerIpAddress))
+                            {
+                                edgeServerIpAddressId = ipAddresses[element.EdgeServerIpAddress];
+                            }
+
                             var dataRow = dataTable.NewRow();
-                            FillToolDataRow(dataRow, dateId, timeId, toolId, platformId, clientId, userAgentId, logFileNameId);
+                            FillToolDataRow(dataRow, dateId, timeId, toolId, platformId, clientId, userAgentId, logFileNameId, edgeServerIpAddressId);
                             dataTable.Rows.Add(dataRow);
                         }
                     }
@@ -456,7 +474,7 @@ namespace Stats.ImportAzureCdnStatistics
             return Enumerable.Empty<T>().ToList();
         }
 
-        private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int projectTypeId, int clientId, int userAgentId, int logFileNameId)
+        private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int projectTypeId, int clientId, int userAgentId, int logFileNameId, int edgeServerIpAddressId)
         {
             dataRow["Id"] = Guid.NewGuid();
             dataRow["Dimension_Package_Id"] = packageId;
@@ -468,10 +486,11 @@ namespace Stats.ImportAzureCdnStatistics
             dataRow["Dimension_Platform_Id"] = platformId;
             dataRow["Fact_UserAgent_Id"] = userAgentId;
             dataRow["Fact_LogFileName_Id"] = logFileNameId;
+            dataRow["Fact_EdgeServer_IpAddress_Id"] = edgeServerIpAddressId;
             dataRow["DownloadCount"] = 1;
         }
 
-        private static void FillToolDataRow(DataRow dataRow, int dateId, int timeId, int toolId, int platformId, int clientId, int userAgentId, int logFileNameId)
+        private static void FillToolDataRow(DataRow dataRow, int dateId, int timeId, int toolId, int platformId, int clientId, int userAgentId, int logFileNameId, int edgeServerIpAddressId)
         {
             dataRow["Id"] = Guid.NewGuid();
             dataRow["Dimension_Tool_Id"] = toolId;
@@ -481,6 +500,7 @@ namespace Stats.ImportAzureCdnStatistics
             dataRow["Dimension_Platform_Id"] = platformId;
             dataRow["Fact_UserAgent_Id"] = userAgentId;
             dataRow["Fact_LogFileName_Id"] = logFileNameId;
+            dataRow["Fact_EdgeServer_IpAddress_Id"] = edgeServerIpAddressId;
             dataRow["DownloadCount"] = 1;
         }
 
@@ -888,6 +908,42 @@ namespace Stats.ImportAzureCdnStatistics
             return results;
         }
 
+        private static async Task<IDictionary<string, int>> RetrieveIpAddressesFacts(IReadOnlyCollection<ITrackEdgeServerIpAddress> sourceData, SqlConnection connection)
+        {
+            var ipAddressFacts = sourceData
+                .Where(e => !string.IsNullOrEmpty(e.EdgeServerIpAddress))
+                .GroupBy(e => e.EdgeServerIpAddress)
+                .Select(e => e.First())
+                .ToDictionary(e => e.EdgeServerIpAddress, e => new IpAddressFact(e.EdgeServerIpAddress));
+
+            var results = new Dictionary<string, int>();
+            if (!ipAddressFacts.Any())
+            {
+                return results;
+            }
+
+            var parameterValue = CreateDataTable(ipAddressFacts);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "[dbo].[EnsureIpAddressFactsExist]";
+            command.CommandTimeout = _defaultCommandTimeout;
+            command.CommandType = CommandType.StoredProcedure;
+
+            var parameter = command.Parameters.AddWithValue("addresses", parameterValue);
+            parameter.SqlDbType = SqlDbType.Structured;
+            parameter.TypeName = "[dbo].[IpAddressFactTableType]";
+
+            using (var dataReader = await command.ExecuteReaderAsync())
+            {
+                while (await dataReader.ReadAsync())
+                {
+                    results.Add(dataReader.GetString(1), dataReader.GetInt32(0));
+                }
+            }
+
+            return results;
+        }
+
         private static DataTable CreateDataTable(IDictionary<string, PlatformDimension> platformDimensions)
         {
             var table = new DataTable();
@@ -924,6 +980,23 @@ namespace Stats.ImportAzureCdnStatistics
                 var row = table.NewRow();
                 row["PackageId"] = packageDimension.PackageId;
                 row["PackageVersion"] = packageDimension.PackageVersion;
+
+                table.Rows.Add(row);
+            }
+            return table;
+        }
+
+        private static DataTable CreateDataTable(IDictionary<string, IpAddressFact> ipAddressFacts)
+        {
+            var table = new DataTable();
+            table.Columns.Add("Address", typeof(byte[]));
+            table.Columns.Add("TextAddress", typeof(string));
+
+            foreach (var ipAddress in ipAddressFacts)
+            {
+                var row = table.NewRow();
+                row["Address"] = ipAddress.Value.IpAddressBytes;
+                row["TextAddress"] = ipAddress.Key;
 
                 table.Rows.Add(row);
             }

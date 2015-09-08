@@ -14,4 +14,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="Fact_UserAgent_Id" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="1390d512-c1b1-43b7-88a8-91104a89e76a" ChangeDateTime="09/08/2015 10:57:18">
+    <Property Name="ElementName" Value="[dbo].[Fact_IpAddress].[IsIpV6]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Fact_IpAddress]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="IsIp4" />
+  </Operation>
 </Operations>

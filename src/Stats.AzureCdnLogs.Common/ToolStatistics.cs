@@ -6,7 +6,7 @@ using System;
 namespace Stats.AzureCdnLogs.Common
 {
     public class ToolStatistics
-        : ITrackUserAgent
+        : ITrackUserAgent, ITrackEdgeServerIpAddress
     {
         public string Path { get; set; }
         public string UserAgent { get; set; }

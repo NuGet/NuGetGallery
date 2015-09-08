@@ -44,6 +44,7 @@ namespace Stats.ImportAzureCdnStatistics
             statistic.DependentPackage = GetCustomFieldValue(customFieldDictionary, NuGetCustomHeaders.NuGetDependentPackage);
             statistic.ProjectGuids = GetCustomFieldValue(customFieldDictionary, NuGetCustomHeaders.NuGetProjectGuids);
             statistic.UserAgent = GetUserAgentValue(cdnLogEntry);
+            statistic.EdgeServerIpAddress = cdnLogEntry.EdgeServerIpAddress;
 
             // ignore blacklisted user agents
             if (!IsBlackListed(statistic.UserAgent))

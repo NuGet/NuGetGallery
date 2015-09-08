@@ -46,6 +46,7 @@
     <Compile Include="CdnStatistics.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="EnumerableExtensions.cs" />
+    <Compile Include="ITrackEdgeServerIpAddress.cs" />
     <Compile Include="ITrackUserAgent.cs" />
     <Compile Include="Telemetry\ApplicationInsights.cs" />
     <Compile Include="Telemetry\SessionInitializer.cs" />

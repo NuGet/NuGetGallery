@@ -6,7 +6,7 @@ using System;
 namespace Stats.AzureCdnLogs.Common
 {
     public class PackageStatistics
-        : ITrackUserAgent
+        : ITrackUserAgent, ITrackEdgeServerIpAddress
     {
         public string PackageId { get; set; }
         public string PackageVersion { get; set; }
