@@ -52,6 +52,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             [InlineData("Mozilla/5.0 (Windows NT; Windows NT 6.2; en-US) WindowsPowerShell/5.0.9701.0", "Windows PowerShell", "5", "0", "9701")]
             [InlineData("Fiddler", "Fiddler", null, null, null)]
             [InlineData("curl/7.21.0 (x86_64-pc-linux-gnu) libcurl/7.21.0 OpenSSL/0.9.8o zlib/1.2.3.4 libidn/1.18", "curl", "7", "21", "0")]
+            [InlineData("Java/1.7.0_51", "Java", "1", "7", "0")]
             public void RecognizesCustomClients(string userAgent, string expectedClient, string expectedMajor, string expectedMinor, string expectedPatch)
             {
                 var parsed = _parser.ParseUserAgent(userAgent);

@@ -39,6 +39,7 @@ BEGIN
 			CHARINDEX('PowerShell', @ClientName) > 0
 		OR	CHARINDEX('curl', @ClientName) > 0
 		OR	CHARINDEX('Wget', @ClientName) > 0
+		OR	CHARINDEX('Java', @ClientName) > 0
 		)
 		RETURN 'Script'
 
