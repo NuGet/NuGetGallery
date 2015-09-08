@@ -81,7 +81,7 @@ namespace Stats.ImportAzureCdnStatistics
                 // Get the next to-be-processed raw log file using the cdn raw log file name prefix
                 var prefix = string.Format(CultureInfo.InvariantCulture, "{0}_{1}_", _azureCdnPlatform.GetRawLogFilePrefix(), _azureCdnAccountNumber);
 
-                // get next raw log file to be processed
+                // Get next raw log file to be processed
                 var leasedLogFiles = await blobLeaseManager.LeaseNextLogFilesToBeProcessedAsync(prefix);
                 foreach (var leasedLogFile in leasedLogFiles)
                 {

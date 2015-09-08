@@ -1,18 +1,18 @@
 ﻿CREATE PROCEDURE [dbo].[PatchClientDimensionForUserAgent]
 	@NewClientDimensionId INT = 1,
-	@UserAgent NVARCHAR(500)
+	@UserAgentId INT
 AS
 BEGIN
 	SET NOCOUNT ON;
 
 
-	IF @UserAgent IS NOT NULL
+	IF @UserAgentId IS NOT NULL
 	BEGIN
 
 		UPDATE	[dbo].[Fact_Download]
 		SET		[Dimension_Client_Id] = @NewClientDimensionId
-		WHERE	[UserAgent] IS NOT NULL
-				AND ISNULL([UserAgent], '') = @UserAgent
+		WHERE	[Fact_UserAgent_Id] IS NOT NULL
+				AND [Fact_UserAgent_Id] = @UserAgentId
 				AND [Dimension_Client_Id] = 1
 	END
 

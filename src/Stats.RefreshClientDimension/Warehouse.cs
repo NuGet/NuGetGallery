@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Stats.ImportAzureCdnStatistics;
 
@@ -34,7 +35,7 @@ namespace Stats.RefreshClientDimension
             return results;
         }
 
-        public static async Task<IDictionary<string, int>> EnsureRecognizedUserAgentsExist(SqlConnection connection, IDictionary<string, ClientDimension> recognizedUserAgents)
+        public static async Task<IDictionary<string, int>> EnsureClientDimensionsExist(SqlConnection connection, IDictionary<string, ClientDimension> recognizedUserAgents)
         {
             var results = new Dictionary<string, int>();
 
@@ -63,7 +64,37 @@ namespace Stats.RefreshClientDimension
             return results;
         }
 
-        public static async Task PatchClientDimension(SqlConnection connection, IDictionary<string, ClientDimension> recognizedUserAgents, IDictionary<string, int> recognizedUserAgentsWithClientDimensionId)
+        public static async Task<IDictionary<string, int>> EnsureUserAgentFactsExist(SqlConnection connection, IDictionary<string, UserAgentFact> userAgentFacts)
+        {
+            var results = new Dictionary<string, int>();
+            if (!userAgentFacts.Any())
+            {
+                return results;
+            }
+
+            var parameterValue = UserAgentFactTableType.CreateDataTable(userAgentFacts);
+
+            var command = connection.CreateCommand();
+            command.CommandText = "[dbo].[EnsureUserAgentFactsExist]";
+            command.CommandTimeout = _defaultCommandTimeout;
+            command.CommandType = CommandType.StoredProcedure;
+
+            var parameter = command.Parameters.AddWithValue("useragents", parameterValue);
+            parameter.SqlDbType = SqlDbType.Structured;
+            parameter.TypeName = "[dbo].[UserAgentFactTableType]";
+
+            using (var dataReader = await command.ExecuteReaderAsync())
+            {
+                while (await dataReader.ReadAsync())
+                {
+                    results.Add(dataReader.GetString(1), dataReader.GetInt32(0));
+                }
+            }
+
+            return results;
+        }
+
+        public static async Task PatchClientDimension(SqlConnection connection, IDictionary<string, ClientDimension> recognizedUserAgents, IDictionary<string, int> recognizedUserAgentsWithClientDimensionId, IDictionary<string, int> recognizedUserAgentsWithUserAgentId)
         {
             var count = recognizedUserAgentsWithClientDimensionId.Count;
             var i = 0;
@@ -74,6 +105,11 @@ namespace Stats.RefreshClientDimension
 
                 var userAgent = kvp.Key;
                 var clientDimensionId = kvp.Value;
+                var userAgentId = DimensionId.Unknown;
+                if (recognizedUserAgentsWithUserAgentId.Any() && recognizedUserAgentsWithUserAgentId.ContainsKey(userAgent))
+                {
+                    userAgentId = recognizedUserAgentsWithUserAgentId[userAgent];
+                }
 
                 var command = connection.CreateCommand();
                 command.CommandText = "[dbo].[PatchClientDimensionForUserAgent]";
@@ -81,9 +117,9 @@ namespace Stats.RefreshClientDimension
                 command.CommandTimeout = _defaultCommandTimeout;
 
                 command.Parameters.AddWithValue("NewClientDimensionId", clientDimensionId);
-                command.Parameters.AddWithValue("UserAgent", userAgent);
+                command.Parameters.AddWithValue("UserAgentId", userAgentId);
 
-                Trace.WriteLine(string.Format("[{0}/{1}]: Client Id '{2}', User Agent '{3}'", i, count, clientDimensionId, userAgent));
+                Trace.WriteLine(string.Format("[{0}/{1}]: Client Id '{2}', User Agent '{3}', User Agent Id '{4}'", i, count, clientDimensionId, userAgent, userAgentId));
 
                 await command.ExecuteNonQueryAsync();
             }

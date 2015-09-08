@@ -108,5 +108,14 @@
     <Build Include="Programmability\Functions\dbo.IsMobileClient.sql" />
     <Build Include="Programmability\Functions\dbo.IsBrowser.sql" />
     <Build Include="Programmability\Functions\dbo.IsUnknownClient.sql" />
+    <Build Include="Tables\dbo.Fact_UserAgent.sql" />
+    <Build Include="Tables\dbo.Fact_LogFileName.sql" />
+    <Build Include="Programmability\Types\UserAgentFactTableType.sql" />
+    <Build Include="Programmability\Types\LogFileNameFactTableType.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsureUserAgentFactsExist.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.EnsureLogFileNameFactsExist.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <RefactorLog Include="Stats.Warehouse.refactorlog" />
   </ItemGroup>
 </Project>
