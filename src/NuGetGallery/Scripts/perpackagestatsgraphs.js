@@ -70,6 +70,12 @@ var SemVer = function (versionString) {
                     return -1;
                 }
                 if (this.patch === other.patch) {
+                    if (this.preRelease === undefined && other.preRelease !== undefined) {
+                        return 1;
+                    }
+                    if (this.preRelease !== undefined && other.preRelease === undefined) {
+                        return -1;
+                    }
                     if (this.preRelease < other.preRelease) {
                         return -1;
                     }
