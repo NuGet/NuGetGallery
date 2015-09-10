@@ -151,7 +151,10 @@ namespace Stats.ImportAzureCdnStatistics
                                     if (logEntry.RequestUrl.Contains("dist.nuget.org/"))
                                     {
                                         var toolInfo = ToolStatisticsParser.FromCdnLogEntry(logEntry);
-                                        toolStatistics.Add(toolInfo);
+                                        if (toolInfo != null)
+                                        {
+                                            toolStatistics.Add(toolInfo);
+                                        }
                                     }
                                 }
                             }
