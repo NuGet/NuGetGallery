@@ -22,14 +22,14 @@ namespace Stats.CreateAzureCdnWarehouseReports
             _sourceDatabase = sourceDatabase;
         }
 
-        public async Task<DataTable> CollectAsync(params Tuple<string, int, string>[] parameters)
+        public async Task<DataTable> CollectAsync(DateTime reportGenerationTime, params Tuple<string, int, string>[] parameters)
         {
             Trace.TraceInformation("{0}: Collecting data", _procedureName);
 
             DataTable table = null;
 
             // Get the data
-            await WithRetry(async () => table = await ExecuteSql(parameters));
+            await WithRetry(async () => table = await ExecuteSql(reportGenerationTime, parameters));
 
             Debug.Assert(table != null);
             Trace.TraceInformation("{0}: Collected {1} rows", _procedureName, table.Rows.Count);
@@ -48,6 +48,29 @@ namespace Stats.CreateAzureCdnWarehouseReports
             Trace.TraceInformation("Found {0} dirty packages to update.", packageIds.Count);
 
             return packageIds;
+        }
+
+        public static async Task<IReadOnlyCollection<string>> ListInactivePackageIdReports(SqlConnectionStringBuilder sourceDatabase, DateTime reportGenerationTime)
+        {
+            using (var connection = await sourceDatabase.ConnectTo())
+            {
+                var command = new SqlCommand("[dbo].[DownloadReportListInactive]", connection);
+                command.CommandType = CommandType.StoredProcedure;
+                command.CommandTimeout = _commandTimeout;
+
+                command.Parameters.Add("ReportGenerationTime", SqlDbType.DateTime).Value = reportGenerationTime;
+
+                var packageIds = new List<string>();
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        packageIds.Add(reader.GetString(0));
+                    }
+                }
+
+                return packageIds;
+            }
         }
 
         private static async Task WithRetry(Func<Task> action)
@@ -80,13 +103,15 @@ namespace Stats.CreateAzureCdnWarehouseReports
             }
         }
 
-        private async Task<DataTable> ExecuteSql(params Tuple<string, int, string>[] parameters)
+        private async Task<DataTable> ExecuteSql(DateTime reportGenerationTime, params Tuple<string, int, string>[] parameters)
         {
             using (var connection = await _sourceDatabase.ConnectTo())
             {
                 var command = new SqlCommand(_procedureName, connection);
                 command.CommandType = CommandType.StoredProcedure;
                 command.CommandTimeout = _commandTimeout;
+
+                command.Parameters.Add("ReportGenerationTime", SqlDbType.DateTime).Value = reportGenerationTime;
 
                 foreach (Tuple<string, int, string> parameter in parameters)
                 {

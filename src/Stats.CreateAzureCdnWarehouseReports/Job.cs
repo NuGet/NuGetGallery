@@ -3,12 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Dapper;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Jobs;
@@ -20,10 +18,9 @@ namespace Stats.CreateAzureCdnWarehouseReports
         : JobBase
     {
         private const string _recentPopularityDetailByPackageReportBaseName = "recentpopularitydetail_";
-        private const string _downloadsByPackageIdReportBaseName = "downloads_";
         private CloudStorageAccount _cloudStorageAccount;
         private string _cloudStorageContainerName;
-        private SqlConnectionStringBuilder _sourceDatabase;
+        private SqlConnectionStringBuilder _statisticsDatabase;
         private string _reportName;
 
         private static readonly IDictionary<string, string> _storedProcedures = new Dictionary<string, string>
@@ -47,10 +44,10 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 ApplicationInsights.Initialize(instrumentationKey);
 
                 var cloudStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
-                var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
+                var statisticsDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
                 _cloudStorageAccount = ValidateAzureCloudStorageAccount(cloudStorageAccountConnectionString);
 
-                _sourceDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
+                _statisticsDatabase = new SqlConnectionStringBuilder(statisticsDatabaseConnectionString);
                 _cloudStorageContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName));
                 _reportName = ValidateReportName(JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.WarehouseReportName));
 
@@ -68,39 +65,40 @@ namespace Stats.CreateAzureCdnWarehouseReports
         {
             try
             {
+                var reportGenerationTime = DateTime.UtcNow;
                 var destinationContainer = _cloudStorageAccount.CreateCloudBlobClient().GetContainerReference(_cloudStorageContainerName);
-                Trace.TraceInformation("Generating reports from {0}/{1} and saving to {2}/{3}", _sourceDatabase.DataSource, _sourceDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+                Trace.TraceInformation("Generating reports from {0}/{1} and saving to {2}/{3}", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
 
                 if (string.IsNullOrEmpty(_reportName))
                 {
                     // generate all reports
                     var reportGenerators = new Dictionary<ReportBuilder, ReportDataCollector>
                     {
-                        { new ReportBuilder(ReportNames.NuGetClientVersion), new ReportDataCollector(_storedProcedures[ReportNames.NuGetClientVersion], _sourceDatabase) },
-                        { new ReportBuilder(ReportNames.Last6Months), new ReportDataCollector(_storedProcedures[ReportNames.Last6Months], _sourceDatabase) },
-                        { new ReportBuilder(ReportNames.RecentPopularity), new ReportDataCollector(_storedProcedures[ReportNames.RecentPopularity], _sourceDatabase) },
-                        { new ReportBuilder(ReportNames.RecentPopularityDetail), new ReportDataCollector(_storedProcedures[ReportNames.RecentPopularityDetail], _sourceDatabase) }
+                        { new ReportBuilder(ReportNames.NuGetClientVersion), new ReportDataCollector(_storedProcedures[ReportNames.NuGetClientVersion], _statisticsDatabase) },
+                        { new ReportBuilder(ReportNames.Last6Months), new ReportDataCollector(_storedProcedures[ReportNames.Last6Months], _statisticsDatabase) },
+                        { new ReportBuilder(ReportNames.RecentPopularity), new ReportDataCollector(_storedProcedures[ReportNames.RecentPopularity], _statisticsDatabase) },
+                        { new ReportBuilder(ReportNames.RecentPopularityDetail), new ReportDataCollector(_storedProcedures[ReportNames.RecentPopularityDetail], _statisticsDatabase) }
                     };
 
                     foreach (var reportGenerator in reportGenerators)
                     {
-                        await ProcessReport(destinationContainer, reportGenerator.Key, reportGenerator.Value);
+                        await ProcessReport(destinationContainer, reportGenerator.Key, reportGenerator.Value, reportGenerationTime);
                         ApplicationInsights.TrackReportProcessed(reportGenerator.Key.ReportName + " report");
                     }
 
-                    await RebuildPackageReports(destinationContainer);
-                    await CleanInactiveRecentPopularityDetailByPackageReports(destinationContainer);
+                    await RebuildPackageReports(destinationContainer, reportGenerationTime);
+                    await CleanInactiveRecentPopularityDetailByPackageReports(destinationContainer, reportGenerationTime);
                 }
                 else
                 {
                     // generate only the specific report
                     var reportBuilder = new ReportBuilder(_reportName);
-                    var reportDataCollector = new ReportDataCollector(_storedProcedures[_reportName], _sourceDatabase);
+                    var reportDataCollector = new ReportDataCollector(_storedProcedures[_reportName], _statisticsDatabase);
 
-                    await ProcessReport(destinationContainer, reportBuilder, reportDataCollector);
+                    await ProcessReport(destinationContainer, reportBuilder, reportDataCollector, reportGenerationTime);
                 }
 
-                Trace.TraceInformation("Generated reports from {0}/{1} and saving to {2}/{3}", _sourceDatabase.DataSource, _sourceDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+                Trace.TraceInformation("Generated reports from {0}/{1} and saving to {2}/{3}", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
 
                 return true;
             }
@@ -112,9 +110,9 @@ namespace Stats.CreateAzureCdnWarehouseReports
             }
         }
 
-        private static async Task ProcessReport(CloudBlobContainer destinationContainer, ReportBuilder reportBuilder, ReportDataCollector reportDataCollector, params Tuple<string, int, string>[] parameters)
+        private static async Task ProcessReport(CloudBlobContainer destinationContainer, ReportBuilder reportBuilder, ReportDataCollector reportDataCollector, DateTime reportGenerationTime, params Tuple<string, int, string>[] parameters)
         {
-            var dataTable = await reportDataCollector.CollectAsync(parameters);
+            var dataTable = await reportDataCollector.CollectAsync(reportGenerationTime, parameters);
             if (dataTable.Rows.Count == 0)
             {
                 return;
@@ -126,9 +124,9 @@ namespace Stats.CreateAzureCdnWarehouseReports
             await reportWriter.WriteReport(reportBuilder.ReportArtifactName, json);
         }
 
-        private async Task RebuildPackageReports(CloudBlobContainer destinationContainer)
+        private async Task RebuildPackageReports(CloudBlobContainer destinationContainer, DateTime reportGenerationTime)
         {
-            var dirtyPackageIds = await ReportDataCollector.GetDirtyPackageIds(_sourceDatabase);
+            var dirtyPackageIds = await ReportDataCollector.GetDirtyPackageIds(_statisticsDatabase);
 
             if (!dirtyPackageIds.Any())
                 return;
@@ -138,12 +136,12 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 // generate all reports
                 var reportGenerators = new Dictionary<ReportBuilder, ReportDataCollector>
                     {
-                        { new RecentPopularityDetailByPackageReportBuilder(ReportNames.RecentPopularityDetailByPackageId, "recentpopularity/" + _recentPopularityDetailByPackageReportBaseName + dirtyPackageId.PackageId.ToLowerInvariant()), new ReportDataCollector(_storedProceduresPerPackageId[ReportNames.RecentPopularityDetailByPackageId], _sourceDatabase) }
+                        { new RecentPopularityDetailByPackageReportBuilder(ReportNames.RecentPopularityDetailByPackageId, "recentpopularity/" + _recentPopularityDetailByPackageReportBaseName + dirtyPackageId.PackageId.ToLowerInvariant()), new ReportDataCollector(_storedProceduresPerPackageId[ReportNames.RecentPopularityDetailByPackageId], _statisticsDatabase) }
                     };
 
                 foreach (var reportGenerator in reportGenerators)
                 {
-                    ProcessReport(destinationContainer, reportGenerator.Key, reportGenerator.Value, Tuple.Create("@PackageId", 128, dirtyPackageId.PackageId)).Wait();
+                    ProcessReport(destinationContainer, reportGenerator.Key, reportGenerator.Value, reportGenerationTime, Tuple.Create("@PackageId", 128, dirtyPackageId.PackageId)).Wait();
                     ApplicationInsights.TrackReportProcessed(reportGenerator.Key.ReportName + " report", dirtyPackageId.PackageId.ToLowerInvariant());
                 }
             });
@@ -151,20 +149,14 @@ namespace Stats.CreateAzureCdnWarehouseReports
             if (result.IsCompleted)
             {
                 var runToCursor = dirtyPackageIds.First().RunToCuror;
-                await ReportDataCollector.UpdateDirtyPackageIdCursor(_sourceDatabase, runToCursor);
+                await ReportDataCollector.UpdateDirtyPackageIdCursor(_statisticsDatabase, runToCursor);
             }
         }
 
-
-        private async Task CleanInactiveRecentPopularityDetailByPackageReports(CloudBlobContainer destinationContainer)
+        private async Task CleanInactiveRecentPopularityDetailByPackageReports(CloudBlobContainer destinationContainer, DateTime reportGenerationTime)
         {
             Trace.TraceInformation("Getting list of inactive packages.");
-            IList<string> packageIds;
-            using (var connection = await _sourceDatabase.ConnectTo())
-            {
-                var sql = "[dbo].[DownloadReportListInactive]";
-                packageIds = (await connection.QueryAsync<string>(sql, CommandType.StoredProcedure)).ToList();
-            }
+            var packageIds = await ReportDataCollector.ListInactivePackageIdReports(_statisticsDatabase, reportGenerationTime);
             Trace.TraceInformation("Found {0} inactive packages.", packageIds.Count);
 
             // Collect the list of reports

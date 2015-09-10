@@ -1,4 +1,5 @@
 ﻿CREATE PROCEDURE [dbo].[DownloadReportLast6Months]
+	@ReportGenerationTime DATETIME
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -14,13 +15,13 @@ BEGIN
 	WHERE	D.[Date] IS NOT NULL
 			AND ISNULL(D.[Date], CONVERT(DATE, '1900-01-01')) >=
 				DATETIMEFROMPARTS(
-					DATEPART(year, DATEADD(month, -7, GETDATE())),
-					DATEPART(month, DATEADD(month, -7, GETDATE())),
+					DATEPART(year, DATEADD(month, -7, @ReportGenerationTime)),
+					DATEPART(month, DATEADD(month, -7, @ReportGenerationTime)),
 					1, 0, 0, 0, 0)
-			AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, GETDATE()))) <
+			AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, @ReportGenerationTime))) <
 				DATETIMEFROMPARTS(
-					DATEPART(year, GETDATE()),
-					DATEPART(month, GETDATE()),
+					DATEPART(year, @ReportGenerationTime),
+					DATEPART(month, @ReportGenerationTime),
 					1, 0, 0, 0, 0)
 			AND Facts.[Timestamp] <= (SELECT MAX([Position]) FROM [dbo].[Cursors] (NOLOCK) WHERE [Name] = 'GetDirtyPackageId')
 

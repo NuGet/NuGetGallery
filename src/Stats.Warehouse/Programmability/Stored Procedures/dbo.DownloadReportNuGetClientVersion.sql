@@ -1,4 +1,5 @@
 ﻿CREATE PROCEDURE [dbo].[DownloadReportNuGetClientVersion]
+	@ReportGenerationTime DATETIME
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -16,8 +17,8 @@ BEGIN
 	ON			Client.[Id] = Facts.[Dimension_Client_Id]
 
 	WHERE	D.[Date] IS NOT NULL
-		AND ISNULL(D.[Date], CONVERT(DATE, '1900-01-01')) >= CONVERT(DATE, DATEADD(day, -42, GETDATE()))
-		AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, GETDATE()))) <= CONVERT(DATE, GETDATE())
+		AND ISNULL(D.[Date], CONVERT(DATE, '1900-01-01')) >= CONVERT(DATE, DATEADD(day, -42, @ReportGenerationTime))
+		AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, @ReportGenerationTime))) <= CONVERT(DATE, @ReportGenerationTime)
 		AND Facts.[Timestamp] <= (SELECT MAX([Position]) FROM [dbo].[Cursors] (NOLOCK) WHERE [Name] = 'GetDirtyPackageId')
 		AND Client.[ClientCategory] = 'NuGet'
 		AND ISNULL(Client.[Major], '0') <> '99'

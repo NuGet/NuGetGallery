@@ -1,4 +1,5 @@
 ﻿CREATE PROCEDURE [dbo].[DownloadReportListInactive]
+	@ReportGenerationTime DATETIME
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -23,8 +24,8 @@ BEGIN
 			ON			SD.[Id] = SF.[Dimension_Date_Id]
 
 			WHERE		SD.[Date] IS NOT NULL
-					AND ISNULL(SD.[Date], CONVERT(DATE, '1900-01-01')) >= CONVERT(DATE, DATEADD(day, -42, GETDATE()))
-					AND ISNULL(SD.[Date], CONVERT(DATE, DATEADD(day, 1, GETDATE()))) <= CONVERT(DATE, GETDATE())
+					AND ISNULL(SD.[Date], CONVERT(DATE, '1900-01-01')) >= CONVERT(DATE, DATEADD(day, -42, @ReportGenerationTime))
+					AND ISNULL(SD.[Date], CONVERT(DATE, DATEADD(day, 1, @ReportGenerationTime))) <= CONVERT(DATE, @ReportGenerationTime)
 					AND SF.[Timestamp] <= (SELECT MAX([Position]) FROM [dbo].[Cursors] (NOLOCK) WHERE [Name] = 'GetDirtyPackageId')
 
 		)

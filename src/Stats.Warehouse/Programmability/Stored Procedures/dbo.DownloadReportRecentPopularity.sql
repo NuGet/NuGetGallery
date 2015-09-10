@@ -1,4 +1,5 @@
 ﻿CREATE PROCEDURE [dbo].[DownloadReportRecentPopularity]
+	@ReportGenerationTime DATETIME
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -15,8 +16,8 @@ BEGIN
 	ON			F.[Dimension_Package_Id] = P.[Id]
 
 	WHERE		D.[Date] IS NOT NULL
-			AND ISNULL(D.[Date], CONVERT(DATE, '1900-01-01')) >= CONVERT(DATE, DATEADD(day, -42, GETDATE()))
-			AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, GETDATE()))) <= CONVERT(DATE, GETDATE())
+			AND ISNULL(D.[Date], CONVERT(DATE, '1900-01-01')) >= CONVERT(DATE, DATEADD(day, -42, @ReportGenerationTime))
+			AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, @ReportGenerationTime))) <= CONVERT(DATE, @ReportGenerationTime)
 			AND F.[Timestamp] <= (SELECT MAX([Position]) FROM [dbo].[Cursors] (NOLOCK) WHERE [Name] = 'GetDirtyPackageId')
 
 	GROUP BY	P.[PackageId]
