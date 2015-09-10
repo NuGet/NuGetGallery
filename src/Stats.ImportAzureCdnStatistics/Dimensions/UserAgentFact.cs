@@ -7,17 +7,21 @@ namespace Stats.ImportAzureCdnStatistics
     {
         public UserAgentFact(string userAgent)
         {
-            // trim userAgent
-            if (!string.IsNullOrEmpty(userAgent) && userAgent.Length >= 500)
-            {
-                userAgent = userAgent.Substring(0, 499) + ")";
-            }
-
-            UserAgent = userAgent;
+            UserAgent = TrimUserAgent(userAgent);
         }
 
         public int Id { get; set; }
 
         public string UserAgent { get; set; }
+
+        public static string TrimUserAgent(string userAgent)
+        {
+            // trim userAgent
+            if (!string.IsNullOrEmpty(userAgent) && userAgent.Length >= 900)
+            {
+                return userAgent.Substring(0, 899) + ")";
+            }
+            return userAgent;
+        }
     }
 }

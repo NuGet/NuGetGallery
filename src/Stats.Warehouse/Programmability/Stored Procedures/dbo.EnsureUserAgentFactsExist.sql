@@ -7,10 +7,10 @@ BEGIN
 	DECLARE @results TABLE
 	(
 		[Id]				INT				NOT NULL,
-		[UserAgent]         NVARCHAR(500)	NULL
+		[UserAgent]         NVARCHAR(900)	NULL
 	)
 
-	DECLARE @UserAgent NVARCHAR(500)
+	DECLARE @UserAgent NVARCHAR(900)
 
 	BEGIN TRY
 

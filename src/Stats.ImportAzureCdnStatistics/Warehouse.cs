@@ -186,9 +186,13 @@ namespace Stats.ImportAzureCdnStatistics
                         }
 
                         int userAgentId = DimensionId.Unknown;
-                        if (knownUserAgentsAvailable && userAgents.ContainsKey(element.UserAgent))
+                        if (knownUserAgentsAvailable)
                         {
-                            userAgentId = userAgents[element.UserAgent];
+                            var trimmedUserAgent = UserAgentFact.TrimUserAgent(element.UserAgent);
+                            if (userAgents.ContainsKey(trimmedUserAgent))
+                            {
+                                userAgentId = userAgents[trimmedUserAgent];
+                            }
                         }
 
                         int edgeServerIpAddressId = DimensionId.Unknown;
@@ -319,9 +323,13 @@ namespace Stats.ImportAzureCdnStatistics
                             }
 
                             int userAgentId = DimensionId.Unknown;
-                            if (knownUserAgentsAvailable && userAgents.ContainsKey(element.UserAgent))
+                            if (knownUserAgentsAvailable)
                             {
-                                userAgentId = userAgents[element.UserAgent];
+                                var trimmedUserAgent = UserAgentFact.TrimUserAgent(element.UserAgent);
+                                if (userAgents.ContainsKey(trimmedUserAgent))
+                                {
+                                    userAgentId = userAgents[trimmedUserAgent];
+                                }
                             }
 
                             int edgeServerIpAddressId = DimensionId.Unknown;
@@ -940,7 +948,7 @@ namespace Stats.ImportAzureCdnStatistics
                 .Where(e => !string.IsNullOrEmpty(e.UserAgent))
                 .GroupBy(e => e.UserAgent)
                 .Select(e => e.First())
-                .Select(e => e.UserAgent)
+                .Select(e => UserAgentFact.TrimUserAgent(e.UserAgent))
                 .ToList();
 
             var results = new Dictionary<string, int>();
