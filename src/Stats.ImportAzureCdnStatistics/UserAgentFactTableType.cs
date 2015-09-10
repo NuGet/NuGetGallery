@@ -8,15 +8,15 @@ namespace Stats.ImportAzureCdnStatistics
 {
     internal static class UserAgentFactTableType
     {
-        public static DataTable CreateDataTable(IDictionary<string, UserAgentFact> userAgentFacts)
+        public static DataTable CreateDataTable(IReadOnlyCollection<string> userAgents)
         {
             var table = new DataTable();
             table.Columns.Add("UserAgent", typeof(string));
 
-            foreach (var userAgentFact in userAgentFacts)
+            foreach (var userAgent in userAgents)
             {
                 var row = table.NewRow();
-                row["UserAgent"] = userAgentFact.Key;
+                row["UserAgent"] = userAgent;
 
                 table.Rows.Add(row);
             }

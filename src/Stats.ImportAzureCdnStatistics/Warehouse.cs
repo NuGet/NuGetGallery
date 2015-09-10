@@ -23,6 +23,7 @@ namespace Stats.ImportAzureCdnStatistics
         private static readonly IList<PackageDimension> _cachedPackageDimensions = new List<PackageDimension>();
         private static readonly IList<ToolDimension> _cachedToolDimensions = new List<ToolDimension>();
         private static readonly IDictionary<string, int> _cachedClientDimensions = new Dictionary<string, int>();
+        private static readonly IDictionary<string, int> _cachedUserAgentFacts = new Dictionary<string, int>();
 
         public Warehouse(JobEventSource jobEventSource, SqlConnectionStringBuilder targetDatabase)
         {
@@ -848,19 +849,34 @@ namespace Stats.ImportAzureCdnStatistics
 
         private static async Task<IDictionary<string, int>> RetrieveUserAgentFacts(IReadOnlyCollection<ITrackUserAgent> sourceData, SqlConnection connection)
         {
-            var userAgentFacts = sourceData
+            var userAgents = sourceData
                 .Where(e => !string.IsNullOrEmpty(e.UserAgent))
                 .GroupBy(e => e.UserAgent)
                 .Select(e => e.First())
-                .ToDictionary(e => e.UserAgent, e => new UserAgentFact(e.UserAgent));
+                .Select(e => e.UserAgent)
+                .ToList();
 
             var results = new Dictionary<string, int>();
-            if (!userAgentFacts.Any())
+            if (!userAgents.Any())
             {
                 return results;
             }
 
-            var parameterValue = UserAgentFactTableType.CreateDataTable(userAgentFacts);
+            var nonCachedUserAgents = new List<string>();
+            foreach (var userAgent in userAgents)
+            {
+                if (_cachedUserAgentFacts.ContainsKey(userAgent))
+                {
+                    var cachedUserAgentFactId = _cachedUserAgentFacts[userAgent];
+                    results.Add(userAgent, cachedUserAgentFactId);
+                }
+                else
+                {
+                    nonCachedUserAgents.Add(userAgent);
+                }
+            }
+
+            var parameterValue = UserAgentFactTableType.CreateDataTable(nonCachedUserAgents);
 
             var command = connection.CreateCommand();
             command.CommandText = "[dbo].[EnsureUserAgentFactsExist]";
@@ -875,7 +891,15 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 while (await dataReader.ReadAsync())
                 {
-                    results.Add(dataReader.GetString(1), dataReader.GetInt32(0));
+                    var userAgent = dataReader.GetString(1);
+                    var userAgentId = dataReader.GetInt32(0);
+
+                    if (!_cachedUserAgentFacts.ContainsKey(userAgent))
+                    {
+                        _cachedUserAgentFacts.Add(userAgent, userAgentId);
+                    }
+
+                    results.Add(userAgent, userAgentId);
                 }
             }
 

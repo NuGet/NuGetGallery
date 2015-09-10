@@ -14,6 +14,11 @@ namespace Stats.CreateAzureCdnWarehouseReports
         }
 
         public string PackageId { get; private set; }
+
+
+        /// <summary>
+        /// Represents the Timestamp of the Download Fact that is last to be processed.
+        /// </summary>
         public DateTime RunToCuror { get; private set; }
     }
 }

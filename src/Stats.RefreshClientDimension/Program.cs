@@ -35,14 +35,14 @@ namespace Stats.RefreshClientDimension
                 using (var connection = await _targetDatabase.ConnectTo())
                 {
                     // 0. get a distinct list of all useragents linked to (unknown) client dimension
-                    var unknownUserAgents = await Warehouse.GetUnknownUserAgents(connection);
+                    var unknownUserAgents = (await Warehouse.GetUnknownUserAgents(connection)).ToList();
 
                     // 1. parse them and detect the ones that are recognized by the parser
                     var recognizedUserAgents = TryParseUnknownUserAgents(unknownUserAgents);
 
                     // 2. enumerate recognized user agents and ensure dimensions exists
                     var recognizedUserAgentsWithClientDimensionId = await Warehouse.EnsureClientDimensionsExist(connection, recognizedUserAgents);
-                    var recognizedUserAgentsWithUserAgentId = await Warehouse.EnsureUserAgentFactsExist(connection, unknownUserAgents.ToDictionary(e => e, e => new UserAgentFact(e)));
+                    var recognizedUserAgentsWithUserAgentId = await Warehouse.EnsureUserAgentFactsExist(connection, unknownUserAgents);
 
                     // 3. link the new client dimension to the facts
                     await Warehouse.PatchClientDimension(connection, recognizedUserAgents, recognizedUserAgentsWithClientDimensionId, recognizedUserAgentsWithUserAgentId);

@@ -64,15 +64,15 @@ namespace Stats.RefreshClientDimension
             return results;
         }
 
-        public static async Task<IDictionary<string, int>> EnsureUserAgentFactsExist(SqlConnection connection, IDictionary<string, UserAgentFact> userAgentFacts)
+        public static async Task<IDictionary<string, int>> EnsureUserAgentFactsExist(SqlConnection connection, IReadOnlyCollection<string> userAgents)
         {
             var results = new Dictionary<string, int>();
-            if (!userAgentFacts.Any())
+            if (!userAgents.Any())
             {
                 return results;
             }
 
-            var parameterValue = UserAgentFactTableType.CreateDataTable(userAgentFacts);
+            var parameterValue = UserAgentFactTableType.CreateDataTable(userAgents);
 
             var command = connection.CreateCommand();
             command.CommandText = "[dbo].[EnsureUserAgentFactsExist]";
