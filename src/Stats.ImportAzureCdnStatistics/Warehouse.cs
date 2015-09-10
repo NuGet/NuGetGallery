@@ -24,8 +24,9 @@ namespace Stats.ImportAzureCdnStatistics
         private static readonly IList<ToolDimension> _cachedToolDimensions = new List<ToolDimension>();
         private static readonly IDictionary<string, int> _cachedClientDimensions = new Dictionary<string, int>();
         private static readonly IDictionary<string, int> _cachedPlatformDimensions = new Dictionary<string, int>();
-        private static readonly IDictionary<string, int> _cachedUserAgentFacts = new Dictionary<string, int>();
         private static readonly IDictionary<string, int> _cachedOperationDimensions = new Dictionary<string, int>();
+        private static readonly IDictionary<string, int> _cachedUserAgentFacts = new Dictionary<string, int>();
+        private static readonly IDictionary<string, int> _cachedIpAddressFacts = new Dictionary<string, int>();
 
         public Warehouse(JobEventSource jobEventSource, SqlConnectionStringBuilder targetDatabase)
         {
@@ -1011,22 +1012,47 @@ namespace Stats.ImportAzureCdnStatistics
                 return results;
             }
 
-            var parameterValue = CreateDataTable(ipAddressFacts);
-
-            var command = connection.CreateCommand();
-            command.CommandText = "[dbo].[EnsureIpAddressFactsExist]";
-            command.CommandTimeout = _defaultCommandTimeout;
-            command.CommandType = CommandType.StoredProcedure;
-
-            var parameter = command.Parameters.AddWithValue("addresses", parameterValue);
-            parameter.SqlDbType = SqlDbType.Structured;
-            parameter.TypeName = "[dbo].[IpAddressFactTableType]";
-
-            using (var dataReader = await command.ExecuteReaderAsync())
+            var nonCachedIpAddresses = new Dictionary<string, IpAddressFact>();
+            foreach (var ipAddressFact in ipAddressFacts)
             {
-                while (await dataReader.ReadAsync())
+                if (_cachedIpAddressFacts.ContainsKey(ipAddressFact.Key))
                 {
-                    results.Add(dataReader.GetString(1), dataReader.GetInt32(0));
+                    var cachedUserAgentFactId = _cachedIpAddressFacts[ipAddressFact.Key];
+                    results.Add(ipAddressFact.Key, cachedUserAgentFactId);
+                }
+                else
+                {
+                    nonCachedIpAddresses.Add(ipAddressFact.Key, ipAddressFact.Value);
+                }
+            }
+
+            if (nonCachedIpAddresses.Any())
+            {
+                var parameterValue = CreateDataTable(nonCachedIpAddresses);
+
+                var command = connection.CreateCommand();
+                command.CommandText = "[dbo].[EnsureIpAddressFactsExist]";
+                command.CommandTimeout = _defaultCommandTimeout;
+                command.CommandType = CommandType.StoredProcedure;
+
+                var parameter = command.Parameters.AddWithValue("addresses", parameterValue);
+                parameter.SqlDbType = SqlDbType.Structured;
+                parameter.TypeName = "[dbo].[IpAddressFactTableType]";
+
+                using (var dataReader = await command.ExecuteReaderAsync())
+                {
+                    while (await dataReader.ReadAsync())
+                    {
+                        var ipAddress = dataReader.GetString(1);
+                        var ipAddressId = dataReader.GetInt32(0);
+
+                        if (!_cachedIpAddressFacts.ContainsKey(ipAddress))
+                        {
+                            _cachedIpAddressFacts.Add(ipAddress, ipAddressId);
+                        }
+
+                        results.Add(ipAddress, ipAddressId);
+                    }
                 }
             }
 
