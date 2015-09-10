@@ -23,6 +23,7 @@ namespace Stats.ImportAzureCdnStatistics
         private static readonly IList<PackageDimension> _cachedPackageDimensions = new List<PackageDimension>();
         private static readonly IList<ToolDimension> _cachedToolDimensions = new List<ToolDimension>();
         private static readonly IDictionary<string, int> _cachedClientDimensions = new Dictionary<string, int>();
+        private static readonly IDictionary<string, int> _cachedPlatformDimensions = new Dictionary<string, int>();
         private static readonly IDictionary<string, int> _cachedUserAgentFacts = new Dictionary<string, int>();
         private static readonly IDictionary<string, int> _cachedOperationDimensions = new Dictionary<string, int>();
 
@@ -834,7 +835,6 @@ namespace Stats.ImportAzureCdnStatistics
                         var userAgent = dataReader.GetString(1);
                         var clientDimensionId = dataReader.GetInt32(0);
 
-
                         if (!_cachedClientDimensions.ContainsKey(userAgent))
                         {
                             _cachedClientDimensions.Add(userAgent, clientDimensionId);
@@ -862,22 +862,47 @@ namespace Stats.ImportAzureCdnStatistics
                 return results;
             }
 
-            var parameterValue = CreateDataTable(platformDimensions);
-
-            var command = connection.CreateCommand();
-            command.CommandText = "[dbo].[EnsurePlatformDimensionsExist]";
-            command.CommandTimeout = _defaultCommandTimeout;
-            command.CommandType = CommandType.StoredProcedure;
-
-            var parameter = command.Parameters.AddWithValue("platforms", parameterValue);
-            parameter.SqlDbType = SqlDbType.Structured;
-            parameter.TypeName = "[dbo].[PlatformDimensionTableType]";
-
-            using (var dataReader = await command.ExecuteReaderAsync())
+            var nonCachedPlatformDimensions = new Dictionary<string, PlatformDimension>();
+            foreach (var platformDimension in platformDimensions)
             {
-                while (await dataReader.ReadAsync())
+                if (_cachedPlatformDimensions.ContainsKey(platformDimension.Key))
                 {
-                    results.Add(dataReader.GetString(1), dataReader.GetInt32(0));
+                    var cachedPlatformDimensionId = _cachedPlatformDimensions[platformDimension.Key];
+                    results.Add(platformDimension.Key, cachedPlatformDimensionId);
+                }
+                else
+                {
+                    nonCachedPlatformDimensions.Add(platformDimension.Key, platformDimension.Value);
+                }
+            }
+
+            if (nonCachedPlatformDimensions.Any())
+            {
+                var parameterValue = CreateDataTable(nonCachedPlatformDimensions);
+
+                var command = connection.CreateCommand();
+                command.CommandText = "[dbo].[EnsurePlatformDimensionsExist]";
+                command.CommandTimeout = _defaultCommandTimeout;
+                command.CommandType = CommandType.StoredProcedure;
+
+                var parameter = command.Parameters.AddWithValue("platforms", parameterValue);
+                parameter.SqlDbType = SqlDbType.Structured;
+                parameter.TypeName = "[dbo].[PlatformDimensionTableType]";
+
+                using (var dataReader = await command.ExecuteReaderAsync())
+                {
+                    while (await dataReader.ReadAsync())
+                    {
+                        var platform = dataReader.GetString(1);
+                        var platformId = dataReader.GetInt32(0);
+
+                        if (!_cachedPlatformDimensions.ContainsKey(platform))
+                        {
+                            _cachedPlatformDimensions.Add(platform, platformId);
+                        }
+
+                        results.Add(platform, platformId);
+                    }
                 }
             }
 
