@@ -25,6 +25,7 @@ namespace Stats.ImportAzureCdnStatistics
         private static readonly IDictionary<string, int> _cachedClientDimensions = new Dictionary<string, int>();
         private static readonly IDictionary<string, int> _cachedPlatformDimensions = new Dictionary<string, int>();
         private static readonly IDictionary<string, int> _cachedOperationDimensions = new Dictionary<string, int>();
+        private static readonly IDictionary<string, int> _cachedProjectTypeDimensions = new Dictionary<string, int>();
         private static readonly IDictionary<string, int> _cachedUserAgentFacts = new Dictionary<string, int>();
         private static readonly IDictionary<string, int> _cachedIpAddressFacts = new Dictionary<string, int>();
 
@@ -769,19 +770,42 @@ namespace Stats.ImportAzureCdnStatistics
                 return results;
             }
 
-            var projectTypesParameter = string.Join(",", projectTypes);
-
-            var command = connection.CreateCommand();
-            command.CommandText = "[dbo].[EnsureProjectTypeDimensionsExist]";
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandTimeout = _defaultCommandTimeout;
-            command.Parameters.AddWithValue("projectTypes", projectTypesParameter);
-
-            using (var dataReader = await command.ExecuteReaderAsync())
+            var nonCachedProjectTypes = new List<string>();
+            foreach (var projectType in projectTypes)
             {
-                while (await dataReader.ReadAsync())
+                if (_cachedProjectTypeDimensions.ContainsKey(projectType))
                 {
-                    results.Add(dataReader.GetString(1), dataReader.GetInt32(0));
+                    var cachedProjectTypeId = _cachedProjectTypeDimensions[projectType];
+                    results.Add(projectType, cachedProjectTypeId);
+                }
+                else
+                {
+                    nonCachedProjectTypes.Add(projectType);
+                }
+            }
+
+            if (nonCachedProjectTypes.Any())
+            {
+                var projectTypesParameter = string.Join(",", nonCachedProjectTypes);
+
+                var command = connection.CreateCommand();
+                command.CommandText = "[dbo].[EnsureProjectTypeDimensionsExist]";
+                command.CommandType = CommandType.StoredProcedure;
+                command.CommandTimeout = _defaultCommandTimeout;
+                command.Parameters.AddWithValue("projectTypes", projectTypesParameter);
+
+                using (var dataReader = await command.ExecuteReaderAsync())
+                {
+                    while (await dataReader.ReadAsync())
+                    {
+                        var projectType = dataReader.GetString(1);
+                        var projectTypeId = dataReader.GetInt32(0);
+                        if (!_cachedProjectTypeDimensions.ContainsKey(projectType))
+                        {
+                            _cachedProjectTypeDimensions.Add(projectType, projectTypeId);
+                        }
+                        results.Add(projectType, projectTypeId);
+                    }
                 }
             }
 
