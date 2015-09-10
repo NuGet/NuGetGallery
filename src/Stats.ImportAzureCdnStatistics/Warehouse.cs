@@ -25,7 +25,7 @@ namespace Stats.ImportAzureCdnStatistics
         private static readonly IDictionary<string, int> _cachedClientDimensions = new Dictionary<string, int>();
         private static readonly IDictionary<string, int> _cachedPlatformDimensions = new Dictionary<string, int>();
         private static readonly IDictionary<string, int> _cachedOperationDimensions = new Dictionary<string, int>();
-        private static readonly IDictionary<string, int> _cachedProjectTypeDimensions = new Dictionary<string, int>();
+        private static readonly IDictionary<string, int> _cachedProjectTypeDimensions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         private static readonly IDictionary<string, int> _cachedUserAgentFacts = new Dictionary<string, int>();
         private static readonly IDictionary<string, int> _cachedIpAddressFacts = new Dictionary<string, int>();
 
@@ -769,10 +769,10 @@ namespace Stats.ImportAzureCdnStatistics
             var projectTypes = sourceData
                 .Where(e => !string.IsNullOrEmpty(e.ProjectGuids))
                 .SelectMany(e => e.ProjectGuids.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
-                .Distinct()
+                .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
-            var results = new Dictionary<string, int>();
+            var results = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             if (!projectTypes.Any())
             {
                 return results;
