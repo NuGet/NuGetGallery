@@ -25,6 +25,7 @@ BEGIN
 			WHERE		SD.[Date] IS NOT NULL
 					AND ISNULL(SD.[Date], CONVERT(DATE, '1900-01-01')) >= CONVERT(DATE, DATEADD(day, -42, GETDATE()))
 					AND ISNULL(SD.[Date], CONVERT(DATE, DATEADD(day, 1, GETDATE()))) <= CONVERT(DATE, GETDATE())
+					AND SF.[Timestamp] <= (SELECT MAX([Position]) FROM [dbo].[Cursors] (NOLOCK) WHERE [Name] = 'GetDirtyPackageId')
 
 		)
 END

@@ -24,6 +24,7 @@ namespace Stats.ImportAzureCdnStatistics
         private static readonly IList<ToolDimension> _cachedToolDimensions = new List<ToolDimension>();
         private static readonly IDictionary<string, int> _cachedClientDimensions = new Dictionary<string, int>();
         private static readonly IDictionary<string, int> _cachedUserAgentFacts = new Dictionary<string, int>();
+        private static readonly IDictionary<string, int> _cachedOperationDimensions = new Dictionary<string, int>();
 
         public Warehouse(JobEventSource jobEventSource, SqlConnectionStringBuilder targetDatabase)
         {
@@ -528,31 +529,35 @@ namespace Stats.ImportAzureCdnStatistics
                 );
 
             var nonCachedToolDimensions = tools.Except(results).ToList();
-            var parameterValue = CreateDataTable(nonCachedToolDimensions);
 
-            var command = connection.CreateCommand();
-            command.CommandText = "[dbo].[EnsureToolDimensionsExist]";
-            command.CommandTimeout = _defaultCommandTimeout;
-            command.CommandType = CommandType.StoredProcedure;
-
-            var parameter = command.Parameters.AddWithValue("tools", parameterValue);
-            parameter.SqlDbType = SqlDbType.Structured;
-            parameter.TypeName = "[dbo].[ToolDimensionTableType]";
-
-            using (var dataReader = await command.ExecuteReaderAsync())
+            if (nonCachedToolDimensions.Any())
             {
-                while (await dataReader.ReadAsync())
-                {
-                    var tool = new ToolDimension(dataReader.GetString(1), dataReader.GetString(2), dataReader.GetString(3));
-                    tool.Id = dataReader.GetInt32(0);
+                var parameterValue = CreateDataTable(nonCachedToolDimensions);
 
-                    if (!results.Contains(tool))
+                var command = connection.CreateCommand();
+                command.CommandText = "[dbo].[EnsureToolDimensionsExist]";
+                command.CommandTimeout = _defaultCommandTimeout;
+                command.CommandType = CommandType.StoredProcedure;
+
+                var parameter = command.Parameters.AddWithValue("tools", parameterValue);
+                parameter.SqlDbType = SqlDbType.Structured;
+                parameter.TypeName = "[dbo].[ToolDimensionTableType]";
+
+                using (var dataReader = await command.ExecuteReaderAsync())
+                {
+                    while (await dataReader.ReadAsync())
                     {
-                        results.Add(tool);
-                    }
-                    if (!_cachedToolDimensions.Contains(tool))
-                    {
-                        _cachedToolDimensions.Add(tool);
+                        var tool = new ToolDimension(dataReader.GetString(1), dataReader.GetString(2), dataReader.GetString(3));
+                        tool.Id = dataReader.GetInt32(0);
+
+                        if (!results.Contains(tool))
+                        {
+                            results.Add(tool);
+                        }
+                        if (!_cachedToolDimensions.Contains(tool))
+                        {
+                            _cachedToolDimensions.Add(tool);
+                        }
                     }
                 }
             }
@@ -582,31 +587,35 @@ namespace Stats.ImportAzureCdnStatistics
                 );
 
             var nonCachedPackageDimensions = packages.Except(results).ToList();
-            var parameterValue = CreateDataTable(nonCachedPackageDimensions);
 
-            var command = connection.CreateCommand();
-            command.CommandText = "[dbo].[EnsurePackageDimensionsExist]";
-            command.CommandTimeout = _defaultCommandTimeout;
-            command.CommandType = CommandType.StoredProcedure;
-
-            var parameter = command.Parameters.AddWithValue("packages", parameterValue);
-            parameter.SqlDbType = SqlDbType.Structured;
-            parameter.TypeName = "[dbo].[PackageDimensionTableType]";
-
-            using (var dataReader = await command.ExecuteReaderAsync())
+            if (nonCachedPackageDimensions.Any())
             {
-                while (await dataReader.ReadAsync())
-                {
-                    var package = new PackageDimension(dataReader.GetString(1), dataReader.GetString(2));
-                    package.Id = dataReader.GetInt32(0);
+                var parameterValue = CreateDataTable(nonCachedPackageDimensions);
 
-                    if (!results.Contains(package))
+                var command = connection.CreateCommand();
+                command.CommandText = "[dbo].[EnsurePackageDimensionsExist]";
+                command.CommandTimeout = _defaultCommandTimeout;
+                command.CommandType = CommandType.StoredProcedure;
+
+                var parameter = command.Parameters.AddWithValue("packages", parameterValue);
+                parameter.SqlDbType = SqlDbType.Structured;
+                parameter.TypeName = "[dbo].[PackageDimensionTableType]";
+
+                using (var dataReader = await command.ExecuteReaderAsync())
+                {
+                    while (await dataReader.ReadAsync())
                     {
-                        results.Add(package);
-                    }
-                    if (!_cachedPackageDimensions.Contains(package))
-                    {
-                        _cachedPackageDimensions.Add(package);
+                        var package = new PackageDimension(dataReader.GetString(1), dataReader.GetString(2));
+                        package.Id = dataReader.GetInt32(0);
+
+                        if (!results.Contains(package))
+                        {
+                            results.Add(package);
+                        }
+                        if (!_cachedPackageDimensions.Contains(package))
+                        {
+                            _cachedPackageDimensions.Add(package);
+                        }
                     }
                 }
             }
@@ -700,19 +709,44 @@ namespace Stats.ImportAzureCdnStatistics
                 return results;
             }
 
-            var operationsParameter = string.Join(",", operations);
-
-            var command = connection.CreateCommand();
-            command.CommandText = "[dbo].[EnsureOperationDimensionsExist]";
-            command.CommandTimeout = _defaultCommandTimeout;
-            command.CommandType = CommandType.StoredProcedure;
-            command.Parameters.AddWithValue("operations", operationsParameter);
-
-            using (var dataReader = await command.ExecuteReaderAsync())
+            var nonCachedOperations = new List<string>();
+            foreach (var operation in operations)
             {
-                while (await dataReader.ReadAsync())
+                if (_cachedOperationDimensions.ContainsKey(operation))
                 {
-                    results.Add(dataReader.GetString(1), dataReader.GetInt32(0));
+                    var cachedOperationDimensionId = _cachedOperationDimensions[operation];
+                    results.Add(operation, cachedOperationDimensionId);
+                }
+                else
+                {
+                    nonCachedOperations.Add(operation);
+                }
+            }
+
+            if (nonCachedOperations.Any())
+            {
+                var operationsParameter = string.Join(",", nonCachedOperations);
+
+                var command = connection.CreateCommand();
+                command.CommandText = "[dbo].[EnsureOperationDimensionsExist]";
+                command.CommandTimeout = _defaultCommandTimeout;
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("operations", operationsParameter);
+
+                using (var dataReader = await command.ExecuteReaderAsync())
+                {
+                    while (await dataReader.ReadAsync())
+                    {
+                        var operation = dataReader.GetString(1);
+                        var operationId = dataReader.GetInt32(0);
+
+                        if (!_cachedOperationDimensions.ContainsKey(operation))
+                        {
+                            _cachedOperationDimensions.Add(operation, operationId);
+                        }
+
+                        results.Add(operation, operationId);
+                    }
                 }
             }
 
@@ -780,31 +814,34 @@ namespace Stats.ImportAzureCdnStatistics
                 }
             }
 
-            var parameterValue = ClientDimensionTableType.CreateDataTable(nonCachedClientDimensions);
-
-            var command = connection.CreateCommand();
-            command.CommandText = "[dbo].[EnsureClientDimensionsExist]";
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandTimeout = _defaultCommandTimeout;
-
-            var parameter = command.Parameters.AddWithValue("clients", parameterValue);
-            parameter.SqlDbType = SqlDbType.Structured;
-            parameter.TypeName = "[dbo].[ClientDimensionTableType]";
-
-            using (var dataReader = await command.ExecuteReaderAsync())
+            if (nonCachedClientDimensions.Any())
             {
-                while (await dataReader.ReadAsync())
+                var parameterValue = ClientDimensionTableType.CreateDataTable(nonCachedClientDimensions);
+
+                var command = connection.CreateCommand();
+                command.CommandText = "[dbo].[EnsureClientDimensionsExist]";
+                command.CommandType = CommandType.StoredProcedure;
+                command.CommandTimeout = _defaultCommandTimeout;
+
+                var parameter = command.Parameters.AddWithValue("clients", parameterValue);
+                parameter.SqlDbType = SqlDbType.Structured;
+                parameter.TypeName = "[dbo].[ClientDimensionTableType]";
+
+                using (var dataReader = await command.ExecuteReaderAsync())
                 {
-                    var userAgent = dataReader.GetString(1);
-                    var clientDimensionId = dataReader.GetInt32(0);
-
-
-                    if (!_cachedClientDimensions.ContainsKey(userAgent))
+                    while (await dataReader.ReadAsync())
                     {
-                        _cachedClientDimensions.Add(userAgent, clientDimensionId);
-                    }
+                        var userAgent = dataReader.GetString(1);
+                        var clientDimensionId = dataReader.GetInt32(0);
 
-                    results.Add(userAgent, clientDimensionId);
+
+                        if (!_cachedClientDimensions.ContainsKey(userAgent))
+                        {
+                            _cachedClientDimensions.Add(userAgent, clientDimensionId);
+                        }
+
+                        results.Add(userAgent, clientDimensionId);
+                    }
                 }
             }
 
@@ -876,30 +913,33 @@ namespace Stats.ImportAzureCdnStatistics
                 }
             }
 
-            var parameterValue = UserAgentFactTableType.CreateDataTable(nonCachedUserAgents);
-
-            var command = connection.CreateCommand();
-            command.CommandText = "[dbo].[EnsureUserAgentFactsExist]";
-            command.CommandTimeout = _defaultCommandTimeout;
-            command.CommandType = CommandType.StoredProcedure;
-
-            var parameter = command.Parameters.AddWithValue("useragents", parameterValue);
-            parameter.SqlDbType = SqlDbType.Structured;
-            parameter.TypeName = "[dbo].[UserAgentFactTableType]";
-
-            using (var dataReader = await command.ExecuteReaderAsync())
+            if (nonCachedUserAgents.Any())
             {
-                while (await dataReader.ReadAsync())
+                var parameterValue = UserAgentFactTableType.CreateDataTable(nonCachedUserAgents);
+
+                var command = connection.CreateCommand();
+                command.CommandText = "[dbo].[EnsureUserAgentFactsExist]";
+                command.CommandTimeout = _defaultCommandTimeout;
+                command.CommandType = CommandType.StoredProcedure;
+
+                var parameter = command.Parameters.AddWithValue("useragents", parameterValue);
+                parameter.SqlDbType = SqlDbType.Structured;
+                parameter.TypeName = "[dbo].[UserAgentFactTableType]";
+
+                using (var dataReader = await command.ExecuteReaderAsync())
                 {
-                    var userAgent = dataReader.GetString(1);
-                    var userAgentId = dataReader.GetInt32(0);
-
-                    if (!_cachedUserAgentFacts.ContainsKey(userAgent))
+                    while (await dataReader.ReadAsync())
                     {
-                        _cachedUserAgentFacts.Add(userAgent, userAgentId);
-                    }
+                        var userAgent = dataReader.GetString(1);
+                        var userAgentId = dataReader.GetInt32(0);
 
-                    results.Add(userAgent, userAgentId);
+                        if (!_cachedUserAgentFacts.ContainsKey(userAgent))
+                        {
+                            _cachedUserAgentFacts.Add(userAgent, userAgentId);
+                        }
+
+                        results.Add(userAgent, userAgentId);
+                    }
                 }
             }
 

@@ -22,6 +22,7 @@ BEGIN
 					DATEPART(year, GETDATE()),
 					DATEPART(month, GETDATE()),
 					1, 0, 0, 0, 0)
+			AND Facts.[Timestamp] <= (SELECT MAX([Position]) FROM [dbo].[Cursors] (NOLOCK) WHERE [Name] = 'GetDirtyPackageId')
 
 	GROUP BY	D.[Year], D.[MonthOfYear]
 	ORDER BY	[Year], [MonthOfYear]
