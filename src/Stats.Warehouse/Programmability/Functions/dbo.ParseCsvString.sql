@@ -20,8 +20,13 @@ BEGIN
 				SELECT @j = LEN(@CSVString) + 1
 			END
 
-		INSERT	@tbl
-		SELECT	LTRIM(RTRIM(SUBSTRING(@CSVString, @i, @j - @i)))
+		DECLARE @Value NVARCHAR(255) = LTRIM(RTRIM(SUBSTRING(@CSVString, @i, @j - @i)))
+
+		IF NOT EXISTS (SELECT [Value] FROM @tbl WHERE [Value] = @Value)
+		BEGIN
+			INSERT	@tbl
+			SELECT	@Value
+		END
 
 		SELECT	@i = @j + 1
 	END
