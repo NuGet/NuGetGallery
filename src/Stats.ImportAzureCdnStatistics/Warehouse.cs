@@ -205,10 +205,11 @@ namespace Stats.ImportAzureCdnStatistics
                         }
 
                         int projectTypeId = DimensionId.Unknown;
-                        if (knownProjectTypesAvailable && element.HasProjectGuids())
+                        var elementProjectGuids = element.GetProjectGuidsAsEnumerable();
+                        if (knownProjectTypesAvailable && elementProjectGuids.Any())
                         {
                             // foreach project type
-                            foreach (var projectGuid in element.ProjectGuids.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
+                            foreach (var projectGuid in elementProjectGuids)
                             {
                                 projectTypeId = projectTypes[projectGuid];
 
