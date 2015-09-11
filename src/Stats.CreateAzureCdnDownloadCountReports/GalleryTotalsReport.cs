@@ -2,17 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Stats.CreateAzureCdnDownloadCountReports
 {
@@ -20,7 +16,7 @@ namespace Stats.CreateAzureCdnDownloadCountReports
         : ReportBase
     {
         private const string WarehouseStoredProcedureName = "[dbo].[SelectTotalDownloadCounts]";
-        private const string GalleryQuery = @"SELECT 
+        private const string GalleryQuery = @"SELECT
                     (SELECT COUNT([Key]) FROM PackageRegistrations pr WITH (NOLOCK)
                             WHERE EXISTS (SELECT 1 FROM Packages p WITH (NOLOCK) WHERE p.PackageRegistrationKey = pr.[Key] AND p.Listed = 1)) AS UniquePackages,
                     (SELECT COUNT([Key]) FROM Packages WITH (NOLOCK) WHERE Listed = 1) AS TotalPackages";
@@ -36,7 +32,7 @@ namespace Stats.CreateAzureCdnDownloadCountReports
             var targetBlobContainer = await GetBlobContainer();
 
             Trace.TraceInformation("Generating Gallery Totals Report from {0}/{1} to {2}/{3}.", StatisticsDatabase.DataSource, StatisticsDatabase.InitialCatalog, CloudStorageAccount.Credentials.AccountName, StatisticsContainerName);
-            
+
             // gather package numbers from gallery database
             GalleryTotalsData totalsData;
             Trace.TraceInformation("Gathering Gallery Totals from {0}/{1}...", GalleryDatabase.DataSource, GalleryDatabase.InitialCatalog);

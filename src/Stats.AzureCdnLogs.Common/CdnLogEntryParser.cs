@@ -2,30 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 
 namespace Stats.AzureCdnLogs.Common
 {
     public static class CdnLogEntryParser
     {
         private static readonly DateTime _unixTimestamp = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-
-        public static IReadOnlyCollection<CdnLogEntry> ParseLogEntriesFromW3CLog(string log)
-        {
-            var logEntries = new List<CdnLogEntry>();
-
-            var logLines = log.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var line in logLines)
-            {
-                var logEntry = ParseLogEntryFromLine(line);
-                if (logEntry != null)
-                {
-                    logEntries.Add(logEntry);
-                }
-            }
-
-            return logEntries;
-        }
 
         public static CdnLogEntry ParseLogEntryFromLine(string line)
         {
