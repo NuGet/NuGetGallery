@@ -205,7 +205,7 @@ namespace Stats.ImportAzureCdnStatistics
                         }
 
                         int projectTypeId = DimensionId.Unknown;
-                        if (knownProjectTypesAvailable && !string.IsNullOrEmpty(element.ProjectGuids))
+                        if (knownProjectTypesAvailable && element.HasProjectGuids())
                         {
                             // foreach project type
                             foreach (var projectGuid in element.ProjectGuids.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
@@ -228,7 +228,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                         if (!factCreated)
                         {
-                            ApplicationInsights.TrackException(new Exception("Download fact not created. Element: " + JsonConvert.SerializeObject(element)), logFileName);
+                            ApplicationInsights.TrackException(new Exception("Download fact not created."), logFileName, "Download fact not created. Element: " + JsonConvert.SerializeObject(element));
                         }
                     }
                 }

@@ -28,7 +28,7 @@ namespace Stats.AzureCdnLogs.Common
             }
         }
 
-        public static void TrackException(Exception exception, string logFileName = null)
+        public static void TrackException(Exception exception, string logFileName = null, string message = null)
         {
             if (!_initialized)
             {
@@ -41,6 +41,11 @@ namespace Stats.AzureCdnLogs.Common
             if (!string.IsNullOrWhiteSpace(logFileName))
             {
                 telemetry.Properties.Add("LogFile", logFileName);
+            }
+
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                telemetry.Properties.Add("Message", message);
             }
 
             telemetryClient.TrackException(telemetry);

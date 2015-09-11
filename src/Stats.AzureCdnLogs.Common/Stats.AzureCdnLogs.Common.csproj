@@ -48,6 +48,7 @@
     <Compile Include="EnumerableExtensions.cs" />
     <Compile Include="ITrackEdgeServerIpAddress.cs" />
     <Compile Include="ITrackUserAgent.cs" />
+    <Compile Include="PackageStatisticsExtensions.cs" />
     <Compile Include="Telemetry\ApplicationInsights.cs" />
     <Compile Include="Telemetry\SessionInitializer.cs" />
     <Compile Include="AzureCdnPlatform.cs" />
