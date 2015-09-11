@@ -9,14 +9,14 @@ namespace Stats.AzureCdnLogs.Common
 {
     public static class PackageStatisticsExtensions
     {
-        public static IEnumerable<string> GetProjectGuidsAsEnumerable(this PackageStatistics current)
+        public static IReadOnlyCollection<string> GetDistinctProjectGuids(this PackageStatistics current)
         {
             if (string.IsNullOrEmpty(current.ProjectGuids) || current.ProjectGuids.Length == 1)
             {
-                return Enumerable.Empty<string>();
+                return new List<string>();
             }
 
-            return current.ProjectGuids.Split(new[] {";"}, StringSplitOptions.RemoveEmptyEntries);
+            return current.ProjectGuids.Split(new[] {";"}, StringSplitOptions.RemoveEmptyEntries).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         }
     }
 }

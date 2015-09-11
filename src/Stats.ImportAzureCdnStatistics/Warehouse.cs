@@ -127,7 +127,7 @@ namespace Stats.ImportAzureCdnStatistics
                 logFileNameId = logFileNames[logFileName];
             }
 
-            
+
             Trace.WriteLine("Creating facts...");
             foreach (var groupedByPackageId in sourceData.GroupBy(e => e.PackageId, StringComparer.OrdinalIgnoreCase))
             {
@@ -205,7 +205,7 @@ namespace Stats.ImportAzureCdnStatistics
                         }
 
                         int projectTypeId = DimensionId.Unknown;
-                        var elementProjectGuids = element.GetProjectGuidsAsEnumerable();
+                        var elementProjectGuids = element.GetDistinctProjectGuids();
                         if (knownProjectTypesAvailable && elementProjectGuids.Any())
                         {
                             // foreach project type
