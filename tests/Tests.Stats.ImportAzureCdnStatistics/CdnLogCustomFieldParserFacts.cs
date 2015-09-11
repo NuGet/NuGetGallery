@@ -44,6 +44,22 @@ namespace Tests.Stats.ImportAzureCdnStatistics
         }
 
         [Fact]
+        public void FromCdnLogCustomFieldProperlyExtractsEmptyProjectGuid()
+        {
+            var customField = "\"NuGet-Operation: Install-Dependency NuGet-DependentPackage: - NuGet-ProjectGuids: -\"";
+            var customFields = CdnLogCustomFieldParser.Parse(customField);
+
+            Assert.True(customFields.ContainsKey("NuGet-Operation"));
+            Assert.Equal("Install-Dependency", customFields["NuGet-Operation"]);
+
+            Assert.True(customFields.ContainsKey("NuGet-DependentPackage"));
+            Assert.Equal("-", customFields["NuGet-DependentPackage"]);
+
+            Assert.True(customFields.ContainsKey("NuGet-ProjectGuids"));
+            Assert.True(string.IsNullOrEmpty(customFields["NuGet-ProjectGuids"]));
+        }
+
+        [Fact]
         public void FromCdnLogCustomFieldProperlyReturnsEmptyDictionaryForNullValue()
         {
             var customFields = CdnLogCustomFieldParser.Parse(null);

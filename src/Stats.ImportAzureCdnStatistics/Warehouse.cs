@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Stats.AzureCdnLogs.Common;
 
 namespace Stats.ImportAzureCdnStatistics
@@ -126,6 +127,7 @@ namespace Stats.ImportAzureCdnStatistics
                 logFileNameId = logFileNames[logFileName];
             }
 
+            
             Trace.WriteLine("Creating facts...");
             foreach (var groupedByPackageId in sourceData.GroupBy(e => e.PackageId, StringComparer.OrdinalIgnoreCase))
             {
@@ -161,6 +163,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                     foreach (var element in groupedByPackageIdAndVersion)
                     {
+                        bool factCreated = false;
                         // required dimensions
                         var dateId = dates.First(e => e.Date.Equals(element.EdgeServerTimeDelivered.Date)).Id;
                         var timeId = _times.First(e => e.HourOfDay == element.EdgeServerTimeDelivered.Hour).Id;
@@ -202,7 +205,7 @@ namespace Stats.ImportAzureCdnStatistics
                         }
 
                         int projectTypeId = DimensionId.Unknown;
-                        if (knownProjectTypesAvailable)
+                        if (knownProjectTypesAvailable && !string.IsNullOrEmpty(element.ProjectGuids))
                         {
                             // foreach project type
                             foreach (var projectGuid in element.ProjectGuids.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
@@ -212,6 +215,7 @@ namespace Stats.ImportAzureCdnStatistics
                                 var dataRow = dataTable.NewRow();
                                 FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, projectTypeId, clientId, userAgentId, logFileNameId, edgeServerIpAddressId);
                                 dataTable.Rows.Add(dataRow);
+                                factCreated = true;
                             }
                         }
                         else
@@ -219,6 +223,12 @@ namespace Stats.ImportAzureCdnStatistics
                             var dataRow = dataTable.NewRow();
                             FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, projectTypeId, clientId, userAgentId, logFileNameId, edgeServerIpAddressId);
                             dataTable.Rows.Add(dataRow);
+                            factCreated = true;
+                        }
+
+                        if (!factCreated)
+                        {
+                            ApplicationInsights.TrackException(new Exception("Download fact not created. Element: " + JsonConvert.SerializeObject(element)), logFileName);
                         }
                     }
                 }
