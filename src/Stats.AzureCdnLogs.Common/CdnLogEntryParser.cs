@@ -11,6 +11,11 @@ namespace Stats.AzureCdnLogs.Common
 
         public static CdnLogEntry ParseLogEntryFromLine(string line)
         {
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                return null;
+            }
+
             // ignore comment rows (i.e., first row listing the column headers
             if (line.StartsWith("#"))
             {

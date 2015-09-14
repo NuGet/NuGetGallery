@@ -9,6 +9,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib;
 using ICSharpCode.SharpZipLib.GZip;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
@@ -259,29 +260,38 @@ namespace Stats.CollectAzureCdnLogs
                 {
                     targetStreamWriter.Write("#Fields: timestamp time-taken c-ip filesize s-ip s-port sc-status sc-bytes cs-method cs-uri-stem - rs-duration rs-bytes c-referrer c-user-agent customer-id x-ec_custom-1\n");
 
-                    do
+                    try
                     {
-                        var rawLogLine = sourceStreamReader.ReadLine();
-                        var logLine = GetParsedModifiedLogEntry(rawLogLine);
-                        if (!string.IsNullOrEmpty(logLine))
+                        do
                         {
-                            targetStreamWriter.Write(logLine);
-                        }
-                    } while (!sourceStreamReader.EndOfStream);
+                            var rawLogLine = sourceStreamReader.ReadLine();
+                            var logLine = GetParsedModifiedLogEntry(rawLogLine);
+                            if (!string.IsNullOrEmpty(logLine))
+                            {
+                                targetStreamWriter.Write(logLine);
+                            }
+                        } while (!sourceStreamReader.EndOfStream);
+                    }
+                    catch (SharpZipBaseException e)
+                    {
+                        // this raw log file may be corrupt...
+                        // todo: log this
+                        throw;
+                    }
                 }
             }
         }
 
         private static string GetParsedModifiedLogEntry(string rawLogEntry)
         {
-            const string spaceCharacter = " ";
-            const string dashCharacter = "-";
             var parsedEntry = CdnLogEntryParser.ParseLogEntryFromLine(rawLogEntry);
-
             if (parsedEntry == null)
             {
                 return null;
             }
+
+            const string spaceCharacter = " ";
+            const string dashCharacter = "-";
 
             var stringBuilder = new StringBuilder();
 
