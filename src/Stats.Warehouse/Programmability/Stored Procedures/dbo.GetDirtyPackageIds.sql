@@ -17,7 +17,7 @@ BEGIN
 	-- query for dirty package id's
 	-- dirty = package id has registered new downloads between last known cursor position (exclusive) and cursor run-to position (inclusive)
 
-	SELECT	DISTINCT P.[PackageId], @CursorRunToPosition AS [CursorRunToPosition]
+		SELECT	DISTINCT P.[PackageId], @CursorRunToPosition AS [CursorRunToPosition], SUM(ISNULL(F.[DownloadCount], 0)) AS PackageDownloadCount
 	FROM	[dbo].[Fact_Download] (NOLOCK) AS F
 
 	INNER JOIN	[dbo].[Dimension_Package] AS P (NOLOCK)
@@ -25,5 +25,6 @@ BEGIN
 
 	WHERE	ISNULL(F.[Timestamp], CONVERT(DATETIME, '1900-01-01')) > @CursorPosition AND ISNULL(F.[Timestamp], CONVERT(DATETIME, '1900-01-01')) <= @CursorRunToPosition
 
-	ORDER BY P.[PackageId] ASC
+	GROUP BY P.[PackageId]
+	ORDER BY SUM(ISNULL(F.[DownloadCount], 0)) DESC
 END
