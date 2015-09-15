@@ -3,6 +3,9 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 
+	DECLARE @ReportGenerationTime DATETIME = GETDATE()
+	DECLARE @Cursor DATETIME = (SELECT ISNULL(MAX([Position]), @ReportGenerationTime) FROM [dbo].[Cursors] (NOLOCK) WHERE [Name] = 'GetDirtyPackageId')
+
 	SELECT	P.[PackageId],
 			P.[PackageVersion],
 			SUM(ISNULL(F.[DownloadCount], 0)) AS [TotalDownloadCount]
@@ -10,6 +13,13 @@ BEGIN
 
 	INNER JOIN	[dbo].[Dimension_Package] AS P (NOLOCK)
 	ON		P.[Id] = F.[Dimension_Package_Id]
+
+	INNER JOIN	Dimension_Client AS C (NOLOCK)
+	ON			C.[Id] = F.[Dimension_Client_Id]
+
+	WHERE		F.[Timestamp] <= @Cursor
+			AND C.ClientCategory NOT IN ('Crawler', 'Script', 'Unknown')
+			AND NOT (C.ClientCategory = 'NuGet' AND ISNULL(C.Major, '0') = '99')
 
 	GROUP BY	P.[PackageId],
 				P.[PackageVersion]

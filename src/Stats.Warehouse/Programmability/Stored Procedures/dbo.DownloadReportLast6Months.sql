@@ -4,6 +4,8 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 
+	DECLARE @Cursor DATETIME = (SELECT ISNULL(MAX([Position]), @ReportGenerationTime) FROM [dbo].[Cursors] (NOLOCK) WHERE [Name] = 'GetDirtyPackageId')
+
 	SELECT	D.[Year],
 			D.[MonthOfYear],
 			SUM(ISNULL(Facts.[DownloadCount], 0)) 'Downloads'
@@ -23,7 +25,7 @@ BEGIN
 					DATEPART(year, @ReportGenerationTime),
 					DATEPART(month, @ReportGenerationTime),
 					1, 0, 0, 0, 0)
-			AND Facts.[Timestamp] <= (SELECT MAX([Position]) FROM [dbo].[Cursors] (NOLOCK) WHERE [Name] = 'GetDirtyPackageId')
+			AND Facts.[Timestamp] <= @Cursor
 
 	GROUP BY	D.[Year], D.[MonthOfYear]
 	ORDER BY	[Year], [MonthOfYear]

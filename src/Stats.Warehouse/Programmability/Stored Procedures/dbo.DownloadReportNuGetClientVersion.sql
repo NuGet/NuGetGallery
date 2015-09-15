@@ -4,6 +4,8 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 
+	DECLARE @Cursor DATETIME = (SELECT ISNULL(MAX([Position]), @ReportGenerationTime) FROM [dbo].[Cursors] (NOLOCK) WHERE [Name] = 'GetDirtyPackageId')
+
 	-- Find all clients that have had download facts added in the last 42 days, today inclusive
 	SELECT	Client.[Major],
 			Client.[Minor],
@@ -19,7 +21,7 @@ BEGIN
 	WHERE	D.[Date] IS NOT NULL
 		AND ISNULL(D.[Date], CONVERT(DATE, '1900-01-01')) >= CONVERT(DATE, DATEADD(day, -42, @ReportGenerationTime))
 		AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, @ReportGenerationTime))) <= CONVERT(DATE, @ReportGenerationTime)
-		AND Facts.[Timestamp] <= (SELECT MAX([Position]) FROM [dbo].[Cursors] (NOLOCK) WHERE [Name] = 'GetDirtyPackageId')
+		AND Facts.[Timestamp] <= @Cursor
 		AND Client.[ClientCategory] = 'NuGet'
 		AND ISNULL(Client.[Major], '0') <> '99'
 
