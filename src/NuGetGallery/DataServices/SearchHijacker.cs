@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.Collections.Generic;
-using System.Data.Objects;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
@@ -130,8 +129,14 @@ namespace NuGetGallery.DataServices
                     {
                         result = Hijack(comparisons);
                     }
-                    catch (HttpRequestException)
+                    catch (HttpRequestException ex)
                     {
+                        Telemetry.TrackEvent("Failure-SearchHijacker.TryHijack", new Dictionary<string, string>
+                        {
+                            { "ExceptionMessage", ex.Message },
+                            { "ExceptionStackTrace", ex.StackTrace },
+                            { "Expression", expression.ToString() }
+                        });
                         return false;
                     }
                     return true;

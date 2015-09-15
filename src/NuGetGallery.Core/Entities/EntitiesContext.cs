@@ -6,6 +6,7 @@ using System.Data.Entity.Infrastructure;
 
 namespace NuGetGallery
 {
+    [DbConfigurationType(typeof(EntitiesConfiguration))]
     public class EntitiesContext
         : DbContext, IEntitiesContext
     {
