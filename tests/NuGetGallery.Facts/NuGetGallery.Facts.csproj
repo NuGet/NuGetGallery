@@ -229,6 +229,8 @@
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandlerFacts.cs" />
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
     <Compile Include="Authentication\ForceSslWhenAuthenticatedMiddlewareFacts.cs" />
+    <Compile Include="AutocompleteServicePackageIdsQueryFacts.cs" />
+    <Compile Include="AutocompleteServicePackageVersionsQueryFacts.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommandFacts.cs" />
     <Compile Include="App_Start\ConfigurationServiceFacts.cs" />
     <Compile Include="Controllers\AppControllerFacts.cs" />

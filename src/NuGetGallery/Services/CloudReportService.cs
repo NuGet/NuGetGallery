@@ -4,13 +4,13 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 
 namespace NuGetGallery
 {
     public class CloudReportService : IReportService
     {
+        private const string _statsContainerName = "nuget-cdnstats";
         private readonly string _connectionString;
         private readonly bool _readAccessGeoRedundant;
 
@@ -20,25 +20,25 @@ namespace NuGetGallery
             _readAccessGeoRedundant = readAccessGeoRedundant;
         }
 
-        public async Task<StatisticsReport> Load(string name)
+        public async Task<StatisticsReport> Load(string reportName)
         {
-            //  In NuGet we always use lowercase names for all blobs in Azure Storage
-            name = name.ToLowerInvariant();
+            // In NuGet we always use lowercase names for all blobs in Azure Storage
+            reportName = reportName.ToLowerInvariant();
 
             string connectionString = _connectionString;
 
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            var storageAccount = CloudStorageAccount.Parse(connectionString);
+            var blobClient = storageAccount.CreateCloudBlobClient();
 
             if (_readAccessGeoRedundant)
             {
                 blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
             }
 
-            CloudBlobContainer container = blobClient.GetContainerReference("stats");
-            CloudBlockBlob blob = container.GetBlockBlobReference("popularity/" + name);
+            var container = blobClient.GetContainerReference(_statsContainerName);
+            var blob = container.GetBlockBlobReference(reportName);
 
-            //Check if the report blob is present before processing it.
+            // Check if the report blob is present before processing it.
             if(!blob.Exists())
             {
                 throw new StatisticsReportNotFoundException();

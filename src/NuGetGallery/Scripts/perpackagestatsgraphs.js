@@ -70,6 +70,12 @@ var SemVer = function (versionString) {
                     return -1;
                 }
                 if (this.patch === other.patch) {
+                    if (this.preRelease === undefined && other.preRelease !== undefined) {
+                        return 1;
+                    }
+                    if (this.preRelease !== undefined && other.preRelease === undefined) {
+                        return -1;
+                    }
                     if (this.preRelease < other.preRelease) {
                         return -1;
                     }
@@ -97,7 +103,7 @@ var drawDownloadsByVersionBarChart = function () {
         };
         data[data.length] = item;
     });
-    
+
     data.sort(sortByVersion);
 
     //  limit the bar graph to the most recent 15 versions

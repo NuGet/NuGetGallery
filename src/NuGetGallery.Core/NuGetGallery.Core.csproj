@@ -112,10 +112,13 @@
     <Compile Include="Entities\EntitiesConfiguration.cs" />
     <Compile Include="Entities\EntitiesContext.cs" />
     <Compile Include="Entities\EntityException.cs" />
+    <Compile Include="Entities\Interception\ObjectMaterializedInterception.cs" />
+    <Compile Include="Entities\Interception\ObjectMaterializedInterceptingDbContext.cs" />
     <Compile Include="Entities\EntityRepository.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
     <Compile Include="Entities\IEntitiesContext.cs" />
     <Compile Include="Entities\IEntity.cs" />
+    <Compile Include="Entities\Interception\IObjectMaterializedInterceptor.cs" />
     <Compile Include="Entities\IEntityRepository.cs" />
     <Compile Include="Entities\Package.cs" />
     <Compile Include="Entities\PackageAuthor.cs" />
