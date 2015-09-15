@@ -9,7 +9,7 @@ cd bin
 
 	title #{Jobs.stats.createazurecdndownloadcountreports.Title}
 
-	start /w stats.createazurecdndownloadcountreports.exe -AzureCdnCloudStorageAccount "#{Jobs.stats.createazurecdndownloadcountreports.AzureCdn.CloudStorageAccount}" -AzureCdnCloudStorageContainerName "#{Jobs.stats.createazurecdndownloadcountreports.AzureCdn.CloudStorageContainerName}" -StatisticsDatabase "#{Jobs.stats.createazurecdndownloadcountreports.StatisticsDatabase}" -SourceDatabase "#{Jobs.stats.createazurecdndownloadcountreports.SourceDatabase}" -verbose true -interval #{Jobs.stats.createazurecdndownloadcountreports.Interval}
+	start /w stats.createazurecdndownloadcountreports.exe -AzureCdnCloudStorageAccount "#{Jobs.stats.createazurecdndownloadcountreports.AzureCdn.CloudStorageAccount}" -AzureCdnCloudStorageContainerName "#{Jobs.stats.createazurecdndownloadcountreports.AzureCdn.CloudStorageContainerName}" -StatisticsDatabase "#{Jobs.stats.createazurecdndownloadcountreports.StatisticsDatabase}" -SourceDatabase "#{Jobs.stats.createazurecdndownloadcountreports.SourceDatabase}" -InstrumentationKey "#{Jobs.stats.createazurecdndownloadcountreports.InstrumentationKey}" -verbose true -interval #{Jobs.stats.createazurecdndownloadcountreports.Interval}
 
 	echo "Finished #{Jobs.stats.createazurecdndownloadcountreports.Title}"
 

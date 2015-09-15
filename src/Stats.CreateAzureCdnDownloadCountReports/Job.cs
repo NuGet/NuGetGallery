@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
+using Stats.AzureCdnLogs.Common;
 
 namespace Stats.CreateAzureCdnDownloadCountReports
 {
@@ -28,6 +29,9 @@ namespace Stats.CreateAzureCdnDownloadCountReports
         {
             try
             {
+                var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
+                ApplicationInsights.Initialize(instrumentationKey);
+
                 var statisticsDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
                 _statisticsDatabase = new SqlConnectionStringBuilder(statisticsDatabaseConnectionString);
 
@@ -43,6 +47,7 @@ namespace Stats.CreateAzureCdnDownloadCountReports
             catch (Exception exception)
             {
                 Trace.TraceError(exception.ToString());
+                ApplicationInsights.TrackException(exception);
                 return false;
             }
         }
@@ -51,19 +56,31 @@ namespace Stats.CreateAzureCdnDownloadCountReports
         {
             try
             {
+                var stopwatch = Stopwatch.StartNew();
+
                 // build downloads.v1.json
                 var downloadCountReport = new DownloadCountReport(_cloudStorageAccount, _statisticsContainerName, _statisticsDatabase, _galleryDatabase);
                 await downloadCountReport.Run();
 
+                stopwatch.Stop();
+                ApplicationInsights.TrackMetric(DownloadCountReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+                ApplicationInsights.TrackReportProcessed(DownloadCountReport.ReportName);
+                stopwatch.Restart();
+
                 // build stats-totals.json
                 var galleryTotalsReport = new GalleryTotalsReport(_cloudStorageAccount, _statisticsContainerName, _statisticsDatabase, _galleryDatabase);
                 await galleryTotalsReport.Run();
+
+                stopwatch.Stop();
+                ApplicationInsights.TrackMetric(GalleryTotalsReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+                ApplicationInsights.TrackReportProcessed(GalleryTotalsReport.ReportName);
 
                 return true;
             }
             catch (Exception exception)
             {
                 Trace.TraceError(exception.ToString());
+                ApplicationInsights.TrackException(exception);
                 return false;
             }
         }

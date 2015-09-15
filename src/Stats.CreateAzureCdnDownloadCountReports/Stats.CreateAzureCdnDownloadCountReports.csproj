@@ -85,6 +85,10 @@
       <Project>{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}</Project>
       <Name>NuGet.Jobs.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Stats.AzureCdnLogs.Common\Stats.AzureCdnLogs.Common.csproj">
+      <Project>{F72C31A7-424D-48C6-924C-EBFD4BE0918B}</Project>
+      <Name>Stats.AzureCdnLogs.Common</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

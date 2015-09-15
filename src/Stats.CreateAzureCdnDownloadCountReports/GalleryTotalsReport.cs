@@ -20,7 +20,7 @@ namespace Stats.CreateAzureCdnDownloadCountReports
                     (SELECT COUNT([Key]) FROM PackageRegistrations pr WITH (NOLOCK)
                             WHERE EXISTS (SELECT 1 FROM Packages p WITH (NOLOCK) WHERE p.PackageRegistrationKey = pr.[Key] AND p.Listed = 1)) AS UniquePackages,
                     (SELECT COUNT([Key]) FROM Packages WITH (NOLOCK) WHERE Listed = 1) AS TotalPackages";
-        private const string ReportName = "stats-totals.json";
+        internal const string ReportName = "stats-totals.json";
 
         public GalleryTotalsReport(CloudStorageAccount cloudStorageAccount, string statisticsContainerName, SqlConnectionStringBuilder statisticsDatabase, SqlConnectionStringBuilder galleryDatabase)
             : base(cloudStorageAccount, statisticsContainerName, statisticsDatabase, galleryDatabase)

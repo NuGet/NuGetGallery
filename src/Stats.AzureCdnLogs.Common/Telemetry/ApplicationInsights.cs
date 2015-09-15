@@ -87,7 +87,7 @@ namespace Stats.AzureCdnLogs.Common
             telemetryClient.Flush();
         }
 
-        public static void TrackMetric(string metricName, double value, string logFileName)
+        public static void TrackMetric(string metricName, double value, string logFileName = null)
         {
             if (!_initialized)
             {

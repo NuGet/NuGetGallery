@@ -17,7 +17,8 @@ namespace Stats.CreateAzureCdnDownloadCountReports
         : ReportBase
     {
         private const string StoredProcedureName = "[dbo].[SelectTotalDownloadCountsPerPackageVersion]";
-        private const string ReportName = "downloads.v1.json";
+        internal const string ReportName = "downloads.v1.json";
+        private const int _defaultCommandTimeout = 1800; // 30 minutes max
 
         public DownloadCountReport(CloudStorageAccount cloudStorageAccount, string statisticsContainerName, SqlConnectionStringBuilder statisticsDatabase, SqlConnectionStringBuilder galleryDatabase)
             : base(cloudStorageAccount, statisticsContainerName, statisticsDatabase, galleryDatabase)
@@ -37,7 +38,7 @@ namespace Stats.CreateAzureCdnDownloadCountReports
             using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
                 downloadData = (await connection.QueryWithRetryAsync<DownloadCountData>(
-                    StoredProcedureName, commandType: CommandType.StoredProcedure, transaction: transaction)).ToList();
+                    StoredProcedureName, commandType: CommandType.StoredProcedure, transaction: transaction, commandTimeout: _defaultCommandTimeout)).ToList();
             }
 
             Trace.TraceInformation("Gathered {0} rows of data.", downloadData.Count);
