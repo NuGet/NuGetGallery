@@ -19,7 +19,7 @@ BEGIN
 
 	WHERE		F.[Timestamp] <= @Cursor
 			AND C.ClientCategory NOT IN ('Crawler', 'Script', 'Unknown')
-			AND NOT (C.ClientCategory = 'NuGet' AND ISNULL(C.Major, '0') = '99')
+			AND NOT (C.ClientCategory = 'NuGet' AND CAST(ISNULL(C.[Major], '0') AS INT) > 10)
 
 	GROUP BY	P.[PackageId],
 				P.[PackageVersion]

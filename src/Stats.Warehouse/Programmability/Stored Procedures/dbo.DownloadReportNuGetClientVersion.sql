@@ -23,7 +23,7 @@ BEGIN
 		AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, @ReportGenerationTime))) <= CONVERT(DATE, @ReportGenerationTime)
 		AND Facts.[Timestamp] <= @Cursor
 		AND Client.[ClientCategory] = 'NuGet'
-		AND ISNULL(Client.[Major], '0') <> '99'
+		AND CAST(ISNULL(Client.[Major], '0') AS INT) <= 10
 
 	GROUP BY Client.[Major], Client.[Minor]
 	ORDER BY	[Major], [Minor]
