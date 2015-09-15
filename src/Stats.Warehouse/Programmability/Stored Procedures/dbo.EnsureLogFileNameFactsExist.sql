@@ -7,7 +7,8 @@ BEGIN
 	DECLARE @results TABLE
 	(
 		[Id]				INT				NOT NULL,
-		[LogFileName]       NVARCHAR(255)	NULL
+		[LogFileName]       NVARCHAR(255)	NULL,
+		INDEX IX_Results NONCLUSTERED ([Id], [LogFileName])
 	)
 
 	DECLARE @LogFileName NVARCHAR(255)

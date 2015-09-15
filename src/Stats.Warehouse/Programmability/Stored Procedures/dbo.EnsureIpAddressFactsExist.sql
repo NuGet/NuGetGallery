@@ -7,10 +7,11 @@ BEGIN
 	DECLARE @results TABLE
 	(
 		[Id]				INT				NOT NULL,
-		[Address]			VARBINARY(16)	NOT NULL, 
-		[TextAddress]		NVARCHAR(45)	NOT NULL
+		[Address]			VARBINARY(16)	NOT NULL,
+		[TextAddress]		NVARCHAR(45)	NOT NULL,
+		INDEX IX_Results NONCLUSTERED ([Id], [Address], [TextAddress])
 	)
-	
+
 	DECLARE @Address VARBINARY(16)
 	DECLARE @TextAddress NVARCHAR(45)
 

@@ -7,7 +7,8 @@ BEGIN
 			SET NOCOUNT ON;
 
 			DECLARE @newDimensions TABLE(
-				[Operation] NVARCHAR(255)
+				[Operation] NVARCHAR(255),
+				INDEX IX_NewDimensions NONCLUSTERED ([Operation])
 			)
 
 			BEGIN TRY

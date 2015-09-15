@@ -72,7 +72,7 @@ namespace Stats.RefreshClientDimension
                 return results;
             }
 
-            var parameterValue = UserAgentFactTableType.CreateDataTable(userAgents);
+            var parameterValue = UserAgentFactTableType.CreateDataTable(userAgents.Distinct().ToList());
 
             var command = connection.CreateCommand();
             command.CommandText = "[dbo].[EnsureUserAgentFactsExist]";

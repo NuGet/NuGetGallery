@@ -1,4 +1,5 @@
 ﻿CREATE TYPE [dbo].[UserAgentFactTableType] AS TABLE
 (
-	[UserAgent]			NVARCHAR(900)	NULL
+	[UserAgent]			NVARCHAR(900)	NULL,
+	UNIQUE NONCLUSTERED ([UserAgent])
 )

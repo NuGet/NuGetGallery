@@ -984,7 +984,7 @@ namespace Stats.ImportAzureCdnStatistics
 
             if (nonCachedUserAgents.Any())
             {
-                var parameterValue = UserAgentFactTableType.CreateDataTable(nonCachedUserAgents);
+                var parameterValue = UserAgentFactTableType.CreateDataTable(nonCachedUserAgents.Distinct().ToList());
 
                 var command = connection.CreateCommand();
                 command.CommandText = "[dbo].[EnsureUserAgentFactsExist]";
