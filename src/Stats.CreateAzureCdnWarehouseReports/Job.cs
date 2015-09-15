@@ -131,9 +131,10 @@ namespace Stats.CreateAzureCdnWarehouseReports
             if (!dirtyPackageIds.Any())
                 return;
 
-            var result = Parallel.ForEach(dirtyPackageIds, new ParallelOptions { MaxDegreeOfParallelism = 8 }, dirtyPackageId =>
+            // first process the top 100 packages
+            var top100 = dirtyPackageIds.Take(100);
+            var result = Parallel.ForEach(top100, new ParallelOptions { MaxDegreeOfParallelism = 8 }, dirtyPackageId =>
             {
-                // generate all reports
                 var reportGenerators = new Dictionary<ReportBuilder, ReportDataCollector>
                     {
                         { new RecentPopularityDetailByPackageReportBuilder(ReportNames.RecentPopularityDetailByPackageId, "recentpopularity/" + _recentPopularityDetailByPackageReportBaseName + dirtyPackageId.PackageId.ToLowerInvariant()), new ReportDataCollector(_storedProceduresPerPackageId[ReportNames.RecentPopularityDetailByPackageId], _statisticsDatabase) }
@@ -146,10 +147,42 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 }
             });
 
+            // once top 100 is processed, continue with the rest
             if (result.IsCompleted)
             {
-                var runToCursor = dirtyPackageIds.First().RunToCuror;
-                await ReportDataCollector.UpdateDirtyPackageIdCursor(_statisticsDatabase, runToCursor);
+                var excludingTop100 = dirtyPackageIds.Skip(100);
+
+                result = Parallel.ForEach(excludingTop100, new ParallelOptions {MaxDegreeOfParallelism = 8},
+                    dirtyPackageId =>
+                    {
+                        // generate all reports
+                        var reportGenerators = new Dictionary<ReportBuilder, ReportDataCollector>
+                        {
+                            {
+                                new RecentPopularityDetailByPackageReportBuilder(
+                                    ReportNames.RecentPopularityDetailByPackageId,
+                                    "recentpopularity/" + _recentPopularityDetailByPackageReportBaseName +
+                                    dirtyPackageId.PackageId.ToLowerInvariant()),
+                                new ReportDataCollector(
+                                    _storedProceduresPerPackageId[ReportNames.RecentPopularityDetailByPackageId],
+                                    _statisticsDatabase)
+                            }
+                        };
+
+                        foreach (var reportGenerator in reportGenerators)
+                        {
+                            ProcessReport(destinationContainer, reportGenerator.Key, reportGenerator.Value,
+                                reportGenerationTime, Tuple.Create("@PackageId", 128, dirtyPackageId.PackageId)).Wait();
+                            ApplicationInsights.TrackReportProcessed(reportGenerator.Key.ReportName + " report",
+                                dirtyPackageId.PackageId.ToLowerInvariant());
+                        }
+                    });
+
+                if (result.IsCompleted)
+                {
+                    var runToCursor = dirtyPackageIds.First().RunToCuror;
+                    await ReportDataCollector.UpdateDirtyPackageIdCursor(_statisticsDatabase, runToCursor);
+                }
             }
         }
 
