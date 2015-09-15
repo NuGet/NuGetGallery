@@ -16,7 +16,7 @@
 GO
 CREATE NONCLUSTERED INDEX [Fact_Dist_Download_NCI_TimestampDesc]
     ON [dbo].[Fact_Dist_Download]([Timestamp] DESC)
-    INCLUDE([Dimension_Date_Id], [Dimension_Tool_Id], [DownloadCount]) WITH (STATISTICS_NORECOMPUTE = ON);
+    INCLUDE([Dimension_Date_Id], [Dimension_Tool_Id], [Dimension_Client_Id], [DownloadCount]) WITH (STATISTICS_NORECOMPUTE = ON);
 GO
 CREATE NONCLUSTERED INDEX [Fact_Dist_Download_NCI_DownloadCount]
     ON [dbo].[Fact_Dist_Download]([DownloadCount] ASC) WITH (STATISTICS_NORECOMPUTE = ON);
