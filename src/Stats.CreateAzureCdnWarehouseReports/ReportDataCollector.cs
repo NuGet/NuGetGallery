@@ -12,7 +12,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
 {
     internal class ReportDataCollector
     {
-        private const int _commandTimeout = 60 * 5; // 5 minutes
+        private const int _commandTimeout = 1800; // 30 minutes max
         private readonly string _procedureName;
         private readonly SqlConnectionStringBuilder _sourceDatabase;
 

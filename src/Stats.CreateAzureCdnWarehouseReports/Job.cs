@@ -133,26 +133,22 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
             // first process the top 100 packages
             var top100 = dirtyPackageIds.Take(100);
-            var result = Parallel.ForEach(top100, new ParallelOptions { MaxDegreeOfParallelism = 8 }, dirtyPackageId =>
+            var reportDataCollector = new ReportDataCollector(_storedProceduresPerPackageId[ReportNames.RecentPopularityDetailByPackageId], _statisticsDatabase);
+            var top100Task = Parallel.ForEach(top100, new ParallelOptions { MaxDegreeOfParallelism = 4 }, dirtyPackageId =>
             {
-                var reportGenerators = new Dictionary<ReportBuilder, ReportDataCollector>
-                    {
-                        { new RecentPopularityDetailByPackageReportBuilder(ReportNames.RecentPopularityDetailByPackageId, "recentpopularity/" + _recentPopularityDetailByPackageReportBaseName + dirtyPackageId.PackageId.ToLowerInvariant()), new ReportDataCollector(_storedProceduresPerPackageId[ReportNames.RecentPopularityDetailByPackageId], _statisticsDatabase) }
-                    };
+                var packageId = dirtyPackageId.PackageId.ToLowerInvariant();
+                var reportBuilder = new RecentPopularityDetailByPackageReportBuilder(ReportNames.RecentPopularityDetailByPackageId, "recentpopularity/" + _recentPopularityDetailByPackageReportBaseName + packageId);
 
-                foreach (var reportGenerator in reportGenerators)
-                {
-                    ProcessReport(destinationContainer, reportGenerator.Key, reportGenerator.Value, reportGenerationTime, Tuple.Create("@PackageId", 128, dirtyPackageId.PackageId)).Wait();
-                    ApplicationInsights.TrackReportProcessed(reportGenerator.Key.ReportName + " report", dirtyPackageId.PackageId.ToLowerInvariant());
-                }
+                ProcessReport(destinationContainer, reportBuilder, reportDataCollector, reportGenerationTime, Tuple.Create("@PackageId", 128, dirtyPackageId.PackageId)).Wait();
+                ApplicationInsights.TrackReportProcessed(reportBuilder.ReportName + " report", packageId);
             });
 
             // once top 100 is processed, continue with the rest
-            if (result.IsCompleted)
+            if (top100Task.IsCompleted)
             {
                 var excludingTop100 = dirtyPackageIds.Skip(100);
 
-                result = Parallel.ForEach(excludingTop100, new ParallelOptions {MaxDegreeOfParallelism = 8},
+                top100Task = Parallel.ForEach(excludingTop100, new ParallelOptions { MaxDegreeOfParallelism = 8 },
                     dirtyPackageId =>
                     {
                         // generate all reports
@@ -178,7 +174,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                         }
                     });
 
-                if (result.IsCompleted)
+                if (top100Task.IsCompleted)
                 {
                     var runToCursor = dirtyPackageIds.First().RunToCuror;
                     await ReportDataCollector.UpdateDirtyPackageIdCursor(_statisticsDatabase, runToCursor);
@@ -202,20 +198,20 @@ namespace Stats.CreateAzureCdnWarehouseReports
             var reportSet = new HashSet<string>(reports);
             Trace.TraceInformation("Collected {0} package detail reports", reportSet.Count);
 
-            Parallel.ForEach(packageIds, new ParallelOptions { MaxDegreeOfParallelism = 8}, async id =>
-            {
-                string reportName = _recentPopularityDetailByPackageReportBaseName + id;
-                string blobName = subContainer + reportName + ".json";
-                if (reportSet.Contains(blobName))
-                {
-                    var blob = destinationContainer.GetBlockBlobReference(blobName);
-                    Trace.TraceInformation("{0}: Deleting empty report from {1}", reportName, blob.Uri.AbsoluteUri);
+            Parallel.ForEach(packageIds, new ParallelOptions { MaxDegreeOfParallelism = 8 }, async id =>
+             {
+                 string reportName = _recentPopularityDetailByPackageReportBaseName + id;
+                 string blobName = subContainer + reportName + ".json";
+                 if (reportSet.Contains(blobName))
+                 {
+                     var blob = destinationContainer.GetBlockBlobReference(blobName);
+                     Trace.TraceInformation("{0}: Deleting empty report from {1}", reportName, blob.Uri.AbsoluteUri);
 
-                    await blob.DeleteIfExistsAsync();
+                     await blob.DeleteIfExistsAsync();
 
-                    Trace.TraceInformation("{0}: Deleted empty report from {1}", reportName, blob.Uri.AbsoluteUri);
-                }
-            });
+                     Trace.TraceInformation("{0}: Deleted empty report from {1}", reportName, blob.Uri.AbsoluteUri);
+                 }
+             });
         }
 
         private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount)
