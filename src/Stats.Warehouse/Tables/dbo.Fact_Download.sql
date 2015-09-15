@@ -26,13 +26,9 @@ CREATE NONCLUSTERED INDEX [Fact_Download_NCI_Package_Id]
     ON [dbo].[Fact_Download]([Dimension_Package_Id] ASC)
     INCLUDE([Dimension_Client_Id], [Dimension_Date_Id], [Dimension_Operation_Id], [DownloadCount]) WITH (STATISTICS_NORECOMPUTE = ON);
 GO
-CREATE NONCLUSTERED INDEX [Fact_Download_NCI_Date_Id]
-    ON [dbo].[Fact_Download]([Dimension_Date_Id] ASC)
-    INCLUDE([Dimension_Package_Id], [DownloadCount]) WITH (STATISTICS_NORECOMPUTE = ON);
-GO
-CREATE NONCLUSTERED INDEX [Fact_Download_NCI_Client_Id]
-    ON [dbo].[Fact_Download] ([Dimension_Date_Id])
-	INCLUDE ([Dimension_Client_Id], [DownloadCount]) WITH (ONLINE = ON)
+CREATE NONCLUSTERED INDEX [Fact_Download_NCI_Date_Time]
+    ON [dbo].[Fact_Download]([Dimension_Date_Id] ASC, [Timestamp])
+    INCLUDE([Dimension_Package_Id], [Dimension_Client_Id], [DownloadCount]) WITH (STATISTICS_NORECOMPUTE = ON);
 GO
 CREATE NONCLUSTERED INDEX [Fact_Download_NCI_UserAgent]
     ON [dbo].[Fact_Download] ([Fact_UserAgent_Id])
