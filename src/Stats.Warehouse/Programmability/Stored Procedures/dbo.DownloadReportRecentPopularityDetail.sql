@@ -15,10 +15,15 @@ BEGIN
 	INNER JOIN	[dbo].[Dimension_Package] AS P (NOLOCK)
 	ON			F.[Dimension_Package_Id] = P.[Id]
 
+	INNER JOIN	Dimension_Client AS C (NOLOCK)
+	ON			C.[Id] = F.[Dimension_Client_Id]
+
 	WHERE		D.[Date] IS NOT NULL
 			AND ISNULL(D.[Date], CONVERT(DATE, '1900-01-01')) >= CONVERT(DATE, DATEADD(day, -42, @ReportGenerationTime))
 			AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, @ReportGenerationTime))) <= CONVERT(DATE, @ReportGenerationTime)
 			AND F.[Timestamp] <= (SELECT MAX([Position]) FROM [dbo].[Cursors] (NOLOCK) WHERE [Name] = 'GetDirtyPackageId')
+			AND C.ClientCategory NOT IN ('Crawler', 'Script', 'Unknown')
+			AND NOT (C.ClientCategory = 'NuGet' AND ISNULL(C.Major, '0') = '99')
 
 	GROUP BY	P.[PackageId],
 				P.[PackageVersion]
