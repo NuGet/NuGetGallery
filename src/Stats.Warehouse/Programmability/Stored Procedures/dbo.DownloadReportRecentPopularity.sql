@@ -17,10 +17,15 @@ BEGIN
 	INNER JOIN	[dbo].[Dimension_Package] AS P (NOLOCK)
 	ON			F.[Dimension_Package_Id] = P.[Id]
 
+	INNER JOIN	Dimension_Client AS C (NOLOCK)
+	ON			C.[Id] = F.[Dimension_Client_Id]
+
 	WHERE		D.[Date] IS NOT NULL
 			AND ISNULL(D.[Date], CONVERT(DATE, '1900-01-01')) >= CONVERT(DATE, DATEADD(day, -42, @ReportGenerationTime))
 			AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, @ReportGenerationTime))) <= CONVERT(DATE, @ReportGenerationTime)
 			AND F.[Timestamp] <= @Cursor
+			AND C.ClientCategory NOT IN ('Crawler', 'Script', 'Unknown')
+			AND NOT (C.ClientCategory = 'NuGet' AND CAST(ISNULL(C.[Major], '0') AS INT) > 10)
 
 	GROUP BY	P.[PackageId]
 	ORDER BY	[Downloads] DESC
