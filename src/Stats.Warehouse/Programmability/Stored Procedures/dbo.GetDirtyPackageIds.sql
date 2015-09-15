@@ -1,4 +1,5 @@
 ﻿CREATE PROCEDURE [dbo].[GetDirtyPackageIds]
+	@ReportGenerationTime DATETIME
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -8,10 +9,9 @@ BEGIN
 
 	-- Run to second latest timestamp in facts table
 	DECLARE @CursorRunToPosition DATETIME = (
-												SELECT	TOP 1 [Timestamp]
+												SELECT	MAX([Timestamp])
 												FROM	[dbo].[Fact_Download] (NOLOCK)
-												WHERE	[Timestamp] < (SELECT MAX([Timestamp]) FROM [dbo].[Fact_Download] (NOLOCK) )
-												ORDER BY [Timestamp] DESC
+												WHERE	[Timestamp] < @ReportGenerationTime
 											 )
 
 	-- query for dirty package id's

@@ -126,7 +126,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
         private async Task RebuildPackageReports(CloudBlobContainer destinationContainer, DateTime reportGenerationTime)
         {
-            var dirtyPackageIds = await ReportDataCollector.GetDirtyPackageIds(_statisticsDatabase);
+            var dirtyPackageIds = await ReportDataCollector.GetDirtyPackageIds(_statisticsDatabase, reportGenerationTime);
 
             if (!dirtyPackageIds.Any())
                 return;

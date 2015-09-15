@@ -36,14 +36,14 @@ namespace Stats.CreateAzureCdnWarehouseReports
             return table;
         }
 
-        public static async Task<IReadOnlyCollection<DirtyPackageId>> GetDirtyPackageIds(SqlConnectionStringBuilder sourceDatabase)
+        public static async Task<IReadOnlyCollection<DirtyPackageId>> GetDirtyPackageIds(SqlConnectionStringBuilder sourceDatabase, DateTime reportGenerationTime)
         {
             Trace.TraceInformation("Getting list of dirty packages IDs.");
 
             IReadOnlyCollection<DirtyPackageId> packageIds = new List<DirtyPackageId>();
 
             // Get the data
-            await WithRetry(async () => packageIds = await GetDirtyPackageIdsFromWarehouse(sourceDatabase));
+            await WithRetry(async () => packageIds = await GetDirtyPackageIdsFromWarehouse(sourceDatabase, reportGenerationTime));
 
             Trace.TraceInformation("Found {0} dirty packages to update.", packageIds.Count);
 
@@ -128,13 +128,15 @@ namespace Stats.CreateAzureCdnWarehouseReports
             }
         }
 
-        private static async Task<IReadOnlyCollection<DirtyPackageId>> GetDirtyPackageIdsFromWarehouse(SqlConnectionStringBuilder sourceDatabase)
+        private static async Task<IReadOnlyCollection<DirtyPackageId>> GetDirtyPackageIdsFromWarehouse(SqlConnectionStringBuilder sourceDatabase, DateTime reportGenerationTime)
         {
             using (var connection = await sourceDatabase.ConnectTo())
             {
                 var command = new SqlCommand("[dbo].[GetDirtyPackageIds]", connection);
                 command.CommandType = CommandType.StoredProcedure;
                 command.CommandTimeout = _commandTimeout;
+
+                command.Parameters.Add("ReportGenerationTime", SqlDbType.DateTime).Value = reportGenerationTime;
 
                 var packageIds = new List<DirtyPackageId>();
                 using (var reader = await command.ExecuteReaderAsync())
