@@ -20,7 +20,7 @@ function update(data, currData, key) {
     var currentValue = currData[key] || '';
     var value = data[key].toString();
     var self = $('#' + key);
-    
+
     if (currentValue != value) {
         currData[key] = value;
         var length = value.length;

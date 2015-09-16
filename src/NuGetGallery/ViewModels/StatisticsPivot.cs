@@ -199,7 +199,7 @@ namespace NuGetGallery
         // This is for an internal data structure that represents the pivot as a tree.
         // An instance of a Level is a node in that tree. The Level can either contain
         // a dictionary of next Levels or an Amount. If Next is null then the Amount is valid
-        // and the Level is a leaf node in the tree. The Count and Total fields are calculated 
+        // and the Level is a leaf node in the tree. The Count and Total fields are calculated
         // and added to the tree after it has been constructed. They are correct with respect
         // to their subtree. The Count is useful for formatting RowSpan in HTML tables.
 

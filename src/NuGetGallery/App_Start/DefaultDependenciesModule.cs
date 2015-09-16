@@ -247,22 +247,14 @@ namespace NuGetGallery
                 .As<IAutomaticallyCuratePackageCommand>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<PackageIdsQuery>()
-                .AsSelf()
-                .As<IPackageIdsQuery>()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<PackageVersionsQuery>()
-                .AsSelf()
-                .As<IPackageVersionsQuery>()
-                .InstancePerLifetimeScope();
+            ConfigureAutocomplete(builder, configuration);
 
             builder.RegisterType<DiagnosticsService>()
                 .AsSelf()
                 .As<IDiagnosticsService>()
                 .SingleInstance();
         }
-
+        
         private static void ConfigureSearch(ContainerBuilder builder, ConfigurationService configuration)
         {
             if (configuration.Current.ServiceDiscoveryUri == null)
@@ -282,6 +274,34 @@ namespace NuGetGallery
                     .AsSelf()
                     .As<ISearchService>()
                     .As<IIndexingService>()
+                    .InstancePerLifetimeScope();
+            }
+        }
+        private static void ConfigureAutocomplete(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            if (configuration.Current.ServiceDiscoveryUri != null &&
+                !string.IsNullOrEmpty(configuration.Current.AutocompleteServiceResourceType))
+            {
+                builder.RegisterType<AutocompleteServicePackageIdsQuery>()
+                    .AsSelf()
+                    .As<IPackageIdsQuery>()
+                    .SingleInstance();
+
+                builder.RegisterType<AutocompleteServicePackageVersionsQuery>()
+                    .AsSelf()
+                    .As<IPackageVersionsQuery>()
+                    .InstancePerLifetimeScope();
+            }
+            else
+            {
+                builder.RegisterType<PackageIdsQuery>()
+                    .AsSelf()
+                    .As<IPackageIdsQuery>()
+                    .InstancePerLifetimeScope();
+
+                builder.RegisterType<PackageVersionsQuery>()
+                    .AsSelf()
+                    .As<IPackageVersionsQuery>()
                     .InstancePerLifetimeScope();
             }
         }
@@ -338,6 +358,14 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IReportService>()
                 .SingleInstance();
+
+            // when running on Windows Azure, download counts come from the downloads.v1.json blob
+            var downloadCountService = new CloudDownloadCountService(configuration.Current.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant);
+            builder.RegisterInstance(downloadCountService)
+                .AsSelf()
+                .As<IDownloadCountService>()
+                .SingleInstance();
+            EntityInterception.AddInterceptor(new DownloadCountEntityInterceptor(downloadCountService));
 
             builder.RegisterType<JsonStatisticsService>()
                 .AsSelf()

@@ -118,7 +118,7 @@ var drawMonthlyDownloadsLineChart = function () {
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom);
 
-    svg.append('title').text('Packages Downloaded Per Month');
+    svg.append('title').text('Packages Downloaded - Month to Date');
     svg.append('desc').text('This is a graph showing the number of downloads from NuGet per month.');
 
     svg = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");

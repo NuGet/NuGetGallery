@@ -2,17 +2,26 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 
 namespace NuGetGallery
 {
     public class EntitiesContext
-        : DbContext, IEntitiesContext
+        : EntityInterceptorDbContext, IEntitiesContext
     {
         static EntitiesContext()
         {
             // Don't run migrations, ever!
             Database.SetInitializer<EntitiesContext>(null);
+        }
+
+        /// <summary>
+        /// This constructor is provided mainly for purposes of running migrations from Package Manager console,
+        /// or any other scenario where a connection string will be set after the EntitiesContext is created
+        /// (and read only mode is don't care).
+        /// </summary>
+        public EntitiesContext()
+            : this("Gallery.SqlServer", false) // Use the connection string in a web.config (if one is found)
+        {
         }
 
         /// <summary>
@@ -22,16 +31,6 @@ namespace NuGetGallery
             : base(connectionString)
         {
             ReadOnly = readOnly;
-        }
-
-        /// <summary>
-        /// This constructor is provided mainly for purposes of running migrations from Package Manager console,
-        /// or any other scenario where a connection string will be set after the EntitiesContext is created
-        /// (and read only mode is don't care).
-        /// </summary>
-        public EntitiesContext()
-            : base("Gallery.SqlServer") // Use the connection string in a web.config (if one is found)
-        {
         }
 
         public bool ReadOnly { get; private set; }
@@ -63,7 +62,7 @@ namespace NuGetGallery
 
         public void SetCommandTimeout(int? seconds)
         {
-            ((IObjectContextAdapter)this).ObjectContext.CommandTimeout = seconds;
+            ObjectContext.CommandTimeout = seconds;
         }
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
@@ -214,6 +213,5 @@ namespace NuGetGallery
                 .HasRequired(cp => cp.PackageRegistration);
         }
 #pragma warning restore 618
-
     }
 }
