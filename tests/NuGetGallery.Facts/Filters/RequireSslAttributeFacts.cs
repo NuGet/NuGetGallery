@@ -5,7 +5,6 @@ using System.Web.Mvc;
 using Moq;
 using NuGetGallery.Configuration;
 using Xunit;
-using Xunit.Extensions;
 
 namespace NuGetGallery.Filters
 {
@@ -60,7 +59,6 @@ namespace NuGetGallery.Filters
             // Arrange
             var mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
             var mockConfig = new Mock<IAppConfiguration>();
-            var mockFormsAuth = new Mock<IFormsAuthenticationService>();
 
             mockAuthContext.SetupGet(c => c.HttpContext.Request.HttpMethod).Returns("get");
             mockAuthContext.SetupGet(c => c.HttpContext.Request.Url).Returns(new Uri("http://test.nuget.org/login"));
@@ -75,7 +73,6 @@ namespace NuGetGallery.Filters
                 Configuration = mockConfig.Object
             };
 
-            var result = new ViewResult();
             var context = mockAuthContext.Object;
             
             // Act
@@ -86,7 +83,6 @@ namespace NuGetGallery.Filters
             Assert.Equal("https://" + String.Format(hostFormatter, "test.nuget.org") + "/login", ((RedirectResult)context.Result).Url);
         }
 
-        
         // Each set permutes HTTP Methods for the same parameters as the test above
         [Theory]
         [InlineData("POST")]
@@ -99,7 +95,6 @@ namespace NuGetGallery.Filters
             // Arrange
             var mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
             var mockConfig = new Mock<IAppConfiguration>();
-            var mockFormsAuth = new Mock<IFormsAuthenticationService>();
 
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsLocal).Returns(false);
             mockAuthContext.SetupGet(c => c.HttpContext.Request.HttpMethod).Returns(method);
