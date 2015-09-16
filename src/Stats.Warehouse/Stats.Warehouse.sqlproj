@@ -121,5 +121,6 @@
     <Build Include="Tables\dbo.Fact_IpAddress.sql" />
     <Build Include="Programmability\Types\IpAddressFactTableType.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.EnsureIpAddressFactsExist.sql" />
+    <Build Include="Programmability\Stored Procedures\dbo.SelectTotalDownloadCountsPerToolVersion.sql" />
   </ItemGroup>
 </Project>

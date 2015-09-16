@@ -75,6 +75,16 @@ namespace Stats.CreateAzureCdnDownloadCountReports
                 ApplicationInsights.TrackMetric(GalleryTotalsReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
                 ApplicationInsights.TrackReportProcessed(GalleryTotalsReport.ReportName);
 
+
+                // build tools.v1.json
+                var toolsReport = new DownloadsPerToolVersionReport(_cloudStorageAccount, _statisticsContainerName, _statisticsDatabase, _galleryDatabase);
+                await toolsReport.Run();
+
+                stopwatch.Stop();
+                ApplicationInsights.TrackMetric(DownloadsPerToolVersionReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+                ApplicationInsights.TrackReportProcessed(DownloadsPerToolVersionReport.ReportName);
+                stopwatch.Restart();
+
                 return true;
             }
             catch (Exception exception)

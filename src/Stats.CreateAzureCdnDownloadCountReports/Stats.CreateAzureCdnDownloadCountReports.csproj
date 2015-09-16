@@ -67,6 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DownloadCountData.cs" />
+    <Compile Include="DownloadsPerToolVersionReport.cs" />
     <Compile Include="GalleryTotalsData.cs" />
     <Compile Include="GalleryTotalsReport.cs" />
     <Compile Include="Job.cs" />
@@ -75,6 +76,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DownloadCountReport.cs" />
     <Compile Include="ReportBase.cs" />
+    <Compile Include="ToolDownloadCountData.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
