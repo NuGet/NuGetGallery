@@ -11,7 +11,8 @@ namespace NuGetGallery {
         protected override void OnDataBinding(EventArgs e) {
             HyperLinkUrl.NavigateUrl = ProcessUrl(FieldValueString);
         }
-    
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
         private string ProcessUrl(string url) {
             if (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) {
                 return url;    
