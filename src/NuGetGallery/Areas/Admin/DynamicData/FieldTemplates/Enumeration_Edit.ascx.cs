@@ -35,7 +35,8 @@ namespace NuGetGallery {
                 }
             }
         }
-    
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         private Type EnumType {
             get {
                 if (_enumType == null) {
@@ -44,7 +45,8 @@ namespace NuGetGallery {
                 return _enumType;
             }
         }
-    
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1820:TestForEmptyStringsUsingStringLength")]
         protected override void ExtractValues(IOrderedDictionary dictionary) {
             string value = DropDownList1.SelectedValue;
             if (value == String.Empty) {
