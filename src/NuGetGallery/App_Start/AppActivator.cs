@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Claims;
 using System.Web.Helpers;
+using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
@@ -194,6 +195,17 @@ namespace NuGetGallery
             if (configuration.CollectPerfLogs)
             {
                 jobs.Add(CreateLogFlushJob());
+            }
+
+            if (configuration.StorageType == StorageType.AzureStorage)
+            {
+                var cloudDownloadCountService = DependencyResolver.Current.GetService<IDownloadCountService>() as CloudDownloadCountService;
+                if (cloudDownloadCountService != null)
+                {
+                    // Perform initial refresh + schedule new refreshes every 15 minutes
+                    HostingEnvironment.QueueBackgroundWorkItem(cancellationToken => cloudDownloadCountService.Refresh());
+                    jobs.Add(new CloudDownloadCountServiceRefreshJob(TimeSpan.FromMinutes(15), cloudDownloadCountService));
+                }
             }
 
             if (jobs.AnySafe())

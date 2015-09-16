@@ -32,6 +32,10 @@ else
         $(document).ready(function() {
             groupbyNavigation();
             packageDisplayGraphs();
+
+            if ($('.dimension-checkbox:checked').length === 0 && location.search.indexOf('groupby') >= 0) {
+                location.reload();
+            }
         });
     </script>
 }

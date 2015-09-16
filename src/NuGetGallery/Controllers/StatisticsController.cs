@@ -226,7 +226,7 @@ namespace NuGetGallery
 
             StatisticsPackagesReport report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
 
-            ProcessReport(report, groupby, new string[] { "ClientName", "ClientVersion", "Operation" }, null, DetermineClientLocale());
+            ProcessReport(report, groupby, new[] { "ClientName", "ClientVersion", "Operation" }, null, DetermineClientLocale());
 
             if (report != null)
             {
@@ -249,15 +249,13 @@ namespace NuGetGallery
                 return;
             }
 
-            string[] pivot = new string[4];
-
+            var pivot = new string[4];
             if (groupby != null)
             {
                 //  process and validate the groupby query. unrecognized fields are ignored. others fields regarded for existance
+                var dim = 0;
 
-                int dim = 0;
-
-                foreach (string dimension in dimensions)
+                foreach (var dimension in dimensions)
                 {
                     CheckGroupBy(groupby, dimension, pivot, ref dim, report);
                 }
@@ -265,13 +263,11 @@ namespace NuGetGallery
                 if (dim == 0)
                 {
                     // no recognized fields so just fall into the null logic
-
                     groupby = null;
                 }
                 else
                 {
                     // the pivot array is used as the Columns in the report so we resize because this was the final set of columns
-
                     Array.Resize(ref pivot, dim);
                 }
 
@@ -279,12 +275,12 @@ namespace NuGetGallery
 
                 if (id != null)
                 {
-                    int col = Array.FindIndex(pivot, (s) => s.Equals("Version", StringComparison.Ordinal));
+                    var col = Array.FindIndex(pivot, s => s.Equals("Version", StringComparison.Ordinal));
                     if (col >= 0)
                     {
-                        for (int row = 0; row < result.Item1.GetLength(0); row++)
+                        for (var row = 0; row < result.Item1.GetLength(0); row++)
                         {
-                            StatisticsPivot.TableEntry entry = result.Item1[row][col];
+                            var entry = result.Item1[row][col];
                             if (entry != null)
                             {
                                 entry.Uri = Url.Package(id, entry.Data);
@@ -314,7 +310,7 @@ namespace NuGetGallery
 
         private static void CheckGroupBy(string[] groupby, string name, string[] pivot, ref int dimension, StatisticsPackagesReport report)
         {
-            if (Array.Exists(groupby, (s) => s.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            if (Array.Exists(groupby, s => s.Equals(name, StringComparison.OrdinalIgnoreCase)))
             {
                 pivot[dimension++] = name;
                 report.Dimensions.Add(new StatisticsDimension { Value = name, DisplayName = GetDimensionDisplayName(name), IsChecked = true });
