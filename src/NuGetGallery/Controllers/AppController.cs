@@ -36,7 +36,7 @@ namespace NuGetGallery
             return DependencyResolver.Current.GetService<T>();
         }
 
-        protected internal User GetCurrentUser()
+        protected internal virtual User GetCurrentUser()
         {
             return OwinContext.GetCurrentUser();
         }

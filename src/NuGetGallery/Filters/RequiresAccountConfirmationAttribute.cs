@@ -2,16 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.Globalization;
-using System.Security.Principal;
 using System.Web.Mvc;
-using NuGetGallery.Authentication;
 
 namespace NuGetGallery.Filters
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = true)]
     public sealed class RequiresAccountConfirmationAttribute : ActionFilterAttribute
     {
-        private string _inOrderTo;
+        private readonly string _inOrderTo;
 
         public RequiresAccountConfirmationAttribute(string inOrderTo)
         {
@@ -35,7 +33,7 @@ namespace NuGetGallery.Filters
             
             if (!user.Confirmed)
             {
-                controller.TempData["ConfirmationRequiredMessage"] = String.Format(
+                controller.TempData["ConfirmationRequiredMessage"] = string.Format(
                     CultureInfo.CurrentCulture,
                     "Before you can {0} you must first confirm your email address.", _inOrderTo);
                 controller.HttpContext.SetConfirmationReturnUrl(controller.Url.Current());

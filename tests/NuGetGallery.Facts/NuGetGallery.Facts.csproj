@@ -247,6 +247,8 @@
     <Compile Include="Entities\EntitiesContextFacts.cs" />
     <Compile Include="Entities\PackageFacts.cs" />
     <Compile Include="ExtensionMethodsFacts.cs" />
+    <Compile Include="Filters\ApiAuthorizeAttributeFacts.cs" />
+    <Compile Include="Filters\RequiresAccountConfirmationAttributeFacts.cs" />
     <Compile Include="Filters\RequireSslAttributeFacts.cs" />
     <Compile Include="Framework\AssertEx.cs" />
     <Compile Include="Framework\Fakes.cs" />
