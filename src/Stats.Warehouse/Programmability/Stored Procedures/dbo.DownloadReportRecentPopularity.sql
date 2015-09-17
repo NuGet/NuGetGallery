@@ -24,7 +24,7 @@ BEGIN
 			AND ISNULL(D.[Date], CONVERT(DATE, '1900-01-01')) >= CONVERT(DATE, DATEADD(day, -42, @ReportGenerationTime))
 			AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, @ReportGenerationTime))) <= CONVERT(DATE, @ReportGenerationTime)
 			AND F.[Timestamp] <= @Cursor
-			AND C.ClientCategory NOT IN ('Crawler', 'Script', 'Unknown')
+			AND C.ClientCategory NOT IN ('Crawler', 'Unknown')
 			AND NOT (C.ClientCategory = 'NuGet' AND CAST(ISNULL(C.[Major], '0') AS INT) > 10)
 
 	GROUP BY	P.[PackageId]

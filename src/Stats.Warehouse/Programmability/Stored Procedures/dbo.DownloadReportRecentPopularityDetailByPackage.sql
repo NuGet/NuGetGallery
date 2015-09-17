@@ -11,9 +11,21 @@ BEGIN
 	SELECT
 			P.PackageVersion,
 			C.ClientCategory,
-			C.ClientName,
-			C.Major,
-			C.Minor,
+			CASE
+				WHEN	C.ClientCategory = 'Script'
+				THEN	'Scripted Downloads'
+				ELSE	C.ClientName
+			END AS ClientName,
+			CASE
+				WHEN	C.ClientCategory = 'Script'
+				THEN	'0'
+				ELSE	C.Major
+			END AS Major,
+			CASE
+				WHEN	C.ClientCategory = 'Script'
+				THEN	'0'
+				ELSE	C.Minor
+			END AS Minor,
 			O.Operation,
 			SUM(ISNULL(F.DownloadCount, 0)) 'Downloads'
 	FROM	[dbo].[Fact_Download] AS F (NOLOCK)
@@ -35,23 +47,35 @@ BEGIN
 			AND ISNULL(D.[Date], CONVERT(DATE, DATEADD(day, 1, @ReportGenerationTime))) <= CONVERT(DATE, @ReportGenerationTime)
 			AND F.[Timestamp] <= @Cursor
 			AND P.PackageId = @PackageId
-			AND C.ClientCategory NOT IN ('Crawler', 'Script', 'Unknown')
+			AND C.ClientCategory NOT IN ('Crawler', 'Unknown')
 			AND NOT (C.ClientCategory = 'NuGet' AND CAST(ISNULL(C.[Major], '0') AS INT) > 10)
 
 	GROUP BY
 				P.PackageVersion,
-				C.ClientName,
+				CASE
+					WHEN	C.ClientCategory = 'Script'
+					THEN	'Scripted Downloads'
+					ELSE	C.ClientName
+				END,
 				C.ClientCategory,
-				C.Major,
-				C.Minor,
+				CASE
+					WHEN	C.ClientCategory = 'Script'
+					THEN	'0'
+					ELSE	C.Major
+				END,
+				CASE
+					WHEN	C.ClientCategory = 'Script'
+					THEN	'0'
+					ELSE	C.Minor
+				END,
 				O.Operation
 
 	ORDER BY
 				P.PackageVersion,
-				C.ClientName,
+				ClientName,
 				C.ClientCategory,
-				C.Major,
-				C.Minor,
+				Major,
+				Minor,
 				O.Operation,
 				[Downloads] DESC
 END

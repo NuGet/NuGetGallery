@@ -18,7 +18,7 @@ BEGIN
 	ON			C.[Id] = F.[Dimension_Client_Id]
 
 	WHERE		F.[Timestamp] <= @Cursor
-			AND C.ClientCategory NOT IN ('Crawler', 'Script', 'Unknown')
+			AND C.ClientCategory NOT IN ('Crawler', 'Unknown')
 			AND NOT (C.ClientCategory = 'NuGet' AND CAST(ISNULL(C.[Major], '0') AS INT) > 10)
 
 	GROUP BY	P.[PackageId],
