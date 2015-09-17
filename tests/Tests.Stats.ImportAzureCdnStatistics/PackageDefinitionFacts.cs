@@ -13,6 +13,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
         [InlineData("nuget.core", "1.0.1", "http://localhost/packages/nuget.core.1.0.1.nupkg")]
         [InlineData("nuget.core", "1.0", "http://localhost/packages/nuget.core.1.0.nupkg")]
         [InlineData("1", "1.0.0", "http://localhost/packages/1.1.0.0.nupkg")]
+        [InlineData("dnx-mono", "1.0.0-beta7", "http://localhost/packages/dnx-mono.1.0.0-beta7.nupkg")]
         [InlineData("Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling.ServiceBus", "6.0.1304", "http://localhost/packages/Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling.ServiceBus.6.0.1304.nupkg")]
         [InlineData("新包", "1.0.0", "http://localhost/packages/%E6%96%B0%E5%8C%85.1.0.0.nupkg")]
         //[InlineData("5.0.0.0", "5.0.0", "http://localhost/packages/5.0.0.0.5.0.0.nupkg")] -- can't determine for 100% what the correct id and version is without reaching out to the main gallery db
