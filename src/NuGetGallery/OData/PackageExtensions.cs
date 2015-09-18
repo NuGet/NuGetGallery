@@ -19,7 +19,6 @@ namespace NuGetGallery.OData
             siteRoot = EnsureTrailingSlash(siteRoot);
             return packages
                 .Include(p => p.PackageRegistration)
-                .WithoutNullPropagation()
                 .Select(
                     p => new V1FeedPackage
                         {
@@ -59,8 +58,7 @@ namespace NuGetGallery.OData
         {
             return ProjectV2FeedPackage(
                 packages
-                    .Include(p => p.PackageRegistration)
-                    .WithoutNullPropagation(),
+                    .Include(p => p.PackageRegistration),
                 siteRoot, includeLicenseReport);
         }
 

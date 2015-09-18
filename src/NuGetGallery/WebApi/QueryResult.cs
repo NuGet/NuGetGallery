@@ -32,7 +32,7 @@ namespace NuGetGallery.WebApi
         private readonly IQueryable<TModel> _queryable;
         private readonly System.Web.Http.ApiController _controller;
         private readonly long? _totalResults;
-        private readonly Func<ODataQueryOptions<TModel>, ODataQuerySettings, Uri> _generateNextLink;
+        private readonly Func<ODataQueryOptions<TModel>, ODataQuerySettings, long?, Uri> _generateNextLink;
         private readonly bool _isPagedResult;
 
         private readonly ODataValidationSettings _validationSettings;
@@ -48,7 +48,7 @@ namespace NuGetGallery.WebApi
 
         public QueryResult(
             ODataQueryOptions<TModel> queryOptions, IQueryable<TModel> queryable, System.Web.Http.ApiController controller, int maxPageSize,
-                long? totalResults, Func<ODataQueryOptions<TModel>, ODataQuerySettings, Uri> generateNextLink)
+                long? totalResults, Func<ODataQueryOptions<TModel>, ODataQuerySettings, long?, Uri> generateNextLink)
         {
             _queryOptions = queryOptions;
             _queryable = queryable;
@@ -62,7 +62,7 @@ namespace NuGetGallery.WebApi
             }
 
             // todo: if we decide to no longer support projections
-            //AllowedQueryOptions = AllowedQueryOptions.All & ~AllowedQueryOptions.Select
+            //AllowedQueryOptions = AllowedQueryOptions.All & ~AllowedQugeteryOptions.Select
             _validationSettings = new ODataValidationSettings();
 
             _querySettings = new ODataQuerySettings(QueryResultDefaults.DefaultQuerySettings)
@@ -163,12 +163,12 @@ namespace NuGetGallery.WebApi
                         if (modelQueryResults != null)
                         {
                             return NegotiatedContentResult(
-                                new PageResult<TModel>(modelQueryResults, _generateNextLink(_queryOptions, _querySettings), _totalResults));
+                                new PageResult<TModel>(modelQueryResults, _generateNextLink(_queryOptions, _querySettings, _totalResults), _totalResults));
                         }
                         else if (projectedQueryResults != null)
                         {
                             return NegotiatedContentResult(
-                                new PageResult<IEdmEntityObject>(projectedQueryResults, _generateNextLink(_queryOptions, _querySettings), _totalResults));
+                                new PageResult<IEdmEntityObject>(projectedQueryResults, _generateNextLink(_queryOptions, _querySettings, _totalResults), _totalResults));
                         }
                     }
                 }

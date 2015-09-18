@@ -76,7 +76,7 @@ namespace NuGetGallery.OData
         /// <param name="totalResults">The total number of results. This number can be larger than the size of the page being served.</param>
         /// <param name="generateNextLink">Function that generates a next link.</param>
         /// <returns>A QueryResult instance.</returns>
-        protected virtual IHttpActionResult QueryResult<TModel>(ODataQueryOptions<TModel> options, IQueryable<TModel> queryable, int maxPageSize, long totalResults, Func<ODataQueryOptions<TModel>, ODataQuerySettings, Uri> generateNextLink)
+        protected virtual IHttpActionResult QueryResult<TModel>(ODataQueryOptions<TModel> options, IQueryable<TModel> queryable, int maxPageSize, long totalResults, Func<ODataQueryOptions<TModel>, ODataQuerySettings, long?, Uri> generateNextLink)
         {
             return new QueryResult<TModel>(options, queryable, this, maxPageSize, totalResults, generateNextLink);
         }

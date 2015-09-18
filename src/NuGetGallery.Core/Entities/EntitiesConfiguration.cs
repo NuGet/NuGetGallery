@@ -18,8 +18,6 @@ namespace NuGetGallery
             // See https://msdn.microsoft.com/en-us/data/dn456835.aspx and msdn.microsoft.com/en-us/data/dn307226
             SetExecutionStrategy("System.Data.SqlClient", () => SuspendExecutionStrategy
                 ? (IDbExecutionStrategy)new DefaultExecutionStrategy() : new SqlAzureExecutionStrategy());
-
-            AddInterceptor(new DatabaseLogger("D:\\x.log", true));
         }
 
         public static bool SuspendExecutionStrategy

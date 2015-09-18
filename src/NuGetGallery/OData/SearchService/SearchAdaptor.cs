@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using System.Web.Routing;
 using NuGet.Services.Search.Models;
@@ -230,20 +231,6 @@ namespace NuGetGallery.OData
                 }
             }
 
-            string skipTokenStr;
-            if (queryTerms.TryGetValue("$skiptoken", out skipTokenStr))
-            {
-                var skipTokenParts = skipTokenStr.Split(',');
-                if (skipTokenParts.Length == 3) // this means our custom IDataServicePagingProvider did its magic by sneaking the Skip value into the SkipToken
-                {
-                    int skip;
-                    if (int.TryParse(skipTokenParts[2], out skip))
-                    {
-                        searchFilter.Skip = skip;
-                    }
-                }
-            }
-
             //  only certain orderBy clauses are supported from the Lucene search
             string orderBy;
             if (queryTerms.TryGetValue("$orderby", out orderBy))
@@ -290,33 +277,16 @@ namespace NuGetGallery.OData
 
             return true;
         }
-
-        public static object GetPagingProvider<TPackage>(ISearchService searchService, HttpRequestBase request)
+        
+        public static Uri GetNextLink(Uri currentRequestUri, long? totalResultCount, object queryParameters, ODataQueryOptions options, ODataQuerySettings settings, bool generateSkipToken)
         {
-            // If we delegate to Lucene, we will have to do some paging tricks and inject a custom IDataServicePagingProvider
-            SearchFilter searchFilter;
-            if (request.Path.Contains("/Search") && TryReadSearchFilter(searchService.ContainsAllVersions, request.RawUrl, out searchFilter))
-            {
-                return new SearchAdaptorDataServicePagingProvider<TPackage>(searchFilter.Skip);
-            }
-            return null;
-        }
-
-        public static Uri GetNextLink<TPackage>(Uri currentRequestUri, IQueryable<TPackage> query, object queryParameters, ODataQueryOptions options, ODataQuerySettings settings, bool generateSkipToken)
-        {
-            var materializedQuery = query.ToList();
-            if (materializedQuery.Count != MaxPageSize)
+            if (!totalResultCount.HasValue || totalResultCount.Value <= MaxPageSize || totalResultCount.Value == 0)
             {
                 return null; // no need for a next link if there are no additional results
             }
-
-            var lastElement = materializedQuery.LastOrDefault();
-            var packageType = typeof(TPackage);
-            var packageId = packageType.GetProperty("Id").GetValue(lastElement).ToString();
-            var packageVersion = packageType.GetProperty("Version").GetValue(lastElement).ToString();
-
-            var skipCount = (options.Skip != null ? options.Skip.Value : 0) + Math.Min(materializedQuery.Count, (settings.PageSize != null ? settings.PageSize.Value : SearchAdaptor.MaxPageSize));
-
+           
+            var skipCount = (options.Skip != null ? options.Skip.Value : 0) + Math.Min(totalResultCount.Value, (settings.PageSize != null ? settings.PageSize.Value : SearchAdaptor.MaxPageSize));
+            
             var queryBuilder = new StringBuilder();
             
             var queryParametersCollection = new RouteValueDictionary(queryParameters);
@@ -387,58 +357,10 @@ namespace NuGetGallery.OData
             }
 
             var queryString = queryBuilder.ToString().TrimEnd('&');
-            if (generateSkipToken)
-            {
-                queryString += string.Format(CultureInfo.CurrentCulture, "&$skiptoken='{0}','{1}',{2}", packageId, packageVersion, skipCount);
-            }
 
             var builder = new UriBuilder(currentRequestUri);
             builder.Query = queryString;
             return builder.Uri;
-        }
-
-        public class SearchAdaptorDataServicePagingProvider<TPackage> : IDataServicePagingProvider
-        {
-            private readonly int _currentSkip;
-            private object[] _continuationToken;
-            private Type _packageType;
-
-            public SearchAdaptorDataServicePagingProvider(int currentSkip)
-            {
-                _currentSkip = currentSkip;
-                _packageType = typeof(TPackage);
-            }
-
-            public void SetContinuationToken(IQueryable query, ResourceType resourceType, object[] continuationToken)
-            {
-                if (resourceType.FullName != _packageType.FullName)
-                {
-                    throw new ArgumentException("The paging provider can not construct a meaningful continuation token because its type is different from the ResourceType for which a continuation token is requested.");
-                }
-                
-                var materializedQuery = (query as IQueryable<TPackage>).ToList();
-                var lastElement = materializedQuery.LastOrDefault();
-                if (lastElement != null && materializedQuery.Count == MaxPageSize)
-                {
-                    string packageId = _packageType.GetProperty("Id").GetValue(lastElement).ToString();
-                    string packageVersion = _packageType.GetProperty("Version").GetValue(lastElement).ToString();
-                    _continuationToken = new object[]
-                    {
-                        packageId,
-                        packageVersion,
-                        _currentSkip + Math.Min(materializedQuery.Count, MaxPageSize)
-                    };
-                }
-                else
-                {
-                    _continuationToken = null;
-                }
-            }
-
-            public object[] GetContinuationToken(IEnumerator enumerator)
-            {
-                return _continuationToken;
-            }
         }
     }
 }

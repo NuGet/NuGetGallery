@@ -12,6 +12,7 @@ using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using System.Web.Http.Results;
 using Moq;
+using NuGetGallery;
 using NuGetGallery.Configuration;
 using NuGetGallery.Controllers;
 using NuGetGallery.Helpers;
@@ -239,7 +240,7 @@ namespace NuGetGallery
                         null))
                         .ExpectQueryResult<V1FeedPackage>()
                         .GetInnerResult()
-                        .ExpectOkNegotiatedContentResult<PageResult<V1FeedPackage>>();
+                        .ExpectOkNegotiatedContentResult<IQueryable<V1FeedPackage>>();
 
                     // Assert
                     Assert.Equal(1, result.Count());
@@ -536,7 +537,7 @@ namespace NuGetGallery
                         includePrerelease: includePrerelease))
                         .ExpectQueryResult<V2FeedPackage>()
                         .GetInnerResult()
-                        .ExpectOkNegotiatedContentResult<PageResult<V2FeedPackage>>()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
                         .ToArray();
 
                     // Assert

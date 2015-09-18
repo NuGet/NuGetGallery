@@ -145,8 +145,7 @@ namespace NuGetGallery.Controllers
             string curatedFeedName,
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "", 
-            [FromODataUri]bool includePrerelease = false,
-            bool isCount = false)
+            [FromODataUri]bool includePrerelease = false)
         {
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
             {
@@ -172,35 +171,29 @@ namespace NuGetGallery.Controllers
 
             // Peform actual search
             var curatedFeed = _curatedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
-            var packages = _curatedFeedService.GetPackages(curatedFeedName);
+            var packages = _curatedFeedService.GetPackages(curatedFeedName)
+                .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version);
 
             // todo: search hijack should take queryOptions instead of manually parsing query options
             var query = await SearchAdaptor.SearchCore(
                 _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: curatedFeed);
+            
+            // If intercepted by SearchAdaptor, create a paged queryresult
+            if (query.IsQueryTranslator())
+            {
+                // Add explicit Take() needed to limit search hijack result set size if $top is specified
+                var totalHits = query.LongCount();
+                var pagedQueryable = query
+                    .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
+                    .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
 
-            // Build queryable
+                return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
+                   SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework, includePrerelease }, o, s, false));
+            }
+
+            // If not, just let OData handle things
             var queryable = query.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
-
-            // If not intercepted by SearchAdaptor, apply the options.Filter to our query so that $count can be determined accurately
-            if (!query.IsQueryTranslator() && isCount)
-            {
-                queryable = (IQueryable<V2FeedPackage>)options.Filter.ApplyTo(queryable, QueryResultDefaults.DefaultQuerySettings);
-            }
-
-            // Determine total results (not paged)
-            // If intercepted by SearchAdaptor -or- we are handling $count, return the actual value.
-            // If not, don't bother querying against DB as it slows down the result and accurate count is not needed.
-            long totalHits = MaxPageSize * 10;
-            if (query.IsQueryTranslator() || isCount)
-            {
-                totalHits = queryable.LongCount();
-            }
-
-            // Add explicit Take() needed to limit search hijack result set size if $top is specified
-            queryable = queryable.Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize);
-
-            return QueryResult(options, queryable, MaxPageSize, totalHits, (o, s) =>
-                SearchAdaptor.GetNextLink(Request.RequestUri, queryable, new { searchTerm, targetFramework, includePrerelease }, o, s, false));
+            return QueryResult(options, queryable, MaxPageSize);
         }
 
         // /api/v2/curated-feed/curatedFeedName/Search()/$count?searchTerm=&targetFramework=&includePrerelease=
@@ -213,7 +206,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string targetFramework = "", 
             [FromODataUri]bool includePrerelease = false)
         {
-            var searchResults = await Search(options, curatedFeedName, searchTerm, targetFramework, includePrerelease, isCount: true);
+            var searchResults = await Search(options, curatedFeedName, searchTerm, targetFramework, includePrerelease);
             return searchResults.FormattedAsCountResult<V2FeedPackage>();
         }
     }
