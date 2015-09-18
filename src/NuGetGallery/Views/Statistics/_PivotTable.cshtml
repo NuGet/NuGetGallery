@@ -1,20 +1,27 @@
 ﻿<div class="statistics-pivot" id="@Model.Id">
 
+    <div class="statistics-total-div">
+        <span class="statistics-total">Total over the last 6 weeks: @Model.Total</span>
+    </div>
+
+    <div class="statistics-graph" id="statistics-graph-id"></div>
+    <div style="clear: both;"></div>
+
     <div class="statistics-sidebar">
 
         <form id="dimension-form">
             <table class="statistics-dimensions-table">
-            @foreach (var item in Model.Dimensions)
+                @foreach (var item in Model.Dimensions)
             {
-                <tr>
-                    <td>
-                        <label for="checkbox-@item.Value">@item.DisplayName</label>
-                    </td>
-                    <td>
-                        <input id="checkbox-@item.Value" class="dimension-checkbox" name="groupby" value="@item.Value" type="checkbox" checked="@item.IsChecked">
-                    </td>
-                </tr>
-            }
+                    <tr>
+                        <td>
+                            <label for="checkbox-@item.Value">@item.DisplayName</label>
+                        </td>
+                        <td>
+                            <input id="checkbox-@item.Value" class="dimension-checkbox" name="groupby" value="@item.Value" type="checkbox" checked="@item.IsChecked">
+                        </td>
+                    </tr>
+                }
             </table>
         </form>
 
@@ -30,63 +37,59 @@
                         @foreach (var column in Model.Columns)
                         {
                             var id = column + "-column";
-                        
+
                             <th scope="col" class="dimension-column">@column</th>
                         }
                         <th scope="col">Downloads</th>
                     </tr>
                 </thead>
                 <tbody>
-                @{
-                    foreach (var row in Model.Table)
-                    {
-                        <tr>
-
-                        @foreach (var entry in row)
+                    @{
+                        foreach (var row in Model.Table)
                         {
-                            if (entry != null)
-                            {
-                                var entryClass = entry.IsNumeric ? "statistics-number" : "";
-                                
-                                if (entry.Rowspan > 1)
-                                {
-                                    <td class="@entryClass" rowspan="@entry.Rowspan" style="vertical-align:top">
-                                        @if (entry.Uri == null)
-                                        {
-                                            @entry.Data
-                                        }
-                                        else
-                                        {
-                                            <a href="@entry.Uri">@entry.Data</a>
-                                        }
-                                    </td>
-                                }
-                                else
-                                {
-                                    <td class="@entryClass">
-                                        @if (entry.Uri == null)
-                                        {
-                                            @entry.Data
-                                        }
-                                        else
-                                        {
-                                            <a href="@entry.Uri">@entry.Data</a>
-                                        }
-                                    </td>
-                                }                            
-                            }
-                        }
+                            <tr>
 
-                        </tr>
+                                @foreach (var entry in row)
+                                {
+                                    if (entry != null)
+                                    {
+                                        var entryClass = entry.IsNumeric ? "statistics-number" : "";
+
+                                        if (entry.Rowspan > 1)
+                                        {
+                                            <td class="@entryClass" rowspan="@entry.Rowspan" style="vertical-align:top">
+                                                @if (entry.Uri == null)
+                                                {
+                                                    @entry.Data
+                                                }
+                                                else
+                                                {
+                                                    <a href="@entry.Uri">@entry.Data</a>
+                                                }
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            <td class="@entryClass">
+                                                @if (entry.Uri == null)
+                                                {
+                                                    @entry.Data
+                                                }
+                                                else
+                                                {
+                                                    <a href="@entry.Uri">@entry.Data</a>
+                                                }
+                                            </td>
+                                        }
+                                    }
+                                }
+
+                            </tr>
+                        }
                     }
-                }
                 </tbody>
             </table>
-        }
-
-        <div class="statistics-total-div">
-            <span class="statistics-total">Total: @Model.Total</span>
-        </div>
+                        }
 
     </div>
 

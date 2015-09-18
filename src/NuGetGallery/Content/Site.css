@@ -786,24 +786,17 @@ ul.pager {
 }
 
 .statistics-total-div {
-    height: 100px;
-    width: 200px;
+    padding-bottom: 10px;
+    padding-top: 10px;
 }
 
 .statistics-total {
     font-weight: bold;
     font-size: 1.5em;
-    position: relative;
-    top: 30px;
-    left: 60px;
 }
 
 .statistics-rank {
     font-size: 0.8em;
-}
-
-.statistics-pivot {
-    float: left;
 }
 
 .statistics-sidebar {
@@ -812,15 +805,11 @@ ul.pager {
     height: 300px;
     font-size: 1.25em;
     font-weight: normal;
-    padding: 5px 10px 0px 0px;
-}
-
-.statistics-data {
-    float: left;
+    padding: 5px 10px 0 0;
 }
 
 .statistics-graph {
-    float: left;
+    width: 100%;
 }
 
 .statistics-dimensions-table {
@@ -832,6 +821,10 @@ ul.pager {
 .axis line {
     fill: none;
     stroke: #000;
+    -webkit-shape-rendering: crispEdges;
+    -moz-shape-rendering: crispEdges;
+    -ms-shape-rendering: crispEdges;
+    -o-shape-rendering: crispEdges;
     shape-rendering: crispEdges;
 }
 
