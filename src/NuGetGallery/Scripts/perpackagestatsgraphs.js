@@ -197,7 +197,12 @@ var drawDownloadsByClientNameBarChart = function () {
             clientName: d3.select(this).select(':nth-child(1)').text().replace(/(^\s*)|(\s*$)/g, ''),
             downloads: +(d3.select(this).select(':nth-child(2)').text().replace(/[^0-9]+/g, ''))
         };
-        data[data.length] = item;
+
+
+        //  filter out unknown
+        if (item.clientName !== '(unknown)') {
+            data[data.length] = item;
+        }
     });
 
     data.reverse();
