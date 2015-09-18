@@ -16,6 +16,15 @@ using Microsoft.Data.OData;
 
 namespace NuGetGallery.WebApi
 {
+    public static class QueryResultDefaults
+    {
+        public static ODataQuerySettings DefaultQuerySettings = new ODataQuerySettings()
+        {
+            HandleNullPropagation = HandleNullPropagationOption.False,
+            EnsureStableOrdering = true,
+        };
+    }
+
     public class QueryResult<TModel>
         : IHttpActionResult
     {
@@ -56,11 +65,9 @@ namespace NuGetGallery.WebApi
             //AllowedQueryOptions = AllowedQueryOptions.All & ~AllowedQueryOptions.Select
             _validationSettings = new ODataValidationSettings();
 
-            _querySettings = new ODataQuerySettings()
+            _querySettings = new ODataQuerySettings(QueryResultDefaults.DefaultQuerySettings)
             {
-                PageSize = maxPageSize,
-                HandleNullPropagation = HandleNullPropagationOption.False,
-                EnsureStableOrdering = true
+                PageSize = maxPageSize
             };
         }
 

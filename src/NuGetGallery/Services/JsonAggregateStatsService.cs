@@ -30,8 +30,8 @@ namespace NuGetGallery
                 blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
             }
 
-            CloudBlobContainer container = blobClient.GetContainerReference("v3-stats0");
-            CloudBlockBlob blob = container.GetBlockBlobReference("totals.json");
+            CloudBlobContainer container = blobClient.GetContainerReference("nuget-cdnstats");
+            CloudBlockBlob blob = container.GetBlockBlobReference("stats-totals.json");
 
             //Check if the report blob is present before processing it.
             if (!blob.Exists())

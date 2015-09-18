@@ -130,8 +130,14 @@ namespace NuGetGallery.OData
                     {
                         result = Hijack(comparisons);
                     }
-                    catch (HttpRequestException)
+                    catch (HttpRequestException ex)
                     {
+                        Telemetry.TrackEvent("Failure-SearchHijacker.TryHijack", new Dictionary<string, string>
+                        {
+                            { "ExceptionMessage", ex.Message },
+                            { "ExceptionStackTrace", ex.StackTrace },
+                            { "Expression", expression.ToString() }
+                        });
                         return false;
                     }
                     return true;

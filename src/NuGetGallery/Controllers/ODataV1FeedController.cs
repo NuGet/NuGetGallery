@@ -9,6 +9,7 @@ using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure;
 using NuGetGallery.OData;
 using NuGetGallery.WebApi;
 using WebApi.OutputCache.V2;
@@ -129,7 +130,8 @@ namespace NuGetGallery.Controllers
         public async Task<IHttpActionResult> Search(
             ODataQueryOptions<V1FeedPackage> options,
             [FromODataUri]string searchTerm = "", 
-            [FromODataUri]string targetFramework = "")
+            [FromODataUri]string targetFramework = "",
+            bool isCount = false)
         {
             // Handle OData-style |-separated list of frameworks.
             string[] targetFrameworkList = (targetFramework ?? "").Split(new[] { '\'', '|' }, StringSplitOptions.RemoveEmptyEntries);
@@ -152,17 +154,33 @@ namespace NuGetGallery.Controllers
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
-                .Where(p => p.Listed && !p.IsPrerelease);
+                .Where(p => p.Listed && !p.IsPrerelease)
+                .AsNoTracking();
 
             // todo: search hijack should take queryOptions instead of manually parsing query options
             var query = await SearchAdaptor.SearchCore(
                 _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, false, curatedFeed: null);
 
-            // Build queryable (explicit Take() needed to limit search hijack result set size if $top is specified)
-            var totalHits = query.LongCount();
-            var queryable = query
-                .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                .ToV1FeedPackageQuery(GetSiteRoot());
+            // Build queryable
+            var queryable = query.ToV1FeedPackageQuery(GetSiteRoot());
+
+            // If not intercepted by SearchAdaptor, apply the options.Filter to our query so that $count can be determined accurately
+            if (!query.IsQueryTranslator() && isCount)
+            {
+                queryable = (IQueryable<V1FeedPackage>)options.Filter.ApplyTo(queryable, QueryResultDefaults.DefaultQuerySettings);
+            }
+
+            // Determine total results (not paged)
+            // If intercepted by SearchAdaptor -or- we are handling $count, return the actual value.
+            // If not, don't bother querying against DB as it slows down the result and accurate count is not needed.
+            long totalHits = MaxPageSize * 10;
+            if (query.IsQueryTranslator() || isCount)
+            {
+                totalHits = queryable.LongCount();
+            }
+
+            // Add explicit Take() needed to limit search hijack result set size if $top is specified
+            queryable = queryable.Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize);
 
             return QueryResult(options, queryable, MaxPageSize, totalHits, (o, s) =>
                 SearchAdaptor.GetNextLink(Request.RequestUri, queryable, new { searchTerm, targetFramework }, o, s, false));
@@ -176,7 +194,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "")
         {
-            var searchResults = await Search(options, searchTerm, targetFramework);
+            var searchResults = await Search(options, searchTerm, targetFramework, isCount: true);
             return searchResults.FormattedAsCountResult<V1FeedPackage>();
         }
     }

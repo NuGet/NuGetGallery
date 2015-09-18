@@ -54,6 +54,11 @@ namespace NuGetGallery.Configuration
         string SearchServiceResourceType { get; set; }
 
         /// <summary>
+        /// Gets the @type for the Autocomplete endpoint
+        /// </summary>
+        string AutocompleteServiceResourceType { get; set; }
+
+        /// <summary>
         /// Gets the URI to the metrics service
         /// </summary>
         Uri MetricsServiceUri { get; set; }

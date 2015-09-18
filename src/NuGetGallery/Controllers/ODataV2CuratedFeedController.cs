@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
-using System.Web.Http.Results;
 using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryInterceptors;
 using NuGetGallery.WebApi;
@@ -145,7 +145,8 @@ namespace NuGetGallery.Controllers
             string curatedFeedName,
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "", 
-            [FromODataUri]bool includePrerelease = false)
+            [FromODataUri]bool includePrerelease = false,
+            bool isCount = false)
         {
             if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
             {
@@ -177,11 +178,26 @@ namespace NuGetGallery.Controllers
             var query = await SearchAdaptor.SearchCore(
                 _searchService, GetTraditionalHttpContext().Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeed: curatedFeed);
 
-            // Build queryable (explicit Take() needed to limit search hijack result set size if $top is specified)
-            var totalHits = query.LongCount();
-            var queryable = query
-                .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+            // Build queryable
+            var queryable = query.ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses);
+
+            // If not intercepted by SearchAdaptor, apply the options.Filter to our query so that $count can be determined accurately
+            if (!query.IsQueryTranslator() && isCount)
+            {
+                queryable = (IQueryable<V2FeedPackage>)options.Filter.ApplyTo(queryable, QueryResultDefaults.DefaultQuerySettings);
+            }
+
+            // Determine total results (not paged)
+            // If intercepted by SearchAdaptor -or- we are handling $count, return the actual value.
+            // If not, don't bother querying against DB as it slows down the result and accurate count is not needed.
+            long totalHits = MaxPageSize * 10;
+            if (query.IsQueryTranslator() || isCount)
+            {
+                totalHits = queryable.LongCount();
+            }
+
+            // Add explicit Take() needed to limit search hijack result set size if $top is specified
+            queryable = queryable.Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize);
 
             return QueryResult(options, queryable, MaxPageSize, totalHits, (o, s) =>
                 SearchAdaptor.GetNextLink(Request.RequestUri, queryable, new { searchTerm, targetFramework, includePrerelease }, o, s, false));
@@ -197,7 +213,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string targetFramework = "", 
             [FromODataUri]bool includePrerelease = false)
         {
-            var searchResults = await Search(options, curatedFeedName, searchTerm, targetFramework, includePrerelease);
+            var searchResults = await Search(options, curatedFeedName, searchTerm, targetFramework, includePrerelease, isCount: true);
             return searchResults.FormattedAsCountResult<V2FeedPackage>();
         }
     }

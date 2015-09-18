@@ -212,7 +212,7 @@
     **************************@
     @AccordianBar(
         groupName: "editprofile",
-        title: (CurrentUser.EmailAllowed ? "Subscribed to Email Notifications" : "Not subscribed to Email Notifications"),
+        title: (CurrentUser.EmailAllowed ? "Subscribed to Email Notifications" : "Not subscribed to Email Notifications (users can't contact you)"),
         enabled: CurrentUser.EmailAllowed,
         actions: @<text>
             @item.ExpandLink("More Info", "Less Info")

@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" CodeBehind="Enumeration_Edit.ascx.cs" Inherits="NuGetGallery.Areas.Admin.DynamicData.Enumeration_EditField" %>
+<%@ Control Language="C#" CodeBehind="Enumeration_Edit.ascx.cs" Inherits="NuGetGallery.Enumeration_EditField" %>
 
 <asp:DropDownList ID="DropDownList1" runat="server" CssClass="DDDropDown" />
 

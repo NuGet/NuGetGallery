@@ -1,0 +1,496 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+  For more information on how to configure your ASP.NET application, please visit
+  http://go.microsoft.com/fwlink/?LinkId=152368
+
+  NOTE: If you debug this on your local machine with IIS 7 then install the URL Rewrite Module
+  http://www.iis.net/downloads/microsoft/url-rewrite
+  -->
+<configuration>
+  <configSections>
+    <section name="entityFramework" type="System.Data.Entity.Internal.ConfigFile.EntityFrameworkSection, EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" requirePermission="false" />
+    <sectionGroup name="elmah">
+      <section name="security" requirePermission="false" type="Elmah.SecuritySectionHandler, Elmah" />
+      <section name="errorLog" requirePermission="false" type="Elmah.ErrorLogSectionHandler, Elmah" />
+      <section name="errorMail" requirePermission="false" type="Elmah.ErrorMailSectionHandler, Elmah" />
+      <section name="errorFilter" requirePermission="false" type="Elmah.ErrorFilterSectionHandler, Elmah" />
+    </sectionGroup>
+    <section name="dataCacheClients" type="Microsoft.ApplicationServer.Caching.DataCacheClientsSection, Microsoft.ApplicationServer.Caching.Core" allowLocation="true" allowDefinition="Everywhere" />
+    <section name="glimpse" type="Glimpse.Core.Configuration.Section, Glimpse.Core" />
+    <!-- For more information on Entity Framework configuration, visit http://go.microsoft.com/fwlink/?LinkID=237468 -->
+  </configSections>
+  <appSettings>
+    <!-- If you're running in Azure, we suggest you set these in your .cscfg file. -->
+    <!-- ******************* -->
+    <!-- DEPLOYMENT SPECIFIC -->
+    <!-- ******************* -->
+    <!-- These should change on every deployment (to rotate credentials, etc.) -->
+    <add key="Gallery.StorageType" value="FileSystem" />
+    <!-- The storage type to use. Can be FileSystem (default) or AzureStorage -->
+    <add key="Gallery.AzureStorageConnectionString" value="" />
+    <!-- The connection string for the Azure Storage Account used for Package Storage IF Gallery.StorageType is AzureStorage -->
+    <add key="Gallery.AzureStorageReadAccessGeoRedundant" value="false" />
+    <!-- If the storage account has to fall-back to a secondary (when Read Access Geo Redundant is enabled in Azure storage), change Gallery.AzureStorageReadAccessGeoRedundant to true -->
+
+    <!-- ******************** -->
+    <!-- ENVIRONMENT SPECIFIC -->
+    <!-- ******************** -->
+    <!-- These only need to change when defining a new environment -->
+    <!-- development only key, override on live site -->
+    <add key="Gallery.Environment" value="Development" />
+    <add key="Gallery.FacebookAppId" value="" />
+    <!-- Set this if you have a Application Insights instrumentation key to use for your gallery deployment -->
+    <add key="Gallery.AppInsightsInstrumentationKey" value="" />
+    <!-- Set this if you have a Facebook App ID you want to use for the Like button -->
+    <add key="Gallery.GoogleAnalyticsPropertyId" value="" />
+    <!-- Set this if you have a Google Analytics property for the site -->
+    <add key="Gallery.AzureCdnHost" value="" />
+    <!-- Set this to the Azure CDN Host you are using for blob storage, if you have configured one -->
+    <add key="Gallery.SiteRoot" value="http://nuget.localtest.me/" />
+    <add key="reCAPTCHA::PrivateKey" value="6LcebdwSAAAAAI5dI90LpPMFGKDxdCt6fjwEwMut" />
+    <add key="reCAPTCHA::PublicKey" value="6LcebdwSAAAAAFI06sH9RRb2VP1HFCjYpg74lKG7" />
+    <!-- ************* -->
+    <!-- AUTH SETTINGS -->
+    <!-- ************* -->
+    <!-- Enabling/Disabling and configuring auth providers -->
+    <add key="Auth.LocalUser.Enabled" value="true" />
+    <add key="Auth.ApiKey.Enabled" value="true" />
+    <add key="Auth.MicrosoftAccount.Enabled" value="false" />
+    <add key="Auth.MicrosoftAccount.ClientId" value="" />
+    <add key="Auth.MicrosoftAccount.ClientSecret" value="" />
+    <!-- *************** -->
+    <!-- STABLE SETTINGS -->
+    <!-- *************** -->
+    <!-- Depending on your policy, these likely do not need to vary -->
+    <!-- SmtpUri is expected to be of the format: smtps://username:password@host:port. Note that if username contains an "@", you need to URI Encode it! -->
+    <!--<add key="Gallery.SmtpUri" value="" />-->
+    <!--
+        Location for the Lucene Index.
+            AppData -> ~/App_Data/Lucene,
+            Temp -> [Path.GetTempPath()]/NuGetGallery/Lucene,
+    -->
+    <add key="Gallery.LuceneIndexLocation" value="AppData" />
+    <add key="Gallery.RequireSSL" value="false" />
+
+    <!-- Set this value to use a remote search service. This overrides ALL other Lucene-related settings and disables indexing jobs. -->
+    <!-- Example:
+        <add key="Gallery.ServiceDiscoveryUri" value="https://api.nuget.org/v3/index.json" />
+        <add key="Gallery.SearchServiceResourceType" value="SearchGalleryQueryService/3.0.0-rc" />
+        <add key="Gallery.AutocompleteServiceResourceType" value="SearchAutocompleteService/3.0.0-rc" />
+        -->
+    <add key="Gallery.ServiceDiscoveryUri" value="" />
+    <add key="Gallery.SearchServiceResourceType" value="" />
+<<<<<<< HEAD
+
+=======
+    <add key="Gallery.AutocompleteServiceResourceType" value="" />
+>>>>>>> issue-2655-cdn
+    <add key="Gallery.Brand" value="NuGet Gallery" />
+    <add key="Gallery.GalleryOwner" value="NuGet Gallery &lt;support@nuget.org&gt;" />
+    <add key="Gallery.ConfirmEmailAddresses" value="true" />
+
+    <!-- Set this to true if there is a backend worker based on NuGetGallery.Backend. This disables background tasks in the Website -->
+    <add key="Gallery.HasWorker" value="false" />
+    <add key="Gallery.CollectPerfLogs" value="false" />
+
+    <!-- This is also the default so you can remove this setting if you really want. -->
+    <!-- Set this to false if you want to disable search indexing in the background. -->
+    <add key="Gallery.AutoUpdateSearchIndex" value="true" />
+
+    <!-- Feature Configuration -->
+<<<<<<< HEAD
+    <add key="Feature.FriendlyLicenses" value="" /> <!-- Default is enabled. -->
+
+=======
+    <!-- Default is enabled. -->
+    <add key="Feature.FriendlyLicenses" value="" />
+    <!-- Default is disabled -->
+    <add key="Feature.PackageRestoreViaSearch" value="false" />
+>>>>>>> issue-2655-cdn
+    <!-- ***************** -->
+    <!-- ASP.Net settings. -->
+    <!-- ***************** -->
+    <!-- These should never need to be changed -->
+    <add key="webpages:Version" value="3.0.0.0" />
+    <add key="PreserveLoginUrl" value="true" />
+    <add key="ClientValidationEnabled" value="true" />
+    <add key="UnobtrusiveJavaScriptEnabled" value="true" />
+    <add key="autoFormsAuthentication" value="false" />
+    <add key="enableSimpleMembership" value="false" />
+    <add key="vs:EnableBrowserLink" value="false" />
+  </appSettings>
+  <connectionStrings>
+    <add name="Gallery.SqlServer" connectionString="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetGallery;Integrated Security=SSPI" providerName="System.Data.SqlClient" />
+  </connectionStrings>
+  <elmah>
+    <security allowRemoteAccess="true" />
+    <errorFilter>
+      <test>
+        <equal binding="HttpStatusCode" value="404" type="Int32" />
+      </test>
+    </errorFilter>
+    <errorLog type="Elmah.SqlErrorLog, Elmah" connectionStringName="NuGetGallery" />
+  </elmah>
+  <!-- Ensure only Admins may access elmah and glimpse -->
+  <location path="Admin" inheritInChildApplications="false">
+    <system.web>
+      <httpHandlers>
+        <add name="Glimpse" verb="GET" path="Glimpse" type="Glimpse.AspNet.HttpHandler, Glimpse.AspNet" />
+        <add name="Elmah" verb="POST,GET,HEAD" path="Errors.axd" type="Elmah.ErrorLogPageFactory, Elmah" />
+      </httpHandlers>
+      <authorization>
+        <allow roles="Admins" />
+        <deny users="*" />
+      </authorization>
+      <customErrors mode="RemoteOnly" />
+    </system.web>
+    <system.webServer>
+      <handlers>
+        <remove name="Glimpse" />
+        <remove name="Elmah" />
+        <add name="Glimpse" path="Glimpse" verb="GET" type="Glimpse.AspNet.HttpHandler, Glimpse.AspNet" preCondition="integratedMode" />
+        <add name="Elmah" path="Errors.axd" verb="POST,GET,HEAD" type="Elmah.ErrorLogPageFactory, Elmah" preCondition="integratedMode" />
+      </handlers>
+      <httpErrors>
+        <clear />
+      </httpErrors>
+      <httpProtocol>
+        <customHeaders>
+          <remove name="X-Powered-By" />
+        </customHeaders>
+      </httpProtocol>
+    </system.webServer>
+  </location>
+  <!-- Configure paths containing static files -->
+  <location path="Content">
+    <system.web>
+      <httpHandlers>
+        <clear />
+      </httpHandlers>
+    </system.web>
+    <system.webServer>
+      <handlers>
+        <clear />
+        <add name="StaticFile" path="*" verb="*" modules="StaticFileModule,DefaultDocumentModule,DirectoryListingModule" resourceType="Either" requireAccess="Read" />
+      </handlers>
+      <httpProtocol>
+        <customHeaders>
+          <remove name="X-Powered-By" />
+        </customHeaders>
+      </httpProtocol>
+    </system.webServer>
+  </location>
+  <location path="Scripts">
+    <system.web>
+      <httpHandlers>
+        <clear />
+      </httpHandlers>
+    </system.web>
+    <system.webServer>
+      <handlers>
+        <clear />
+        <add name="StaticFile" path="*" verb="*" modules="StaticFileModule,DefaultDocumentModule,DirectoryListingModule" resourceType="Either" requireAccess="Read" />
+      </handlers>
+      <httpProtocol>
+        <customHeaders>
+          <remove name="X-Powered-By" />
+        </customHeaders>
+      </httpProtocol>
+    </system.webServer>
+  </location>
+  <location path="Public">
+    <system.web>
+      <httpHandlers>
+        <clear />
+      </httpHandlers>
+    </system.web>
+    <system.webServer>
+      <handlers>
+        <clear />
+        <add name="StaticFile" path="*" verb="*" modules="StaticFileModule,DefaultDocumentModule,DirectoryListingModule" resourceType="Either" requireAccess="Read" />
+      </handlers>
+      <httpProtocol>
+        <customHeaders>
+          <remove name="X-Powered-By" />
+        </customHeaders>
+      </httpProtocol>
+    </system.webServer>
+  </location>
+  <!--
+    For a description of web.config changes see http://go.microsoft.com/fwlink/?LinkId=235367.
+
+    The following attributes can be set on the <httpRuntime> tag.
+      <system.Web>
+        <httpRuntime targetFramework="4.5.2" />
+      </system.Web>
+  -->
+  <system.web>
+    <authentication mode="Forms">
+      <forms loginUrl="~/users/account/LogOn" timeout="120" />
+    </authentication>
+    <compilation debug="true" targetFramework="4.5.2" />
+    <pages controlRenderingCompatibilityVersion="4.0">
+      <namespaces>
+        <add namespace="System.Web.Helpers" />
+        <add namespace="System.Web.Mvc" />
+        <add namespace="System.Web.Mvc.Ajax" />
+        <add namespace="System.Web.Mvc.Html" />
+        <add namespace="System.Web.Routing" />
+        <add namespace="System.Web.WebPages" />
+      </namespaces>
+    <controls>
+        <add tagPrefix="ef" assembly="Microsoft.AspNet.EntityDataSource" namespace="Microsoft.AspNet.EntityDataSource" />
+      </controls></pages>
+    <httpRuntime targetFramework="4.5" maxQueryStringLength="12000" maxRequestLength="2000000000" requestPathInvalidCharacters="&lt;,&gt;,*,%,:,\,?" enableVersionHeader="false" />
+
+    <httpModules>
+      <add name="ErrorFilter" type="Elmah.ErrorFilterModule, Elmah" />
+      <add name="ErrorLog" type="Elmah.ErrorLogModule, Elmah" />
+      <add name="ErrorMail" type="Elmah.ErrorMailModule, Elmah" />
+      <add name="AsyncFileUpload" type="NuGetGallery.AsyncFileUpload.AsyncFileUploadModule, NuGetGallery" />
+      <add name="ApplicationInsightsWebTracking" type="Microsoft.ApplicationInsights.Extensibility.Web.ApplicationInsightsHttpModule, Microsoft.ApplicationInsights.Extensibility.Web" />
+      <add name="Glimpse" type="Glimpse.AspNet.HttpModule, Glimpse.AspNet" />
+    </httpModules>
+    <httpHandlers>
+      <!-- Remove Default HTTP Handler -->
+      <remove path="*" verb="GET,HEAD,POST" />
+    </httpHandlers>
+    <!-- Note: The Error.html file is in the ~/Public folder, but the URL Rewrite rules below take ~/Error.html and rewrite it appropriately. -->
+    <customErrors mode="RemoteOnly" defaultRedirect="~/Error.html">
+      <error statusCode="404" redirect="~/Errors/404" />
+      <error statusCode="500" redirect="~/Errors/500" />
+    </customErrors>
+    <sessionState mode="Off" />
+  </system.web>
+  <system.webServer>
+    <tracing>
+      <traceFailedRequests>
+        <clear />
+        <add path="*">
+          <traceAreas>
+            <add provider="ASPNET" areas="Infrastructure,Module,Page,AppServices" verbosity="Warning" />
+          </traceAreas>
+          <failureDefinitions statusCodes="500-599" />
+        </add>
+      </traceFailedRequests>
+    </tracing>
+    <httpProtocol>
+      <customHeaders>
+        <remove name="X-Powered-By" />
+        <add name="X-Frame-Options" value="deny" />
+        <add name="X-XSS-Protection" value="1; mode=block" />
+        <add name="X-Content-Type-Options" value="nosniff" />
+        <add name="Strict-Transport-Security" value="max-age=31536000" />
+      </customHeaders>
+    </httpProtocol>
+    <handlers>
+      <!-- This is an essential part of the security configuration, since we disable request filtering in order
+            to support Package IDs with ".vb", ".config", etc. We MUST remove the ability to serve static files from the main
+            site. Only the ~/Public folder supports static file serving. DO NOT remove this setting without a security review -->
+      <remove name="StaticFile" />
+    </handlers>
+    <modules runAllManagedModulesForAllRequests="true">
+      <add name="ErrorLog" type="Elmah.ErrorLogModule, Elmah" preCondition="managedHandler" />
+      <add name="ErrorMail" type="Elmah.ErrorMailModule, Elmah" preCondition="managedHandler" />
+      <add name="ErrorFilter" type="Elmah.ErrorFilterModule, Elmah" preCondition="managedHandler" />
+      <add name="AsyncFileUpload" type="NuGetGallery.AsyncFileUpload.AsyncFileUploadModule, NuGetGallery" preCondition="managedHandler" />
+      <add name="Glimpse" type="Glimpse.AspNet.HttpModule, Glimpse.AspNet" preCondition="integratedMode" />
+      <remove name="ApplicationInsightsWebTracking" />
+      <add name="ApplicationInsightsWebTracking" type="Microsoft.ApplicationInsights.Extensibility.Web.ApplicationInsightsHttpModule, Microsoft.ApplicationInsights.Extensibility.Web" preCondition="managedHandler" />
+      <remove name="RoleManager" />
+    </modules>
+    <validation validateIntegratedModeConfiguration="false" />
+    <httpErrors errorMode="DetailedLocalOnly">
+      <remove statusCode="404" subStatusCode="-1" />
+      <error statusCode="404" path="/Errors/404" responseMode="ExecuteURL" />
+      <remove statusCode="500" subStatusCode="-1" />
+      <error statusCode="403" subStatusCode="502" path="/Blocked.html" responseMode="ExecuteURL" />
+      <error statusCode="403" subStatusCode="503" path="/Blocked.html" responseMode="ExecuteURL" />
+      <error statusCode="403" subStatusCode="6" path="/Blocked.html" responseMode="ExecuteURL" />
+      <!-- Note: The Error.html file is in the ~/Public folder, but the URL Rewrite rules below take ~/Error.html and rewrite it appropriately. -->
+      <!-- Here, we use an HTML page instead of /Errors/500 because if IIS gets a 500, it's a Bad Time(TM) -->
+      <error statusCode="500" path="/Error.html" responseMode="ExecuteURL" />
+    </httpErrors>
+    <security>
+      <requestFiltering>
+        <!-- Clearing hidden segments and file extensions is done to allow Package IDs with ".vb", ".config", etc.
+                in their name to be served. As a result, we disable static file serving above. DO NOT change these settings
+                without a security review -->
+        <fileExtensions>
+          <clear />
+        </fileExtensions>
+        <hiddenSegments>
+          <clear />
+        </hiddenSegments>
+        <!-- maxAllowedContentLength = 250MB * 1024 * 1024 = 262144000 -->
+        <requestLimits maxQueryString="12000" maxAllowedContentLength="262144000" />
+      </requestFiltering>
+    </security>
+    <httpCompression directory="%SystemDrive%\inetpub\temp\IIS Temporary Compressed Files">
+      <scheme name="gzip" dll="%Windir%\system32\inetsrv\gzip.dll" />
+      <dynamicTypes>
+        <add mimeType="text/*" enabled="true" />
+        <add mimeType="message/*" enabled="true" />
+        <add mimeType="application/javascript" enabled="true" />
+        <add mimeType="application/x-javascript" enabled="true" />
+        <add mimetype="application/json" enabled="true" />
+        <add mimetype="application/atom+xml" enabled="true" />
+        <add mimetype="application/atom+xml;charset=utf-8" enabled="true" />
+        <add mimetype="application/atom+xml; type=feed" enabled="true" />
+        <add mimetype="application/atom+xml; type=feed; charset=utf-8" enabled="true" />
+        <add mimeType="*/*" enabled="false" />
+      </dynamicTypes>
+      <staticTypes>
+        <add mimeType="text/*" enabled="true" />
+        <add mimeType="message/*" enabled="true" />
+        <add mimeType="application/javascript" enabled="true" />
+        <add mimeType="application/x-javascript" enabled="true" />
+        <add mimetype="application/json" enabled="true" />
+        <add mimetype="application/atom+xml" enabled="true" />
+        <add mimetype="application/atom+xml;charset=utf-8" enabled="true" />
+        <add mimetype="application/atom+xml; type=feed" enabled="true" />
+        <add mimetype="application/atom+xml; type=feed; charset=utf-8" enabled="true" />
+        <add mimeType="*/*" enabled="false" />
+      </staticTypes>
+    </httpCompression>
+    <urlCompression doStaticCompression="true" doDynamicCompression="true" />
+    <rewrite>
+      <rewriteMaps>
+        <rewriteMap name="MapProtocol" defaultValue="OFF">
+          <add key="ON" value="https://" />
+          <add key="OFF" value="http://" />
+        </rewriteMap>
+      </rewriteMaps>
+      <rules>
+        <rule name="Rewrite Public File">
+          <match url="^(.*)$" />
+          <conditions logicalGrouping="MatchAll">
+            <add input="{APPL_PHYSICAL_PATH}public\{R:1}" matchType="IsFile" />
+          </conditions>
+          <action type="Rewrite" url="public/{R:1}" />
+        </rule>
+        <rule name="Canonicalize Domain Name">
+          <match url="^(.*)$" />
+          <conditions>
+            <add input="{HTTP_HOST}" pattern="^nuget\.org$" />
+          </conditions>
+          <action type="Redirect" url="{MapProtocol:{HTTPS}}www.nuget.org/{R:1}" redirectType="Permanent" />
+        </rule>
+        <rule name="Legacy feed root URL" stopProcessing="true">
+          <match url="^$" />
+          <conditions>
+            <add input="{HTTP_HOST}" pattern="^packages([0-9]?)\.nuget.org$" />
+          </conditions>
+          <action type="Redirect" url="http://packages.nuget.org/v1/FeedService.svc" redirectType="Permanent" />
+        </rule>
+        <rule name="Legacy image icon URL" stopProcessing="true">
+          <match url="^media/default/packages/([a-z0-9_][a-z0-9._-]*)/([0-9.]+)/[\w._ -]+\.([a-z]+)$" />
+          <action type="Redirect" url="https://nugetgallery.blob.core.windows.net/icons/{R:1}.{R:2}.{R:3}" redirectType="Permanent" />
+        </rule>
+        <rule name="Rename DotNetFramework Feed">
+          <match url="^api/v2/curated-feeds/dotnetframework(.*)$" />
+          <action url="{MapProtocol:{HTTPS}}{HTTP_HOST}/api/v2/curated-feeds/microsoftdotnet{R:1}" type="Redirect" redirectType="Permanent" />
+        </rule>
+        <rule name="Rename DotNetFramework Feed Format 2">
+          <match url="^api/v2/curated-feed(.*)name=dotnetframework(.*)$" />
+          <action url="{MapProtocol:{HTTPS}}{HTTP_HOST}/api/v2/curated-feed/{R:1}name=microsoftdotnet{R:2}" type="Redirect" redirectType="Permanent" />
+        </rule>
+        <rule name="Curated Feed Download URL" stopProcessing="true">
+          <match url="^api/v2/curated-feeds/package/" />
+          <action type="None" />
+        </rule>
+        <rule name="Curated Feed" stopProcessing="true">
+          <match url="^api/v2/curated-feeds/([^/]+)(.*)$" />
+          <action type="Rewrite" url="api/v2/curated-feed{R:2}?name={R:1}" />
+        </rule>
+      </rules>
+    </rewrite>
+  </system.webServer>
+  <runtime>
+    <assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1">
+      <dependentAssembly>
+        <assemblyIdentity name="System.Web.Mvc" publicKeyToken="31bf3856ad364e35" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-5.2.3.0" newVersion="5.2.3.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="Autofac" publicKeyToken="17863af14b0044da" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-3.5.0.0" newVersion="3.5.0.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="Microsoft.Owin" publicKeyToken="31bf3856ad364e35" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-3.0.1.0" newVersion="3.0.1.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="System.Web.Http" publicKeyToken="31bf3856ad364e35" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-5.2.3.0" newVersion="5.2.3.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="System.Net.Http.Formatting" publicKeyToken="31bf3856ad364e35" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-5.2.3.0" newVersion="5.2.3.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="EntityFramework" publicKeyToken="b77a5c561934e089" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-6.0.0.0" newVersion="6.0.0.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="System.Net.Http.Primitives" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-4.2.29.0" newVersion="4.2.29.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="Microsoft.Data.Edm" publicKeyToken="31bf3856ad364e35" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-5.6.5.0" newVersion="5.6.5.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="Microsoft.Data.Services.Client" publicKeyToken="31bf3856ad364e35" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-5.6.5.0" newVersion="5.6.5.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="Microsoft.Data.OData" publicKeyToken="31bf3856ad364e35" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-5.6.5.0" newVersion="5.6.5.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="Newtonsoft.Json" publicKeyToken="30ad4fe6b2a6aeed" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-6.0.0.0" newVersion="6.0.0.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="System.Web.WebPages" publicKeyToken="31bf3856ad364e35" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-3.0.0.0" newVersion="3.0.0.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="System.Spatial" publicKeyToken="31bf3856ad364e35" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-5.6.5.0" newVersion="5.6.5.0" />
+      </dependentAssembly>
+    </assemblyBinding>
+  </runtime>
+  <system.serviceModel>
+    <serviceHostingEnvironment aspNetCompatibilityEnabled="true" multipleSiteBindingsEnabled="true" />
+  </system.serviceModel>
+  <entityFramework>
+    <defaultConnectionFactory type="System.Data.Entity.Infrastructure.SqlConnectionFactory, EntityFramework">
+      <parameters>
+        <parameter value="Data Source=(LocalDB)\v11.0;Initial Catalog=NuGetGallery;Integrated Security=SSPI" />
+      </parameters>
+    </defaultConnectionFactory>
+    <providers>
+      <provider invariantName="System.Data.SqlClient" type="System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer" />
+    </providers>
+  </entityFramework>
+  <glimpse defaultRuntimePolicy="On" endpointBaseUri="~/Admin/Glimpse" serviceLocatorType="NuGetGallery.Diagnostics.GlimpseServiceLocator, NuGetGallery">
+    <runtimePolicies>
+      <ignoredTypes>
+        <add type="Glimpse.AspNet.Policy.LocalPolicy, Glimpse.AspNet" />
+        <add type="Glimpse.Core.Policy.ControlCookiePolicy, Glimpse.Core" />
+      </ignoredTypes>
+    </runtimePolicies>
+    <inspectors>
+      <ignoredTypes>
+        <add type="Glimpse.Mvc.Inspector.ExecutionInspector, Glimpse.Mvc5" />
+      </ignoredTypes>
+    </inspectors>
+    <tabs>
+      <ignoredTypes>
+        <add type="Glimpse.Mvc.Tab.Execution, Glimpse.Mvc5" />
+      </ignoredTypes>
+    </tabs>
+  </glimpse>
+</configuration>
