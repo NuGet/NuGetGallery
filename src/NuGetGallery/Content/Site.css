@@ -790,11 +790,6 @@ ul.pager {
     padding-top: 10px;
 }
 
-.statistics-total {
-    font-weight: bold;
-    font-size: 1.5em;
-}
-
 .statistics-rank {
     font-size: 0.8em;
 }
@@ -806,6 +801,10 @@ ul.pager {
     font-size: 1.25em;
     font-weight: normal;
     padding: 5px 10px 0 0;
+}
+
+.statistics-pivot {
+    padding-top: 25px;
 }
 
 .statistics-graph {
