@@ -14,15 +14,19 @@ BEGIN
 			CASE
 				WHEN	C.ClientCategory = 'Script'
 				THEN	'Scripted Downloads'
+				WHEN	C.ClientCategory = 'Browser'
+				THEN	'Browsers'
+				WHEN	C.ClientCategory = 'Mobile'
+				THEN	'Browsers (Mobile)'
 				ELSE	C.ClientName
 			END AS ClientName,
 			CASE
-				WHEN	C.ClientCategory = 'Script'
+				WHEN	C.ClientCategory IN ('Script', 'Browser', 'Mobile')
 				THEN	'0'
 				ELSE	C.Major
 			END AS Major,
 			CASE
-				WHEN	C.ClientCategory = 'Script'
+				WHEN	C.ClientCategory IN ('Script', 'Browser', 'Mobile')
 				THEN	'0'
 				ELSE	C.Minor
 			END AS Minor,
@@ -55,16 +59,20 @@ BEGIN
 				CASE
 					WHEN	C.ClientCategory = 'Script'
 					THEN	'Scripted Downloads'
+					WHEN	C.ClientCategory = 'Browser'
+					THEN	'Browsers'
+					WHEN	C.ClientCategory = 'Mobile'
+					THEN	'Browsers (Mobile)'
 					ELSE	C.ClientName
 				END,
 				C.ClientCategory,
 				CASE
-					WHEN	C.ClientCategory = 'Script'
+					WHEN	C.ClientCategory IN ('Script', 'Browser', 'Mobile')
 					THEN	'0'
 					ELSE	C.Major
 				END,
 				CASE
-					WHEN	C.ClientCategory = 'Script'
+					WHEN	C.ClientCategory IN ('Script', 'Browser', 'Mobile')
 					THEN	'0'
 					ELSE	C.Minor
 				END,
