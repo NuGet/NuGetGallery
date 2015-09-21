@@ -521,9 +521,9 @@ namespace NuGetGallery
         private static void ValidateNuGetPackageMetadata(IPackageMetadata nugetPackage)
         {
             // TODO: Change this to use DataAnnotations
-            if (nugetPackage.Id.Length > 128)
+            if (nugetPackage.Id.Length > 100)
             {
-                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", "128");
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", "100");
             }
             if (nugetPackage.Authors != null && nugetPackage.Authors.Flatten().Length > 4000)
             {
