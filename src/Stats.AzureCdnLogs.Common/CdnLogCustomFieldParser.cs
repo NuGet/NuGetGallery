@@ -24,7 +24,7 @@ namespace Stats.AzureCdnLogs.Common
 
             // extract all custom fields
             var dictionary = new Dictionary<string, string>();
-            var customFields = Regex.Matches(temp, @"(?<key>[^\s]+[:]{1})[\s]{1}(?<value>([-]{1}\s)|(\w+((\s)|([-]{1}\w+\s)))|(([\{]{1}[0-9a-fA-F]{8}[-]{1}[0-9a-fA-F]{4}[-]{1}[0-9a-fA-F]{4}[-]{1}[0-9a-fA-F]{4}[-]{1}[0-9a-fA-F]{12}[\}]{1}[;]?)+\s?)|([a-zA-Z0-9\/\.\s\(\;\)]*))");
+            var customFields = Regex.Matches(temp, @"(?<key>[^\s]+[:]{1})[\s]{1}(?<value>([-]{1}\s)|(\w+((\s)|([-]{1}\w+\s)))|(([\{]{1}[0-9a-fA-F]{8}[-]{1}[0-9a-fA-F]{4}[-]{1}[0-9a-fA-F]{4}[-]{1}[0-9a-fA-F]{4}[-]{1}[0-9a-fA-F]{12}[\}]{1}[;]?)+\s?)|([a-zA-Z.]*\s)|([a-zA-Z0-9\/\.\s\(\;\)]*))");
 
             foreach (Match match in customFields)
             {

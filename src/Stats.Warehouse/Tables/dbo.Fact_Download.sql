@@ -4,7 +4,6 @@
     [Dimension_Date_Id]				INT NOT NULL,
     [Dimension_Time_Id]				INT NOT NULL,
     [Dimension_Operation_Id]		INT NOT NULL,
-    [Dimension_ProjectType_Id]		INT NOT NULL,
     [Dimension_Client_Id]			INT NOT NULL,
     [Dimension_Platform_Id]			INT NOT NULL,
     [Fact_UserAgent_Id]				INT NOT NULL,
